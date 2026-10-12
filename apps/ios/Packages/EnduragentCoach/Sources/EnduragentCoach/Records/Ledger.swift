@@ -79,6 +79,11 @@ package actor Ledger {
 		return next
 	}
 
+	package func reserveReset() async throws(LedgerFailure) -> ReservedReset {
+		try await openIfNeeded()
+		return ReservedReset(id: ResetID(ulid: nextULID()), boundary: nextClock())
+	}
+
 	package func read(_ query: RecordQuery) async throws(LedgerFailure) -> RecordPage {
 		try await openIfNeeded()
 		return try await fetch(query)

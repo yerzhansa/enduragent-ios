@@ -16,28 +16,6 @@ public enum TurnState: Sendable, Equatable {
 		}
 	}
 
-	public var retryable: Bool {
-		switch self {
-		case .accepted(.awaitingRestart):
-			return true
-		case .failed(let failed):
-			switch failed.notice.action {
-			case .tryAgain?:
-				return true
-			case .wait?, .restoreCredits?, .buyCredits?, .chooseAccessMethod?, .signInToOpenRouter?,
-				nil:
-				return false
-			}
-		case .interrupted(let interrupted):
-			if case .tryAgain = interrupted.notice.action {
-				return true
-			}
-			return false
-		case .accepted, .processing, .completed, .savedWork, .unrecovered:
-			return false
-		}
-	}
-
 	public enum Accepted: Sendable, Equatable {
 		case collecting(until: Date)
 		case queued(position: Int)
@@ -64,7 +42,7 @@ public enum TurnState: Sendable, Equatable {
 	public struct Failed: Sendable, Equatable {
 		public let failure: CoachFailure
 		public let saved: WriteSummary
-		public let notice: AthleteNotice
+		public let notice: AthleteNotice?
 	}
 
 	public struct Interrupted: Sendable, Equatable {
@@ -108,4 +86,12 @@ public enum InterruptionCause: String, Sendable, CaseIterable {
 
 public enum ReplyText: Sendable, Equatable {
 	case model(String)
+	case catalog(CatalogKey)
+
+	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
+		switch self {
+		case .model(let text): text
+		case .catalog(let key): phrasebook.say(key)
+		}
+	}
 }

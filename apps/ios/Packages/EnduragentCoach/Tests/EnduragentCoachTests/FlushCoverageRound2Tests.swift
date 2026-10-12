@@ -66,7 +66,9 @@ import Testing
 				for: FlushJobID(ulid: fixedUlid(3)), messages: [], origin: .beforeUpgrade),
 			reset: nil)
 		#expect(
-			conversation.flushMessages(for: legacy).map(\.text) == ["archived", "archived reply"])
+			conversation.flushRows(for: legacy).map(\.message.text) == [
+				"archived", "archived reply",
+			])
 		#expect(
 			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
 				fixedUlid(5), fixedUlid(6),
@@ -134,7 +136,7 @@ extension ExecutionLeaseTests {
 		await relaunched.lifecycle(.willTerminate)
 
 		#expect(recoveryHost.leases.isEmpty)
-		#expect(recording.batches == [["providerConsent"]])
+		#expect(recording.batches == [["providerConsent"], ["trainingIdentityObserved"]])
 		#expect(sent(.memoryFlush, by: transport).isEmpty)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending]))).records.count

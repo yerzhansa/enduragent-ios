@@ -2,6 +2,7 @@ import Foundation
 
 enum SyncedPayload: Encodable {
 	case userMessage(UserMessagePayload)
+	case attemptQuestion(AttemptQuestionPayload)
 	case turnSettled(TurnSettledPayload)
 	case windowStart(WindowStartPayload)
 	case compactionSummary(CompactionSummaryPayload)
@@ -13,11 +14,16 @@ enum SyncedPayload: Encodable {
 	case coachReplyLanguage(CoachReplyLanguagePayload)
 	case planningDevice(PlanningDevicePayload)
 	case reviewApplied(ReviewAppliedPayload)
+	case reviewWrite(ReviewWritePayload)
+	case reviewCancelledUnknown(ReviewCancelledUnknownPayload)
 	case sessionSettings(SessionSettingsPayload)
 	case languagePreference(LanguagePreferencePayload)
+	case trainingIdentityObserved
 
 	init(_ body: SyncedRecordBody) {
 		switch body {
+		case .attemptQuestion(let value):
+			self = .attemptQuestion(AttemptQuestionPayload(value))
 		case .userMessage(let value):
 			self = .userMessage(
 				UserMessagePayload(
@@ -37,7 +43,8 @@ enum SyncedPayload: Encodable {
 					chatId: value.chatId.rawValue,
 					firstIncludedUlid: value.firstIncludedUlid.rawValue,
 					reason: encodeWindowReason(value.reason),
-					droppedMessageUlids: value.droppedMessageUlids?.map(\.rawValue)
+					droppedMessageUlids: value.droppedMessageUlids?.map(\.rawValue),
+					boundaryClock: value.boundaryClock.map(HybridLogicalClockPayload.init)
 				)
 			)
 		case .compactionSummary(let value):
@@ -82,16 +89,23 @@ enum SyncedPayload: Encodable {
 		case .reviewApplied(let value):
 			self = .reviewApplied(
 				ReviewAppliedPayload(value))
+		case .reviewWrite(let value):
+			self = .reviewWrite(ReviewWritePayload(value))
+		case .reviewCancelledUnknown(let value):
+			self = .reviewCancelledUnknown(ReviewCancelledUnknownPayload(value))
 		case .sessionSettings(let value):
 			self = .sessionSettings(SessionSettingsPayload(value))
 		case .languagePreference(let value):
 			self = .languagePreference(LanguagePreferencePayload(value))
+		case .trainingIdentityObserved:
+			self = .trainingIdentityObserved
 		}
 	}
 
 	func encode(to encoder: Encoder) throws {
 		switch self {
 		case .userMessage(let payload): try payload.encode(to: encoder)
+		case .attemptQuestion(let payload): try payload.encode(to: encoder)
 		case .turnSettled(let payload): try payload.encode(to: encoder)
 		case .windowStart(let payload): try payload.encode(to: encoder)
 		case .compactionSummary(let payload): try payload.encode(to: encoder)
@@ -103,13 +117,18 @@ enum SyncedPayload: Encodable {
 		case .coachReplyLanguage(let payload): try payload.encode(to: encoder)
 		case .planningDevice(let payload): try payload.encode(to: encoder)
 		case .reviewApplied(let payload): try payload.encode(to: encoder)
+		case .reviewWrite(let payload): try payload.encode(to: encoder)
+		case .reviewCancelledUnknown(let payload): try payload.encode(to: encoder)
 		case .sessionSettings(let payload): try payload.encode(to: encoder)
 		case .languagePreference(let payload): try payload.encode(to: encoder)
+		case .trainingIdentityObserved:
+			_ = encoder.container(keyedBy: IdentityObservationKey.self)
 		}
 	}
 }
 
 enum DeviceLocalPayload: Encodable {
+	case openRouterKeyRejected(RejectedOpenRouterKeyPayload)
 	case providerConsent(ProviderConsentPayload)
 	case turnClaim(TurnClaimPayload)
 	case replyObserved(TurnAttemptPayload)
@@ -126,6 +145,8 @@ enum DeviceLocalPayload: Encodable {
 
 	init(_ body: DeviceLocalRecordBody) {
 		switch body {
+		case .openRouterKeyRejected(let value):
+			self = .openRouterKeyRejected(RejectedOpenRouterKeyPayload(value))
 		case .providerConsent(let value): self = .providerConsent(ProviderConsentPayload(value))
 		case .turnClaim(let value):
 			self = .turnClaim(
@@ -150,6 +171,7 @@ enum DeviceLocalPayload: Encodable {
 		case .pendingProposal(let value):
 			self = .pendingProposal(
 				ProposalPayload(
+					writeID: value.writeID?.rawValue,
 					chatId: value.chatId.rawValue,
 					nonce: value.nonce.rawValue,
 					tool: value.tool.rawValue,
@@ -226,6 +248,7 @@ enum DeviceLocalPayload: Encodable {
 
 	func encode(to encoder: Encoder) throws {
 		switch self {
+		case .openRouterKeyRejected(let payload): try payload.encode(to: encoder)
 		case .providerConsent(let payload): try payload.encode(to: encoder)
 		case .turnClaim(let payload): try payload.encode(to: encoder)
 		case .replyObserved(let payload): try payload.encode(to: encoder)
@@ -242,3 +265,5 @@ enum DeviceLocalPayload: Encodable {
 		}
 	}
 }
+
+private enum IdentityObservationKey: CodingKey {}

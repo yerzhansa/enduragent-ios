@@ -4,6 +4,12 @@ public struct SessionSettings: Sendable, Equatable {
 	public var historyBudgetRatio: HistoryBudgetRatio
 	public var contextWindowOverride: ContextWindowOverride?
 
+	package var effectiveContextWindow: Int {
+		min(
+			contextWindowOverride?.tokens ?? TurnPolicy.contextWindowCap,
+			TurnPolicy.contextWindowCap)
+	}
+
 	public static let npmDefaults = SessionSettings(
 		historyBudgetRatio: .npmDefault,
 		contextWindowOverride: nil
@@ -16,7 +22,7 @@ public struct SessionSettings: Sendable, Equatable {
 		switch field {
 		case .historyBudgetRatio:
 			next.historyBudgetRatio = try HistoryBudgetRatio(
-				try Self.number(text, for: field))
+				try Self.number(text, for: field) / 100)
 		case .contextWindowOverride where Self.isBlank(text):
 			next.contextWindowOverride = nil
 		case .contextWindowOverride:
@@ -28,7 +34,7 @@ public struct SessionSettings: Sendable, Equatable {
 
 	public func text(for field: SessionField) -> String {
 		switch field {
-		case .historyBudgetRatio: String(historyBudgetRatio.value)
+		case .historyBudgetRatio: historyBudgetRatio.percentText
 		case .contextWindowOverride: contextWindowOverride.map { String($0.tokens) } ?? ""
 		}
 	}
@@ -69,6 +75,11 @@ public struct HistoryBudgetRatio: Sendable, Equatable {
 
 	private init(unchecked value: Double) {
 		self.value = value
+	}
+
+	fileprivate var percentText: String {
+		let percent = (value * 10_000_000_000).rounded() / 100_000_000
+		return percent == percent.rounded() ? String(Int(percent)) : String(percent)
 	}
 }
 
@@ -112,27 +123,5 @@ public enum SessionField: Sendable, Equatable, Hashable, CaseIterable {
 		case .historyBudgetRatio: Catalog.settingsConversationValidationHistoryTokenBudgetRatio
 		case .contextWindowOverride: Catalog.settingsConversationValidationContextWindowTokens
 		}
-	}
-}
-
-package struct ModelRoles: Sendable, Equatable {
-	package let chat: ModelID
-	package let compaction: ModelID
-	package let flush: ModelID
-	package let chatWindow: Int
-
-	package init(response: ModelID, session: SessionSettings) {
-		self.chat = response
-		self.compaction = response
-		self.flush = response
-		self.chatWindow = min(
-			session.contextWindowOverride?.tokens ?? TurnPolicy.contextWindowCap,
-			TurnPolicy.contextWindowCap)
-	}
-}
-
-extension ResolvedAccess {
-	package func using(model: ModelID) -> ResolvedAccess {
-		ResolvedAccess(credential: credential, model: model)
 	}
 }

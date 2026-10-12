@@ -1,4 +1,5 @@
 import EnduragentCoachFixtures
+import Foundation
 import Testing
 
 @testable import EnduragentCoach
@@ -14,56 +15,45 @@ import Testing
 			transport: transport, intervals: intervals, store: store, clock: clock)
 	}
 
-	@Test func coachStartsWithNoHistory() async throws {
-		let coach = await makeCoach()
-		#expect(await coach.transcript(.main).isEmpty)
-	}
-
-	@Test func historyPropagatesARecordReadFailure() async {
-		let failing = FaultInjectingRecordLog(wrapping: store)
-		let coach = await EnduragentCoachTests.makeCoach(
-			transport: transport, intervals: intervals, store: failing, clock: clock)
-		failing.failFetches = true
-		await #expect(throws: HistoryUnavailable.storageUnavailable) {
-			try await coach.history()
-		}
-	}
-
 	@Test func replyFinishesWithTheAssembledRequest() async throws {
 		let pacing = HeldClock()
+		let coalescing = HeldClock()
 		let transport = FakeModelTransport(clock: pacing)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),
 			], deltaDelay: .milliseconds(1), otherwise: transport.respond)
 		let coach = await EnduragentCoachTests.makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: clock)
+			transport: transport, intervals: intervals, store: store, clock: clock,
+			coalescingClock: coalescing)
 		let turn = try #require(
 			try await coach.send(draft("What did my week look like?"), to: .main).acceptedTurn)
+		try await coalescing.waitUntilHeld(quickWindow.window)
+		coalescing.advance(by: quickWindow.window)
 		var liveTexts: [String] = []
 		var settled: TurnState?
 		let snapshots = await coach.observe(.main)
 		for text in ["Your week: ", "Your week: two rides, 3 h 10 min."] {
-			let held = try await beforeDeadline(within: .seconds(2)) {
+			let held = try await beforeDeadline(within: .hangGuard) {
 				try await pacing.waitUntilHeld(.milliseconds(1))
 				return true
 			}
 			try #require(held == true)
 			pacing.advance(by: .milliseconds(1))
 			_ = try #require(
-				try await firstSnapshot(in: snapshots, within: .seconds(2)) { snapshot in
+				try await firstSnapshot(in: snapshots, within: .hangGuard) { snapshot in
 					guard case .processing? = snapshot.turns.first?.state else { return false }
 					return snapshot.liveReply?.text == text
 				})
 			liveTexts.append(text)
 		}
-		let finishing = try await beforeDeadline(within: .seconds(2)) {
+		let finishing = try await beforeDeadline(within: .hangGuard) {
 			try await pacing.waitUntilHeld(.milliseconds(1))
 			return true
 		}
 		try #require(finishing == true)
 		pacing.advance(by: .milliseconds(1))
-		settled = try #require(await coach.settledState(of: turn, in: .main, within: .seconds(2)))
+		settled = try #require(await coach.settledState(of: turn, in: .main, within: .hangGuard))
 		#expect(liveTexts.contains("Your week: "))
 		#expect(replyText(try #require(settled)) == "Your week: two rides, 3 h 10 min.")
 		#expect(await coach.transcript(.main).count == 2)
@@ -81,9 +71,10 @@ import Testing
 		#expect(request.messages.first?.content.hasPrefix("# Cycling Coach") == true)
 	}
 
-	@Test func providerErrorFinishWithTextPersistsTheReply() async throws {
+	@Test(arguments: [FinishReason.error, .contentFilter])
+	func providerFailureFinishWithTextPersistsTheReply(reason: FinishReason) async throws {
 		transport.respond = ScriptedReply.sequence(
-			[.text("Tomorrow's ride is queued."), .finish(reason: .error)], for: .chat,
+			[.text("Tomorrow's ride is queued."), .finish(reason: reason)], for: .chat,
 			otherwise: transport.respond)
 		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
@@ -95,15 +86,6 @@ import Testing
 			])
 	}
 
-	@Test func providerContentFilterFinishWithTextPersistsTheReply() async throws {
-		transport.respond = ScriptedReply.sequence(
-			[.text("Tomorrow's ride is queued."), .finish(reason: .contentFilter)], for: .chat,
-			otherwise: transport.respond)
-		let coach = await makeCoach()
-		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
-		#expect(replyText(settled) == "Tomorrow's ride is queued.")
-	}
-
 	@Test func emptyProviderErrorFinishFailsWithoutAReply() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: .error)], otherwise: transport.respond)
@@ -111,7 +93,7 @@ import Testing
 		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
 		#expect(failure(settled) == .model(.generationFailed(.emptyAfterError)))
 		guard case .failed(let failed) = settled else { return }
-		#expect(failed.notice.key == Catalog.chatNoticeResponseFailure)
+		#expect(failed.notice?.key == Catalog.chatNoticeResponseFailure)
 		#expect(await coach.transcript(.main) == ["Give me a ride for tomorrow"])
 		let replies = try await store.fetch(
 			RecordQuery(scope: .synced([.turnSettled]), chatId: .main)
@@ -168,10 +150,10 @@ import Testing
 		#expect(review.ref.chat == "main")
 		let card = try #require(review.cards.first)
 		#expect(card.action == .add)
-		#expect(card.name.sentence(in: LanguageTag.en.phrasebook) == "Endurance")
+		#expect(card.name.sentence(in: displayLocale()) == "Endurance")
 		#expect(card.date == "1998-06-14")
 		#expect(
-			card.lines(in: LanguageTag.en.phrasebook).joined(separator: "\n").hasPrefix(
+			card.lines(in: displayLocale()).joined(separator: "\n").hasPrefix(
 				"Warmup\n- 10m 55-65%"))
 		#expect(
 			review.totals
@@ -203,7 +185,7 @@ import Testing
 		let coach = await makeCoach()
 		let review = try await proposeEnduranceRide(coach)
 		#expect(
-			review.cards.map { $0.name.sentence(in: LanguageTag.en.phrasebook) } == ["Endurance"])
+			review.cards.map { $0.name.sentence(in: displayLocale()) } == ["Endurance"])
 		#expect(
 			await coach.transcript(.main).contains("I've prepared the ride. Confirm to add it."))
 	}

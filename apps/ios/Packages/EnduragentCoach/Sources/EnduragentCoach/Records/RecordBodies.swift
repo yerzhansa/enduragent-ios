@@ -7,6 +7,18 @@ package struct UserMessageBody: Sendable, Equatable {
 	package var draft: DraftID
 	package var athleteText: String
 	package var slash: SlashCommand?
+
+	package init(
+		chatId: ChatID, turn: TurnID, fragment: Int, draft: DraftID, athleteText: String,
+		slash: SlashCommand?
+	) {
+		self.chatId = chatId
+		self.turn = turn
+		self.fragment = fragment
+		self.draft = draft
+		self.athleteText = athleteText
+		self.slash = slash
+	}
 }
 
 package struct TurnSettledBody: Sendable, Equatable {
@@ -14,6 +26,13 @@ package struct TurnSettledBody: Sendable, Equatable {
 	package var turn: TurnID
 	package var attempt: AttemptID
 	package var settlement: Settlement
+
+	package init(chatId: ChatID, turn: TurnID, attempt: AttemptID, settlement: Settlement) {
+		self.chatId = chatId
+		self.turn = turn
+		self.attempt = attempt
+		self.settlement = settlement
+	}
 }
 
 package enum Settlement: Sendable, Equatable {
@@ -47,6 +66,7 @@ package struct WindowStartBody: Sendable, Equatable {
 	package var firstIncludedUlid: ULID
 	package var reason: WindowReason
 	package var droppedMessageUlids: [ULID]? = nil
+	package var boundaryClock: HybridLogicalClock? = nil
 }
 
 package enum WindowReason: Sendable, Equatable {
@@ -90,6 +110,7 @@ package struct ProvenanceBody: Sendable, Equatable {
 }
 
 package struct ProposalBody: Sendable, Equatable {
+	package var writeID: CalendarWriteID? = nil
 	package var chatId: ChatID
 	package var nonce: Nonce
 	package var tool: GatedToolName
@@ -120,6 +141,7 @@ package struct ReviewAppliedBody: Sendable, Equatable {
 package struct FlushPendingBody: Sendable, Equatable {
 	package var chatId: ChatID
 	package var messageUlids: [ULID]
+	package var sourceBound = false
 	package var process: ProcessID?
 }
 

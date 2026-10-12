@@ -85,15 +85,13 @@ struct ProposalPolicyTests {
 			]
 		)
 		let input = GatedToolInput.createWorkout(date: "1998-06-14", workout: workout)
-		return try await ProposalPolicy.propose(
+		return try await makeReviews(ledger: ledger, clock: clock).propose(
 			chatId: .main,
 			tool: .intervalsCreateWorkout,
 			input: input,
 			summary: ProposalPolicy.summary(for: input),
 			description: "Warmup\n- 10m 55-65%",
-			now: clock.now,
-			ledger: ledger,
-			scope: TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
+			scope: TurnScope(stamp: stamp, policy: .npm, ladder: .npm, uptime: clock.uptime)
 		)
 	}
 }

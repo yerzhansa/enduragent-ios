@@ -7,17 +7,17 @@ final class SlowReplyProof: XCTestCase {
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:slow")
 		let working = TutorialHarness.named(app, "chat.working")
-		TutorialHarness.wait(working, timeout: 2)
+		TutorialHarness.wait(working, within: .screen)
 		XCTAssertEqual(working.label, TutorialHarness.working)
 		TutorialHarness.attach(self, name: "slow-reply-working", app: app)
-		TutorialHarness.waitForLabel(app, "This week has", timeout: 5)
+		TutorialHarness.waitForLabel(app, "This week has", within: .screen)
 		XCTAssertFalse(app.staticTexts["quieter stretch between them."].exists)
 		XCTAssertTrue(working.exists, "the working row stays under the streaming text")
 		TutorialHarness.attach(self, name: "slow-reply-streaming", app: app)
-		TutorialHarness.waitForLabel(app, "quieter stretch between them.", timeout: 15)
+		TutorialHarness.waitForLabel(app, "quieter stretch between them.", within: .turn)
+		TutorialHarness.wait(working, until: .absent, within: .turn)
 		XCTAssertFalse(working.exists)
 		TutorialHarness.attach(self, name: "slow-reply-done", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -26,14 +26,13 @@ final class FailedReplyProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:fail 500 x3")
+		TutorialHarness.exchange(app, "fixture:fail 500 x3")
 		let notice = TutorialHarness.named(app, "chat.turn.notice")
 		TutorialHarness.wait(notice)
 		XCTAssertEqual(notice.label, TutorialHarness.providerDown)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "failed-reply", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -43,7 +42,7 @@ final class AcceptSurvivesKillProof: XCTestCase {
 		TutorialHarness.launch(app, coalescingMilliseconds: 60_000)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:hang")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), timeout: 5)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), within: .screen)
 		TutorialHarness.attach(self, name: "accept-kill-received", app: app)
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "userMessage", "userMessage 1")
@@ -61,9 +60,11 @@ final class AcceptSurvivesKillProof: XCTestCase {
 		XCTAssertNil(TutorialHarness.recordCount(app, "turnClaim"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
 		TutorialHarness.attach(self, name: "accept-kill-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		tryAgain.tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.wait(
+			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
 		XCTAssertEqual(app.staticTexts.matching(identifier: "fixture:hang").count, 1)
 		XCTAssertFalse(tryAgain.exists)
 		TutorialHarness.attach(self, name: "accept-kill-try-again", app: app)
@@ -72,8 +73,7 @@ final class AcceptSurvivesKillProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
 		TutorialHarness.attach(self, name: "accept-kill-try-again-records", app: app)
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -84,10 +84,10 @@ final class HangWatchdogProof: XCTestCase {
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:hang")
 		let working = TutorialHarness.named(app, "chat.working")
-		TutorialHarness.wait(working, timeout: 2)
+		TutorialHarness.wait(working, within: .screen)
 		TutorialHarness.attach(self, name: "hang-working", app: app)
 		let notice = TutorialHarness.named(app, "chat.turn.notice")
-		TutorialHarness.wait(notice, timeout: 75)
+		TutorialHarness.wait(notice, within: .watchdog)
 		XCTAssertEqual(notice.label, TutorialHarness.providerDown)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		XCTAssertFalse(working.exists)
@@ -95,7 +95,7 @@ final class HangWatchdogProof: XCTestCase {
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 1")
 		TutorialHarness.attach(self, name: "hang-watchdog-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -115,7 +115,6 @@ final class StorageFaultProof: XCTestCase {
 		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.working").exists)
 		TutorialHarness.attach(self, name: "storage-fault-not-sent", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
 		TutorialHarness.waitForWelcome(app)
@@ -137,14 +136,13 @@ final class ReceivedBeforeReplyProof: XCTestCase {
 		TutorialHarness.launch(app, coalescingMilliseconds: 5_000)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
-		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].waitForExistence(timeout: 1))
+		TutorialHarness.wait(app.staticTexts[TutorialHarness.weekQuestion], within: .screen)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.working").exists)
 		let reply = app.staticTexts.containing(
 			NSPredicate(format: "label CONTAINS %@", TutorialHarness.weekReply))
 		XCTAssertFalse(reply.firstMatch.exists)
 		TutorialHarness.attach(self, name: "received", app: app)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -164,7 +162,7 @@ final class DraftSurvivesKillProof: XCTestCase {
 		TutorialHarness.attach(self, name: "draft-survives", app: app)
 		TutorialHarness.openRecords(app)
 		XCTAssertNil(TutorialHarness.recordCount(app, "userMessage"))
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -177,7 +175,9 @@ final class CoalesceProof: XCTestCase {
 		TutorialHarness.send(app, "Friday?")
 		let reply = app.staticTexts.containing(
 			NSPredicate(format: "label CONTAINS %@", TutorialHarness.weekReply))
-		XCTAssertTrue(reply.firstMatch.waitForExistence(timeout: 20))
+		TutorialHarness.wait(reply.firstMatch, within: .turn)
+		TutorialHarness.wait(
+			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
 		let joined = app.staticTexts.matching(
 			NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "Thursday?", "Friday?"))
 		XCTAssertEqual(joined.count, 1)
@@ -187,8 +187,7 @@ final class CoalesceProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
 		TutorialHarness.attach(self, name: "coalesce-records", app: app)
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -205,9 +204,7 @@ final class SendLatencyProbe: XCTestCase {
 		let bubble = app.staticTexts[TutorialHarness.weekQuestion]
 		let tapped = Date()
 		send.tap()
-		while !bubble.exists, Date().timeIntervalSince(tapped) < 10 {
-			continue
-		}
+		TutorialHarness.wait(bubble, within: .screen)
 		let latency = Date().timeIntervalSince(tapped)
 		XCTAssertTrue(bubble.exists)
 		let sample = XCTAttachment(string: String(format: "%.0f", latency * 1_000))
@@ -215,6 +212,5 @@ final class SendLatencyProbe: XCTestCase {
 		sample.lifetime = .keepAlways
 		add(sample)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

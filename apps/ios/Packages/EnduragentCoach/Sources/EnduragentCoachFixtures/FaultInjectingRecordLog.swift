@@ -26,16 +26,32 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 		var syncedAcknowledgments = false
 		var appendKinds: Set<String> = []
 		var fetches = false
+		var nextFetch: (scope: RecordQuery.Scope, skipping: Int)?
+		var failedFetches = 0
 		var recoveryReads = false
 	}
 
 	package let deviceId: DeviceID
-	private let wrapped: any RecordLog
+	private let storage: Mutex<(any RecordLog)?>
+	private let release: FixtureStoreRelease?
 	private let faults = Mutex(Faults())
 
-	package init(wrapping wrapped: any RecordLog) {
+	package init(wrapping wrapped: any RecordLog, release: FixtureStoreRelease? = nil) {
 		self.deviceId = wrapped.deviceId
-		self.wrapped = wrapped
+		self.storage = Mutex(wrapped)
+		self.release = release
+	}
+
+	deinit {
+		autoreleasepool { storage.withLock { $0 = nil } }
+		release?.finish()
+	}
+
+	private var wrapped: any RecordLog {
+		storage.withLock {
+			guard let log = $0 else { preconditionFailure("The record log has been released") }
+			return log
+		}
 	}
 
 	package var failNextAppend: Bool {
@@ -61,6 +77,12 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 	package var failRecoveryReads: Bool {
 		get { faults.withLock { $0.recoveryReads } }
 		set { faults.withLock { $0.recoveryReads = newValue } }
+	}
+
+	package var failedFetchCount: Int { faults.withLock { $0.failedFetches } }
+
+	package func failNextFetch(in scope: RecordQuery.Scope, skipping: Int = 0) {
+		faults.withLock { $0.nextFetch = (scope, skipping) }
 	}
 
 	package func failAppends(ofKind kind: String) throws {
@@ -100,8 +122,17 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 	}
 
 	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		let fails = faults.withLock { current in
-			current.fetches || (current.recoveryReads && query.scope == TurnRecovery.localScope)
+		let fails = faults.withLock { current -> Bool in
+			if let next = current.nextFetch, next.scope == query.scope {
+				if next.skipping == 0 {
+					current.nextFetch = nil
+					current.failedFetches += 1
+					return true
+				}
+				current.nextFetch = (next.scope, next.skipping - 1)
+			}
+			return current.fetches
+				|| (current.recoveryReads && query.scope == TurnRecovery.localScope)
 		}
 		if fails {
 			throw RecordStorageFault(operation: .fetch)

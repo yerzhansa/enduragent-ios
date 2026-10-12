@@ -20,6 +20,13 @@ struct AttemptStart {
 		else { return nil }
 		do {
 			records.apply(try await ledger.commit(local: [.turnClaim(claim)], stamp: stamp))
+			records.apply(
+				try await ledger.commit(
+					synced: [
+						.attemptQuestion(
+							AttemptQuestionBody(
+								chatId: chat, turn: facts.turn, athleteText: facts.requestText))
+					], stamp: stamp))
 		} catch {
 			await records.settleUnsaved(
 				facts.turn, attempt: attempt, .failed(.local(.recordStorage), saved: .none))

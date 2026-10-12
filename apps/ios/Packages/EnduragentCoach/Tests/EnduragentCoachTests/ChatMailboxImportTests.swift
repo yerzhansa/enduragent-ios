@@ -27,23 +27,23 @@ extension ChatMailboxTests {
 						)))
 			])
 		store.notifyImport()
-		try await waitUntil { observed.latest?.opening == .afterNewConversation(memorySaved: true) }
+		try await waitUntil {
+			observed.latest?.opening.notice == Catalog.chatNoticeNewConversationSuccess
+		}
 		#expect(observed.latest?.turns.isEmpty == true)
 		let remote = try await importTurn(into: store)
 		try await waitUntil { observed.latest?.turns.map(\.id) == [remote] }
 		let snapshot = try #require(observed.latest)
 		#expect(snapshot.turns.map(\.athleteText) == ["Remote question"])
-		#expect(snapshot.opening == .continuing)
+		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationSuccess)
 		#expect(replyText(try #require(snapshot.turns.first?.state)) == "Remote answer")
 		#expect(try await coach.history().count == 1)
 		let count = observed.count
 		store.notifyImport()
 		try await waitUntil { observed.count > count }
 		let refreshed = try #require(observed.latest)
-		#expect(refreshed.revision > snapshot.revision)
-		var expected = snapshot
-		expected.revision = refreshed.revision
-		#expect(refreshed == expected)
+		#expect(refreshed.revision == snapshot.revision)
+		#expect(refreshed == snapshot)
 		#expect(store.subscriptions == 1)
 	}
 
@@ -75,8 +75,7 @@ extension ChatMailboxTests {
 			RecordQuery(scope: .synced([.turnSettled]), turn: local)
 		).records
 		#expect(try #require(settled.first).hlc.wallMs >= 2_000_000_000_002)
-		let mailbox = try await coach.mailbox(for: .main)
-		#expect(await mailbox.conversation.turn(local)?.settlements.count == 1)
+		#expect(await coach.currentSnapshot(.main)?.turns.filter { $0.id == local }.count == 1)
 		#expect(transport.requestCount == 1)
 	}
 
@@ -94,7 +93,7 @@ extension ChatMailboxTests {
 		defer { read.release() }
 		let remote = try await importTurn(into: store)
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await read.waitUntilParked()
 			} != nil,
 			"Import read did not park within five seconds")
@@ -104,9 +103,10 @@ extension ChatMailboxTests {
 		let state = try #require(observed.latest?.turns.first { $0.id == local }?.state)
 		#expect(isInterrupted(state))
 		#expect(try await settlements(of: local, in: store).count == 1)
-		let mailbox = try await coach.mailbox(for: .main)
-		#expect(await mailbox.conversation.turn(local)?.settlements.count == 1)
-		#expect(await mailbox.conversation.turn(local)?.requestText == "Local question")
+		#expect(await coach.currentSnapshot(.main)?.turns.filter { $0.id == local }.count == 1)
+		#expect(
+			await coach.currentSnapshot(.main)?.turns.first { $0.id == local }?.athleteText
+				== "Local question")
 	}
 
 	@Test func importKeepsAnUnsavedSettlement() async throws {
@@ -128,9 +128,8 @@ extension ChatMailboxTests {
 		#expect(observed.latest?.turns.first { $0.id == local }?.state == before)
 		#expect(replyText(before) == "Unsaved answer")
 		#expect(try await settlements(of: local, in: store).isEmpty)
-		let mailbox = try await coach.mailbox(for: .main)
-		#expect(await mailbox.conversation.turn(local)?.settlements.count == 1)
-		#expect(await mailbox.conversation.turn(local)?.replyObserved.count == 1)
+		#expect(await coach.currentSnapshot(.main)?.turns.filter { $0.id == local }.count == 1)
+		#expect(await coach.currentSnapshot(.main)?.turns.first { $0.id == local }?.state == before)
 	}
 
 	@Test func failedImportKeepsTheConversationAndRetriesTheNextNotification() async throws {
@@ -166,14 +165,14 @@ extension ChatMailboxTests {
 		let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
 		async let stream = coach.observe(.main)
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await read.waitUntilParked()
 			} != nil,
 			"Import read did not park within five seconds")
 		let remote = try await importTurn(into: store)
 		read.release()
 		let observed = try #require(
-			try await firstSnapshot(in: await stream, within: .seconds(5)) {
+			try await firstSnapshot(in: await stream, within: .hangGuard) {
 				$0.turns.map(\.id) == [remote]
 			})
 		#expect(observed.turns.map(\.athleteText) == ["Remote question"])

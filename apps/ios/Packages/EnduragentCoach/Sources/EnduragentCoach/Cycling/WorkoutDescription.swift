@@ -2,12 +2,12 @@ import Foundation
 
 extension IntervalsSerializer {
 	package static func description(
-		_ workout: IntervalsWorkoutInput, phrasebook: CatalogPhrasebook? = nil
+		_ workout: IntervalsWorkoutInput, display: DisplayLocale? = nil
 	) -> [String] {
 		var lines: [String] = []
 		var currentLabel: String?
 		for step in workout.steps {
-			let label = sectionLabel(step, phrasebook: phrasebook)
+			let label = sectionLabel(step, phrasebook: display?.phrasebook)
 			if label != currentLabel {
 				if !lines.isEmpty { lines.append("") }
 				lines.append(label)
@@ -16,10 +16,10 @@ extension IntervalsSerializer {
 			switch step {
 			case .set(let set):
 				lines.append("\(set.repeatCount)x")
-				lines.append(stepLine(set.interval, phrasebook: phrasebook))
-				lines.append(stepLine(set.recovery, phrasebook: phrasebook))
+				lines.append(stepLine(set.interval, display: display))
+				lines.append(stepLine(set.recovery, display: display))
 			case .simple(let simple):
-				lines.append(stepLine(simple, phrasebook: phrasebook))
+				lines.append(stepLine(simple, display: display))
 			}
 		}
 		return lines
@@ -38,13 +38,13 @@ extension IntervalsSerializer {
 		return phrasebook?.say(Catalog.reviewWorkoutMainSet, [:]) ?? "Main set"
 	}
 
-	private static func stepLine(_ step: SimpleStep, phrasebook: CatalogPhrasebook?) -> String {
+	private static func stepLine(_ step: SimpleStep, display: DisplayLocale?) -> String {
 		var parts = [formatDuration(step.duration)]
 		if let power = step.power {
-			let target = powerText(power, ramp: step.type == .ramp)
+			let target = powerText(power, ramp: step.type == .ramp, display: display)
 			parts.append(
 				step.type == .ramp
-					? "\(phrasebook?.say(Catalog.reviewWorkoutRamp, [:]) ?? "ramp") \(target)"
+					? "\(display?.phrasebook.say(Catalog.reviewWorkoutRamp, [:]) ?? "ramp") \(target)"
 					: target)
 		}
 		if let cadence = step.cadence {
@@ -58,23 +58,28 @@ extension IntervalsSerializer {
 		return "- " + parts.joined(separator: " ")
 	}
 
-	private static func powerText(_ power: PowerTarget, ramp: Bool) -> String {
+	private static func powerText(
+		_ power: PowerTarget, ramp: Bool, display: DisplayLocale?
+	) -> String {
+		let number = { (value: Double) in
+			display?.number(value, precision: .compact) ?? jsString(value)
+		}
 		if let low = power.low, let high = power.high {
 			switch power.kind {
 			case .zone:
 				if ramp { return "\(zonePercent(low))-\(zonePercent(high))%" }
-				return "Z\(jsString(low))-Z\(jsString(high))"
-			case .percentFtp: return "\(jsString(low))-\(jsString(high))%"
-			case .watts: return "\(jsString(low))-\(jsString(high))w"
+				return "Z\(number(low))-Z\(number(high))"
+			case .percentFtp: return "\(number(low))-\(number(high))%"
+			case .watts: return "\(number(low))-\(number(high))w"
 			}
 		}
 		guard let value = power.value else {
 			preconditionFailure("Workout power must be validated before rendering")
 		}
 		switch power.kind {
-		case .zone: return "Z\(jsString(value))"
-		case .percentFtp: return "\(jsString(value))%"
-		case .watts: return "\(jsString(value))w"
+		case .zone: return "Z\(number(value))"
+		case .percentFtp: return "\(number(value))%"
+		case .watts: return "\(number(value))w"
 		}
 	}
 

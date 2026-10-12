@@ -22,36 +22,44 @@ extension RetryLadderTests {
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
-		held.release(.seconds(7))
+		held.advance(by: .seconds(7))
 		try await held.waitUntilHeld(.seconds(11))
 		let first = await coach.decide(.approve(token), in: .main)
-		held.release(.seconds(11))
+		held.advance(by: .seconds(11))
 		try await expectSingleApproval(
 			turn: turn, first: first, coach: coach, intervals: intervals, savedRequests: 3)
 	}
 
-	@Test func approvalDuringBackoffWaitsForCalendarWrite() async throws {
+	@Test(arguments: ApprovalCheckpoint.allCases)
+	func approvalAtEitherRetryCheckpointWaitsForCalendarWrite(checkpoint: ApprovalCheckpoint)
+		async throws
+	{
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(base: base, clock: held)
 		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)],
 			otherwise: transport.respond)
-		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
+		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
+			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
+		}
 		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
+		try await checkpoint.reach(using: held)
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
+		defer { approving.cancel() }
 		try await held.waitUntilHeld(.seconds(13))
-		held.release(.seconds(7))
-		try await waitForReviewGate(on: coach)
-		held.release(.seconds(13))
+		try await expectApprovalBlocked(
+			at: checkpoint, turn: turn, coach: coach, model: model, clock: held)
+		held.advance(by: checkpoint == .backoff ? .seconds(6) : .seconds(2))
 		let first = await approving.value
 		try await expectSingleApproval(
-			turn: turn, first: first, coach: coach, intervals: base, savedRequests: 2)
+			turn: turn, first: first, coach: coach, intervals: base,
+			savedRequests: checkpoint.requests)
 	}
 
 	@Test func approvalDuringOverflowFlushSettlesSavedWork() async throws {
@@ -72,47 +80,9 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(17))
 		let token = try await presentReview(on: coach)
 		let first = await coach.decide(.approve(token), in: .main)
-		held.release(.seconds(17))
+		held.advance(by: .seconds(17))
 		try await expectSingleApproval(
 			turn: turn, first: first, coach: coach, intervals: intervals, savedRequests: 2)
-	}
-
-	@Test func approvalThenStopDuringBackoffWritesOnce() async throws {
-		let held = HeldClock()
-		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.respond = ScriptedReply.sequence(
-			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
-		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
-		let turn = try #require(
-			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
-		try await held.waitUntilHeld(.seconds(7))
-		let token = try await presentReview(on: coach)
-		let first = await coach.decide(.approve(token), in: .main)
-		await coach.stop(.main)
-		try await expectSingleApproval(
-			turn: turn, first: first, coach: coach, intervals: intervals)
-	}
-
-	@Test func stopThenApprovalDuringBackoffWritesOnce() async throws {
-		let held = HeldClock()
-		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.respond = ScriptedReply.sequence(
-			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
-		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
-		let turn = try #require(
-			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
-		try await held.waitUntilHeld(.seconds(7))
-		let token = try await presentReview(on: coach)
-		await coach.stop(.main)
-		let first = await coach.decide(.approve(token), in: .main)
-		try await expectSingleApproval(
-			turn: turn, first: first, coach: coach, intervals: intervals)
 	}
 
 	@Test func approvalAfterTerminalFailureWritesOnce() async throws {
@@ -147,23 +117,20 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(19))
 		let token = try await presentReview(on: coach)
 		let first = await coach.decide(.approve(token), in: .main)
-		held.release(.seconds(19))
+		held.advance(by: .seconds(19))
 		try await expectSingleApproval(
 			turn: turn, first: first, coach: coach, intervals: intervals, savedRequests: 2)
 	}
 
 	func heldApprovalCoach(
-		_ held: HeldClock, model: any ModelTransport, intervals: any IntervalsClient
+		_ held: HeldClock, model: any ModelTransport, intervals: any IntervalsClient,
+		records: (any RecordLog)? = nil
 	) async -> Coach {
-		let coach = Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: store), secrets: keyedSecrets(),
-				models: ModelService { _ in model }, training: .fake { _, _ in intervals },
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: held),
-			builtInModel: testModel, deviceLanguage: .en,
-			coalescing: CoalescingPolicy(window: .zero))
-		return await consentingCoach(coach)
+		await consentingCoach(
+			makeCoach(
+				records: RecordStore(log: records ?? store),
+				models: ModelService(catalog: .fixture) { _ in model }, intervals: intervals,
+				clock: held, coalescing: CoalescingPolicy(window: .zero)))
 	}
 
 	func expectSingleApproval(
@@ -188,8 +155,7 @@ extension RetryLadderTests {
 					== savedRequests)
 			#expect(saved.outcome == .writesSaved)
 			#expect(saved.saved.calendarWrites == 1)
-			#expect(saved.notice.action == nil)
-			#expect(!settled.retryable)
+			#expect(saved.notice.actions.isEmpty)
 		}
 	}
 }

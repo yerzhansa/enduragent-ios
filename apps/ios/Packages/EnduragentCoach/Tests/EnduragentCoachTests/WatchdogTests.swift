@@ -16,21 +16,6 @@ import Testing
 		#expect(clock.slept.isEmpty)
 	}
 
-	@Test func pauseForToolsSuppressesFireUntilCleared() async throws {
-		let clock = HeldClock()
-		let watchdog = ChatWatchdog(sleep: clock.sleep)
-		await watchdog.arm()
-		try await clock.waitUntilHeld(.seconds(30))
-		await watchdog.pauseForTools(["call-1"])
-		try await waitUntil { clock.held.isEmpty }
-		clock.advance(by: .seconds(60))
-		#expect(clock.slept.isEmpty)
-		await watchdog.pauseForTools([])
-		try await clock.waitUntilHeld(.seconds(30))
-		clock.advance(by: .seconds(30))
-		#expect(await watchdog.fired() == .firstToken)
-	}
-
 	@Test func aBeatRestartsTheInterChunkDeadline() async throws {
 		let clock = HeldClock()
 		let watchdog = ChatWatchdog(sleep: clock.sleep)

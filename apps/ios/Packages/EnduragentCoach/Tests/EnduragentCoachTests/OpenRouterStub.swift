@@ -31,6 +31,31 @@ final class OpenRouterStub: URLProtocol, @unchecked Sendable {
 	}
 
 	private static let routes = Mutex<[String: @Sendable (URLRequest) -> Outcome]>([:])
+	private static let exchangeRouteHeader = "X-Enduragent-Test-Route"
+
+	static func keyExchange(handler: @escaping @Sendable (URLRequest) -> Outcome)
+		-> (exchange: OpenRouterKeyExchange, requests: OpenRouterRequestCapture)
+	{
+		let route = UUID().uuidString
+		let requests = OpenRouterRequestCapture()
+		routes.withLock {
+			$0[route] = { request in
+				var recorded = request
+				recorded.httpBody = openRouterHTTPBody(from: request)
+				requests.record(recorded)
+				return handler(recorded)
+			}
+		}
+		let exchange = OpenRouterKeyExchange {
+			let configuration = URLSessionConfiguration.ephemeral
+			configuration.timeoutIntervalForRequest = 5
+			configuration.timeoutIntervalForResource = 5
+			configuration.protocolClasses = [OpenRouterStub.self]
+			configuration.httpAdditionalHeaders = [exchangeRouteHeader: route]
+			return URLSession(configuration: configuration)
+		}
+		return (exchange, requests)
+	}
 
 	static func transport(
 		diagnostics: DiagnosticsLog = DiagnosticsLog(clock: SystemClock()),
@@ -56,7 +81,9 @@ final class OpenRouterStub: URLProtocol, @unchecked Sendable {
 
 	override func startLoading() {
 		guard let url = request.url, let host = url.host(),
-			let handler = Self.routes.withLock({ $0[host] })
+			let handler = Self.routes.withLock({
+				$0[request.value(forHTTPHeaderField: Self.exchangeRouteHeader) ?? host]
+			})
 		else {
 			client?.urlProtocol(self, didFailWithError: URLError(.cannotFindHost))
 			return
@@ -84,6 +111,16 @@ final class OpenRouterStub: URLProtocol, @unchecked Sendable {
 	override func stopLoading() {}
 }
 
+final class OpenRouterRequestCapture: Sendable {
+	private let requests = Mutex<[URLRequest]>([])
+
+	var recorded: [URLRequest] { requests.withLock { $0 } }
+
+	func record(_ request: URLRequest) {
+		requests.withLock { $0.append(request) }
+	}
+}
+
 func collect(_ stream: AsyncThrowingStream<TransportEvent, Error>) async throws
 	-> [TransportEvent]
 {
@@ -109,4 +146,27 @@ func textDeltas(in events: [TransportEvent]) -> [String] {
 		}
 		return nil
 	}
+}
+
+func openRouterHTTPBody(from request: URLRequest) -> Data? {
+	if let body = request.httpBody {
+		return body
+	}
+	guard let stream = request.httpBodyStream else {
+		return nil
+	}
+	stream.open()
+	defer { stream.close() }
+	let bufferSize = 1024
+	let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+	defer { buffer.deallocate() }
+	var data = Data()
+	while stream.hasBytesAvailable {
+		let read = stream.read(buffer, maxLength: bufferSize)
+		if read <= 0 {
+			break
+		}
+		data.append(buffer, count: read)
+	}
+	return data
 }

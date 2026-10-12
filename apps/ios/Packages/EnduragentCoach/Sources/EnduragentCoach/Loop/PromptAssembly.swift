@@ -47,7 +47,7 @@ package enum PromptAssembly {
 		context: String,
 		evidence: EvidenceBlock,
 		timeZoneName: String,
-		replyLanguage: String
+		displayLocale: DisplayLocale
 	) -> String {
 		var parts: [String] = [
 			"# Athlete Context\n\n" + wrapAthleteContext(context)
@@ -60,9 +60,8 @@ package enum PromptAssembly {
 			parts.append(PromptStaticBlocks.snapshotFallback)
 		}
 		parts.append("# Current Date & Time\n\nTime zone: \(timeZoneName)")
-		if !replyLanguage.isEmpty {
-			parts.append(replyLanguage)
-		}
+		parts.append(replyLanguageSection(displayLocale.language))
+		parts.append(displayLocale.formattingInstruction)
 		return parts.joined(separator: sectionSeparator)
 	}
 
@@ -89,16 +88,9 @@ package enum PromptAssembly {
 		return base + "\n" + currentTimeLine(now: now, timeZone: timeZone)
 	}
 
-	package static func replyLanguageSection(_ language: ReplyLanguage) -> String {
-		let direction: String
-		switch language {
-		case .fixed(let tag):
-			direction =
-				"The athlete chose \(tag.englishName) (\(tag.endonym)). Write every athlete-facing sentence in \(tag.englishName), even when the athlete writes in another language. This rule outranks \"Mirror the athlete's register\": mirror register, tone, and level of detail within \(tag.englishName); never mirror the language itself."
-		case .mirror(let tag):
-			direction =
-				"No language is saved. Reply in the language of the athlete's latest message; that is what \"Mirror the athlete's register\" means for language. When the message carries no language signal (a bare command, numbers only), reply in \(tag.englishName) (\(tag.endonym))."
-		}
+	package static func replyLanguageSection(_ tag: LanguageTag) -> String {
+		let direction =
+			"Reply in \(tag.englishName) (\(tag.endonym)). Write every athlete-facing sentence in \(tag.englishName), even when the athlete writes in another language. This rule outranks \"Mirror the athlete's register\": mirror register, tone, and level of detail within \(tag.englishName); never mirror the language itself."
 		return """
 			# Reply language
 
@@ -196,7 +188,9 @@ package struct HistoryWindow {
 
 	package static func historyTokenBudget(systemTokens: Int, window: Int, ratio: Double) -> Int {
 		let effective = min(window, TurnPolicy.contextWindowCap)
-		let raw = Int((Double(effective) * ratio).rounded(.down)) - systemTokens - 20_000
+		let raw =
+			Int((Double(effective) * ratio).rounded(.down)) - systemTokens
+			- TurnPolicy.reserveTokens
 		return max(raw, TurnPolicy.historyBudgetFloor)
 	}
 

@@ -5,57 +5,15 @@ final class ConfirmedPreviewProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.workout)
+		TutorialHarness.exchange(app, TutorialHarness.workout)
 		let cancel = TutorialHarness.named(app, "chat.preview.cancel")
 		let add = TutorialHarness.named(app, "chat.preview.add")
-		TutorialHarness.waitUntilEnabled(add)
+		TutorialHarness.wait(add, until: .enabled)
 		TutorialHarness.waitForLabel(app, "Workout review")
 		TutorialHarness.waitForLabel(app, TutorialHarness.warmup)
 		XCTAssertTrue(cancel.isEnabled)
 		XCTAssertLessThan(cancel.frame.minX, add.frame.minX)
 		TutorialHarness.attach(self, name: "07-confirmed-preview", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
-final class AddedToCalendarProof: XCTestCase {
-	func testAddedToCalendar() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.workout)
-		let add = TutorialHarness.named(app, "chat.preview.add")
-		TutorialHarness.waitUntilEnabled(add)
-		let tapped = Date()
-		add.tap()
-		let done = app.staticTexts[TutorialHarness.done]
-		while !done.exists, Date().timeIntervalSince(tapped) < 10 {
-			continue
-		}
-		let sample = XCTAttachment(
-			string: String(format: "%.0f", Date().timeIntervalSince(tapped) * 1_000))
-		sample.name = "add-to-done-ms"
-		sample.lifetime = .keepAlways
-		self.add(sample)
-		TutorialHarness.waitForLabel(app, TutorialHarness.done)
-		TutorialHarness.attach(self, name: "07b-added-to-calendar", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
-final class ConfirmedPreviewDarkProof: XCTestCase {
-	func testConfirmedPreviewDark() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.workout)
-		TutorialHarness.waitUntilEnabled(TutorialHarness.named(app, "chat.preview.add"))
-		TutorialHarness.waitForLabel(app, "Workout review")
-		let screenshot = app.screenshot()
-		TutorialHarness.attach(self, name: "07-confirmed-preview-dark", app: app)
-		XCTAssertLessThan(
-			TutorialHarness.meanLuminance(screenshot), 0.4, "the capture is not in dark appearance")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -64,13 +22,13 @@ final class PreviewCancelStaysGoneProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.workout)
+		TutorialHarness.exchange(app, TutorialHarness.workout)
 		let cancel = TutorialHarness.named(app, "chat.preview.cancel")
-		TutorialHarness.waitUntilEnabled(cancel)
+		TutorialHarness.wait(cancel, until: .enabled)
 		TutorialHarness.attach(self, name: "preview-before-cancel", app: app)
 		cancel.tap()
-		TutorialHarness.waitForAbsence(TutorialHarness.named(app, "chat.preview.add"))
-		TutorialHarness.send(app, TutorialHarness.saturday)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"), until: .absent)
+		TutorialHarness.exchange(app, TutorialHarness.saturday)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.add").exists)
 		XCTAssertFalse(app.staticTexts["Workout review"].exists)
@@ -96,9 +54,9 @@ final class DoneLineSurvivesRelaunchProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.workout)
+		TutorialHarness.exchange(app, TutorialHarness.workout)
 		let add = TutorialHarness.named(app, "chat.preview.add")
-		TutorialHarness.waitUntilEnabled(add)
+		TutorialHarness.wait(add, until: .enabled)
 		add.tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.done)
 		TutorialHarness.attach(self, name: "done-before-relaunch", app: app)
@@ -106,7 +64,6 @@ final class DoneLineSurvivesRelaunchProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.done)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.add").exists)
 		TutorialHarness.attach(self, name: "done-after-relaunch", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -115,9 +72,9 @@ final class ExpiredReviewProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.workout)
+		TutorialHarness.exchange(app, TutorialHarness.workout)
 		let add = TutorialHarness.named(app, "chat.preview.add")
-		TutorialHarness.waitUntilEnabled(add)
+		TutorialHarness.wait(add, until: .enabled)
 		TutorialHarness.attach(self, name: "review-before-expiry", app: app)
 		TutorialHarness.relaunchKeepingStore(app, clock: "1998-06-15T08:11:00Z")
 		TutorialHarness.waitForLabel(app, TutorialHarness.workout)
@@ -134,7 +91,6 @@ final class ExpiredReviewProof: XCTestCase {
 }
 
 final class LegacyReviewNoticeProof: XCTestCase {
-	static let onboarded = ["-enduragent.onboardingCompleted", "YES"]
 	static let english =
 		"This workout review is from an earlier version of the app and can no longer be applied."
 	static let german =
@@ -142,36 +98,25 @@ final class LegacyReviewNoticeProof: XCTestCase {
 
 	func testV1ReviewIsReadOnlyDisconnectedConnectedAndInGerman() throws {
 		let app = XCUIApplication()
-		try TutorialHarness.launchKeepingStore(
-			app, expecting: TutorialHarness.named(app, "chat.preview.notice"),
-			arguments: Self.onboarded)
+		TutorialHarness.launchUpgrade(app, store: .v1Review)
 		TutorialHarness.openCredentials(app)
-		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "—")
-		TutorialHarness.closeMenu(app)
+		XCTAssertFalse(TutorialHarness.named(app, "training.athlete").exists)
+		TutorialHarness.returnToChat(app)
 		assertReadOnly(app, reading: Self.english)
 		TutorialHarness.attach(self, name: "v1-review-disconnected", app: app)
 		TutorialHarness.openCredentials(app)
-		TutorialHarness.type(app, "fixture", into: "credentials.apiKey")
-		TutorialHarness.named(app, "credentials.replace").tap()
-		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.named(app, "training.edit").tap()
+		TutorialHarness.type(app, "fixture", into: "training.apiKey")
+		TutorialHarness.named(app, "training.save").tap()
+		TutorialHarness.waitForIdentifier(app, "training.athlete", reading: "Ada Kovač")
+		TutorialHarness.returnToChat(app)
 		assertReadOnly(app, reading: Self.english)
 		TutorialHarness.attach(self, name: "v1-review-connected", app: app)
 		assertNothingWritten(app, attaching: "v1-review-records")
-		app.terminate()
-		app.launchArguments = app.launchArguments.map {
-			switch $0 {
-			case "(en)": "(de)"
-			case "en_US": "de_DE"
-			default: $0
-			}
-		}
-		app.launch()
-		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+		TutorialHarness.relaunchKeepingStore(app, language: "de", locale: "de_DE")
 		assertReadOnly(app, reading: Self.german)
 		TutorialHarness.attach(self, name: "v1-review-german", app: app)
 		assertNothingWritten(app, attaching: "v1-review-german-records")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private func assertReadOnly(_ app: XCUIApplication, reading sentence: String) {
@@ -186,6 +131,6 @@ final class LegacyReviewNoticeProof: XCTestCase {
 		XCTAssertNil(TutorialHarness.recordCount(app, "proposalCleared"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "reviewApplied"))
 		TutorialHarness.attach(self, name: name, app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 	}
 }

@@ -46,7 +46,7 @@ import Testing
 		try #require(try #require(fresh.userRow?.ulid) > job.ulid)
 		try #require(try #require(fresh.replyRow?.ulid) < reply)
 		try #require(sent(.memoryFlush, by: transport).isEmpty)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
 			\.unstampedContent)
 		#expect(extracted.filter { $0 == "Fresh modern question" }.count == 1)
@@ -92,14 +92,14 @@ import Testing
 			])
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
 			\.unstampedContent)
 		#expect(extracted.filter { $0 == "Imported modern question" }.count == 1)
 		#expect(extracted.filter { $0 == "Imported modern reply" }.count == 1)
 	}
 
-	@Test func aListedLegacyTurnKeptAcrossResetIsNotExtractedAgain() async throws {
+	@Test func aListedLegacyTurnArchivedByObservedResetIsNotExtractedAgain() async throws {
 		let foreign = DeviceID(rawValue: "legacy-other-phone")
 		let question = ULID.generate(at: clock.now.addingTimeInterval(60))
 		let reply = question.incremented()
@@ -123,16 +123,23 @@ import Testing
 			])
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main) == ["Legacy question", "Legacy reply"])
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let conversation = try await ledger.conversation(.main)
 		let boundary = try #require(conversation.current.id.boundary)
 		try #require(job.ulid < boundary)
 		try #require(boundary < question)
-		try #require(await coach.transcript(.main) == ["Legacy question", "Legacy reply"])
+		#expect(await coach.transcript(.main).isEmpty)
+		let archivedRef = try #require(try await coach.history().first?.id)
+		let archived = try #require(try await coach.archivedConversation(archivedRef))
+		#expect(archived.turns.map(\.athleteText) == ["Legacy question"])
+		#expect(replyText(try #require(archived.turns.first?.state)) == "Legacy reply")
 		try #require(sent(.memoryFlush, by: transport).isEmpty)
+		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
+		#expect(await reopened.transcript(.main).isEmpty)
+		#expect(try await reopened.archivedConversation(archivedRef) == archived)
 		clock.advance(by: 120)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
 			\.unstampedContent)
 		#expect(!extracted.contains("Legacy question"))
@@ -170,7 +177,7 @@ import Testing
 		}
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 6)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(sent(.memoryFlush, by: transport).isEmpty)
 	}
 
@@ -199,7 +206,7 @@ import Testing
 							FlushSettledBody(chatId: .main, job: job, settlement: .nothingToSave)))),
 			])
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
 			\.unstampedContent)
 		#expect(extracted.filter { $0 == "Unsaved legacy question" }.count == 1)

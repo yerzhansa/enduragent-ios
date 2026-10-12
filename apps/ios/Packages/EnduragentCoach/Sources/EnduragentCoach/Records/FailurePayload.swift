@@ -20,6 +20,8 @@ struct FailurePayload: Codable {
 		switch failure {
 		case .credentialRejected(let method):
 			return ("credentialRejected", method.rawValue)
+		case .requestBlocked:
+			return ("requestBlocked", nil)
 		case .accessExhausted(let method):
 			return ("accessExhausted", method.rawValue)
 		case .rateLimited(let wait):
@@ -36,10 +38,16 @@ struct FailurePayload: Codable {
 			return ("budgetExhausted", kind.rawValue)
 		case .accessUnavailable(.notConfigured(let method)):
 			return ("accessUnavailable", Self.notConfiguredPrefix + method.rawValue)
+		case .accessUnavailable(.trainingIdentityUnverified(let failure)):
+			return ("trainingIdentityUnverified", failure.rawValue)
+		case .accessUnavailable(.openRouterKeyRejected):
+			return ("accessUnavailable", "openRouterKeyRejected")
 		case .accessUnavailable(.providerConsentRequired):
 			return ("accessUnavailable", "providerConsentRequired")
 		case .accessUnavailable(.secureStorageLocked):
 			return ("accessUnavailable", "secureStorageLocked")
+		case .accessUnavailable(.recordStorageUnavailable):
+			return ("accessUnavailable", "recordStorageUnavailable")
 		case .accessUnavailable(.secureStorageUnavailable):
 			return ("accessUnavailable", "secureStorageUnavailable")
 		case .accessUnavailable(.malformedStoredCredential(let slot)):
@@ -54,6 +62,8 @@ struct FailurePayload: Codable {
 		switch (domain, code) {
 		case ("model", "credentialRejected"):
 			return .model(.credentialRejected(try method()))
+		case ("model", "requestBlocked"):
+			return .model(.requestBlocked)
 		case ("model", "accessExhausted"):
 			return .model(.accessExhausted(try method()))
 		case ("model", "rateLimited"):
@@ -73,6 +83,11 @@ struct FailurePayload: Codable {
 			return .model(.contextOverflow)
 		case ("model", "invalidRequest"):
 			return .model(.invalidRequest)
+		case ("model", "trainingIdentityUnverified"):
+			guard let failure = detail.flatMap(TrainingFailure.init(rawValue:)) else {
+				throw RecordDecodeFailure(reason: "failure")
+			}
+			return .model(.accessUnavailable(.trainingIdentityUnverified(failure)))
 		case ("model", "accessUnavailable"):
 			return .model(.accessUnavailable(try accessUnavailable()))
 		case ("model", "generationFailed"):
@@ -104,10 +119,14 @@ struct FailurePayload: Codable {
 
 	private func accessUnavailable() throws -> AccessUnavailable {
 		switch detail {
+		case "openRouterKeyRejected":
+			return .openRouterKeyRejected
 		case "providerConsentRequired":
 			return .providerConsentRequired
 		case "secureStorageLocked":
 			return .secureStorageLocked
+		case "recordStorageUnavailable":
+			return .recordStorageUnavailable
 		case "secureStorageUnavailable":
 			return .secureStorageUnavailable
 		case let stored? where stored.hasPrefix(Self.notConfiguredPrefix):

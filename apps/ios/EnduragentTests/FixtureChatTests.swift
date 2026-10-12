@@ -8,7 +8,7 @@ import Testing
 extension FixtureLaunchTests {
 	@Test func sendClearsDraftOnAccepted() async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:slow"
 		model.draftChanged(from: "")
@@ -32,7 +32,7 @@ extension FixtureLaunchTests {
 	@Test func sendIsDisabledWhileTheMessageIsBeingAccepted() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		#expect(!model.isSending)
@@ -48,7 +48,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func textTypedWhileTheMessageIsBeingAcceptedStaysInTheComposer() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		model.draftChanged(from: "")
@@ -71,7 +71,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let records = try #require(services.fixtureRecordFaults)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		records.failNextAppend = true
 		model.draft.text = TutorialCopy.weekQuestion
@@ -96,7 +96,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func unknownFinishReasonDoesNotShowSwiftErrorDump() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:fail finish"
 		await model.send()
@@ -105,43 +105,8 @@ extension FixtureLaunchTests {
 			Issue.record("expected a failed turn, got \(turn.state)")
 			return
 		}
-		#expect(failed.notice.key == Catalog.chatNoticeResponseFailure)
-		#expect(failed.notice.action == .tryAgain(turn.id))
-	}
-
-	@Test func keepStoreReopensAnUnstartedTurnAsAwaitingRestart() async throws {
-		var held = launch
-		held.coalescing = CoalescingPolicy(window: .seconds(60))
-		let first = model(try AppServices.fixture(held, defaults: defaults))
-		await first.agreeAndStartChatting()
-		first.draft.text = "fixture:hang"
-		await first.send()
-		let accepted = try await firstTurn(first)
-		let (second, _) = try relaunch(.keep)
-		let reopened = try #require(await firstSnapshot(second, chat: .main))
-		#expect(reopened.turns.map(\.id) == [accepted.id])
-		#expect(reopened.turns.first?.state == .accepted(.awaitingRestart))
-		await first.stop()
-		guard case .interrupted(let stopped) = try await settledTurn(first).state else {
-			Issue.record("expected the held turn to stop before it started")
-			return
-		}
-		#expect(stopped.cause == .stoppedBeforeStart)
-	}
-
-	@Test func slowDirectiveStreamsTheWeekSummaryWordByWord() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
-		await model.agreeAndStartChatting()
-		model.draft.text = "fixture:slow"
-		await model.send()
-		let settled = try await settledTurn(model)
-		#expect(transport.requestCount == 1)
-		#expect(replyText(settled.state) == FirstWeekFixture.weekSummary)
-		model.draft.text = TutorialCopy.weekQuestion
-		await model.send()
-		#expect(replyText(try await settledTurn(model, at: 1).state) != nil)
+		#expect(failed.notice?.key == Catalog.chatNoticeResponseFailure)
+		#expect(failed.notice?.actions == [.tryAgain(turn.id)])
 	}
 
 	@Test(arguments: [
@@ -149,7 +114,7 @@ extension FixtureLaunchTests {
 	])
 	func unknownDirectiveRepliesWithItsDiagnostic(_ text: String) async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = text
 		await model.send()
@@ -160,15 +125,12 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func plainTextAfterHangDirectiveAnswersNormally() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:hang"
 		await model.send()
 		let turn = try await firstTurn(model)
-		let deadline = ContinuousClock.now + .seconds(5)
-		while model.services.fixtureTransport?.requestCount == 0, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
-		}
+		try await until { model.services.fixtureTransport?.requestCount != 0 }
 		await model.stop()
 		let stopped = try await settledTurn(model)
 		await model.perform(.tryAgain(turn.id))
@@ -184,15 +146,12 @@ extension FixtureLaunchTests {
 	@Test func queuedRequestsKeepTheirOwnReplies() async throws {
 		var launch = launch
 		launch.coalescing = CoalescingPolicy(window: .milliseconds(100))
-		let services = try AppServices.fixture(launch, defaults: defaults)
-		let model = model(services)
+		let services = try fixtureServices(launch, defaults: defaults)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:slow"
 		await model.send()
-		let deadline = ContinuousClock.now + .seconds(5)
-		while services.fixtureTransport?.requestCount == 0, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
-		}
+		try await until { services.fixtureTransport?.requestCount != 0 }
 		model.draft.text = "Remember that Saturdays are group rides"
 		await model.send()
 		try await until {

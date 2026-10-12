@@ -36,7 +36,8 @@ extension TurnRunnerTests {
 				string:
 					"https://intervals.icu/api/v1/athlete/i1001/wellness?oldest=1998-06-07&newest=1998-06-13"
 			))
-		intervals.loadFailure = URLError(.timedOut, userInfo: [NSURLErrorFailingURLErrorKey: url])
+		intervals.setWellnessOutcome(
+			.failure(URLError(.timedOut, userInfo: [NSURLErrorFailingURLErrorKey: url])))
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(name: "intervals_fetch_wellness", arguments: #"{"days":7}"#),

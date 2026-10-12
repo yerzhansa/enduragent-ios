@@ -15,14 +15,14 @@ extension Coach {
 				amount = added
 			case .alreadyGranted:
 				guard try await creditsIdentity().hasCreditsKey else {
-					return AthleteNotice(key: Catalog.onboardingStarterAlreadyGranted, action: nil)
+					return AthleteNotice(key: Catalog.onboardingStarterAlreadyGranted, actions: [])
 				}
 				key = Catalog.creditsBalance
 				amount = try await credits.balance().credits
 			}
 			return AthleteNotice(
-				key: key, count: amount.units, vars: ["formattedCount": String(amount.units)],
-				action: nil)
+				key: key, count: amount.units, vars: ["formattedCount": .integer(amount.units)],
+				actions: [])
 		} catch {
 			return AthleteNotice.credits(failure: error)
 		}

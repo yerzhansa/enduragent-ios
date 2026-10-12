@@ -1,27 +1,5 @@
 import Foundation
 
-public enum ResetOutcome: Sendable, Equatable {
-	case started(memory: MemorySaveResult)
-	case notStarted(CoachFailure)
-}
-
-public enum MemorySaveResult: Sendable, Equatable {
-	case providerConsentRequired
-	case saved
-	case partiallySaved
-	case notSaved
-
-	init(_ outcome: FlushOutcome?) {
-		switch outcome {
-		case .saved, .nothingToSave: self = .saved
-		case .partial: self = .partiallySaved
-		case .failed(.model(.accessUnavailable(.providerConsentRequired))):
-			self = .providerConsentRequired
-		case .failed, nil: self = .notSaved
-		}
-	}
-}
-
 package struct ConversationReset: Sendable {
 	package let chat: ChatID
 	package let ledger: Ledger
@@ -29,30 +7,33 @@ package struct ConversationReset: Sendable {
 	package let clock: any Clock
 
 	package func run(
-		_ reset: ResetID, archiving conversation: Conversation,
+		_ reset: ReservedReset, archiving conversation: Conversation, jobs: [FlushJob],
 		access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess
-	) async -> (outcome: ResetOutcome, boundary: [AthleteRecord]) {
+	) async -> (outcome: ResetExecutionOutcome, boundary: [AthleteRecord]) {
 		let stamp = OperationStamp(
-			operation: .conversationReset(reset),
+			operation: .conversationReset(reset.id),
 			attempt: AttemptID(ulid: await ledger.nextULID()),
 			binding: ActionBinding(
 				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 		)
-		let jobs = await flushes.jobs(in: conversation)
 		let rows =
 			conversation.outstandingRows(jobs)
-			+ conversation.messagesSinceLastFlush(jobs, excluding: nil, before: reset.ulid)
-		var flushed: (job: FlushJob, outcome: FlushOutcome?, stamp: OperationStamp)?
+			+ conversation.messagesSinceLastFlush(jobs, excluding: nil, before: reset.boundary)
+		var flushed: [(job: FlushJob, outcome: FlushOutcome?, stamp: OperationStamp)] = []
 		if !rows.isEmpty {
-			let job: FlushJob
+			let jobs: [FlushJob]
 			do {
-				job = try await flushes.open(covering: rows.map(\.ulid), stamp: stamp)
+				jobs = try await flushes.open(covering: rows, stamp: stamp)
 			} catch {
 				return (.notStarted(.local(.recordStorage)), [])
 			}
-			let flushStamp = await flushes.stamp(for: job)
-			let outcome = await extract(rows.map(\.message), access: access, stamp: flushStamp)
-			flushed = (job, outcome, flushStamp)
+			for job in jobs {
+				let flushStamp = await flushes.stamp(for: job)
+				let messages = rows.filter { job.coverage.resolved.contains($0.ulid) }.map(
+					\.message)
+				let outcome = await extract(messages, access: access, stamp: flushStamp)
+				flushed.append((job, outcome, flushStamp))
+			}
 		}
 		let boundary: [AthleteRecord]
 		do {
@@ -60,17 +41,20 @@ package struct ConversationReset: Sendable {
 				synced: [
 					.windowStart(
 						WindowStartBody(
-							chatId: chat, firstIncludedUlid: reset.ulid,
-							reason: .reset(reset)))
+							chatId: chat, firstIncludedUlid: reset.id.ulid,
+							reason: .reset(reset.id), boundaryClock: reset.boundary))
 				],
 				stamp: stamp)
 		} catch {
 			return (.notStarted(.local(.recordStorage)), [])
 		}
-		if let flushed, let outcome = flushed.outcome {
-			await flushes.settle(flushed.job, outcome, stamp: flushed.stamp)
+		for result in flushed {
+			if let outcome = result.outcome {
+				await flushes.settle(result.job, outcome, stamp: result.stamp)
+			}
 		}
-		return (.started(memory: flushed.map { MemorySaveResult($0.outcome) } ?? .saved), boundary)
+		let outcomes = flushed.map { $0.outcome ?? .failed(.local(.recordStorage)) }
+		return (.started(memory: MemorySaveResult(FlushOutcome.combining(outcomes))), boundary)
 	}
 
 	private func extract(
@@ -97,69 +81,32 @@ package struct ConversationReset: Sendable {
 	}
 }
 
-final class PendingResets {
-	private let work: ConversationReset
-	private var waiting: [ResetID: CheckedContinuation<ResetOutcome, Never>] = [:]
-	private var finished: [ResetID: ResetOutcome] = [:]
-
-	init(_ work: ConversationReset) {
-		self.work = work
-	}
-
-	func outcome(of reset: ResetID, isolation: isolated (any Actor)? = #isolation) async
-		-> ResetOutcome
-	{
-		if let done = finished.removeValue(forKey: reset) {
-			return done
-		}
-		return await withCheckedContinuation { waiting[reset] = $0 }
-	}
-
-	func run(
-		_ reset: ResetID, on records: ChatRecords,
-		access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess,
-		isolation: isolated (any Actor)? = #isolation, then publish: () -> Void
-	) async {
-		let result = await work.run(reset, archiving: records.conversation, access: access)
-		records.apply(result.boundary)
-		_ = await records.refreshJobs(from: work.flushes)
-		publish()
-		finish(reset, result.outcome)
-	}
-
-	private func finish(_ reset: ResetID, _ outcome: ResetOutcome) {
-		guard let waiter = waiting.removeValue(forKey: reset) else {
-			finished[reset] = outcome
-			return
-		}
-		waiter.resume(returning: outcome)
-	}
-}
-
 extension Conversation {
-	package mutating func openSegment(at boundary: ULID, openedBy opening: SegmentOpening) {
-		guard !segments.contains(where: { $0.id.boundary == boundary }) else { return }
-		var opened = Segment(id: SegmentID(boundary: boundary), openedBy: opening)
-		let last = segmentIndex(for: boundary)
+	package mutating func openSegment(
+		at ulid: ULID, boundary: SegmentBoundary, openedBy opening: SegmentOpening
+	) {
+		guard !segments.contains(where: { $0.id.boundary == ulid }) else { return }
+		var opened = Segment(id: SegmentID(boundary: ulid), openedBy: opening, boundary: boundary)
+		let last = segments.lastIndex { $0.boundary.map { $0.precedes(boundary) } ?? true } ?? 0
 		if !segments.isEmpty {
-			opened.notes = segments[last].notes.filter { $0.ulid >= boundary }
-			segments[last].notes.removeAll { $0.ulid >= boundary }
+			opened.notes = segments[last].notes.filter { boundary.includes($0.ulid, at: $0.hlc) }
+			segments[last].notes.removeAll { boundary.includes($0.ulid, at: $0.hlc) }
 		}
 		segments.insert(opened, at: last + 1)
 	}
 }
 
 extension Segment {
-	package func closing(at boundary: ULID) -> Segment {
+	package func closing(at boundary: HybridLogicalClock) -> Segment {
 		var closing = self
 		closing.turns.removeAll { $0.opens(atOrAfter: boundary) }
-		closing.notes.removeAll { $0.ulid >= boundary }
+		closing.notes.removeAll { $0.hlc >= boundary }
 		return closing
 	}
 }
 
 extension TurnFacts {
-	fileprivate func opens(atOrAfter boundary: ULID) -> Bool {
-		fragments.first.map { $0.ulid >= boundary } ?? false
+	fileprivate func opens(atOrAfter boundary: HybridLogicalClock) -> Bool {
+		fragments.min(by: { $0.index < $1.index }).map { $0.hlc >= boundary } ?? false
 	}
 }

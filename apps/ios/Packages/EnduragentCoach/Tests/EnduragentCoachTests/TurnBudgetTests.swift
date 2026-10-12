@@ -22,7 +22,7 @@ import Testing
 		let oneCall = TurnBudgetPolicy(
 			maxGenerateAttempts: 1, maxGenerateCalls: 1, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
-		let scope = TurnScope(stamp: testStamp(), policy: oneCall, uptime: .zero)
+		let scope = TurnScope(stamp: testStamp(), policy: oneCall, ladder: .npm, uptime: .zero)
 		let result = try await run("Keep fetching", scope: scope)
 		#expect(result.replyText == "Ten steps.")
 		#expect(transport.requests.count == 10)
@@ -44,7 +44,7 @@ import Testing
 				count: 3)
 				+ [.text("Fits now."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let scope = TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
+		let scope = TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero)
 		let result = try await run("Is Thursday on?", scope: scope)
 		#expect(result.replyText == "Fits now.")
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 1 + 3)
@@ -60,7 +60,7 @@ import Testing
 		let tight = TurnBudgetPolicy(
 			maxGenerateAttempts: 2, maxGenerateCalls: 40, wallClock: .seconds(10),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
-		let scope = TurnScope(stamp: testStamp(), policy: tight, uptime: clock.uptime)
+		let scope = TurnScope(stamp: testStamp(), policy: tight, ladder: .npm, uptime: clock.uptime)
 		let result = try await run("Is Thursday on?", scope: scope)
 		#expect(
 			result == .failed(.model(.budgetExhausted(.wallClock)), saved: .none))
@@ -71,18 +71,14 @@ import Testing
 	@Test func budgetFailureAfterAMemoryWriteKeepsTheWriteInTheSettlement() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments:
-						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-				),
+				.saturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.finish(reason: .toolCalls),
 			], otherwise: transport.respond)
 		let oneCall = TurnBudgetPolicy(
 			maxGenerateAttempts: 4, maxGenerateCalls: 1, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
-		let scope = TurnScope(stamp: testStamp(), policy: oneCall, uptime: .zero)
+		let scope = TurnScope(stamp: testStamp(), policy: oneCall, ladder: .npm, uptime: .zero)
 		let result = try await run("Remember Saturdays", scope: scope)
 		#expect(
 			result
@@ -107,7 +103,7 @@ import Testing
 		let twoCalls = TurnBudgetPolicy(
 			maxGenerateAttempts: 4, maxGenerateCalls: 2, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
-		let scope = TurnScope(stamp: testStamp(), policy: twoCalls, uptime: .zero)
+		let scope = TurnScope(stamp: testStamp(), policy: twoCalls, ladder: .npm, uptime: .zero)
 		let result = try await run("How was my week?", scope: scope)
 		#expect(result == .failed(.model(.budgetExhausted(.generateCalls)), saved: .none))
 		#expect(transport.requests.map(\.charge) == [.chatAttempt, .chatAttempt, .memoryFlush])
@@ -148,7 +144,8 @@ import Testing
 		let ladder = RetryLadder(
 			guards: RetryLadder.npm.guards,
 			rungs: RetryLadder.npm.rungs.filter { !$0.classes.contains(.rateLimit) })
-		let scope = TurnScope(stamp: testStamp(), policy: .npm, uptime: clock.uptime)
+		let scope = TurnScope(
+			stamp: testStamp(), policy: .npm, ladder: ladder, uptime: clock.uptime)
 		let result = try await run("How was my week?", scope: scope, ladder: ladder)
 		#expect(result.replyText == "Recovered.")
 		#expect(sent(.memoryFlush, by: transport).count == 1)
@@ -168,7 +165,9 @@ import Testing
 			clock: clock,
 			diagnostics: diagnostics,
 			ladder: ladder,
-			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics)
+			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
+			reviews: makeReviews(ledger: ledger, clock: clock),
+			authorizeInvocation: { _ in }
 		)
 		return try await runner.run(
 			attempt(request, scope: scope), conversation: conversation, jobs: jobs,
@@ -183,11 +182,11 @@ import Testing
 			chat: .main,
 			request: request,
 			slash: nil,
-			language: LanguagePreference.automatic.replyLanguage(for: request, device: .en),
+			displayLocale: testDisplayLocale(.automatic),
 			session: .npmDefaults,
 			access: testAccess,
 			training: TrainingConnection(
-				account: .intervals(connection: ConnectionID(), athlete: nil), client: intervals),
+				account: testConnection.account, client: intervals),
 			process: ProcessID(ulid: scope.stamp.attempt.ulid)
 		)
 	}

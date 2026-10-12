@@ -37,13 +37,6 @@ extension TurnRunnerTests {
 				.isEmpty)
 	}
 
-	@Test(arguments: ["1e20", "-1e20"])
-	func oversizedToolNumbersReturnErrors(days: String) async throws {
-		let result = try await toolResult(
-			name: "intervals_fetch_activities", arguments: "{\"days\":\(days)}")
-		#expect(result.objectFields["error"]?.stringValue != nil)
-	}
-
 	@Test(arguments: [
 		#"[{"type":"steady","duration":{"value":1.5e17,"unit":"minutes"}}]"#,
 		#"[{"type":"steady","duration":{"value":86401,"unit":"seconds"}}]"#,
@@ -88,7 +81,7 @@ extension TurnRunnerTests {
 		#expect(result.objectFields["error"] == .string("range_too_wide"))
 	}
 
-	@Test(arguments: ["1e20", "-5", "0", "1.5"])
+	@Test(arguments: ["1e20", "-1e20", "-5", "0", "1.5"])
 	func invalidDayCountsIdentifyTheDaysValue(days: String) async throws {
 		let result = try await toolResult(
 			name: "intervals_fetch_activities", arguments: "{\"days\":\(days)}")
@@ -104,24 +97,21 @@ extension TurnRunnerTests {
 		#expect(result.objectFields["error"] == .string("invalid_date"))
 	}
 
-	@Test func promptDoesNotRequestUnavailableTools() async throws {
+	@Test func promptOmitsUnavailableToolsAndKeepsNumberedChoiceSafetyRules() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Ready."), .finish(reason: .stop)], otherwise: transport.respond)
 		let settled = try await makeCoach().sendAndSettle("Help me plan")
 		#expect(replyText(settled) == "Ready.")
 		let request = try #require(transport.requests.first)
-		let prompt = request.messages.map(\.content).joined(separator: "\n")
-		#expect(!prompt.contains("plan_save"))
-		#expect(!prompt.contains("request_user_decision"))
-	}
-
-	@Test func promptPreservesNumberedChoiceSafetyRules() async throws {
-		transport.respond = ScriptedReply.sequence(
-			[.text("Ready."), .finish(reason: .stop)], otherwise: transport.respond)
-		let settled = try await makeCoach().sendAndSettle("Help me plan")
-		#expect(replyText(settled) == "Ready.")
-		let request = try #require(transport.requests.first)
+		let everyMessage = request.messages.map(\.content).joined(separator: "\n")
+		#expect(!everyMessage.contains("plan_save"))
+		#expect(!everyMessage.contains("request_user_decision"))
 		let prompt = try #require(request.messages.first { $0.role == .system }?.content)
+		#expect(
+			prompt.contains(
+				"Ask material choices between coaching or Plan directions as numbered text."))
+		#expect(prompt.contains("Ask ordinary questions in text."))
+		#expect(prompt.contains("Give 2–5 options"))
 		#expect(prompt.contains("Never offer numbered choices for medical red flags"))
 		#expect(
 			prompt.contains(

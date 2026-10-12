@@ -14,7 +14,9 @@ package struct ReviewNote: Sendable, Equatable {
 	package let ulid: ULID
 	package let hlc: HybridLogicalClock
 	package let date: CivilDate
-	package let summary: ReviewSummary
+	package let account: TrainingAccount
+	package let content: TranscriptNote.Content
+	package var after: TurnID? = nil
 }
 
 package struct PromptWindow: Sendable, Equatable {
@@ -34,39 +36,39 @@ package struct PromptWindow: Sendable, Equatable {
 	}
 }
 
+package struct ConversationRow: Sendable, Equatable {
+	package let ulid: ULID
+	package let origin: DeviceID
+	package let account: TrainingAccount
+	package let message: ChatMessage
+}
+
 package struct PromptHistory: Sendable, Equatable {
 	package var summary: String?
-	package var messages: [ChatMessage]
-	package var ulids: [ULID]
+	package var rows: [ConversationRow]
+
+	package var messages: [ChatMessage] { rows.map(\.message) }
+	package var ulids: [ULID] { rows.map(\.ulid) }
 }
 
 package struct Segment: Sendable, Equatable {
 	package let id: SegmentID
 	package let openedBy: SegmentOpening
+	package var boundary: SegmentBoundary? = nil
 	package var turns: [TurnFacts] = []
 	package var notes: [ReviewNote] = []
-	package var promptWindow = PromptWindow()
+	package var promptWindows: [InformationOwner: PromptWindow] = [:]
 	package var legacyTrim: ULID?
 
 	package var messages: [ChatMessage] {
-		turns.flatMap { visibleRows(of: $0).map(\.message) }
-	}
-
-	package func promptHistory(excluding turn: TurnID?) -> PromptHistory {
-		var history = PromptHistory(
-			summary: promptWindow.summary?.markdown, messages: [], ulids: [])
-		for facts in turns where facts.turn != turn {
-			if let trim = promptWindow.trim,
-				visibleRows(of: facts).allSatisfy({ trim.messageUlids.contains($0.ulid) })
-			{
-				continue
+		turns.flatMap { facts -> [ChatMessage] in
+			guard facts.replyRow != nil || (facts.legacy && facts.latestSettlement == nil) else {
+				return []
 			}
-			for (ulid, message) in visibleRows(of: facts) {
-				history.messages.append(message)
-				history.ulids.append(ulid)
-			}
+			return [facts.userRow, facts.replyRow].compactMap { $0 }.filter { !isTrimmed($0.ulid) }
+				.map(
+					\.message)
 		}
-		return history
 	}
 
 	package func hidesQuestion(of facts: TurnFacts) -> Bool {
@@ -77,8 +79,10 @@ package struct Segment: Sendable, Equatable {
 		hidesQuestion(of: facts) && (facts.latestSettlement.map { isTrimmed($0.ulid) } ?? true)
 	}
 
-	private func visibleRows(of facts: TurnFacts) -> [(ulid: ULID, message: ChatMessage)] {
-		facts.messageRows.filter { !isTrimmed($0.ulid) }
+	func visibleRows(of facts: TurnFacts, using ownership: InformationOwnership)
+		-> [ConversationRow]
+	{
+		facts.messageRows(using: ownership).filter { !isTrimmed($0.ulid) }
 	}
 
 	private func isTrimmed(_ ulid: ULID) -> Bool {

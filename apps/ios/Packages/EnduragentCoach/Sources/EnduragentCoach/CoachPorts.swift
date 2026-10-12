@@ -8,6 +8,7 @@ public struct CoachPorts: Sendable {
 	public let credits: CreditsService
 	public let host: any ExecutionHost
 	public let clock: any Clock
+	public let openRouterSignIn: OpenRouterSignInService?
 	package var watchdogSleep: @Sendable (Duration) async throws -> Void = SystemClock().sleep
 	package var coalescingSleep: @Sendable (Duration) async throws -> Void = SystemClock().sleep
 
@@ -18,7 +19,8 @@ public struct CoachPorts: Sendable {
 		training: TrainingService,
 		credits: CreditsService,
 		host: any ExecutionHost,
-		clock: any Clock
+		clock: any Clock,
+		openRouterSignIn: OpenRouterSignInService? = nil
 	) {
 		self.records = records
 		self.secrets = secrets
@@ -27,6 +29,7 @@ public struct CoachPorts: Sendable {
 		self.credits = credits
 		self.host = host
 		self.clock = clock
+		self.openRouterSignIn = openRouterSignIn
 	}
 }
 
@@ -56,13 +59,25 @@ public struct ModelService: Sendable {
 	}()
 
 	package let makeTransport: @Sendable (DiagnosticsLog) -> any ModelTransport
+	package let catalogs: ModelCatalogOwner
 
-	package init(makeTransport: @escaping @Sendable (DiagnosticsLog) -> any ModelTransport) {
+	package init(
+		catalog: ModelCatalog = .bundled,
+		catalogSource: (any ModelCatalogSource)? = nil,
+		catalogCache: (any ModelCatalogCache)? = nil,
+		makeTransport: @escaping @Sendable (DiagnosticsLog) -> any ModelTransport
+	) {
+		self.catalogs = ModelCatalogOwner(
+			bundled: catalog, source: catalogSource, cache: catalogCache)
 		self.makeTransport = makeTransport
 	}
 
-	public static func openRouter(baseURL: URL) -> ModelService {
-		ModelService { diagnostics in
+	public static func openRouter(baseURL: URL) throws -> ModelService {
+		let directory = try ModelContainerHandle.applicationSupportDirectory()
+		return ModelService(
+			catalogSource: HTTPModelCatalogSource(),
+			catalogCache: FileModelCatalogCache(directory: directory)
+		) { diagnostics in
 			OpenRouterTransport(baseURL: baseURL, diagnostics: diagnostics)
 		}
 	}

@@ -16,8 +16,7 @@ struct FlushCostFixture {
 		now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	init() async throws {
-		root = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-flush-cost-\(UUID().uuidString)", directoryHint: .isDirectory)
+		root = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 		synced = try ModelContainerHandle.withoutCloudKit(
 			storeURL: root.appending(path: "synced.store"))

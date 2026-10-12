@@ -9,23 +9,28 @@ struct ReadToolsTests {
 	let intervals = FakeIntervalsClient(athleteName: "Ada Kovač", ftp: 250)
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-	@Test func reviewWindowCoversSevenDays() {
-		#expect(IntervalsPolicy.reviewWindowDays == 7)
-	}
-
-	@Test func calculateZonesReturnsDesktopRows() async throws {
-		let outcome = try await runtime().execute(
-			name: .calculateZones,
-			arguments: try JSONValue.parse(#"{"ftpWatts":280}"#),
-			chatId: .main,
-			scope: turnScope()
-		).outcome
-		guard case .result(let json) = outcome, let rows = unwrapData(json).arrayValue else {
-			Issue.record("expected zone rows")
-			return
+	@Test func calculateZonesMatchesTypeScriptBytes() async throws {
+		let expected = try JSONValue.parse(
+			try #require(String(data: try fixtureData("zones-ts"), encoding: .utf8)))
+		var tables: [String: JSONValue] = [:]
+		let tools = runtime()
+		for ftp in [200, 250, 280, 400] {
+			let outcome = try await tools.execute(
+				name: .calculateZones,
+				arguments: .object(["ftpWatts": .number(Double(ftp))]),
+				chatId: .main,
+				scope: turnScope()
+			).outcome
+			guard case .result(let json) = outcome else {
+				Issue.record("expected zone rows")
+				return
+			}
+			tables[String(ftp)] = try #require(json.objectFields["data"])
 		}
-		#expect(rows[0].objectFields["value"]?.stringValue == "< 154W")
-		#expect(rows[3].objectFields["overlaps"]?.boolValue == true)
+		let actual = JSONValue.object(tables)
+		#expect(
+			Array(actual.canonicalDigestInput().utf8) == Array(expected.canonicalDigestInput().utf8)
+		)
 	}
 
 	@Test func fetchActivitiesDaysSevenRecordsCall() async throws {
@@ -60,13 +65,7 @@ struct ReadToolsTests {
 	@Test func wellnessToolOmitsCtlAtl() async throws {
 		intervals.wellness = [
 			WellnessDay(
-				json: IntervalsWellnessJSON(
-					date: "1998-06-13",
-					ctl: 55.2,
-					atl: 42.1,
-					rampRate: 1.4,
-					fatigue: 2
-				))
+				date: "1998-06-13", fitness: 55.2, fatigue: 42.1, form: 55.2 - 42.1)
 		]
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchWellness,
@@ -171,22 +170,11 @@ struct ReadToolsTests {
 				to: try #require(CivilDate(rawValue: newest))) == days)
 	}
 
-	@Test func wholeCalendarRangeReturnsRangeTooWide() {
-		#expect(throws: IntervalsError.self) {
-			do {
-				try IntervalsPolicy.rejectListRange(
-					oldest: "1583-01-01", newest: "9999-12-31")
-			} catch let error as IntervalsError {
-				#expect(error.code == "range_too_wide")
-				throw error
-			}
-		}
-	}
-
-	@Test func rangeTooWideReturnsTypedError() async throws {
+	@Test(arguments: [("1998-01-01", "1999-01-02"), ("1583-01-01", "9999-12-31")])
+	func rangeTooWideReturnsTypedError(oldest: String, newest: String) async throws {
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchActivities,
-			arguments: try JSONValue.parse(#"{"oldest":"1998-01-01","newest":"1999-01-02"}"#),
+			arguments: .object(["oldest": .string(oldest), "newest": .string(newest)]),
 			chatId: .main,
 			scope: turnScope()
 		).outcome
@@ -237,7 +225,7 @@ struct ReadToolsTests {
 
 	private func runtime() -> ToolRuntime {
 		let store = InMemoryRecordLog()
-		return ToolRuntime(
+		return makeToolRuntime(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock
@@ -245,6 +233,6 @@ struct ReadToolsTests {
 	}
 
 	private func turnScope() -> TurnScope {
-		TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
+		TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero)
 	}
 }

@@ -1,21 +1,11 @@
 #if DEBUG
 	import EnduragentCoach
+	import EnduragentCoachFixtures
 	import Foundation
-
-	enum FixtureStorePolicy: String {
-		case fresh
-		case keep
-		case unreadable
-	}
-
-	enum FixtureKeychainPolicy: String {
-		case unlocked
-		case locked
-		case empty
-	}
 
 	enum FixtureHostPolicy: Equatable {
 		case immediate
+		case continuedProcessing
 		case expireAfter(Duration)
 
 		var expiry: Duration? {
@@ -24,6 +14,10 @@
 		}
 
 		init(argument raw: String) throws {
+			if raw == "continued-processing" {
+				self = .continuedProcessing
+				return
+			}
 			let words = raw.split(separator: " ")
 			guard words.count == 2, words[0] == "expire-after", let seconds = Int(words[1]),
 				seconds > 0
@@ -41,9 +35,11 @@
 	}
 
 	enum FixtureLaunchError: Error {
+		case nativeProofBuildRequired
 		case unknownFixture(String)
 		case unknownArgument(key: String, value: String)
 		case defaultsSuiteUnavailable(String)
+		case upgradeStoreMissing(String)
 	}
 
 	struct FixtureLaunch {
@@ -53,7 +49,18 @@
 		static let coalescingArgumentKey = "EnduragentFixtureCoalescing"
 		static let recoveryArgumentKey = "EnduragentFixtureRecovery"
 		static let hostArgumentKey = "EnduragentFixtureHost"
+		static let resetArgumentKey = "EnduragentFixtureReset"
 		static let clockArgumentKey = "EnduragentFixtureClock"
+		static let calendarSaveArgumentKey = "EnduragentFixtureCalendarSave"
+		static let calendarReadArgumentKey = "EnduragentFixtureCalendarRead"
+		static let recordReadArgumentKey = "EnduragentFixtureRecordRead"
+		static let replyParserArgumentKey = "EnduragentFixtureReplyParser"
+		static let trainingDisplayArgumentKey = "EnduragentFixtureTrainingDisplay"
+		static let credentialWriteArgumentKey = "EnduragentFixtureCredentialWrite"
+		static let accessArgumentKey = "EnduragentFixtureAccess"
+		static let catalogArgumentKey = "EnduragentFixtureCatalog"
+		static let signInArgumentKey = "EnduragentFixtureSignIn"
+		static let creditsArgumentKey = "EnduragentFixtureCredits"
 		static let defaultClock = "1998-06-15T08:00:00Z"
 		static let timeZone = "Europe/Ljubljana"
 		static let firstWeekName = "first-week"
@@ -69,6 +76,17 @@
 		var recovery = FixtureRecoveryPolicy.readable
 		var host = FixtureHostPolicy.immediate
 		var clock = FixtureLaunch.defaultClock
+		var calendarSaveFault: FixtureCalendarSaveFault?
+		var calendarReadFault: FixtureCalendarReadFault?
+		var recordReadFault: FixtureRecordReadFault?
+		var resetFault: FixtureResetFault?
+		var replyParserFault: FixtureReplyParserFault?
+		var trainingDisplay: FixtureTrainingDisplay?
+		var credentialWriteFault: FixtureCredentialWriteFault?
+		var accessMethod = FixtureAccessMethod.credits
+		var creditsOutcome = FixtureCreditsOutcome.ready
+		var signInOutcome = FixtureSignInOutcome.cancel
+		var catalogResponse = FixtureCatalogResponse.offline
 
 		static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 			guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -82,7 +100,18 @@
 				recovery: try policy(arguments, key: recoveryArgumentKey) ?? .readable,
 				host: try arguments.string(forKey: hostArgumentKey).map(FixtureHostPolicy.init)
 					?? .immediate,
-				clock: try clock(arguments) ?? defaultClock
+				clock: try clock(arguments) ?? defaultClock,
+				calendarSaveFault: try policy(arguments, key: calendarSaveArgumentKey),
+				calendarReadFault: try policy(arguments, key: calendarReadArgumentKey),
+				recordReadFault: try policy(arguments, key: recordReadArgumentKey),
+				resetFault: try policy(arguments, key: resetArgumentKey),
+				replyParserFault: try policy(arguments, key: replyParserArgumentKey),
+				trainingDisplay: try policy(arguments, key: trainingDisplayArgumentKey),
+				credentialWriteFault: try policy(arguments, key: credentialWriteArgumentKey),
+				accessMethod: try policy(arguments, key: accessArgumentKey) ?? .credits,
+				creditsOutcome: try policy(arguments, key: creditsArgumentKey) ?? .ready,
+				signInOutcome: try policy(arguments, key: signInArgumentKey) ?? .cancel,
+				catalogResponse: try policy(arguments, key: catalogArgumentKey) ?? .offline
 			)
 		}
 
@@ -96,6 +125,7 @@
 			)
 		}
 
+		@MainActor
 		func prepare() throws -> UserDefaults {
 			guard let defaults = UserDefaults(suiteName: defaultsSuiteName) else {
 				throw FixtureLaunchError.defaultsSuiteUnavailable(defaultsSuiteName)
@@ -108,6 +138,23 @@
 				}
 			}
 			try files.createDirectory(at: directory, withIntermediateDirectories: true)
+			if let resource = store.upgradeResource {
+				guard
+					let source = Bundle.main.url(
+						forResource: resource.name, withExtension: nil,
+						subdirectory: resource.folder)
+				else { throw FixtureLaunchError.upgradeStoreMissing(resource.name) }
+				for name in ["synced-records.store", "local-records.store"] {
+					try files.copyItem(
+						at: source.appending(path: name), to: directory.appending(path: name))
+				}
+				if store == .preVault {
+					try Data(#"{"intervalsApiKey":"fixture-pre-vault-key"}"#.utf8).write(
+						to: directory.appending(path: "secrets.json"), options: .atomic)
+				}
+				defaults.set(resource.device, forKey: AppServices.deviceDefaultsKey)
+				defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
+			}
 
 			return defaults
 		}

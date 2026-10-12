@@ -1,27 +1,43 @@
 struct ConversationRows {
 	@TaskLocal static var didResolveRow: (@Sendable () -> Void)?
-	private let byUlid: [ULID: ChatMessage]
+	private let byUlid: [ULID: ConversationRow]
+	private let ownership: InformationOwnership
 	private let segments: [(id: SegmentID, ulids: [ULID])]
 
 	init(_ conversation: Conversation) {
-		var byUlid: [ULID: ChatMessage] = [:]
+		var byUlid: [ULID: ConversationRow] = [:]
 		var segments: [(id: SegmentID, ulids: [ULID])] = []
 		for segment in conversation.segments {
 			var ulids: [ULID] = []
 			for turn in segment.turns {
-				let messages = turn.messageRows
+				let messages = turn.messageRows(using: conversation.ownership)
 				let indexed =
 					messages.isEmpty ? [turn.userRow, turn.replyRow].compactMap({ $0 }) : messages
-				for (ulid, message) in indexed {
+				for row in indexed {
 					Self.didResolveRow?()
-					byUlid[ulid] = message
+					byUlid[row.ulid] = row
 				}
 				ulids.append(contentsOf: messages.map(\.ulid))
 			}
 			segments.append((segment.id, ulids))
 		}
+		self.ownership = conversation.ownership
 		self.byUlid = byUlid
 		self.segments = segments
+	}
+
+	func source(for record: AthleteRecord, body: FlushPendingBody, coverage: FlushJob.Coverage)
+		-> FlushSource
+	{
+		if body.sourceBound {
+			return .bound(
+				ownership.sourceBinding(
+					for: record.account, jobDevice: record.deviceId, zone: record.timeZone))
+		}
+		let sources = OwnedFlushRows.partition(
+			messages(for: coverage.resolved.sorted()), using: ownership, jobDevice: record.deviceId,
+			zone: record.timeZone)
+		return sources.count == 1 ? .bound(sources[0].binding) : .recoverFromRows
 	}
 
 	func coverage(
@@ -47,11 +63,14 @@ struct ConversationRows {
 			coverage: .init(
 				listed: job.coverage.listed,
 				resolved: Set(ulids(for: job.id, messages: job.coverage.listed)),
-				legacy: job.coverage.legacy), phase: job.phase, reset: job.reset)
+				legacy: job.coverage.legacy), source: job.source, parent: job.parent,
+			phase: job.phase, reset: job.reset)
 	}
 
 	func outstanding(_ jobs: [FlushJob]) -> [FlushJob] {
-		let pending = jobs.filter { $0.phase == .pending }.map(resolving)
+		let pending = jobs.filter { job in
+			job.phase == .pending && !jobs.contains { $0.id == job.parent && $0.phase == .pending }
+		}.map(resolving)
 		return pending.filter { job in !pending.contains { $0.covers(job) } }
 	}
 
@@ -61,7 +80,7 @@ struct ConversationRows {
 		return (segment?.ulids ?? []).filter { $0 < id.ulid }
 	}
 
-	func messages(for ulids: [ULID]) -> [(ulid: ULID, message: ChatMessage)] {
-		ulids.compactMap { ulid in byUlid[ulid].map { (ulid, $0) } }
+	func messages(for ulids: [ULID]) -> [ConversationRow] {
+		ulids.compactMap { byUlid[$0] }
 	}
 }

@@ -72,23 +72,11 @@ package struct IntervalsWellnessJSON: Sendable, Equatable, Decodable {
 	package var date: CivilDate
 	package var ctl: Double?
 	package var atl: Double?
-	package var rampRate: Double?
-	package var fatigue: Int?
 
 	private enum CodingKeys: String, CodingKey {
 		case id
 		case ctl
 		case atl
-		case rampRate = "ramp_rate"
-		case fatigue
-	}
-
-	package init(date: CivilDate, ctl: Double?, atl: Double?, rampRate: Double?, fatigue: Int?) {
-		self.date = date
-		self.ctl = ctl
-		self.atl = atl
-		self.rampRate = rampRate
-		self.fatigue = fatigue
 	}
 
 	package init(from decoder: Decoder) throws {
@@ -104,8 +92,6 @@ package struct IntervalsWellnessJSON: Sendable, Equatable, Decodable {
 		self.date = date
 		self.ctl = try container.decodeIfPresent(Double.self, forKey: .ctl)
 		self.atl = try container.decodeIfPresent(Double.self, forKey: .atl)
-		self.rampRate = try container.decodeIfPresent(Double.self, forKey: .rampRate)
-		self.fatigue = try container.decodeIfPresent(Int.self, forKey: .fatigue)
 	}
 }
 
@@ -160,6 +146,8 @@ public struct ActivitySummary: Sendable, Equatable {
 }
 
 public struct CalendarEvent: Sendable, Equatable {
+	package var description: String? = nil
+	package var type: String? = nil
 	public var id: EventID
 	public var startDateLocal: String
 	public var name: String
@@ -170,9 +158,12 @@ public struct CalendarEvent: Sendable, Equatable {
 	public var coachCreated: Bool
 
 	package init(
+		description: String? = nil, type: String? = nil,
 		id: EventID, startDateLocal: String, name: String, category: String, externalId: String?,
 		uid: String?, tags: [String], coachCreated: Bool
 	) {
+		self.description = description
+		self.type = type
 		self.id = id
 		self.startDateLocal = startDateLocal
 		self.name = name
@@ -185,6 +176,7 @@ public struct CalendarEvent: Sendable, Equatable {
 }
 
 public struct ChatCalendarCreate: Sendable, Equatable {
+	package var writeID: CalendarWriteID? = nil
 	public var date: CivilDate
 	public var name: String
 	public var description: String
@@ -204,6 +196,7 @@ public protocol IntervalsClient: Sendable {
 	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary]
 	func fetchActivity(id: ActivityID) async throws -> JSONValue
 	func fetchStreams(id: ActivityID) async throws -> JSONValue
+	func fetchEvent(id: EventID) async throws -> CalendarEvent
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent]
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
@@ -236,7 +229,6 @@ public struct IntervalsError: Error, Sendable, Equatable {
 
 package enum IntervalsPolicy {
 	package static let listMaxRangeDays = 366
-	package static let reviewWindowDays = 7
 	package static let athletePath = "0"
 	package static let baseURL: URL = {
 		guard let url = URL(string: "https://intervals.icu/api/v1") else {
@@ -245,22 +237,22 @@ package enum IntervalsPolicy {
 		return url
 	}()
 	package static let coachTag = "cycling-coach"
-	package static let formRecoveryThreshold = -30.0
 	package static let ftpRange = 50...600
 	package static let requestTimeout: TimeInterval = 30
 	package static let defaultStreamTypes = ["watts", "heartrate", "cadence", "time", "altitude"]
-	package static let eventCategories = ["WORKOUT", "RACE_A", "RACE_B", "RACE_C"]
 
 	package static func chatCreateBody(_ draft: ChatCalendarCreate) -> JSONValue {
-		.object([
+		var fields: [String: JSONValue] = [
 			"start_date_local": .string("\(draft.date.rawValue)T00:00:00"),
 			"category": .string("WORKOUT"),
 			"type": .string(draft.type.rawValue),
 			"name": .string(draft.name),
 			"description": .string(draft.description),
-			"external_id": .string(draft.externalId.rawValue),
+			"external_id": .string(draft.writeID?.externalID ?? draft.externalId.rawValue),
 			"tags": .array(draft.tags.map { .string($0) }),
-		])
+		]
+		if let writeID = draft.writeID { fields["uid"] = .string(writeID.uid) }
+		return .object(fields)
 	}
 
 	package static func today(now: Date, timeZone: TimeZone) -> CivilDate {

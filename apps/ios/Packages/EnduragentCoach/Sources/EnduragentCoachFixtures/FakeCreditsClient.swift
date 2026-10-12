@@ -2,7 +2,7 @@ import EnduragentCoach
 import Foundation
 import Synchronization
 
-package enum FakeCreditsCall: Sendable, Equatable {
+public enum FakeCreditsCall: Sendable, Equatable {
 	case grant
 	case claim(transactionLength: Int)
 	case recover(transactionLength: Int)
@@ -18,6 +18,7 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 		var catalogResult: Result<PackCatalog, CreditsFailure>
 		var balanceResult: Result<CreditBalance, CreditsFailure>
 		var calls: [FakeCreditsCall]
+		var provisioning: (CredentialVault, NonEmptySecret)?
 	}
 
 	private let state: Mutex<State>
@@ -47,7 +48,7 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 		set { state.withLock { $0.balanceResult = newValue } }
 	}
 
-	package var calls: [FakeCreditsCall] {
+	public var calls: [FakeCreditsCall] {
 		state.withLock { $0.calls }
 	}
 
@@ -59,17 +60,29 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 				recoverResult: .failure(.unavailable),
 				catalogResult: .failure(.unavailable),
 				balanceResult: .failure(.unavailable),
-				calls: []
+				calls: [], provisioning: nil
 			)
 		)
 	}
 
+	package func provision(using vault: CredentialVault, mintedKey: String?) {
+		state.withLock {
+			$0.provisioning = mintedKey.flatMap(NonEmptySecret.init).map { (vault, $0) }
+		}
+	}
+
 	public func grant(deviceCheck _: Data) async throws -> GrantOutcome {
+		let provisioning = state.withLock { $0.provisioning }
+		let account = try await provisioning?.0.prepareCreditsAccount()
 		let result = state.withLock { current in
 			current.calls.append(.grant)
 			return current.grantResult
 		}
-		return try result.get()
+		let outcome = try result.get()
+		if case .minted = outcome, let provisioning, let account {
+			try await provisioning.0.storeCreditsKey(provisioning.1, mintedFor: account)
+		}
+		return outcome
 	}
 
 	public func claim(signedTransaction: String, appAccountToken _: UUID) async throws

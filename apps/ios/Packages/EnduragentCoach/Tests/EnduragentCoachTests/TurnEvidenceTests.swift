@@ -27,8 +27,8 @@ import Testing
 	}
 
 	@Test func failedWellnessReadOmitsLineAndLogsDiagnostics() async throws {
-		let failure = IntervalsError(code: "http", details: "status 503", status: 503)
-		intervals.loadFailure = failure
+		let failure = IntervalsError(code: "http", details: "private upstream detail", status: 503)
+		intervals.setWellnessOutcome(.failure(failure))
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
@@ -45,6 +45,7 @@ import Testing
 		let system = try #require(request.messages.first?.content)
 		#expect(system.contains(PromptStaticBlocks.snapshotFallback))
 		#expect(!system.contains(" · Fatigue "))
+		#expect(!system.contains("private upstream detail"))
 		#expect(
 			coach.diagnostics.entries.map(\.event).contains(
 				.evidenceUnavailable(request.attempt, .temporarilyUnavailable)))

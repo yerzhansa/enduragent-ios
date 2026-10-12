@@ -16,7 +16,9 @@ extension FlushCoverageTests {
 		await coach.waitForLiveText(turn)
 		await coach.stop(.main)
 		try await host.waitForEnd(0)
-		try #require(try #require(await coach.settledState(of: turn, in: .main)).retryable)
+		try #require(
+			turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.actions
+				== [.tryAgain(turn)])
 		transport.respond = ScriptedReply.sequence(
 			Array(repeating: .fail(.http(status: 400)), count: 20), for: .flush,
 			otherwise: transport.respond)
@@ -48,7 +50,7 @@ extension FlushCoverageTests {
 		try #require(sent(.memoryFlush, by: transport).count == 2)
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let saved = sent(.memoryFlush, by: transport)
 		try #require(saved.count == 3)
 		let reset = try #require(saved.last).messages.map(\.unstampedContent)
@@ -58,7 +60,7 @@ extension FlushCoverageTests {
 		let next =
 			relaunch ? await makeCoach(transport: transport, store: store, clock: clock) : coach
 		if relaunch { await next.lifecycle(.becameActive) }
-		#expect(await next.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await next.resetAndSettle(in: .main) == .started(memory: .saved))
 		let after = sent(.memoryFlush, by: transport)
 		#expect(after.count == saved.count)
 		let successfulRows = after.dropFirst(2).flatMap(\.messages).map(\.unstampedContent)
@@ -70,7 +72,7 @@ extension FlushCoverageTests {
 			pending: [1, 2], newer: [1, 3, 4, 5], settled: false)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		await coach.lifecycle(.becameActive)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let requests = sent(.memoryFlush, by: transport)
 		#expect(requests.count == 1)
 		let rows = requests.flatMap(\.messages).map(\.unstampedContent)
@@ -96,7 +98,7 @@ extension FlushCoverageTests {
 		transport.respond = ScriptedReply.sequence(
 			[.fail(.http(status: 400)), .fail(.http(status: 400))], for: .flush,
 			otherwise: transport.respond)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .notSaved))
 		let failed = sent(.memoryFlush, by: transport)
 		#expect(!failed.isEmpty)
 		for request in failed {
@@ -110,7 +112,7 @@ extension FlushCoverageTests {
 				== .pending)
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let saved = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
 		#expect(saved.contains("Uncovered question"))
@@ -127,7 +129,7 @@ extension FlushCoverageTests {
 			otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		await coach.lifecycle(.becameActive)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .notSaved))
 		let requests = sent(.memoryFlush, by: transport)
 		#expect(requests.count == 1)
 		for request in requests {
@@ -146,7 +148,7 @@ extension FlushCoverageTests {
 		#expect(pending.coverage.listed.count == 3)
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let saved = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
 		#expect(saved.contains("Replacement reply"))

@@ -54,7 +54,7 @@ import Testing
 		#expect(chat.messages.first?.content.contains("start with a bracketed send time") == true)
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let flush = try #require(sent(.memoryFlush, by: transport).last)
 		#expect(
 			flush.messages.dropFirst().dropLast().map(\.content) == [
@@ -84,7 +84,7 @@ import Testing
 				== "[Mon 1998-06-15 20:00 Europe/Amsterdam] I'm doing intervals today.")
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let flush = try #require(sent(.memoryFlush, by: transport).last)
 		#expect(
 			flush.messages.dropFirst().dropLast().map(\.content) == [

@@ -1,14 +1,6 @@
 import Foundation
 
 extension Coach {
-	public func history() async throws(HistoryUnavailable) -> [ArchivedConversationSummary] {
-		do {
-			return try await ledger.history()
-		} catch {
-			throw .storageUnavailable
-		}
-	}
-
 	public func observe(_ chat: ChatID) async -> AsyncStream<ChatSnapshot> {
 		let feed = snapshotFeed(for: chat)
 		do {
@@ -18,7 +10,7 @@ extension Coach {
 			return feed.subscribe(
 				from: ChatSnapshot(
 					chat: chat, opening: .welcome, turns: [], activity: .idle, review: nil,
-					notes: [:], liveReply: nil, revision: 0))
+					notes: [:], liveReply: nil, revision: 0, reset: .idle))
 		}
 	}
 
@@ -27,7 +19,8 @@ extension Coach {
 		guard !text.isEmpty else { return .ignoredBlank }
 		let slash = SlashRouting.parse(text)
 		switch slash?.route {
-		case .languagePicker: return .showLanguagePicker
+		case .languagePicker:
+			guard mailboxes[chat] != nil else { return .showLanguagePicker }
 		case .resetConversation: return .newConversation(await startNewConversation(in: chat))
 		case .modelTurn, nil: break
 		}
@@ -58,7 +51,7 @@ extension Coach {
 		}
 	}
 
-	public func startNewConversation(in chat: ChatID) async -> ResetOutcome {
+	public func startNewConversation(in chat: ChatID) async -> ResetAdmission {
 		do {
 			return try await mailbox(for: chat).reset()
 		} catch {

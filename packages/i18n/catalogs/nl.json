@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "Kies je taal",
-    "continue": "Doorgaan",
-    "saveFailed": "{{language}} kon niet worden opgeslagen. Antwoorden blijven in het {{current}}. Probeer het opnieuw.",
-    "saveFailedAutomatic": "{{language}} kon niet worden opgeslagen. Antwoorden blijven in de taal van elk bericht. Probeer het opnieuw."
+    "continue": "Doorgaan"
   },
   "settings": {
     "appearance": {
@@ -515,7 +513,33 @@
         "title": "De bestaande webhook verwijderen"
       }
     },
-    "title": "Instellingen"
+    "title": "Instellingen",
+    "modelAccessTitle": "Modeltoegang",
+    "session": {
+      "title": "Sessie",
+      "contextWindow": {
+        "label": "Contextvenster",
+        "help": "Bovengrens voor de modelcontext. Laat leeg om de standaardwaarde te gebruiken.",
+        "default": "Standaard"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokens"
+      }
+    },
+    "training": {
+      "section": "Trainingsverbinding",
+      "title": "intervals.icu",
+      "replace": "Sleutel vervangen",
+      "keep": "Huidige verbinding behouden",
+      "disconnect": "Verbinding verbreken",
+      "disconnectTitle": "Verbinding met intervals.icu verbreken?",
+      "disconnectDetail": "Je gesprek en geschiedenis blijven beschikbaar.",
+      "switchTitle": "Een andere atleet gebruiken?",
+      "switchDetail": "Deze sleutel hoort bij atleet {{new}}. Je gesprek, geschiedenis en geheugen blijven opgeslagen voor atleet {{current}} en worden niet gebruikt voor atleet {{new}}. Wisselen om deze sleutel te gebruiken?",
+      "switch": "Atleet wisselen",
+      "athlete": "Atleet {{id}}"
+    }
   },
   "archive": {
     "athlete": "Jij",
@@ -548,7 +572,8 @@
     "turnCount_one": "{{formattedCount}} bericht",
     "turnCount_other": "{{formattedCount}} berichten",
     "unavailable": "Dit gesprek is niet meer beschikbaar.",
-    "history": "Geschiedenis"
+    "history": "Geschiedenis",
+    "savedForAnotherAthlete": "Opgeslagen voor een andere intervals.icu-atleet ({{id}})"
   },
   "setup": {
     "ai": {
@@ -1024,7 +1049,8 @@
       "working": "De coach is bezig…",
       "responseStopped": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard.",
       "calendarUnverified": "De kalenderwijziging is mogelijk opgeslagen. Controleer je kalender voordat je het opnieuw vraagt.",
-      "savedUnverified": "Ik heb je informatie opgeslagen, maar kon mijn antwoord niet controleren. Probeer het opnieuw."
+      "savedUnverified": "Ik heb je informatie opgeslagen, maar kon mijn antwoord niet controleren. Probeer het opnieuw.",
+      "startingNewConversation": "Een nieuw gesprek wordt gestart…"
     },
     "planChange": {
       "activePlan": "Actief trainingsschema",
@@ -2910,8 +2936,11 @@
     "accountChanged": "Deze training is voorbereid voor een andere atleet op {{service}}. Vraag me opnieuw om deze voor de verbonden atleet voor te bereiden.",
     "add": "Toevoegen aan kalender",
     "cannotVerify": "Ik kon je verbinding met {{service}} niet controleren, dus er is niets gewijzigd. Probeer het zo opnieuw.",
+    "turnStopping": "Dit antwoord wordt gestopt. Daarna kun je de trainingsbeoordeling goedkeuren of annuleren.",
     "earlierVersion": "Deze trainingsbeoordeling komt uit een eerdere versie van de app en kan niet meer worden toegepast.",
-    "storageUnavailable": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. Je laatste beoordeling blijft zichtbaar. Probeer het opnieuw om de bediening te herstellen.",
+    "cancelledUnknown": "Geannuleerd. Deze training is mogelijk toch opgeslagen. Controleer je kalender.",
+    "saveFailed": "Je keuze kon niet op deze iPhone worden opgeslagen, dus er is niets gewijzigd. Probeer het opnieuw.",
+    "storageUnavailable": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. De knoppen zijn tijdelijk uitgeschakeld.",
     "title": "Training controleren",
     "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt.",
     "workout": {
@@ -2919,7 +2948,10 @@
       "mainSet": "Hoofdblok",
       "cooldown": "Cooling-down",
       "ramp": "oplopend"
-    }
+    },
+    "writePending": "Deze training is mogelijk opgeslagen. Controleer de kalender voordat je verdergaat.",
+    "writeReadFailed": "De kalender kon niet worden gecontroleerd. Je goedgekeurde training wacht nog op bevestiging.",
+    "saveApprovedAgain": "Goedgekeurde training opnieuw opslaan"
   },
   "credits": {
     "buy": "Kopen",
@@ -2933,7 +2965,7 @@
     "packPrice_other": "{{formattedCount}} tegoedpunten · {{price}}",
     "error": {
       "accessRejected": "Je tegoedpunten konden niet worden gebruikt. Herstel je aankopen om door te gaan.",
-      "exhausted": "Je tegoedpunten zijn op. Koop er meer of schakel over naar je OpenRouter-account.",
+      "exhausted": "Je tegoedpunten zijn op. Je kunt overschakelen naar je OpenRouter-account.",
       "unavailable": "Tegoedpunten zijn momenteel niet beschikbaar. Probeer het later opnieuw.",
       "accountChanged": "Je tegoedaccount is gewijzigd terwijl dit verzoek werd afgerond. Je huidige account is behouden."
     }
@@ -2959,7 +2991,7 @@
     },
     "consent": {
       "title": "Je coach gebruikt AI",
-      "body": "Om te antwoorden stuurt Enduragent je berichten, het geheugen van je coach en de trainingsgegevens die je via intervals.icu koppelt naar OpenRouter. OpenRouter geeft ze door aan de aanbieder van het AI-model (DeepSeek). Ze gebruiken deze gegevens alleen om de antwoorden van je coach te genereren. Er wordt niets verstuurd totdat je akkoord gaat.",
+      "body": "Om te antwoorden stuurt Enduragent je berichten, je coachingsgeheugen en de trainingsgegevens die je via intervals.icu koppelt naar OpenRouter. OpenRouter geeft ze door aan {{provider}} om {{model}} uit te voeren. Deze gegevens worden alleen gebruikt om de antwoorden van je coach te genereren. Er wordt niets verzonden totdat je akkoord gaat.",
       "accept": "Akkoord en doorgaan",
       "decline": "Niet nu",
       "saveFailed": "Je toestemming kon niet worden opgeslagen. Probeer het opnieuw."
@@ -2969,13 +3001,41 @@
     "error": {
       "locked": "Ontgrendel je iPhone om door te gaan. Je bericht is opgeslagen.",
       "notConfigured": "Kies hoe de coach een model bereikt om door te gaan.",
+      "requestBlocked": "OpenRouter heeft dit verzoek geblokkeerd. Probeer een ander model of bericht.",
       "providerConsentRequired": "Je toestemming is nodig voordat chatgegevens met AI-aanbieders worden gedeeld.",
-      "openRouterFunds": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten."
-    }
+      "openRouterFunds": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten.",
+      "storageUnavailable": "De beveiligde opslag is tijdelijk niet beschikbaar. Je gesprek, geschiedenis en geheugen zijn er nog. Probeer het opnieuw.",
+      "malformed": "Je opgeslagen toegangsmethode kon niet worden gelezen. Kies een toegangsmethode om verder te gaan."
+    },
+    "title": "Toegangsmethode",
+    "openRouterAccount": "OpenRouter-account",
+    "signIn": "Inloggen met OpenRouter",
+    "signInCancelled": "Aanmelden geannuleerd. Je toegangsmethode is niet gewijzigd.",
+    "signInIncomplete": "Aanmelden bij OpenRouter is niet voltooid. Je toegangsmethode is niet gewijzigd. Probeer het opnieuw.",
+    "switchToOpenRouter": "Overschakelen naar OpenRouter"
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu heeft die sleutel niet geaccepteerd."
-    }
+      "rejected": "intervals.icu heeft die sleutel niet geaccepteerd.",
+      "blank": "Voer een intervals.icu API-sleutel in. Je huidige verbinding is ongewijzigd.",
+      "notSaved": "De vervanging is niet opgeslagen. Je vorige verbinding is ongewijzigd. Probeer opnieuw.",
+      "profileUnavailable": "Je atletenprofiel is tijdelijk niet beschikbaar. Probeer opnieuw.",
+      "wellnessRejected": "intervals.icu stond het lezen van de wellnessgegevens van vandaag niet toe. Controleer je verbinding.",
+      "wellnessUnavailable": "De wellnessgegevens van vandaag zijn tijdelijk niet beschikbaar. Probeer opnieuw.",
+      "blankConnection": "Voer een intervals.icu-API-sleutel in.",
+      "connectionNotSaved": "De verbinding is niet opgeslagen. Probeer het opnieuw.",
+      "storageLocked": "Ontgrendel je iPhone om je intervals.icu-verbinding te lezen. Probeer het daarna opnieuw.",
+      "storageUnavailable": "Je intervals.icu-verbinding is tijdelijk niet beschikbaar omdat de beveiligde opslag niet kon worden gelezen. Probeer het opnieuw.",
+      "storageMalformed": "De opgeslagen intervals.icu-verbinding kon niet worden gelezen. Vervang de sleutel om opnieuw te verbinden."
+    },
+    "wellness": {
+      "empty": "Geen wellnessgegevens voor vandaag.",
+      "waiting": "Wellnessgegevens van vandaag lezen…"
+    },
+    "review": "Verbinding controleren",
+    "profile": {
+      "waiting": "Atletenprofiel lezen…"
+    },
+    "missing": "intervals.icu is niet verbonden. Maak verbinding om trainingen aan je kalender toe te voegen."
   }
 }

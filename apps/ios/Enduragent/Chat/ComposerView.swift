@@ -16,16 +16,22 @@ struct ComposerView: View {
 						model.draftChanged(from: previous)
 					}
 				if model.isWorking {
-					Button(say(Catalog.chatComposerStop)) {
+					Button {
 						Task { await model.stop() }
+					} label: {
+						Label(say(Catalog.chatComposerStop), systemImage: "stop.fill")
 					}
+					.labelStyle(.iconOnly)
 					.accessibilityIdentifier("chat.stop")
 					.disabled(model.chat?.activity == .stopping)
 				}
-				Button(say(Catalog.chatComposerSend)) {
+				Button {
 					composerFocused = false
 					Task { await model.send() }
+				} label: {
+					Label(say(Catalog.chatComposerSend), systemImage: "arrow.up.circle.fill")
 				}
+				.labelStyle(.iconOnly)
 				.accessibilityIdentifier("chat.send")
 				.disabled(model.isSending)
 			}
@@ -35,8 +41,8 @@ struct ComposerView: View {
 					.foregroundStyle(.secondary)
 					.accessibilityIdentifier("chat.composer.notSent")
 			}
-			if let notice = model.status?.notice {
-				Text(notice.sentence(in: model.phrasebook))
+			if let notice = model.status.notice {
+				Text(notice.sentence(in: model.displayLocale))
 					.font(.footnote)
 					.foregroundStyle(.secondary)
 					.accessibilityIdentifier("chat.composer.notice")
@@ -48,6 +54,9 @@ struct ComposerView: View {
 		.background(.background)
 		.accessibilityElement(children: .contain)
 		.accessibilityIdentifier("chat.composer.container")
+		.onChange(of: model.navigation.isEmpty) { _, isEmpty in
+			if !isEmpty { composerFocused = false }
+		}
 	}
 
 	private func say(_ key: CatalogKey) -> String {

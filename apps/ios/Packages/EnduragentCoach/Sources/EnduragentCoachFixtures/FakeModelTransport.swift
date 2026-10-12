@@ -62,9 +62,13 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 				} ?? request : request
 			let step = steps[request.attempt, default: [:]][purpose, default: 0]
 			steps[request.attempt, default: [:]][purpose] = step + 1
-			return (response, ScriptedRequest(request: context, purpose: purpose, step: step))
+			return (
+				response,
+				ScriptedRequest(request: request, context: context, purpose: purpose, step: step)
+			)
 		}
 		let reply = respond(scripted)
+		let gate = reply.gate
 		let delay = reply.requestDelay
 		let pause = reply.deltaDelay
 		let usage = finishUsage
@@ -72,6 +76,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		return AsyncThrowingStream { continuation in
 			let task = Task {
 				do {
+					try await gate?.enter()
 					if let delay { try await clock.sleep(for: delay) }
 					for event in reply.events {
 						if let pause { try await clock.sleep(for: pause) }
@@ -89,6 +94,13 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 							return
 						case .fail(let failure):
 							throw failure.failure
+						case .keepWorking:
+							while !Task.isCancelled {
+								try await Task.sleep(for: .seconds(10))
+								continuation.yield(.heartbeat)
+							}
+							continuation.finish()
+							return
 						case .hang:
 							while !Task.isCancelled { try await Task.sleep(for: .seconds(60)) }
 							continuation.finish()

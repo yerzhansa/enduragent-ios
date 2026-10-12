@@ -119,8 +119,8 @@ import Testing
 			state
 				== .unrecovered(
 					TurnState.Unrecovered(
-						notice: AthleteNotice(key: Catalog.chatHistoryFailure, action: nil))))
-		#expect(!state.retryable)
+						notice: AthleteNotice(key: Catalog.chatHistoryFailure, actions: []))))
+		#expect((turnNotice(of: state)?.actions ?? []).isEmpty)
 		#expect(
 			TurnLifecycle.claimRefusal(of: dead, device: device, process: current) == .unrecovered)
 		#expect(
@@ -143,9 +143,10 @@ import Testing
 					TurnState.Interrupted(
 						partial: "", cause: .processEnded, saved: .none,
 						notice: AthleteNotice(
-							key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn))
+							key: Catalog.chatTurnInterruptedNothingChanged,
+							actions: [.tryAgain(turn)])
 					)))
-		#expect(state.retryable)
+		#expect(turnNotice(of: state)?.actions == [.tryAgain(turn)])
 		#expect(TurnLifecycle.claimRefusal(of: recovered, device: device, process: current) == nil)
 	}
 
@@ -159,7 +160,7 @@ import Testing
 				== .processing(
 					TurnState.Processing(
 						attempt: first, activity: .generating(step: 1))))
-		#expect(!state.retryable)
+		#expect((turnNotice(of: state)?.actions ?? []).isEmpty)
 		#expect(
 			TurnLifecycle.claimRefusal(of: running, device: device, process: current)
 				== .attemptInFlight)
@@ -217,7 +218,8 @@ import Testing
 		await coach.waitUntilProcessing(turn)
 		faulty.failNextAppend = true
 		await coach.stop(.main)
-		#expect(await coach.state(of: turn)?.retryable == true)
+		#expect(
+			turnNotice(of: try #require(await coach.state(of: turn)))?.actions == [.tryAgain(turn)])
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat)
 		try await coach.retry(turn, in: .main)
@@ -286,7 +288,7 @@ import Testing
 		let recording = BatchRecordingLog(inner: store)
 		let mine = await makeCoach(transport: transport, store: recording, clock: clock)
 		await mine.lifecycle(.becameActive)
-		#expect(recording.batches == [["providerConsent"]])
+		#expect(recording.batches == [["providerConsent"], ["trainingIdentityObserved"]])
 		#expect(await mine.state(of: turn) == .accepted(.onOtherDevice))
 		await #expect(throws: RetryRefusal.acceptedOnOtherDevice) {
 			try await mine.retry(turn, in: .main)

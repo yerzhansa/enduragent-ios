@@ -2,6 +2,7 @@ import Foundation
 
 package enum ProviderFailure: Error, Sendable, Equatable {
 	case credentialRejected(status: Int)
+	case requestBlocked
 	case accessExhausted
 	case rateLimited(retryAfter: Duration?)
 	case serverError(status: Int, retryAfter: Duration?)
@@ -49,8 +50,10 @@ extension ProviderFailure {
 			self =
 				Self.overflowPhrases.contains(where: lowered.contains)
 				? .contextOverflow : .invalidRequest
-		case 401, 403:
+		case 401:
 			self = .credentialRejected(status: status)
+		case 403:
+			self = .requestBlocked
 		case 402:
 			self = .accessExhausted
 		case 408:

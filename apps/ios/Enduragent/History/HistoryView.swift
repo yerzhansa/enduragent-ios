@@ -21,16 +21,15 @@ struct HistoryView: View {
 				Text(say(Catalog.archiveEmpty))
 			case .loaded(let conversations):
 				List(conversations) { conversation in
-					NavigationLink {
-						ArchivedConversationView(model: model, ref: conversation.id)
-					} label: {
+					NavigationLink(value: ShellDestination.archivedConversation(conversation.id)) {
 						row(conversation)
 					}
 					.accessibilityIdentifier("history.row.\(conversation.id.rawValue)")
 				}
+				.accessibilityIdentifier("history.content")
 			}
 		}
-		.navigationTitle(say(Catalog.archiveTitle))
+		.navigationTitle(say(Catalog.archiveHistory))
 		.task {
 			await model.loadHistory()
 		}
@@ -44,7 +43,16 @@ struct HistoryView: View {
 			}
 			Text(say(conversation.reason.title))
 				.font(.footnote)
-			Text(conversation.startedOn.rawValue)
+			if let line = conversation.attribution.historyLine(
+				in: model.phrasebook, connectedAthlete: model.connectedAthlete)
+			{
+				Text(line)
+					.font(.footnote)
+					.foregroundStyle(.secondary)
+					.accessibilityIdentifier("history.athlete.\(conversation.id.rawValue)")
+			}
+			Text(model.historyDate(conversation.startedOn))
+				.accessibilityIdentifier("history.date.\(conversation.id.rawValue)")
 				.font(.footnote)
 				.foregroundStyle(.secondary)
 		}
@@ -53,4 +61,8 @@ struct HistoryView: View {
 	private func say(_ key: CatalogKey) -> String {
 		model.phrasebook.say(key, [:])
 	}
+}
+
+extension ShellModel {
+	func historyDate(_ day: CivilDate) -> String { displayLocale.date(day, style: .named) }
 }

@@ -13,12 +13,12 @@ private func rateLimited(_ retryAfter: Duration?) -> Settlement {
 	.failed(.model(.rateLimited(retryAfter: retryAfter)), saved: .none)
 }
 
-private func action(in snapshot: ChatSnapshot?) -> RecoveryAction? {
+private func actions(in snapshot: ChatSnapshot?) -> [RecoveryAction] {
 	guard
 		case .failed(let failed)? = snapshot?.turns.first(where: { $0.id == rateLimitedTurn })?
 			.state
-	else { return nil }
-	return failed.notice.action
+	else { return [] }
+	return failed.notice?.actions ?? []
 }
 
 private func facts(_ settlement: Settlement, wallMs: Int64) -> TurnFacts {
@@ -63,21 +63,6 @@ private func milliseconds(_ date: Date) -> Int64 {
 			])
 	}
 
-	@Test func tryAgainOpensOnlyWhenTheRateLimitWaitEnds() async throws {
-		try await seedFailure(rateLimited(.seconds(7)), at: clock.now)
-		let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
-		let waiting = await coach.currentSnapshot(.main)
-		#expect(action(in: waiting) == .wait(thenTryAgain: rateLimitedTurn))
-		try await clock.waitUntilHeld(.seconds(7))
-		let stream = await coach.observe(.main)
-		clock.release(.seconds(7))
-		let opened = try await firstSnapshot(in: stream, within: .seconds(2)) {
-			action(in: $0) == .tryAgain(rateLimitedTurn)
-		}
-		#expect(opened != nil, "no snapshot opened Try again when the wait ended")
-		#expect(clock.held.isEmpty)
-	}
-
 	@Test func aRetryDuringTheWaitIsRefusedWithoutAModelRequest() async throws {
 		try await seedFailure(rateLimited(.seconds(7)), at: clock.now)
 		let transport = FakeModelTransport()
@@ -89,7 +74,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 			try await coach.retry(rateLimitedTurn, in: .main)
 		}
 		let waiting = try #require(await coach.currentSnapshot(.main)?.turns.first?.state)
-		#expect(!waiting.retryable)
+		#expect(turnNotice(of: waiting)?.actions == [.wait(thenTryAgain: rateLimitedTurn)])
 		await #expect(throws: RetryRefusal.rateLimitWaitRunning) {
 			try await coach.retry(rateLimitedTurn, in: .main)
 		}
@@ -97,7 +82,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await openTryAgain(coach, after: .seconds(7))
 		try await coach.retry(rateLimitedTurn, in: .main)
 		let answered = try #require(
-			await coach.settledState(of: rateLimitedTurn, in: .main, within: .seconds(2)))
+			await coach.settledState(of: rateLimitedTurn, in: .main, within: .hangGuard))
 		#expect(replyText(answered) == "Back on track.")
 		#expect(transport.requestCount == 1)
 	}
@@ -121,12 +106,12 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await clock.waitUntilHeld(.seconds(3))
 		#expect(clock.held == [.seconds(3)])
 		let failedAgain = try #require(
-			await coach.settledState(of: rateLimitedTurn, in: .main, within: .seconds(2)))
+			await coach.settledState(of: rateLimitedTurn, in: .main, within: .hangGuard))
 		guard case .failed(let failed) = failedAgain else {
 			Issue.record("expected a second rate-limit failure, got \(failedAgain)")
 			return
 		}
-		#expect(failed.notice.action == .wait(thenTryAgain: rateLimitedTurn))
+		#expect(failed.notice?.actions == [.wait(thenTryAgain: rateLimitedTurn)])
 		await #expect(throws: RetryRefusal.rateLimitWaitRunning) {
 			try await coach.retry(rateLimitedTurn, in: .main)
 		}
@@ -139,10 +124,11 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await clock.waitUntilHeld(wait)
 		let stream = await coach.observe(.main)
 		clock.release(wait)
-		let opened = try await firstSnapshot(in: stream, within: .seconds(2)) {
-			action(in: $0) == .tryAgain(rateLimitedTurn)
+		let opened = try await firstSnapshot(in: stream, within: .hangGuard) {
+			actions(in: $0) == [.tryAgain(rateLimitedTurn)]
 		}
 		try #require(opened != nil, "no snapshot opened Try again when the wait ended")
+		#expect(clock.held.isEmpty)
 	}
 
 	@Test func aNewAttemptCancelsTheOldSleeperAndAStaleEndIsRefused() async throws {
@@ -173,7 +159,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 	@Test func aWaitThatEndedBeforeTheChatOpenedOffersTryAgainAtOnce() async throws {
 		try await seedFailure(rateLimited(.seconds(7)), at: clock.now.addingTimeInterval(-10))
 		let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
-		#expect(action(in: await coach.currentSnapshot(.main)) == .tryAgain(rateLimitedTurn))
+		#expect(actions(in: await coach.currentSnapshot(.main)) == [.tryAgain(rateLimitedTurn)])
 		#expect(clock.held.isEmpty)
 	}
 

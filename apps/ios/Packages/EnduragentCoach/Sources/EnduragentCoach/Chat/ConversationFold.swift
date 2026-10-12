@@ -2,7 +2,11 @@ import Foundation
 
 package enum ConversationFold {
 	package static let syncedScope: RecordQuery.Scope = .synced(
-		[.userMessage, .turnSettled, .windowStart, .compactionSummary, .reviewApplied],
+		[
+			.userMessage, .attemptQuestion, .turnSettled, .windowStart, .compactionSummary,
+			.reviewApplied,
+			.reviewWrite, .reviewCancelledUnknown,
+		],
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart]
 	)
 
@@ -11,9 +15,12 @@ package enum ConversationFold {
 	])
 
 	package static func fold(
-		chat: ChatID, synced: [AthleteRecord], local: [AthleteRecord] = [], device: DeviceID
+		chat: ChatID, synced: [AthleteRecord], local: [AthleteRecord] = [], device: DeviceID,
+		ownership: InformationOwnership? = nil
 	) -> Conversation {
-		var conversation = Conversation(chat: chat, segments: [])
+		var conversation = Conversation(
+			chat: chat, segments: [],
+			ownership: ownership ?? InformationOwnership(records: synced + local))
 		conversation.apply(synced + local, device: device)
 		return conversation
 	}
@@ -22,7 +29,9 @@ package enum ConversationFold {
 extension Ledger {
 	package func conversation(_ chat: ChatID) async throws(LedgerFailure) -> Conversation {
 		let records = try await conversationRecords(chat)
-		return ConversationFold.fold(chat: chat, synced: records, device: deviceId)
+		return ConversationFold.fold(
+			chat: chat, synced: records, device: deviceId,
+			ownership: try await informationOwnership())
 	}
 
 	func conversationRecords(_ chat: ChatID) async throws(LedgerFailure) -> [AthleteRecord] {
@@ -36,8 +45,10 @@ extension Ledger {
 package struct Conversation: Sendable, Equatable {
 	package let chat: ChatID
 	package var segments: [Segment]
+	package var ownership = InformationOwnership(records: [])
 	package var legacyMessageUlids: Set<ULID> = []
 	var appliedRecordIDs: Set<ULID> = []
+	var calendarRecords: [ULID: AthleteRecord] = [:]
 
 	package var current: Segment {
 		guard let last = segments.last else {
@@ -106,7 +117,9 @@ package struct Conversation: Sendable, Equatable {
 			ulid: ulid, deviceId: device,
 			hlc: HybridLogicalClock.tick(now: now, deviceId: device, last: last),
 			timeZone: .gmt, civilDate: CivilDate(date: now, timeZone: .gmt),
-			cause: .operation(.turn(id), attempt), account: .unconnected, body: body)
+			cause: .operation(.turn(id), attempt),
+			account: facts.claims.first { $0.attempt == attempt }?.account ?? .unconnected,
+			body: body)
 		apply([record], device: device)
 		return record
 	}

@@ -159,6 +159,7 @@ extension SwiftDataSuites {
 		}
 
 		@Test(arguments: [
+			ModelFailure.requestBlocked, .accessUnavailable(.openRouterKeyRejected),
 			ModelFailure.credentialRejected(.credits), .credentialRejected(.openRouterAccount),
 			.accessExhausted(.credits), .rateLimited(retryAfter: .milliseconds(1_500)),
 			.rateLimited(retryAfter: nil), .invalidRequest, .contextOverflow,
@@ -202,9 +203,7 @@ extension SwiftDataSuites {
 
 		@Test func syncedFaultsRejectEverySyncedKindAndLeaveLocalRecordsWritable() async throws {
 			let fixture = try FixtureRecordStore(
-				directory: FileManager.default.temporaryDirectory.appending(
-					path: "enduragent-synced-faults-\(UUID().uuidString)",
-					directoryHint: .isDirectory),
+				directory: try TestTemporaryFolders.make(),
 				deviceId: phoneA)
 			let samples = try sampleBodies()
 			fixture.faults.failSyncedAppends = true
@@ -276,6 +275,8 @@ extension SwiftDataSuites {
 			let nonce = Nonce(
 				rawValue: try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000001")))
 			let synced: [SyncedRecordBody] = [
+				.trainingIdentityObserved,
+				.attemptQuestion(AttemptQuestionBody(chatId: .main, turn: turn, athleteText: "hi")),
 				.userMessage(
 					UserMessageBody(
 						chatId: .main, turn: turn, fragment: 0, draft: DraftID(), athleteText: "hi",
@@ -291,6 +292,10 @@ extension SwiftDataSuites {
 						chatId: .main, firstIncludedUlid: ulid,
 						reason: .reset(ResetID(ulid: ulid)))),
 				.compactionSummary(CompactionSummaryBody(chatId: .main, markdown: "sum")),
+				.reviewWrite(
+					ReviewWriteBody(
+						chatId: .main, review: ChangeSetID(ulid: ulid), writeID: nil, target: nil,
+						evidence: .unknown(.dispatched))),
 				.reviewApplied(
 					ReviewAppliedBody(
 						chatId: .main,
@@ -314,12 +319,14 @@ extension SwiftDataSuites {
 				.sessionSettings(
 					SessionSettingsBody(
 						settings: try SessionSettings.npmDefaults
-							.replacing(.historyBudgetRatio, with: "0.05")
+							.replacing(.historyBudgetRatio, with: "5")
 							.replacing(.contextWindowOverride, with: "64000"))),
 				.languagePreference(LanguagePreferenceBody(preference: .fixed(.fr))),
 			]
 			let local: [DeviceLocalRecordBody] = [
-				.providerConsent(ProviderConsent(at: Date(timeIntervalSince1970: 899_164_800))),
+				.openRouterKeyRejected(.generation(UUID())),
+				.providerConsent(
+					ProviderConsent(legacyAt: Date(timeIntervalSince1970: 899_164_800))),
 				.turnClaim(
 					TurnClaimBody(
 						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
@@ -379,7 +386,13 @@ extension SwiftDataSuites {
 						planWorkoutId: ulid, activityId: "123456", decision: .confirmed)),
 				.workoutDrift(WorkoutDriftBody(planWorkoutId: ulid, askedAt: expires)),
 			]
-			return synced.map { (kind: $0.kind.rawValue, body: RecordBody.synced($0)) }
+			let cancelled = try RecordCodec.decode(
+				kind: "reviewCancelledUnknown", version: 2,
+				data: Data(try fixture("review-cancelled-unknown", ext: "json").utf8),
+				civilDate: "1998-06-14", ulid: fixedUlid(2).rawValue
+			).get()
+			return [(kind: cancelled.kind, body: cancelled)]
+				+ synced.map { (kind: $0.kind.rawValue, body: RecordBody.synced($0)) }
 				+ local.map { (kind: $0.kind.rawValue, body: RecordBody.deviceLocal($0)) }
 		}
 	}

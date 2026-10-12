@@ -8,40 +8,18 @@ import Testing
 	let intervals = FakeIntervalsClient(athleteName: "Ada Kovač", ftp: 250)
 	let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-	@Test func memoryQueryRejectsSlashSeparatedBounds() async throws {
-		let transport = FakeModelTransport()
-		transport.respond = ScriptedReply.sequence(
-			[
-				.toolCall(
-					name: "memory_query", arguments: #"{"from":"2024/01/01","to":"2024/01/02"}"#),
-				.finish(reason: .toolCalls),
-				.text("Please use YYYY-MM-DD dates."), .finish(reason: .stop),
-			], otherwise: transport.respond)
-		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
-		let settled = try await coach.sendAndSettle("Read my notes")
-		#expect(replyText(settled) == "Please use YYYY-MM-DD dates.")
-		let next = try #require(transport.requests.last)
-		let result = try #require(next.messages.last { $0.role == .tool })
-		let json = try JSONValue.parse(result.content)
-		#expect(
-			json.objectFields["data"]?.stringValue
-				== "Error: 2024/01/01..2024/01/02 contains an invalid calendar date. Use real YYYY-MM-DD dates."
-		)
-	}
-
 	@Test func memoryReadOmittedWhenNotesAreStampOnly() async throws {
 		let store = InMemoryRecordLog()
 		let memory = Memory(
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock)
 		try await memory.writeSection(.notes, content: "", source: .chat, stamp: testStamp())
-		let view = try await memory.view()
+		let view = try await memory.prompt(for: .unconnected).view
 		let schemas = ToolCatalog.schemas(memory: view)
 		#expect(!schemas.map(\.name).contains(.memoryRead))
 		try await memory.writeSection(
 			.notes, content: "- Prefers hill repeats", source: .chat, stamp: testStamp())
-		let withNotes = try await memory.view()
+		let withNotes = try await memory.prompt(for: .unconnected).view
 		let offered = ToolCatalog.schemas(memory: withNotes)
 		#expect(offered.map(\.name).contains(.memoryRead))
 	}
@@ -95,32 +73,6 @@ import Testing
 		#expect(notes.count == 1)
 	}
 
-	@Test func memoryQueryInvalidRangeReturnsCopiedError() async throws {
-		let outcome = try await runtime().execute(
-			name: .memoryQuery,
-			arguments: try JSONValue.parse(#"{"from":"1998-06-30","to":"1998-06-01"}"#),
-			chatId: .main,
-			scope: turnScope()
-		).outcome
-		#expect(
-			unwrapString(outcome)
-				== "Error: 'from' (1998-06-30) is after 'to' (1998-06-01). Swap the bounds."
-		)
-	}
-
-	@Test func memoryQueryInvalidDateReturnsCopiedError() async throws {
-		let outcome = try await runtime().execute(
-			name: .memoryQuery,
-			arguments: try JSONValue.parse(#"{"from":"1998-02-31","to":"1998-03-01"}"#),
-			chatId: .main,
-			scope: turnScope()
-		).outcome
-		#expect(
-			unwrapString(outcome)
-				== "Error: 1998-02-31..1998-03-01 contains an invalid calendar date. Use real YYYY-MM-DD dates."
-		)
-	}
-
 	@Test func memoryWriteAcceptsOrphanName() async throws {
 		let store = InMemoryRecordLog()
 		let memory = Memory(
@@ -130,7 +82,7 @@ import Testing
 			SectionName(rawValue: "random-legacy"), content: "stale orphan body", source: .chat,
 			stamp: testStamp())
 		let tools = runtime(store: store)
-		let view = try await memory.view()
+		let view = try await memory.prompt(for: .unconnected).view
 		let schema = ToolCatalog.schemas(memory: view).first {
 			$0.name == .memoryWrite
 		}
@@ -166,12 +118,8 @@ import Testing
 		return json.objectFields["data"] ?? json
 	}
 
-	private func unwrapString(_ outcome: ToolOutcome) -> String {
-		unwrap(outcome).stringValue ?? ""
-	}
-
 	private func runtime(store: InMemoryRecordLog = InMemoryRecordLog()) -> ToolRuntime {
-		ToolRuntime(
+		makeToolRuntime(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock
@@ -179,6 +127,6 @@ import Testing
 	}
 
 	private func turnScope() -> TurnScope {
-		TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
+		TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero)
 	}
 }

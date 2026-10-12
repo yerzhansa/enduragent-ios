@@ -3,9 +3,18 @@
     "error": {
       "locked": "Unlock your iPhone to continue. Your message is saved.",
       "notConfigured": "Choose how the coach reaches a model to continue.",
+      "requestBlocked": "OpenRouter blocked this request. Try a different model or message.",
       "providerConsentRequired": "Your permission is needed before sharing chat data with AI providers.",
-      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
-    }
+      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
+      "storageUnavailable": "Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again.",
+      "malformed": "Your saved access method couldn't be read. Choose an access method to continue."
+    },
+    "title": "Access method",
+    "openRouterAccount": "OpenRouter account",
+    "signIn": "Sign in with OpenRouter",
+    "signInCancelled": "Sign-in cancelled. Your access method was not changed.",
+    "signInIncomplete": "OpenRouter sign-in didn't complete. Your access method was not changed. Try again.",
+    "switchToOpenRouter": "Switch to OpenRouter"
   },
   "archive": {
     "athlete": "You",
@@ -38,7 +47,8 @@
     "turnCount_one": "{{formattedCount}} message",
     "turnCount_other": "{{formattedCount}} messages",
     "unavailable": "This conversation is no longer available.",
-    "history": "History"
+    "history": "History",
+    "savedForAnotherAthlete": "Saved for another intervals.icu athlete ({{id}})"
   },
   "chat": {
     "attachment": {
@@ -197,7 +207,8 @@
       "calendarUnverified": "The calendar change may have been saved. Check your calendar before asking again.",
       "savedUnverified": "I saved your information, but couldn't verify my response. Please try again.",
       "working": "Coach is working…",
-      "responseStopped": "Response stopped. Your partial response is preserved."
+      "responseStopped": "Response stopped. Your partial response is preserved.",
+      "startingNewConversation": "Starting a new conversation…"
     },
     "planChange": {
       "activePlan": "Active Plan",
@@ -868,13 +879,32 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu did not accept that key."
-    }
+      "rejected": "intervals.icu did not accept that key.",
+      "blank": "Enter an intervals.icu API key. Your current connection is unchanged.",
+      "notSaved": "The replacement wasn't saved. Your previous connection is unchanged. Try again.",
+      "profileUnavailable": "Your athlete profile is temporarily unavailable. Try again.",
+      "wellnessRejected": "intervals.icu did not allow today's wellness read. Review your connection.",
+      "wellnessUnavailable": "Today's wellness is temporarily unavailable. Try again.",
+      "blankConnection": "Enter an intervals.icu API key.",
+      "connectionNotSaved": "The connection wasn't saved. Try again.",
+      "storageLocked": "Unlock your iPhone to read your intervals.icu connection. Then try again.",
+      "storageUnavailable": "Your intervals.icu connection is temporarily unavailable because secure storage couldn't be read. Try again.",
+      "storageMalformed": "The saved intervals.icu connection couldn't be read. Replace the key to connect again."
+    },
+    "wellness": {
+      "empty": "No wellness data for today.",
+      "waiting": "Reading today's wellness…"
+    },
+    "review": "Review connection",
+    "profile": {
+      "waiting": "Reading athlete profile…"
+    },
+    "missing": "intervals.icu is not connected. Connect to add workouts to your calendar."
   },
   "credits": {
     "error": {
       "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
-      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
+      "exhausted": "You're out of Credits. You can switch to your OpenRouter account.",
       "unavailable": "Credits are unavailable right now. Try again later.",
       "accountChanged": "Your Credits account changed while this request was finishing. Your current account was kept."
     },
@@ -975,9 +1005,7 @@
   },
   "language": {
     "chooseTitle": "Choose your language",
-    "continue": "Continue",
-    "saveFailed": "Couldn't save {{language}}. Replies stay in {{current}}. Try again.",
-    "saveFailedAutomatic": "Couldn't save {{language}}. Replies stay in the language of each message. Try again."
+    "continue": "Continue"
   },
   "onboarding": {
     "notice": {
@@ -1000,7 +1028,7 @@
     },
     "consent": {
       "title": "Your coach uses AI",
-      "body": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree.",
+      "body": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to {{provider}} to run {{model}}. They use this data only to generate your coach's replies. Nothing is sent until you agree.",
       "accept": "Agree and continue",
       "decline": "Not now",
       "saveFailed": "Couldn't save your agreement. Try again."
@@ -1630,8 +1658,11 @@
     "accountChanged": "This workout was prepared for a different {{service}} athlete. Ask me again to prepare it for the connected athlete.",
     "add": "Add to calendar",
     "cannotVerify": "Couldn't check your {{service}} connection, so nothing was changed. Try again in a moment.",
+    "turnStopping": "This reply is stopping. You can approve or cancel the workout review once it stops.",
     "earlierVersion": "This workout review is from an earlier version of the app and can no longer be applied.",
-    "storageUnavailable": "Couldn't read the saved workout review. Your last review is still shown. Retry to restore its controls.",
+    "cancelledUnknown": "Cancelled. This workout may still have been saved. Check your calendar.",
+    "saveFailed": "Couldn't save your choice on this iPhone, so nothing was changed. Try again.",
+    "storageUnavailable": "Couldn't read the saved workout review. Its buttons are temporarily disabled.",
     "title": "Workout review",
     "uncertain": "Couldn't confirm whether this reached your {{service}} calendar. Check your calendar before asking again.",
     "workout": {
@@ -1639,7 +1670,10 @@
       "mainSet": "Main set",
       "cooldown": "Cooldown",
       "ramp": "ramp"
-    }
+    },
+    "writePending": "This workout may have been saved. Check the calendar before continuing.",
+    "writeReadFailed": "The calendar could not be checked. Your approved workout is still pending.",
+    "saveApprovedAgain": "Save approved workout again"
   },
   "settings": {
     "appearance": {
@@ -2144,6 +2178,32 @@
       "saving": "Saving units…",
       "title": "Units",
       "unavailable": "Units preference unavailable"
+    },
+    "modelAccessTitle": "Model access",
+    "session": {
+      "title": "Session",
+      "contextWindow": {
+        "label": "Context window",
+        "help": "Upper limit on the model context. Leave empty to use the default.",
+        "default": "Default"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokens"
+      }
+    },
+    "training": {
+      "section": "Training connection",
+      "title": "intervals.icu",
+      "replace": "Replace key",
+      "keep": "Keep current connection",
+      "disconnect": "Disconnect",
+      "disconnectTitle": "Disconnect intervals.icu?",
+      "disconnectDetail": "Your conversation and History stay available.",
+      "switchTitle": "Use another athlete?",
+      "switchDetail": "This key belongs to athlete {{new}}. Your conversation, History and memory stay saved for athlete {{current}} and are not used for athlete {{new}}. Switch to use this key?",
+      "switch": "Switch athlete",
+      "athlete": "Athlete {{id}}"
     }
   },
   "setup": {

@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -8,7 +9,7 @@ extension FixtureLaunchTests {
 	@Test func teachSavesTheScheduleThenReplies() async throws {
 		let services = try services()
 		let records = services.coach.recordSyncProbe()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:teach"
 		await model.send()
@@ -18,24 +19,26 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func flushPartialLeavesTheJobPendingUntilTheNextLaunchDrainsIt() async throws {
-		let services = try services()
-		let records = services.coach.recordSyncProbe()
-		let model = model(services)
-		await model.agreeAndStartChatting()
-		try await exchange(model, ["fixture:flush-partial", "fixture:fail overflow"])
-		try await waitUntil {
-			let leases = await services.leases()
-			return !leases.isEmpty && leases.allSatisfy { $0.ending != nil }
-		}
-		#expect(try await count("flushPending", in: records) == 1)
-		#expect(try await count("flushSettled", in: records) == 0)
-		#expect(try await count("memorySection", in: records) == 1)
-		#expect(try await count("ledgerEvent", in: records) == 1)
+		do {
+			let services = try services()
+			let records = services.coach.recordSyncProbe()
+			let model = await model(services)
+			await model.agreeAndStartChatting()
+			try await exchange(model, ["fixture:flush-partial", "fixture:fail overflow"])
+			try await until {
+				let leases = await services.leases()
+				return !leases.isEmpty && leases.allSatisfy { $0.ending != nil }
+			}
+			#expect(try await count("flushPending", in: records) == 1)
+			#expect(try await count("flushSettled", in: records) == 0)
+			#expect(try await count("memorySection", in: records) == 1)
+			#expect(try await count("ledgerEvent", in: records) == 1)
 
-		let relaunched = self.model(try relaunch(.keep).0)
+		}
+		let relaunched = await self.model(try await relaunch(.keep).0)
 		let drained = relaunched.services.coach.recordSyncProbe()
 		await relaunched.lifecycle.forward(.becameActive)
-		try await waitUntil { try await count("flushSettled", in: drained) == 1 }
+		try await until { try await count("flushSettled", in: drained) == 1 }
 		#expect(try await count("flushPending", in: drained) == 1)
 		#expect(try await count("ledgerEvent", in: drained) == 1)
 	}
@@ -44,7 +47,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let records = services.coach.recordSyncProbe()
 		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		try await exchange(model, longs(6) + ["How was my week?", "And Saturday?"])
 		#expect(try await count("compactionSummary", in: records) == 1)
@@ -62,7 +65,7 @@ extension FixtureLaunchTests {
 			let before = model.chat?.turns.count ?? 0
 			model.draft.text = message
 			await model.send()
-			try await waitUntil(within: .seconds(30)) {
+			try await until(within: .hangGuard) {
 				guard let turns = model.chat?.turns, turns.count == before + 1,
 					let last = turns.last
 				else {
@@ -77,18 +80,5 @@ extension FixtureLaunchTests {
 		async throws -> Int
 	{
 		try await records.snapshot().counts.first { $0.kind == kind }?.count ?? 0
-	}
-
-	private func waitUntil(
-		within limit: Duration = .seconds(10), _ condition: () async throws -> Bool
-	) async throws {
-		let deadline = ContinuousClock.now + limit
-		while try await !condition() {
-			guard ContinuousClock.now < deadline else {
-				Issue.record("condition never held in \(limit)")
-				return
-			}
-			try await Task.sleep(for: .milliseconds(20))
-		}
 	}
 }

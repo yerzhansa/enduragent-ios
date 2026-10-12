@@ -14,13 +14,84 @@ public struct ReviewControlToken: Hashable, Sendable {
 
 public struct ReviewSnapshot: Sendable, Equatable {
 	public let ref: ReviewRef
+	public let state: State
+	public let attribution: AthleteAttribution
+
+	public enum State: Sendable, Equatable {
+		case available(ReviewContent, ReviewControls)
+		case storageUnavailable(ReviewContent, DisabledReviewButtons)
+		case cancelledUnknown(CancelledUnknownReview)
+	}
+
+	public var content: ReviewContent? {
+		switch state {
+		case .available(let content, _), .storageUnavailable(let content, _): content
+		case .cancelledUnknown: nil
+		}
+	}
+
+	public var cards: [ReviewCard] { content?.cards ?? [] }
+	public var kept: [KeptWorkout] { content?.kept ?? [] }
+	public var totals: ReviewTotals { content?.totals ?? ReviewTotals([]) }
+	public var receipts: [ReviewReceipt] { content?.receipts ?? [] }
+	public var authority: ReviewAuthority { content?.authority ?? .readOnly }
+
+	public var controls: ReviewControls {
+		if case .available(_, let controls) = state { return controls }
+		return .none
+	}
+
+	public var notice: ReviewNotice? {
+		if case .storageUnavailable = state {
+			return ReviewNotice(
+				kind: .storageUnavailable, key: Catalog.reviewStorageUnavailable, vars: [:])
+		}
+		return content?.notice
+	}
+
+	func disablingButtons() -> Self {
+		switch state {
+		case .available(let content, let controls):
+			Self(
+				ref: ref, state: .storageUnavailable(content, DisabledReviewButtons(controls)),
+				attribution: attribution)
+		case .storageUnavailable, .cancelledUnknown: self
+		}
+	}
+}
+
+public struct ReviewContent: Sendable, Equatable {
 	public let cards: [ReviewCard]
 	public let kept: [KeptWorkout]
 	public let totals: ReviewTotals
 	public let receipts: [ReviewReceipt]
 	public let notice: ReviewNotice?
-	public let controls: ReviewControls
 	public let authority: ReviewAuthority
+}
+
+public struct CancelledUnknownReview: Sendable, Equatable {
+	public let set: ChangeSetID
+
+	package init(_ body: ReviewCancelledUnknownBody) { set = body.review }
+}
+
+public enum DisabledReviewButtons: Sendable, Equatable {
+	case none
+	case approveOrCancel
+	case retryRemainingOrCancel
+	case checkAgain
+	case cancelOnly
+
+	init(_ controls: ReviewControls) {
+		self =
+			switch controls {
+			case .none: .none
+			case .approveOrCancel: .approveOrCancel
+			case .retryRemainingOrCancel: .retryRemainingOrCancel
+			case .checkAgain: .checkAgain
+			case .cancelOnly: .cancelOnly
+			}
+	}
 }
 
 public enum ReviewAuthority: Sendable, Equatable {
@@ -34,6 +105,7 @@ public enum ReviewControls: Sendable, Equatable {
 	case approveOrCancel(ReviewControlToken)
 	case retryRemainingOrCancel(ReviewControlToken)
 	case checkAgain(ReviewRef)
+	case cancelOnly(ReviewControlToken)
 }
 
 public enum ReviewDecision: Sendable, Equatable {
@@ -49,7 +121,7 @@ public enum ReviewDecision: Sendable, Equatable {
 public enum ReviewOutcome: Sendable, Equatable {
 	case applied([ReviewReceipt])
 	case partiallyApplied(done: [ReviewReceipt], stoppedAt: ReviewCard, failure: TrainingFailure)
-	case uncertain(done: [ReviewReceipt], unresolved: ReviewCard)
+	case uncertain(ReviewNotice)
 	case canceled(kept: [ReviewReceipt])
 	case changedSinceReview(ReviewNotice)
 	case blocked(ReviewBlock)
@@ -59,6 +131,8 @@ public enum ReviewOutcome: Sendable, Equatable {
 }
 
 public enum ReviewBlock: Sendable, Equatable {
+	case turnStopping
+	case trainingNotConnected
 	case cannotVerify
 	case accountChanged
 	case pastProtected
@@ -93,8 +167,8 @@ public struct ReviewCard: Sendable, Equatable {
 	public let durationMinutes: Int?
 	public let estimatedLoad: Int?
 
-	public func lines(in phrasebook: CatalogPhrasebook) -> [String] {
-		instructions.lines(in: phrasebook)
+	public func lines(in display: DisplayLocale) -> [String] {
+		instructions.lines(in: display)
 	}
 }
 

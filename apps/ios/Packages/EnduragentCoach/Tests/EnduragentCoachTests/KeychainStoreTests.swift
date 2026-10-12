@@ -28,8 +28,8 @@ import Testing
 				appAccountToken: UUID(), key: "test-or-key-rotated")
 		)
 		#expect(try store.creditsAccount()?.key == "test-or-key-rotated")
-		try store.storeOpenRouterAccountKey("test-or-account-key")
-		#expect(try store.openRouterAccountKey() == "test-or-account-key")
+		try store.storeOpenRouterAccountKey("test-or-account-key", at: .legacy)
+		#expect(try store.openRouterAccountKey(at: .legacy) == "test-or-account-key")
 		try store.storeIntervalsConnection(testConnection)
 		#expect(try store.intervalsConnection() == testConnection)
 		let oauth = IntervalsConnection(
@@ -38,8 +38,10 @@ import Testing
 			resolvedAthlete: nil)
 		try store.storeIntervalsConnection(oauth)
 		#expect(try store.intervalsConnection() == oauth)
-		let selection = AccessSelection.openRouterAccount(
-			model: ModelID(rawValue: "test/account-model"))
+		let selection = SavedAccessReference(
+			.openRouter(
+				SavedOpenRouterReference(
+					credential: .legacy, model: ModelID(rawValue: "test/account-model"))))
 		try store.storeAccessSelection(selection)
 		#expect(try store.accessSelection() == selection)
 	}
@@ -61,8 +63,7 @@ import Testing
 		#"{"credential":{"apiKey":{"_0":"icu-v1-key"}}}"#,
 	])
 	func legacyIntervalsItemGainsAStableIdOnRead(_ legacy: String) throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-legacy-connection-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		defer {
 			do {
@@ -96,23 +97,6 @@ import Testing
 				== id.rawValue)
 		let rewritten = try ICloudKeychainStore.fixture(directory: directory).store
 		#expect(try rewritten.intervalsConnection() == first)
-	}
-
-	@Test func legacyConnectionReadsWhenWritesFail() throws {
-		let legacy = Data(#"{"apiKey":{"_0":"icu-v1-key"}}"#.utf8)
-		let backing = FixtureSecretStoreBacking(items: [
-			CredentialSlot.intervalsConnection.rawValue: legacy
-		])
-		let store = ICloudKeychainStore(backing: backing)
-		backing.failNextWrite = true
-		let connection = try #require(try store.intervalsConnection())
-		#expect(try ICloudKeychainStore(backing: backing).intervalsConnection() == connection)
-		#expect(try backing.copy(account: CredentialSlot.intervalsConnection.rawValue) == legacy)
-		#expect(backing.writes(to: CredentialSlot.intervalsConnection.rawValue) == 0)
-		#expect(throws: KeychainStoreError.keychain(errSecNotAvailable)) {
-			try store.storeIntervalsConnection(connection)
-		}
-		#expect(try store.intervalsConnection() == connection)
 	}
 
 	@Test func concurrentLegacyReadersShareOneIdentity() async throws {

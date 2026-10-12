@@ -13,7 +13,7 @@ extension SingleProposalReviewsTests {
 		_ = try #require(await coach.currentSnapshot(.main)?.review)
 		await staleRead.arm()
 		let refresh = Task { await coach.decide(.presented(proposal.ref), in: .main) }
-		#expect(await staleRead.waitUntilEntered())
+		try #require(try await staleRead.waitUntilEntered())
 		let token = try await presentedToken(on: coach)
 		#expect(
 			await coach.decide(.approve(token), in: .main)

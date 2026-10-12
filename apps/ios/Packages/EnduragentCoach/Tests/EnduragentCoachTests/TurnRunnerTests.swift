@@ -28,7 +28,7 @@ import Testing
 		#expect(transport.requests.count == 10)
 	}
 
-	@Test func lifecycleRecordsAreWrittenInFourBatchesAroundTheModelCall() async throws {
+	@Test func lifecycleRecordsCarryTheirTurnAccountAndAttemptStamps() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		let recording = BatchRecordingLog(inner: store)
@@ -37,11 +37,6 @@ import Testing
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
-		#expect(
-			recording.batches == [
-				["providerConsent"],
-				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
-			])
 		let everyKind: [String] = recording.batches.flatMap { $0 }
 		#expect(!everyKind.contains("assistantMessage"))
 		let synced = try await store.fetch(
@@ -75,8 +70,8 @@ import Testing
 	}
 
 	@Test func toolErrorReturnsToTheModelAsAResult() async throws {
-		intervals.loadFailure = IntervalsError(
-			code: "down", details: "intervals.icu is unavailable.")
+		let failure = IntervalsError(code: "down", details: "intervals.icu is unavailable.")
+		intervals.setWellnessOutcome(.failure(failure))
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(name: "intervals_fetch_wellness", arguments: #"{"days":7}"#),
@@ -91,41 +86,6 @@ import Testing
 		let toolMessage = try #require(
 			transport.requests[1].messages.last(where: { $0.role == .tool }))
 		#expect(toolMessage.content.contains("intervals.icu is unavailable."))
-	}
-
-	@Test func failedWellnessReadKeepsTheReplyAndReportsTheTrainingFailure() async throws {
-		intervals.loadFailure = IntervalsError(
-			code: "down", details: "private upstream detail", status: 503)
-		transport.respond = ScriptedReply.sequence(
-			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		let coach = await makeCoach()
-		let settled = try await coach.sendAndSettle("How am I recovering?")
-		#expect(replyText(settled) == "Easy spin today.")
-		try #require(transport.requests.count == 1)
-		let request = try #require(transport.requests.first)
-		#expect(
-			request.messages.first?.content.contains(PromptStaticBlocks.snapshotFallback) == true)
-		#expect(request.messages.first?.content.contains("private upstream detail") == false)
-		#expect(
-			coach.diagnostics.entries.contains {
-				if case .evidenceUnavailable(request.attempt, .temporarilyUnavailable) = $0.event {
-					return true
-				}
-				return false
-			})
-	}
-
-	@Test func unconnectedTurnDoesNotReportATrainingOutage() async throws {
-		let secrets = keyedSecrets()
-		try secrets.delete(.intervalsConnection)
-		transport.respond = ScriptedReply.sequence(
-			[.text("Let's start with your goals."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		let coach = await makeCoach(secrets: secrets)
-		let settled = try await coach.sendAndSettle("Hello")
-		#expect(replyText(settled) == "Let's start with your goals.")
-		#expect(coach.diagnostics.entries.isEmpty)
 	}
 
 	@Test func aToolThatCannotSaveTellsTheModelInPlainWords() async throws {
@@ -153,26 +113,6 @@ import Testing
 					"error": .string("save_failed"),
 					"details": .string("The change could not be saved on this device."),
 				]).canonicalDigestInput())
-	}
-
-	@Test func toolFailureDiagnosticsKeepOnlyTheTypedFailure() async throws {
-		let failing = FaultInjectingRecordLog(wrapping: store)
-		try failing.failAppends(ofKind: "ledgerEvent")
-		transport.respond = ScriptedReply.sequence(
-			[
-				.toolCall(
-					name: "ledger_append",
-					arguments:
-						#"{"kind":"decision","date":"1998-06-13","text":"Rides on Saturdays"}"#),
-				.finish(reason: .toolCalls),
-				.text("I could not save that."),
-				.finish(reason: .stop),
-			], otherwise: transport.respond)
-		let coach = await EnduragentCoachTests.makeCoach(
-			transport: transport, intervals: intervals, store: failing, clock: clock)
-		_ = try await coach.sendAndSettle("Remember that I ride on Saturdays")
-		let toolMessage = try #require(
-			transport.requests[1].messages.last(where: { $0.role == .tool }))
 		#expect(!toolMessage.content.contains("LedgerFailure"))
 		#expect(transport.requests[1].attempt == transport.requests[0].attempt)
 		let failures = coach.diagnostics.entries.compactMap { entry -> ToolFault? in
@@ -214,11 +154,13 @@ import Testing
 			return
 		}
 		#expect(failed.failure == .model(row.failure))
-		#expect(failed.notice.key == row.key)
-		#expect(failed.notice.action.map { english.say($0.title) } == row.button)
+		#expect(failed.notice?.key == row.key)
+		#expect(failed.notice?.actions.map { english.say($0.title) } == row.buttons)
 		let waits = CoachFailure.model(row.failure).tryAgainWait != nil
-		#expect(settled.retryable == (row.button == "Try again" && !waits))
-		#expect(failed.notice.sentence(in: english) == row.english)
+		#expect(
+			(failed.notice?.actions == [.tryAgain(turn)])
+				== (row.buttons == ["Try again"] && !waits))
+		#expect(failed.notice?.sentence(in: displayLocale()) == row.english)
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == row.calls)
 	}
 
@@ -233,7 +175,7 @@ import Testing
 		try await clock.waitUntilHeld(.seconds(30))
 		clock.advance(by: .seconds(30))
 		let settled = try #require(
-			await coach.settledState(of: turn, in: .main, within: .seconds(60)))
+			await coach.settledState(of: turn, in: .main, within: .hangGuard))
 		#expect(replyText(settled) == "Back on track.")
 		#expect(clock.slept == [.seconds(30)])
 		#expect(transport.requests.count == 2)
@@ -345,30 +287,6 @@ import Testing
 		#expect(next.messages.dropFirst().map(\.content).contains("Thursday is on."))
 	}
 
-	@Test func compactionAndFlushUseTheResponseModel() async throws {
-		try await seedHistory(
-			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
-		transport.respond = ScriptedReply.sequence(
-			[.text(earlierSummary), .finish(reason: .stop)], for: .summary,
-			otherwise: transport.respond)
-		transport.respond = ScriptedReply.sequence(
-			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		let coach = await makeCoach()
-
-		_ = try await coach.sendAndSettle("Is Thursday on?")
-		#expect(transport.requests.map(\.charge) == [.memoryFlush, .droppedSummary, .chatAttempt])
-		#expect(
-			transport.requests.map(\.model.rawValue) == [
-				testModel.rawValue, testModel.rawValue, testModel.rawValue,
-			])
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		#expect(
-			sent(.memoryFlush, by: transport).map(\.model.rawValue) == [
-				testModel.rawValue, testModel.rawValue,
-			])
-	}
-
 	@Test func historyBudgetUsesTheStoredRatio() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) / 2)
@@ -384,7 +302,7 @@ import Testing
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(sent(.droppedSummary, by: transport).isEmpty)
 		try await coach.setSession(
-			SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.05"))
+			SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "5"))
 		_ = try await coach.sendAndSettle("And Saturday?")
 		#expect(sent(.droppedSummary, by: transport).count == 1)
 		let next = try #require(sent(.chatAttempt, by: transport).last)

@@ -12,7 +12,7 @@ import Testing
 	var memory: Memory {
 		Memory(
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
-			clock: clock)
+			clock: clock, authorizeInvocation: { _ in })
 	}
 
 	var conversation: [ChatMessage] {
@@ -50,7 +50,7 @@ import Testing
 				.finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: held)
-		let reset = Task { await coach.startNewConversation(in: .main) }
+		let reset = Task { await coach.resetAndSettle(in: .main) }
 		defer { reset.cancel() }
 		if status == 429 {
 			try await held.waitUntilHeld(.seconds(7))
@@ -65,23 +65,27 @@ import Testing
 		}
 	}
 
-	@Test func flushCannotWriteAnUnlistedSection() async throws {
+	@Test(arguments: [
+		(#"{"section":"unlisted","content":"Must not be stored."}"#, "unknown_section"),
+		(#"{"section":"schedule"}"#, "requires a section and content"),
+	])
+	func aRefusedFlushWriteTellsTheModelAndStoresNothing(arguments: String, refusal: String)
+		async throws
+	{
 		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments: #"{"section":"unlisted","content":"Must not be stored."}"#),
-				.finish(reason: .toolCalls),
-				.finish(reason: .stop),
+				.toolCall(name: "memory_write", arguments: arguments),
+				.finish(reason: .toolCalls), .finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let written = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
-		#expect(written.isEmpty)
-		let followUp = try #require(sent(.memoryFlush, by: transport).last)
-		let result = try #require(followUp.messages.last(where: { $0.role == .tool }))
-		#expect(result.content.contains("unknown_section"))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
+		let result = try #require(sent(.memoryFlush, by: transport).last?.messages.last)
+		#expect(result.role == .tool)
+		#expect(result.content.contains(refusal))
+		#expect(!result.content.contains("type='"))
+		let sections = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
+		#expect(sections.isEmpty)
 	}
 
 	@Test(arguments: [FinishReason.error, .contentFilter])
@@ -90,35 +94,14 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: reason)], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .notSaved))
 		#expect(sent(.memoryFlush, by: transport).count == 1)
-	}
-
-	@Test func flushUsesOnlyMemoryWriteAndLedgerAppend() async throws {
-		transport.respond = ScriptedReply.sequence(
-			[
-				.toolCall(
-					name: "ledger_append",
-					arguments:
-						#"{"kind":"decision","date":"1998-06-13","text":"Rides with a group on Saturdays"}"#
-				),
-				.finish(reason: .toolCalls),
-				.finish(reason: .stop),
-			], for: .flush, otherwise: transport.respond)
-		#expect(try await run(job()) == .saved(sections: 0, events: 1))
-		#expect(transport.requests.count == 2)
-		#expect(transport.requests[0].tools.map(\.name) == [.memoryWrite, .ledgerAppend])
-		let hits = try await memory.query(
-			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays")
-		#expect(hits.count == 1)
 	}
 
 	@Test func everyWriteCarriesTheJobsOperation() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+				.untypedSaturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
@@ -140,9 +123,7 @@ import Testing
 	@Test func aFailedGenerateUsesTheLadderThenReportsTheWritesItMade() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+				.untypedSaturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.fail(.http(status: 500)),
 				.fail(.http(status: 500)),
@@ -168,9 +149,7 @@ import Testing
 			arguments: #"{"kind":"decision","date":"1998-06-13","text":"Keep Saturdays free"}"#)
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+				.untypedSaturdayScheduleWrite,
 				append, .finish(reason: .toolCalls), .fail(.http(status: 500)),
 				append, .finish(reason: .toolCalls), .finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
@@ -186,22 +165,6 @@ import Testing
 		#expect(events.count == 1)
 		let repeated = try #require(transport.requests.last?.messages.last)
 		#expect(repeated.content.contains(#""duplicate":true"#))
-	}
-
-	@Test func missingFlushContentGetsTheFlushArgumentMessage() async throws {
-		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
-		transport.respond = ScriptedReply.sequence(
-			[
-				.toolCall(name: "memory_write", arguments: #"{"section":"schedule"}"#),
-				.finish(reason: .toolCalls), .finish(reason: .stop),
-			], for: .flush, otherwise: transport.respond)
-		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let result = try #require(sent(.memoryFlush, by: transport).last?.messages.last)
-		#expect(result.content.contains("requires a section and content"))
-		#expect(!result.content.contains("type='"))
-		let sections = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
-		#expect(sections.isEmpty)
 	}
 
 	@Test func flushCapsAtFiveSteps() async throws {
@@ -234,7 +197,7 @@ import Testing
 				.finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
 		let roomForOne = TurnScope(
-			stamp: testStamp(), policy: budget(calls: 1), uptime: clock.uptime)
+			stamp: testStamp(), policy: budget(calls: 1), ladder: .npm, uptime: clock.uptime)
 		#expect(try await run(job(), scope: roomForOne) == .saved(sections: 0, events: 1))
 		#expect(transport.requests.count == 2)
 		await #expect(throws: TurnBudgetExceeded(kind: .generateCalls)) {
@@ -246,7 +209,8 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("never sent"), .finish(reason: .stop)], for: .flush, otherwise: transport.respond
 		)
-		let spent = TurnScope(stamp: testStamp(), policy: budget(calls: 1), uptime: clock.uptime)
+		let spent = TurnScope(
+			stamp: testStamp(), policy: budget(calls: 1), ladder: .npm, uptime: clock.uptime)
 		try await spent.chargeCall()
 		#expect(
 			try await run(job(), scope: spent)
@@ -283,7 +247,8 @@ import Testing
 		#expect(body.messageUlids == history.flatMap { [$0.user, $0.reply] })
 		#expect(transport.requests.map(\.charge) == [.chatAttempt, .memoryFlush, .memoryFlush])
 		let hits = try await coach.memory.query(
-			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays")
+			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays", for: testConnection.account
+		)
 		#expect(hits.count == 1)
 	}
 

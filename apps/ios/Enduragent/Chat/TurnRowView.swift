@@ -21,14 +21,13 @@ struct TurnRowView: View {
 				working
 			case .processing:
 				if let reply = model.chat?.liveReply, reply.turn == turn.id, !reply.text.isEmpty {
-					Text(reply.text)
+					ReplyView(source: reply.text, parser: model.services.replyParser)
 				}
 				working
 			case .completed(let completed):
-				switch completed.reply {
-				case .model(let text):
-					Text(text)
-				}
+				ReplyView(
+					source: completed.reply.sentence(in: model.phrasebook),
+					parser: model.services.replyParser)
 				if turn.completedInBackground {
 					Text(say(Catalog.chatTurnFinishedWhileLocked))
 						.font(.footnote)
@@ -38,11 +37,14 @@ struct TurnRowView: View {
 			case .savedWork(let savedWork):
 				notice(savedWork.notice)
 			case .failed(let failed):
-				notice(failed.notice)
+				if let failureNotice = failed.notice {
+					notice(failureNotice)
+				}
 			case .interrupted(let interrupted):
 				if !interrupted.partial.isEmpty {
-					Text(interrupted.partial)
+					ReplyView(source: interrupted.partial, parser: model.services.replyParser)
 						.foregroundStyle(.secondary)
+						.opacity(0.6)
 				}
 				notice(interrupted.notice)
 			case .unrecovered(let unrecovered):
@@ -59,16 +61,22 @@ struct TurnRowView: View {
 	}
 
 	private var working: some View {
-		Text(say(Catalog.chatNoticeWorking))
-			.foregroundStyle(.secondary)
-			.accessibilityIdentifier("chat.working")
+		Group {
+			if case .waiting? = model.chat?.reset {
+				EmptyView()
+			} else {
+				Text(say(Catalog.chatNoticeWorking))
+					.foregroundStyle(.secondary)
+					.accessibilityIdentifier("chat.working")
+			}
+		}
 	}
 
 	private func notice(_ notice: AthleteNotice) -> some View {
 		VStack(alignment: .leading, spacing: 8) {
-			Text(notice.sentence(in: model.phrasebook))
+			Text(notice.sentence(in: model.displayLocale))
 				.accessibilityIdentifier("chat.turn.notice")
-			if let action = notice.action {
+			ForEach(Array(notice.actions.enumerated()), id: \.offset) { _, action in
 				actionButton(action)
 			}
 		}
@@ -78,6 +86,7 @@ struct TurnRowView: View {
 		Button(say(action.title)) {
 			Task { await model.perform(action) }
 		}
+		.buttonStyle(.borderless)
 		.disabled(isWaiting(action))
 		.accessibilityIdentifier(identifier(for: action))
 	}
@@ -93,7 +102,9 @@ struct TurnRowView: View {
 		case .restoreCredits: "chat.turn.restorePurchases"
 		case .buyCredits: "chat.turn.buyCredits"
 		case .chooseAccessMethod: "chat.turn.chooseAccessMethod"
+		case .switchToOpenRouter: "chat.turn.switchToOpenRouter"
 		case .signInToOpenRouter: "chat.turn.signInAgain"
+		case .connectTraining: "chat.turn.connectTraining"
 		}
 	}
 

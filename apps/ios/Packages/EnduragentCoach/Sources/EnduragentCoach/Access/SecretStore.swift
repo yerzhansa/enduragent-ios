@@ -5,12 +5,15 @@ public protocol SecretStore: Sendable {
 	func creditsAccount() throws -> CreditsAccount?
 	func prepareCreditsAccount() throws -> CreditsAccount
 	func storeCreditsAccount(_ account: CreditsAccount) throws
-	func openRouterAccountKey() throws -> String?
-	func storeOpenRouterAccountKey(_ key: String) throws
+	func openRouterAccountKey(at reference: OpenRouterCredentialRef) throws -> String?
+	func storeOpenRouterAccountKey(_ key: String, at reference: OpenRouterCredentialRef) throws
+	func deleteOpenRouterAccountKey(at reference: OpenRouterCredentialRef) throws
 	func intervalsConnection() throws -> IntervalsConnection?
 	func storeIntervalsConnection(_ connection: IntervalsConnection) throws
-	func accessSelection() throws -> AccessSelection?
-	func storeAccessSelection(_ selection: AccessSelection) throws
+	func accessSelection() throws -> SavedAccessReference?
+	func storeAccessSelection(_ reference: SavedAccessReference) throws
+	func prepareAccessSelection(_ reference: SavedAccessReference, at commit: UUID) throws
+	func commitAccessSelection(at commit: UUID) throws
 	func delete(_ slot: CredentialSlot) throws
 }
 
@@ -53,6 +56,13 @@ public struct ICloudKeychainStore: SecretStore {
 
 	package init(backing: any SecretStoreBacking) {
 		self.backing = backing
+	}
+
+	package init(
+		nativeService: String, recordAttempt: @escaping @Sendable (NativeKeychainAttempt) -> Void
+	) {
+		self.backing = SecItemSecretStoreBacking(
+			service: nativeService, recordAttempt: recordAttempt)
 	}
 
 	private enum LegacyAccount: String, CaseIterable {
@@ -111,28 +121,61 @@ public struct ICloudKeychainStore: SecretStore {
 		return token
 	}
 
-	public func openRouterAccountKey() throws -> String? {
-		try readString(account: CredentialSlot.openRouterAccountKey.rawValue)
+	public func openRouterAccountKey(at reference: OpenRouterCredentialRef) throws -> String? {
+		try readString(account: reference.account)
 	}
 
-	public func storeOpenRouterAccountKey(_ key: String) throws {
-		try write(.openRouterAccountKey, Data(key.utf8))
+	public func storeOpenRouterAccountKey(_ key: String, at reference: OpenRouterCredentialRef)
+		throws
+	{
+		try write(account: reference.account, Data(key.utf8))
 	}
 
 	public func intervalsConnection() throws -> IntervalsConnection? {
 		try readItem(StoredIntervalsConnection.self, .intervalsConnection)?.connection()
 	}
 
+	public func deleteOpenRouterAccountKey(at reference: OpenRouterCredentialRef) throws {
+		try backing.delete(account: reference.account)
+	}
+
 	public func storeIntervalsConnection(_ connection: IntervalsConnection) throws {
 		try writeItem(StoredIntervalsConnection(connection), .intervalsConnection)
 	}
 
-	public func accessSelection() throws -> AccessSelection? {
-		try readItem(StoredAccessSelection.self, .accessSelection)?.selection()
+	public func accessSelection() throws -> SavedAccessReference? {
+		guard let stored = try readItem(StoredAccessSelection.self, .accessSelection) else {
+			return nil
+		}
+		guard case .consentSelection(let commit) = stored else { return try stored.selection() }
+		guard let data = try backing.copy(account: consentSelectionAccount(commit)) else {
+			throw KeychainStoreError.keychain(errSecDecode)
+		}
+		do {
+			let prepared = try JSONDecoder().decode(StoredAccessSelection.self, from: data)
+				.selection()
+			return SavedAccessReference(prepared.value, consentCommit: commit)
+		} catch is DecodingError {
+			throw KeychainStoreError.keychain(errSecDecode)
+		}
 	}
 
-	public func storeAccessSelection(_ selection: AccessSelection) throws {
-		try writeItem(StoredAccessSelection(selection), .accessSelection)
+	public func storeAccessSelection(_ reference: SavedAccessReference) throws {
+		try writeItem(StoredAccessSelection(reference), .accessSelection)
+	}
+
+	public func prepareAccessSelection(_ reference: SavedAccessReference, at commit: UUID) throws {
+		try write(
+			account: consentSelectionAccount(commit),
+			JSONEncoder().encode(StoredAccessSelection(reference)))
+	}
+
+	public func commitAccessSelection(at commit: UUID) throws {
+		try writeItem(StoredAccessSelection.consentSelection(commit), .accessSelection)
+	}
+
+	private func consentSelectionAccount(_ commit: UUID) -> String {
+		"\(CredentialSlot.accessSelection.rawValue)/\(commit.uuidString)"
 	}
 
 	public func delete(_ slot: CredentialSlot) throws {
@@ -165,10 +208,14 @@ public struct ICloudKeychainStore: SecretStore {
 	}
 
 	private func write(_ slot: CredentialSlot, _ data: Data) throws {
-		if try backing.copy(account: slot.rawValue) == nil {
-			try backing.add(account: slot.rawValue, data: data)
+		try write(account: slot.rawValue, data)
+	}
+
+	private func write(account: String, _ data: Data) throws {
+		if try backing.copy(account: account) == nil {
+			try backing.add(account: account, data: data)
 		} else {
-			try backing.update(account: slot.rawValue, data: data)
+			try backing.update(account: account, data: data)
 		}
 	}
 }
@@ -207,10 +254,13 @@ package enum KeychainQuery {
 
 private struct SecItemSecretStoreBacking: SecretStoreBacking {
 	var service: String
+	var recordAttempt: (@Sendable (NativeKeychainAttempt) -> Void)?
 
 	func add(account: String, data: Data) throws {
+		let start = DispatchTime.now().uptimeNanoseconds
 		let status = SecItemAdd(
 			KeychainQuery.add(service: service, account: account, data: data) as CFDictionary, nil)
+		recordAttempt?(.init(operation: "add", slot: account, status: status, start: start))
 		guard status == errSecSuccess else {
 			throw KeychainStoreError.keychain(status)
 		}
@@ -218,8 +268,10 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 
 	func copy(account: String) throws -> Data? {
 		var result: AnyObject?
+		let start = DispatchTime.now().uptimeNanoseconds
 		let status = SecItemCopyMatching(
 			KeychainQuery.copy(service: service, account: account) as CFDictionary, &result)
+		recordAttempt?(.init(operation: "copy", slot: account, status: status, start: start))
 		if status == errSecItemNotFound {
 			return nil
 		}
@@ -233,20 +285,38 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 	}
 
 	func update(account: String, data: Data) throws {
+		let start = DispatchTime.now().uptimeNanoseconds
 		let status = SecItemUpdate(
 			KeychainQuery.item(service: service, account: account) as CFDictionary,
 			KeychainQuery.update(data: data) as CFDictionary
 		)
+		recordAttempt?(.init(operation: "update", slot: account, status: status, start: start))
 		guard status == errSecSuccess else {
 			throw KeychainStoreError.keychain(status)
 		}
 	}
 
 	func delete(account: String) throws {
+		let start = DispatchTime.now().uptimeNanoseconds
 		let status = SecItemDelete(
 			KeychainQuery.item(service: service, account: account) as CFDictionary)
+		recordAttempt?(.init(operation: "delete", slot: account, status: status, start: start))
 		guard status == errSecSuccess || status == errSecItemNotFound else {
 			throw KeychainStoreError.keychain(status)
 		}
+	}
+}
+
+package struct NativeKeychainAttempt: Codable, Sendable {
+	package let operation: String
+	package let slot: String
+	package let status: OSStatus
+	package let milliseconds: Double
+
+	init(operation: String, slot: String, status: OSStatus, start: UInt64) {
+		self.operation = operation
+		self.slot = slot
+		self.status = status
+		self.milliseconds = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000
 	}
 }

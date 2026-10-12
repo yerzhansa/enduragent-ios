@@ -61,7 +61,10 @@ extension SwiftDataSuites {
 					"/review", "Saturday group ride summary.",
 				])
 			#expect(
-				conversation.current.promptHistory(excluding: nil).messages.map(\.text) == [
+				conversation.current.promptHistory(
+					excluding: nil, for: .unconnected, device: DeviceID(rawValue: "phone-b"),
+					using: conversation.ownership
+				).messages.map(\.text) == [
 					"/review", "Saturday group ride summary.",
 				])
 		}
@@ -133,7 +136,7 @@ extension SwiftDataSuites {
 			#expect(snapshot.turns.map(\.athleteText) == [nil, "Is Thursday on?"])
 			let unanswered = try #require(snapshot.turns.last)
 			#expect(unanswered.state == .accepted(.beforeUpgrade))
-			#expect(!unanswered.state.retryable)
+			#expect((turnNotice(of: unanswered.state)?.actions ?? []).isEmpty)
 			await #expect(throws: RetryRefusal.alreadyAnswered) {
 				try await coach.retry(unanswered.id, in: .main)
 			}
@@ -207,8 +210,7 @@ extension SwiftDataSuites {
 		let manifest: Manifest
 
 		static func materialize() throws -> V1Store {
-			let root = FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-v1-\(UUID().uuidString)", directoryHint: .isDirectory)
+			let root = try TestTemporaryFolders.make()
 			try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 			for name in ["synced", "local"] {
 				let sql = try String(contentsOf: try fixture(name, "sql"), encoding: .utf8)

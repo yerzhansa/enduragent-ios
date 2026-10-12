@@ -35,7 +35,11 @@ func testVault(
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 ) -> CredentialVault {
 	CredentialVault(
-		store: store, training: training, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		store: store, training: training, clock: clock,
+		ledger: Ledger(
+			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+		diagnostics: DiagnosticsLog(clock: clock),
+		catalogs: ModelCatalogOwner(bundled: .fixture))
 }
 
 func testRequest(
@@ -55,7 +59,7 @@ func makeCoach(
 	coalescing: CoalescingPolicy = quickWindow,
 	secrets: any SecretStore = keyedSecrets(),
 	host: any ExecutionHost = ImmediateExecutionHost(),
-	deviceLanguage: LanguageTag = .en,
+	displayLocale: @escaping DisplayLocaleResolver = testDisplayLocale,
 	watchdogClock: HeldClock = HeldClock(),
 	coalescingClock: HeldClock? = nil,
 	consent: Bool = true
@@ -70,7 +74,7 @@ func makeCoach(
 		sport: .cycling,
 		ports: ports,
 		builtInModel: testModel,
-		deviceLanguage: deviceLanguage,
+		displayLocale: displayLocale,
 		coalescing: coalescing
 	)
 	return consent ? await consentingCoach(coach) : coach
@@ -78,7 +82,11 @@ func makeCoach(
 
 func consentingCoach(_ coach: Coach) async -> Coach {
 	do {
-		try await coach.recordConsent()
+		let consent = await coach.vault.accessConsent(
+			builtInModel: coach.builtInModel, recorded: nil)
+		if case .required(let challenge) = consent {
+			try await coach.recordConsent(challenge)
+		}
 	} catch {
 		Issue.record(error)
 	}
@@ -91,27 +99,40 @@ func draft(_ text: String) -> Draft {
 
 extension Coach {
 	func sendAndSettle(
-		_ text: String, in chat: ChatID = .main, within limit: Duration = .seconds(30)
+		_ text: String, in chat: ChatID = .main, within limit: TestWaitLimit = .hangGuard
 	) async throws -> TurnState {
 		let turn = try #require(try await send(draft(text), to: chat).acceptedTurn)
 		return try #require(await settledState(of: turn, in: chat, within: limit))
 	}
 
 	func waitUntilProcessing(_ turn: TurnID, in chat: ChatID = .main) async {
-		for await snapshot in await observe(chat) {
-			if case .processing? = snapshot.turns.first(where: { $0.id == turn })?.state {
-				return
+		do {
+			let snapshot = try await firstSnapshot(in: await observe(chat), within: .hangGuard) {
+				if case .processing? = $0.turns.first(where: { $0.id == turn })?.state {
+					return true
+				}
+				return false
 			}
+			#expect(
+				snapshot != nil, "The turn did not start processing before the hang guard expired")
+		} catch {
+			Issue.record(error)
 		}
 	}
 
 	func waitForLiveText(_ turn: TurnID, in chat: ChatID = .main) async {
-		for await snapshot in await observe(chat) {
-			if case .processing? = snapshot.turns.first(where: { $0.id == turn })?
-				.state, snapshot.liveReply?.text.isEmpty == false
-			{
-				return
+		do {
+			let snapshot = try await firstSnapshot(in: await observe(chat), within: .hangGuard) {
+				if case .processing? = $0.turns.first(where: { $0.id == turn })?.state,
+					$0.liveReply?.text.isEmpty == false
+				{
+					return true
+				}
+				return false
 			}
+			#expect(snapshot != nil, "The turn did not stream text before the hang guard expired")
+		} catch {
+			Issue.record(error)
 		}
 	}
 
@@ -125,7 +146,7 @@ extension Coach {
 	}
 
 	func waitForState(
-		of turn: TurnID, within limit: Duration = .seconds(5),
+		of turn: TurnID, within limit: TestWaitLimit = .hangGuard,
 		until matches: @escaping @Sendable (TurnState?) -> Bool
 	) async throws -> TurnState? {
 		let snapshot = try await firstSnapshot(in: await observe(.main), within: limit) {
@@ -146,8 +167,8 @@ extension Coach {
 	}
 }
 
-func waitUntil(within limit: Duration = .seconds(5), _ condition: () -> Bool) async throws {
-	let deadline = ContinuousClock.now + limit
+func waitUntil(within limit: TestWaitLimit = .hangGuard, _ condition: () -> Bool) async throws {
+	let deadline = ContinuousClock.now + limit.duration
 	while !condition() {
 		guard ContinuousClock.now < deadline else {
 			Issue.record("condition never held")
@@ -172,9 +193,9 @@ func claims(of turn: TurnID, in store: any RecordLog) async throws -> [AthleteRe
 
 func waitForRecords(
 	_ scope: RecordQuery.Scope, count: Int, in store: any RecordLog,
-	within limit: Duration = .seconds(5)
+	within limit: TestWaitLimit = .hangGuard
 ) async throws {
-	let deadline = ContinuousClock.now + limit
+	let deadline = ContinuousClock.now + limit.duration
 	while try await store.fetch(RecordQuery(scope: scope)).records.count < count {
 		guard ContinuousClock.now < deadline else {
 			Issue.record("\(scope) never reached \(count) records")
@@ -191,6 +212,16 @@ func refusal(_ retry: @Sendable () async throws(RetryRefusal) -> Void) async -> 
 		return nil
 	} catch {
 		return error
+	}
+}
+
+func turnNotice(of state: TurnState) -> AthleteNotice? {
+	switch state {
+	case .failed(let failed): failed.notice
+	case .interrupted(let interrupted): interrupted.notice
+	case .savedWork(let savedWork): savedWork.notice
+	case .unrecovered(let unrecovered): unrecovered.notice
+	case .accepted, .processing, .completed: nil
 	}
 }
 
@@ -216,8 +247,7 @@ func systemTokens(clock: any Clock) -> Int {
 		context: "",
 		evidence: EvidenceBlock(wellnessLine: nil),
 		timeZoneName: clock.timeZone.identifier,
-		replyLanguage: PromptAssembly.replyLanguageSection(
-			.mirror(fallback: .en))
+		displayLocale: testDisplayLocale(.automatic)
 	)
 	return estimateTokens(PromptAssembly.cyclingPrefix(gated: true) + "\n\n" + volatile)
 }
@@ -277,38 +307,13 @@ func seededRecord(_ store: any RecordLog, at date: Date, ulid: ULID, body: Recor
 		timeZone: amsterdamZone,
 		civilDate: "1998-06-13",
 		cause: .legacy,
-		account: .unconnected,
+		account: testConnection.account,
 		body: body
 	)
 }
 
 func sent(_ charge: GenerateCharge, by transport: FakeModelTransport) -> [CompletionRequest] {
 	transport.requests.filter { $0.charge == charge }
-}
-
-func startNewConversation(on coach: Coach) -> PendingOutcome {
-	let pending = PendingOutcome()
-	Task { pending.land(await coach.startNewConversation(in: .main)) }
-	return pending
-}
-
-func outcome(_ pending: PendingOutcome) async throws -> ResetOutcome? {
-	try await pending.ready.waitUnlessCancelled()
-	return pending.landed
-}
-
-final class PendingOutcome: Sendable {
-	private let outcome = Mutex<ResetOutcome?>(nil)
-	let ready = Gate()
-
-	var landed: ResetOutcome? {
-		outcome.withLock { $0 }
-	}
-
-	func land(_ value: ResetOutcome) {
-		outcome.withLock { $0 = value }
-		ready.release()
-	}
 }
 
 extension WireMessage {
@@ -320,4 +325,16 @@ extension WireMessage {
 		else { return content }
 		return String(content[stamp.upperBound...])
 	}
+}
+
+let testDisplayLocale: DisplayLocaleResolver = { preference in
+	DisplayLocale(
+		preference: preference, preferredLanguages: ["en"],
+		regionalConventions: Locale(identifier: "en_US"))
+}
+
+func displayLocale(_ tag: LanguageTag = .en, region: String = "en_US") -> DisplayLocale {
+	DisplayLocale(
+		preference: .fixed(tag), preferredLanguages: [],
+		regionalConventions: Locale(identifier: region))
 }

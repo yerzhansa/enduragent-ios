@@ -58,7 +58,7 @@ package struct FlushJobID: Hashable, Sendable {
 	}
 }
 
-package struct ResetID: Hashable, Sendable {
+public struct ResetID: Hashable, Sendable {
 	package let ulid: ULID
 
 	package init(ulid: ULID) {

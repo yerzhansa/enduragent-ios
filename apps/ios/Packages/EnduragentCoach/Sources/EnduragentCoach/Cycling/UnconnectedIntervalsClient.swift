@@ -16,6 +16,7 @@ package struct UnconnectedIntervalsClient: IntervalsClient, Sendable {
 	{ throw Self.error }
 	package func fetchActivity(id: ActivityID) async throws -> JSONValue { throw Self.error }
 	package func fetchStreams(id: ActivityID) async throws -> JSONValue { throw Self.error }
+	package func fetchEvent(id: EventID) async throws -> CalendarEvent { throw Self.error }
 	package func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
 		throw Self.error
 	}

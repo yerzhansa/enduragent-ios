@@ -100,20 +100,62 @@ package enum StoredIntervalsCredential: Codable, Equatable, Sendable {
 }
 
 package enum StoredAccessSelection: Codable, Equatable, Sendable {
+	case consentSelection(UUID)
 	case credits
-	case openRouterAccount(model: String)
+	case openRouterAccount(
+		model: String, generation: UUID? = nil, details: StoredModelDetails? = nil,
+		consentCommit: UUID? = nil)
 
-	package init(_ selection: AccessSelection) {
-		switch selection {
+	package init(_ reference: SavedAccessReference) {
+		switch reference.value {
 		case .credits: self = .credits
-		case .openRouterAccount(let model): self = .openRouterAccount(model: model.rawValue)
+		case .openRouter(let choice):
+			let generation: UUID?
+			switch choice.credential {
+			case .legacy: generation = nil
+			case .generation(let id): generation = id
+			}
+			self = .openRouterAccount(
+				model: choice.model.rawValue, generation: generation,
+				details: choice.details.map(StoredModelDetails.init),
+				consentCommit: reference.consentCommit)
 		}
 	}
 
-	package func selection() -> AccessSelection {
+	package func selection() throws -> SavedAccessReference {
 		switch self {
-		case .credits: .credits
-		case .openRouterAccount(let model): .openRouterAccount(model: ModelID(rawValue: model))
+		case .consentSelection:
+			throw KeychainStoreError.keychain(errSecDecode)
+		case .credits: .init(.credits)
+		case .openRouterAccount(let model, let generation, let details, let consentCommit):
+			try .init(
+				.openRouter(
+					SavedOpenRouterReference(
+						credential: generation.map(OpenRouterCredentialRef.generation) ?? .legacy,
+						model: ModelID(rawValue: model), details: details?.validated())),
+				consentCommit: consentCommit)
+		}
+	}
+}
+
+package struct StoredModelDetails: Codable, Equatable, Sendable {
+	let displayName: String
+	let providerName: String
+	let routingSlug: String
+
+	init(_ details: ModelDetails) {
+		self.displayName = details.displayName
+		self.providerName = details.provider.name
+		self.routingSlug = details.provider.routingSlug
+	}
+
+	func validated() throws -> ModelDetails {
+		do {
+			return try ModelDetails(
+				displayName: displayName,
+				provider: NamedProvider(name: providerName, routingSlug: routingSlug))
+		} catch {
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 	}
 }

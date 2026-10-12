@@ -96,7 +96,7 @@ da,de,es,fr,nb,nl,pl,sv	plan.view.planView.plan	Plan	Native noun or established 
 de,es,fi,fr,it,pt-BR,pt-PT,sv	plan.view.plannedTime.hours	{{hours}} h	Uses standard cycling metric names or unit abbreviations (h); remaining content is substituted values and punctuation.
 de,es,fi,fr,it,pt-BR,pt-PT,sv	plan.view.plannedTime.hoursMinutes	{{hours}} h {{minutes}} min	Uses standard cycling metric names or unit abbreviations (h, min); remaining content is substituted values and punctuation.
 fr	plan.view.planningRequestDateConflict.date	Date	French noun for a calendar date; shared with English.
-da,de,nb	plan.view.readiness.currentForm	Form {{value1}}	Form is the native training-readiness term in these locales; the numeric value is substituted.
+da,de,nb,sv	plan.view.readiness.currentForm	Form {{value1}}	Form is the native training-readiness term in these locales; the numeric value is substituted.
 es,pt-BR,pt-PT	plan.view.readiness.experimental	Experimental	Spanish and Portuguese adjective for an experimental feature; shared spelling.
 fr	plan.view.season.dates	Dates	French plural of date; shared with English.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans	plan.view.season.distance	 · {{value1}} km	Uses standard cycling metric names or unit abbreviations (km); remaining content is substituted values and punctuation.
@@ -116,6 +116,9 @@ fr	settings.conversation.fields.idleMinutes.suffix	minutes	French plural of minu
 fr	settings.credentials.runtime.active	Active	French feminine adjective for an active credential; the localized spelling matches English.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.credentials.summary	{{kind}} · {{state}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 fr,it	settings.palette.title	Palette	French noun and Italian loanword for a color palette; shared spelling.
+da,fr,sv	settings.session.title	Session	Native Danish, French and Swedish noun for a session; shared spelling.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.session.units.percent	%	Only the language-neutral percent sign; no English words.
+da,es,nl,pt-BR,pt-PT	settings.session.units.tokens	tokens	Established loanword plural for model tokens, as in each language's other token strings.
 da,es,fi,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.spend.amount	${{amount}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.spend.amountAgainstCap	{{known}} / {{cap}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 da,es,fi,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.spend.amountBelow	<${{amount}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
@@ -129,6 +132,7 @@ de	settings.spend.month.june	Jun	German abbreviated month name for Juni; shared 
 de	settings.spend.month.november	Nov	German abbreviated month name for November; shared spelling.
 de	settings.spend.month.september	Sep	German abbreviated month name for September; shared spelling.
 da,de,it,nl,pl,pt-BR,pt-PT,sv	settings.telegram.channel.online	Online	Established connectivity loanword in these locales.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.training.title	intervals.icu	Service name is unchanged in every language.
 da,de,es,pt-BR,pt-PT	settings.units.imperial	Imperial	Established unit-system label in these locales; shared spelling.
 it,pt-BR,pt-PT	setup.ai.endpoint.title	Endpoint	Established technical loanword for a model API endpoint in Italian and Portuguese.
 da,nl,pl	setup.ai.model	Model	Native model noun in these locales; shared spelling.

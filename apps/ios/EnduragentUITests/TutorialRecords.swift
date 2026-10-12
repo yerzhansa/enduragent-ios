@@ -7,34 +7,37 @@ extension TutorialHarness {
 		let element = named(app, "records.count.\(kind)")
 		if element.exists { return element.label }
 		let list = named(app, "records.list")
-		let deadline = ContinuousClock.now + .seconds(15)
-		while !named(app, "records.device").isHittable {
-			guard ContinuousClock.now < deadline else {
-				XCTFail(
-					"Could not reach the top of Records to find \(kind)", file: file, line: line)
-				return nil
-			}
-			list.swipeDown()
-		}
-		while !element.exists {
-			if named(app, "records.entries").isHittable { return nil }
-			guard ContinuousClock.now < deadline else {
-				XCTFail("Could not finish searching Records for \(kind)", file: file, line: line)
-				return nil
-			}
-			list.swipeUp()
-		}
+		guard
+			wait(
+				until: {
+					if named(app, "records.device").isHittable { return true }
+					list.swipeDown()
+					return false
+				}, within: .records, message: "Could not reach the top of Records", file: file,
+				line: line)
+		else { return nil }
+		guard
+			wait(
+				until: {
+					if element.exists || named(app, "records.entries").isHittable { return true }
+					list.swipeUp()
+					return false
+				}, within: .records, message: "Could not finish searching Records for \(kind)",
+				file: file, line: line)
+		else { return nil }
+		guard element.exists else { return nil }
 		return element.label
 	}
 
 	static func waitForRecordCount(
-		_ app: XCUIApplication, _ kind: String, _ expected: String, timeout: TimeInterval = 10
+		_ app: XCUIApplication, _ kind: String, _ expected: String, within limit: Timeout = .screen
 	) {
-		let deadline = Date().addingTimeInterval(timeout)
-		while recordCount(app, kind) != expected, Date() < deadline {
-			app.navigationBars.buttons["records.refresh"].tap()
-		}
-		XCTAssertEqual(recordCount(app, kind), expected)
+		wait(
+			until: {
+				if recordCount(app, kind) == expected { return true }
+				app.navigationBars.buttons["records.refresh"].tap()
+				return false
+			}, within: limit, message: "\(kind) never reached \(expected)")
 	}
 
 	static func settlementRows(_ app: XCUIApplication) -> [String] {

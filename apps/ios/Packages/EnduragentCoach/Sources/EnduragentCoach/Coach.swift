@@ -4,7 +4,6 @@ public actor Coach {
 	package let memory: Memory
 	public nonisolated let credits: any CreditsClient
 	package nonisolated let diagnostics: DiagnosticsLog
-
 	private let sport: SportID
 	private let transport: any ModelTransport
 	let ledger: Ledger
@@ -12,12 +11,12 @@ public actor Coach {
 	private let coalescing: CoalescingPolicy
 	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let host: any ExecutionHost
-	private let deviceLanguage: LanguageTag
-	var preferenceRecords: [AthleteRecord] = []
-	var preferencesLoaded = false
-	var preferencesRead: Task<Result<[AthleteRecord], LedgerFailure>, Never>?
+	let resolveDisplayLocale: DisplayLocaleResolver
+	let preferences: CoachPreferences
 	let builtInModel: ModelID
 	let vault: CredentialVault
+	let catalogs: ModelCatalogOwner
+	var catalogObservation: Task<Void, Never>?
 	private let runner: TurnRunner
 	private let reviews: SingleProposalReviews
 	private var mailboxSlots: [ChatID: MailboxSlot] = [:]
@@ -26,13 +25,20 @@ public actor Coach {
 	private var recovery: Task<Bool, Never>?
 	let statusFeed = SnapshotFeed<CoachStatus>()
 	let statusChanges = Turnstile()
+	let identityChanges = Turnstile()
+	var identityWriteFailure: ConnectionID?
 	var trainingStatus: TrainingStatus?
-	var trainingRefresh: Task<TrainingStatus, Never>?
+	var trainingRefresh: Task<Void, Never>?
+	var trainingReadID: TrainingDisplayReadID?
+	var trainingGeneration: UInt64 = 0
+	var accessObservation: Task<Void, Never>?
 	var importObservation: Task<Void, Never>?
 	var pendingImportRefresh: Task<Void, Never>?
 	private let process: ProcessID
 
 	deinit {
+		accessObservation?.cancel()
+		catalogObservation?.cancel()
 		importObservation?.cancel()
 		pendingImportRefresh?.cancel()
 	}
@@ -41,36 +47,53 @@ public actor Coach {
 		sport: SportID,
 		ports: CoachPorts,
 		builtInModel: ModelID,
-		deviceLanguage: LanguageTag,
+		displayLocale: @escaping DisplayLocaleResolver,
 		coalescing: CoalescingPolicy = .npm
 	) {
 		let clock = ports.clock
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let transport = ports.models.makeTransport(diagnostics)
+		let ledger = Ledger(log: ports.records.log, clock: clock, diagnostics: diagnostics)
 		let vault = CredentialVault(
-			store: ports.secrets, training: ports.training, clock: clock, diagnostics: diagnostics)
+			store: ports.secrets, training: ports.training, clock: clock, ledger: ledger,
+			diagnostics: diagnostics,
+			catalogs: ports.models.catalogs, signInService: ports.openRouterSignIn)
 		self.diagnostics = diagnostics
 		self.sport = sport
 		self.transport = transport
 		self.vault = vault
+		self.catalogs = ports.models.catalogs
 		self.credits = ports.credits.makeClient(vault)
 		self.builtInModel = builtInModel
-		let ledger = Ledger(log: ports.records.log, clock: clock, diagnostics: diagnostics)
 		self.ledger = ledger
+		let preferences = CoachPreferences(
+			ledger: ledger, clock: clock, diagnostics: diagnostics, vault: vault,
+			builtInModel: builtInModel)
+		self.preferences = preferences
+		let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void = { request in
+			try await preferences.authorizeInvocation(request)
+		}
 		self.clock = clock
 		self.coalescing = coalescing
 		self.coalescingSleep = ports.coalescingSleep
 		self.host = ports.host
-		self.deviceLanguage = deviceLanguage
-		self.memory = Memory(ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep)
+		self.resolveDisplayLocale = displayLocale
+		self.memory = Memory(
+			ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep,
+			authorizeInvocation: authorizeInvocation)
+		let reviews = SingleProposalReviews(
+			ledger: ledger, clock: clock, diagnostics: diagnostics,
+			training: { (recheck: Bool) async throws(AccessUnavailable) in
+				try await vault.trainingConnection(recheck: recheck)
+			}
+		)
+		self.reviews = reviews
 		self.runner = TurnRunner(
 			transport: transport, ledger: ledger, clock: clock,
 			diagnostics: diagnostics, ladder: .npm,
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
-			watchdogSleep: ports.watchdogSleep)
-		self.reviews = SingleProposalReviews(
-			ledger: ledger, clock: clock, diagnostics: diagnostics,
-			training: { () async throws(AccessUnavailable) in try await vault.trainingConnection() }
+			reviews: reviews, watchdogSleep: ports.watchdogSleep,
+			authorizeInvocation: authorizeInvocation
 		)
 		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
 	}
@@ -90,13 +113,27 @@ public actor Coach {
 		lifetime.apply(event)
 		switch event {
 		case .becameActive:
+			await catalogs.refresh()
+			await refreshDisplayLocale()
 			await recoverOnce()
 		case .willTerminate:
+			await catalogs.cancelRefresh()
+			catalogObservation?.cancel()
+			catalogObservation = nil
+			let access = accessObservation
+			accessObservation?.cancel()
+			accessObservation = nil
+			let observation = importObservation
+			let refresh = pendingImportRefresh
 			importObservation?.cancel()
 			importObservation = nil
 			pendingImportRefresh?.cancel()
 			pendingImportRefresh = nil
-			for mailbox in mailboxes.values {
+			await access?.value
+			await observation?.value
+			await refresh?.value
+			_ = await recovery?.value
+			for mailbox in await openedMailboxes() {
 				await mailbox.cancelInFlight(cause: .appTerminating)
 			}
 		case .enteredBackground:
@@ -114,55 +151,56 @@ public actor Coach {
 		do {
 			mailbox = try await self.mailbox(for: chat)
 		} catch {
-			return .storageUnavailable
+			diagnostics.record(.recoveryUnavailable(error))
+			return await reviews.unresolved(.unknown(.readFailed))
 		}
-		if case .checkAgain(let ref) = decision {
+		if case .checkAgain(let ref) = decision, await mailbox.reviewReadUnavailable {
 			return await mailbox.reviewChanged(ref)
 		}
-		let outcome = await reviews.decide(
-			decision, chat: chat, scope: await mailbox.reviewScope)
-		_ = await mailbox.reviewChanged()
+		let outcome = await mailbox.decide(decision)
+		await publishStatus()
 		return outcome
-	}
-
-	private func modelAccess() async throws(AccessUnavailable) -> ResolvedAccess {
-		guard await providerConsent()?.isCurrent == true else {
-			throw .providerConsentRequired
-		}
-		return try await vault.modelAccess(builtInModel: builtInModel)
 	}
 
 	public func changeTraining(_ change: IntervalsConnectionChange) async
 		-> CredentialOutcome<IntervalsSummary>
 	{
+		invalidateTrainingDisplay()
+		let generation = trainingGeneration
 		let clock = self.clock
 		let outcome = await vault.change(change) { await self.holdsBoundWork(now: clock.now) }
-		trainingRefresh?.cancel()
-		trainingRefresh = nil
-		trainingStatus = nil
+		let stored = await vault.storedTrainingStatus()
+		guard generation == trainingGeneration else { return outcome }
+		if case .connected(let saved, let account) = stored {
+			let summary: IntervalsSummary?
+			switch outcome {
+			case .replaced(let receipt, _), .kept(let receipt?),
+				.failedPreviousKept(_, let receipt?):
+				summary = receipt
+			case .kept(nil), .failedPreviousKept(_, nil), .disconnected, .refused:
+				if case .connected(let previous, _) = trainingStatus {
+					summary = previous
+				} else {
+					summary = nil
+				}
+			}
+			trainingStatus = .connected(
+				summary.flatMap { $0.connectionID == saved.connectionID ? $0 : nil } ?? saved,
+				account: account)
+		} else {
+			trainingStatus = stored
+		}
+		await recordTrainingIdentity(in: stored)
 		for mailbox in mailboxes.values {
 			_ = await mailbox.reviewChanged()
 		}
-		if statusFeed.isObserved {
-			await refreshTrainingStatus()
+		await publishStatus()
+		if statusFeed.isObserved, generation == trainingGeneration,
+			case .connected(let summary, _) = trainingStatus, summary.needsDisplayRead
+		{
+			startTrainingDisplay(from: summary)
 		}
 		return outcome
-	}
-
-	public func changeModelAccess(_ change: ModelAccessChange) async
-		-> CredentialOutcome<AccessSummary>
-	{
-		let outcome = await vault.change(change)
-		await publishStatus()
-		return outcome
-	}
-
-	public func creditsIdentity() async throws(AccessUnavailable) -> CreditsIdentity {
-		try await vault.creditsIdentity()
-	}
-
-	public func prepareCreditsPurchase() async throws(AccessUnavailable) -> UUID {
-		try await vault.prepareCreditsAccount()
 	}
 
 	#if DEBUG
@@ -178,6 +216,7 @@ public actor Coach {
 	#endif
 
 	private func recoverOnce() async {
+		guard !lifetime.terminating else { return }
 		let recovering = recovery ?? Task { await self.recoverDeadClaims() }
 		recovery = recovering
 		if await !recovering.value, recovery == recovering {
@@ -255,6 +294,7 @@ public actor Coach {
 	{
 		observeImports()
 		if let existing = mailboxSlots[chatId]?.mailbox { return existing }
+		guard !lifetime.terminating else { throw .unavailable }
 		_ = snapshotFeed(for: chatId)
 		let opening =
 			mailboxSlots[chatId]?.opening
@@ -269,10 +309,10 @@ public actor Coach {
 		-> Result<ChatMailbox, LedgerFailure>
 	{
 		do {
-			let vault = self.vault
+			let preferences = self.preferences
 			let access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess = {
 				() async throws(AccessUnavailable) in
-				try await self.modelAccess()
+				try await preferences.modelAccess()
 			}
 			let created = try await ChatMailbox.open(
 				chatId: chatId,
@@ -286,10 +326,18 @@ public actor Coach {
 				coalescing: coalescing,
 				coalescingSleep: coalescingSleep,
 				environment: EnvironmentResolver(
-					preferences: { await self.loadedPreferences() }, access: access,
-					training: { () async throws(AccessUnavailable) in
-						try await vault.trainingConnection()
-					}, deviceLanguage: deviceLanguage),
+					preferences: { await preferences.load() }, access: access,
+					training: { [weak self] () async throws(AccessUnavailable) in
+						let resolved: Result<TrainingConnection, AccessUnavailable>
+						do throws(AccessUnavailable) {
+							guard let self else { throw AccessUnavailable.recordStorageUnavailable }
+							resolved = .success(try await self.coachingTrainingConnection())
+						} catch {
+							resolved = .failure(error)
+						}
+						await self?.publishStatus()
+						return try resolved.get()
+					}, displayLocale: resolveDisplayLocale),
 				reviews: reviews,
 				process: process,
 				host: host,

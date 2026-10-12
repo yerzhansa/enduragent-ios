@@ -23,8 +23,12 @@ struct CreditsView: View {
 			}
 			Text(model.phrasebook.say(Catalog.creditsTesters, [:]))
 				.accessibilityIdentifier("credits.note")
+			Button(model.phrasebook.say(Catalog.accessSwitchToOpenRouter)) {
+				model.open(.accessMethod)
+			}
+			.accessibilityIdentifier("credits.switchToOpenRouter")
 			if let notice = model.creditsNotice {
-				Text(notice.sentence(in: model.phrasebook))
+				Text(notice.sentence(in: model.displayLocale))
 					.accessibilityIdentifier("credits.notice")
 			}
 		}
@@ -49,10 +53,10 @@ extension ShellModel {
 	}
 
 	private func countLine(_ key: CatalogKey, units: Int, price: String? = nil) -> String {
-		var vars = ["formattedCount": "\(units)"]
+		var vars: [String: CatalogArgument] = ["formattedCount": .integer(units)]
 		if let price {
-			vars["price"] = price
+			vars["price"] = .text(price)
 		}
-		return phrasebook.say(key, count: units, vars)
+		return displayLocale.say(key, count: units, vars)
 	}
 }

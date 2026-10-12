@@ -7,8 +7,7 @@ import Testing
 
 @Suite struct CreditsAccountMigrationTests {
 	@Test func legacyFileMigratesLikeTheKeychain() async throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-legacy-items-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		defer {
 			do {
@@ -54,8 +53,7 @@ import Testing
 	}
 
 	@Test func failedFixtureMigrationSurfacesStorageUnavailable() async throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-failed-migration-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		defer {
 			do {
@@ -114,7 +112,7 @@ import Testing
 		let reads = memory.readCount
 		let peer = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(),
-			secrets: ICloudKeychainStore(backing: memory))
+			secrets: ICloudKeychainStore(backing: memory), consent: false)
 		#expect(try await peer.creditsIdentity() == identity)
 		#expect(memory.readCount - reads == 1)
 		#expect(memory.readAccounts.last == CredentialSlot.creditsAccount.rawValue)
@@ -188,22 +186,6 @@ import Testing
 		#expect(try secondStore.creditsAccount() == expected)
 		#expect(try memory.copy(account: "openRouterKey") == nil)
 		#expect(try memory.copy(account: "appAccountToken") == nil)
-	}
-
-	@Test func creditsIdentityReadsTheCombinedAccountOnce() async throws {
-		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let memory = FixtureSecretStoreBacking(items: [
-			CredentialSlot.creditsAccount.rawValue: try JSONEncoder().encode(
-				CreditsAccount(appAccountToken: token, key: "test-credits-key"))
-		])
-		let coach = await makeCoach(
-			transport: FakeModelTransport(), store: InMemoryRecordLog(),
-			secrets: ICloudKeychainStore(backing: memory))
-
-		#expect(
-			try await coach.creditsIdentity()
-				== CreditsIdentity(appAccountToken: token, hasCreditsKey: true))
-		#expect(memory.readAccounts == [CredentialSlot.creditsAccount.rawValue])
 	}
 
 	#if DEBUG

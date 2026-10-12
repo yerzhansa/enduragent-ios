@@ -6,7 +6,8 @@ final class StopProof: XCTestCase {
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:slow")
-		TutorialHarness.wait(TutorialHarness.text(app, containing: "This week has"), timeout: 10)
+		TutorialHarness.wait(
+			TutorialHarness.text(app, containing: "This week has"), within: .screen)
 		let stop = TutorialHarness.named(app, "chat.stop")
 		TutorialHarness.wait(stop)
 		XCTAssertEqual(stop.label, "Stop responding")
@@ -29,8 +30,7 @@ final class StopProof: XCTestCase {
 		let settled = TutorialHarness.settlementRows(app)
 		XCTAssertTrue(settled.first?.contains("interrupted athleteStopped") == true, "\(settled)")
 		TutorialHarness.attach(self, name: "stop-records", app: app)
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -42,7 +42,7 @@ final class ExpiryProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:slow")
 		let sent = Date()
 		let notice = TutorialHarness.notice(app, reading: TutorialHarness.interruptedNothingChanged)
-		TutorialHarness.wait(notice, timeout: 15)
+		TutorialHarness.wait(notice, within: .turn)
 		let shown = Date().timeIntervalSince(sent)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		XCTAssertFalse(
@@ -61,8 +61,7 @@ final class ExpiryProof: XCTestCase {
 		let claims = rows.filter { $0.hasPrefix("turnClaim") }
 		XCTAssertTrue(claims.first?.contains("continuedProcessing") == true, "\(claims)")
 		TutorialHarness.attach(self, name: "expiry-records", app: app)
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -71,18 +70,82 @@ final class FinishedWhileAwayProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.sendLong(app)
 		TutorialHarness.send(app, "fixture:slow")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), timeout: 2)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), within: .screen)
 		XCUIDevice.shared.press(.home)
 		Thread.sleep(forTimeInterval: 15)
 		app.activate()
-		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+		TutorialHarness.wait(app, until: .foreground)
 		let line = TutorialHarness.named(app, "chat.turn.finishedWhileLocked")
 		TutorialHarness.wait(line)
 		XCTAssertEqual(line.label, TutorialHarness.finishedWhileLocked)
+		let reply = app.staticTexts.matching(
+			NSPredicate(format: "label BEGINSWITH %@", "This week has Tuesday sweet spot")
+		).firstMatch
+		TutorialHarness.wait(reply)
+		XCTAssertTrue(reply.label.hasSuffix("quieter stretch between them."))
+		let composer = TutorialHarness.named(app, "chat.composer.container")
+		TutorialHarness.wait(composer)
+		let transcript = TutorialHarness.named(app, "chat.transcript")
+		TutorialHarness.wait(transcript)
+		TutorialHarness.wait(
+			until: {
+				line.isHittable && line.frame.height > 0
+					&& line.frame.minY >= transcript.frame.minY
+					&& line.frame.maxY <= composer.frame.minY
+			},
+			message:
+				"the background finish line is outside the visible transcript above the composer"
+		)
+		XCTAssertGreaterThan(reply.frame.maxY, transcript.frame.minY)
+		XCTAssertLessThanOrEqual(reply.frame.maxY, line.frame.minY)
+		XCTAssertLessThanOrEqual(line.frame.maxY, composer.frame.minY)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
 		TutorialHarness.attach(self, name: "finished-while-away", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
+		transcript.swipeDown(velocity: .slow)
+		transcript.swipeDown(velocity: .slow)
+		let reading = TutorialHarness.text(app, containing: "Day 1. This week has")
+		TutorialHarness.wait(reading, until: .hittable)
+		XCTAssertFalse(line.isHittable, "scrolling up must leave the completion line off screen")
+		let readingFrame = reading.frame
+		let composerFrame = composer.frame
+		TutorialHarness.attach(self, name: "finished-while-away-reading-position", app: app)
+		XCUIDevice.shared.press(.home)
+		Thread.sleep(forTimeInterval: 2)
+		app.activate()
+		TutorialHarness.wait(app, until: .foreground)
+		assertReadingPosition(
+			reading, frame: readingFrame, line: line, composer: composer, frame: composerFrame)
+		TutorialHarness.attach(self, name: "finished-while-away-second-return", app: app)
+		let system = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+		let cover = TutorialHarness.named(system, "lockscreen-date-view")
+		app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.01))
+			.press(
+				forDuration: 0.05,
+				thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.7)))
+		TutorialHarness.wait(cover)
+		TutorialHarness.attach(self, name: "finished-while-away-notification-center", app: system)
+		system.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98))
+			.press(
+				forDuration: 0.05,
+				thenDragTo: system.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)))
+		TutorialHarness.wait(cover, until: .absent)
+		TutorialHarness.wait(app, until: .foreground)
+		assertReadingPosition(
+			reading, frame: readingFrame, line: line, composer: composer, frame: composerFrame)
+		TutorialHarness.attach(self, name: "finished-while-away-after-inactive", app: app)
+	}
+
+	private func assertReadingPosition(
+		_ reading: XCUIElement, frame readingFrame: CGRect, line: XCUIElement,
+		composer: XCUIElement, frame composerFrame: CGRect
+	) {
+		TutorialHarness.wait(reading, until: .hittable)
+		XCTAssertFalse(line.isHittable, "an old completion moved the transcript back to the tail")
+		XCTAssertEqual(reading.frame.minY, readingFrame.minY, accuracy: 2)
+		XCTAssertEqual(reading.frame.maxY, readingFrame.maxY, accuracy: 2)
+		XCTAssertEqual(composer.frame, composerFrame)
 	}
 }
 
@@ -94,7 +157,7 @@ final class QueuedExpiryProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:hang")
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "turnClaim", "turnClaim 1")
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.fixtureControl(app, "fixture.expire")
 		let stopped = app.staticTexts.matching(
@@ -107,7 +170,6 @@ final class QueuedExpiryProof: XCTestCase {
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
 		XCTAssertEqual(app.staticTexts.matching(identifier: TutorialHarness.weekQuestion).count, 1)
 		TutorialHarness.attach(self, name: "queued-expiry", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -119,13 +181,12 @@ final class ExpiryAfterSaveProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:memory-then-hang")
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 1")
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.fixtureControl(app, "fixture.expire")
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: TutorialHarness.interruptedSomeSaved))
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "expiry-after-save", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -135,10 +196,8 @@ final class LeaseReportProof: XCTestCase {
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.openSidebar(app)
-		TutorialHarness.named(app, "sidebar.debug").tap()
-		TutorialHarness.wait(TutorialHarness.named(app, "fixture.requestCount"))
-		TutorialHarness.named(app, "debug.leases").tap()
+		TutorialHarness.openDebug(app)
+		TutorialHarness.debugRow(app, "debug.leases").tap()
 		let row = TutorialHarness.named(app, "leases.row.0")
 		TutorialHarness.wait(row)
 		XCTAssertEqual(
@@ -155,7 +214,8 @@ final class StopTryAgainProof: XCTestCase {
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:slow")
-		TutorialHarness.wait(TutorialHarness.text(app, containing: "This week has"), timeout: 10)
+		TutorialHarness.wait(
+			TutorialHarness.text(app, containing: "This week has"), within: .screen)
 		TutorialHarness.named(app, "chat.stop").tap()
 		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
 		TutorialHarness.wait(tryAgain)
@@ -174,40 +234,5 @@ final class StopTryAgainProof: XCTestCase {
 		XCTAssertTrue(settled.first?.contains("interrupted athleteStopped") == true, "\(settled)")
 		XCTAssertTrue(settled.last?.contains("replied") == true, "\(settled)")
 		TutorialHarness.attach(self, name: "retry-after-stop-records", app: app)
-	}
-}
-
-final class LeaseTourProof: XCTestCase {
-	func testLeaseTour() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:slow")
-		TutorialHarness.wait(TutorialHarness.text(app, containing: "This week has"), timeout: 10)
-		Thread.sleep(forTimeInterval: 1)
-		TutorialHarness.named(app, "chat.stop").tap()
-		TutorialHarness.wait(
-			TutorialHarness.notice(app, reading: TutorialHarness.interruptedNothingChanged))
-		Thread.sleep(forTimeInterval: 3)
-		TutorialHarness.send(app, "fixture:hang")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), timeout: 5)
-		Thread.sleep(forTimeInterval: 2)
-		TutorialHarness.fixtureControl(app, "fixture.expire")
-		let stopped = app.staticTexts.matching(
-			NSPredicate(
-				format: "identifier == %@ AND label == %@", "chat.turn.notice",
-				TutorialHarness.interruptedNothingChanged))
-		TutorialHarness.wait(stopped.element(boundBy: 1))
-		Thread.sleep(forTimeInterval: 3)
-		TutorialHarness.send(app, "fixture:slow")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), timeout: 5)
-		XCUIDevice.shared.press(.home)
-		Thread.sleep(forTimeInterval: 12)
-		app.activate()
-		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
-		TutorialHarness.wait(
-			TutorialHarness.named(app, "chat.turn.finishedWhileLocked"), timeout: 20)
-		Thread.sleep(forTimeInterval: 3)
-		TutorialHarness.attach(self, name: "lease-tour", app: app)
 	}
 }

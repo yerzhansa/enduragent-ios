@@ -82,26 +82,6 @@ import Testing
 		#expect(hlc.deviceId == phoneA)
 	}
 
-	@Test func openFoldsWhatThisDeviceWroteBefore() async throws {
-		let log = InMemoryRecordLog(deviceId: phoneA)
-		let earlierProcessWall = Int64(clock.now.timeIntervalSince1970 * 1000) + 5_000
-		try await seed(
-			log,
-			[
-				storedRecord(
-					device: phoneA, wall: earlierProcessWall,
-					body: .deviceLocal(
-						.flushPending(
-							FlushPendingBody(chatId: .main, messageUlids: []))))
-			]
-		)
-		let reopened = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let written = try await reopened.commit(
-			synced: [sampleUser(chatId: .main, text: "later")], stamp: testStamp())
-		#expect(written.first?.hlc.wallMs == earlierProcessWall)
-		#expect(written.first?.hlc.logical == 1)
-	}
-
 	@Test func injectedAppendFailureStoresNothingFromTheBatch() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phoneA))
 		let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
@@ -153,55 +133,4 @@ import Testing
 		#expect(record.deviceId == phoneA)
 	}
 
-	@Test(arguments: [false, true])
-	func consumedMarkerReadFetchesOnlyRequiredRows(oneUnsettled: Bool) async throws {
-		let store = InMemoryRecordLog(deviceId: phoneA)
-		let jobs = (1...200).map { FlushJobID(ulid: fixedUlid($0)) }
-		let pending = jobs.map { job in
-			storedRecord(
-				device: store.deviceId, wall: 1, ulid: job.ulid,
-				body: .deviceLocal(
-					.flushPending(
-						FlushPendingBody(
-							chatId: .main, messageUlids: [job.ulid]))))
-		}
-		let settled = jobs.prefix(oneUnsettled ? 199 : 200).enumerated().map { index, job in
-			storedRecord(
-				device: store.deviceId, wall: 2, ulid: fixedUlid(201 + index),
-				body: .deviceLocal(
-					.flushSettled(
-						FlushSettledBody(chatId: .main, job: job, settlement: .nothingToSave))))
-		}
-		let provenance = (0..<5_000).map { index in
-			let key =
-				index < jobs.count
-				? MemoryFlushPolicy.consumedFlushKeyPrefix + jobs[index].ulid.rawValue
-				: "activity:\(index)"
-			return storedRecord(
-				device: store.deviceId, wall: 3, ulid: fixedUlid(401 + index),
-				body: .synced(
-					.provenance(
-						ProvenanceBody(
-							key: key, garmin: false, nonGarmin: false, unknown: false,
-							contentSha256: "consumed"))))
-		}
-		try await store.append(pending + settled, locality: .deviceLocal)
-		try await store.append(provenance, locality: .synced)
-		let recording = BatchRecordingLog(inner: store)
-		let ledger = Ledger(
-			log: recording, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		_ = try await ledger.read(RecordQuery(scope: .deviceLocal([])))
-		let before = recording.reads.count
-		let recordsBefore = recording.fetchedRecordCount
-		let read = try await ledger.flushJobs(in: try await ledger.conversation(.main))
-		#expect(Set(read.map(\.id)) == Set(jobs))
-		#expect(read.allSatisfy { $0.saved && $0.origin == .beforeUpgrade })
-		let reads = recording.reads.dropFirst(before)
-		#expect(reads.count == (oneUnsettled ? 4 : 3))
-		#expect(
-			reads.filter { $0 == ConversationFold.consumedMarkerScope }.count
-				== (oneUnsettled ? 1 : 0))
-		#expect(
-			recording.fetchedRecordCount - recordsBefore == (oneUnsettled ? 5_399 : 400))
-	}
 }

@@ -6,37 +6,41 @@ import Testing
 @testable import Enduragent
 
 extension FixtureLaunchTests {
-	@Test func intervalsLoadFailureShowsACatalogNotice() async throws {
+	@Test func profileLoadFailureShowsItsCatalogNotice() async throws {
 		let services = try services()
-		let onboarding = model(services)
-		await onboarding.agreeAndStartChatting()
+		let onboarding = await model(services)
+		onboarding.continueNotice()
 		onboarding.connectKey = "fixture"
 		await onboarding.connect()
+		await onboarding.agreeAndStartChatting()
 		#expect(onboarding.didConnect)
-		try #require(services.fixture).intervals.loadFailure = IntervalsError(
-			code: "load_failed",
-			details: "intervals.icu could not load today's training data."
+		try #require(services.fixture).intervals.setProfileOutcome(
+			.failure(URLError(.notConnectedToInternet))
 		)
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let model = model(services)
+		let model = await model(services)
 		await model.appear()
 		await model.sceneChanged(.becameActive)
-		try await model.waitForStatus { $0.notice?.key == Catalog.coachErrorIntervalsTransient }
+		try await model.waitForStatus { $0.notice?.key == Catalog.connectErrorProfileUnavailable }
 		try await observed(model)
 		#expect(model.route == .chat)
-		#expect(model.status?.notice?.key == Catalog.coachErrorIntervalsTransient)
+		#expect(model.status.notice?.key == Catalog.connectErrorProfileUnavailable)
 		#expect(
-			model.status?.notice?.sentence(in: model.phrasebook)
-				== "Couldn't reach intervals.icu right now — try again shortly.")
+			model.status.notice?.sentence(in: model.displayLocale)
+				== "Your athlete profile is temporarily unavailable. Try again.")
 		#expect(model.connected?.athleteName == nil)
+		#expect(model.connected?.profile == .failed(.temporarilyUnavailable))
+		let connection = try #require(model.connected)
+		#expect(connection.action == .retry(connection.connectionID))
 	}
 
 	@Test func unreadableRecordStoreShowsTheStorageNoticeInsteadOfCrashing() async throws {
 		var unreadable = launch
 		unreadable.store = .unreadable
-		let launched = await AppLaunch.open(language: .en) {
+		let launched = await AppLaunch.open(displayLocale: testLocaleResolver(languages: ["en"])) {
+			_ in
 			let defaults = try unreadable.prepare()
-			return (try AppServices.fixture(unreadable, defaults: defaults), defaults)
+			return (try fixtureServices(unreadable, defaults: defaults), defaults)
 		}
 		guard case .storageUnavailable(let phrasebook, _) = launched else {
 			Issue.record("expected the storage notice, got a ready app")
@@ -46,7 +50,9 @@ extension FixtureLaunchTests {
 			AthleteNotice.recordStoreUnavailable.map { $0.sentence(in: phrasebook) } == [
 				"Conversation history is temporarily unavailable.", "Quit and reopen Enduragent.",
 			])
-		let live = await AppLaunch.open(language: .en) { throw CocoaError(.fileReadNoPermission) }
+		let live = await AppLaunch.open(displayLocale: testLocaleResolver(languages: ["en"])) { _ in
+			throw CocoaError(.fileReadNoPermission)
+		}
 		guard case .storageUnavailable = live else {
 			Issue.record("expected the storage notice for a live store failure")
 			return
@@ -58,7 +64,7 @@ extension FixtureLaunchTests {
 		let fixture = try #require(services.fixture)
 		fixture.credits.grantResult = .failure(.banned)
 		fixture.credits.catalogResult = .failure(.unavailable)
-		let model = model(services)
+		let model = await model(services)
 		await model.loadStarter()
 		#expect(model.starterLine == "Credits are unavailable right now. Try again later.")
 		await model.loadCredits()
@@ -67,11 +73,14 @@ extension FixtureLaunchTests {
 
 	@Test func successfulConnectClearsSubmittedKey() async throws {
 		let services = try services()
-		let model = model(services)
+		let wellness = try #require(services.fixture).intervals.holdNextWellnessRead()
+		defer { Task { await wellness.release() } }
+		let model = await model(services)
 		await model.appear()
 		model.continueNotice()
 		model.connectKey = "fixture"
 		await model.connect()
+		try await wellness.waitForRead()
 		try await model.waitForStatus {
 			if case .connected(let summary, _) = $0.training {
 				return summary.athleteName == "Ada Kovač"
@@ -80,11 +89,19 @@ extension FixtureLaunchTests {
 		}
 		#expect(model.didConnect)
 		#expect(model.connectKey.isEmpty)
-		#expect(model.connectError == nil)
+		#expect(model.trainingSettings.receipt?.saveNotice?.key == Catalog.planViewEndedSaved)
 		#expect(model.connected?.athleteName == "Ada Kovač")
+		#expect(model.connected?.wellness == .waiting)
+		#expect(model.connected?.today == nil)
+		await wellness.release()
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training {
+				return summary.today?.fitness == 42
+			}
+			return false
+		}
 		#expect(model.connected?.today?.fitness == 42)
-		#expect(model.athleteFirstName == "Ada")
-		guard case .connected(_, .intervals(_, let athlete))? = model.status?.training else {
+		guard case .connected(_, .intervals(_, let athlete)) = model.status.training else {
 			Issue.record("expected a connected training account")
 			return
 		}
@@ -92,7 +109,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func continuingConnectClearsAnyNewKey() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.appear()
 		model.continueNotice()
 		model.connectKey = "fixture"
@@ -104,6 +121,7 @@ extension FixtureLaunchTests {
 			return false
 		}
 		try #require(model.didConnect)
+		model.trainingSettings.edit()
 		model.connectKey = "edited-after-connect"
 		model.continueConnect()
 		#expect(model.connectKey.isEmpty)
@@ -111,75 +129,137 @@ extension FixtureLaunchTests {
 		#expect(model.connected?.athleteName == "Ada Kovač")
 	}
 
-	@Test func blankConnectKeyShowsTheCatalogRejection() async throws {
-		let model = model(try services())
+	@Test func blankConnectKeyShowsBlankGuidance() async throws {
+		let model = await model(try services())
 		await model.appear()
 		model.continueNotice()
 		model.connectKey = "   "
 		await model.connect()
 		#expect(!model.didConnect)
 		#expect(model.connectKey == "   ")
-		#expect(model.connectError == "intervals.icu did not accept that key.")
+		#expect(
+			model.trainingSettings.receipt?.saveNotice?.sentence(in: model.displayLocale)
+				== "Enter an intervals.icu API key.")
 		#expect(model.connected == nil)
 	}
 
 	@Test func lockedKeychainOpensChatNotOnboarding() async throws {
-		let first = model(try services())
-		await first.agreeAndStartChatting()
-		first.draft.text = TutorialCopy.weekQuestion
-		await first.send()
-		_ = try await settledTurn(first)
-		let (locked, kept) = try relaunch(.keep, keychain: .locked)
-		let reopened = ShellModel(
-			environment: AppEnvironment(services: locked, language: language, defaults: kept))
+		do {
+			let first = await model(try services())
+			await first.agreeAndStartChatting()
+			first.draft.text = TutorialCopy.weekQuestion
+			await first.send()
+			_ = try await settledTurn(first)
+		}
+		let (locked, kept) = try await relaunch(.keep, keychain: .locked)
+		let reopened = await fixtureModel(
+			environment: AppEnvironment(services: locked, defaults: kept))
 		await reopened.appear()
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
 		#expect(reopened.chat?.turns.map(\.athleteText) == [TutorialCopy.weekQuestion])
-		#expect(reopened.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		#expect(reopened.status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		#expect(
-			reopened.status?.notice?.sentence(in: reopened.phrasebook)
+			reopened.status.notice?.sentence(in: reopened.displayLocale)
 				== "Unlock your iPhone to continue. Your message is saved.")
 	}
 
 	@Test func unlockingThePhoneClearsTheLockedNoticeWhenTheAppBecomesActive() async throws {
-		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let services = try services(keychain: .locked)
+		do {
+			let first = await model(try services())
+			await first.agreeAndStartChatting()
+		}
+		let (services, _) = try await relaunch(.keep, keychain: .locked)
 		let fixture = try #require(services.fixture)
-		let model = model(services)
+		let backing = try #require(fixture.secretBacking)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		await model.appear()
-		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
-		fixture.secretBacking.locked = false
+		#expect(model.status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		backing.locked = false
 		await model.sceneChanged(.enteredBackground)
-		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		#expect(model.status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		await model.sceneChanged(.becameActive)
 		try await model.waitForStatus { $0.setup == .ready }
-		#expect(model.status?.setup == .ready)
-		#expect(model.status?.notice == nil)
-	}
-
-	@Test func keyStoredAfterLaunchReachesNextAttempt() async throws {
-		let services = try services()
-		let fixture = try #require(services.fixture)
-		let model = model(services)
-		await model.agreeAndStartChatting()
-		model.draft.text = TutorialCopy.weekQuestion
-		await model.send()
-		let unconnected = try await settledTurn(model)
-		#expect(fixture.intervals.calls.isEmpty)
-		guard
-			case .replaced = await services.coach.changeTraining(
-				.replace(apiKey: "fixture", athlete: .keyOwner))
-		else {
-			Issue.record("expected the key to be stored")
+		#expect(model.status.setup == .ready)
+		#expect(model.status.notice == nil)
+		model.trainingSettings.edit()
+		model.trainingSettings.key = "fixture"
+		await model.trainingSettings.replace()
+		try await model.waitForStatus {
+			guard case .connected(let summary, _) = $0.training else { return false }
+			return summary.today?.fitness == 42
+		}
+		let connection = try #require(model.connected?.connectionID)
+		backing.locked = true
+		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus { $0.training == .unavailable(.secureStorageLocked) }
+		#expect(model.status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		#expect(model.status.training.notice?.key == Catalog.connectErrorStorageLocked)
+		backing.locked = false
+		await model.sceneChanged(.enteredBackground)
+		#expect(model.status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		#expect(model.status.training == .unavailable(.secureStorageLocked))
+		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus {
+			guard $0.setup == .ready, case .connected(let summary, _) = $0.training else {
+				return false
+			}
+			return summary.connectionID == connection && summary.today?.fitness == 42
+		}
+		#expect(model.status.setup == .ready)
+		#expect(model.status.notice == nil)
+		#expect(model.status.training.notice == nil)
+		guard case .available(let profile)? = model.connected?.profile else {
+			Issue.record("The unlocked connection did not resolve its athlete")
 			return
 		}
-		model.draft.text = "How was my week?"
+		#expect(profile.athleteID.rawValue == "i1001")
+	}
+
+	@Test func skippingThenConnectingInSettingsKeepsConversationAndReadsKeyOwner() async throws {
+		let services = try services()
+		let fixture = try #require(services.fixture)
+		let model = await model(services)
+		model.continueNotice()
+		model.connectKey = "abandoned-key"
+		model.skipConnect()
+		model.connectKey = "ab"
+		#expect(model.connectKey.isEmpty)
+		#expect(model.trainingSettings.state == .viewing)
+		#expect(model.trainingSettings.receipt == nil)
+		await model.agreeAndStartChatting()
+		model.draft.text = FirstWeekFixture.trainingDataDirective
 		await model.send()
-		let connected = try await settledTurn(model, after: unconnected.state)
-		#expect(replyText(connected.state) == FirstWeekFixture.weekSummary)
+		let unconnected = try await settledTurn(model)
+		#expect(replyText(unconnected.state) == FirstWeekFixture.trainingDataMissing)
+		#expect(fixture.intervals.calls.isEmpty)
+		model.open(.settings)
+		model.open(.training)
+		#expect(model.trainingSettings.state == .viewing)
+		#expect(model.trainingSettings.key.isEmpty)
+		model.trainingSettings.edit()
+		#expect(model.trainingSettings.key.isEmpty)
+		model.trainingSettings.key = "other-athlete"
+		await model.trainingSettings.replace()
+		try await model.waitForStatus {
+			guard case .connected(let summary, _) = $0.training else { return false }
+			return summary.athleteName == "Bo Lind"
+		}
+		#expect(model.trainingSettings.receipt?.saveNotice?.key == Catalog.planViewEndedSaved)
+		model.navigation.removeAll()
+		model.draft.text = FirstWeekFixture.trainingDataDirective
+		await model.send()
+		let connected = try await settledTurn(model, at: 1)
+		#expect(replyText(connected.state) == "I can read Bo Lind's training profile and calendar.")
+		#expect(model.chat?.turns.first == unconnected)
+		#expect(model.chat?.turns.count == 2)
+		await model.loadHistory()
+		#expect(model.history == .loaded([]))
+		let connection = try #require(try fixture.secrets.intervalsConnection())
+		let records = try await services.coach.recordSyncProbe().snapshot()
 		#expect(
-			fixture.intervals.calls.contains(.wellness(oldest: "1998-06-09", newest: "1998-06-15")))
+			records.rows.last { $0.kind == "turnClaim" }?.account
+				== "intervals:\(connection.id.rawValue.uuidString):i2002")
 	}
 }

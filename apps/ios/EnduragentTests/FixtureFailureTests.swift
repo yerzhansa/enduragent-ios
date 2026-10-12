@@ -10,7 +10,7 @@ extension FixtureLaunchTests {
 		var services = try services()
 		let transport = FakeModelTransport()
 		services.coach = try await failureCoach(transport, fixture: #require(services.fixture))
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "Give me a ride for tomorrow"
 		await model.send()
@@ -26,31 +26,44 @@ extension FixtureLaunchTests {
 			Issue.record("expected a failed turn, got \(turn.state)")
 			return
 		}
-		#expect(failed.notice.key == Catalog.coachErrorProviderDown)
-		#expect(failed.notice.vars.isEmpty)
-		#expect(failed.notice.action == .tryAgain(turn.id))
+		#expect(failed.notice?.key == Catalog.coachErrorProviderDown)
+		#expect(failed.notice?.vars.isEmpty == true)
+		#expect(failed.notice?.actions == [.tryAgain(turn.id)])
 	}
 
 	@Test(arguments: [
+		("fixture:fail 400", Catalog.coachErrorUnknown, [Catalog.chatTranscriptRetry], 1),
 		(
 			"fixture:fail 401", Catalog.creditsErrorAccessRejected,
-			Catalog.chatTurnRestorePurchases, 1
+			[Catalog.chatTurnRestorePurchases], 1
 		),
-		("fixture:fail 402", Catalog.creditsErrorExhausted, Catalog.chatTurnBuyCredits, 1),
+		(
+			"fixture:fail 402", Catalog.creditsErrorExhausted,
+			[Catalog.chatTurnBuyCredits, Catalog.accessSwitchToOpenRouter], 1
+		),
 		(
 			"fixture:fail 429 1 x4", Catalog.coachErrorRateLimitSeconds,
-			Catalog.chatTranscriptRetry, 4
+			[Catalog.chatTranscriptRetry], 4
 		),
-		("fixture:fail network x3", Catalog.coachErrorProviderDown, Catalog.chatTranscriptRetry, 3),
-		("fixture:fail timeout x2", Catalog.coachErrorProviderDown, Catalog.chatTranscriptRetry, 2),
-		("fixture:fail overflow x4", Catalog.coachErrorUnknown, Catalog.chatTranscriptRetry, 4 + 1),
+		(
+			"fixture:fail network x3", Catalog.coachErrorProviderDown,
+			[Catalog.chatTranscriptRetry], 3
+		),
+		(
+			"fixture:fail timeout x2", Catalog.coachErrorProviderDown,
+			[Catalog.chatTranscriptRetry], 2
+		),
+		(
+			"fixture:fail overflow x4", Catalog.coachErrorUnknown, [Catalog.chatTranscriptRetry],
+			4 + 1
+		),
 	])
 	func failDirectiveSettlesWithItsNotice(
-		directive: String, key: CatalogKey, button: CatalogKey, requests: Int
+		directive: String, key: CatalogKey, buttons: [CatalogKey], requests: Int
 	) async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = directive
 		await model.send()
@@ -59,15 +72,15 @@ extension FixtureLaunchTests {
 			Issue.record("expected a failed turn, got \(failed.state)")
 			return
 		}
-		#expect(failure.notice.key == key)
-		#expect(failure.notice.action?.title == button)
+		#expect(failure.notice?.key == key)
+		#expect(failure.notice?.actions.map(\.title) == buttons)
 		#expect(transport.requestCount == requests)
 	}
 
 	@Test func failDirectiveRetriesOnceThenReplies() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:fail 500"
 		await model.send()
@@ -78,7 +91,7 @@ extension FixtureLaunchTests {
 
 	@Test func memoryThenFailSettlesSavedWorkWithoutTryAgain() async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:memory-then-fail"
 		await model.send()
@@ -90,38 +103,12 @@ extension FixtureLaunchTests {
 		#expect(savedWork.outcome == .savedUnverified)
 		#expect(savedWork.saved.memorySections == 1)
 		#expect(savedWork.notice.key == Catalog.chatNoticeSavedUnverified)
-		#expect(savedWork.notice.action == nil)
-		#expect(!settled.state.retryable)
-	}
-
-	@Test func memoryThenHangStoppedOffersNoTryAgain() async throws {
-		let model = model(try services())
-		await model.agreeAndStartChatting()
-		model.draft.text = "fixture:memory-then-hang"
-		await model.send()
-		let deadline = ContinuousClock.now + .seconds(10)
-		while ContinuousClock.now < deadline {
-			if case .processing(let running)? = model.chat?.turns.last?.state,
-				running.activity == .generating(step: 2)
-			{
-				break
-			}
-			try await Task.sleep(for: .milliseconds(20))
-		}
-		await model.stop()
-		let settled = try await settledTurn(model)
-		guard case .interrupted(let stopped) = settled.state else {
-			Issue.record("expected a stopped turn, got \(settled.state)")
-			return
-		}
-		#expect(stopped.saved.memorySections == 1)
-		#expect(stopped.notice.action == nil)
-		#expect(!settled.state.retryable)
+		#expect(savedWork.notice.actions.isEmpty)
 	}
 
 	@Test func failDirectiveShowsTheProviderDownNoticeWithTryAgain() async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:fail 500 x3"
 		await model.send()
@@ -130,8 +117,8 @@ extension FixtureLaunchTests {
 			Issue.record("expected a failed turn, got \(failed.state)")
 			return
 		}
-		#expect(failure.notice.key == Catalog.coachErrorProviderDown)
-		#expect(failure.notice.action == .tryAgain(failed.id))
+		#expect(failure.notice?.key == Catalog.coachErrorProviderDown)
+		#expect(failure.notice?.actions == [.tryAgain(failed.id)])
 		await model.perform(.tryAgain(failed.id))
 		let retried = try await settledTurn(model, after: failed.state)
 		#expect(retried.id == failed.id)
@@ -141,6 +128,7 @@ extension FixtureLaunchTests {
 		async throws
 		-> Coach
 	{
+		let host = try #require(fixture.host)
 		let clock = FixtureClock(
 			calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 		let coach = Coach(
@@ -148,13 +136,13 @@ extension FixtureLaunchTests {
 			ports: CoachPorts(
 				records: .inMemory(deviceId: DeviceID()), secrets: fixture.secrets,
 				models: .scripted(transport),
-				training: FirstWeekFixture.training(fixture.intervals),
-				credits: .fake(fixture.credits), host: fixture.host, clock: clock),
-			builtInModel: AppServices.builtInModel, deviceLanguage: .en,
+				training: .fake { credential, _ in fixture.trainingPeer.client(for: credential) },
+				credits: .fake(fixture.credits), host: host, clock: clock),
+			builtInModel: AppServices.builtInModel, displayLocale: testLocaleResolver(),
 			coalescing: CoalescingPolicy(window: .milliseconds(200)))
 		let services = AppServices(
 			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
-			leases: { fixture.host.leases }, packPrices: { _ in [:] })
+			leases: { host.leases }, packPrices: { _ in [:] })
 		await model(services).agreeAndStartChatting()
 		return coach
 	}

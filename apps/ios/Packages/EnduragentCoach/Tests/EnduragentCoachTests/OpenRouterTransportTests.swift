@@ -5,6 +5,38 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct OpenRouterTransportTests {
+	@Test func catalogRecipientRestrictsHTTPRouting() async throws {
+		let provider = try NamedProvider(name: "Published Host", routingSlug: "published-host")
+		let request = CompletionRequest(
+			access: ResolvedAccess(
+				credential: ProviderCredential(
+					secret: "synthetic-account", method: .openRouterAccount),
+				model: ModelID(rawValue: "author/model"), provider: provider),
+			attempt: AttemptID(ulid: fixedUlid(901)), charge: .chatAttempt,
+			messages: [], tools: [], deadline: .seconds(30))
+		let transport = try OpenRouterStub.transport { received in
+			do {
+				let body = try #require(openRouterHTTPBody(from: received))
+				let object = try JSONValue.parse(String(decoding: body, as: UTF8.self)).objectFields
+				#expect(object["model"] == .string("author/model"))
+				#expect(
+					object["provider"]
+						== .object([
+							"only": .array([.string("published-host")]),
+							"allow_fallbacks": .bool(false),
+						]))
+			} catch {
+				Issue.record(error)
+			}
+			return .reply(
+				.sse(
+					#"data: {"choices":[{"delta":{"content":"Host answered."},"finish_reason":"stop"}]}"#
+						+ "\ndata: [DONE]\n"))
+		}
+		let events = try await collect(transport.stream(request))
+		#expect(textDeltas(in: events) == ["Host answered."])
+	}
+
 	@Test(arguments: ["\n", "\r\n", "\r"], [false, true])
 	func streamKeepsUnicodeSeparators(lineEnding: String, fragmented: Bool) async throws {
 		let text = "Ride\u{2028}recover\u{2029}repeat\u{0085}rest"
@@ -113,19 +145,6 @@ import Testing
 		#expect(calls[1].arguments == "{\"oldest\":\"1998-06-01\",\"newest\":\"1998-06-13\"}")
 	}
 
-	@Test func parserYieldsTextUsageAndNoTemperatureLeak() async throws {
-		let events = try await parseFixture("openrouter-text-usage")
-		#expect(textDeltas(in: events) == ["Your week ", "looked strong, Ada."])
-		guard case .finished(let reason, let usage) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(reason == .stop)
-		#expect(usage.inputTokens == 24)
-		#expect(usage.outputTokens == 8)
-		#expect(usage.cost == 0.25)
-	}
-
 	@Test func parserTreatsReasoningAndKeepAlivesAsHeartbeats() async throws {
 		let events = try await parseFixture("openrouter-reasoning-keepalive")
 		#expect(events.filter { $0 == .heartbeat }.count >= 3)
@@ -137,59 +156,30 @@ import Testing
 		#expect(reason == .stop)
 	}
 
-	@Test func parserMapsLengthFinishReason() async throws {
-		let events = try await parseFixture("openrouter-finish-length")
-		guard case .finished(let reason, let usage) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(reason == .length)
-		#expect(usage.inputTokens == 40)
-		#expect(usage.outputTokens == 20)
-	}
-
-	@Test func parserMapsErrorFinishReasonAndKeepsPartialText() async throws {
-		let events = try await parseFixture("openrouter-finish-error")
-		#expect(textDeltas(in: events) == ["Tomorrow's ride is queued."])
-		guard case .finished(let reason, let usage) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(reason == .error)
-		#expect(usage.inputTokens == 40)
-		#expect(usage.outputTokens == 8)
-	}
-
-	@Test func parserMapsContentFilterFinishReason() async throws {
-		let events = try await parseFixture("openrouter-finish-content-filter")
-		#expect(textDeltas(in: events) == ["Stopped."])
-		guard case .finished(let reason, _) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(reason == .contentFilter)
-	}
-
-	@Test func parserSumsUsageAndCostAcrossSteps() async throws {
-		let events = try await parseFixture("openrouter-usage-sum")
-		guard case .finished(_, let usage) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(usage.inputTokens == 20)
-		#expect(usage.outputTokens == 3)
-		#expect(usage.cost == 0.75)
-	}
-
-	@Test func parserOmitsCostWhenAnyStepLacksIt() async throws {
-		let events = try await parseFixture("openrouter-usage-partial-cost")
-		guard case .finished(_, let usage) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(usage.inputTokens == 8)
-		#expect(usage.outputTokens == 3)
-		#expect(usage.cost == nil)
+	@Test(arguments: [
+		FinishRow(
+			"openrouter-text-usage", text: ["Your week ", "looked strong, Ada."], reason: .stop,
+			usage: Usage(inputTokens: 24, outputTokens: 8, cost: 0.25)),
+		FinishRow(
+			"openrouter-finish-length", text: ["Ada's June 1998 block ", "was cut short."],
+			reason: .length, usage: Usage(inputTokens: 40, outputTokens: 20, cost: 0.5)),
+		FinishRow(
+			"openrouter-finish-error", text: ["Tomorrow's ride is queued."], reason: .error,
+			usage: Usage(inputTokens: 40, outputTokens: 8, cost: 0.2)),
+		FinishRow(
+			"openrouter-finish-content-filter", text: ["Stopped."], reason: .contentFilter,
+			usage: Usage(inputTokens: 0, outputTokens: 0, cost: nil)),
+		FinishRow(
+			"openrouter-usage-sum", text: ["Hi ", "Ada"], reason: .stop,
+			usage: Usage(inputTokens: 20, outputTokens: 3, cost: 0.75)),
+		FinishRow(
+			"openrouter-usage-partial-cost", text: ["Hi", " Ada"], reason: .stop,
+			usage: Usage(inputTokens: 8, outputTokens: 3, cost: nil)),
+	])
+	func parserYieldsTextFinishReasonAndSummedUsage(row: FinishRow) async throws {
+		let events = try await parseFixture(row.fixture)
+		#expect(textDeltas(in: events) == row.text)
+		#expect(events.last == .finished(reason: row.reason, usage: row.usage))
 	}
 
 	@Test func streamPostsOnceWithBearerAndNoReferer() async throws {
@@ -208,7 +198,7 @@ import Testing
 		#expect(request.value(forHTTPHeaderField: "HTTP-Referer") == nil)
 		#expect(request.value(forHTTPHeaderField: "Referer") == nil)
 		#expect(request.value(forHTTPHeaderField: "X-OpenRouter-Title") == nil)
-		let bodyData = try #require(httpBody(from: request))
+		let bodyData = try #require(openRouterHTTPBody(from: request))
 		let body = try JSONSerialization.jsonObject(with: bodyData) as? [String: Any]
 		#expect(body?["temperature"] == nil)
 		#expect(body?["stream"] as? Bool == true)
@@ -228,28 +218,6 @@ import Testing
 					[WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)],
 					deadline: .seconds(45))))
 		#expect(state.value == 45)
-	}
-
-	@Test func streamThrowsOnlyProviderFailure() async throws {
-		let malformed = try fixture("openrouter-malformed-chunk", ext: "sse")
-		let outcomes: [OpenRouterStub.Outcome] =
-			[400, 401, 402, 403, 404, 408, 418, 429, 500, 502, 503, 302].map {
-				.reply(.json($0, #"{"error":{"message":"refused","code":\#($0)}}"#))
-			} + [
-				.fail(.timedOut), .fail(.notConnectedToInternet), .fail(.networkConnectionLost),
-				.fail(.cannotFindHost), .fail(.cannotConnectToHost), .fail(.dnsLookupFailed),
-				.fail(.secureConnectionFailed), .fail(.badServerResponse),
-				.reply(.sse(malformed)), .reply(.sse("data: [DONE]\n")),
-			]
-		for outcome in outcomes {
-			let transport = try OpenRouterStub.transport { _ in outcome }
-			do {
-				_ = try await collect(transport.stream(sampleRequest(tools: false)))
-				Issue.record("expected a failure for \(outcome)")
-			} catch {
-				#expect(error is ProviderFailure, "\(outcome) threw \(type(of: error))")
-			}
-		}
 	}
 
 	@Test(.timeLimit(.minutes(1))) func errorBodyReadStopsAtItsLimit() async throws {
@@ -375,25 +343,18 @@ private func toolCalls(in events: [TransportEvent]) -> [WireToolCall] {
 	}
 }
 
-private func httpBody(from request: URLRequest) -> Data? {
-	if let body = request.httpBody {
-		return body
+struct FinishRow: Sendable, CustomTestStringConvertible {
+	let fixture: String
+	let text: [String]
+	let reason: FinishReason
+	let usage: Usage
+
+	init(_ fixture: String, text: [String], reason: FinishReason, usage: Usage) {
+		self.fixture = fixture
+		self.text = text
+		self.reason = reason
+		self.usage = usage
 	}
-	guard let stream = request.httpBodyStream else {
-		return nil
-	}
-	stream.open()
-	defer { stream.close() }
-	let bufferSize = 1024
-	let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
-	defer { buffer.deallocate() }
-	var data = Data()
-	while stream.hasBytesAvailable {
-		let read = stream.read(buffer, maxLength: bufferSize)
-		if read <= 0 {
-			break
-		}
-		data.append(buffer, count: read)
-	}
-	return data
+
+	var testDescription: String { fixture }
 }

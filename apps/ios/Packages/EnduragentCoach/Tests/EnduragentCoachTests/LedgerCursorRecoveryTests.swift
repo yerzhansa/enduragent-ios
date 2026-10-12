@@ -109,8 +109,7 @@ extension SwiftDataSuites {
 		}
 
 		private func fixture() throws -> (log: SwiftDataRecordLog, context: ModelContext) {
-			let root = FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-cursor-recovery-\(UUID().uuidString)")
+			let root = try TestTemporaryFolders.make()
 			try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 			let synced = try ModelContainerHandle.withoutCloudKit(
 				storeURL: root.appending(path: "synced.store"))

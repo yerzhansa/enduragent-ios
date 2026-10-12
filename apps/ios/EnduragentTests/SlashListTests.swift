@@ -17,8 +17,8 @@ struct SlashListTests {
 
 extension FixtureLaunchTests {
 	@Test(arguments: [ColorScheme.light, .dark])
-	func slashDescriptionsIgnoreTint(scheme: ColorScheme) throws {
-		let model = model(try services())
+	func slashDescriptionsIgnoreTint(scheme: ColorScheme) async throws {
+		let model = await model(try services())
 		let red = try slashImage(
 			SlashListView(model: model), tint: Color(.sRGB, red: 1, green: 0, blue: 0),
 			scheme: scheme)

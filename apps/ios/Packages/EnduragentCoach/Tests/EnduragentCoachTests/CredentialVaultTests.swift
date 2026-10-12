@@ -13,6 +13,7 @@ import Testing
 	let bo = FakeIntervalsClient(athleteName: "Bo Lind", ftp: 240, athleteId: "i2002")
 	let offline = FakeIntervalsClient(athleteName: "Nobody", ftp: 200, athleteId: "i3003")
 	let built = CredentialLog()
+	let adaAthlete: IntervalsAthleteID
 
 	@Test(arguments: [errSecNotAvailable, errSecDecode])
 	func secureStorageDiagnosticsKeepStatus(_ status: OSStatus) async throws {
@@ -35,9 +36,12 @@ import Testing
 		#expect(failure == KeychainStoreError.keychain(status))
 	}
 
-	init() {
-		offline.loadFailure = IntervalsError(
-			code: "down", details: "intervals.icu is unavailable.", status: 503)
+	init() throws {
+		adaAthlete = try #require(testConnection.resolvedAthlete)
+		offline.setProfileOutcome(
+			.failure(
+				IntervalsError(
+					code: "down", details: "intervals.icu is unavailable.", status: 503)))
 	}
 
 	var training: TrainingService {
@@ -54,20 +58,26 @@ import Testing
 
 	var adaSummary: IntervalsSummary {
 		IntervalsSummary(
-			keySuffix: "-key", athleteName: "Ada Kovač", today: nil, displayUnavailable: nil)
+			connectionID: testConnection.id, keySuffix: "-key",
+			profile: .available(
+				IntervalsProfile(
+					athleteID: adaAthlete, name: "Ada Kovač",
+					wellness: .available(.noData(on: "1998-06-13")))))
 	}
 
-	func coach(_ secrets: any SecretStore, log: (any RecordLog)? = nil) async -> Coach {
+	func coach(
+		_ secrets: any SecretStore, log: (any RecordLog)? = nil, training: TrainingService? = nil
+	) async -> Coach {
 		await consentingCoach(
 			Coach(
 				sport: .cycling,
 				ports: CoachPorts(
 					records: RecordStore(log: log ?? records), secrets: secrets,
 					models: .scripted(transport),
-					training: training, credits: .fake(FakeCreditsClient()),
+					training: training ?? self.training, credits: .fake(FakeCreditsClient()),
 					host: ImmediateExecutionHost(), clock: clock),
 				builtInModel: testModel,
-				deviceLanguage: .en,
+				displayLocale: testDisplayLocale,
 				coalescing: quickWindow
 			))
 	}
@@ -114,7 +124,8 @@ import Testing
 		#expect(try secrets.intervalsConnection() == testConnection)
 		#expect(
 			try await claimAccount(after: "Is Thursday on?", on: coach) == account(testConnection))
-		#expect(built.credentials == [.apiKey("icu-test-key")])
+		#expect(built.credentials.allSatisfy { $0 == .apiKey("icu-test-key") })
+		#expect(!built.credentials.isEmpty)
 	}
 
 	@Test func cancelKeepsTheWorkingKey() async throws {
@@ -162,16 +173,20 @@ import Testing
 			outcome
 				== .replaced(
 					IntervalsSummary(
-						keySuffix: "line", athleteName: nil, today: nil,
-						displayUnavailable: .temporarilyUnavailable),
+						connectionID: try #require(try secrets.intervalsConnection()).id,
+						keySuffix: "line", profile: .failed(.temporarilyUnavailable)),
 					authority: .unverifiable))
 		let active = try #require(try secrets.intervalsConnection())
 		#expect(active.credential == .apiKey("icu-offline"))
 		#expect(active.resolvedAthlete == nil)
 		#expect(active.id != testConnection.id)
 		#expect(
-			try await coach.refreshedStatus().notice?.key == Catalog.coachErrorIntervalsTransient)
-		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(active))
+			try await coach.refreshedStatus().notice?.key == Catalog.connectErrorProfileUnavailable)
+		let state = try await coach.sendAndSettle("Is Thursday on?")
+		#expect(
+			failure(state)
+				== .model(.accessUnavailable(.trainingIdentityUnverified(.temporarilyUnavailable))))
+		#expect(transport.requests.isEmpty)
 	}
 
 	@Test func differentAthleteWithBoundWorkIsRefused() async throws {
@@ -200,7 +215,7 @@ import Testing
 			return
 		}
 		#expect(try secrets.intervalsConnection()?.resolvedAthlete == nil)
-		offline.loadFailure = nil
+		offline.setProfileOutcome(.success(AthleteProfile(id: "i3003", name: "Nobody", ftp: 200)))
 		let status = try await coach.refreshedStatus()
 		let resolved = try #require(try secrets.intervalsConnection())
 		let athlete = try #require(IntervalsAthleteID(rawValue: "i3003"))
@@ -237,8 +252,12 @@ import Testing
 			outcome
 				== .replaced(
 					IntervalsSummary(
-						keySuffix: "lete", athleteName: "Bo Lind", today: nil,
-						displayUnavailable: nil),
+						connectionID: try #require(try secrets.intervalsConnection()).id,
+						keySuffix: "lete",
+						profile: .available(
+							IntervalsProfile(
+								athleteID: try #require(IntervalsAthleteID(rawValue: "i2002")),
+								name: "Bo Lind", wellness: .waiting))),
 					authority: .changed))
 		let active = try #require(try secrets.intervalsConnection())
 		#expect(active.resolvedAthlete?.rawValue == "i2002")
@@ -293,7 +312,7 @@ import Testing
 		let secrets = keyedSecrets()
 		let coach = await coach(secrets)
 		#expect(
-			await coach.changeModelAccess(.signInToOpenRouter(model: testModel))
+			await coach.changeModelAccess(.signInToOpenRouter)
 				== .failedPreviousKept(
 					.signIn(.presentationUnavailable), previous: AccessSummary(selection: .credits))
 		)
@@ -301,7 +320,7 @@ import Testing
 		#expect(
 			await coach.changeModelAccess(.useCredits)
 				== .replaced(AccessSummary(selection: .credits), authority: nil))
-		#expect(try secrets.accessSelection() == .credits)
+		#expect(try secrets.accessSelection() == .init(.credits))
 		#expect(try await coach.refreshedStatus().setup == .ready)
 	}
 

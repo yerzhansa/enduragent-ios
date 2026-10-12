@@ -13,7 +13,6 @@ final class LongRepliesProof: XCTestCase {
 		TutorialHarness.attach(self, name: "long-replies", app: app)
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 4")
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.returnToChat(app)
 	}
 }

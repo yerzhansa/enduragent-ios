@@ -148,7 +148,7 @@ extension ChatMailboxTests {
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.lifecycle(.enteredBackground)
 		let settled = try #require(
-			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+			await coach.settledState(of: turn, in: .main, within: .hangGuard))
 		#expect(replyText(settled) == "Still on.")
 	}
 
@@ -170,7 +170,7 @@ extension ChatMailboxTests {
 		await backgrounded
 		let second = try #require(try await sent.acceptedTurn)
 		let settled = try #require(
-			await coach.settledState(of: first, in: .main, within: .seconds(5)))
+			await coach.settledState(of: first, in: .main, within: .hangGuard))
 		#expect(second == first, "the message being admitted missed the window it joined")
 		#expect(replyText(settled) == "Joined.")
 		#expect(await coach.transcript(.main) == ["a\nb", "Joined."])
@@ -200,7 +200,7 @@ extension ChatMailboxTests {
 		#expect(
 			interrupted.notice
 				== AthleteNotice(
-					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(first)))
+					key: Catalog.chatTurnInterruptedNothingChanged, actions: [.tryAgain(first)]))
 		try await Task.sleep(for: .milliseconds(100))
 		#expect(transport.requests.count == 1)
 		let secondClaims = try await store.fetch(

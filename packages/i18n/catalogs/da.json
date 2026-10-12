@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "Vælg dit sprog",
-    "continue": "Fortsæt",
-    "saveFailed": "Kunne ikke gemme {{language}}. Svarene bliver på {{current}}. Prøv igen.",
-    "saveFailedAutomatic": "Kunne ikke gemme {{language}}. Svarene bliver på sproget i hver besked. Prøv igen."
+    "continue": "Fortsæt"
   },
   "settings": {
     "appearance": {
@@ -515,7 +513,33 @@
         "title": "Fjern den eksisterende webhook"
       }
     },
-    "title": "Indstillinger"
+    "title": "Indstillinger",
+    "modelAccessTitle": "Modeladgang",
+    "session": {
+      "title": "Session",
+      "contextWindow": {
+        "label": "Kontekstvindue",
+        "help": "Øvre grænse for modellens kontekst. Lad feltet stå tomt for at bruge standarden.",
+        "default": "Standard"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokens"
+      }
+    },
+    "training": {
+      "section": "Træningsforbindelse",
+      "title": "intervals.icu",
+      "replace": "Udskift nøgle",
+      "keep": "Behold den nuværende forbindelse",
+      "disconnect": "Afbryd forbindelsen",
+      "disconnectTitle": "Afbryd intervals.icu?",
+      "disconnectDetail": "Din samtale og historik er stadig tilgængelige.",
+      "switchTitle": "Brug en anden atlet?",
+      "switchDetail": "Denne nøgle tilhører atlet {{new}}. Din samtale, historik og hukommelse forbliver gemt for atlet {{current}} og bruges ikke for atlet {{new}}. Skift for at bruge denne nøgle?",
+      "switch": "Skift atlet",
+      "athlete": "Atlet {{id}}"
+    }
   },
   "archive": {
     "athlete": "Du",
@@ -548,7 +572,8 @@
     "turnCount_one": "{{formattedCount}} besked",
     "turnCount_other": "{{formattedCount}} beskeder",
     "unavailable": "Denne samtale er ikke længere tilgængelig.",
-    "history": "Historik"
+    "history": "Historik",
+    "savedForAnotherAthlete": "Gemt til en anden intervals.icu-atlet ({{id}})"
   },
   "setup": {
     "ai": {
@@ -1024,7 +1049,8 @@
       "working": "Træneren arbejder…",
       "responseStopped": "Svaret er stoppet. Det delvise svar bliver bevaret.",
       "calendarUnverified": "Ændringen i kalenderen kan være blevet gemt. Tjek din kalender, før du spørger igen.",
-      "savedUnverified": "Jeg gemte dine oplysninger, men kunne ikke kontrollere mit svar. Prøv igen."
+      "savedUnverified": "Jeg gemte dine oplysninger, men kunne ikke kontrollere mit svar. Prøv igen.",
+      "startingNewConversation": "Starter en ny samtale…"
     },
     "planChange": {
       "activePlan": "Aktiv træningsplan",
@@ -2910,8 +2936,11 @@
     "accountChanged": "Dette træningspas blev forberedt til en anden atlet på {{service}}. Bed mig igen om at forberede det til den tilsluttede atlet.",
     "add": "Føj til kalender",
     "cannotVerify": "Jeg kunne ikke kontrollere din forbindelse til {{service}}, så intet blev ændret. Prøv igen om lidt.",
+    "turnStopping": "Dette svar er ved at stoppe. Når det er stoppet, kan du godkende eller annullere gennemgangen af træningspasset.",
     "earlierVersion": "Denne træningsgennemgang er fra en tidligere version af appen og kan ikke længere anvendes.",
-    "storageUnavailable": "Den gemte træningsgennemgang kunne ikke læses. Din seneste gennemgang vises stadig. Prøv igen for at gendanne betjeningen.",
+    "cancelledUnknown": "Annulleret. Denne træning kan stadig være blevet gemt. Tjek din kalender.",
+    "saveFailed": "Dit valg kunne ikke gemmes på denne iPhone, så intet blev ændret. Prøv igen.",
+    "storageUnavailable": "Kunne ikke læse den gemte træningsgennemgang. Knapperne er midlertidigt deaktiveret.",
     "title": "Gennemgang af træningspas",
     "uncertain": "Jeg kunne ikke bekræfte, om dette nåede frem til din kalender på {{service}}. Tjek din kalender, før du spørger igen.",
     "workout": {
@@ -2919,7 +2948,10 @@
       "mainSet": "Hoveddel",
       "cooldown": "Nedkøling",
       "ramp": "gradvis stigning"
-    }
+    },
+    "writePending": "Denne træning er muligvis blevet gemt. Tjek kalenderen, før du fortsætter.",
+    "writeReadFailed": "Kalenderen kunne ikke kontrolleres. Din godkendte træning afventer stadig.",
+    "saveApprovedAgain": "Gem den godkendte træning igen"
   },
   "credits": {
     "buy": "Køb",
@@ -2933,7 +2965,7 @@
     "packPrice_other": "{{formattedCount}} kreditter · {{price}}",
     "error": {
       "accessRejected": "Dine kreditter kunne ikke bruges. Gendan køb for at fortsætte.",
-      "exhausted": "Du er løbet tør for kreditter. Køb flere, eller skift til din OpenRouter-konto.",
+      "exhausted": "Du er løbet tør for kreditter. Du kan skifte til din OpenRouter-konto.",
       "unavailable": "Kreditter er ikke tilgængelige lige nu. Prøv igen senere.",
       "accountChanged": "Din kreditkonto blev ændret, mens denne anmodning blev afsluttet. Din nuværende konto blev bevaret."
     }
@@ -2959,7 +2991,7 @@
     },
     "consent": {
       "title": "Din coach bruger AI",
-      "body": "For at svare sender Enduragent dine beskeder, din coachs hukommelse og de træningsdata, du forbinder fra intervals.icu, til OpenRouter, som sender dem videre til udbyderen af AI-modellen (DeepSeek). De bruger kun disse data til at generere din coachs svar. Intet sendes, før du giver samtykke.",
+      "body": "For at svare sender Enduragent dine beskeder, din coachinghukommelse og de træningsdata, du forbinder fra intervals.icu, til OpenRouter, som sender dem videre til {{provider}} for at køre {{model}}. De bruger kun disse data til at generere din coachs svar. Intet sendes, før du accepterer.",
       "accept": "Acceptér og fortsæt",
       "decline": "Ikke nu",
       "saveFailed": "Dit samtykke kunne ikke gemmes. Prøv igen."
@@ -2969,13 +3001,41 @@
     "error": {
       "locked": "Lås din iPhone op for at fortsætte. Din besked er gemt.",
       "notConfigured": "Vælg, hvordan træneren får adgang til en model, for at fortsætte.",
+      "requestBlocked": "OpenRouter blokerede denne anmodning. Prøv en anden model eller besked.",
       "providerConsentRequired": "Dit samtykke er nødvendigt, før chatdata deles med AI-udbydere.",
-      "openRouterFunds": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter."
-    }
+      "openRouterFunds": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter.",
+      "storageUnavailable": "Det sikre lager er midlertidigt utilgængeligt. Din samtale, historik og hukommelse er her stadig. Prøv igen.",
+      "malformed": "Din gemte adgangsmetode kunne ikke læses. Vælg en adgangsmetode for at fortsætte."
+    },
+    "title": "Adgangsmetode",
+    "openRouterAccount": "OpenRouter-konto",
+    "signIn": "Log ind med OpenRouter",
+    "signInCancelled": "Login annulleret. Din adgangsmetode blev ikke ændret.",
+    "signInIncomplete": "Login med OpenRouter blev ikke gennemført. Din adgangsmetode blev ikke ændret. Prøv igen.",
+    "switchToOpenRouter": "Skift til OpenRouter"
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu accepterede ikke den nøgle."
-    }
+      "rejected": "intervals.icu accepterede ikke den nøgle.",
+      "blank": "Indtast en intervals.icu API-nøgle. Din nuværende forbindelse er uændret.",
+      "notSaved": "Erstatningen blev ikke gemt. Din tidligere forbindelse er uændret. Prøv igen.",
+      "profileUnavailable": "Din atletprofil er midlertidigt utilgængelig. Prøv igen.",
+      "wellnessRejected": "intervals.icu tillod ikke læsning af dagens wellness. Gennemgå din forbindelse.",
+      "wellnessUnavailable": "Dagens wellness er midlertidigt utilgængelig. Prøv igen.",
+      "blankConnection": "Indtast en intervals.icu API-nøgle.",
+      "connectionNotSaved": "Forbindelsen blev ikke gemt. Prøv igen.",
+      "storageLocked": "Lås din iPhone op for at læse din intervals.icu-forbindelse. Prøv derefter igen.",
+      "storageUnavailable": "Din intervals.icu-forbindelse er midlertidigt utilgængelig, fordi det sikre lager ikke kunne læses. Prøv igen.",
+      "storageMalformed": "Den gemte intervals.icu-forbindelse kunne ikke læses. Udskift nøglen for at forbinde igen."
+    },
+    "wellness": {
+      "empty": "Ingen wellnessdata for i dag.",
+      "waiting": "Læser dagens wellness…"
+    },
+    "review": "Gennemgå forbindelse",
+    "profile": {
+      "waiting": "Læser atletprofil…"
+    },
+    "missing": "intervals.icu er ikke tilsluttet. Opret forbindelse for at føje træningspas til din kalender."
   }
 }

@@ -30,7 +30,8 @@
     "turnCount_one": "{{formattedCount}} mensagem",
     "turnCount_other": "{{formattedCount}} mensagens",
     "unavailable": "Esta conversa já não está disponível.",
-    "history": "Histórico"
+    "history": "Histórico",
+    "savedForAnotherAthlete": "Guardado para outro atleta do intervals.icu ({{id}})"
   },
   "common": {
     "automatic": "Automático",
@@ -41,9 +42,7 @@
   },
   "language": {
     "chooseTitle": "Escolhe o teu idioma",
-    "continue": "Continuar",
-    "saveFailed": "Não foi possível guardar {{language}}. As respostas continuam em {{current}}. Tenta novamente.",
-    "saveFailedAutomatic": "Não foi possível guardar {{language}}. As respostas continuam no idioma de cada mensagem. Tenta novamente."
+    "continue": "Continuar"
   },
   "settings": {
     "appearance": {
@@ -548,6 +547,32 @@
       "saving": "A guardar unidades…",
       "title": "Unidades",
       "unavailable": "Preferência de unidades indisponível"
+    },
+    "modelAccessTitle": "Acesso ao modelo",
+    "session": {
+      "title": "Sessão",
+      "contextWindow": {
+        "label": "Janela de contexto",
+        "help": "Limite máximo do contexto do modelo. Deixa vazio para usar a predefinição.",
+        "default": "Predefinição"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokens"
+      }
+    },
+    "training": {
+      "section": "Ligação de treino",
+      "title": "intervals.icu",
+      "replace": "Substituir chave",
+      "keep": "Manter ligação atual",
+      "disconnect": "Desligar",
+      "disconnectTitle": "Desligar intervals.icu?",
+      "disconnectDetail": "A conversa e o histórico continuam disponíveis.",
+      "switchTitle": "Usar outro atleta?",
+      "switchDetail": "Esta chave pertence ao atleta {{new}}. A sua conversa, o histórico e a memória continuam guardados para o atleta {{current}} e não são usados para o atleta {{new}}. Mudar para usar esta chave?",
+      "switch": "Mudar atleta",
+      "athlete": "Atleta {{id}}"
     }
   },
   "setup": {
@@ -1024,7 +1049,8 @@
       "working": "O treinador está a trabalhar…",
       "responseStopped": "Resposta interrompida. A resposta parcial mantém-se.",
       "calendarUnverified": "A alteração no calendário pode ter sido guardada. Verifica o teu calendário antes de pedires novamente.",
-      "savedUnverified": "Guardei as tuas informações, mas não consegui verificar a minha resposta. Tenta novamente."
+      "savedUnverified": "Guardei as tuas informações, mas não consegui verificar a minha resposta. Tenta novamente.",
+      "startingNewConversation": "A iniciar uma nova conversa…"
     },
     "planChange": {
       "activePlan": "Plano ativo",
@@ -2910,8 +2936,11 @@
     "accountChanged": "Este treino foi preparado para outro atleta no {{service}}. Pede-me novamente para o preparar para o atleta ligado.",
     "add": "Adicionar ao calendário",
     "cannotVerify": "Não consegui verificar a tua ligação a {{service}}, por isso nada foi alterado. Tenta novamente daqui a pouco.",
+    "turnStopping": "Esta resposta está a ser interrompida. Quando parar, podes aprovar ou cancelar a revisão do treino.",
     "earlierVersion": "Esta revisão de treino é de uma versão anterior da app e já não pode ser aplicada.",
-    "storageUnavailable": "Não foi possível ler a revisão do treino guardada. A tua última revisão continua visível. Tenta novamente para restaurar os controlos.",
+    "cancelledUnknown": "Cancelado. Este treino pode ter sido guardado na mesma. Verifica o teu calendário.",
+    "saveFailed": "Não foi possível guardar a tua escolha neste iPhone, por isso nada foi alterado. Tenta novamente.",
+    "storageUnavailable": "Não foi possível ler a revisão do treino guardada. Os botões estão temporariamente desativados.",
     "title": "Revisão do treino",
     "uncertain": "Não consegui confirmar se isto chegou ao teu calendário no {{service}}. Verifica o calendário antes de pedires novamente.",
     "workout": {
@@ -2919,7 +2948,10 @@
       "mainSet": "Série principal",
       "cooldown": "Arrefecimento",
       "ramp": "rampa"
-    }
+    },
+    "writePending": "Este treino pode ter sido guardado. Verifica o calendário antes de continuares.",
+    "writeReadFailed": "Não foi possível verificar o calendário. O teu treino aprovado continua pendente.",
+    "saveApprovedAgain": "Guardar novamente o treino aprovado"
   },
   "credits": {
     "buy": "Comprar",
@@ -2933,7 +2965,7 @@
     "packPrice_other": "{{formattedCount}} créditos · {{price}}",
     "error": {
       "accessRejected": "Não foi possível usar os teus créditos. Restaura as compras para continuar.",
-      "exhausted": "Os teus créditos acabaram. Compra mais ou muda para a tua conta OpenRouter.",
+      "exhausted": "Os teus créditos acabaram. Podes mudar para a tua conta OpenRouter.",
       "unavailable": "Os créditos estão indisponíveis de momento. Tenta novamente mais tarde.",
       "accountChanged": "A tua conta de créditos mudou enquanto este pedido estava a ser concluído. A tua conta atual foi mantida."
     }
@@ -2959,7 +2991,7 @@
     },
     "consent": {
       "title": "O teu treinador usa IA",
-      "body": "Para responder, o Enduragent envia as tuas mensagens, a memória do teu treinador e os dados de treino que ligas a partir do intervals.icu ao OpenRouter, que os transmite ao fornecedor do modelo de IA (DeepSeek). Usam estes dados apenas para gerar as respostas do teu treinador. Nada é enviado até concordares.",
+      "body": "Para responder, o Enduragent envia as suas mensagens, a memória de acompanhamento e os dados de treino ligados do intervals.icu ao OpenRouter, que os transmite a {{provider}} para executar {{model}}. Estes dados são usados apenas para gerar as respostas do seu treinador. Nada é enviado até concordar.",
       "accept": "Concordar e continuar",
       "decline": "Agora não",
       "saveFailed": "Não foi possível guardar o teu consentimento. Tenta novamente."
@@ -2969,13 +3001,41 @@
     "error": {
       "locked": "Desbloqueia o teu iPhone para continuar. A tua mensagem está guardada.",
       "notConfigured": "Escolhe como o treinador acede a um modelo para continuar.",
+      "requestBlocked": "O OpenRouter bloqueou este pedido. Experimenta outro modelo ou mensagem.",
       "providerConsentRequired": "Precisamos da tua permissão antes de partilhar dados da conversa com fornecedores de IA.",
-      "openRouterFunds": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos."
-    }
+      "openRouterFunds": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos.",
+      "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. A sua conversa, o histórico e a memória continuam aqui. Tente novamente.",
+      "malformed": "Não foi possível ler o seu método de acesso guardado. Escolha um método de acesso para continuar."
+    },
+    "title": "Método de acesso",
+    "openRouterAccount": "Conta OpenRouter",
+    "signIn": "Iniciar sessão com OpenRouter",
+    "signInCancelled": "Início de sessão cancelado. O seu método de acesso não foi alterado.",
+    "signInIncomplete": "O início de sessão no OpenRouter não foi concluído. O seu método de acesso não foi alterado. Tente novamente.",
+    "switchToOpenRouter": "Mudar para OpenRouter"
   },
   "connect": {
     "error": {
-      "rejected": "O intervals.icu não aceitou essa chave."
-    }
+      "rejected": "O intervals.icu não aceitou essa chave.",
+      "blank": "Introduza uma chave de API do intervals.icu. A sua ligação atual não foi alterada.",
+      "notSaved": "A substituição não foi guardada. A sua ligação anterior não foi alterada. Tente novamente.",
+      "profileUnavailable": "O seu perfil de atleta está temporariamente indisponível. Tente novamente.",
+      "wellnessRejected": "O intervals.icu não permitiu a leitura dos dados de bem-estar de hoje. Reveja a sua ligação.",
+      "wellnessUnavailable": "Os dados de bem-estar de hoje estão temporariamente indisponíveis. Tente novamente.",
+      "blankConnection": "Introduza uma chave de API do intervals.icu.",
+      "connectionNotSaved": "A ligação não foi guardada. Tente novamente.",
+      "storageLocked": "Desbloqueie o iPhone para ler a sua ligação ao intervals.icu. Depois, tente novamente.",
+      "storageUnavailable": "A sua ligação ao intervals.icu está temporariamente indisponível porque não foi possível ler o armazenamento seguro. Tente novamente.",
+      "storageMalformed": "Não foi possível ler a ligação guardada ao intervals.icu. Substitua a chave para se ligar novamente."
+    },
+    "wellness": {
+      "empty": "Não há dados de bem-estar para hoje.",
+      "waiting": "A ler os dados de bem-estar de hoje…"
+    },
+    "review": "Rever ligação",
+    "profile": {
+      "waiting": "A ler o perfil de atleta…"
+    },
+    "missing": "intervals.icu não está ligado. Ligue para adicionar treinos ao calendário."
   }
 }

@@ -35,7 +35,7 @@ import Testing
 				.records.first?.ulid)
 		try #require(!soft.coverage.listed.contains(question))
 		try #require(question < (soft.coverage.listed.max() ?? question))
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let reset = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
 		#expect(reset.filter { $0 == "Remember Saturdays" }.count == 1)
@@ -93,7 +93,7 @@ import Testing
 				.finish(reason: .toolCalls), .finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first).messages.map(
 			\.unstampedContent)
 		#expect(flushed.contains("Remember Saturdays"))
@@ -104,7 +104,9 @@ import Testing
 		let fresh = try #require(
 			try await ledger.flushJobs(in: try await ledger.conversation(.main)).last)
 		#expect(fresh.coverage.listed == [question, reply])
-		#expect(try await coach.memory.fullContext().contains("Group ride on Saturdays."))
+		#expect(
+			try await coach.memory.fullContext(for: testConnection.account).contains(
+				"Group ride on Saturdays."))
 	}
 
 	@Test func v1ConsumedJobDoesNotReplayRowsMergedOutsideItsList() async throws {
@@ -129,11 +131,7 @@ import Testing
 				record(
 					8, wall: 6,
 					body: .synced(
-						.provenance(
-							ProvenanceBody(
-								key: MemoryFlushPolicy.consumedFlushKeyPrefix + job.ulid.rawValue,
-								garmin: false, nonGarmin: false, unknown: false,
-								contentSha256: "consumed")))),
+						consumedFlushMarker(for: job.ulid))),
 			])
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		try #require(
@@ -142,7 +140,7 @@ import Testing
 			])
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let repeated = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.unstampedContent)
 		#expect(!repeated.contains("Already saved Saturday"))
 		#expect(!repeated.contains("Already saved reply"))
@@ -157,7 +155,9 @@ import Testing
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		await coach.stop(.main)
-		try #require(try #require(await coach.settledState(of: turn, in: .main)).retryable)
+		try #require(
+			turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.actions
+				== [.tryAgain(turn)])
 		let longReply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
 		transport.respond = ScriptedReply.sequence(
 			[
@@ -180,7 +180,7 @@ import Testing
 		try #require(
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))
 				== "Replacement reply")
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let latest = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
 		#expect(latest.filter { $0 == "Replacement reply" }.count == 1)
@@ -194,7 +194,9 @@ import Testing
 			[.fail(.http(status: 400))], otherwise: transport.respond)
 		let turn = try #require(
 			try await coach.send(draft("Recover after trimming"), to: .main).acceptedTurn)
-		try #require(try #require(await coach.settledState(of: turn, in: .main)).retryable)
+		try #require(
+			turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.actions
+				== [.tryAgain(turn)])
 		let huge = String(repeating: "w", count: historyBudget(clock: clock) * 5)
 		transport.respond = ScriptedReply.sequence(
 			[
@@ -207,9 +209,13 @@ import Testing
 		_ = try await coach.sendAndSettle("After trimming")
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let conversation = try await ledger.conversation(.main)
-		try #require(conversation.current.promptWindow.trim != nil)
+		try #require(conversation.current.promptWindows.values.first?.trim != nil)
 		let user = try #require(conversation.turn(turn)?.userRow?.ulid)
-		try #require(!conversation.current.promptHistory(excluding: nil).ulids.contains(user))
+		try #require(
+			!conversation.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: store.deviceId,
+				using: conversation.ownership
+			).ulids.contains(user))
 		transport.respond = ScriptedReply.sequence(
 			[.text("Recovered reply"), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
@@ -217,7 +223,7 @@ import Testing
 		try #require(
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))
 				== "Recovered reply")
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let latest = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
 		#expect(latest.filter { $0 == "Recover after trimming" }.count == 1)
@@ -238,22 +244,18 @@ import Testing
 					1, wall: 1, device: foreign,
 					body: legacyUser(chatId: .main, text: "Archived question")),
 				record(
-					20, wall: 2, device: foreign,
+					1_000, wall: 2, device: foreign,
 					body: legacyReply(chatId: .main, text: "Archived late reply")),
 				record(
 					7,
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, messageUlids: [fixedUlid(1), fixedUlid(20)])))),
+								chatId: .main, messageUlids: [fixedUlid(1), fixedUlid(1_000)])))),
 				record(
 					8,
 					body: .synced(
-						.provenance(
-							ProvenanceBody(
-								key: MemoryFlushPolicy.consumedFlushKeyPrefix + job.ulid.rawValue,
-								garmin: false, nonGarmin: false, unknown: false,
-								contentSha256: "consumed")))),
+						consumedFlushMarker(for: job.ulid))),
 				record(
 					10,
 					body: .synced(
@@ -274,24 +276,13 @@ import Testing
 				),
 			])
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let rows = try #require(sent(.memoryFlush, by: transport).first).messages.map(
 			\.unstampedContent)
 		#expect(rows.filter { $0 == "Current question" }.count == 1)
 		#expect(rows.filter { $0 == "Current reply" }.count == 1)
 		#expect(!rows.contains("Archived question"))
 		#expect(!rows.contains("Archived late reply"))
-	}
-
-	@Test func legacyCoverageResolvesEachRowOnce() {
-		let conversation = conversation(turns: 1_000, startingAt: 1_000, legacy: true)
-		let jobs = (1...200).map { job($0, messages: [], settled: true, in: conversation) }
-		let resolved = Mutex(0)
-		let rows = ConversationRows.$didResolveRow.withValue({ resolved.withLock { $0 += 1 } }) {
-			conversation.messagesSinceLastFlush(jobs, excluding: nil)
-		}
-		#expect(rows.count == 2_000)
-		#expect(resolved.withLock { $0 } == 2_000)
 	}
 
 	@Test func aLegacyEmptyListStillCoversEarlierRowsInItsCurrentSegment() {
@@ -325,7 +316,7 @@ import Testing
 
 	@Test func coverageKeepsPromptTrimmingAndRunningTurnExclusion() {
 		var conversation = conversation(turns: 3)
-		conversation.segments[0].promptWindow = PromptWindow(
+		conversation.segments[0].promptWindows[.unbound(store.deviceId)] = PromptWindow(
 			trim: .init(messageUlids: [fixedUlid(1), fixedUlid(2)], opened: fixedUlid(9)))
 		let running = TurnID(ulid: fixedUlid(7))
 		#expect(

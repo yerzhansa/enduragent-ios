@@ -49,6 +49,7 @@ struct ArchivedConversationView: View {
 				}
 			}
 			.listStyle(.plain)
+			.accessibilityIdentifier("archive.content")
 			Text(say(Catalog.archiveReadOnly))
 				.font(.footnote)
 				.foregroundStyle(.secondary)
@@ -59,7 +60,7 @@ struct ArchivedConversationView: View {
 
 	private func notes(_ notes: [TranscriptNote], after turn: TurnID?) -> some View {
 		ForEach(notes.filter { $0.after == turn }) { note in
-			Text(note.sentence(in: model.phrasebook))
+			Text(note.sentence(in: model.displayLocale))
 				.accessibilityIdentifier("archive.note")
 		}
 	}
@@ -68,20 +69,22 @@ struct ArchivedConversationView: View {
 	private func reply(_ state: TurnState) -> some View {
 		switch state {
 		case .completed(let completed):
-			switch completed.reply {
-			case .model(let text):
-				Text(text)
-			}
+			ReplyView(
+				source: completed.reply.sentence(in: model.phrasebook),
+				parser: model.services.replyParser)
 		case .interrupted(let interrupted):
 			if !interrupted.partial.isEmpty {
-				Text(interrupted.partial)
+				ReplyView(source: interrupted.partial, parser: model.services.replyParser)
 					.foregroundStyle(.secondary)
+					.opacity(0.6)
 			}
 			notice(interrupted.notice)
 		case .savedWork(let savedWork):
 			notice(savedWork.notice)
 		case .failed(let failed):
-			notice(failed.notice)
+			if let failureNotice = failed.notice {
+				notice(failureNotice)
+			}
 		case .unrecovered(let unrecovered):
 			notice(unrecovered.notice)
 		case .accepted, .processing:
@@ -90,7 +93,7 @@ struct ArchivedConversationView: View {
 	}
 
 	private func notice(_ notice: AthleteNotice) -> some View {
-		Text(notice.sentence(in: model.phrasebook))
+		Text(notice.sentence(in: model.displayLocale))
 			.foregroundStyle(.secondary)
 	}
 

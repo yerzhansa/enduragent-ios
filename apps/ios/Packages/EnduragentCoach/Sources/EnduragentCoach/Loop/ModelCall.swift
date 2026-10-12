@@ -2,8 +2,15 @@ import Foundation
 
 extension TurnRunner {
 	var modelCall: ModelCall {
-		ModelCall(transport: transport, diagnostics: diagnostics, watchdogSleep: watchdogSleep)
+		ModelCall(
+			transport: transport, diagnostics: diagnostics, watchdogSleep: watchdogSleep,
+			authorizeInvocation: authorizeInvocation)
 	}
+}
+
+package enum ModelInvocation: Sendable {
+	case authorize(CompletionRequest)
+	case rejected(CompletionRequest)
 }
 
 struct ModelCall: Sendable {
@@ -11,10 +18,13 @@ struct ModelCall: Sendable {
 	let diagnostics: DiagnosticsLog
 	let watchdogSleep: @Sendable (Duration) async throws -> Void
 
+	let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void
+
 	func run(
 		request: CompletionRequest,
 		progress: @escaping AttemptProgressSink = { _ in }
 	) async throws -> GenerateStep {
+		try await authorizeInvocation(.authorize(request))
 		let watchdog = ChatWatchdog(sleep: watchdogSleep)
 		await watchdog.arm()
 		do {
@@ -48,6 +58,9 @@ struct ModelCall: Sendable {
 			return step
 		} catch {
 			await watchdog.disarm()
+			if case .credentialRejected = error as? ProviderFailure {
+				try await authorizeInvocation(.rejected(request))
+			}
 			throw error
 		}
 	}

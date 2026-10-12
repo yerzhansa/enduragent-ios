@@ -10,14 +10,6 @@ package enum TurnRefusal: Error, Sendable, Equatable {
 }
 
 package enum TurnLifecycle {
-	package static func accept(
-		_ draft: Draft, turn: TurnID, fragment: Int, chat: ChatID, slash: SlashCommand?
-	) -> UserMessageBody {
-		UserMessageBody(
-			chatId: chat, turn: turn, fragment: fragment, draft: draft.id,
-			athleteText: draft.text, slash: slash)
-	}
-
 	package static func claim(
 		_ attempt: AttemptID, on facts: TurnFacts?, chat: ChatID,
 		device: DeviceID, process: ProcessID, lease: LeaseKind
@@ -132,12 +124,20 @@ package enum TurnLifecycle {
 						notice: AthleteNotices.notice(for: outcome, saved: saved))
 				)
 			case .failed(let failure, let saved):
+				let notice: AthleteNotice?
+				switch failure {
+				case .model(.credentialRejected(.openRouterAccount)),
+					.model(.accessUnavailable(.openRouterKeyRejected)):
+					notice = nil
+				default:
+					notice = AthleteNotices.notice(
+						for: failure, turn: retry, waiting: overlay == .waitingToTryAgain)
+				}
 				return .failed(
 					TurnState.Failed(
 						failure: failure,
 						saved: saved,
-						notice: AthleteNotices.notice(
-							for: failure, turn: retry, waiting: overlay == .waitingToTryAgain)
+						notice: notice
 					))
 			case .interrupted(let partial, let cause, let saved):
 				return .interrupted(
@@ -221,7 +221,7 @@ public struct CoalescingPolicy: Sendable, Equatable {
 package enum MailboxWork: Sendable, Equatable {
 	case turn(TurnID, origin: AttemptOrigin)
 	case flush(FlushJobID)
-	case reset(ResetID)
+	case reset(ReservedReset)
 
 	package var turn: TurnID? {
 		guard case .turn(let turn, _) = self else { return nil }
@@ -230,7 +230,7 @@ package enum MailboxWork: Sendable, Equatable {
 
 	package var reset: ResetID? {
 		guard case .reset(let reset) = self else { return nil }
-		return reset
+		return reset.id
 	}
 
 	package var initiator: LeaseInitiator {

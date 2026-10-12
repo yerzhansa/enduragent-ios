@@ -222,18 +222,22 @@ import Testing
 			[
 				storedRecord(
 					device: store.deviceId, wall: 1, ulid: fixedUlid(1),
-					body: legacyUser(chatId: .main, text: orphan)),
+					account: testConnection.account, body: legacyUser(chatId: .main, text: orphan)),
 				storedRecord(
 					device: store.deviceId, wall: 2, ulid: fixedUlid(2),
+					account: testConnection.account,
 					body: legacyUser(chatId: .main, text: "Legacy question")),
 				storedRecord(
 					device: store.deviceId, wall: 3, ulid: fixedUlid(3),
+					account: testConnection.account,
 					body: legacyReply(chatId: .main, text: legacyReplyText)),
 				storedRecord(
 					device: store.deviceId, wall: 4, ulid: fixedUlid(4),
+					account: testConnection.account,
 					body: .synced(sampleUser(chatId: .main, text: "Kept question", turn: kept))),
 				storedRecord(
 					device: store.deviceId, wall: 5, ulid: fixedUlid(5),
+					account: testConnection.account,
 					body: .synced(sampleReply(chatId: .main, turn: kept, text: "Kept answer"))),
 			])
 		transport.respond = ScriptedReply.sequence(
@@ -272,6 +276,7 @@ import Testing
 			[
 				storedRecord(
 					device: store.deviceId, wall: 3, ulid: fixedUlid(3),
+					account: testConnection.account,
 					body: .synced(
 						.windowStart(
 							WindowStartBody(
@@ -302,7 +307,7 @@ import Testing
 			bodies.map { offset, body in
 				storedRecord(
 					device: store.deviceId, wall: Int64(offset), ulid: fixedUlid(offset),
-					body: .synced(body))
+					account: testConnection.account, body: .synced(body))
 			})
 	}
 

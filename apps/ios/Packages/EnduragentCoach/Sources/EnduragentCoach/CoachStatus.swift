@@ -1,143 +1,189 @@
 import Foundation
 
 extension Coach {
+	public func changeModelAccess(_ change: ModelAccessChange) async
+		-> CredentialOutcome<AccessSummary>
+	{
+		let outcome = await vault.change(
+			change, builtInModel: builtInModel, consent: await preferences.consent())
+		await publishStatus()
+		return outcome
+	}
+
+	public func creditsIdentity() async throws(AccessUnavailable) -> CreditsIdentity {
+		try await vault.creditsIdentity()
+	}
+
+	public func prepareCreditsPurchase() async throws(AccessUnavailable) -> UUID {
+		try await vault.prepareCreditsAccount()
+	}
+
 	public func observeStatus() async -> AsyncStream<CoachStatus> {
 		observeImports()
-		return await statusChanges.pass {
-			await statusFeed.subscribe(from: statusSnapshot())
+		observeCatalog()
+		if accessObservation == nil {
+			let updates = vault.accessUpdates
+			accessObservation = Task { [weak self] in
+				for await _ in updates {
+					guard let self, !Task.isCancelled else { return }
+					await self.publishStatus()
+				}
+			}
 		}
+		let (stream, snapshot, generation) = await statusChanges.pass {
+			let snapshot = await stableStatusSnapshot()
+			return (statusFeed.subscribe(from: snapshot), snapshot, trainingGeneration)
+		}
+		if generation == trainingGeneration {
+			if trainingStatus == nil { trainingStatus = snapshot.training }
+			if case .connected(let summary, _) = snapshot.training, summary.needsDisplayRead {
+				startTrainingDisplay(from: summary)
+			}
+		}
+		return stream
 	}
 
 	func publishStatus() async {
 		guard statusFeed.isObserved else { return }
-		await statusChanges.pass {
-			await statusFeed.publish(statusSnapshot())
+		let (snapshot, generation) = await statusChanges.pass {
+			let snapshot = await stableStatusSnapshot()
+			statusFeed.publish(snapshot)
+			return (snapshot, trainingGeneration)
 		}
+		if generation == trainingGeneration,
+			case .connected(let summary, _) = snapshot.training, summary.needsDisplayRead
+		{
+			startTrainingDisplay(from: summary)
+		}
+	}
+
+	func invalidateTrainingDisplay() {
+		trainingGeneration += 1
+		trainingRefresh?.cancel()
+		trainingRefresh = nil
+		trainingReadID = nil
 	}
 
 	func refreshTrainingStatus() async {
+		await vault.invalidateTrainingIdentity()
+		invalidateTrainingDisplay()
+		let generation = trainingGeneration
+		let stored = await vault.storedTrainingStatus()
+		guard generation == trainingGeneration else { return }
+		trainingStatus = stored
 		await publishStatus()
-		let refreshing = trainingRefresh ?? Task { await vault.trainingStatus() }
-		trainingRefresh = refreshing
-		let refreshed = await refreshing.value
-		guard trainingRefresh == refreshing else { return }
-		trainingRefresh = nil
-		trainingStatus = refreshed
+		guard generation == trainingGeneration else { return }
+		guard case .connected(let summary, _) = stored else {
+			for mailbox in mailboxes.values { _ = await mailbox.reviewChanged() }
+			return
+		}
+		startTrainingDisplay(from: summary)
+		await trainingRefresh?.value
+		for mailbox in mailboxes.values { _ = await mailbox.reviewChanged() }
 		await publishStatus()
+	}
+
+	public func retryTrainingDisplay(for connectionID: ConnectionID) async {
+		if trainingReadID?.connectionID == connectionID, let refreshing = trainingRefresh {
+			await refreshing.value
+			return
+		}
+		guard case .connected(let summary, _) = trainingStatus,
+			summary.connectionID == connectionID, summary.action == .retry(connectionID)
+		else {
+			await publishStatus()
+			return
+		}
+		if case .failed = summary.profile { await vault.invalidateTrainingIdentity() }
+		invalidateTrainingDisplay()
+		startTrainingDisplay(from: summary)
+		await trainingRefresh?.value
+	}
+
+	func startTrainingDisplay(from summary: IntervalsSummary) {
+		guard trainingRefresh == nil else { return }
+		let readID = TrainingDisplayReadID(
+			connectionID: summary.connectionID, generation: trainingGeneration)
+		trainingReadID = readID
+		trainingRefresh = Task {
+			await vault.refreshTrainingDisplay(
+				from: summary,
+				isCurrent: { await self.isCurrentTrainingRead(readID) },
+				publish: { await self.acceptTrainingDisplay($0, for: readID) })
+			if isCurrentTrainingRead(readID) {
+				trainingRefresh = nil
+				trainingReadID = nil
+			}
+		}
+	}
+
+	private func isCurrentTrainingRead(_ readID: TrainingDisplayReadID) -> Bool {
+		trainingGeneration == readID.generation && trainingReadID == readID
+	}
+
+	private func acceptTrainingDisplay(_ status: TrainingStatus, for readID: TrainingDisplayReadID)
+		async
+	{
+		guard isCurrentTrainingRead(readID) else { return }
+		trainingStatus = status
+		await recordTrainingIdentity(in: status)
+		guard isCurrentTrainingRead(readID) else { return }
+		await publishStatus()
+	}
+
+	private func stableStatusSnapshot() async -> CoachStatus {
+		while true {
+			let generation = trainingGeneration
+			let snapshot = await statusSnapshot()
+			if generation == trainingGeneration { return snapshot }
+		}
 	}
 
 	private func statusSnapshot() async -> CoachStatus {
-		let consent = await providerConsent()
-		let setup: SetupState =
-			consent?.isCurrent == true
-			? await vault.setup(builtInModel: builtInModel) : .needsProviderConsent
+		await vault.refreshRejections()
+		let access = await preferences.accessStatus()
+		let preferences = await preferences.load()
+		let stored = await vault.storedTrainingStatus()
 		let training: TrainingStatus
-		if let trainingStatus {
-			training = trainingStatus
+		if case .connected(let saved, _) = stored, identityWriteFailure == saved.connectionID {
+			training = .unavailable(.recordStorageUnavailable)
+		} else if case .connected(let saved, let account) = stored,
+			case .connected(let displayed, _) = trainingStatus,
+			saved.connectionID == displayed.connectionID, saved.keySuffix == displayed.keySuffix,
+			case .available(let checked) = saved.profile,
+			case .available(let visible) = displayed.profile,
+			checked.athleteID == visible.athleteID, checked.name == visible.name
+		{
+			training = .connected(displayed, account: account)
 		} else {
-			training = await vault.storedTrainingStatus()
+			training = stored
 		}
 		return CoachStatus(
-			setup: setup, training: training, preferences: await loadedPreferences(),
-			providerConsent: consent)
+			access: access, training: training, preferences: preferences,
+			resolve: resolveDisplayLocale)
+	}
+
+	public func refreshDisplayLocale() async {
+		await publishStatus()
+		for mailbox in await openedMailboxes() {
+			await mailbox.refreshLeaseTitle()
+		}
 	}
 
 	public func languagePreference() async -> LanguagePreference {
-		await loadedPreferences().language
-	}
-
-	public func recordConsent() async throws(PreferenceWriteFailure) {
-		guard await providerConsent()?.isCurrent != true else {
-			await publishStatus()
-			return
-		}
-		let stamp = OperationStamp(
-			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
-			attempt: AttemptID(ulid: await ledger.nextULID()), binding: binding)
-		do {
-			_ = try await ledger.commit(
-				local: [.providerConsent(ProviderConsent(at: clock.now))], stamp: stamp)
-		} catch {
-			throw .notSaved
-		}
-		await publishStatus()
-	}
-
-	func providerConsent() async -> ProviderConsent? {
-		do {
-			let page = try await ledger.read(
-				RecordQuery(scope: .deviceLocal([.providerConsent]), writtenBy: ledger.deviceId))
-			guard case .deviceLocal(.providerConsent(let consent)) = page.records.last?.body
-			else { return nil }
-			return consent
-		} catch {
-			diagnostics.record(.preferencesUnavailable(error))
-			return nil
-		}
+		await preferences.load().language
 	}
 
 	public func setLanguage(_ preference: LanguagePreference) async throws(PreferenceWriteFailure) {
-		guard await loadedPreferences().language != preference else {
-			await publishStatus()
-			return
+		try await preferences.setLanguage(preference)
+		for mailbox in await openedMailboxes() {
+			await mailbox.refreshLeaseTitle()
 		}
-		try await commitPreference(
-			.languagePreference(LanguagePreferenceBody(preference: preference)))
-	}
-
-	public func setSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
-		try await commitPreference(.sessionSettings(SessionSettingsBody(settings: settings)))
-	}
-
-	private var binding: ActionBinding {
-		ActionBinding(account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
-	}
-
-	private func commitPreference(_ body: SyncedRecordBody) async throws(PreferenceWriteFailure) {
-		_ = await loadedPreferences()
-		let stamp = OperationStamp(
-			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
-			attempt: AttemptID(ulid: await ledger.nextULID()),
-			binding: binding
-		)
-		let committed: [AthleteRecord]
-		do {
-			committed = try await ledger.commit(synced: [body], stamp: stamp)
-		} catch {
-			throw .notSaved
-		}
-		preferenceRecords += committed
 		await publishStatus()
 	}
 
-	func loadedPreferences(reload: Bool = false) async -> Preferences {
-		guard reload || !preferencesLoaded else { return Preferences.fold(preferenceRecords) }
-		let reading = (reload ? nil : preferencesRead) ?? Task { await self.readPreferences() }
-		preferencesRead = reading
-		let result = await reading.value
-		if preferencesRead == reading {
-			preferencesRead = nil
-		}
-		switch result {
-		case .success(let stored):
-			preferenceRecords =
-				stored
-				+ preferenceRecords.filter { written in
-					!stored.contains { $0.ulid == written.ulid }
-				}
-			preferencesLoaded = true
-		case .failure(let error):
-			diagnostics.record(.preferencesUnavailable(error))
-		}
-		return Preferences.fold(preferenceRecords)
+	public func setSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
+		try await preferences.setSession(settings)
+		await publishStatus()
 	}
-
-	private func readPreferences() async -> Result<[AthleteRecord], LedgerFailure> {
-		do {
-			return .success(try await ledger.read(RecordQuery(scope: Preferences.scope)).records)
-		} catch {
-			return .failure(error)
-		}
-	}
-
 }

@@ -15,8 +15,9 @@ extension CredentialVaultTests {
 		_ = await coach.changeTraining(.replace(apiKey: "icu-offline", athlete: .keyOwner))
 		#expect(try secrets.intervalsConnection()?.resolvedAthlete == nil)
 		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
-		#expect(await coach.currentSnapshot(.main)?.review?.notice?.kind == .accountChanged)
-		#expect(await coach.decide(.approve(token), in: .main) == .blocked(.accountChanged))
+		#expect(
+			await coach.currentSnapshot(.main)?.review?.notice?.key == Catalog.reviewCannotVerify)
+		#expect(await coach.decide(.approve(token), in: .main) == .blocked(.cannotVerify))
 		#expect(
 			!offline.calls.contains {
 				if case .createEvent = $0 { return true }
@@ -106,7 +107,7 @@ extension CreditsClientTests {
 		}
 
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: nil)
-		let fixture = CredentialVaultTests()
+		let fixture = try CredentialVaultTests()
 		let coach = await fixture.coach(secrets)
 		let outcome = await coach.changeTraining(
 			.replace(apiKey: "icu-rotated-key", athlete: .keyOwner))

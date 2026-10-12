@@ -26,7 +26,7 @@ import Testing
 		await stopped
 		let third = try #require(try await sent.acceptedTurn)
 		let settled = try #require(
-			await coach.settledState(of: third, in: .main, within: .seconds(5)))
+			await coach.settledState(of: third, in: .main, within: .hangGuard))
 		#expect(replyText(settled) == "Three.", "a send after the Stop tap was stopped: \(settled)")
 		#expect(await coach.interruption(of: running) == .athleteStopped)
 	}
@@ -39,22 +39,48 @@ import Testing
 			return ScriptedReply([.hang])
 		}
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
+		defer {
+			store.release()
+			requested.release()
+		}
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
-		await coach.waitUntilProcessing(running)
-		let admitted = try await beforeDeadline(within: .seconds(2)) {
+		let running = try #require(
+			try await beforeDeadline(within: .hangGuard) {
+				try await coach.send(draft("one"), to: .main)
+			}?.acceptedTurn)
+		let processing = try await beforeDeadline(within: .hangGuard) {
+			await coach.waitUntilProcessing(running)
+			return true
+		}
+		try #require(processing == true)
+		let admitted = try await beforeDeadline(within: .hangGuard) {
 			try await requested.waitUnlessCancelled()
 			return true
 		}
 		try #require(admitted == true)
-		async let sent = coach.send(draft("two"), to: .main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
-		async let stopped: Void = coach.stop(.main)
+		async let sent = beforeDeadline(within: .hangGuard) {
+			try await withTaskCancellationHandler {
+				try await coach.send(draft("two"), to: .main)
+			} onCancel: {
+				store.release()
+			}
+		}
+		let reached = try await beforeDeadline(within: .hangGuard) {
+			await store.reached.first(where: { _ in true }) != nil
+		}
+		try #require(reached == true)
+		async let stopped = beforeDeadline(within: .hangGuard) {
+			await withTaskCancellationHandler {
+				await coach.stop(.main)
+				return true
+			} onCancel: {
+				store.release()
+			}
+		}
 		try await Task.sleep(for: .milliseconds(100))
 		store.release()
-		await stopped
-		let second = try #require(try await sent.acceptedTurn)
+		try #require(try await stopped == true)
+		let second = try #require(try await sent?.acceptedTurn)
 		#expect(await coach.interruption(of: running) == .athleteStopped)
 		#expect(await coach.interruption(of: second) == .stoppedBeforeStart)
 		#expect(transport.requestCount == 1)
@@ -87,7 +113,9 @@ import Testing
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 2)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let failed = try #require(try await coach.send(draft("earlier"), to: .main).acceptedTurn)
-		#expect(try #require(await coach.settledState(of: failed, in: .main)).retryable)
+		#expect(
+			turnNotice(of: try #require(await coach.settledState(of: failed, in: .main)))?.actions
+				== [.tryAgain(failed)])
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
@@ -145,7 +173,9 @@ import Testing
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let failed = try #require(try await coach.send(draft("earlier"), to: .main).acceptedTurn)
-		#expect(try #require(await coach.settledState(of: failed, in: .main)).retryable)
+		#expect(
+			turnNotice(of: try #require(await coach.settledState(of: failed, in: .main)))?.actions
+				== [.tryAgain(failed)])
 		transport.respond = ScriptedReply.sequence(
 			[.text("Should not run."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
@@ -218,7 +248,7 @@ import Testing
 		await expired
 		let third = try #require(try await sent.acceptedTurn)
 		let settled = try #require(
-			await coach.settledState(of: third, in: .main, within: .seconds(5)))
+			await coach.settledState(of: third, in: .main, within: .hangGuard))
 		#expect(
 			replyText(settled) == "Three.", "the send after the Stop tap was stopped: \(settled)")
 		#expect(await coach.interruption(of: running) == .athleteStopped)

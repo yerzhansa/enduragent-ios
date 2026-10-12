@@ -1,13 +1,6 @@
 import Foundation
 
 package enum CyclingTools {
-	package static func parseCreateWorkout(_ arguments: JSONValue, today: CivilDate) throws
-		-> ChatCalendarCreate
-	{
-		let parsed = try parseCreateWorkoutInput(arguments, today: today)
-		return parsed.draft
-	}
-
 	package static func parseCreateWorkoutInput(
 		_ arguments: JSONValue,
 		today: CivilDate

@@ -77,7 +77,7 @@ import Testing
 		await coach.waitForLiveText(turn)
 		await coach.stop(.main)
 		let stopped = try #require(await coach.settledState(of: turn, in: .main))
-		try #require(stopped.retryable)
+		try #require(turnNotice(of: stopped)?.actions == [.tryAgain(turn)])
 		guard case .interrupted(let interrupted) = stopped else {
 			Issue.record("Expected a stopped reply")
 			return
@@ -102,7 +102,7 @@ import Testing
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		let failed = try #require(await coach.settledState(of: turn, in: .main))
-		try #require(failed.retryable)
+		try #require(turnNotice(of: failed)?.actions == [.tryAgain(turn)])
 		let longReply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
 		transport.respond = ScriptedReply.sequence(
 			[
@@ -130,7 +130,7 @@ import Testing
 			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
 		#expect(replyText(try #require(await coach.settledState(of: turn, in: .main))) == "Noted.")
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let window = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
 		#expect(window.filter { $0 == "Remember Saturdays" }.count == 1)

@@ -24,38 +24,38 @@ public enum ReviewSummary: Sendable, Equatable {
 		}
 	}
 
-	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
+	public func sentence(in display: DisplayLocale) -> String {
 		switch self {
 		case .supplied(let text):
 			return text
 		case .createWorkout(let name, let date):
-			return phrasebook.say(
-				Catalog.coachProposalCreate, ["name": name, "date": date.rawValue])
+			return display.say(
+				Catalog.coachProposalCreate, ["name": .text(name), "date": .day(date)])
 		case .createStrengthWorkout(let name, let date):
-			return phrasebook.say(
-				Catalog.coachProposalCreateStrength, ["name": name, "date": date.rawValue])
+			return display.say(
+				Catalog.coachProposalCreateStrength, ["name": .text(name), "date": .day(date)])
 		case .deleteWorkout:
-			return phrasebook.say(Catalog.coachProposalDeleteFallback, [:])
+			return display.say(Catalog.coachProposalDeleteFallback, [:])
 		case .updateWorkout(let date, let name, let descriptionChanged):
 			var fields: [String] = []
 			if let date {
-				fields.append(phrasebook.say(Catalog.coachProposalDate, ["date": date.rawValue]))
+				fields.append(display.say(Catalog.coachProposalDate, ["date": .day(date)]))
 			}
 			if let name {
-				fields.append(phrasebook.say(Catalog.coachProposalName, ["name": name]))
+				fields.append(display.say(Catalog.coachProposalName, ["name": .text(name)]))
 			}
 			if descriptionChanged {
-				fields.append(phrasebook.say(Catalog.coachProposalDescription, [:]))
+				fields.append(display.say(Catalog.coachProposalDescription, [:]))
 			}
 			let detail =
 				fields.isEmpty
-				? phrasebook.say(Catalog.coachProposalSelectedFields, [:])
+				? display.say(Catalog.coachProposalSelectedFields, [:])
 				: fields.joined(separator: ", ")
-			return phrasebook.say(Catalog.coachProposalUpdateFallback, ["detail": detail])
+			return display.say(Catalog.coachProposalUpdateFallback, ["detail": .text(detail)])
 		case .planSave(let name):
 			return name.isEmpty
-				? phrasebook.say(Catalog.coachProposalSavePlan, [:])
-				: phrasebook.say(Catalog.coachProposalSavePlanDetail, ["detail": name])
+				? display.say(Catalog.coachProposalSavePlan, [:])
+				: display.say(Catalog.coachProposalSavePlanDetail, ["detail": .text(name)])
 		}
 	}
 }

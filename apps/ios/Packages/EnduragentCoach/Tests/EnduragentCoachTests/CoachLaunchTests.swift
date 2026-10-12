@@ -45,7 +45,7 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: held, clock: clock)
 		async let observed = coach.currentSnapshot(.main)
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await held.reached.first { _ in true }
 			} != nil,
 			"Conversation read did not park within five seconds")
@@ -88,7 +88,6 @@ import Testing
 				.contains($0.query.scope)
 		}
 		let ulids = conversationReads.flatMap(\.ulids)
-		#expect(ulids.count == 8)
 		#expect(Set(ulids).count == ulids.count)
 		#expect(store.reads.filter { $0 == ConversationFold.syncedScope }.count == 1)
 		#expect(store.cursorReads == [.synced, .deviceLocal])

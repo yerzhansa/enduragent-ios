@@ -10,7 +10,7 @@ extension AthleteNoticesTests {
 			for: .model(.rateLimited(retryAfter: .seconds(Int.max))), turn: turn, waiting: false)
 		#expect(shown.key == Catalog.coachErrorRateLimitDefault)
 		#expect(shown.vars.isEmpty)
-		#expect(shown.action == .tryAgain(turn))
+		#expect(shown.actions == [.tryAgain(turn)])
 	}
 
 	@Test func largeRepresentableRetryAfterRoundsToMinutes() {
@@ -20,7 +20,7 @@ extension AthleteNoticesTests {
 			waiting: false)
 		#expect(shown.key == Catalog.coachErrorRateLimitMinutes)
 		#expect(shown.count == 153_722_867_280_912_896)
-		#expect(shown.vars == ["minutes": "153722867280912896"])
+		#expect(shown.vars == ["minutes": .integer(153_722_867_280_912_896)])
 	}
 
 }

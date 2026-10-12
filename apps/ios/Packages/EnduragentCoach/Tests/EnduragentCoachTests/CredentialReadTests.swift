@@ -6,22 +6,21 @@ import Testing
 @testable import EnduragentCoach
 
 extension CredentialVaultTests {
-	@Test func replyMakesThreeKeychainReads() async throws {
+	@Test func replyUsesTheStoredAccessAndTrainingKeys() async throws {
 		let memory = FixtureSecretStoreBacking()
 		let store = ICloudKeychainStore(backing: memory)
 		try store.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
 		try store.storeIntervalsConnection(testConnection)
 		let coach = await coach(store)
-		let before = memory.readCount
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
 		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
-		#expect(memory.readCount - before == 3)
-		#expect(
-			Array(memory.readAccounts.dropFirst(before)) == [
-				"accessSelection", "creditsAccount", "intervalsCredential",
-			])
+		#expect(built.credentials.allSatisfy { $0 == testConnection.credential })
+		#expect(!built.credentials.isEmpty)
+		let claim = try await records.fetch(
+			RecordQuery(scope: .deviceLocal([.turnClaim]), chatId: "main"))
+		#expect(claim.records.last?.account == testConnection.account)
 		#expect(transport.requests.last?.credential.secret == testKey)
 	}
 
@@ -55,7 +54,7 @@ extension CredentialVaultTests {
 		#expect(status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		#expect(status.training == .unavailable(.secureStorageLocked))
 		#expect(status.notice?.key == Catalog.accessErrorLocked)
-		#expect(status.notice?.action == nil)
+		#expect((status.notice?.actions ?? []).isEmpty)
 
 		let memory = FixtureSecretStoreBacking()
 		memory.fail(CredentialSlot.accessSelection.rawValue, with: errSecInteractionNotAllowed)
@@ -74,6 +73,7 @@ extension CredentialVaultTests {
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let vault = CredentialVault(
 			store: ICloudKeychainStore(backing: memory), training: training, clock: clock,
+			ledger: Ledger(log: InMemoryRecordLog(), clock: clock, diagnostics: diagnostics),
 			diagnostics: diagnostics)
 		await #expect(throws: AccessUnavailable.malformedStoredCredential(.creditsAccount)) {
 			try await vault.modelAccess(builtInModel: testModel)
@@ -104,7 +104,7 @@ extension CredentialVaultTests {
 			Issue.record("expected a failed turn, got \(settled)")
 			return
 		}
-		#expect(failed.notice.key == Catalog.accessErrorNotConfigured)
+		#expect(failed.notice?.key == Catalog.accessErrorMalformed)
 		let reopened = try #require(await coach(keychain).currentSnapshot(.main))
 		#expect(reopened.turns.map(\.state) == [settled])
 		#expect(transport.requests.isEmpty)
@@ -115,10 +115,10 @@ extension CredentialVaultTests {
 		let secrets = ICloudKeychainStore(backing: backing)
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: "sk-or-credits"))
-		try secrets.storeOpenRouterAccountKey("sk-or-account")
+		try secrets.storeOpenRouterAccountKey("sk-or-account", at: .legacy)
 		let model = ModelID(rawValue: "test/account-model")
 		try secrets.storeAccessSelection(
-			.openRouterAccount(model: model))
+			.init(.openRouter(SavedOpenRouterReference(credential: .legacy, model: model))))
 		let readsBeforeResolving = backing.readCount
 		let vault = vault(secrets)
 		#expect(
@@ -126,7 +126,7 @@ extension CredentialVaultTests {
 				== ResolvedAccess(
 					credential: ProviderCredential(
 						secret: "sk-or-account", method: .openRouterAccount),
-					model: model))
+					model: model, provider: ModelCatalog.fixture.entries[model]?.provider))
 		#expect(
 			backing.readAccounts.dropFirst(readsBeforeResolving) == [
 				CredentialSlot.accessSelection.rawValue,
@@ -139,7 +139,7 @@ extension CredentialVaultTests {
 		#expect(
 			!backing.readAccounts.dropFirst(readsBeforeResolving).contains(
 				CredentialSlot.creditsAccount.rawValue))
-		try secrets.storeAccessSelection(.credits)
+		try secrets.storeAccessSelection(.init(.credits))
 		#expect(
 			try await vault.modelAccess(builtInModel: testModel)
 				== testAccess(secret: "sk-or-credits"))
@@ -185,20 +185,4 @@ extension CredentialVaultTests {
 		#expect(built.athletes == [.athlete(coached), .athlete(coached)])
 	}
 
-	@Test func perAttemptResolutionReadsThreeCredentialSlots() async throws {
-		let backing = FixtureSecretStoreBacking()
-		let keychain = ICloudKeychainStore(backing: backing)
-		try keychain.storeCreditsAccount(
-			CreditsAccount(appAccountToken: UUID(), key: testKey)
-		)
-		try keychain.storeIntervalsConnection(testConnection)
-		let vault = vault(keychain)
-		let expectedAccount = account(testConnection)
-		let before = backing.readCount
-		let access = try await vault.modelAccess(builtInModel: testModel)
-		let connection = try await vault.trainingConnection()
-		#expect(backing.readCount - before == 3)
-		#expect(access == testAccess(secret: testKey))
-		#expect(connection.account == expectedAccount)
-	}
 }

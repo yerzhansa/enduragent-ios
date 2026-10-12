@@ -9,10 +9,6 @@ import Testing
 	let transport = FakeModelTransport()
 	let store = InMemoryRecordLog()
 
-	let schedule: ScriptedEvent = .toolCall(
-		name: "memory_write",
-		arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#)
-
 	func coach(over log: (any RecordLog)? = nil) async -> Coach {
 		await makeCoach(transport: transport, store: log ?? store, clock: clock)
 	}
@@ -39,8 +35,9 @@ import Testing
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.respond = ScriptedReply.sequence(
-			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls)], for: .flush,
+			otherwise: transport.respond)
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(
 			try await written(["flushPending", "memorySection", "windowStart", "flushSettled"])
 				== ["flushPending", "memorySection", "windowStart", "flushSettled"])
@@ -49,10 +46,10 @@ import Testing
 		#expect(flushed.messages.contains { $0.unstampedContent == "Two rides." })
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.turns.isEmpty)
-		#expect(snapshot.opening == .afterNewConversation(memorySaved: true))
+		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationSuccess)
 		let reopened = try #require(await self.coach().currentSnapshot(.main))
 		#expect(reopened.turns.isEmpty)
-		#expect(reopened.opening == .afterNewConversation(memorySaved: true))
+		#expect(reopened.opening.notice == Catalog.chatNoticeNewConversationSuccess)
 	}
 
 	@Test func deathBeforeBoundaryLeavesConversationAndJobPending() async throws {
@@ -61,9 +58,10 @@ import Testing
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.respond = ScriptedReply.sequence(
-			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls)], for: .flush,
+			otherwise: transport.respond)
 		try log.failAppends(ofKind: "windowStart")
-		#expect(await coach.startNewConversation(in: .main) == .notStarted(.local(.recordStorage)))
+		#expect(await coach.resetAndSettle(in: .main) == .notStarted(.local(.recordStorage)))
 		#expect(await coach.transcript(.main) == ["How was my week?", "Two rides."])
 		#expect(await coach.currentSnapshot(.main)?.opening == .continuing)
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
@@ -88,7 +86,7 @@ import Testing
 		answer("Here is Thursday.")
 		_ = try await coach.sendAndSettle("Plan Thursday")
 		let review = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(await coach.currentSnapshot(.main)?.review?.ref == review.ref)
 		#expect(try await count(.deviceLocal([.proposalCleared])) == 0)
 		#expect(await self.coach().currentSnapshot(.main)?.review?.ref.set == review.ref.set)
@@ -99,16 +97,16 @@ import Testing
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.respond = ScriptedReply.sequence(
-			[schedule, .finish(reason: .toolCalls)]
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls)]
 				+ Array(repeating: .fail(.http(status: 500)), count: 4), for: .flush,
 			otherwise: transport.respond)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .partiallySaved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .partiallySaved))
 		#expect(try await count(.synced([.memorySection])) == 1)
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.turns.isEmpty)
-		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
+		#expect(snapshot.opening.showsWelcome)
 		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationMemoryWarning)
 	}
 
@@ -121,13 +119,13 @@ import Testing
 			Array(repeating: .fail(.http(status: 500)), count: 3), for: .flush,
 			otherwise: transport.respond)
 		log.holdNextChatFlushRead()
-		async let reset = coach.startNewConversation(in: .main)
+		async let reset = coach.resetAndSettle(in: .main)
 		var reached = log.reached.makeAsyncIterator()
 		await reached.next()
 		log.release()
 		#expect(await reset == .started(memory: .notSaved))
 		let snapshot = try #require(await coach.currentSnapshot(.main))
-		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
+		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationMemoryWarning)
 	}
 
 	@Test func anAbandonedResetFlushKeepsTheMemoryWarningAfterRelaunch() async throws {
@@ -137,7 +135,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			Array(repeating: .fail(.http(status: 400)), count: 8), for: .flush,
 			otherwise: transport.respond)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .notSaved))
 		transport.respond = ScriptedReply.sequence(
 			Array(repeating: .fail(.http(status: 400)), count: 8), for: .flush,
 			otherwise: transport.respond)
@@ -145,7 +143,7 @@ import Testing
 		await reopened.lifecycle(.becameActive)
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		let snapshot = try #require(await reopened.currentSnapshot(.main))
-		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
+		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationMemoryWarning)
 	}
 
 	@Test func aTransientResetFlushRecoversTheMemorySavedOpeningAfterRelaunch() async throws {
@@ -155,9 +153,10 @@ import Testing
 		let offline = ScriptedEvent.fail(.connection(.notConnectedToInternet))
 		transport.respond = ScriptedReply.sequence(
 			[offline, offline, offline], for: .flush, otherwise: transport.respond)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .notSaved))
 		#expect(
-			await coach.currentSnapshot(.main)?.opening == .afterNewConversation(memorySaved: false)
+			await coach.currentSnapshot(.main)?.opening.notice
+				== Catalog.chatNoticeNewConversationMemoryWarning
 		)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 		let original = try #require(sent(.memoryFlush, by: transport).first).messages
@@ -171,14 +170,15 @@ import Testing
 		_ = try #require(await offlineHost.ended(0))
 		#expect(
 			await reopened.currentSnapshot(.main)?.opening
-				== .afterNewConversation(memorySaved: false))
+				.notice == Catalog.chatNoticeNewConversationMemoryWarning)
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 		#expect(sent(.memoryFlush, by: transport).count == 6)
 
 		transport.respond = ScriptedReply.sequence(
 
-			[schedule, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls), .finish(reason: .stop)],
+			for: .flush,
 			otherwise: transport.respond)
 		let healthyHost = ImmediateExecutionHost()
 		let recovered = await makeCoach(
@@ -187,7 +187,7 @@ import Testing
 		_ = try #require(await healthyHost.ended(0))
 		let snapshot = try #require(await recovered.currentSnapshot(.main))
 		#expect(snapshot.turns.isEmpty)
-		#expect(snapshot.opening == .afterNewConversation(memorySaved: true))
+		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationSuccess)
 		#expect(try await count(.synced([.memorySection])) == 1)
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
@@ -196,7 +196,7 @@ import Testing
 		#expect(flushes.dropFirst(6).first?.messages == original)
 		#expect(
 			await self.coach().currentSnapshot(.main)?.opening
-				== .afterNewConversation(memorySaved: true))
+				.notice == Catalog.chatNoticeNewConversationSuccess)
 	}
 
 	@Test func theResetWindowStartsWithTheOutstandingJobsRows() async throws {
@@ -216,14 +216,19 @@ import Testing
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let flushes = FlushWork(
 			chat: .main, process: ProcessID(ulid: fixedUlid(71)), ledger: ledger,
-			memory: Memory(ledger: ledger, clock: clock), transport: transport, clock: clock,
+			memory: Memory(ledger: ledger, clock: clock, authorizeInvocation: { _ in }),
+			transport: transport, clock: clock,
 			diagnostics: DiagnosticsLog(clock: clock), ladder: .npm)
 		transport.respond = ScriptedReply.sequence(
-			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
-		let reset = ResetID(ulid: await ledger.nextULID())
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls)], for: .flush,
+			otherwise: transport.respond)
+		let conversation = try await ledger.conversation(.main)
+		let reset = try await ledger.reserveReset()
 		let result = await ConversationReset(
 			chat: .main, ledger: ledger, flushes: flushes, clock: clock
-		).run(reset, archiving: try await ledger.conversation(.main), access: { testAccess })
+		).run(
+			reset, archiving: conversation, jobs: try await ledger.flushJobs(in: conversation),
+			access: { testAccess })
 		#expect(result.outcome == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first)
 		let window = flushed.messages.map(\.unstampedContent)
@@ -231,7 +236,7 @@ import Testing
 		#expect(window.contains("Question 1"))
 		#expect(
 			FlushJob.outstanding(
-				await flushes.jobs(in: try await ledger.conversation(.main)),
+				try await ledger.flushJobs(in: try await ledger.conversation(.main)),
 				in: try await ledger.conversation(.main)
 			)
 			.isEmpty)
@@ -243,11 +248,10 @@ import Testing
 		answer("Two rides.")
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
-		var reached = held.reached.makeAsyncIterator()
-		await reached.next()
+		try await held.waitUntilReached()
 		var snapshots = await coach.observe(.main).makeAsyncIterator()
 		_ = await snapshots.next()
-		let resetting = Task { await coach.startNewConversation(in: .main) }
+		let resetting = Task { await coach.resetAndSettle(in: .main) }
 		_ = try #require(await snapshots.next())
 		#expect(sent(.memoryFlush, by: transport).isEmpty)
 		#expect(try await count(.synced([.windowStart])) == 0)
@@ -270,11 +274,10 @@ import Testing
 		answer("Two rides.", "Noted.")
 		let first = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
-		var reached = held.reached.makeAsyncIterator()
-		await reached.next()
+		try await held.waitUntilReached()
 		var snapshots = await coach.observe(.main).makeAsyncIterator()
 		_ = await snapshots.next()
-		let resetting = Task { await coach.startNewConversation(in: .main) }
+		let resetting = Task { await coach.resetAndSettle(in: .main) }
 		_ = try #require(await snapshots.next())
 		let second = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)

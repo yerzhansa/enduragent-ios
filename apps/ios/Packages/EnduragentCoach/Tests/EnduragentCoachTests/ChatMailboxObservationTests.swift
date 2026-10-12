@@ -23,6 +23,7 @@ extension ChatMailboxTests {
 		let loaded = try #require(await coach.currentSnapshot(.main))
 		#expect(loaded.turns.map(\.id) == [turn])
 		#expect(loaded.turns.first?.athleteText == "Thursday?")
+		#expect(loaded.revision > failed.revision)
 	}
 
 	@Test func slowSubscriberSeesStopSettlement() async throws {

@@ -40,6 +40,7 @@ extension TurnSettledPayload {
 struct SettlementPayload: Codable {
 	var kind: String
 	var modelText: String?
+	var catalogKey: String?
 	var templateHash: String?
 	var assembledHash: String?
 	var failure: FailurePayload?
@@ -55,6 +56,8 @@ struct SettlementPayload: Codable {
 			switch text {
 			case .model(let modelText):
 				self.modelText = modelText
+			case .catalog(let key):
+				catalogKey = key.rawValue
 			}
 			templateHash = lineage?.templateHash
 			assembledHash = lineage?.assembledHash
@@ -77,7 +80,13 @@ struct SettlementPayload: Codable {
 	func settlement() throws -> Settlement {
 		switch kind {
 		case "replied":
-			guard let modelText else {
+			let reply: ReplyText
+			switch (modelText, catalogKey) {
+			case (let text?, nil):
+				reply = .model(text)
+			case (nil, let key?):
+				reply = .catalog(CatalogKey(rawValue: key))
+			default:
 				throw RecordDecodeFailure(reason: "settlement")
 			}
 			let lineage: ReplyLineage?
@@ -86,7 +95,7 @@ struct SettlementPayload: Codable {
 			} else {
 				lineage = nil
 			}
-			return .replied(.model(modelText), lineage: lineage)
+			return .replied(reply, lineage: lineage)
 		case "savedWork":
 			guard let outcome = outcome.flatMap(SavedWorkOutcome.init(rawValue:)), let saved else {
 				throw RecordDecodeFailure(reason: "settlement")
@@ -115,12 +124,14 @@ struct WriteSummaryPayload: Codable {
 	var ledgerEvents: Int
 	var planSaves: Int
 	var calendarWrites: Int
+	var unverifiedCalendarWrites: Int?
 
 	init(_ summary: WriteSummary) {
 		memorySections = summary.memorySections
 		ledgerEvents = summary.ledgerEvents
 		planSaves = summary.planSaves
 		calendarWrites = summary.calendarWrites
+		unverifiedCalendarWrites = summary.unverifiedCalendarWrites
 	}
 
 	var summary: WriteSummary {
@@ -128,7 +139,8 @@ struct WriteSummaryPayload: Codable {
 			memorySections: memorySections,
 			ledgerEvents: ledgerEvents,
 			planSaves: planSaves,
-			calendarWrites: calendarWrites
+			calendarWrites: calendarWrites,
+			unverifiedCalendarWrites: unverifiedCalendarWrites ?? calendarWrites
 		)
 	}
 }
@@ -164,6 +176,23 @@ struct WindowStartPayload: Codable {
 	var firstIncludedUlid: String
 	var reason: String
 	var droppedMessageUlids: [String]?
+	var boundaryClock: HybridLogicalClockPayload? = nil
+}
+
+struct HybridLogicalClockPayload: Codable {
+	var wallMs: Int64
+	var logical: UInt32
+	var deviceId: String
+
+	init(_ clock: HybridLogicalClock) {
+		wallMs = clock.wallMs
+		logical = clock.logical
+		deviceId = clock.deviceId.rawValue
+	}
+
+	var clock: HybridLogicalClock {
+		HybridLogicalClock(wallMs: wallMs, logical: logical, deviceId: DeviceID(rawValue: deviceId))
+	}
 }
 
 struct CompactionSummaryPayload: Codable {
@@ -201,6 +230,7 @@ struct ProvenancePayload: Codable {
 }
 
 struct ProposalPayload: Codable {
+	var writeID: UUID? = nil
 	var chatId: String
 	var nonce: UUID
 	var tool: String

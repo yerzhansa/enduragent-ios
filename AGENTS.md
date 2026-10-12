@@ -18,11 +18,12 @@
 - Every task branches off the latest `origin/main`. Delete the branch after merge.
 - In a stacked sequence, leave a parent branch until the pull request that depends on it is merged. Then retarget the child to `main`, merge it, and delete both branches.
 - Format commits as Conventional Commits: `<type>(ios): <description>`.
+- Start the review and the screen tests as soon as the pull request opens, while CI runs.
 - Open every PR you create as a draft.
 - Mark a PR ready only after CI passes and, for UI changes, `verify-ios` has run on the final version.
+- Fix Critical and required review findings in the pull request. File every other finding with the `ledger` skill.
 
 ## Done means proven
 
-- Run `pnpm check:catalogs`, `pnpm check:source`, `pnpm lint:swift`, `pnpm check:format`, `pnpm test:swift`, and the `xcodebuild` command from `README.md` before calling a change done. Compiling is not done.
 - For UI changes, run the `verify-ios` skill and look at the screen you changed.
-- Every behavior change ships with a test that fails without it. Tests call the code the way the app does and assert the visible result.
+- Before a PR merges, every new or changed test in it passes the authoring gate in the `test-audit` skill.

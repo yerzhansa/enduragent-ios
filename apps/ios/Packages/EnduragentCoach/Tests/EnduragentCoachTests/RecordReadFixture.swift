@@ -9,8 +9,7 @@ struct RecordReadFixture {
 	let jobs: [FlushJobID]
 
 	init(settled: Bool) async throws {
-		let root = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-read-fixture-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let root = try TestTemporaryFolders.make()
 		let local = try ModelContainerHandle.withoutCloudKit(
 			storeURL: root.appending(path: "local.store"))
 		let synced = try ModelContainerHandle.withoutCloudKit(

@@ -32,7 +32,9 @@ import Testing
 		try await seed(
 			store,
 			zip(stamps, bodies).map { stamp, body in
-				storedRecord(device: store.deviceId, wall: stamp.wall, ulid: stamp.ulid, body: body)
+				storedRecord(
+					device: store.deviceId, wall: stamp.wall, ulid: stamp.ulid,
+					account: testConnection.account, body: body)
 			})
 		transport.respond = ScriptedReply.sequence(
 			Array(

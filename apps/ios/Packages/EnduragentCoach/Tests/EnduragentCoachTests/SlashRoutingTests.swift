@@ -11,6 +11,8 @@ import Testing
 		#expect(SlashRouting.parse("/workout tomorrow") == .workout)
 		#expect(SlashRouting.parse("/start") == .start)
 		#expect(SlashRouting.parse("/language") == .language)
+		#expect(SlashRouting.parse("  /language  ") == .language)
+		#expect(SlashRouting.parse("/language it") == .language)
 		#expect(SlashRouting.parse("hello /review") == nil)
 	}
 
@@ -44,11 +46,15 @@ import Testing
 		#expect(replyText(plan) == "Plans come in a later release.")
 		#expect(sent(.chatAttempt, by: transport).count == 1)
 		let started = try await coach.send(draft("/start"), to: .main)
-		#expect(started == .newConversation(.started(memory: .saved)))
+		guard case .newConversation(let admission) = started else {
+			Issue.record("Expected reset admission")
+			return
+		}
+		#expect(await coach.resetCompletion(admission, in: .main) == .started(memory: .saved))
 		#expect(sent(.chatAttempt, by: transport).count == 1)
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.turns.isEmpty)
-		#expect(snapshot.opening == .afterNewConversation(memorySaved: true))
+		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationSuccess)
 		let messages = try await store.fetch(RecordQuery(scope: .synced([.userMessage]))).records
 		#expect(messages.map(messageText) == ["/plan"])
 		#expect(

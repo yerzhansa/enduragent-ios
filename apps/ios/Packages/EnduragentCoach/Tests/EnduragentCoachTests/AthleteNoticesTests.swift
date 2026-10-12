@@ -26,98 +26,104 @@ private let someSaved =
 struct NoticeRow: Sendable, CustomTestStringConvertible {
 	let settlement: Settlement
 	let sentence: String
-	let action: RecoveryAction?
-	let button: String?
+	let actions: [RecoveryAction]
+	let buttons: [String]
 
 	var testDescription: String { "\(settlement)" }
 
 	static func failed(
-		_ failure: CoachFailure, _ sentence: String, _ action: RecoveryAction?,
-		_ button: String?
+		_ failure: CoachFailure, _ sentence: String, _ actions: [RecoveryAction],
+		_ buttons: [String]
 	) -> NoticeRow {
 		NoticeRow(
-			settlement: .failed(failure, saved: .none), sentence: sentence, action: action,
-			button: button)
+			settlement: .failed(failure, saved: .none), sentence: sentence, actions: actions,
+			buttons: buttons)
 	}
 
 	static func rateLimited(_ retryAfter: Duration?, _ sentence: String) -> NoticeRow {
-		failed(.model(.rateLimited(retryAfter: retryAfter)), sentence, .tryAgain(turn), tryAgain)
+		failed(
+			.model(.rateLimited(retryAfter: retryAfter)), sentence, [.tryAgain(turn)], [tryAgain])
 	}
 
 	static let failures: [NoticeRow] = [
 		failed(
 			.model(.credentialRejected(.credits)),
-			"Your Credits couldn't be used. Restore purchases to continue.", .restoreCredits,
-			"Restore purchases"),
-		failed(
-			.model(.credentialRejected(.openRouterAccount)),
-			"Your OpenRouter sign-in is no longer valid. Sign in again to continue.",
-			.signInToOpenRouter, "Sign in again"),
+			"Your Credits couldn't be used. Restore purchases to continue.", [.restoreCredits],
+			["Restore purchases"]),
 		failed(
 			.model(.accessExhausted(.credits)),
-			"You're out of Credits. Buy more, or switch to your OpenRouter account.", .buyCredits,
-			"Buy Credits"),
+			"You're out of Credits. You can switch to your OpenRouter account.",
+			[.buyCredits, .switchToOpenRouter], ["Buy Credits", "Switch to OpenRouter"]),
 		failed(
 			.model(.accessExhausted(.openRouterAccount)),
 			"Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
-			.chooseAccessMethod, "Choose access method"),
+			[.chooseAccessMethod], ["Choose access method"]),
 		rateLimited(.seconds(1), "Rate limited — please try again in ~1 seconds."),
+		rateLimited(.milliseconds(6_200), "Rate limited — please try again in ~7 seconds."),
 		rateLimited(.seconds(7), "Rate limited — please try again in ~7 seconds."),
 		rateLimited(.seconds(60), "Rate limited — please try again in ~1 minute."),
+		rateLimited(.seconds(61), "Rate limited — please try again in ~2 minutes."),
 		rateLimited(.seconds(90), "Rate limited — please try again in ~2 minutes."),
 		rateLimited(nil, "Rate limited — please try again in about a minute."),
 		rateLimited(.zero, "Rate limited — please try again in about a minute."),
-		failed(.model(.providerDown(.outage)), providerDown, .tryAgain(turn), tryAgain),
-		failed(.model(.providerDown(.network)), providerDown, .tryAgain(turn), tryAgain),
-		failed(.model(.providerDown(.timeout)), providerDown, .tryAgain(turn), tryAgain),
-		failed(.model(.contextOverflow), unknown, .tryAgain(turn), tryAgain),
-		failed(.model(.invalidRequest), unknown, .tryAgain(turn), tryAgain),
-		failed(.model(.budgetExhausted(.generateAttempts)), unknown, .tryAgain(turn), tryAgain),
-		failed(.model(.budgetExhausted(.generateCalls)), unknown, .tryAgain(turn), tryAgain),
-		failed(.model(.budgetExhausted(.wallClock)), unknown, .tryAgain(turn), tryAgain),
+		failed(.model(.providerDown(.outage)), providerDown, [.tryAgain(turn)], [tryAgain]),
+		failed(.model(.providerDown(.network)), providerDown, [.tryAgain(turn)], [tryAgain]),
+		failed(.model(.providerDown(.timeout)), providerDown, [.tryAgain(turn)], [tryAgain]),
+		failed(.model(.contextOverflow), unknown, [.tryAgain(turn)], [tryAgain]),
+		failed(.model(.invalidRequest), unknown, [.tryAgain(turn)], [tryAgain]),
+		failed(.model(.budgetExhausted(.generateAttempts)), unknown, [.tryAgain(turn)], [tryAgain]),
+		failed(.model(.budgetExhausted(.generateCalls)), unknown, [.tryAgain(turn)], [tryAgain]),
+		failed(.model(.budgetExhausted(.wallClock)), unknown, [.tryAgain(turn)], [tryAgain]),
 		failed(
-			.model(.generationFailed(.emptyAfterError)), responseFailure, .tryAgain(turn), tryAgain
+			.model(.generationFailed(.emptyAfterError)), responseFailure, [.tryAgain(turn)],
+			[tryAgain]
 		),
 		failed(
-			.model(.generationFailed(.contentFiltered)), responseFailure, .tryAgain(turn), tryAgain
+			.model(.generationFailed(.contentFiltered)), responseFailure, [.tryAgain(turn)],
+			[tryAgain]
 		),
 		failed(
-			.model(.generationFailed(.unknownFinish)), responseFailure, .tryAgain(turn), tryAgain),
+			.model(.generationFailed(.unknownFinish)), responseFailure, [.tryAgain(turn)],
+			[tryAgain]),
 		failed(
-			.model(.generationFailed(.malformedStream)), responseFailure, .tryAgain(turn), tryAgain
+			.model(.generationFailed(.malformedStream)), responseFailure, [.tryAgain(turn)],
+			[tryAgain]
 		),
 		failed(
 			.model(.accessUnavailable(.secureStorageLocked)),
-			"Unlock your iPhone to continue. Your message is saved.", .tryAgain(turn), tryAgain),
+			"Unlock your iPhone to continue. Your message is saved.", [.tryAgain(turn)], [tryAgain]),
 		failed(
 			.model(.accessUnavailable(.notConfigured(.credits))), notConfigured,
-			.chooseAccessMethod, "Choose access method"),
+			[.chooseAccessMethod], ["Choose access method"]),
 		failed(
 			.model(.accessUnavailable(.notConfigured(.openRouterAccount))), notConfigured,
-			.chooseAccessMethod, "Choose access method"),
+			[.chooseAccessMethod], ["Choose access method"]),
 		failed(
-			.model(.accessUnavailable(.secureStorageUnavailable)), notConfigured,
-			.chooseAccessMethod, "Choose access method"),
+			.model(.accessUnavailable(.secureStorageUnavailable)),
+			"Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again.",
+			[.chooseAccessMethod], ["Choose access method"]),
 		failed(
-			.model(.accessUnavailable(.malformedStoredCredential(.creditsAccount))), notConfigured,
-			.chooseAccessMethod, "Choose access method"),
+			.model(.accessUnavailable(.malformedStoredCredential(.creditsAccount))),
+			"Your saved access method couldn't be read. Choose an access method to continue.",
+			[.chooseAccessMethod], ["Choose access method"]),
 		failed(
 			.model(.accessUnavailable(.malformedStoredCredential(.intervalsConnection))),
-			notConfigured, .chooseAccessMethod, "Choose access method"),
+			"The saved intervals.icu connection couldn't be read. Replace the key to connect again.",
+			[.connectTraining], ["Connect"]),
 		failed(
 			.local(.recordStorage),
 			"(Heads up: my disk is full, so I couldn't save this to our history — but your message went through. Please free up some space when you can.)",
-			nil, nil),
+			[], []),
 	]
 
 	static let interruptions: [NoticeRow] = InterruptionCause.allCases.flatMap { cause in
 		[
 			NoticeRow(
 				settlement: .interrupted(partial: "Thursday is", cause: cause, saved: .none),
-				sentence: nothingChanged, action: .tryAgain(turn), button: tryAgain),
+				sentence: nothingChanged, actions: [.tryAgain(turn)], buttons: [tryAgain]),
 			NoticeRow(
 				settlement: .interrupted(partial: "", cause: cause, saved: memorySaved),
-				sentence: someSaved, action: nil, button: nil),
+				sentence: someSaved, actions: [], buttons: []),
 		]
 	}
 
@@ -126,12 +132,12 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 			settlement: .savedWork(.writesSaved, saved: memorySaved),
 			sentence:
 				"I made a change to your calendar, but then ran into a problem finishing my reply. Your change is saved — please open your calendar to confirm it looks right, and tell me if you'd like me to adjust it.",
-			action: nil, button: nil),
+			actions: [], buttons: []),
 		NoticeRow(
 			settlement: .savedWork(.savedUnverified, saved: memorySaved),
 			sentence:
 				"I saved your information, but couldn't verify my response. Please try again.",
-			action: nil, button: nil),
+			actions: [], buttons: []),
 	]
 
 	static let all = failures + interruptions + savedWork
@@ -169,18 +175,9 @@ private func settledState(_ settlement: Settlement, overlay: TurnOverlay = .notI
 		of: facts, live: nil, overlay: overlay, device: phone, process: thisProcess)
 }
 
-private func notice(of state: TurnState) -> AthleteNotice? {
-	switch state {
-	case .failed(let failed): failed.notice
-	case .interrupted(let interrupted): interrupted.notice
-	case .savedWork(let savedWork): savedWork.notice
-	case .unrecovered(let unrecovered): unrecovered.notice
-	case .accepted, .processing, .completed: nil
-	}
-}
-
 private func family(_ failure: CoachFailure) -> String {
 	switch failure {
+	case .model(.requestBlocked): "requestBlocked"
 	case .model(.credentialRejected): "credentialRejected"
 	case .model(.accessExhausted): "accessExhausted"
 	case .model(.rateLimited): "rateLimited"
@@ -200,18 +197,17 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 	@Test(arguments: NoticeRow.all)
 	func everyNoticeRendersItsEnglishAndAction(row: NoticeRow) throws {
 		let state = settledState(row.settlement)
-		let shown = try #require(notice(of: state))
-		#expect(shown.sentence(in: english) == row.sentence)
-		#expect(shown.action == row.action)
-		#expect(shown.action.map { english.say($0.title) } == row.button)
-		#expect(state.retryable == (row.button == tryAgain))
+		let shown = try #require(turnNotice(of: state))
+		#expect(shown.sentence(in: displayLocale()) == row.sentence)
+		#expect(shown.actions == row.actions)
+		#expect(shown.actions.map { english.say($0.title) } == row.buttons)
 	}
 
 	@Test(arguments: LanguageTag.allCases)
 	func productionNoticesRenderWithoutMissingVariables(tag: LanguageTag) throws {
 		for row in NoticeRow.all {
-			let shown = try #require(notice(of: settledState(row.settlement)))
-			let copy = shown.sentence(in: tag.phrasebook)
+			let shown = try #require(turnNotice(of: settledState(row.settlement)))
+			let copy = shown.sentence(in: displayLocale(tag))
 			#expect(!copy.contains("%#@"), "\(tag.rawValue) \(shown.key.rawValue)")
 		}
 	}
@@ -232,52 +228,41 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		#expect(families.count == 10)
 	}
 
-	@Test func interruptedWithSavedWorkOffersNoTryAgain() {
-		for cause in InterruptionCause.allCases {
-			let state = settledState(.interrupted(partial: "", cause: cause, saved: memorySaved))
-			#expect(notice(of: state)?.key == Catalog.chatTurnInterruptedSomeSaved)
-			#expect(notice(of: state)?.action == nil)
-			#expect(!state.retryable)
-			let clean = settledState(.interrupted(partial: "", cause: cause, saved: .none))
-			#expect(notice(of: clean)?.key == Catalog.chatTurnInterruptedNothingChanged)
-			#expect(clean.retryable)
-		}
-	}
-
 	@Test func aDeadClaimRecoveryHasNotSettledReadsHistoryUnavailableWithNoButton() throws {
 		let state = TurnLifecycle.state(
 			of: claimedFacts(by: ProcessID(ulid: fixedUlid(61))), live: nil,
 			overlay: .notInThisProcess, device: phone, process: thisProcess)
-		let shown = try #require(notice(of: state))
-		#expect(shown.sentence(in: english) == "Conversation history is temporarily unavailable.")
-		#expect(shown.action == nil)
-		#expect(!state.retryable)
+		let shown = try #require(turnNotice(of: state))
+		#expect(
+			shown.sentence(in: displayLocale())
+				== "Conversation history is temporarily unavailable.")
+		#expect(shown.actions.isEmpty)
 	}
 
 	@Test(arguments: [
 		(
 			CoachFailure.model(.rateLimited(retryAfter: .seconds(7))),
-			"Rate limited — please try again in ~7 seconds.", RecoveryAction?.none
+			"Rate limited — please try again in ~7 seconds.", [RecoveryAction]()
 		),
-		(.model(.providerDown(.network)), providerDown, nil),
+		(.model(.providerDown(.network)), providerDown, []),
 		(
 			.model(.accessUnavailable(.secureStorageLocked)),
-			"Unlock your iPhone to continue. Your message is saved.", nil
+			"Unlock your iPhone to continue. Your message is saved.", []
 		),
 		(
 			.model(.accessExhausted(.credits)),
-			"You're out of Credits. Buy more, or switch to your OpenRouter account.", .buyCredits
+			"You're out of Credits. You can switch to your OpenRouter account.",
+			[.buyCredits, .switchToOpenRouter]
 		),
 	])
 	func failureAfterSavedWorkKeepsItsSentenceAndOffersNoReplay(
-		failure: CoachFailure, sentence: String, action: RecoveryAction?
+		failure: CoachFailure, sentence: String, actions: [RecoveryAction]
 	) throws {
 		for overlay in [TurnOverlay.notInThisProcess, .waitingToTryAgain] {
 			let state = settledState(.failed(failure, saved: memorySaved), overlay: overlay)
-			let shown = try #require(notice(of: state))
-			#expect(shown.sentence(in: english) == sentence)
-			#expect(shown.action == action)
-			#expect(!state.retryable)
+			let shown = try #require(turnNotice(of: state))
+			#expect(shown.sentence(in: displayLocale()) == sentence)
+			#expect(shown.actions == actions)
 		}
 	}
 
@@ -285,116 +270,93 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		for cause in InterruptionCause.allCases {
 			let offered = AthleteNotices.notice(for: cause, saved: memorySaved, turn: turn)
 			#expect(offered.key == Catalog.chatTurnInterruptedSomeSaved)
-			#expect(offered.action == .tryAgain(turn))
+			#expect(offered.actions == [.tryAgain(turn)])
 			let refused = AthleteNotices.notice(for: cause, saved: .none, turn: nil)
 			#expect(refused.key == Catalog.chatTurnInterruptedNothingChanged)
-			#expect(refused.action == nil)
+			#expect(refused.actions.isEmpty)
 		}
-	}
-
-	@Test func savedUnverifiedOffersNoAction() {
-		let state = settledState(.savedWork(.savedUnverified, saved: memorySaved))
-		#expect(notice(of: state)?.key == Catalog.chatNoticeSavedUnverified)
-		#expect(notice(of: state)?.action == nil)
-		#expect(!state.retryable)
-	}
-
-	@Test func rateLimitPicksSecondsMinutesOrDefault() {
-		let seconds = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: .milliseconds(6_200))), turn: turn,
-			waiting: false)
-		#expect(seconds.key == Catalog.coachErrorRateLimitSeconds)
-		#expect(seconds.count == 7)
-		#expect(seconds.vars == ["seconds": "7"])
-		let minutes = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: .seconds(61))), turn: turn, waiting: false)
-		#expect(minutes.key == Catalog.coachErrorRateLimitMinutes)
-		#expect(minutes.count == 2)
-		#expect(minutes.vars == ["minutes": "2"])
-		let fallback = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: nil)), turn: turn, waiting: false)
-		#expect(fallback.key == Catalog.coachErrorRateLimitDefault)
-		#expect(fallback.vars.isEmpty)
 	}
 
 	@Test func aRateLimitOffersTryAgainOnlyOnceItsWaitHasEnded() throws {
 		let failure = Settlement.failed(
 			.model(.rateLimited(retryAfter: .seconds(7))), saved: .none)
 		let waiting = settledState(failure, overlay: .waitingToTryAgain)
-		let shown = try #require(notice(of: waiting))
-		#expect(shown.sentence(in: english) == "Rate limited — please try again in ~7 seconds.")
-		#expect(shown.action == .wait(thenTryAgain: turn))
-		#expect(shown.action.map { english.say($0.title) } == tryAgain)
-		#expect(!waiting.retryable)
-		#expect(settledState(failure).retryable)
-		#expect(notice(of: settledState(failure))?.action == .tryAgain(turn))
+		let shown = try #require(turnNotice(of: waiting))
+		#expect(
+			shown.sentence(in: displayLocale()) == "Rate limited — please try again in ~7 seconds.")
+		#expect(shown.actions == [.wait(thenTryAgain: turn)])
+		#expect(shown.actions.map { english.say($0.title) } == [tryAgain])
+		#expect(turnNotice(of: settledState(failure))?.actions == [.tryAgain(turn)])
 		let down = settledState(
 			.failed(.model(.providerDown(.network)), saved: .none), overlay: .waitingToTryAgain)
-		#expect(notice(of: down)?.action == .tryAgain(turn))
-	}
-
-	@Test func aFailureOutsideATurnOffersNoTurnAction() {
-		let rateLimited = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: .seconds(7))), turn: nil, waiting: true)
-		#expect(rateLimited.action == nil)
-		let down = AthleteNotices.notice(
-			for: .model(.providerDown(.network)), turn: nil, waiting: true)
-		#expect(down.action == nil)
-		let exhausted = AthleteNotices.notice(
-			for: .model(.accessExhausted(.credits)), turn: nil, waiting: true)
-		#expect(exhausted.action == .buyCredits)
+		#expect(turnNotice(of: down)?.actions == [.tryAgain(turn)])
 	}
 
 	@Test func creditsFailuresOutsideATurnReadCatalogSentences() {
 		let unavailable = "Credits are unavailable right now. Try again later."
 		for failure in [CreditsFailure.banned, .unavailable, .unexpectedResponse(status: 500)] {
-			#expect(AthleteNotice.credits(failure: failure).sentence(in: english) == unavailable)
+			#expect(
+				AthleteNotice.credits(failure: failure).sentence(in: displayLocale()) == unavailable
+			)
 		}
 		#expect(
-			AthleteNotice.credits(failure: CreditsFailure.noAthleteKey).sentence(in: english)
+			AthleteNotice.credits(failure: CreditsFailure.noAthleteKey).sentence(
+				in: displayLocale())
 				== notConfigured)
 		let changed = AthleteNotice.credits(failure: CreditsFailure.accountChanged)
 		#expect(
-			changed.sentence(in: english)
+			changed.sentence(in: displayLocale())
 				== "Your Credits account changed while this request was finishing. Your current account was kept."
 		)
-		#expect(changed.action == nil)
+		#expect(changed.actions.isEmpty)
 		let locked = AthleteNotice.credits(failure: AccessUnavailable.secureStorageLocked)
-		#expect(locked.sentence(in: english) == lockedSentence)
-		#expect(locked.action == nil)
+		#expect(locked.sentence(in: displayLocale()) == lockedSentence)
+		#expect(locked.actions.isEmpty)
 	}
 
 	@Test func statusNoticeNamesALockedKeychainOrAnUnreadableProfile() {
 		let summary = IntervalsSummary(
-			keySuffix: "-key", athleteName: nil, today: nil,
-			displayUnavailable: .temporarilyUnavailable)
+			connectionID: testConnection.id, keySuffix: "-key",
+			profile: .failed(.temporarilyUnavailable))
 		let account = TrainingAccount.intervals(connection: ConnectionID(), athlete: nil)
 		let locked = CoachStatus(
-			setup: .accessTemporarilyUnavailable(.secureStorageLocked),
-			training: .unavailable(.secureStorageLocked), preferences: .npmDefaults)
-		#expect(locked.notice?.sentence(in: english) == lockedSentence)
+			access: AccessStatus(state: .unreadable(.secureStorageLocked), builtInModel: testModel),
+			training: .unavailable(.secureStorageLocked), preferences: .npmDefaults,
+			resolve: testDisplayLocale)
+		#expect(locked.notice?.sentence(in: displayLocale()) == lockedSentence)
 		let offline = CoachStatus(
-			setup: .ready, training: .connected(summary, account: account),
-			preferences: .npmDefaults)
+			access: AccessStatus(state: .credits(.ready), builtInModel: testModel),
+			training: .connected(summary, account: account),
+			preferences: .npmDefaults,
+			resolve: testDisplayLocale)
 		#expect(
-			offline.notice?.sentence(in: english)
-				== "Couldn't reach intervals.icu right now — try again shortly.")
+			offline.notice?.sentence(in: displayLocale())
+				== "Your athlete profile is temporarily unavailable. Try again.")
 		let rejected = CoachStatus(
-			setup: .ready,
+			access: AccessStatus(state: .credits(.ready), builtInModel: testModel),
 			training: .connected(
 				IntervalsSummary(
-					keySuffix: "-key", athleteName: nil, today: nil,
-					displayUnavailable: .credentialRejected),
+					connectionID: testConnection.id, keySuffix: "-key",
+					profile: .failed(.credentialRejected)),
 				account: account),
-			preferences: .npmDefaults)
-		#expect(rejected.notice?.sentence(in: english) == intervalsRejected)
+			preferences: .npmDefaults,
+			resolve: testDisplayLocale)
+		#expect(
+			rejected.notice?.sentence(in: displayLocale())
+				== "intervals.icu did not accept that key.")
 		#expect(
 			CoachStatus(
-				setup: .needsAccessMethod, training: .unconnected, preferences: .npmDefaults
+				access: AccessStatus(state: .defaultCredits(.needsSetup), builtInModel: testModel),
+				training: .unconnected, preferences: .npmDefaults,
+				resolve: testDisplayLocale
 			)
 			.notice == nil)
 		#expect(
-			CoachStatus(setup: .ready, training: .unconnected, preferences: .npmDefaults).notice
+			CoachStatus(
+				access: AccessStatus(state: .credits(.ready), builtInModel: testModel),
+				training: .unconnected, preferences: .npmDefaults,
+				resolve: testDisplayLocale
+			).notice
 				== nil)
 	}
 }

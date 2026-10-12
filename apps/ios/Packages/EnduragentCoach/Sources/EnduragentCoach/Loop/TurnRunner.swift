@@ -13,15 +13,11 @@ package struct TurnAttempt: Sendable {
 	package let chat: ChatID
 	package let request: String
 	package let slash: SlashCommand?
-	package let language: ReplyLanguage
+	package let displayLocale: DisplayLocale
 	package let session: SessionSettings
 	package let access: ResolvedAccess
 	package let training: TrainingConnection
 	package let process: ProcessID
-
-	package var models: ModelRoles {
-		ModelRoles(response: access.model, session: session)
-	}
 }
 
 package enum AttemptProgress: Sendable, Equatable {
@@ -56,11 +52,13 @@ package struct TurnRunner: Sendable {
 	private static let droppedMessageLimit = 1_024
 
 	let transport: any ModelTransport
+	let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void
 	private let ledger: Ledger
 	let clock: any Clock
 	let watchdogSleep: @Sendable (Duration) async throws -> Void
 	let diagnostics: DiagnosticsLog
 	let ladder: RetryLadder
+	let reviews: SingleProposalReviews
 	private let evidence: any TurnEvidence
 
 	package init(
@@ -70,8 +68,11 @@ package struct TurnRunner: Sendable {
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
 		evidence: any TurnEvidence,
-		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep
+		reviews: SingleProposalReviews,
+		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
+		authorizeInvocation: @escaping @Sendable (ModelInvocation) async throws -> Void
 	) {
+		self.authorizeInvocation = authorizeInvocation
 		self.transport = transport
 		self.ledger = ledger
 		self.clock = clock
@@ -79,6 +80,7 @@ package struct TurnRunner: Sendable {
 		self.diagnostics = diagnostics
 		self.ladder = ladder
 		self.evidence = evidence
+		self.reviews = reviews
 	}
 
 	package func run(
@@ -93,7 +95,9 @@ package struct TurnRunner: Sendable {
 			prompt = try await assemble(
 				attempt,
 				transcript: Transcript(
-					conversation: conversation, jobs: jobs, excluding: attempt.turn),
+					conversation: conversation, jobs: jobs, excluding: attempt.turn,
+					for: attempt.training.account, device: ledger.deviceId,
+					using: try await ledger.informationOwnership()),
 				scope: scope, committed: committed, progress: progress)
 		} catch {
 			let failure = try AttemptFailure(caught: error)
@@ -181,11 +185,11 @@ package struct TurnRunner: Sendable {
 				try await scope.checkDeadline(uptime: clock.uptime)
 			}
 		}
-		return try await scope.savedWork(using: ladder)
+		return try await scope.savedWork()
 	}
 
 	func flushOnce(
-		covering rows: [(ulid: ULID, message: ChatMessage)],
+		covering rows: [ConversationRow],
 		attempt: TurnAttempt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
@@ -193,23 +197,24 @@ package struct TurnRunner: Sendable {
 		guard await scope.takeFlushLatch(), !rows.isEmpty else { return }
 		await progress(.activity(.savingMemory))
 		let flushes = flushWork(attempt)
-		let job: FlushJob
+		let jobs: [FlushJob]
 		do {
-			job = try await flushes.open(covering: rows.map(\.ulid), stamp: scope.stamp)
+			jobs = try await flushes.open(covering: rows, stamp: scope.stamp)
 		} catch {
 			diagnostics.record(.memoryFlushFailed(attempt.chat, detail: String(describing: error)))
 			return
 		}
-		_ = try await flushes.run(
-			job, messages: rows.map(\.message),
-			access: attempt.access.using(model: attempt.models.flush),
-			scope: scope)
+		for job in jobs {
+			_ = try await flushes.run(job, rows: rows, access: attempt.access, scope: scope)
+		}
 	}
 
 	private func flushWork(_ attempt: TurnAttempt) -> FlushWork {
 		FlushWork(
 			chat: attempt.chat, process: attempt.process, ledger: ledger,
-			memory: Memory(ledger: ledger, clock: clock, watchdogSleep: watchdogSleep),
+			memory: Memory(
+				ledger: ledger, clock: clock, watchdogSleep: watchdogSleep,
+				authorizeInvocation: authorizeInvocation),
 			transport: transport, clock: clock, diagnostics: diagnostics, ladder: ladder)
 	}
 
@@ -223,25 +228,25 @@ package struct TurnRunner: Sendable {
 		let stamp = scope.stamp
 
 		let memory = Memory(ledger: ledger, clock: clock)
-		let (context, view) = try await memory.prompt()
+		let (context, view) = try await memory.prompt(for: attempt.training.account)
 		let schemas = ToolCatalog.schemas(memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let block = try await evidence.block(
 			for: attempt.training, attempt: attempt.attempt, now: clock.now)
-		let replyLanguage = PromptAssembly.replyLanguageSection(attempt.language)
 		let zone = clock.timeZone
 		let volatile = PromptAssembly.volatile(
 			context: context,
 			evidence: block,
 			timeZoneName: zone.identifier,
-			replyLanguage: replyLanguage
+			displayLocale: attempt.displayLocale
 		)
 		let system = prefix + "\n\n" + volatile
 		let history = transcript.history
-		let past = history.messages.map { PromptAssembly.wireMessage(from: $0) }
+		let past = history.rows.map(\.message).map { PromptAssembly.wireMessage(from: $0) }
 		let trim = HistoryWindow.trim(
 			messages: past, systemTokens: estimateTokens(system),
-			window: attempt.models.chatWindow, ratio: attempt.session.historyBudgetRatio.value)
+			window: attempt.session.effectiveContextWindow,
+			ratio: attempt.session.historyBudgetRatio.value)
 		var summary = history.summary
 		var kept = trim.kept
 		if !trim.dropped.isEmpty {
@@ -252,10 +257,10 @@ package struct TurnRunner: Sendable {
 				let firstKept =
 					trim.kept.isEmpty
 					? transcript.current?.ulid ?? attempt.turn.ulid
-					: history.ulids[trim.dropped.count]
+					: history.rows.map(\.ulid)[trim.dropped.count]
 				let dropped = try await summarizeDropped(
 					trim.dropped, previous: summary, firstKept: firstKept, attempt: attempt,
-					droppedUlids: Array(history.ulids.prefix(trim.dropped.count)),
+					droppedUlids: Array(history.rows.map(\.ulid).prefix(trim.dropped.count)),
 					scope: scope, progress: progress)
 				await committed(dropped.records)
 				summary = dropped.summary
@@ -276,7 +281,7 @@ package struct TurnRunner: Sendable {
 			await scope.takeFlushLatch()
 		{
 			_ = try await flushWork(attempt).open(
-				covering: transcript.unflushed.map(\.ulid), stamp: stamp)
+				covering: transcript.unflushed, stamp: stamp)
 		}
 
 		let timed = PromptAssembly.appendCurrentTime(
@@ -290,7 +295,7 @@ package struct TurnRunner: Sendable {
 			prefix: prefix, system: system, schemas: schemas, timed: timed, summary: summary,
 			wire: wire,
 			inTurnRows: transcript.window + [transcript.current].compactMap { $0 },
-			window: attempt.models.chatWindow)
+			window: attempt.session.effectiveContextWindow)
 	}
 
 	private func summarizeDropped(
@@ -321,7 +326,7 @@ package struct TurnRunner: Sendable {
 
 	func tools(for attempt: TurnAttempt) -> ToolRuntime {
 		ToolRuntime(
-			intervals: attempt.training.client, ledger: ledger, clock: clock)
+			intervals: attempt.training.client, ledger: ledger, clock: clock, reviews: reviews)
 	}
 
 }
@@ -333,7 +338,7 @@ struct TurnPrompt: Sendable {
 	let timed: String
 	var summary: String?
 	var wire: [WireMessage]
-	let inTurnRows: [(ulid: ULID, message: ChatMessage)]
+	let inTurnRows: [ConversationRow]
 	let window: Int
 
 	var systemMessage: WireMessage {

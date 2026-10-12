@@ -2,13 +2,73 @@ import Foundation
 
 public enum AccessSelection: Hashable, Sendable {
 	case credits
-	case openRouterAccount(model: ModelID)
+	case openRouterAccount(OpenRouterChoice)
 
 	public var method: AccessMethod {
 		switch self {
 		case .credits: .credits
 		case .openRouterAccount: .openRouterAccount
 		}
+	}
+}
+
+public struct OpenRouterChoice: Hashable, Sendable {
+	public var model: ModelID { entry.id }
+	package let credential: OpenRouterCredentialRef
+	package let entry: ModelCatalogEntry
+
+	package init(credential: Persisted<OpenRouterAccountKey>, entry: ModelCatalogEntry) {
+		self.credential = credential.value.reference
+		self.entry = entry
+	}
+}
+
+public enum OpenRouterCredentialRef: Hashable, Sendable {
+	case legacy
+	case generation(UUID)
+
+	package var account: String {
+		switch self {
+		case .legacy: CredentialSlot.openRouterAccountKey.rawValue
+		case .generation(let id): "openRouterAccountKey/\(id.uuidString)"
+		}
+	}
+}
+
+package struct OpenRouterAccountKey: Equatable, Sendable {
+	let reference: OpenRouterCredentialRef
+	let secret: NonEmptySecret
+}
+
+package struct CreditsKey: Equatable, Sendable {
+	let secret: NonEmptySecret
+}
+
+package struct SavedOpenRouterReference: Equatable, Sendable {
+	let credential: OpenRouterCredentialRef
+	let model: ModelID
+	let details: ModelDetails?
+
+	package init(credential: OpenRouterCredentialRef, model: ModelID, details: ModelDetails? = nil)
+	{
+		self.credential = credential
+		self.model = model
+		self.details = details
+	}
+}
+
+public struct SavedAccessReference: Equatable, Sendable {
+	package enum Value: Equatable, Sendable {
+		case credits
+		case openRouter(SavedOpenRouterReference)
+	}
+
+	package let value: Value
+	package let consentCommit: UUID?
+
+	package init(_ value: Value, consentCommit: UUID? = nil) {
+		self.value = value
+		self.consentCommit = consentCommit
 	}
 }
 
@@ -59,8 +119,19 @@ public struct IntervalsConnection: Sendable, Equatable {
 		self.resolvedAthlete = resolvedAthlete
 	}
 
+	func matches(_ other: IntervalsConnection) -> Bool {
+		id == other.id && credential == other.credential && selection == other.selection
+	}
+
 	var account: TrainingAccount {
 		.intervals(connection: id, athlete: resolvedAthlete)
+	}
+
+	func account(verifiedBy profile: IntervalsProfileState) -> TrainingAccount {
+		guard case .available(let athlete) = profile else {
+			return .intervals(connection: id, athlete: nil)
+		}
+		return .intervals(connection: id, athlete: athlete.athleteID)
 	}
 }
 
@@ -79,7 +150,7 @@ public enum IntervalsConnectionChange: Sendable, Equatable {
 public enum ModelAccessChange: Sendable, Equatable {
 	case keep
 	case useCredits
-	case signInToOpenRouter(model: ModelID)
+	case signInToOpenRouter
 	case selectOpenRouterModel(ModelID)
 	case disconnectOpenRouter
 }
@@ -93,6 +164,7 @@ public enum CredentialOutcome<Summary: Sendable & Equatable>: Sendable, Equatabl
 }
 
 public enum CredentialRefusal: Sendable, Equatable {
+	case blankConnection
 	case blankReplacementKeepsCurrent
 	case differentAthlete(current: IntervalsAthleteID, new: IntervalsAthleteID)
 	case modelNotInCatalog
@@ -101,17 +173,19 @@ public enum CredentialRefusal: Sendable, Equatable {
 public enum CredentialFailure: Error, Sendable, Equatable {
 	case secureStorage(AccessUnavailable)
 	case signIn(SignInFailure)
+	case keyExchange(OpenRouterExchangeFailure)
 }
 
 public enum SignInFailure: Error, Sendable, Equatable {
+	case canceled
+	case callbackRejected
 	case presentationUnavailable
 }
 
-public struct IntervalsSummary: Sendable, Equatable {
-	public let keySuffix: String
-	public let athleteName: String?
-	public let today: WellnessDay?
-	public let displayUnavailable: TrainingFailure?
+public enum OpenRouterExchangeFailure: Error, Sendable, Equatable {
+	case network
+	case http(status: Int)
+	case invalidResponse
 }
 
 public struct AccessSummary: Sendable, Equatable {
@@ -141,7 +215,7 @@ public struct ModelID: Hashable, Sendable {
 	}
 }
 
-public enum AccessMethod: String, Hashable, Sendable {
+public enum AccessMethod: String, Codable, Hashable, Sendable {
 	case credits
 	case openRouterAccount
 }

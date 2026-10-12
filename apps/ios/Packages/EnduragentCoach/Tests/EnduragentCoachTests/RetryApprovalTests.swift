@@ -58,8 +58,7 @@ extension RetryLadderTests {
 				savedWork.saved
 					== WriteSummary(
 						memorySections: 0, ledgerEvents: 0, planSaves: 0, calendarWrites: 1))
-			#expect(savedWork.notice.action == nil)
-			#expect(!settled.retryable)
+			#expect(savedWork.notice.actions.isEmpty)
 			await #expect(throws: RetryRefusal.alreadyAnswered) {
 				try await coach.retry(turn, in: .main)
 			}
@@ -119,44 +118,15 @@ extension RetryLadderTests {
 		#expect(intervals.calls.filter(\.isWrite).isEmpty)
 	}
 
-	var workoutProposal: [ScriptedEvent] {
-		[
-			.toolCall(
-				name: "intervals_create_workout",
-				arguments:
-					#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-			),
-			.finish(reason: .toolCalls),
-		]
-	}
-
 	private func approvalCoach(_ held: HeldClock, intervals: FakeIntervalsClient) async -> Coach {
-		let model = ApprovalWaitTransport(base: transport, clock: held)
-		let coach = Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: store), secrets: keyedSecrets(),
-				models: ModelService { _ in model }, training: .fake { _, _ in intervals },
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: held),
-			builtInModel: testModel, deviceLanguage: .en,
-			coalescing: CoalescingPolicy(window: .zero))
-		return await consentingCoach(coach)
+		await heldApprovalCoach(
+			held, model: ApprovalWaitTransport(base: transport, clock: held), intervals: intervals)
 	}
 
 	func presentReview(on coach: Coach) async throws -> ReviewControlToken {
 		let review = try #require(await coach.currentSnapshot(.main)?.review)
 		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
 		return try #require(await coach.currentSnapshot(.main)?.review?.token)
-	}
-
-	func waitForReviewGate(on coach: Coach) async throws {
-		let scope = try #require(try await coach.mailbox(for: .main).reviewScope)
-		let deadline = ContinuousClock.now + .seconds(5)
-		while await !scope.waitingForReview {
-			try #require(
-				ContinuousClock.now < deadline, "The retry never waited for calendar approval")
-			try await Task.sleep(for: .milliseconds(1))
-		}
 	}
 
 	func settledTurn(_ turn: TurnID, on coach: Coach) async -> TurnState? {

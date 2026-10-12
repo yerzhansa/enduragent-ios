@@ -13,9 +13,7 @@ import Testing
 		let transport = FakeModelTransport()
 		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		var events: [ScriptedEvent] = [
-			.toolCall(
-				name: "memory_write",
-				arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+			.untypedSaturdayScheduleWrite,
 			.finish(reason: .toolCalls),
 		]
 		if let retryAfter {
@@ -30,25 +28,21 @@ import Testing
 		]
 		transport.respond = ScriptedReply.sequence(events, for: .flush)
 		let slow = SlowFlushTransport(inner: transport, clock: clock)
-		let coach = Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: store), secrets: keyedSecrets(),
-				models: ModelService { _ in slow },
-				training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock
-			), builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow)
-		_ = await consentingCoach(coach)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let coach = await consentingCoach(
+			makeCoach(
+				records: RecordStore(log: store),
+				models: ModelService(catalog: .fixture) { _ in slow }, clock: clock))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(clock.uptime == .seconds(retryAfter == nil ? 15 : 22))
 		#expect(clock.slept == (retryAfter == nil ? [] : [.seconds(7)]))
 		#expect(
 			sent(.memoryFlush, by: transport).map(\.deadline)
 				== Array(repeating: .seconds(600), count: retryAfter == nil ? 3 : 4))
-		let view = try await coach.memory.view()
+		let view = try await coach.memory.prompt(for: testConnection.account).view
 		#expect(view.sections["schedule"]?.contains("Group ride on Saturdays.") == true)
 		let hits = try await coach.memory.query(
-			from: "1998-06-13", to: "1998-06-13", contains: "Keep Saturdays free")
+			from: "1998-06-13", to: "1998-06-13", contains: "Keep Saturdays free",
+			for: testConnection.account)
 		#expect(hits.count == 1)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))

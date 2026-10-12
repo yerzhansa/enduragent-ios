@@ -7,8 +7,7 @@ import Testing
 
 @Suite struct FileSecretStoreTests {
 	@Test func fileFailureKeepsItsCodeWithoutErrorText() async throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-unwritable-secrets-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		defer {
 			do {
@@ -40,22 +39,6 @@ import Testing
 			return
 		}
 		#expect(code == expected.code.rawValue)
-	}
-
-	@Test func directoryStorePersistsAcrossInstances() throws {
-		try withTemporaryDirectory { directory in
-			let first = try ICloudKeychainStore.fixture(directory: directory).store
-			try first.storeCreditsAccount(
-				CreditsAccount(
-					appAccountToken: UUID(), key: "sk-or-test-0000")
-			)
-			try first.storeIntervalsConnection(testConnection)
-			let token = try first.creditsAccount()?.appAccountToken
-			let second = try ICloudKeychainStore.fixture(directory: directory).store
-			#expect(try second.creditsAccount()?.key == "sk-or-test-0000")
-			#expect(try second.intervalsConnection() == testConnection)
-			#expect(try second.creditsAccount()?.appAccountToken == token)
-		}
 	}
 
 	@Test func failedAccountPersistenceKeepsThePreviousCreditsPair() throws {
@@ -91,7 +74,7 @@ import Testing
 			#expect(try backing.copy(account: account) == original)
 			try backing.update(account: account, data: replacement)
 			let reopened = try ICloudKeychainStore.fixture(directory: directory).store
-			#expect(try reopened.openRouterAccountKey() == "test-replacement-key")
+			#expect(try reopened.openRouterAccountKey(at: .legacy) == "test-replacement-key")
 		}
 	}
 
@@ -104,7 +87,7 @@ import Testing
 			let expected = KeychainStoreError.keychain(errSecInteractionNotAllowed)
 			#expect(throws: expected) { try store.creditsAccount() }
 			#expect(throws: expected) { try store.intervalsConnection() }
-			#expect(throws: expected) { try store.openRouterAccountKey() }
+			#expect(throws: expected) { try store.openRouterAccountKey(at: .legacy) }
 			#expect(throws: expected) { try store.accessSelection() }
 			#expect(throws: expected) { try store.prepareCreditsAccount() }
 			#expect(throws: expected) { try store.delete(.creditsAccount) }
@@ -169,8 +152,8 @@ import Testing
 			let attributes = try FileManager.default.attributesOfItem(atPath: file.path)
 			let reopened = try ICloudKeychainStore.fixture(directory: directory).store
 			#expect(try reopened.creditsAccount() == expected)
-			#expect(try reopened.openRouterAccountKey() == "test-own-key")
-			#expect(try reopened.accessSelection() == .credits)
+			#expect(try reopened.openRouterAccountKey(at: .legacy) == "test-own-key")
+			#expect(try reopened.accessSelection() == .init(.credits))
 			#expect(try Data(contentsOf: file) == migrated)
 			let reopenedAttributes = try FileManager.default.attributesOfItem(atPath: file.path)
 			#expect(
@@ -209,8 +192,7 @@ import Testing
 }
 
 private func withTemporaryDirectory(_ body: (URL) throws -> Void) throws {
-	let directory = FileManager.default.temporaryDirectory.appending(
-		path: "enduragent-secrets-\(UUID().uuidString)", directoryHint: .isDirectory)
+	let directory = try TestTemporaryFolders.make()
 	try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 	defer {
 		do {

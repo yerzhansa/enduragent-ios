@@ -17,6 +17,18 @@ import Testing
 		}
 	}
 
+	@Test(arguments: LanguageTag.allCases)
+	func approvedSentencesAreTranslated(_ tag: LanguageTag) throws {
+		let english = try leaves(in: catalogs.appending(path: "en.json"))
+		let localized = try leaves(in: catalogs.appending(path: "\(tag.rawValue).json"))
+		for (key, sentence) in Self.approvedSentences {
+			#expect(english[key] == sentence, "\(key)")
+			let text = try #require(localized[key], "\(tag.rawValue) \(key)")
+			#expect(!text.isEmpty, "\(tag.rawValue) \(key)")
+			if tag != .en { #expect(text != sentence, "\(tag.rawValue) \(key)") }
+		}
+	}
+
 	@Test(arguments: ["", " \n\t"])
 	func emptyTranslationsAreRejected(_ value: String) {
 		#expect(
@@ -83,17 +95,59 @@ import Testing
 	}
 
 	@Test(arguments: LanguageTag.allCases)
-	func retiredChromeKeysStayAbsent(_ tag: LanguageTag) throws {
-		let localized = try leaves(in: catalogs.appending(path: "\(tag.rawValue).json"))
-		for key in [
-			"sidebar.menu", "chat.title", "chat.addToCalendar",
-			"chat.composer.messageField", "chat.composer.sendButton",
-		] {
-			#expect(localized[key] == nil, "\(tag.rawValue) retains \(key)")
+	func changedPlaceholdersAreRejected(_ tag: LanguageTag) {
+		for value in ["Bonjour {{renamed}}", "Bonjour", "Bonjour {{name}} {{extra}}"] {
+			#expect(
+				issues(
+					english: ["message": "Hello {{name}}"], localized: ["message": value],
+					tag: tag.rawValue) == ["\(tag.rawValue) has different placeholders for message"]
+			)
 		}
-		#expect(localized["chat.menu"] != nil)
-		#expect(localized["language.continue"] != nil)
 	}
+
+	@Test(arguments: ["one", "other", "few", "many"])
+	func pluralPlaceholdersMatchTheEnglishFamily(_ form: String) {
+		let english = ["message_one": "Hello {{name}}", "message_other": "Greetings {{name}}"]
+		let key = "message_\(form)"
+		var localized = ["message_one": "Cześć {{name}}", "message_other": "Witaj {{name}}"]
+		localized[key] = "Witaj {{renamed}}"
+		#expect(
+			issues(english: english, localized: localized, tag: "pl") == [
+				"pl has different placeholders for \(key)"
+			])
+		localized[key] = "Witaj {{name}}"
+		#expect(issues(english: english, localized: localized, tag: "pl").isEmpty)
+	}
+
+	@Test(arguments: LanguageTag.allCases)
+	func wordingCanChangeWithoutChangingPlaceholders(_ tag: LanguageTag) {
+		#expect(
+			issues(
+				english: ["message": "Hello {{first}} {{last}}"],
+				localized: ["message": "{{ last }} et {{first}}, bonjour {{first}}!"],
+				tag: tag.rawValue
+			).isEmpty)
+	}
+
+	private static let approvedSentences = [
+		"review.cancelledUnknown": CancelUnknownSaveTests.sentence,
+		"review.storageUnavailable":
+			"Couldn't read the saved workout review. Its buttons are temporarily disabled.",
+		"review.saveFailed":
+			"Couldn't save your choice on this iPhone, so nothing was changed. Try again.",
+		"chat.notice.startingNewConversation": "Starting a new conversation…",
+		"chat.turn.finishedWhileLocked": "Finished while the phone was locked.",
+		"chat.transcript.retry": "Try again",
+		"access.error.requestBlocked":
+			"OpenRouter blocked this request. Try a different model or message.",
+		"access.error.malformed":
+			"Your saved access method couldn't be read. Choose an access method to continue.",
+		"access.error.storageUnavailable":
+			"Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again.",
+		"archive.savedForAnotherAthlete": "Saved for another intervals.icu athlete ({{id}})",
+		"settings.training.switchDetail":
+			"This key belongs to athlete {{new}}. Your conversation, History and memory stay saved for athlete {{current}} and are not used for athlete {{new}}. Switch to use this key?",
+	]
 
 	private func issues(
 		english: [String: String], localized: [String: String], tag: String,
@@ -125,8 +179,18 @@ import Testing
 			if tag != "en", value == source, exceptions[key] != value {
 				result.append("\(tag) copies English for \(key)")
 			}
+			if placeholders(value) != placeholders(source) {
+				result.append("\(tag) has different placeholders for \(key)")
+			}
 		}
 		return result
+	}
+
+	private func placeholders(_ value: String) -> Set<String> {
+		Set(
+			value.matches(of: /\{\{\s*([^{}]+?)\s*\}\}/).map {
+				String($0.1).trimmingCharacters(in: .whitespacesAndNewlines)
+			})
 	}
 
 	private func sharedValues(for tag: String) throws -> [String: String] {

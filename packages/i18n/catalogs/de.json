@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "Wähle deine Sprache",
-    "continue": "Weiter",
-    "saveFailed": "{{language}} konnte nicht gespeichert werden. Die Antworten bleiben auf {{current}}. Versuche es erneut.",
-    "saveFailedAutomatic": "{{language}} konnte nicht gespeichert werden. Die Antworten bleiben in der Sprache der jeweiligen Nachricht. Versuche es erneut."
+    "continue": "Weiter"
   },
   "settings": {
     "appearance": {
@@ -515,7 +513,33 @@
         "title": "Vorhandenen Webhook entfernen"
       }
     },
-    "title": "Einstellungen"
+    "title": "Einstellungen",
+    "modelAccessTitle": "Modellzugriff",
+    "session": {
+      "title": "Sitzung",
+      "contextWindow": {
+        "label": "Kontextfenster",
+        "help": "Obergrenze für den Modellkontext. Leer lassen, um den Standard zu verwenden.",
+        "default": "Standard"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "Token"
+      }
+    },
+    "training": {
+      "section": "Trainingsverbindung",
+      "title": "intervals.icu",
+      "replace": "Schlüssel ersetzen",
+      "keep": "Aktuelle Verbindung behalten",
+      "disconnect": "Trennen",
+      "disconnectTitle": "intervals.icu trennen?",
+      "disconnectDetail": "Deine Unterhaltung und dein Verlauf bleiben verfügbar.",
+      "switchTitle": "Anderen Athleten verwenden?",
+      "switchDetail": "Dieser Schlüssel gehört Athlet {{new}}. Dein Gespräch, dein Verlauf und dein Coaching-Gedächtnis bleiben für Athlet {{current}} gespeichert und werden nicht für Athlet {{new}} verwendet. Wechseln, um diesen Schlüssel zu verwenden?",
+      "switch": "Athleten wechseln",
+      "athlete": "Athlet {{id}}"
+    }
   },
   "archive": {
     "athlete": "Du",
@@ -548,7 +572,8 @@
     "turnCount_one": "{{formattedCount}} Nachricht",
     "turnCount_other": "{{formattedCount}} Nachrichten",
     "unavailable": "Dieses Gespräch ist nicht mehr verfügbar.",
-    "history": "Verlauf"
+    "history": "Verlauf",
+    "savedForAnotherAthlete": "Für einen anderen intervals.icu-Athleten gespeichert ({{id}})"
   },
   "setup": {
     "ai": {
@@ -1024,7 +1049,8 @@
       "working": "Der Coach arbeitet…",
       "responseStopped": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten.",
       "calendarUnverified": "Die Kalenderänderung wurde möglicherweise gespeichert. Prüfe deinen Kalender, bevor du erneut fragst.",
-      "savedUnverified": "Ich habe deine Angaben gespeichert, konnte meine Antwort aber nicht überprüfen. Bitte versuche es erneut."
+      "savedUnverified": "Ich habe deine Angaben gespeichert, konnte meine Antwort aber nicht überprüfen. Bitte versuche es erneut.",
+      "startingNewConversation": "Eine neue Unterhaltung wird gestartet…"
     },
     "planChange": {
       "activePlan": "Aktiver Plan",
@@ -2910,8 +2936,11 @@
     "accountChanged": "Dieses Training wurde für einen anderen Athleten bei {{service}} vorbereitet. Bitte mich erneut, es für den verbundenen Athleten vorzubereiten.",
     "add": "Zum Kalender hinzufügen",
     "cannotVerify": "Ich konnte deine Verbindung zu {{service}} nicht prüfen. Es wurde nichts geändert. Versuche es gleich noch einmal.",
+    "turnStopping": "Diese Antwort wird gerade gestoppt. Danach kannst du die Trainingsprüfung bestätigen oder abbrechen.",
     "earlierVersion": "Diese Trainingsprüfung stammt aus einer früheren Version der App und kann nicht mehr angewendet werden.",
-    "storageUnavailable": "Die gespeicherte Trainingsprüfung konnte nicht gelesen werden. Deine letzte Prüfung bleibt sichtbar. Versuche es erneut, um die Bedienelemente wieder zu aktivieren.",
+    "cancelledUnknown": "Abgebrochen. Dieses Training wurde möglicherweise trotzdem gespeichert. Prüfe deinen Kalender.",
+    "saveFailed": "Deine Auswahl konnte auf diesem iPhone nicht gespeichert werden. Deshalb wurde nichts geändert. Versuche es erneut.",
+    "storageUnavailable": "Die gespeicherte Trainingsprüfung konnte nicht gelesen werden. Ihre Schaltflächen sind vorübergehend deaktiviert.",
     "title": "Training prüfen",
     "uncertain": "Ich konnte nicht bestätigen, ob dies in deinem Kalender bei {{service}} angekommen ist. Prüfe deinen Kalender, bevor du mich erneut darum bittest.",
     "workout": {
@@ -2919,7 +2948,10 @@
       "mainSet": "Hauptteil",
       "cooldown": "Cooldown",
       "ramp": "Rampe"
-    }
+    },
+    "writePending": "Dieses Training wurde möglicherweise gespeichert. Prüfe den Kalender, bevor du fortfährst.",
+    "writeReadFailed": "Der Kalender konnte nicht geprüft werden. Dein genehmigtes Training ist weiterhin ausstehend.",
+    "saveApprovedAgain": "Genehmigtes Training erneut speichern"
   },
   "credits": {
     "buy": "Kaufen",
@@ -2933,7 +2965,7 @@
     "packPrice_other": "{{formattedCount}} Guthabenpunkte · {{price}}",
     "error": {
       "accessRejected": "Deine Guthabenpunkte konnten nicht verwendet werden. Stelle deine Käufe wieder her, um fortzufahren.",
-      "exhausted": "Du hast keine Guthabenpunkte mehr. Kaufe weitere oder wechsle zu deinem OpenRouter-Konto.",
+      "exhausted": "Du hast keine Guthabenpunkte mehr. Du kannst zu deinem OpenRouter-Konto wechseln.",
       "unavailable": "Guthabenpunkte sind derzeit nicht verfügbar. Versuche es später erneut.",
       "accountChanged": "Das Konto für deine Guthabenpunkte hat sich geändert, während diese Anfrage abgeschlossen wurde. Dein aktuelles Konto wurde beibehalten."
     }
@@ -2959,7 +2991,7 @@
     },
     "consent": {
       "title": "Dein Coach nutzt KI",
-      "body": "Um zu antworten, sendet Enduragent deine Nachrichten, die gespeicherten Coaching-Informationen und die Trainingsdaten, die du aus intervals.icu verbindest, an OpenRouter. OpenRouter gibt sie an den Anbieter des KI-Modells (DeepSeek) weiter. Sie verwenden diese Daten nur, um die Antworten deines Coachs zu erstellen. Ohne deine Zustimmung wird nichts gesendet.",
+      "body": "Um zu antworten, sendet Enduragent deine Nachrichten, dein Coaching-Gedächtnis und die über intervals.icu verbundenen Trainingsdaten an OpenRouter. OpenRouter leitet sie an {{provider}} weiter, um {{model}} auszuführen. Diese Daten werden nur verwendet, um die Antworten deines Coaches zu erzeugen. Nichts wird gesendet, bevor du zustimmst.",
       "accept": "Zustimmen und fortfahren",
       "decline": "Nicht jetzt",
       "saveFailed": "Deine Zustimmung konnte nicht gespeichert werden. Versuche es erneut."
@@ -2969,13 +3001,41 @@
     "error": {
       "locked": "Entsperre dein iPhone, um fortzufahren. Deine Nachricht ist gespeichert.",
       "notConfigured": "Wähle, wie der Coach auf ein Modell zugreift, um fortzufahren.",
+      "requestBlocked": "OpenRouter hat diese Anfrage blockiert. Versuche ein anderes Modell oder eine andere Nachricht.",
       "providerConsentRequired": "Deine Zustimmung ist erforderlich, bevor Chatdaten mit KI-Anbietern geteilt werden.",
-      "openRouterFunds": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten."
-    }
+      "openRouterFunds": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten.",
+      "storageUnavailable": "Der sichere Speicher ist vorübergehend nicht verfügbar. Dein Gespräch, dein Verlauf und dein Coaching-Gedächtnis sind noch vorhanden. Versuche es erneut.",
+      "malformed": "Deine gespeicherte Zugriffsmethode konnte nicht gelesen werden. Wähle eine Zugriffsmethode, um fortzufahren."
+    },
+    "title": "Zugriffsmethode",
+    "openRouterAccount": "OpenRouter-Konto",
+    "signIn": "Mit OpenRouter anmelden",
+    "signInCancelled": "Anmeldung abgebrochen. Deine Zugriffsmethode wurde nicht geändert.",
+    "signInIncomplete": "Die OpenRouter-Anmeldung wurde nicht abgeschlossen. Deine Zugriffsmethode wurde nicht geändert. Versuche es erneut.",
+    "switchToOpenRouter": "Zu OpenRouter wechseln"
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu hat diesen Schlüssel nicht akzeptiert."
-    }
+      "rejected": "intervals.icu hat diesen Schlüssel nicht akzeptiert.",
+      "blank": "Gib einen intervals.icu API-Schlüssel ein. Deine aktuelle Verbindung bleibt unverändert.",
+      "notSaved": "Der Ersatz wurde nicht gespeichert. Deine bisherige Verbindung bleibt unverändert. Versuche es erneut.",
+      "profileUnavailable": "Dein Athletenprofil ist vorübergehend nicht verfügbar. Versuche es erneut.",
+      "wellnessRejected": "intervals.icu hat das Lesen der heutigen Wellnessdaten nicht erlaubt. Prüfe deine Verbindung.",
+      "wellnessUnavailable": "Die heutigen Wellnessdaten sind vorübergehend nicht verfügbar. Versuche es erneut.",
+      "blankConnection": "Gib einen intervals.icu-API-Schlüssel ein.",
+      "connectionNotSaved": "Die Verbindung wurde nicht gespeichert. Versuche es erneut.",
+      "storageLocked": "Entsperre dein iPhone, um deine intervals.icu-Verbindung zu lesen. Versuche es dann erneut.",
+      "storageUnavailable": "Deine intervals.icu-Verbindung ist vorübergehend nicht verfügbar, weil der sichere Speicher nicht gelesen werden konnte. Versuche es erneut.",
+      "storageMalformed": "Die gespeicherte intervals.icu-Verbindung konnte nicht gelesen werden. Ersetze den Schlüssel, um dich erneut zu verbinden."
+    },
+    "wellness": {
+      "empty": "Keine Wellnessdaten für heute.",
+      "waiting": "Heutige Wellnessdaten werden gelesen…"
+    },
+    "review": "Verbindung prüfen",
+    "profile": {
+      "waiting": "Athletenprofil wird gelesen…"
+    },
+    "missing": "intervals.icu ist nicht verbunden. Verbinde es, um Trainingseinheiten zum Kalender hinzuzufügen."
   }
 }

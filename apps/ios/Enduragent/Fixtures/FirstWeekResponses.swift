@@ -9,7 +9,9 @@
 		static let slowWordDelay: Duration = .milliseconds(250)
 		static let slowFlushDelay: Duration = .seconds(6)
 
-		static func responses() -> FakeModelTransport.Response {
+		static func responses(
+			intervals: FakeIntervalsClient, credits: FakeCreditsClient
+		) -> FakeModelTransport.Response {
 			let flushes = Mutex<[String: FakeModelTransport.Response]>([:])
 			return { request in
 				switch request.purpose {
@@ -26,6 +28,22 @@
 						return ScriptedReply([.finish(reason: .stop)])
 					}
 				case .chat:
+					if request.accessMethod == .credits, !request.retry,
+						request.text == "fixture:fail 402"
+					{
+						install(.zero, on: credits)
+					}
+					if request.text == trainingDataDirective {
+						return trainingDataReply(request)
+					}
+					if request.step == 0 {
+						intervals.delayNextActivityRead(
+							for: request.text == toolProgressDirective && !request.retry
+								? slowToolReadDelay : .zero)
+					}
+					if request.text == toolProgressDirective, !request.retry {
+						return toolProgressReply(step: request.step)
+					}
 					if request.step == 0, !request.retry {
 						let text = request.text.trimmingCharacters(in: .whitespacesAndNewlines)
 						if text == "fixture:flush-partial" {
@@ -68,12 +86,22 @@
 					Array(repeating: .fail(failure), count: repeated.count) + normal)
 			case "memory-then-fail" where arguments.isEmpty:
 				return ScriptedReply(savedMemory + [.fail(.http(status: 500))])
+			case "memory-until-system-interruption" where arguments.isEmpty:
+				return ScriptedReply(savedMemory + [.keepWorking])
 			case "memory-then-hang" where arguments.isEmpty:
 				return ScriptedReply(savedMemory + [.hang])
+			case "step-limit" where arguments.isEmpty:
+				return stepLimitReply(commitsMemory: false)
+			case "memory-then-step-limit" where arguments.isEmpty:
+				return stepLimitReply(commitsMemory: true)
 			case "text-then-hang" where arguments.isEmpty:
 				return ScriptedReply([.text(partialReply), .hang])
 			case "teach" where arguments.isEmpty:
 				return ScriptedReply(savedMemory + [.text(rememberReply), .finish(reason: .stop)])
+			case "formatted" where arguments.isEmpty:
+				return FormattedReplyFixture.finished
+			case "formatted-then-hang" where arguments.isEmpty:
+				return FormattedReplyFixture.streamingThenHang
 			case "long" where arguments.isEmpty:
 				return ScriptedReply([.text(longReply), .finish(reason: .stop)])
 			case "flush-partial" where arguments.isEmpty:
@@ -84,6 +112,17 @@
 		}
 
 		static let partialReply = "This week has Tuesday sweet spot"
+
+		private static func stepLimitReply(commitsMemory: Bool) -> ScriptedReply {
+			let read: [ScriptedEvent] = [
+				.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
+				.finish(reason: .toolCalls),
+			]
+			return ScriptedReply(
+				(commitsMemory ? savedMemory : [])
+					+ Array(repeating: read, count: commitsMemory ? 9 : 10).flatMap { $0 }
+					+ [.finish(reason: .stop)])
+		}
 
 		static let savedMemory: [ScriptedEvent] = [
 			.toolCall(
@@ -111,10 +150,14 @@
 			guard let code = arguments.first else { return nil }
 			let rest = Array(arguments.dropFirst())
 			switch code {
+			case "400" where rest.isEmpty:
+				return .http(status: 400)
 			case "401" where rest.isEmpty:
 				return .http(status: 401)
 			case "402" where rest.isEmpty:
 				return .http(status: 402)
+			case "403" where rest.isEmpty:
+				return .http(status: 403)
 			case "429" where rest.isEmpty:
 				return .http(status: 429, headers: ["retry-after": "7"])
 			case "429" where rest.count == 1 && Int(rest[0]) != nil:

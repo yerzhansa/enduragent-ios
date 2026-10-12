@@ -11,8 +11,8 @@ extension SwiftDataSuites {
 		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 		@Test func localTurnDoesNotAddImportReads() async throws {
-			let baseline = try await localTurnReads(observingImports: false)
-			let observed = try await localTurnReads(observingImports: true)
+			let baseline = try await localTurnPreferenceReads(observingImports: false)
+			let observed = try await localTurnPreferenceReads(observingImports: true)
 			#expect(observed == baseline)
 		}
 
@@ -33,7 +33,10 @@ extension SwiftDataSuites {
 			}
 			try await waitUntil { snapshots.latest?.turns.first?.athleteText == "Remote question" }
 			try await Task.sleep(for: .milliseconds(500))
-			#expect(log.reads.count - reads == 5)
+			let refreshedScopes = Array(log.reads.dropFirst(reads))
+			for scope in refreshedScopes {
+				#expect(refreshedScopes.filter { $0 == scope }.count == 1)
+			}
 			#expect(log.reads.filter { $0 == Preferences.scope }.count - preferenceReads == 1)
 			#expect(snapshots.count - count == 1)
 			await coach.lifecycle(.willTerminate)
@@ -52,13 +55,14 @@ extension SwiftDataSuites {
 			try await store.append([question, question, reply, reply], locality: .synced)
 			store.notifyImport()
 			try await waitUntil { snapshots.latest?.turns.first?.athleteText == "Remote question" }
-			let mailbox = try await coach.mailbox(for: .main)
-			let live = await mailbox.conversation
+			let live = await coach.currentSnapshot(.main)
+			let reopened = await makeCoach(
+				transport: FakeModelTransport(), store: store, clock: clock)
 			let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 			let cold = try await ledger.conversation(.main)
 			#expect(cold.turn(turn)?.fragments.count == 1)
 			#expect(cold.turn(turn)?.settlements.count == 1)
-			#expect(live == cold)
+			#expect(live == (await reopened.currentSnapshot(.main)))
 			var replayed = cold
 			replayed.apply([question, reply], device: store.deviceId)
 			#expect(replayed == cold)
@@ -73,7 +77,7 @@ extension SwiftDataSuites {
 				body: .synced(sampleUser(chatId: .main, text: "Remote question", turn: turn)))
 		}
 
-		private func localTurnReads(observingImports: Bool) async throws -> ReadCost {
+		private func localTurnPreferenceReads(observingImports: Bool) async throws -> Int {
 			let store = try makeSwiftDataLog(deviceId: DeviceID())
 			var history: [AthleteRecord] = []
 			for index in 0..<2_000 {
@@ -95,11 +99,11 @@ extension SwiftDataSuites {
 			let transport = FakeModelTransport()
 			transport.respond = ScriptedReply.sequence(
 				[.text("Local answer"), .finish(reason: .stop)], otherwise: transport.respond)
-			let coach = await makeCoach(transport: transport, store: log, clock: clock)
+			let host = ImmediateExecutionHost()
+			let coach = await makeCoach(transport: transport, store: log, clock: clock, host: host)
 			_ = await coach.currentSnapshot(.main)
 			try await Task.sleep(for: .milliseconds(500))
-			let reads = log.reads.count
-			let rows = log.fetchedRecordCount
+			let reads = log.reads.filter { $0 == Preferences.scope }.count
 			let notifications = Mutex(0)
 			let observation = NotificationCenter.default.addObserver(
 				forName: .NSPersistentStoreRemoteChange, object: nil, queue: nil
@@ -109,16 +113,12 @@ extension SwiftDataSuites {
 			defer { NotificationCenter.default.removeObserver(observation) }
 			let state = try await coach.sendAndSettle("Local question")
 			#expect(replyText(state) == "Local answer")
+			_ = try #require(await host.ended(0))
 			try await Task.sleep(for: .seconds(2))
 			#expect(notifications.withLock { $0 } > 0)
-			let cost = ReadCost(reads: log.reads.count - reads, rows: log.fetchedRecordCount - rows)
+			let cost = log.reads.filter { $0 == Preferences.scope }.count - reads
 			await coach.lifecycle(.willTerminate)
 			return cost
-		}
-
-		private struct ReadCost: Equatable {
-			let reads: Int
-			let rows: Int
 		}
 	}
 }

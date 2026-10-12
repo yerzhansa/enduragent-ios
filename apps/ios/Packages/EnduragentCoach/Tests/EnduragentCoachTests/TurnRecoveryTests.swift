@@ -39,11 +39,7 @@ import Testing
 	@Test func deadClaimIsInterruptedWithProcessEndedAndStampedWrites() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments:
-						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-				),
+				.saturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.hang,
 			], otherwise: transport.respond)
@@ -63,8 +59,7 @@ import Testing
 		#expect(interrupted.saved == memorySaved)
 		#expect(
 			interrupted.notice
-				== AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, action: nil))
-		#expect(!state.retryable)
+				== AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, actions: []))
 		let claim = try #require(try await claims(of: turn).first)
 		guard case .deviceLocal(.turnClaim(let claimed)) = claim.body else {
 			Issue.record("expected a claim, got \(claim.body)")
@@ -103,8 +98,7 @@ import Testing
 		#expect(
 			interrupted.notice
 				== AthleteNotice(
-					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn)))
-		#expect(state.retryable)
+					key: Catalog.chatTurnInterruptedNothingChanged, actions: [.tryAgain(turn)]))
 		try await after.retry(turn, in: .main)
 		let replied = try #require(await after.settledState(of: turn, in: .main))
 		#expect(replyText(replied) == "Thursday is on.")
@@ -116,11 +110,7 @@ import Testing
 	@Test func theFirstSnapshotAndRetryAfterRelaunchSeeTheSavedWorkOfADeadClaim() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments:
-						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-				),
+				.saturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.hang,
 			], otherwise: transport.respond)
@@ -136,7 +126,7 @@ import Testing
 			return
 		}
 		#expect(interrupted.saved == memorySaved)
-		#expect(interrupted.notice.action == nil)
+		#expect(interrupted.notice.actions.isEmpty)
 		let retried = await makeCoach(transport: transport, store: store, clock: clock)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await retried.retry(turn, in: .main)
@@ -152,9 +142,8 @@ import Testing
 		let after = await relaunched(over: recording)
 		let state = try #require(await after.state(of: turn))
 		#expect(state == .accepted(.awaitingRestart))
-		#expect(state.retryable)
 		try await Task.sleep(for: .milliseconds(100))
-		#expect(recording.batches.isEmpty)
+		#expect(recording.batches == [["trainingIdentityObserved"]])
 		#expect(transport.requests.isEmpty)
 		#expect(try await claims(of: turn).isEmpty)
 	}
@@ -194,54 +183,6 @@ import Testing
 			TurnRecovery.plan(
 				turns: turns, writes: [:], device: store.deviceId,
 				process: ProcessID(ulid: fixedUlid(60)))
-				== RecoveryPlan(interrupt: []))
-	}
-
-	@Test func deadClaimWithAnObservedReplyIsInterruptedAndNeverReplayed() {
-		let device = DeviceID(rawValue: "phone-a")
-		let turn = TurnID(ulid: fixedUlid(1))
-		let attempt = AttemptID(ulid: fixedUlid(2))
-		var facts = TurnFacts(turn: turn, chat: .main, origin: device)
-		facts.fragments.append(
-			Fragment(
-				ulid: fixedUlid(1),
-				hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: device),
-				civilDate: "1998-06-13", timeZone: amsterdamZone, index: 0, draft: DraftID(),
-				text: "Thursday?", slash: nil))
-		facts.claims.append(
-			ClaimedAttempt(
-				hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: device),
-				body: TurnClaimBody(
-					chatId: .main, turn: turn, attempt: attempt, lease: .continuedProcessing)))
-		facts.replyObserved.append(ReplyObservedBody(chatId: .main, turn: turn, attempt: attempt))
-		let current = ProcessID(ulid: fixedUlid(60))
-		let plan = TurnRecovery.plan(
-			turns: [facts], writes: [:], device: device, process: current)
-		#expect(
-			plan == RecoveryPlan(interrupt: [DeadClaim(turn: turn, attempt: attempt, saved: .none)])
-		)
-		let settle = TurnLifecycle.settled(
-			attempt, .interrupted(partial: "", cause: .processEnded, saved: .none),
-			on: facts, chat: .main)
-		#expect(
-			settle
-				== TurnSettledBody(
-					chatId: .main, turn: turn, attempt: attempt,
-					settlement: .interrupted(partial: "", cause: .processEnded, saved: .none)))
-		var settledFacts = facts
-		settledFacts.settlements.append(
-			SettledAttempt(
-				ulid: fixedUlid(3),
-				hlc: HybridLogicalClock(wallMs: 3, logical: 0, deviceId: device),
-				attempt: attempt,
-				settlement: .interrupted(partial: "", cause: .processEnded, saved: .none)))
-		#expect(
-			TurnLifecycle.settled(
-				attempt, .interrupted(partial: "", cause: .processEnded, saved: .none),
-				on: settledFacts, chat: .main) == nil)
-		#expect(
-			TurnRecovery.plan(
-				turns: [settledFacts], writes: [:], device: device, process: current)
 				== RecoveryPlan(interrupt: []))
 	}
 

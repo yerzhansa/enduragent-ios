@@ -8,8 +8,7 @@ import Testing
 extension SwiftDataSuites {
 	@Suite struct IndexMigrationTests {
 		@Test func storeWithoutIndexesReopensAndPreservesRecords() async throws {
-			let root = FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-index-migration-\(UUID().uuidString)")
+			let root = try TestTemporaryFolders.make()
 			try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 			let url = root.appending(path: "synced.store")
 			let device = DeviceID(rawValue: "phone-a")

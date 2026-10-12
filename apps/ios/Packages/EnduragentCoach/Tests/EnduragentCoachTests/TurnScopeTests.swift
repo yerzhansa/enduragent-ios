@@ -10,7 +10,7 @@ import Testing
 
 	@Test func memoIsPerAttemptNotPerRuntime() async throws {
 		let store = InMemoryRecordLog()
-		let tools = ToolRuntime(
+		let tools = makeToolRuntime(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock
@@ -37,10 +37,10 @@ import Testing
 		let readClock = HeldClock()
 		let ledger = Ledger(
 			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let heldTools = ToolRuntime(
+		let heldTools = makeToolRuntime(
 			intervals: HeldReadIntervals(clock: readClock), ledger: ledger,
 			clock: clock)
-		let tools = ToolRuntime(
+		let tools = makeToolRuntime(
 			intervals: intervals, ledger: ledger, clock: clock)
 		let turn = scope()
 		let week = try JSONValue.parse(#"{"days":7}"#)
@@ -72,7 +72,7 @@ import Testing
 	}
 
 	@Test func budgetCountsCallsAttemptsAndUptime() async throws {
-		let turn = TurnScope(stamp: testStamp(), policy: .npm, uptime: .seconds(30))
+		let turn = TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .seconds(30))
 		for _ in 0..<TurnBudgetPolicy.npm.maxGenerateCalls {
 			try await turn.chargeCall()
 		}
@@ -80,10 +80,10 @@ import Testing
 			try await turn.chargeCall()
 		}
 		for _ in 0..<TurnBudgetPolicy.npm.maxGenerateAttempts {
-			try await turn.chargeAttempt(using: .npm)
+			try await turn.chargeAttempt()
 		}
 		await #expect(throws: TurnBudgetExceeded(kind: .generateAttempts)) {
-			try await turn.chargeAttempt(using: .npm)
+			try await turn.chargeAttempt()
 		}
 		try await turn.checkDeadline(uptime: .seconds(30 + 599))
 		#expect(await turn.callDeadline(uptime: .seconds(30 + 590)) == .seconds(10))
@@ -97,11 +97,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments:
-						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-				),
+				.saturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.hang,
 			], otherwise: transport.respond)
@@ -122,11 +118,10 @@ import Testing
 			return
 		}
 		#expect(interrupted.saved.memorySections == 1)
-		#expect(interrupted.notice.action == nil)
-		#expect(!settled.retryable)
+		#expect(interrupted.notice.actions.isEmpty)
 	}
 
 	private func scope() -> TurnScope {
-		TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
+		TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero)
 	}
 }

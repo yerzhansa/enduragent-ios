@@ -30,9 +30,10 @@ extension Coach {
 	private func refreshImports() async {
 		pendingImportRefresh = nil
 		guard !lifetime.terminating else { return }
-		_ = await loadedPreferences(reload: true)
+		_ = await preferences.load(reload: true)
 		await publishStatus()
 		for mailbox in await openedMailboxes() {
+			await mailbox.refreshLeaseTitle()
 			do {
 				try await mailbox.refreshImports()
 			} catch {

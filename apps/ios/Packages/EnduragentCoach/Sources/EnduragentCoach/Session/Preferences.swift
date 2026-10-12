@@ -21,19 +21,6 @@ public enum LanguagePreference: Sendable, Hashable, Identifiable {
 		}
 	}
 
-	public func notSaved(keeping current: LanguagePreference, in phrasebook: CatalogPhrasebook)
-		-> String
-	{
-		switch current {
-		case .automatic:
-			phrasebook.say(Catalog.languageSaveFailedAutomatic, ["language": title(in: phrasebook)])
-		case .fixed(let tag):
-			phrasebook.say(
-				Catalog.languageSaveFailed,
-				["language": title(in: phrasebook), "current": tag.endonym])
-		}
-	}
-
 	public func appLanguage(device: LanguageTag) -> LanguageTag {
 		switch self {
 		case .automatic: device
@@ -41,18 +28,6 @@ public enum LanguagePreference: Sendable, Hashable, Identifiable {
 		}
 	}
 
-	public func phrasebook(device: LanguageTag) -> CatalogPhrasebook {
-		appLanguage(device: device).phrasebook
-	}
-
-	package func replyLanguage(for message: String, device: LanguageTag) -> ReplyLanguage {
-		switch self {
-		case .automatic:
-			.mirror(fallback: Language.detectMessageLanguage(message) ?? device)
-		case .fixed(let tag):
-			.fixed(tag)
-		}
-	}
 }
 
 extension LanguageTag {

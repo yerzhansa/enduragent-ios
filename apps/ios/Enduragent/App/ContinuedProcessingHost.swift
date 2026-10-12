@@ -3,10 +3,12 @@ import EnduragentCoach
 import UIKit
 import UserNotifications
 
+@MainActor
 protocol ContinuedTask: AnyObject {
 	var progress: Progress { get }
 	var expirationHandler: (() -> Void)? { get set }
 	func setTaskCompleted(success: Bool)
+	func updateTitle(_ title: String, subtitle: String)
 }
 
 extension BGContinuedProcessingTask: ContinuedTask {}
@@ -17,6 +19,7 @@ protocol BackgroundSystem: AnyObject {
 	func register(_ identifier: String, launchHandler: @escaping (any ContinuedTask) -> Void)
 		-> Bool
 	func submit(_ request: BGContinuedProcessingTaskRequest) throws
+	func cancel(_ identifier: String)
 	func beginGrace(named name: String, expiration: @escaping () -> Void)
 		-> UIBackgroundTaskIdentifier
 	func endGrace(_ identifier: UIBackgroundTaskIdentifier)
@@ -49,7 +52,8 @@ final class ContinuedProcessingHost: ExecutionHost {
 		if request.initiatedBy == .athlete {
 			allowNotifications(for: identifier)
 			let lease = ContinuedProcessingLease(
-				identifier, kind: .continuedProcessing, host: self, onExpiry: onExpiry)
+				identifier, kind: .continuedProcessing, request: request, host: self,
+				onExpiry: onExpiry)
 			do {
 				try submit(request, identifier: identifier, to: lease)
 				keep(LeaseRecord(id: identifier, request: request, kind: lease.kind))
@@ -59,7 +63,7 @@ final class ContinuedProcessingHost: ExecutionHost {
 			}
 		}
 		let lease = ContinuedProcessingLease(
-			identifier, kind: .gracePeriodOnly, host: self, onExpiry: onExpiry)
+			identifier, kind: .gracePeriodOnly, request: request, host: self, onExpiry: onExpiry)
 		var record = LeaseRecord(id: identifier, request: request, kind: lease.kind)
 		record.notes += [refusal].compactMap { $0 }
 		keep(record)
@@ -121,27 +125,42 @@ final class ContinuedProcessingLease: ExecutionLease {
 	private let identifier: String
 	private let host: ContinuedProcessingHost
 	private let onExpiry: @Sendable (ExpiryCause) async -> Void
-	private var task: (any ContinuedTask)?
+	private var attachment = Attachment.awaitingLaunch
+	private var title: String
+	private var state = State.active
 	private var grace = UIBackgroundTaskIdentifier.invalid
 	private var progress: LeaseProgress?
-	private var outcome: Bool?
+	private enum Attachment {
+		case awaitingLaunch
+		case continued(any ContinuedTask)
+		case completed
+	}
+
+	private enum State {
+		case active
+		case settling
+		case ended(LeaseEnding)
+	}
 
 	init(
-		_ identifier: String, kind: LeaseKind, host: ContinuedProcessingHost,
+		_ identifier: String, kind: LeaseKind, request: LeaseRequest, host: ContinuedProcessingHost,
 		onExpiry: @escaping @Sendable (ExpiryCause) async -> Void
 	) {
 		self.identifier = identifier
 		self.kind = kind
 		self.host = host
+		self.title = request.titleText
 		self.onExpiry = onExpiry
 	}
 
 	func attach(_ task: any ContinuedTask) {
-		if let outcome {
-			task.setTaskCompleted(success: outcome)
+		guard case .awaitingLaunch = attachment else { return }
+		attachment = .continued(task)
+		if case .ended(let ending) = state {
+			complete(ending)
 			return
 		}
-		self.task = task
+		task.updateTitle(title, subtitle: "")
 		task.expirationHandler = { Task { await self.expire(.systemExpired) } }
 		if let progress {
 			mirror(progress, on: task)
@@ -157,40 +176,67 @@ final class ContinuedProcessingLease: ExecutionLease {
 	func report(_ progress: LeaseProgress) async {
 		self.progress = progress
 		host.update(identifier) { $0.progress = progress }
-		if let task {
+		if case .continued(let task) = attachment {
 			mirror(progress, on: task)
 		}
 	}
 
+	func updateTitle(_ title: CatalogKey, language: LanguageTag) async {
+		guard case .active = state else { return }
+		self.title = language.phrasebook.say(title)
+
+		if case .continued(let task) = attachment {
+			task.updateTitle(self.title, subtitle: "")
+		}
+	}
+
 	func end(_ ending: LeaseEnding) async {
-		await close(ending)
+		if case .settling = state, case .interrupted = ending {
+			await close(ending)
+		} else if case .active = state {
+			await close(ending)
+		}
 	}
 
 	private func expire(_ cause: ExpiryCause) async {
-		guard outcome == nil else { return }
+		guard case .active = state else { return }
+		state = .settling
 		host.update(identifier) { $0.expiry = cause }
 		await onExpiry(cause)
-		await close(.interrupted)
+		await close(.interrupted(cause == .systemExpired ? .systemExpired : .graceEnded))
 	}
 
 	private func close(_ ending: LeaseEnding) async {
-		guard outcome == nil else { return }
+		if case .ended = state { return }
+		state = .ended(ending)
 		host.update(identifier) { $0.ending = ending }
+		complete(ending)
 		switch ending {
-		case .finished(let notice):
-			complete(success: true)
+		case .finished(let notice), .failed(let notice):
 			if let notice {
 				await host.notify(notice, lease: identifier)
 			}
 		case .interrupted:
-			complete(success: false)
+			break
 		}
 	}
 
-	private func complete(success: Bool) {
-		outcome = success
-		task?.setTaskCompleted(success: success)
-		task = nil
+	private func complete(_ ending: LeaseEnding) {
+		let success: Bool
+		switch ending {
+		case .finished, .failed, .interrupted(.athleteStopped):
+			success = true
+		case .interrupted:
+			success = false
+		}
+		if case .awaitingLaunch = attachment, kind == .continuedProcessing {
+			host.system.cancel(identifier)
+		}
+		if case .continued(let task) = attachment {
+			attachment = .completed
+			task.expirationHandler = nil
+			task.setTaskCompleted(success: success)
+		}
 		if grace != .invalid {
 			host.system.endGrace(grace)
 			grace = .invalid
@@ -227,6 +273,10 @@ final class LiveBackgroundSystem: BackgroundSystem {
 
 	func submit(_ request: BGContinuedProcessingTaskRequest) throws {
 		try BGTaskScheduler.shared.submit(request)
+	}
+
+	func cancel(_ identifier: String) {
+		BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: identifier)
 	}
 
 	func beginGrace(named name: String, expiration: @escaping () -> Void)

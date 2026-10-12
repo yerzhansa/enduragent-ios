@@ -11,7 +11,7 @@ struct EnduragentApp: App {
 				case .ready(let model):
 					RootView(model: model)
 				case .storageUnavailable(let phrasebook, let failure):
-					StorageUnavailableView(phrasebook: phrasebook, failure: failure)
+					StorageUnavailableView(displayLocale: phrasebook, failure: failure)
 				case nil:
 					ProgressView()
 				}

@@ -11,7 +11,7 @@ extension TurnRunnerTests {
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(failure(settled) == .model(.accessUnavailable(.notConfigured(.credits))))
-		#expect(!settled.retryable)
+		#expect(turnNotice(of: settled)?.actions == [.chooseAccessMethod])
 		#expect(transport.requestCount == 0)
 		let claims = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn))
@@ -70,8 +70,9 @@ extension TurnRunnerTests {
 			otherwise: transport.respond)
 		let secrets = keyedSecrets()
 		if method == .openRouterAccount {
-			try secrets.storeOpenRouterAccountKey("sk-or-test-account")
-			try secrets.storeAccessSelection(.openRouterAccount(model: testModel))
+			try secrets.storeOpenRouterAccountKey("sk-or-test-account", at: .legacy)
+			try secrets.storeAccessSelection(
+				.init(.openRouter(SavedOpenRouterReference(credential: .legacy, model: testModel))))
 		}
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, secrets: secrets, consent: false)
@@ -80,7 +81,7 @@ extension TurnRunnerTests {
 		#expect(failure(settled) == .model(.accessUnavailable(.providerConsentRequired)))
 		#expect(transport.requestCount == 0)
 		#expect(
-			await coach.startNewConversation(in: .main)
+			await coach.resetAndSettle(in: .main)
 				== .started(memory: .providerConsentRequired))
 		#expect(transport.requestCount == 0)
 		#expect(

@@ -40,6 +40,10 @@ private struct GraceLease: ExecutionLease {
 		await inner.report(progress)
 	}
 
+	func updateTitle(_ title: CatalogKey, language: LanguageTag) async {
+		await inner.updateTitle(title, language: language)
+	}
+
 	func end(_ ending: LeaseEnding) async {
 		await inner.end(ending)
 	}
@@ -62,7 +66,7 @@ actor EndingHost: ExecutionHost {
 	func waitForEnd(_ index: Int) async throws {
 		let ended = ending(index)
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				try await ended.waitUnlessCancelled()
 			} != nil,
 			"Lease \(index) did not end within five seconds")
@@ -83,6 +87,10 @@ private struct EndingLease: ExecutionLease {
 
 	func report(_ progress: LeaseProgress) async {
 		await inner.report(progress)
+	}
+
+	func updateTitle(_ title: CatalogKey, language: LanguageTag) async {
+		await inner.updateTitle(title, language: language)
 	}
 
 	func end(_ ending: LeaseEnding) async {

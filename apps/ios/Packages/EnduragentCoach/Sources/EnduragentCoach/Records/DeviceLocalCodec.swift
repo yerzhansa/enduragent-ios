@@ -14,6 +14,11 @@ extension RecordCodec {
 	{
 		let name = kind.rawValue
 		switch kind {
+		case .openRouterKeyRejected:
+			return .openRouterKeyRejected(
+				try payload(
+					RejectedOpenRouterKeyPayload.self, version: version, kind: name, data: data
+				).reference)
 		case .providerConsent:
 			return .providerConsent(
 				try payload(ProviderConsentPayload.self, version: version, kind: name, data: data)
@@ -52,6 +57,7 @@ extension RecordCodec {
 			}
 			return .pendingProposal(
 				ProposalBody(
+					writeID: payload.writeID.map(CalendarWriteID.init(rawValue:)),
 					chatId: try decodeChatID(payload.chatId),
 					nonce: Nonce(rawValue: payload.nonce),
 					tool: tool,
@@ -81,6 +87,7 @@ extension RecordCodec {
 				FlushPendingBody(
 					chatId: try decodeChatID(payload.chatId),
 					messageUlids: try payload.messageUlids.map(decodeULID),
+					sourceBound: version >= 5,
 					process: try payload.process.map { ProcessID(ulid: try decodeULID($0)) }
 				)
 			)

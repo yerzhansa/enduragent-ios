@@ -3,6 +3,8 @@ import SwiftUI
 
 struct TranscriptView: View {
 	@Bindable var model: ShellModel
+	@Environment(\.scenePhase) private var scenePhase
+	@State private var revealedBackgroundTurns: Set<TurnID> = []
 
 	var body: some View {
 		ScrollViewReader { proxy in
@@ -22,21 +24,37 @@ struct TranscriptView: View {
 						TurnRowView(model: model, turn: turn)
 						notes(after: turn.id)
 					}
-					if case .startingNewConversation(let label)? = model.chat?.activity {
-						Text(model.phrasebook.say(label, [:]))
+					if case .waiting? = model.chat?.reset {
+						Text(model.phrasebook.say(Catalog.chatNoticeStartingNewConversation, [:]))
 							.foregroundStyle(.secondary)
 							.accessibilityIdentifier("chat.working")
 					}
 					if model.newConversationUncertain {
 						newConversationNotice(Catalog.chatNoticeNewConversationUncertain)
 					}
+					if model.status.access.attention == .rejectedKey,
+						let notice = model.status.access.notice
+					{
+						Text(notice.sentence(in: model.displayLocale))
+							.accessibilityIdentifier("chat.access.notice")
+						Button(model.phrasebook.say(Catalog.chatTurnSignInAgain)) {
+							Task { await model.perform(.signInToOpenRouter) }
+						}
+						.disabled(model.isChangingAccess)
+						.accessibilityIdentifier("chat.access.signInAgain")
+						#if DEBUG
+							FixtureSignInDebugView(model: model)
+						#endif
+						if let outcome = model.accessSettings.notice {
+							Text(outcome.sentence(in: model.displayLocale))
+								.accessibilityIdentifier("chat.access.outcome")
+						}
+					}
 					if let review = model.chat?.review {
 						ConfirmedPreviewCard(model: model, review: review)
 							.fixedSize(horizontal: false, vertical: true)
-					}
-					if let notice = model.reviewNotice {
-						Text(notice.sentence(in: model.phrasebook))
-							.accessibilityIdentifier("chat.review.notice")
+					} else if let notice = model.reviewNotice {
+						ReviewOutcomeNotice(model: model, notice: notice)
 					}
 				}
 				.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
@@ -60,9 +78,18 @@ struct TranscriptView: View {
 			.environment(\.defaultMinListRowHeight, 0)
 			.buttonStyle(.borderless)
 			.onChange(of: model.chat?.revision, initial: true) {
-				proxy.scrollTo("transcript.tail", anchor: .bottom)
+				scrollToEnd(proxy)
+			}
+			.onChange(of: scenePhase) { _, phase in
+				guard phase == .active, let turn = model.chat?.turns.last,
+					turn.completedInBackground, !revealedBackgroundTurns.contains(turn.id)
+				else { return }
+				scrollToEnd(proxy)
 			}
 			.onChange(of: model.slashListVisible) {
+				proxy.scrollTo("transcript.tail", anchor: .bottom)
+			}
+			.onChange(of: model.status.access.attention) {
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
 			.onChange(of: model.reviewNotice) {
@@ -76,9 +103,17 @@ struct TranscriptView: View {
 		}
 	}
 
+	private func scrollToEnd(_ proxy: ScrollViewProxy) {
+		proxy.scrollTo("transcript.tail", anchor: .bottom)
+		if scenePhase == .active {
+			revealedBackgroundTurns.formUnion(
+				(model.chat?.turns ?? []).filter(\.completedInBackground).map(\.id))
+		}
+	}
+
 	private func notes(after turn: TurnID?) -> some View {
 		ForEach(model.chat?.notes[turn] ?? []) { note in
-			Text(note.sentence(in: model.phrasebook))
+			Text(note.sentence(in: model.displayLocale))
 				.accessibilityIdentifier("chat.note")
 		}
 	}

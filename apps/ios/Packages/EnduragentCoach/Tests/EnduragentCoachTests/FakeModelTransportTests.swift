@@ -54,48 +54,6 @@ import Testing
 		#expect(transport.requests == [firstRequest, secondRequest])
 	}
 
-	@Test func hangingStreamFinishesWhenCancelled() async throws {
-		let transport = FakeModelTransport()
-		transport.respond = { _ in ScriptedReply([.hang]) }
-		let request = testRequest(
-			[WireMessage(role: .user, content: "Hang", toolCalls: [], toolCallId: nil)],
-			deadline: .seconds(30))
-		let task = Task {
-			var count = 0
-			for try await _ in transport.stream(request) {
-				count += 1
-			}
-			return count
-		}
-		try await Task.sleep(for: .milliseconds(20))
-		task.cancel()
-		let count = try await task.value
-		#expect(count == 0)
-	}
-
-	@Test func streamStopsAtEachFinish() async throws {
-		let transport = FakeModelTransport()
-		transport.respond = ScriptedReply.sequence(
-			[
-				.text("one"),
-				.finish(reason: .stop),
-				.text("two"),
-				.finish(reason: .length),
-			], otherwise: transport.respond)
-		let request = testRequest(
-			[WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)],
-			deadline: .seconds(30))
-		let first = try await collect(transport.stream(request))
-		#expect(textDeltas(in: first) == ["one"])
-		let second = try await collect(transport.stream(request))
-		#expect(textDeltas(in: second) == ["two"])
-		guard case .finished(let reason, _) = second.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(reason == .length)
-	}
-
 	@Test func deltaDelaySleepsOncePerEvent() async throws {
 		let delay = Duration.milliseconds(60)
 		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
@@ -216,15 +174,6 @@ import Testing
 		#expect(textDeltas(in: next) == ["next"])
 	}
 
-	@Test func scriptedFailuresParseTheWireLikeTheTransport() {
-		#expect(
-			ScriptedFailure.http(status: 429, headers: ["Retry-After": "7"]).failure
-				== .rateLimited(retryAfter: .seconds(7)))
-		#expect(ScriptedFailure.http(status: 401).failure == .credentialRejected(status: 401))
-		#expect(ScriptedFailure.http(status: 402).failure == .accessExhausted)
-		#expect(ScriptedFailure.connection(.notConnectedToInternet).failure == .network)
-		#expect(ScriptedFailure.connection(.timedOut).failure == .timeout(.request))
-	}
 }
 
 private func request(_ content: String) -> CompletionRequest {

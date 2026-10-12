@@ -141,6 +141,8 @@ extension FirstTurnTests {
 		let proposed = try await proposeEnduranceRide(coach)
 		#expect(await coach.decide(.presented(proposed.ref), in: .main) == .presentationRecorded)
 		let ready = try #require(await coach.currentSnapshot(.main)?.review)
+		let calls = intervals.calls
+		let requests = transport.requestCount
 		guard case .approveOrCancel = ready.controls else {
 			Issue.record("presented review has no approval controls")
 			return
@@ -156,11 +158,15 @@ extension FirstTurnTests {
 			coach.diagnostics.entries.contains {
 				$0.event == .reviewUnavailable(.main, .unavailable)
 			})
-		#expect(await coach.decide(.checkAgain(failed.ref), in: .main) == .storageUnavailable)
-		#expect(await coach.currentSnapshot(.main)?.review == failed)
+		for _ in 0..<2 {
+			#expect(await coach.decide(.checkAgain(failed.ref), in: .main) == .storageUnavailable)
+			#expect(await coach.currentSnapshot(.main)?.review == failed)
+		}
 		faults.failFetches = false
 		#expect(await coach.decide(.checkAgain(failed.ref), in: .main) == .presentationRecorded)
 		#expect(await coach.currentSnapshot(.main)?.review == ready)
+		#expect(intervals.calls == calls)
+		#expect(transport.requestCount == requests)
 		guard case .approveOrCancel(let token) = ready.controls else { return }
 		#expect(await coach.decide(.cancel(token), in: .main) == .canceled(kept: []))
 		#expect(await coach.currentSnapshot(.main)?.review == nil)

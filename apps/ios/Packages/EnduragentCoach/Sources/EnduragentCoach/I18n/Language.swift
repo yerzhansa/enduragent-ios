@@ -69,11 +69,6 @@ public enum LanguageTag: String, Sendable, CaseIterable {
 	]
 }
 
-package enum ReplyLanguage: Sendable, Equatable {
-	case fixed(LanguageTag)
-	case mirror(fallback: LanguageTag)
-}
-
 public struct CatalogKey: Hashable, Sendable, RawRepresentable {
 	public let rawValue: String
 
@@ -83,10 +78,6 @@ public struct CatalogKey: Hashable, Sendable, RawRepresentable {
 }
 
 public struct Language {
-	public static func detectMessageLanguage(_ text: String) -> LanguageTag? {
-		MessageLanguage.detect(text)
-	}
-
 	public static func uiTag(systemLanguages: [String]) -> LanguageTag {
 		normalizeLocaleHint(systemLanguages) ?? .en
 	}

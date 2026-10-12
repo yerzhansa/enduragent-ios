@@ -36,16 +36,11 @@ import Testing
 		let recording = BatchRecordingLog(inner: InMemoryRecordLog())
 		let coach = await makeCoach(transport: transport, store: recording, clock: clock)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
-		var sawText = false
-		for await snapshot in await coach.observe(.main) {
-			if case .processing? = snapshot.turns.first?.state,
-				snapshot.liveReply?.text.isEmpty == false
-			{
-				sawText = true
-				break
-			}
-		}
-		#expect(sawText)
+		try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				guard case .processing? = $0.turns.first?.state else { return false }
+				return $0.liveReply?.text.isEmpty == false
+			} != nil)
 		await coach.stop(.main)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		guard case .interrupted(let interrupted) = settled else {
@@ -54,12 +49,18 @@ import Testing
 		}
 		#expect(interrupted.partial == "Thursday is ")
 		#expect(interrupted.cause == .athleteStopped)
-		#expect(interrupted.notice.action == .tryAgain(turn))
+		#expect(interrupted.notice.actions == [.tryAgain(turn)])
+		let saved = try await recording.fetch(
+			RecordQuery(scope: .synced([.turnSettled]), turn: turn)
+		).records
+		#expect(saved.count == 1)
+		guard case .synced(.turnSettled(let body)) = try #require(saved.first?.body) else {
+			Issue.record("Stop was not saved")
+			return
+		}
 		#expect(
-			recording.batches == [
-				["providerConsent"],
-				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
-			])
+			body.settlement
+				== .interrupted(partial: "Thursday is ", cause: .athleteStopped, saved: .none))
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.activity == .idle)
 	}
@@ -89,7 +90,7 @@ import Testing
 		#expect(queued.cause == .stoppedBeforeStart)
 		#expect(running.notice.key == Catalog.chatTurnInterruptedNothingChanged)
 		#expect(queued.notice.key == Catalog.chatTurnInterruptedNothingChanged)
-		#expect(queued.notice.action == .tryAgain(second))
+		#expect(queued.notice.actions == [.tryAgain(second)])
 		#expect(await coach.transcript(.main) == ["one", "two"])
 	}
 
@@ -110,7 +111,7 @@ import Testing
 		}
 		#expect(stopped.cause == .stoppedBeforeStart)
 		#expect(stopped.notice.key == Catalog.chatTurnInterruptedNothingChanged)
-		#expect(stopped.notice.action == .tryAgain(turn))
+		#expect(stopped.notice.actions == [.tryAgain(turn)])
 		#expect(snapshot.activity == .idle)
 		#expect(recording.batches == [["providerConsent"], ["userMessage"], ["turnSettled"]])
 		#expect(transport.requests.isEmpty)
@@ -124,14 +125,16 @@ import Testing
 		let store = HeldConversationReadLog(inner: inner)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		async let observed = coach.currentSnapshot(.main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { store.gate.release() }) {
+				await store.reached.first { _ in true } != nil
+			} == true)
 		async let sending = coach.send(draft("Is Thursday on?"), to: .main)
 		store.gate.release()
 		let turn = try #require(try await sending.acceptedTurn)
 		_ = await observed
 		let settled = try #require(
-			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+			await coach.settledState(of: turn, in: .main, within: .hangGuard))
 		#expect(replyText(settled) == "Still on.")
 		#expect(try #require(await coach.currentSnapshot(.main)).turns.map(\.id) == [turn])
 		let saved = try await inner.fetch(
@@ -150,8 +153,10 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		faulty.failFetches = true
 		async let observed = coach.currentSnapshot(.main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { store.gate.release() }) {
+				await store.reached.first { _ in true } != nil
+			} == true)
 		store.gate.release()
 		let sent = draft("Is Thursday on?")
 		await #expect(throws: AcceptFailure.storageUnavailable) {
@@ -162,7 +167,7 @@ import Testing
 		let outcome = try await coach.send(sent, to: .main)
 		let turn = try #require(outcome.acceptedTurn)
 		let settled = try #require(
-			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+			await coach.settledState(of: turn, in: .main, within: .hangGuard))
 		#expect(replyText(settled) == "Still on.")
 		#expect(try #require(await coach.currentSnapshot(.main)).turns.map(\.id) == [turn])
 		let saved = try await inner.fetch(
@@ -178,10 +183,12 @@ import Testing
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		async let second = coach.send(draft("two"), to: .main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { store.release() }) {
+				await store.reached.first { _ in true } != nil
+			} == true)
 		async let stopped: Void = coach.stop(.main)
-		let interrupted = await coach.settledState(of: running, in: .main, within: .seconds(3))
+		let interrupted = await coach.settledState(of: running, in: .main, within: .hangGuard)
 		store.release()
 		await stopped
 		let queued = try #require(try await second.acceptedTurn)
@@ -204,24 +211,19 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
-		let recording = BatchRecordingLog(inner: store)
 		let before = await makeCoach(
-			transport: transport, store: recording, clock: clock,
+			transport: transport, store: store, clock: clock,
 			coalescing: CoalescingPolicy(window: .seconds(60)))
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 
-		let reopened = await makeCoach(transport: transport, store: recording, clock: clock)
+		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(
 			try #require(await reopened.currentSnapshot(.main)).turns.first?.state
 				== .accepted(.awaitingRestart))
 		try await reopened.retry(turn, in: .main)
 		let settled = try #require(await reopened.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "Still on.")
-		#expect(
-			recording.batches == [
-				["providerConsent"],
-				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
-			])
+
 		let claims = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
 		)
@@ -256,7 +258,7 @@ import Testing
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		let failed = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(failure(failed) == .model(.providerDown(.outage)))
-		#expect(failed.retryable)
+		#expect(turnNotice(of: failed)?.actions == [.tryAgain(turn)])
 		try await coach.retry(turn, in: .main)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "Recovered.")
@@ -329,7 +331,7 @@ import Testing
 		}
 		#expect(transport.requestCount == 0)
 		let failed = try #require(await coach.settledState(of: failedTurn, in: .main))
-		#expect(!failed.retryable)
+		#expect((turnNotice(of: failed)?.actions ?? []).isEmpty)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(
@@ -342,13 +344,11 @@ import Testing
 			], otherwise: transport.respond)
 		let stoppedTurn = try #require(
 			try await coach.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
-		for await snapshot in await coach.observe(.main) {
-			if case .processing(let processing)? = snapshot.turns.last?.state,
-				processing.activity == .generating(step: 2)
-			{
-				break
-			}
-		}
+		try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				guard case .processing(let processing)? = $0.turns.last?.state else { return false }
+				return processing.activity == .generating(step: 2)
+			} != nil)
 		await coach.stop(.main)
 		let stopped = try #require(await coach.settledState(of: stoppedTurn, in: .main))
 		guard case .interrupted(let interrupted) = stopped else {
@@ -356,7 +356,7 @@ import Testing
 			return
 		}
 		#expect(interrupted.saved.memorySections == 1)
-		#expect(!stopped.retryable)
+		#expect((turnNotice(of: stopped)?.actions ?? []).isEmpty)
 		let requests = transport.requestCount
 		transport.respond = ScriptedReply.sequence(
 			[.text("Saved again."), .finish(reason: .stop)], for: .chat,
@@ -380,9 +380,11 @@ import Testing
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
 		_ = try await coach.send(draft("hang"), to: .main)
-		for await snapshot in await coach.observe(.main) {
-			if case .processing? = snapshot.turns.first?.state { break }
-		}
+		try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				if case .processing? = $0.turns.first?.state { return true }
+				return false
+			} != nil)
 		let stale = ReviewRef(
 			chat: .main, set: ChangeSetID(ulid: fixedUlid(1)),
 			revision: ChangeSetRevision(rawValue: 1),

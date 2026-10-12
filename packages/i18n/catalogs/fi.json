@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "Valitse kielesi",
-    "continue": "Jatka",
-    "saveFailed": "Kielivalintaa {{language}} ei voitu tallentaa. Vastausten kieli on edelleen {{current}}. Yritä uudelleen.",
-    "saveFailedAutomatic": "Kielivalintaa {{language}} ei voitu tallentaa. Vastaukset pysyvät kunkin viestin kielellä. Yritä uudelleen."
+    "continue": "Jatka"
   },
   "settings": {
     "appearance": {
@@ -515,6 +513,32 @@
         "remove": "Poista webhook",
         "title": "Poista nykyinen webhook"
       }
+    },
+    "modelAccessTitle": "Mallin käyttö",
+    "session": {
+      "title": "Istunto",
+      "contextWindow": {
+        "label": "Konteksti-ikkuna",
+        "help": "Mallin kontekstin yläraja. Jätä tyhjäksi, jos haluat käyttää oletusta.",
+        "default": "Oletus"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokenia"
+      }
+    },
+    "training": {
+      "section": "Harjoitteluyhteys",
+      "title": "intervals.icu",
+      "replace": "Vaihda avain",
+      "keep": "Säilytä nykyinen yhteys",
+      "disconnect": "Katkaise yhteys",
+      "disconnectTitle": "Katkaistaanko intervals.icu-yhteys?",
+      "disconnectDetail": "Keskustelusi ja historiasi ovat edelleen käytettävissä.",
+      "switchTitle": "Käytetäänkö toista urheilijaa?",
+      "switchDetail": "Tämä avain kuuluu urheilijalle {{new}}. Keskustelusi, historiasi ja muistisi pysyvät tallennettuina urheilijalle {{current}}, eikä niitä käytetä urheilijalle {{new}}. Vaihdetaanko tämän avaimen käyttöön?",
+      "switch": "Vaihda urheilija",
+      "athlete": "Urheilija {{id}}"
     }
   },
   "archive": {
@@ -548,7 +572,8 @@
     "turnCount_one": "{{formattedCount}} viesti",
     "turnCount_other": "{{formattedCount}} viestiä",
     "unavailable": "Tämä keskustelu ei ole enää käytettävissä.",
-    "history": "Historia"
+    "history": "Historia",
+    "savedForAnotherAthlete": "Tallennettu toiselle intervals.icu-urheilijalle ({{id}})"
   },
   "setup": {
     "ai": {
@@ -1024,7 +1049,8 @@
       "working": "Valmentaja työskentelee…",
       "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy.",
       "calendarUnverified": "Kalenterimuutos on saatettu tallentaa. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
-      "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen."
+      "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen.",
+      "startingNewConversation": "Aloitetaan uusi keskustelu…"
     },
     "planChange": {
       "activePlan": "Aktiivinen suunnitelma",
@@ -2910,8 +2936,11 @@
     "accountChanged": "Tämä harjoitus valmisteltiin toiselle urheilijalle palvelussa {{service}}. Pyydä minua uudelleen valmistelemaan se yhdistetylle urheilijalle.",
     "add": "Lisää kalenteriin",
     "cannotVerify": "En voinut tarkistaa yhteyttäsi palveluun {{service}}, joten mitään ei muutettu. Yritä pian uudelleen.",
+    "turnStopping": "Tätä vastausta pysäytetään. Kun se on pysähtynyt, voit hyväksyä tai perua harjoituksen tarkistuksen.",
     "earlierVersion": "Tämä harjoituksen tarkistus on sovelluksen aiemmasta versiosta, eikä sen muutoksia voi enää toteuttaa.",
-    "storageUnavailable": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Viimeisin tarkistuksesi näkyy edelleen. Yritä uudelleen palauttaaksesi painikkeet käyttöön.",
+    "cancelledUnknown": "Peruttu. Tämä harjoitus on silti saatettu tallentaa. Tarkista kalenterisi.",
+    "saveFailed": "Valintaasi ei voitu tallentaa tähän iPhoneen, joten mitään ei muutettu. Yritä uudelleen.",
+    "storageUnavailable": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Sen painikkeet on poistettu tilapäisesti käytöstä.",
     "title": "Harjoituksen tarkistus",
     "uncertain": "En voinut vahvistaa, tallentuiko tämä kalenteriisi palvelussa {{service}}. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
     "workout": {
@@ -2919,7 +2948,10 @@
       "mainSet": "Pääsarja",
       "cooldown": "Jäähdyttely",
       "ramp": "tehon nousu"
-    }
+    },
+    "writePending": "Tämä harjoitus on ehkä tallennettu. Tarkista kalenteri ennen jatkamista.",
+    "writeReadFailed": "Kalenteria ei voitu tarkistaa. Hyväksymäsi harjoitus odottaa yhä vahvistusta.",
+    "saveApprovedAgain": "Tallenna hyväksytty harjoitus uudelleen"
   },
   "credits": {
     "buy": "Osta",
@@ -2933,7 +2965,7 @@
     "packPrice_other": "{{formattedCount}} krediittiä · {{price}}",
     "error": {
       "accessRejected": "Krediittejäsi ei voitu käyttää. Palauta ostokset jatkaaksesi.",
-      "exhausted": "Krediittisi ovat loppuneet. Osta lisää tai vaihda OpenRouter-tiliisi.",
+      "exhausted": "Krediittisi ovat loppuneet. Voit vaihtaa OpenRouter-tiliisi.",
       "unavailable": "Krediitit eivät ole juuri nyt käytettävissä. Yritä myöhemmin uudelleen.",
       "accountChanged": "Krediittitilisi vaihtui tämän pyynnön viimeistelyn aikana. Nykyinen tilisi säilytettiin."
     }
@@ -2959,7 +2991,7 @@
     },
     "consent": {
       "title": "Valmentajasi käyttää tekoälyä",
-      "body": "Vastaamista varten Enduragent lähettää viestisi, valmentajasi muistin ja intervals.icu-palvelusta yhdistämäsi harjoittelutiedot OpenRouterille, joka välittää ne tekoälymallin tarjoajalle (DeepSeek). Ne käyttävät näitä tietoja vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen kuin annat suostumuksesi.",
+      "body": "Vastatakseen Enduragent lähettää viestisi, valmennusmuistisi ja intervals.icu-palvelusta yhdistämäsi harjoitustiedot OpenRouterille, joka välittää ne palveluntarjoajalle {{provider}} mallin {{model}} suorittamista varten. Tietoja käytetään vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen hyväksyntääsi.",
       "accept": "Hyväksy ja jatka",
       "decline": "Ei nyt",
       "saveFailed": "Suostumustasi ei voitu tallentaa. Yritä uudelleen."
@@ -2969,13 +3001,41 @@
     "error": {
       "locked": "Avaa iPhonen lukitus jatkaaksesi. Viestisi on tallennettu.",
       "notConfigured": "Valitse, miten valmentaja saa yhteyden malliin, jotta voit jatkaa.",
+      "requestBlocked": "OpenRouter esti tämän pyynnön. Kokeile toista mallia tai viestiä.",
       "providerConsentRequired": "Lupasi tarvitaan ennen keskustelutietojen jakamista tekoälypalvelujen tarjoajille.",
-      "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin."
-    }
+      "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin.",
+      "storageUnavailable": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Keskustelusi, historiasi ja muistisi ovat edelleen täällä. Yritä uudelleen.",
+      "malformed": "Tallennettua käyttötapaasi ei voitu lukea. Valitse käyttötapa jatkaaksesi."
+    },
+    "title": "Käyttötapa",
+    "openRouterAccount": "OpenRouter-tili",
+    "signIn": "Kirjaudu OpenRouterilla",
+    "signInCancelled": "Kirjautuminen peruutettu. Käyttötapaasi ei muutettu.",
+    "signInIncomplete": "OpenRouter-kirjautuminen ei valmistunut. Käyttötapaasi ei muutettu. Yritä uudelleen.",
+    "switchToOpenRouter": "Vaihda OpenRouteriin"
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu ei hyväksynyt avainta."
-    }
+      "rejected": "intervals.icu ei hyväksynyt avainta.",
+      "blank": "Anna intervals.icu API-avain. Nykyinen yhteytesi ei muuttunut.",
+      "notSaved": "Korvaavaa avainta ei tallennettu. Aiempi yhteytesi ei muuttunut. Yritä uudelleen.",
+      "profileUnavailable": "Urheilijaprofiilisi ei ole tilapäisesti saatavilla. Yritä uudelleen.",
+      "wellnessRejected": "intervals.icu ei sallinut tämän päivän hyvinvointitietojen lukemista. Tarkista yhteytesi.",
+      "wellnessUnavailable": "Tämän päivän hyvinvointitiedot eivät ole tilapäisesti saatavilla. Yritä uudelleen.",
+      "blankConnection": "Anna intervals.icu-API-avain.",
+      "connectionNotSaved": "Yhteyttä ei tallennettu. Yritä uudelleen.",
+      "storageLocked": "Avaa iPhonen lukitus, jotta intervals.icu-yhteytesi voidaan lukea. Yritä sitten uudelleen.",
+      "storageUnavailable": "intervals.icu-yhteytesi on tilapäisesti poissa käytöstä, koska suojattua tallennustilaa ei voitu lukea. Yritä uudelleen.",
+      "storageMalformed": "Tallennettua intervals.icu-yhteyttä ei voitu lukea. Vaihda avain yhdistääksesi uudelleen."
+    },
+    "wellness": {
+      "empty": "Tälle päivälle ei ole hyvinvointitietoja.",
+      "waiting": "Luetaan tämän päivän hyvinvointitietoja…"
+    },
+    "review": "Tarkista yhteys",
+    "profile": {
+      "waiting": "Luetaan urheilijaprofiilia…"
+    },
+    "missing": "intervals.icu ei ole yhdistetty. Yhdistä lisätäksesi harjoituksia kalenteriisi."
   }
 }

@@ -7,6 +7,7 @@ public enum ScriptedEvent: Sendable, Equatable {
 	case finish(reason: FinishReason)
 	case fail(ScriptedFailure)
 	case hang
+	case keepWorking
 }
 
 public struct ScriptedFailure: Sendable, Equatable {

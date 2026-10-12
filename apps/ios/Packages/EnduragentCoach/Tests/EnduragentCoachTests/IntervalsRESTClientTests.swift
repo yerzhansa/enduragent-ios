@@ -1,5 +1,6 @@
 import EnduragentCoachFixtures
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -30,7 +31,7 @@ struct IntervalsRESTClientTests {
 	@Test func fetchAthleteReadsAda() async throws {
 		let client = try makeClient()
 		let athlete = try await client.fetchAthlete()
-		#expect(athlete.id == "0")
+		#expect(athlete.id == "i1001")
 		#expect(athlete.name == "Ada Kovač")
 		#expect(athlete.ftp == 250)
 	}
@@ -43,16 +44,18 @@ struct IntervalsRESTClientTests {
 		#expect(today.fitness == 55.2)
 		#expect(today.fatigue == 42.1)
 		#expect(today.form == 55.2 - 42.1)
-		let labels = Mirror(reflecting: today).children.compactMap(\.label)
-		#expect(!labels.contains("ctl"))
-		#expect(!labels.contains("atl"))
-		let wire = try JSONDecoder().decode(
-			[IntervalsWellnessJSON].self,
-			from: try fixtureData("intervals-wellness")
-		)
-		#expect(wire[0].ctl == 55.2)
-		#expect(wire[0].atl == 42.1)
-		#expect(wire[0].rampRate == 1.4)
+	}
+
+	@Test(arguments: [#""ramp_rate":"invalid""#, #""fatigue":"invalid""#, #""fatigue":2.5"#])
+	func wellnessLoadsWithMalformedUnusedFields(unusedField: String) async throws {
+		let client = try makeClient()
+		let body = #"[{"id":"1998-06-13","ctl":55.2,"atl":42.1,\#(unusedField)}]"#
+		IntervalsURLProtocolStub.handler = { _ in (200, Data(body.utf8)) }
+		let days = try await client.fetchWellness(oldest: "1998-06-13", newest: "1998-06-13")
+		#expect(
+			days == [
+				WellnessDay(date: "1998-06-13", fitness: 55.2, fatigue: 42.1, form: 55.2 - 42.1)
+			])
 	}
 
 	@Test func fetchActivitiesProjectsAdaRides() async throws {
@@ -64,7 +67,7 @@ struct IntervalsRESTClientTests {
 		#expect(rows[0].trainingLoad == 120)
 	}
 
-	@Test func listEventsSendsCategoryQuery() async throws {
+	@Test func listEventsDoesNotFilterAwayMovedIdentities() async throws {
 		let client = try makeClient()
 		let events = try await client.listEvents(oldest: "1998-06-14", newest: "1998-06-20")
 		let items =
@@ -73,7 +76,7 @@ struct IntervalsRESTClientTests {
 				resolvingAgainstBaseURL: false
 			)?.queryItems ?? []
 		let categories = items.filter { $0.name == "category" }.compactMap(\.value)
-		#expect(Set(categories) == Set(IntervalsPolicy.eventCategories))
+		#expect(categories.isEmpty)
 		#expect(events[0].coachCreated)
 		#expect(events[0].name == "Endurance")
 		#expect(!events[1].coachCreated)
@@ -88,7 +91,6 @@ struct IntervalsRESTClientTests {
 		#expect(summary.canonicalDigestInput() == expected.canonicalDigestInput())
 		let encoded = canonicalJSON(summary)
 		#expect(!encoded.contains("\"data\""))
-		writeEvidence("streams-swift.json", canonicalJSON(summary))
 	}
 
 	@Test func rangeOf367DaysIsRejected() async throws {
@@ -122,24 +124,25 @@ struct IntervalsRESTClientTests {
 		let client = try makeClient(
 			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 		)
-		let draft = try CyclingTools.parseCreateWorkout(
+		var draft = try CyclingTools.parseCreateWorkoutInput(
 			try JSONValue.parse(
 				#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}"#
 			),
 			today: "1998-06-13"
-		)
+		).draft
+		draft.writeID = CalendarWriteID()
 		let event = try await client.createChatEvent(draft)
 		let request = try #require(IntervalsURLProtocolStub.lastRequest)
 		#expect(request.httpMethod == "POST")
 		#expect(request.url?.path.hasSuffix("/athlete/0/events") == true)
-		#expect(request.url?.query == "upsertOnUid=false")
+		#expect(request.url?.query == "upsertOnUid=true")
 		let data = try #require(IntervalsURLProtocolStub.lastBody)
 		let body = try #require(String(data: data, encoding: .utf8))
 		#expect(body.contains("\"start_date_local\""))
 		#expect(body.contains("\"external_id\""))
 		#expect(!body.contains("moving_time"))
 		#expect(!body.contains("icu_training_load"))
-		#expect(!body.contains("\"uid\""))
+		#expect(body.contains("\"uid\""))
 		#expect(!body.contains("workout_doc"))
 		#expect(event.name == "Endurance")
 	}
@@ -175,7 +178,26 @@ struct IntervalsRESTClientTests {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let vault = testVault(secrets, training: .rest(session: try stubSession()))
 		let coached = try #require(IntervalsAthleteID(rawValue: "i2002"))
-		_ = await vault.change(.replace(apiKey: "test-key", athlete: .athlete(coached))) { false }
+		let outcome = await vault.change(.replace(apiKey: "test-key", athlete: .athlete(coached))) {
+			false
+		}
+		guard case .replaced(let summary, _) = outcome else {
+			Issue.record("Expected a saved connection")
+			return
+		}
+		#expect(summary.wellness == .waiting)
+		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002")
+		let displayed = Mutex<TrainingStatus?>(nil)
+		await vault.refreshTrainingDisplay(
+			from: summary, isCurrent: { true },
+			publish: { status in
+				displayed.withLock { $0 = status }
+			})
+		guard case .connected(let refreshed, _) = displayed.withLock({ $0 }) else {
+			Issue.record("Expected the refreshed saved connection")
+			return
+		}
+		#expect(refreshed.wellness != .waiting)
 		#expect(
 			IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/wellness")
 		#expect(try secrets.intervalsConnection()?.selection == .athlete(coached))
@@ -220,10 +242,11 @@ struct IntervalsRESTClientTests {
 			}
 			if path.contains("/events") {
 				if method == "POST" {
-					let created = """
-						{"id":1,"start_date_local":"1998-06-14T00:00:00","name":"Endurance","category":"WORKOUT","external_id":"cycling-coach:1998-06-14:endurance","tags":["cycling-coach"]}
-						"""
-					return (200, Data(created.utf8))
+					let data = try #require(IntervalsURLProtocolStub.lastBody)
+					var fields = try JSONValue.parse(String(decoding: data, as: UTF8.self))
+						.objectFields
+					fields["id"] = .number(1)
+					return (200, Data(JSONValue.object(fields).canonicalDigestInput().utf8))
 				}
 				return (200, try fixtureData("intervals-events"))
 			}
@@ -259,7 +282,7 @@ final class IntervalsURLProtocolStub: URLProtocol, @unchecked Sendable {
 	override func startLoading() {
 		Self.lock.lock()
 		Self.lastRequest = request
-		Self.lastBody = Self.copyBody(request)
+		Self.lastBody = httpBody(from: request)
 		let handler = Self.handler
 		Self.lock.unlock()
 		do {
@@ -282,29 +305,6 @@ final class IntervalsURLProtocolStub: URLProtocol, @unchecked Sendable {
 	}
 
 	override func stopLoading() {}
-
-	private static func copyBody(_ request: URLRequest) -> Data? {
-		if let body = request.httpBody {
-			return body
-		}
-		guard let stream = request.httpBodyStream else {
-			return nil
-		}
-		stream.open()
-		defer { stream.close() }
-		var data = Data()
-		let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
-		defer { buffer.deallocate() }
-		while stream.hasBytesAvailable {
-			let count = stream.read(buffer, maxLength: 4096)
-			if count > 0 {
-				data.append(buffer, count: count)
-			} else {
-				break
-			}
-		}
-		return data
-	}
 }
 
 func fixtureData(_ name: String) throws -> Data {
@@ -315,14 +315,4 @@ func fixtureData(_ name: String) throws -> Data {
 		throw URLError(.fileDoesNotExist)
 	}
 	return try Data(contentsOf: url)
-}
-
-func writeEvidence(_ name: String, _ text: String) {
-	guard
-		let path = ProcessInfo.processInfo.environment["ENDURAGENT_TEST_EVIDENCE_DIRECTORY"],
-		!path.isEmpty
-	else { return }
-	let directory = URL(fileURLWithPath: path, isDirectory: true)
-	guard FileManager.default.fileExists(atPath: directory.path) else { return }
-	try? text.write(to: directory.appendingPathComponent(name), atomically: true, encoding: .utf8)
 }

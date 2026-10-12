@@ -16,9 +16,18 @@ import Testing
 		if openConversation { _ = await coach.currentSnapshot(.main) }
 		let remote = await remoteCoach(sharing: store)
 		try await remote.setLanguage(.fixed(.es))
+		let read = store.holdRead(scope: Preferences.scope)
+		defer { read.release() }
 		store.notifyImport()
-		#expect(await snapshots.status { $0.language == .fixed(.es) }?.language == .fixed(.es))
+		try #require(
+			try await beforeDeadline(within: .hangGuard) {
+				await read.waitUntilParked()
+			} != nil,
+			"Preference import read did not park")
+		read.release()
+		#expect(try await snapshots.status { $0.language == .fixed(.es) }?.language == .fixed(.es))
 		#expect(await coach.languagePreference() == .fixed(.es))
+		#expect(try await coach.observedStatus().displayLocale.language == .es)
 		try await coach.setLanguage(.automatic)
 		let reopened = await makeCoach(transport: FakeModelTransport(), store: store)
 		#expect(await reopened.languagePreference() == .automatic)
@@ -45,7 +54,7 @@ import Testing
 		defer { read.release() }
 		store.notifyImport()
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await read.waitUntilParked()
 			} != nil,
 			"Preference import read did not park")
@@ -56,7 +65,9 @@ import Testing
 		try await coach.setSession(local)
 		#expect(await published.next()?.session == local)
 		read.release()
-		let refreshed = await snapshots.status { $0.language == .fixed(.fr) && $0.session == local }
+		let refreshed = try await snapshots.status {
+			$0.language == .fixed(.fr) && $0.session == local
+		}
 		#expect(refreshed?.language == .fixed(.fr))
 		#expect(refreshed?.session == local)
 		let reopened = await makeCoach(transport: FakeModelTransport(), store: store)
@@ -85,7 +96,7 @@ import Testing
 		#expect(await coach.languagePreference() == .fixed(.fr))
 		faults.failFetches = false
 		store.notifyImport()
-		let refreshed = await snapshots.status {
+		let refreshed = try await snapshots.status {
 			$0.language == .fixed(.es) && $0.session == session
 		}
 		#expect(refreshed?.language == .fixed(.es))
@@ -101,7 +112,7 @@ import Testing
 		defer { read.release() }
 		let observing = Task { await coach.observeStatus() }
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await read.waitUntilParked()
 			} != nil,
 			"Initial preference read did not park")
@@ -112,8 +123,9 @@ import Testing
 		try await waitUntil { records.reads.filter { $0 == Preferences.scope }.count > reads }
 		read.release()
 		let snapshots = await observing.value
-		#expect(await snapshots.status { $0.language == .fixed(.es) }?.language == .fixed(.es))
+		#expect(try await snapshots.status { $0.language == .fixed(.es) }?.language == .fixed(.es))
 		#expect(await coach.languagePreference() == .fixed(.es))
+		#expect(try await coach.observedStatus().displayLocale.language == .es)
 		#expect(store.subscriptions == 1)
 	}
 

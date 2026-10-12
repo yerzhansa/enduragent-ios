@@ -78,8 +78,7 @@ import EnduragentCoachFixtures
 
 		private func apiRoot() throws -> APINode {
 			let modules = try moduleDirectory()
-			let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
-				"enduragent-public-surface-\(UUID().uuidString)")
+			let directory = try TestTemporaryFolders.make()
 			try FileManager.default.createDirectory(
 				at: directory, withIntermediateDirectories: true)
 			defer {
@@ -162,6 +161,14 @@ import EnduragentCoachFixtures
 							declarations.map(\.description) == ["enum FinishReason"],
 							"FinishReason belongs to production transport and is exposed by app fixture ScriptedEvent."
 						)
+						continue
+					}
+					if file == sources.appendingPathComponent("Transport/ModelCatalog.swift") {
+						#expect(
+							declarations.map(\.description) == [
+								"struct ModelCatalog", "let revision", "let entries",
+								"let orderedEntries", "let bundled",
+							])
 						continue
 					}
 					#expect(

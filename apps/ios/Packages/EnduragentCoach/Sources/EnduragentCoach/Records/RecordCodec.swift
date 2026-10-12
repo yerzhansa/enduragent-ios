@@ -1,21 +1,36 @@
 import Foundation
 
 enum RecordCodec {
-	static let currentBodyVersion = 2
+	static let currentBodyVersion = 5
 
 	static func encode(_ body: RecordBody) throws -> (version: Int, data: Data) {
 		let encoder = JSONEncoder()
 		encoder.outputFormatting = [.sortedKeys]
 		let data: Data
+		let version: Int
 		switch body {
 		case .synced(let synced):
 			data = try encoder.encode(SyncedPayload(synced))
+			switch synced {
+			case .attemptQuestion:
+				version = 5
+			case .trainingIdentityObserved, .userMessage, .turnSettled, .windowStart,
+				.compactionSummary:
+				version = 4
+			default:
+				version = 2
+			}
 		case .deviceLocal(let local):
 			data = try encoder.encode(DeviceLocalPayload(local))
+			if case .flushPending(let body) = local, body.sourceBound {
+				version = 5
+			} else {
+				version = 2
+			}
 		case .legacy(let legacy):
 			throw RecordDecodeFailure(reason: "legacy kind \(legacy.kind.rawValue) is read-only")
 		}
-		return (currentBodyVersion, data)
+		return (version, data)
 	}
 
 	static func decode(kind: String, version: Int, data: Data, civilDate: CivilDate, ulid: String)
@@ -110,6 +125,13 @@ enum RecordCodec {
 	) throws -> SyncedRecordBody {
 		let name = kind.rawValue
 		switch kind {
+		case .attemptQuestion:
+			return .attemptQuestion(
+				try payload(AttemptQuestionPayload.self, version: version, kind: name, data: data)
+					.body())
+		case .trainingIdentityObserved:
+			_ = try JSONDecoder().decode([String: String].self, from: data)
+			return .trainingIdentityObserved
 		case .userMessage:
 			let payload = try payload(
 				UserMessagePayload.self, version: version, kind: name, data: data)
@@ -130,12 +152,22 @@ enum RecordCodec {
 		case .windowStart:
 			let payload = try payload(
 				WindowStartPayload.self, version: version, kind: name, data: data)
+			let reason = try decodeWindowReason(payload.reason)
+			if version == 3, payload.boundaryClock == nil {
+				throw RecordDecodeFailure(reason: "reset boundary")
+			}
+			if version >= 3, payload.boundaryClock != nil {
+				guard case .reset = reason else {
+					throw RecordDecodeFailure(reason: "reset boundary")
+				}
+			}
 			return .windowStart(
 				WindowStartBody(
 					chatId: try decodeChatID(payload.chatId),
 					firstIncludedUlid: try decodeULID(payload.firstIncludedUlid),
-					reason: try decodeWindowReason(payload.reason),
-					droppedMessageUlids: try payload.droppedMessageUlids?.map(decodeULID)
+					reason: reason,
+					droppedMessageUlids: try payload.droppedMessageUlids?.map(decodeULID),
+					boundaryClock: version >= 3 ? payload.boundaryClock?.clock : nil
 				)
 			)
 		case .compactionSummary:
@@ -145,6 +177,16 @@ enum RecordCodec {
 				CompactionSummaryBody(
 					chatId: try decodeChatID(payload.chatId), markdown: payload.markdown)
 			)
+		case .reviewWrite:
+			let payload = try payload(
+				ReviewWritePayload.self, version: version, kind: name, data: data)
+			return .reviewWrite(try payload.body())
+		case .reviewCancelledUnknown:
+			return .reviewCancelledUnknown(
+				try payload(
+					ReviewCancelledUnknownPayload.self, version: version, kind: name, data: data
+				)
+				.body())
 		case .reviewApplied:
 			let payload = try payload(
 				ReviewAppliedPayload.self, version: version, kind: name, data: data)

@@ -16,12 +16,6 @@ enum OnboardingStep: Equatable {
 	case consentDeferred
 }
 
-enum CivilDates {
-	static func today(clock: any Clock) -> CivilDate {
-		CivilDate(date: clock.now, timeZone: clock.timeZone)
-	}
-}
-
 struct AppServices: Sendable {
 	static var creditsWorkerBase: URL {
 		let raw = Bundle.main.object(forInfoDictionaryKey: "CreditsWorkerBase") as? String
@@ -56,7 +50,7 @@ struct AppServices: Sendable {
 	#endif
 
 	@MainActor
-	static func live(language: LanguageTag) throws -> AppServices {
+	static func live(displayLocale: @escaping DisplayLocaleResolver) throws -> AppServices {
 		let clock = SystemClock()
 		let store = try RecordStore.onDevice(deviceId: persistedDeviceID(in: .standard))
 		let host = ContinuedProcessingHost(
@@ -66,14 +60,15 @@ struct AppServices: Sendable {
 			ports: CoachPorts(
 				records: store,
 				secrets: ICloudKeychainStore(),
-				models: .openRouter(baseURL: ModelService.openRouterAPI),
+				models: try .openRouter(baseURL: ModelService.openRouterAPI),
 				training: .intervalsREST,
 				credits: .worker(creditsWorkerBase),
 				host: host,
-				clock: clock
+				clock: clock,
+				openRouterSignIn: OpenRouterSignInService(authorizer: OpenRouterSignInSession())
 			),
 			builtInModel: builtInModel,
-			deviceLanguage: language
+			displayLocale: displayLocale
 		)
 		return AppServices(
 			coach: coach,
@@ -99,7 +94,6 @@ struct AppServices: Sendable {
 
 @MainActor
 final class AppEnvironment {
-	let language: LanguageTag
 	let defaults: UserDefaults
 	let services: AppServices
 
@@ -107,8 +101,7 @@ final class AppEnvironment {
 		services.deviceCheck
 	}
 
-	init(services: AppServices, language: LanguageTag, defaults: UserDefaults) {
-		self.language = language
+	init(services: AppServices, defaults: UserDefaults) {
 		self.defaults = defaults
 		self.services = services
 	}

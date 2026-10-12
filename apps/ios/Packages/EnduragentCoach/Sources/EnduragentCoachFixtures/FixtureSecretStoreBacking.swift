@@ -7,7 +7,7 @@ extension ICloudKeychainStore {
 		-> (store: ICloudKeychainStore, backing: FixtureSecretStoreBacking)
 	{
 		let backing = try FixtureSecretStoreBacking(directory: directory)
-		return (ICloudKeychainStore(backing: backing), backing)
+		return (backing.store(), backing)
 	}
 }
 
@@ -18,6 +18,7 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 	private let file: URL?
 	private var items: [String: Data]
 	private var isLocked = false
+	private var isUnavailable = false
 	private var failsNextWrite = false
 	private var copied: [String] = []
 	private var deleted: [String] = []
@@ -25,9 +26,34 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 	private var failures: [String: OSStatus] = [:]
 	private var writeFailures: [String: OSStatus] = [:]
 
+	public func store() -> ICloudKeychainStore {
+		ICloudKeychainStore(backing: self)
+	}
+
 	public var locked: Bool {
 		get { lock.withLock { isLocked } }
 		set { lock.withLock { isLocked = newValue } }
+	}
+
+	public var unavailable: Bool {
+		get { lock.withLock { isUnavailable } }
+		set { lock.withLock { isUnavailable = newValue } }
+	}
+
+	public func corruptIntervalsConnection() throws {
+		try lock.withLock {
+			let account = CredentialSlot.intervalsConnection.rawValue
+			try check(account, writing: true)
+			try persist(account: account, data: Data("fixture-malformed-secret".utf8))
+		}
+	}
+
+	public func corruptAccessSelection() throws {
+		try lock.withLock {
+			let account = CredentialSlot.accessSelection.rawValue
+			try check(account, writing: true)
+			try persist(account: account, data: Data("fixture-malformed-selection".utf8))
+		}
 	}
 
 	public var failNextWrite: Bool {
@@ -106,7 +132,7 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		lock.withLock { failures[account] = status }
 	}
 
-	package func failWrites(_ account: String, with status: OSStatus?) {
+	public func failWrites(_ account: String, with status: OSStatus?) {
 		lock.withLock { writeFailures[account] = status }
 	}
 
@@ -159,7 +185,13 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		if isLocked {
 			throw KeychainStoreError.keychain(errSecInteractionNotAllowed)
 		}
-		if let status = failures[account] ?? (writing ? writeFailures[account] : nil) {
+		if isUnavailable {
+			throw KeychainStoreError.keychain(errSecNotAvailable)
+		}
+		let slot = account.split(separator: "/").first.map(String.init) ?? account
+		if let status = failures[account] ?? failures[slot]
+			?? (writing ? writeFailures[account] ?? writeFailures[slot] : nil)
+		{
 			throw KeychainStoreError.keychain(status)
 		}
 		if writing && failsNextWrite {

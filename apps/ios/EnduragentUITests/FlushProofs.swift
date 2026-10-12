@@ -20,8 +20,7 @@ final class FlushSurvivesKillProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "flushPending"), "flushPending 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "ledgerEvent"), "ledgerEvent 1")
 		TutorialHarness.attach(self, name: "flush-settled-after-relaunch", app: app)
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -33,22 +32,21 @@ final class SummaryFirstProof: XCTestCase {
 		for _ in 1...6 {
 			TutorialHarness.sendLong(app)
 		}
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
-		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply, timeout: 30)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply, within: .turn)
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "compactionSummary", "compactionSummary 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "windowStart"), "windowStart 1")
 		TutorialHarness.attach(self, name: "summary-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		XCTAssertEqual(TutorialHarness.historyHead(app), TutorialHarness.summaryHead)
-		TutorialHarness.send(app, TutorialHarness.remember)
-		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply, timeout: 30)
+		TutorialHarness.exchange(app, TutorialHarness.remember)
+		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply, within: .turn)
 		XCTAssertEqual(TutorialHarness.historyHead(app), TutorialHarness.summaryHead)
 		XCTAssertTrue(
 			TutorialHarness.text(app, containing: TutorialHarness.rememberReply).isHittable,
 			"the newest reply is off screen after the menu closes")
 		TutorialHarness.attach(self, name: "summary-first-next-turn", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -64,7 +62,7 @@ final class SoftFlushGateProof: XCTestCase {
 		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 4")
 		XCTAssertNil(TutorialHarness.recordCount(app, "flushPending"))
 		TutorialHarness.attach(self, name: "soft-gate-holds", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.sendLong(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.openRecords(app)
@@ -72,8 +70,7 @@ final class SoftFlushGateProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "flushPending"), "flushPending 1")
 		XCTAssertNil(TutorialHarness.recordCount(app, "windowStart"))
 		TutorialHarness.attach(self, name: "soft-gate-opens", app: app)
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -99,8 +96,7 @@ final class DrainAtLaunchProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "flushPending"), "flushPending 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "ledgerEvent"), "ledgerEvent 1")
 		TutorialHarness.attach(self, name: "drain-at-launch-records", app: app)
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.openRecords(app)
 		let settled = TutorialHarness.settlementRows(app)
 		XCTAssertEqual(settled.count, 3, "rows: \(settled)")

@@ -34,18 +34,6 @@ import Testing
 		}
 	}
 
-	@Test func replyLanguageKeepsFixedAndMirrorDistinct() {
-		let message = "Comment était ma semaine et que dois-je faire aujourd'hui ?"
-		#expect(
-			LanguagePreference.fixed(.it).replyLanguage(for: message, device: .nl) == .fixed(.it))
-		#expect(
-			LanguagePreference.automatic.replyLanguage(for: message, device: .nl)
-				== .mirror(fallback: .fr))
-		#expect(
-			LanguagePreference.automatic.replyLanguage(for: "123", device: .nl)
-				== .mirror(fallback: .nl))
-	}
-
 	@Test func normalizeLocaleHintMatchesDesktop() {
 		let cases: [(String, LanguageTag?)] = [
 			("it_IT.UTF-8", .it),
@@ -93,14 +81,6 @@ import Testing
 		#expect(Language.uiTag(systemLanguages: []) == .en)
 	}
 
-	@Test func languageSlashYieldsLanguageCommandAndStartsNoModelTurn() {
-		#expect(SlashRouting.parse("/language") == .language)
-		#expect(SlashRouting.parse("  /language  ") == .language)
-		#expect(SlashRouting.parse("/language it") == .language)
-		#expect(SlashCommand.language.route == .languagePicker)
-		#expect(SlashRouting.parse("/review") != .language)
-	}
-
 	@Test func fixedPreferenceChangesAppTextAndReplySection() async throws {
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
@@ -110,14 +90,14 @@ import Testing
 			], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
 		let coach = await makeCoach(transport: transport, store: store)
-		let automatic = try await coach.observedStatus().language
-		#expect(automatic == .automatic)
-		#expect(automatic.phrasebook(device: .en).say(Catalog.chatViewTitle) == "Chat")
+		let automatic = try await coach.observedStatus()
+		#expect(automatic.language == .automatic)
+		#expect(automatic.displayLocale.phrasebook.say(Catalog.chatViewTitle) == "Chat")
 		_ = try await coach.sendAndSettle("How was my week?")
 		try await coach.setLanguage(.fixed(.fr))
-		let chosen = try await coach.observedStatus().language
-		#expect(chosen == .fixed(.fr))
-		let french = chosen.phrasebook(device: .en)
+		let chosen = try await coach.observedStatus()
+		#expect(chosen.language == .fixed(.fr))
+		let french = chosen.displayLocale.phrasebook
 		#expect(french.say(Catalog.chatViewTitle) == "Conversation")
 		#expect(french.say(Catalog.chatComposerMessagePlaceholder) == "Écris à ton coach")
 		#expect(
@@ -129,9 +109,8 @@ import Testing
 		_ = try await coach.sendAndSettle("How was my week?")
 		let systems = sent(.chatAttempt, by: transport).compactMap { $0.messages.first?.content }
 		try #require(systems.count == 2)
-		#expect(systems[0].contains("No language is saved."))
-		#expect(systems[0].contains("reply in English (English)."))
-		#expect(systems[1].contains("The athlete chose French (Français)."))
+		#expect(systems[0].contains("Reply in English (English)."))
+		#expect(systems[1].contains("Reply in French (Français)."))
 		#expect(
 			try await makeCoach(transport: FakeModelTransport(), store: store).observedStatus()
 				.language
@@ -141,47 +120,50 @@ import Testing
 				.count == 1)
 	}
 
-	@Test func automaticPreferenceRepliesInTheMessageLanguage() async throws {
-		let transport = FakeModelTransport()
-		transport.respond = ScriptedReply.sequence(
-			[.text("Bene."), .finish(reason: .stop)], otherwise: transport.respond)
-		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
-		_ = try await coach.sendAndSettle("Come è andata la mia settimana di allenamento oggi?")
-		let system = try #require(sent(.chatAttempt, by: transport).first?.messages.first?.content)
-		#expect(system.contains("No language is saved."))
-		#expect(system.contains("reply in Italian (Italiano)."))
-	}
-
-	@Test func automaticRepliesFollowEachMessageWithTheInterfaceLanguageFallback() async throws {
+	@Test(arguments: [
+		(
+			LanguagePreference.fixed(.fr), ["en-US"], ["How was my training week?"], LanguageTag.fr,
+			"Écris à ton coach"
+		),
+		(
+			.automatic, ["ru-RU", "fr-FR", "en-US"],
+			["How was my training week?", "今週の練習はどうでしたか？"], .fr, "Écris à ton coach"
+		),
+		(.automatic, ["ru-RU", "fr-FR"], ["123", "/review"], .fr, "Écris à ton coach"),
+		(.automatic, ["ru-RU", "ar"], ["ok"], .en, "Message your coach"),
+		(.automatic, ["pt-BR", "pt-PT"], ["ok"], .ptBR, "Envie uma mensagem ao seu treinador"),
+		(.automatic, ["zh-Hant", "zh-Hans"], ["ok"], .zhHant, "傳送訊息給教練"),
+	])
+	func appLanguageAndReplyInstructionFollowPreference(
+		preference: LanguagePreference, preferredLanguages: [String], messages: [String],
+		expected: LanguageTag, placeholder: String
+	) async throws {
 		let transport = FakeModelTransport()
 		let coach = await makeCoach(
-			transport: transport, store: InMemoryRecordLog(), deviceLanguage: .fr)
-		let messages: [(String, LanguageTag)] = [
-			("Come è andata la mia settimana di allenamento oggi?", .it),
-			("How was my training week and what should I do today?", .en),
-			("123", .fr),
-		]
-		for (message, language) in messages {
+			transport: transport, store: InMemoryRecordLog(),
+			displayLocale: {
+				DisplayLocale(
+					preference: $0, preferredLanguages: preferredLanguages,
+					regionalConventions: Locale(identifier: "en_US"))
+			})
+		try await coach.setLanguage(preference)
+		for message in messages {
 			transport.respond = ScriptedReply.sequence(
 				[.text("Reply"), .finish(reason: .stop)], otherwise: transport.respond)
 			_ = try await coach.sendAndSettle(message)
+			let status = try await coach.observedStatus()
+			#expect(status.language == preference)
+			let phrasebook = status.displayLocale.phrasebook
+			#expect(phrasebook.tag == expected)
+			#expect(phrasebook.say(Catalog.chatComposerMessagePlaceholder) == placeholder)
 			let system = try #require(
 				sent(.chatAttempt, by: transport).last?.messages.first?.content)
-			#expect(system.contains("No language is saved."))
-			#expect(system.contains("Reply in the language of the athlete's latest message"))
-			#expect(system.contains("reply in \(language.englishName) (\(language.endonym))."))
+			#expect(
+				system.contains(
+					"Write every athlete-facing sentence in \(expected.englishName), even when the athlete writes in another language."
+				))
+			#expect(system.contains("Reply in \(expected.englishName) (\(expected.endonym))."))
 		}
-	}
-
-	@Test(arguments: [LanguageTag.es, .fr])
-	func automaticAppTextFollowsANonEnglishPhone(device: LanguageTag) async throws {
-		let coach = await makeCoach(
-			transport: FakeModelTransport(), store: InMemoryRecordLog(), deviceLanguage: device)
-		let preference = try await coach.observedStatus().language
-		#expect(preference == .automatic)
-		#expect(
-			preference.phrasebook(device: device).say(Catalog.chatComposerMessagePlaceholder)
-				== device.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
 	}
 
 	@Test func legacyCoachReplyLanguageFoldsOnlyWithoutPreference() async throws {
@@ -209,7 +191,7 @@ import Testing
 		#expect(try await coach.observedStatus().language == .fixed(.it))
 		_ = try await coach.sendAndSettle("How was my week?")
 		let system = try #require(sent(.chatAttempt, by: transport).first?.messages.first?.content)
-		#expect(system.contains("The athlete chose Italian (Italiano)."))
+		#expect(system.contains("Reply in Italian (Italiano)."))
 		try await coach.setLanguage(.automatic)
 		#expect(
 			try await makeCoach(transport: transport, store: store).observedStatus().language
@@ -221,7 +203,7 @@ import Testing
 		#expect(try await coach.observedStatus().language == .automatic)
 		try await coach.setLanguage(.fixed(.ja))
 		#expect(try await coach.observedStatus().language == .fixed(.ja))
-		let ratio = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.05")
+		let ratio = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "5")
 		try await coach.setSession(ratio)
 		let status = try await coach.observedStatus()
 		#expect(status.session == ratio)
@@ -235,8 +217,7 @@ import Testing
 		let coach = await makeCoach(transport: FakeModelTransport(), store: held)
 		#expect(try await coach.observedStatus().language == .automatic)
 		let first = Task { try await coach.setLanguage(.fixed(.fr)) }
-		var reached = held.reached.makeAsyncIterator()
-		await reached.next()
+		try await held.waitUntilReached()
 		try await coach.setLanguage(.fixed(.de))
 		held.release()
 		try await first.value
@@ -283,8 +264,7 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: store, host: host)
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
+		try await store.waitUntilReached()
 		try await coach.setLanguage(.fixed(.es))
 		#expect(try await coach.observedStatus().language == .fixed(.es))
 		store.release()
@@ -311,14 +291,4 @@ import Testing
 		#expect(try await coach.observedStatus().language == .fixed(.fr))
 	}
 
-	@Test func failedWriteKeepsThePreviousPreference() async throws {
-		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
-		let coach = await makeCoach(transport: FakeModelTransport(), store: log)
-		try await coach.setLanguage(.fixed(.de))
-		try log.failAppends(ofKind: "languagePreference")
-		await #expect(throws: PreferenceWriteFailure.notSaved) {
-			try await coach.setLanguage(.fixed(.fr))
-		}
-		#expect(try await coach.observedStatus().language == .fixed(.de))
-	}
 }

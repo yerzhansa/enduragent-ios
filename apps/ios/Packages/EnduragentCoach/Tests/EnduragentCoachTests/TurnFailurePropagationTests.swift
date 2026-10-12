@@ -1,17 +1,13 @@
 import EnduragentCoachFixtures
-import Synchronization
 import Testing
 
 @testable import EnduragentCoach
 
 @Suite struct TurnFailurePropagationTests {
-	@Test func memorySnapshotReadFailureSettlesTheTurnWithoutARequest() async throws {
-		try await expectPromptReadFailure(on: 1)
-	}
-
 	@Test func memorySectionValidationFailureDoesNotWrite() async throws {
 		let store = InMemoryRecordLog()
-		let failing = MemoryReadFailingLog(wrapping: store, failingOn: 2)
+		let failing = FaultInjectingRecordLog(wrapping: store)
+		failing.failNextFetch(in: Memory.snapshotScope, skipping: 1)
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
 			[
@@ -131,9 +127,10 @@ import Testing
 		return store
 	}
 
-	private func expectPromptReadFailure(on occurrence: Int) async throws {
+	@Test func memorySnapshotReadFailureSettlesTheTurnWithoutARequest() async throws {
 		let store = InMemoryRecordLog()
-		let failing = MemoryReadFailingLog(wrapping: store, failingOn: occurrence)
+		let failing = FaultInjectingRecordLog(wrapping: store)
+		failing.failNextFetch(in: Memory.snapshotScope, skipping: 0)
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
 			[.text("This response must not be generated."), .finish(reason: .stop)], for: .chat,
@@ -146,45 +143,5 @@ import Testing
 		let turn = try #require(await coach.currentSnapshot(.main)?.turns.first?.id)
 		let persisted = try await settlements(of: turn, in: store)
 		#expect(persisted == [.failed(.local(.recordStorage), saved: .none)])
-	}
-}
-
-private final class MemoryReadFailingLog: RecordLog, Sendable {
-	let deviceId: DeviceID
-	private let wrapped: any RecordLog
-	private let failingOn: Int
-	private let reads = Mutex(0)
-
-	init(wrapping wrapped: any RecordLog, failingOn: Int) {
-		self.deviceId = wrapped.deviceId
-		self.wrapped = wrapped
-		self.failingOn = failingOn
-	}
-
-	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
-		try await wrapped.append(batch, locality: locality)
-	}
-
-	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
-		try await wrapped.latest(locality: locality, writtenBy: writtenBy)
-	}
-
-	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		if query.scope
-			== .synced([.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary])
-		{
-			let occurrence = reads.withLock { count in
-				count += 1
-				return count
-			}
-			if occurrence == failingOn {
-				throw RecordStorageFault(operation: .fetch)
-			}
-		}
-		return try await wrapped.fetch(query)
-	}
-
-	var imports: AsyncStream<Void> {
-		wrapped.imports
 	}
 }

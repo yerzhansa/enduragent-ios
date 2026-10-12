@@ -21,13 +21,23 @@ public struct ScriptedRequest: Sendable {
 	public let retry: Bool
 	public let purpose: Purpose
 	public let step: Int
+	public let toolResults: [String]
+	public let credential: String
+	public let accessMethod: AccessMethod
+	public let model: ModelID
 
-	package init(request: CompletionRequest, purpose: Purpose, step: Int) {
-		self.userMessages = request.messages.filter { $0.role == .user }.map(\.content)
+	package init(
+		request: CompletionRequest, context: CompletionRequest, purpose: Purpose, step: Int
+	) {
+		self.credential = request.credential.secret
+		self.accessMethod = request.credential.method
+		self.model = request.model
+		self.toolResults = request.messages.filter { $0.role == .tool }.map(\.content)
+		self.userMessages = context.messages.filter { $0.role == .user }.map(\.content)
 		self.text =
-			request.messages.last { $0.role == .user }?.content
+			context.messages.last { $0.role == .user }?.content
 			.components(separatedBy: "\nCurrent time:")[0] ?? ""
-		self.retry = request.origin == .retry
+		self.retry = context.origin == .retry
 		self.purpose = purpose
 		self.step = step
 	}

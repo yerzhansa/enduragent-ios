@@ -65,11 +65,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[
 				.text("Noted. "),
-				.toolCall(
-					name: "memory_write",
-					arguments:
-						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-				),
+				.saturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.fail(.http(status: 500)),
 				.text("Never sent."),
@@ -81,8 +77,7 @@ import Testing
 			return
 		}
 		#expect(savedWork.outcome == .savedUnverified)
-		#expect(savedWork.notice.action == nil)
-		#expect(!settled.retryable)
+		#expect(savedWork.notice.actions.isEmpty)
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 2)
 	}
 

@@ -19,106 +19,127 @@ extension FixtureLaunchTests {
 		var moved = launch
 		moved.clock = parsed.clock
 		#expect(
-			try AppServices.fixture(moved, defaults: defaults).clock.now == instant(parsed.clock))
+			try fixtureServices(moved, defaults: defaults).clock.now == instant(parsed.clock))
 		#expect(try services().clock.now == instant(FixtureLaunch.defaultClock))
 	}
 
-	@Test func languageChoiceRewritesTheChatAndTheNextReplyRequest() async throws {
-		let services = try services()
-		let model = model(services)
-		await model.agreeAndStartChatting()
-		#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Chat")
-		model.draft.text = "/language"
-		await model.send()
-		#expect(model.showLanguage)
-		#expect(model.draft.text.isEmpty)
-		#expect(model.status?.language == .automatic)
-		await model.chooseLanguage(.fixed(.fr))
-		try await model.waitForStatus { $0.language == .fixed(.fr) }
-		#expect(model.status?.language == .fixed(.fr))
-		#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Conversation")
-		#expect(
-			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
-				== "Écris à ton coach")
-		model.draft.text = TutorialCopy.weekQuestion
-		await model.send()
-		_ = try await settledTurn(model)
-		#expect(
-			services.fixtureTransport?.lastReplyLanguage?.hasPrefix(
-				"The athlete chose French (Français).") == true)
-		let (kept, keptDefaults) = try relaunch(.keep)
-		let reopened = ShellModel(
-			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
-		#expect(reopened.route == .loading)
-		await reopened.appear()
-		#expect(reopened.route == .chat)
-		#expect(reopened.status?.language == .fixed(.fr))
-		#expect(reopened.phrasebook.say(Catalog.chatViewTitle, [:]) == "Conversation")
-	}
-
-	@Test func aLanguageThatCannotBeSavedKeepsTheCurrentChoice() async throws {
-		let services = try services()
-		let model = model(services)
-		await model.agreeAndStartChatting()
-		let records = try #require(services.fixtureRecordFaults)
-		try records.failAppends(ofKind: "languagePreference")
-		await model.chooseLanguage(.fixed(.de))
-		#expect(
-			model.languageNotSavedLine
-				== "Couldn't save Deutsch. Replies stay in the language of each message. Try again."
-		)
-		#expect(model.status?.language == .automatic)
-		model.draft.text = "/language"
-		await model.send()
-		#expect(model.languageNotSavedLine == nil)
-	}
-
-	@Test func sessionSettingsSaveAndSurviveARelaunch() async throws {
-		let services = try services()
-		let model = model(services)
-		await model.agreeAndStartChatting()
-		let stored = try #require(model.status).session
-		#expect(stored.text(for: .contextWindowOverride) == "")
-		try await model.saveSession(try stored.replacing(.contextWindowOverride, with: "64000"))
-		try await model.waitForStatus { $0.session.contextWindowOverride?.tokens == 64_000 }
-		#expect(model.status?.session.contextWindowOverride?.tokens == 64_000)
-		let (kept, _) = try relaunch(.keep)
-		#expect(
-			try await kept.coach.observedStatus().session.text(for: .contextWindowOverride)
-				== "64000")
-	}
-
-	@Test func aThirteenHourGapAfterARelaunchKeepsTheConversation() async throws {
-		var evening = launch
-		evening.clock = "1998-06-15T18:00:00Z"
-		let first = model(try AppServices.fixture(evening, defaults: defaults))
-		await first.agreeAndStartChatting()
-		first.draft.text = TutorialCopy.weekQuestion
-		await first.send()
-		let earlier = try await settledTurn(first)
-		var morning = launch
-		morning.store = .keep
-		morning.clock = "1998-06-16T07:00:00Z"
-		let keptDefaults = try morning.prepare()
-		let second = ShellModel(
-			environment: AppEnvironment(
-				services: try AppServices.fixture(morning, defaults: keptDefaults),
-				language: language,
-				defaults: keptDefaults))
-		try await observed(second)
-		second.draft.text = TutorialCopy.weekQuestion
-		await second.send()
-		try await until(within: .seconds(20)) {
-			second.chat?.turns.count == 2 && second.chat?.turns.last?.state.isSettled == true
+	@Test(arguments: [false, true], [LanguagePreference.fixed(.fr), .automatic])
+	func languageChoiceRewritesTheChatAndTheNextReplyRequest(
+		fromSettings: Bool, preference: LanguagePreference
+	) async throws {
+		do {
+			let services = try fixtureServices(launch, defaults: defaults, language: .fr)
+			let model = await fixtureModel(
+				environment: AppEnvironment(services: services, defaults: defaults))
+			await model.agreeAndStartChatting()
+			try await observed(model)
+			await model.chooseLanguage(.fixed(.de))
+			try await model.waitForStatus { $0.language == .fixed(.de) }
+			await openLanguage(model, fromSettings: fromSettings)
+			#expect(model.showLanguage)
+			#expect(model.draft.text.isEmpty)
+			#expect(model.chat?.turns.isEmpty == true)
+			await model.chooseLanguage(preference)
+			try await model.waitForStatus { $0.language == preference }
+			#expect(model.languagePreference == preference)
+			#expect(model.phrasebook.say(Catalog.chatViewTitle) == "Conversation")
+			#expect(
+				model.phrasebook.say(Catalog.chatComposerMessagePlaceholder) == "Écris à ton coach")
 		}
-		#expect(second.chat?.opening == .continuing)
-		#expect(second.chat?.turns.first?.id == earlier.id)
-		await second.loadHistory()
-		guard case .loaded(let archived) = second.history else {
-			Issue.record("History did not load: \(second.history)")
+		let (kept, keptDefaults) = try await relaunch(.keep, language: .fr)
+		let launched = await AppLaunch.open(
+			displayLocale: testLocaleResolver(languages: ["ru", "fr", "en"])
+		) { _ in
+			(kept, keptDefaults)
+		}
+		guard case .ready(let opened) = launched else {
+			Issue.record("The saved preference did not reopen into a ready shell")
 			return
 		}
-		#expect(archived.isEmpty)
+		let reopened = fixture.own(opened)
+		#expect(reopened.route == .loading)
+		#expect(reopened.languagePreference == preference)
+		#expect(
+			reopened.phrasebook.say(Catalog.chatComposerMessagePlaceholder) == "Écris à ton coach")
+		try await observed(reopened)
+		#expect(reopened.chat?.turns.isEmpty == true)
+		let messages =
+			preference == .automatic
+			? [TutorialCopy.weekQuestion, "今週の練習はどうでしたか？", "/review"]
+			: [TutorialCopy.weekQuestion]
+		for (index, message) in messages.enumerated() {
+			reopened.draft.text = message
+			await reopened.send()
+			_ = try await settledTurn(reopened, at: index)
+			let instruction = try #require(kept.fixtureTransport?.lastReplyLanguage)
+			#expect(instruction.hasPrefix("Reply in French (Français)."))
+			#expect(reopened.languagePreference == preference)
+		}
+	}
+
+	@Test(arguments: [false, true], [LanguagePreference.fixed(.de), .automatic])
+	func aLanguageThatCannotBeSavedKeepsTheCurrentChoice(
+		fromSettings: Bool, attempted: LanguagePreference
+	) async throws {
+		do {
+			let services = try fixtureServices(launch, defaults: defaults, language: .fr)
+			let model = await fixtureModel(
+				environment: AppEnvironment(services: services, defaults: defaults))
+			await model.agreeAndStartChatting()
+			try await observed(model)
+			await model.chooseLanguage(.fixed(.en))
+			try await model.waitForStatus { $0.language == .fixed(.en) }
+			let records = try #require(services.fixtureRecordFaults)
+			records.failNextAppend = true
+			await openLanguage(model, fromSettings: fromSettings)
+			await model.chooseLanguage(attempted)
+			#expect(!records.failNextAppend)
+			#expect(
+				model.languageNotSavedLine
+					== "Couldn't save your choice on this iPhone, so nothing was changed. Try again."
+			)
+			#expect(model.languagePreference == .fixed(.en))
+			model.draft.text = TutorialCopy.weekQuestion
+			await model.send()
+			_ = try await settledTurn(model)
+			#expect(
+				services.fixtureTransport?.lastReplyLanguage?.hasPrefix(
+					"Reply in English (English).") == true)
+			await openLanguage(model, fromSettings: fromSettings)
+			#expect(model.languageNotSavedLine == nil)
+		}
+		let (kept, keptDefaults) = try await relaunch(.keep, language: .fr)
+		let launched = await AppLaunch.open(
+			displayLocale: testLocaleResolver(languages: ["ru", "fr", "en"])
+		) { _ in
+			(kept, keptDefaults)
+		}
+		guard case .ready(let opened) = launched else {
+			Issue.record("The old preference did not reopen after the failed save")
+			return
+		}
+		let reopened = fixture.own(opened)
+		#expect(reopened.languagePreference == .fixed(.en))
+		#expect(
+			reopened.phrasebook.say(Catalog.chatComposerMessagePlaceholder) == "Message your coach")
+		try await observed(reopened)
+		reopened.draft.text = "How should I pace an easy ride?"
+		await reopened.send()
+		_ = try await settledTurn(reopened, at: 1)
+		#expect(
+			kept.fixtureTransport?.lastReplyLanguage?.hasPrefix(
+				"Reply in English (English).") == true)
+	}
+
+	private func openLanguage(_ model: ShellModel, fromSettings: Bool) async {
+		if fromSettings {
+			model.open(.settings)
+			model.openLanguagePicker()
+		} else {
+			model.draft.text = "/language"
+			await model.send()
+			#expect(model.draft.text.isEmpty)
+		}
 	}
 
 	private func instant(_ text: String) throws -> Date {

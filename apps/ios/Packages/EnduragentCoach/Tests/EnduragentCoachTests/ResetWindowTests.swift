@@ -10,10 +10,6 @@ import Testing
 	let store = InMemoryRecordLog()
 	let host = ImmediateExecutionHost()
 
-	let schedule: ScriptedEvent = .toolCall(
-		name: "memory_write",
-		arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#)
-
 	func coach(over log: (any RecordLog)? = nil, window: Duration = .milliseconds(20)) async
 		-> Coach
 	{
@@ -106,8 +102,9 @@ import Testing
 								settlement: .saved(sections: 1, events: 0))))),
 			])
 		transport.respond = ScriptedReply.sequence(
-			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
-		#expect(await coach().startNewConversation(in: .main) == .started(memory: .saved))
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls)], for: .flush,
+			otherwise: transport.respond)
+		#expect(await coach().resetAndSettle(in: .main) == .started(memory: .saved))
 		let window = try #require(flushed().first)
 		#expect(!window.contains("Question 0"))
 		#expect(window.contains("Question 1"))
@@ -118,7 +115,7 @@ import Testing
 		let (coach, user) = try await resetAcrossLateReply()
 		let next =
 			relaunch ? await makeCoach(transport: transport, store: store, clock: clock) : coach
-		#expect(await next.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await next.resetAndSettle(in: .main) == .started(memory: .saved))
 		let requests = sent(.memoryFlush, by: transport)
 		try #require(requests.count == 2)
 		#expect(!requests[0].messages.contains { $0.unstampedContent == "Remember Saturdays" })
@@ -160,7 +157,7 @@ import Testing
 		#expect(!window.contains("Two rides."))
 	}
 
-	@Test func aSyncedTurnBeyondTheResetBoundaryStaysUnsavedInTheNewConversation() async throws {
+	@Test func anObservedAheadClockTurnPrecedesTheReservedResetBoundary() async throws {
 		let foreign = InMemoryRecordLog(deviceId: DeviceID(rawValue: "phone-b"))
 		let ahead = FixedClock(now: "1998-06-13T12:02:00+02:00", timeZone: "Europe/Amsterdam")
 		let turns = try await seedHistory(foreign, clock: ahead, turns: 1, tokens: 40)
@@ -168,15 +165,75 @@ import Testing
 		let coach = await coach()
 		let before = await coach.transcript(.main)
 		try #require(before.count == 2)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let conversation = try await ledger.conversation(.main)
 		let boundary = try #require(conversation.current.id.boundary)
 		let first = try #require(turns.first)
 		try #require(boundary < first.user)
-		#expect(await coach.transcript(.main) == before)
-		#expect(flushed().isEmpty)
-		#expect(try await ledger.flushJobs(in: try await ledger.conversation(.main)).isEmpty)
+		#expect(await coach.transcript(.main).isEmpty)
+		let window = try #require(flushed().first)
+		#expect(before.allSatisfy(window.contains))
+		#expect(try await coach.history().count == 1)
+		let jobs = try await ledger.flushJobs(in: conversation)
+		#expect(jobs.count == 1)
+		#expect(jobs.first?.coverage.listed == [first.user, first.reply])
+		let reopened = await self.coach()
+		#expect(await reopened.transcript(.main).isEmpty)
+		let archive = try #require(try await reopened.history().first?.id)
+		#expect(try await reopened.archivedConversation(archive)?.turns.map(\.id) == [first.turn])
+	}
+
+	@Test func aSendAcceptedWhileResetWaitsForFlushStaysCurrent() async throws {
+		let held = HeldAppendLog(inner: store, holding: "flushPending", occurrence: 1)
+		defer { held.release() }
+		let coach = await coach(over: held)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Old answer"), .finish(reason: .stop), .text("New answer"),
+				.finish(reason: .stop),
+			],
+			otherwise: transport.respond)
+		_ = try await coach.sendAndSettle("Old question")
+		let resetting = startNewConversation(on: coach)
+		let parked = try await beforeDeadline(within: .hangGuard) {
+			var reached = held.reached.makeAsyncIterator()
+			return await reached.next() != nil
+		}
+		try #require(parked == true)
+		#expect(try await store.fetch(RecordQuery(scope: .synced([.windowStart]))).records.isEmpty)
+		let next = try #require(try await coach.send(draft("New question"), to: .main).acceptedTurn)
+		let user = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: next)).records
+				.first)
+		held.release()
+		let reset = try await beforeDeadline(within: .hangGuard) {
+			try #require(try await outcome(resetting))
+		}
+		#expect(try #require(reset) == .started(memory: .saved))
+		#expect(
+			replyText(try #require(await coach.settledState(of: next, in: .main))) == "New answer")
+		#expect(await coach.transcript(.main) == ["New question", "New answer"])
+		let windowRecord = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.windowStart]))).records.first)
+		guard case .synced(.windowStart(let body)) = windowRecord.body else {
+			Issue.record("Expected a reset window")
+			return
+		}
+		#expect(try #require(body.boundaryClock) < user.hlc)
+		#expect(user.hlc < windowRecord.hlc)
+		#expect(flushed().count == 1)
+		let window = try #require(flushed().first)
+		#expect(window.contains("Old question"))
+		#expect(window.contains("Old answer"))
+		#expect(!window.contains("New question"))
+		let reopened = await self.coach()
+		#expect(await reopened.transcript(.main) == ["New question", "New answer"])
+		let archive = try #require(try await reopened.history().first?.id)
+		#expect(
+			try await reopened.archivedConversation(archive)?.turns.map(\.athleteText) == [
+				"Old question"
+			])
 	}
 
 	private func resetAcrossLateReply() async throws -> (Coach, ULID) {

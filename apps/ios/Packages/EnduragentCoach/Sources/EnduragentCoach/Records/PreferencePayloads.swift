@@ -3,14 +3,32 @@ import Foundation
 struct ProviderConsentPayload: Codable {
 	var version: Int
 	var at: Double
+	var method: AccessMethod?
+	var model: String?
+	var details: StoredModelDetails?
+	var selectionCommit: UUID?
 
 	init(_ consent: ProviderConsent) {
 		self.version = consent.version
 		self.at = consent.at.timeIntervalSinceReferenceDate
+		self.method = consent.target?.method
+		self.model = consent.target?.entry.id.rawValue
+		self.details = consent.target.map { StoredModelDetails($0.entry.details) }
+		self.selectionCommit = consent.selectionCommit
 	}
 
-	func body() -> ProviderConsent {
-		ProviderConsent(version: version, at: Date(timeIntervalSinceReferenceDate: at))
+	func body() throws -> ProviderConsent {
+		let date = Date(timeIntervalSinceReferenceDate: at)
+		if version == 1 { return ProviderConsent(legacyAt: date) }
+		guard let method, let model, let details else {
+			throw RecordDecodeFailure(reason: "providerConsent")
+		}
+		return ProviderConsent(
+			target: ConsentTarget(
+				method: method,
+				entry: try ModelCatalogEntry(
+					id: ModelID(rawValue: model), details: details.validated())),
+			at: date, version: version, selectionCommit: selectionCommit)
 	}
 }
 

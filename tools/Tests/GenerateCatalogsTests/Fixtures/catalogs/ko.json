@@ -1,0 +1,14 @@
+{
+  "app": {
+    "greeting": "[ko] {{name}}: {{distance}} km",
+    "progress": "[ko] {{goal}} 100%",
+    "braces": "[ko] {{name}}"
+  },
+  "rides": {
+    "count_one": "[ko] {{count}}",
+    "count_other": "[ko] {{count}} · {{place}}",
+    "empty": "[ko] —",
+    "last_ride_title": "[ko] é 日本語 😀"
+  },
+  "orphan_few": "[ko] few"
+}

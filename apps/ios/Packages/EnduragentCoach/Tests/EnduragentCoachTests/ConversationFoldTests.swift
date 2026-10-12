@@ -8,16 +8,10 @@ import Testing
 	let phoneB = DeviceID(rawValue: "phone-b")
 
 	@Test func legacyAssistantMessageFoldsAsRepliedSettlement() throws {
-		let question = storedRecord(
-			device: phoneA, wall: 1, ulid: ulid(1), body: legacyUser(chatId: .main, text: "week?"))
-		let reply = storedRecord(
-			device: phoneA, wall: 2, ulid: ulid(2),
-			body: legacyReply(chatId: .main, text: "Two rides."))
-		let second = storedRecord(
-			device: phoneA, wall: 3, ulid: ulid(3), body: legacyUser(chatId: .main, text: "again?"))
-		let secondReply = storedRecord(
-			device: phoneA, wall: 4, ulid: ulid(4),
-			body: legacyReply(chatId: .main, text: "Still two."))
+		let question = foldRow(1, phoneA, legacyUser(chatId: .main, text: "week?"))
+		let reply = foldRow(2, phoneA, legacyReply(chatId: .main, text: "Two rides."))
+		let second = foldRow(3, phoneA, legacyUser(chatId: .main, text: "again?"))
+		let secondReply = foldRow(4, phoneA, legacyReply(chatId: .main, text: "Still two."))
 		let conversation = ConversationFold.fold(
 			chat: .main, synced: [secondReply, reply, second, question], device: phoneA)
 		let turns = conversation.current.turns
@@ -43,126 +37,54 @@ import Testing
 	@Test func settledTurnsInterleaveWithLegacyOnesByClock() throws {
 		let turn = TurnID(ulid: ulid(5))
 		let records = [
-			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1), body: legacyUser(chatId: .main, text: "old")
+			foldRow(
+				1, phoneA, legacyUser(chatId: .main, text: "old")
 			),
-			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2),
-				body: legacyReply(chatId: .main, text: "old reply")),
-			storedRecord(
-				device: phoneA, wall: 3, ulid: ulid(3),
-				body: .synced(sampleUser(chatId: .main, text: "new", turn: turn))),
-			storedRecord(
-				device: phoneA, wall: 4, ulid: ulid(4),
-				body: .synced(sampleReply(chatId: .main, turn: turn, text: "new reply"))),
+			foldRow(
+				2, phoneA, legacyReply(chatId: .main, text: "old reply")
+			),
+			foldRow(3, phoneA, .synced(sampleUser(chatId: .main, text: "new", turn: turn))),
+			foldRow(4, phoneA, .synced(sampleReply(chatId: .main, turn: turn, text: "new reply"))),
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(
 			conversation.current.messages.map(\.text) == ["old", "old reply", "new", "new reply"])
 	}
 
-	@Test func resetBoundaryFromAnyDeviceSplitsSegments() throws {
-		let before = TurnID(ulid: ulid(1))
-		let after = TurnID(ulid: ulid(4))
-		let resetId = ResetID(ulid: ulid(3))
-		let records = [
-			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1),
-				body: .synced(sampleUser(chatId: .main, text: "before", turn: before))),
-			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2),
-				body: .synced(sampleReply(chatId: .main, turn: before, text: "before reply"))),
-			storedRecord(
-				device: phoneB, wall: 3, ulid: ulid(3),
-				body: .synced(
-					.windowStart(
-						WindowStartBody(
-							chatId: .main, firstIncludedUlid: ulid(3),
-							reason: .reset(resetId))))),
-			storedRecord(
-				device: phoneA, wall: 4, ulid: ulid(4),
-				body: .synced(sampleUser(chatId: .main, text: "after", turn: after))),
-			storedRecord(
-				device: phoneA, wall: 5, ulid: ulid(5),
-				body: .synced(sampleReply(chatId: .main, turn: after, text: "after reply"))),
-		]
-		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
-		#expect(conversation.segments.count == 2)
-		#expect(conversation.segments[0].openedBy == .chatStart)
-		#expect(conversation.segments[0].messages.map(\.text) == ["before", "before reply"])
-		#expect(conversation.current.openedBy == .reset(resetId))
-		#expect(conversation.current.id == SegmentID(boundary: ulid(3)))
-		#expect(conversation.current.messages.map(\.text) == ["after", "after reply"])
-		#expect(conversation.current.promptHistory(excluding: after).messages.isEmpty)
-	}
-
-	@Test func appliedResetMovesTurnsFromItsBoundaryOnIntoTheNewSegment() throws {
-		let before = TurnID(ulid: ulid(1))
-		let after = TurnID(ulid: ulid(4))
-		let resetId = ResetID(ulid: ulid(3))
-		let folded = ConversationFold.fold(
-			chat: .main,
-			synced: [
-				storedRecord(
-					device: phoneA, wall: 1, ulid: ulid(1),
-					body: .synced(sampleUser(chatId: .main, text: "before", turn: before))),
-				storedRecord(
-					device: phoneA, wall: 2, ulid: ulid(4),
-					body: .synced(sampleUser(chatId: .main, text: "after", turn: after))),
-			], device: phoneA)
-		#expect(folded.segments.count == 1)
-		let boundary = storedRecord(
-			device: phoneA, wall: 3, ulid: ulid(5),
-			body: .synced(
-				.windowStart(
-					WindowStartBody(
-						chatId: .main, firstIncludedUlid: ulid(3),
-						reason: .reset(resetId)))))
-		var applied = folded
-		applied.apply([boundary], device: phoneA)
-		#expect(applied.segments.map(\.turns.count) == [1, 1])
-		#expect(applied.segments[0].turns.map(\.turn) == [before])
-		#expect(applied.current.openedBy == .reset(resetId))
-		#expect(applied.current.id == SegmentID(boundary: ulid(3)))
-		#expect(applied.current.turns.map(\.turn) == [after])
-	}
-
 	@Test func trimWindowFromAnotherDeviceIsIgnored() throws {
 		let first = TurnID(ulid: ulid(1))
 		let second = TurnID(ulid: ulid(3))
 		let records = [
-			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1),
-				body: .synced(sampleUser(chatId: .main, text: "first", turn: first))),
-			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2),
-				body: .synced(sampleReply(chatId: .main, turn: first, text: "first reply"))),
-			storedRecord(
-				device: phoneA, wall: 3, ulid: ulid(3),
-				body: .synced(sampleUser(chatId: .main, text: "second", turn: second))),
-			storedRecord(
-				device: phoneB, wall: 4, ulid: ulid(4),
-				body: .synced(
+			foldRow(1, phoneA, .synced(sampleUser(chatId: .main, text: "first", turn: first))),
+			foldRow(
+				2, phoneA, .synced(sampleReply(chatId: .main, turn: first, text: "first reply"))),
+			foldRow(3, phoneA, .synced(sampleUser(chatId: .main, text: "second", turn: second))),
+			foldRow(
+				4, phoneB,
+				.synced(
 					.windowStart(
 						WindowStartBody(
 							chatId: .main, firstIncludedUlid: ulid(3), reason: .trim,
 							droppedMessageUlids: [ulid(1), ulid(2)])))),
-			storedRecord(
-				device: phoneA, wall: 5, ulid: ulid(5),
-				body: .synced(sampleReply(chatId: .main, turn: second, text: "second reply"))),
+			foldRow(
+				5, phoneA, .synced(sampleReply(chatId: .main, turn: second, text: "second reply"))),
 		]
 		let onA = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
-		#expect(onA.current.promptWindow.trim == nil)
+		#expect(onA.current.promptWindows.values.first?.trim == nil)
 		#expect(
-			onA.current.promptHistory(excluding: nil).messages.map(\.text) == [
+			onA.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: phoneA, using: onA.ownership
+			).messages.map(\.text) == [
 				"first", "first reply", "second", "second reply",
 			])
 		let onB = ConversationFold.fold(chat: .main, synced: records, device: phoneB)
 		#expect(
-			onB.current.promptWindow.trim
+			onB.current.promptWindows.values.first?.trim
 				== .init(messageUlids: [ulid(1), ulid(2)], opened: ulid(4)))
 		#expect(
-			onB.current.promptHistory(excluding: nil).messages.map(\.text) == [
+			onB.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: phoneB, using: onB.ownership
+			).messages.map(\.text) == [
 				"second", "second reply",
 			])
 		#expect(
@@ -172,44 +94,34 @@ import Testing
 
 	@Test func v1TrimWindowHidesEarlierRowsFromEveryDeviceAsTrunkDid() throws {
 		let records = [
-			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1), body: legacyUser(chatId: .main, text: "old")
+			foldRow(
+				1, phoneA, legacyUser(chatId: .main, text: "old")
 			),
-			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2),
-				body: legacyReply(chatId: .main, text: "old reply")),
-			storedRecord(
-				device: phoneA, wall: 3, ulid: ulid(3),
-				body: legacyUser(chatId: .main, text: "kept")),
-			storedRecord(
-				device: phoneB, wall: 4, ulid: ulid(4),
-				body: .legacy(.windowStartV1(chatId: .main, firstIncludedUlid: ulid(2)))),
+			foldRow(
+				2, phoneA, legacyReply(chatId: .main, text: "old reply")
+			),
+			foldRow(3, phoneA, legacyUser(chatId: .main, text: "kept")),
+			foldRow(4, phoneB, .legacy(.windowStartV1(chatId: .main, firstIncludedUlid: ulid(2)))),
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(conversation.segments.count == 1)
 		#expect(conversation.current.messages.map(\.text) == ["old reply", "kept"])
-		let history = conversation.current.promptHistory(excluding: nil)
+		let history = conversation.current.promptHistory(
+			excluding: nil, for: testConnection.account, device: phoneA,
+			using: conversation.ownership)
 		#expect(history.messages.map(\.text) == ["old reply", "kept"])
 		#expect(history.ulids == [ulid(2), ulid(3)])
 	}
 
 	@Test func v1BoundarySplitsTheDaysAfterAnUpgrade() throws {
 		let records = [
-			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1),
-				body: legacyUser(chatId: .main, text: "day one")),
-			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2),
-				body: legacyReply(chatId: .main, text: "day one reply")),
-			storedRecord(
-				device: phoneA, wall: 3, ulid: ulid(4),
-				body: .legacy(.windowStartV1(chatId: .main, firstIncludedUlid: ulid(3)))),
-			storedRecord(
-				device: phoneA, wall: 4, ulid: ulid(5),
-				body: legacyUser(chatId: .main, text: "day two")),
-			storedRecord(
-				device: phoneA, wall: 5, ulid: ulid(6),
-				body: legacyReply(chatId: .main, text: "day two reply")),
+			foldRow(1, phoneA, legacyUser(chatId: .main, text: "day one")),
+			foldRow(2, phoneA, legacyReply(chatId: .main, text: "day one reply")),
+			foldRow(
+				4, wall: 3, phoneA,
+				.legacy(.windowStartV1(chatId: .main, firstIncludedUlid: ulid(3)))),
+			foldRow(5, wall: 4, phoneA, legacyUser(chatId: .main, text: "day two")),
+			foldRow(6, wall: 5, phoneA, legacyReply(chatId: .main, text: "day two reply")),
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneB)
 		#expect(conversation.segments.count == 2)
@@ -221,18 +133,10 @@ import Testing
 
 	@Test func legacyReplyAttachesToItsOwnDevicesQuestion() throws {
 		let records = [
-			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1),
-				body: legacyUser(chatId: .main, text: "a asks")),
-			storedRecord(
-				device: phoneB, wall: 2, ulid: ulid(2),
-				body: legacyUser(chatId: .main, text: "b asks")),
-			storedRecord(
-				device: phoneA, wall: 3, ulid: ulid(3),
-				body: legacyReply(chatId: .main, text: "a answered")),
-			storedRecord(
-				device: phoneB, wall: 4, ulid: ulid(4),
-				body: legacyReply(chatId: .main, text: "b answered")),
+			foldRow(1, phoneA, legacyUser(chatId: .main, text: "a asks")),
+			foldRow(2, phoneB, legacyUser(chatId: .main, text: "b asks")),
+			foldRow(3, phoneA, legacyReply(chatId: .main, text: "a answered")),
+			foldRow(4, phoneB, legacyReply(chatId: .main, text: "b answered")),
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(
@@ -250,31 +154,22 @@ import Testing
 		let failed = TurnID(ulid: ulid(4))
 		let stopped = TurnID(ulid: ulid(6))
 		let records = [
-			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1),
-				body: .synced(sampleUser(chatId: .main, text: "answered", turn: answered))),
-			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2),
-				body: .synced(sampleReply(chatId: .main, turn: answered, text: "reply"))),
-			storedRecord(
-				device: phoneA, wall: 3, ulid: ulid(3),
-				body: .synced(sampleUser(chatId: .main, text: "pending", turn: pending))),
-			storedRecord(
-				device: phoneA, wall: 4, ulid: ulid(4),
-				body: .synced(sampleUser(chatId: .main, text: "failed", turn: failed))),
-			storedRecord(
-				device: phoneA, wall: 5, ulid: ulid(5),
-				body: .synced(
+			foldRow(
+				1, phoneA, .synced(sampleUser(chatId: .main, text: "answered", turn: answered))),
+			foldRow(2, phoneA, .synced(sampleReply(chatId: .main, turn: answered, text: "reply"))),
+			foldRow(3, phoneA, .synced(sampleUser(chatId: .main, text: "pending", turn: pending))),
+			foldRow(4, phoneA, .synced(sampleUser(chatId: .main, text: "failed", turn: failed))),
+			foldRow(
+				5, phoneA,
+				.synced(
 					.turnSettled(
 						TurnSettledBody(
 							chatId: .main, turn: failed, attempt: AttemptID(ulid: ulid(5)),
 							settlement: .failed(.model(.contextOverflow), saved: .none))))),
-			storedRecord(
-				device: phoneA, wall: 6, ulid: ulid(6),
-				body: .synced(sampleUser(chatId: .main, text: "stopped", turn: stopped))),
-			storedRecord(
-				device: phoneA, wall: 7, ulid: ulid(7),
-				body: .synced(
+			foldRow(6, phoneA, .synced(sampleUser(chatId: .main, text: "stopped", turn: stopped))),
+			foldRow(
+				7, phoneA,
+				.synced(
 					.turnSettled(
 						TurnSettledBody(
 							chatId: .main, turn: stopped, attempt: AttemptID(ulid: ulid(7)),
@@ -284,7 +179,10 @@ import Testing
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(conversation.current.turns.map(\.turn) == [answered, pending, failed, stopped])
 		#expect(
-			conversation.current.promptHistory(excluding: nil).messages.map(\.text) == [
+			conversation.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: phoneA,
+				using: conversation.ownership
+			).messages.map(\.text) == [
 				"answered", "reply", "stopped", "half an",
 			])
 	}
@@ -292,12 +190,8 @@ import Testing
 	@Test func messagesForUlidsResolveFragmentsAndSettlements() throws {
 		let turn = TurnID(ulid: ulid(1))
 		let records = [
-			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1),
-				body: .synced(sampleUser(chatId: .main, text: "q", turn: turn))),
-			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2),
-				body: .synced(sampleReply(chatId: .main, turn: turn, text: "a"))),
+			foldRow(1, phoneA, .synced(sampleUser(chatId: .main, text: "q", turn: turn))),
+			foldRow(2, phoneA, .synced(sampleReply(chatId: .main, turn: turn, text: "a"))),
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(conversation.messages(for: [ulid(2), ulid(1), ulid(9)]).map(\.text) == ["a", "q"])
@@ -307,52 +201,48 @@ import Testing
 		let turn = TurnID(ulid: ulid(1))
 		let kept = TurnID(ulid: ulid(3))
 		let records = [
-			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1),
-				body: .synced(sampleUser(chatId: .main, text: "dropped", turn: turn))),
-			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2),
-				body: .synced(sampleReply(chatId: .main, turn: turn, text: "dropped reply"))),
-			storedRecord(
-				device: phoneA, wall: 3, ulid: ulid(3),
-				body: .synced(sampleUser(chatId: .main, text: "kept", turn: kept))),
-			storedRecord(
-				device: phoneA, wall: 4, ulid: ulid(4),
-				body: .synced(summary("stale, before the window"))),
-			storedRecord(
-				device: phoneA, wall: 5, ulid: ulid(5),
-				body: .synced(
+			foldRow(1, phoneA, .synced(sampleUser(chatId: .main, text: "dropped", turn: turn))),
+			foldRow(
+				2, phoneA, .synced(sampleReply(chatId: .main, turn: turn, text: "dropped reply"))),
+			foldRow(3, phoneA, .synced(sampleUser(chatId: .main, text: "kept", turn: kept))),
+			foldRow(4, phoneA, .synced(summary("stale, before the window"))),
+			foldRow(
+				5, phoneA,
+				.synced(
 					.windowStart(
 						WindowStartBody(chatId: .main, firstIncludedUlid: ulid(3), reason: .trim)))),
-			storedRecord(
-				device: phoneA, wall: 6, ulid: ulid(6), body: .synced(summary("first"))),
-			storedRecord(
-				device: phoneA, wall: 7, ulid: ulid(7), body: .synced(summary("latest"))),
-			storedRecord(
-				device: phoneB, wall: 8, ulid: ulid(8), body: .synced(summary("phone b"))),
-			storedRecord(
-				device: phoneA, wall: 9, ulid: ulid(9),
-				body: .synced(sampleReply(chatId: .main, turn: kept, text: "kept reply"))),
+			foldRow(6, phoneA, .synced(summary("first"))),
+			foldRow(7, phoneA, .synced(summary("latest"))),
+			foldRow(8, phoneB, .synced(summary("phone b"))),
+			foldRow(9, phoneA, .synced(sampleReply(chatId: .main, turn: kept, text: "kept reply"))),
 		]
 		let onA = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
-		let history = onA.current.promptHistory(excluding: nil)
+		let history = onA.current.promptHistory(
+			excluding: nil, for: testConnection.account, device: phoneA, using: onA.ownership)
 		#expect(history.summary == "latest")
 		#expect(history.messages.map(\.text) == ["kept", "kept reply"])
 		let onB = ConversationFold.fold(chat: .main, synced: records, device: phoneB)
-		#expect(onB.current.promptHistory(excluding: nil).summary == "phone b")
+		#expect(
+			onB.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: phoneB, using: onB.ownership
+			).summary == "phone b")
 	}
 
 	@Test func aWindowWithoutASummaryAfterItDropsTheOlderSummary() throws {
 		let records = [
-			storedRecord(device: phoneA, wall: 1, ulid: ulid(1), body: .synced(summary("old"))),
-			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2),
-				body: .synced(
+			foldRow(1, phoneA, .synced(summary("old"))),
+			foldRow(
+				2, phoneA,
+				.synced(
 					.windowStart(
 						WindowStartBody(chatId: .main, firstIncludedUlid: ulid(2), reason: .trim)))),
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
-		#expect(conversation.current.promptHistory(excluding: nil).summary == nil)
+		#expect(
+			conversation.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: phoneA,
+				using: conversation.ownership
+			).summary == nil)
 	}
 
 	private func summary(_ markdown: String) -> SyncedRecordBody {
@@ -362,4 +252,12 @@ import Testing
 	private func ulid(_ offset: Int) -> ULID {
 		fixedUlid(offset)
 	}
+}
+
+func foldRow(_ ulid: Int, wall: Int64? = nil, _ device: DeviceID, _ body: RecordBody)
+	-> AthleteRecord
+{
+	storedRecord(
+		device: device, wall: wall ?? Int64(ulid), ulid: fixedUlid(ulid),
+		account: testConnection.account, body: body)
 }
