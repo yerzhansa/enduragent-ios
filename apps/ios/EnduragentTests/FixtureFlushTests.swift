@@ -25,7 +25,7 @@ extension FixtureLaunchTests {
 			let model = await model(services)
 			await model.agreeAndStartChatting()
 			try await exchange(model, ["fixture:flush-partial", "fixture:fail overflow"])
-			try await waitUntil {
+			try await until {
 				let leases = await services.leases()
 				return !leases.isEmpty && leases.allSatisfy { $0.ending != nil }
 			}
@@ -38,7 +38,7 @@ extension FixtureLaunchTests {
 		let relaunched = await self.model(try await relaunch(.keep).0)
 		let drained = relaunched.services.coach.recordSyncProbe()
 		await relaunched.lifecycle.forward(.becameActive)
-		try await waitUntil { try await count("flushSettled", in: drained) == 1 }
+		try await until { try await count("flushSettled", in: drained) == 1 }
 		#expect(try await count("flushPending", in: drained) == 1)
 		#expect(try await count("ledgerEvent", in: drained) == 1)
 	}
@@ -65,7 +65,7 @@ extension FixtureLaunchTests {
 			let before = model.chat?.turns.count ?? 0
 			model.draft.text = message
 			await model.send()
-			try await waitUntil(within: .hangGuard) {
+			try await until(within: .hangGuard) {
 				guard let turns = model.chat?.turns, turns.count == before + 1,
 					let last = turns.last
 				else {
@@ -80,18 +80,5 @@ extension FixtureLaunchTests {
 		async throws -> Int
 	{
 		try await records.snapshot().counts.first { $0.kind == kind }?.count ?? 0
-	}
-
-	private func waitUntil(
-		within limit: TestWaitLimit = .hangGuard, _ condition: () async throws -> Bool
-	) async throws {
-		let deadline = ContinuousClock.now + limit.duration
-		while try await !condition() {
-			guard ContinuousClock.now < deadline else {
-				Issue.record("condition never held in \(limit)")
-				return
-			}
-			try await Task.sleep(for: .milliseconds(20))
-		}
 	}
 }

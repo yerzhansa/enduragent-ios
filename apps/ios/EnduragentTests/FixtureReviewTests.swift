@@ -16,8 +16,7 @@ extension FixtureLaunchTests {
 		model.connectKey = "fixture"
 		await model.connect()
 		try #require(model.didConnect)
-		model.draft.text =
-			"Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks"
+		model.draft.text = TutorialCopy.rideRequest
 		await model.send()
 		try await until { model.chat?.review != nil }
 		let review = try #require(model.chat?.review)
@@ -315,13 +314,16 @@ extension FixtureLaunchTests {
 		#expect(model.chat?.review?.controls == ReviewControls.none)
 	}
 
-	func presentedReview(on model: ShellModel) async throws -> ReviewControlToken {
-		model.trainingSettings.edit()
-		model.connectKey = "fixture"
-		await model.connect()
-		try #require(model.didConnect)
-		model.draft.text =
-			"Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks"
+	func presentedReview(on model: ShellModel, connect: Bool = true) async throws
+		-> ReviewControlToken
+	{
+		if connect {
+			model.trainingSettings.edit()
+			model.connectKey = "fixture"
+			await model.connect()
+			try #require(model.didConnect)
+		}
+		model.draft.text = TutorialCopy.rideRequest
 		await model.send()
 		try await until { model.chat?.review != nil }
 		let review = try #require(model.chat?.review)

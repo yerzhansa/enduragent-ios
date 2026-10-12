@@ -33,7 +33,7 @@ struct TrainingSettingsTests {
 			await model.send()
 			_ = try await harness.settledTurn(model)
 			await model.newConversation()
-			try await harness.until { model.chat?.opening.showsWelcome == true }
+			try await until { model.chat?.opening.showsWelcome == true }
 			await model.loadHistory()
 			history = model.history
 			model.draft.text = "How did Saturday go"
@@ -125,17 +125,8 @@ struct TrainingSettingsTests {
 
 	@Test func ownerConfirmationKeepsOldReviewUnauthorized() async throws {
 		let model = try await connectedModel()
-		model.draft.text =
-			"Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks"
-		await model.send()
+		let token = try await harness.presentedReview(on: model, connect: false)
 		_ = try await harness.settledTurn(model)
-		let review = try #require(model.chat?.review)
-		await model.decide(.presented(review.ref))
-		try await harness.until { model.chat?.review?.controls != ReviewControls.none }
-		guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
-			Issue.record("review did not expose its approval control")
-			return
-		}
 		let fixture = try #require(model.services.fixture)
 		let previous = try #require(try fixture.secrets.intervalsConnection())
 		let editor = model.trainingSettings
@@ -160,7 +151,7 @@ struct TrainingSettingsTests {
 			}
 			return false
 		}
-		try await harness.until { model.chat?.review?.notice?.kind == .accountChanged }
+		try await until { model.chat?.review?.notice?.kind == .accountChanged }
 		#expect(
 			try fixture.secrets.intervalsConnection()?.resolvedAthlete
 				== IntervalsAthleteID(rawValue: "i2002"))
@@ -239,11 +230,7 @@ struct TrainingSettingsTests {
 		#expect(editor.key.isEmpty)
 		#expect(editor.isSaving)
 		await gate.release()
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while editor.isSaving, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
-		try #require(!editor.isSaving)
+		try await until { !editor.isSaving }
 		#expect(editor.key.isEmpty)
 		#expect(editor.receipt == nil)
 		#expect(editor.state == .viewing)
@@ -253,13 +240,12 @@ struct TrainingSettingsTests {
 		let model = await harness.model(try harness.services())
 		await model.agreeAndStartChatting()
 		try await harness.observed(model)
-		model.draft.text =
-			"Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks"
+		model.draft.text = TutorialCopy.rideRequest
 		await model.send()
 		_ = try await harness.settledTurn(model)
 		let review = try #require(model.chat?.review)
 		await model.decide(.presented(review.ref))
-		try await harness.until { model.chat?.review?.controls != ReviewControls.none }
+		try await until { model.chat?.review?.controls != ReviewControls.none }
 		guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
 			Issue.record("missing approval control")
 			return

@@ -14,8 +14,7 @@ extension FixtureLaunchTests {
 		model.connectKey = "fixture"
 		await model.connect()
 		try #require(model.didConnect)
-		model.draft.text =
-			"Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks"
+		model.draft.text = TutorialCopy.rideRequest
 		await model.send()
 		_ = try await settledTurn(model)
 		try await until { model.chat?.review != nil }

@@ -44,16 +44,6 @@ final class FixtureLaunchTests {
 		AppEnvironment(services: services, defaults: defaults)
 	}
 
-	func until(
-		within limit: TestWaitLimit = .hangGuard, _ condition: () -> Bool
-	) async throws {
-		let deadline = ContinuousClock.now + limit.duration
-		while !condition(), ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
-		}
-		try #require(condition())
-	}
-
 	func settledTurn(
 		_ model: ShellModel, after previous: TurnState? = nil,
 		within limit: TestWaitLimit = .hangGuard
@@ -85,18 +75,11 @@ final class FixtureLaunchTests {
 
 	func observed(_ model: ShellModel) async throws {
 		await model.appear()
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while model.chat == nil, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
-		}
-		try #require(model.chat != nil)
+		try await until { model.chat != nil }
 	}
 
 	func firstTurn(_ model: ShellModel) async throws -> TurnView {
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while model.chat?.turns.isEmpty ?? true, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
-		}
+		try await until { model.chat?.turns.isEmpty == false }
 		return try #require(model.chat?.turns.first)
 	}
 
@@ -265,10 +248,7 @@ final class FixtureLaunchTests {
 		await model.send()
 		let settled = try await settledTurn(model)
 		await model.newConversation()
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while model.chat?.opening == .continuing, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
-		}
+		try await until { model.chat?.opening != .continuing }
 		#expect(model.chat?.turns.isEmpty == true)
 		#expect(model.chat?.opening.notice == Catalog.chatNoticeNewConversationSuccess)
 		#expect(model.newConversationUncertain == false)
@@ -343,6 +323,8 @@ final class FixtureLaunchTests {
 
 enum TutorialCopy {
 	static let weekQuestion = "What did my training look like this week?"
+	static let rideRequest =
+		"Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks"
 }
 
 func replyText(_ state: TurnState) -> String? {

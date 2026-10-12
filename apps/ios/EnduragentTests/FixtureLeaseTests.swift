@@ -25,7 +25,7 @@ extension FixtureLaunchTests {
 		#expect(host.leases.first?.notes.count == 1)
 		let graceEnds = try #require(system.graceExpirations.first)
 		graceEnds()
-		try await waitForLease { host.leases.first?.ending != nil }
+		try await until { host.leases.first?.ending != nil }
 		#expect(await expiries.causes == [.graceEnded])
 		#expect(host.leases.first?.expiry == .graceEnded)
 		#expect(host.leases.first?.ending == .interrupted(.graceEnded))
@@ -48,7 +48,7 @@ extension FixtureLaunchTests {
 		#expect(task.progress.completedUnitCount == 13)
 		let expire = try #require(task.expirationHandler)
 		expire()
-		try await waitForLease { !task.completed.isEmpty }
+		try await until { !task.completed.isEmpty }
 		#expect(task.completed == [false])
 		#expect(await expiries.causes == [.systemExpired])
 		#expect(host.leases.first?.expiry == .systemExpired)
@@ -91,7 +91,7 @@ extension FixtureLaunchTests {
 		system.isActive = false
 		let coach = try await leaseCoach(host: leaseHost(system))
 		_ = try await reply(to: "Is Thursday on?", from: coach)
-		try await waitForLease { !system.posted.isEmpty }
+		try await until { !system.posted.isEmpty }
 		#expect(system.posted.count == 1)
 		#expect(system.posted.first?.content.title == "Coach")
 		#expect(system.posted.first?.content.body == "Still on.")
@@ -104,7 +104,7 @@ extension FixtureLaunchTests {
 		let coach = try await leaseCoach(host: leaseHost(system))
 		try await coach.setLanguage(.fixed(.es))
 		_ = try await reply(to: "Is Thursday on?", from: coach)
-		try await waitForLease { !system.posted.isEmpty }
+		try await until { !system.posted.isEmpty }
 		#expect(system.submitted.map(\.title) == ["El entrenador está trabajando…"])
 		#expect(system.posted.map(\.content.title) == ["Entrenador"])
 	}
@@ -114,7 +114,7 @@ extension FixtureLaunchTests {
 		let host = leaseHost(system)
 		let coach = try await leaseCoach(host: host)
 		_ = try await reply(to: "Is Thursday on?", from: coach)
-		try await waitForLease { host.leases.first?.ending != nil }
+		try await until { host.leases.first?.ending != nil }
 		#expect(system.posted.isEmpty)
 	}
 
@@ -136,13 +136,13 @@ extension FixtureLaunchTests {
 			if case .processing = state { true } else { false }
 		}
 		let records = services.coach.recordSyncProbe()
-		try await waitForLease {
+		try await until {
 			try await records.snapshot().counts.contains {
 				$0.kind == "memorySection" && $0.count > 0
 			}
 		}
 		await services.fixture?.host?.expire(.systemExpired)
-		try await waitForLease {
+		try await until {
 			guard
 				case .interrupted? = model.chat?.turns.first(where: { $0.id == running.id })?.state
 			else { return false }
@@ -213,7 +213,7 @@ extension FixtureLaunchTests {
 			Issue.record("the message was not accepted")
 			return ""
 		}
-		try await waitForLease { await self.leaseState(coach, turn: turn)?.isSettled == true }
+		try await until { await self.leaseState(coach, turn: turn)?.isSettled == true }
 		let state = try #require(await leaseState(coach, turn: turn))
 		return try #require(replyText(state), "Expected a completed reply, got \(state)")
 	}
@@ -226,21 +226,8 @@ extension FixtureLaunchTests {
 	private func leaseTurn(in model: ShellModel, where matches: (TurnState) -> Bool)
 		async throws -> TurnView
 	{
-		try await waitForLease { model.chat?.turns.last.map { matches($0.state) } ?? false }
+		try await until { model.chat?.turns.last.map { matches($0.state) } ?? false }
 		return try #require(model.chat?.turns.last)
-	}
-
-	func waitForLease(
-		within limit: TestWaitLimit = .hangGuard, _ condition: () async throws -> Bool
-	) async throws {
-		let deadline = ContinuousClock.now + limit.duration
-		while try await !condition() {
-			guard ContinuousClock.now < deadline else {
-				Issue.record("the condition never held within \(limit)")
-				return
-			}
-			try await Task.sleep(for: .milliseconds(20))
-		}
 	}
 }
 

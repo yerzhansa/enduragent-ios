@@ -26,7 +26,7 @@ struct ModelPickerTests {
 			#expect(model.accessNotice == nil)
 			#expect(!model.isChangingAccess)
 		}
-		let reopened = try await reopen()
+		let reopened = try await harness.reopen(language: .en)
 		#expect(reopened.modelChoices?.selected.id == refreshed)
 		#expect(reopened.modelChoices?.selected.details.displayName == "Refreshed Coach")
 		#expect(reopened.modelPickerEntries.contains { $0.id == refreshed })
@@ -58,7 +58,7 @@ struct ModelPickerTests {
 			#expect(model.route == .chat)
 			#expect(model.draft.text == TutorialCopy.weekQuestion)
 		}
-		let reopened = try await reopen()
+		let reopened = try await harness.reopen(language: .en)
 		#expect(reopened.modelChoices?.selected == previous)
 	}
 
@@ -114,14 +114,6 @@ struct ModelPickerTests {
 		try await model.waitForStatus {
 			$0.access.modelChoices?.catalog.cache == .available(.downloaded)
 		}
-		try await harness.observed(model)
-		return model
-	}
-
-	private func reopen() async throws -> ShellModel {
-		let (services, defaults) = try await harness.relaunch(.keep, language: .en)
-		let model = await fixtureModel(
-			environment: AppEnvironment(services: services, defaults: defaults))
 		try await harness.observed(model)
 		return model
 	}
