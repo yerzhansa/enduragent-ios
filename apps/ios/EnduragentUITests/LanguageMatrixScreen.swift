@@ -132,7 +132,7 @@ enum MatrixSweep {
 	static let messages = [
 		TutorialHarness.weekQuestion, TutorialHarness.workout, TutorialHarness.draft,
 		"Read the connected athlete's week", "fixture:text-then-hang", "fixture:fail 402",
-		"fixture:fail 400", "fixture:fail 403", "/language",
+		"fixture:fail 400", "fixture:fail 403", "/language", ShortcutScreen.workoutMessage,
 	]
 
 	private static let unswept = [
