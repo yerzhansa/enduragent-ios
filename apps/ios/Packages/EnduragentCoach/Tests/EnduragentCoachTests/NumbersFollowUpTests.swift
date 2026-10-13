@@ -20,14 +20,14 @@ enum NumbersFollowUpDepth: String, CaseIterable, Sendable {
 		}
 	}
 
-	var readCalls: [FakeIntervalsCall] {
+	var readSteps: [[FakeIntervalsCall]] {
 		let ride = NumbersFollowUpTests.ride.id
 		let list = FakeIntervalsCall.activities(oldest: "1998-06-07", newest: "1998-06-13")
 		switch self {
-		case .brief: return [list]
-		case .standard: return [list, .activity(ride)]
+		case .brief: return [[list]]
+		case .standard: return [[list], [.activity(ride)]]
 		case .deep:
-			return [list, .activity(ride), .streams(ride, channels: ["watts", "heartrate"])]
+			return [[list], [.activity(ride), .streams(ride, channels: ["watts", "heartrate"])]]
 		}
 	}
 }
@@ -131,7 +131,8 @@ struct NumbersFollowUpTurn {
 		#expect(Set(laps[1].objectFields.keys) == ["number", "kind", "durationSeconds"])
 		#expect(laps[2].objectFields["distance"] == .number(0))
 		#expect(laps[2].objectFields["averageHeartRate"] == nil)
-		#expect(activityReads == depth.readCalls + [.activity(Self.ride.id)])
+		let steps = depth.readSteps + [[.activity(Self.ride.id)]]
+		#expect(activityReads(inStepsLike: steps) == steps)
 	}
 
 	@Test func startReachesTheCoachAsTheRecordedLocalTimeOrTheDateAloneAndNothingCallsItUTC()
@@ -272,7 +273,7 @@ struct NumbersFollowUpTurn {
 
 		#expect(replyText(try await coach.sendAndSettle(depth.rawValue)) == Self.reviewReply)
 		let review = sent(.chatAttempt, by: transport)
-		#expect(activityReads == depth.readCalls)
+		#expect(activityReads(inStepsLike: depth.readSteps) == depth.readSteps)
 		#expect(replyText(try await coach.sendAndSettle("show numbers")) == Self.numbersReply)
 
 		return NumbersFollowUpTurn(
@@ -285,6 +286,21 @@ struct NumbersFollowUpTurn {
 			if case .wellness = $0 { return false }
 			return true
 		}
+	}
+
+	private func activityReads(inStepsLike steps: [[FakeIntervalsCall]]) -> [[FakeIntervalsCall]] {
+		var later = activityReads[...]
+		let made = steps.map { step in
+			var unexpected = Array(later.prefix(step.count))
+			later = later.dropFirst(step.count)
+			let expected = step.filter { call in
+				guard let index = unexpected.firstIndex(of: call) else { return false }
+				unexpected.remove(at: index)
+				return true
+			}
+			return expected + unexpected
+		}
+		return later.isEmpty ? made : made + [Array(later)]
 	}
 
 	private func streamStatistics(in messages: [WireMessage]) -> [WireMessage] {
