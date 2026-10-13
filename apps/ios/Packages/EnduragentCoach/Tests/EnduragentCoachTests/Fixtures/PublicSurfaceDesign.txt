@@ -505,7 +505,11 @@ ReplyParser.document(_:)
 ReplyParser.foundation
 ReplyRowDescription
 ReplyRowDescription.accessibilityText
+ReplyRowDescription.links
 ReplyRowDescription.parts
+ReplyRowLink
+ReplyRowLink.label
+ReplyRowLink.target
 ReplyRun
 ReplyRun.accessibilityText
 ReplyRun.link

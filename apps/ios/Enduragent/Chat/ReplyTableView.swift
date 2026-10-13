@@ -33,12 +33,22 @@ private struct ReplyTableLine {
 
 private struct ReplyTableLineElement: ViewModifier {
 	let line: ReplyTableLine
+	@Environment(\.openURL) private var openURL
 
 	func body(content: Content) -> some View {
 		content
 			.accessibilityElement(children: .ignore)
 			.accessibilityLabel(Text(verbatim: line.description.accessibilityText))
 			.accessibilityAddTraits(line.isHeader ? .isHeader : [])
+			.accessibilityActions {
+				ForEach(line.description.links.indices, id: \.self) { index in
+					Button {
+						openURL(line.description.links[index].target.url)
+					} label: {
+						Text(verbatim: line.description.links[index].label)
+					}
+				}
+			}
 			.accessibilityHidden(line.description.parts.isEmpty)
 			.accessibilityIdentifier(line.isHeader ? "reply.table.header" : "reply.table.row")
 	}

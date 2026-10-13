@@ -102,6 +102,49 @@ import Testing
 				"Metric, Value\nStart, 2026-10-11 07:42\nDistance, 42,5 km\n"))
 	}
 
+	@Test func aGridRowOffersEveryLinkInItsOwnCellsInSourceOrder() throws {
+		let table = try table(
+			"""
+			| Day | Workout | Notes |
+			|---|---|---|
+			| Tue | [Tempo **run**](https://example.com/tempo) | see [plan](https://example.com/plan) |
+			| Wed | Rest | |
+			| Thu | [Long ride](https://example.com/long) | |
+			""")
+		#expect(table.headerDescription.links.isEmpty)
+		#expect(
+			table.rowDescriptions.map { $0.links.map(\.label) } == [
+				["Tempo run", "plan"], [], ["Long ride"],
+			])
+		#expect(
+			table.rowDescriptions.map { $0.links.map(\.target.url.absoluteString) } == [
+				["https://example.com/tempo", "https://example.com/plan"], [],
+				["https://example.com/long"],
+			])
+		#expect(
+			table.rowDescriptions.first?.accessibilityText
+				== "Day, Tue, Workout, Tempo run, Notes, see plan")
+	}
+
+	@Test func aStackedTableOffersTheLinksOfItsHeaderAndOfEachRow() throws {
+		let table = try table(
+			"""
+			| Metric | [Source](https://example.com/source) |
+			|---|---|
+			| [Load](https://example.com/load) | 82 |
+			| Ramp | 4 |
+			""")
+		#expect(table.layout == .stacked)
+		#expect(table.headerDescription.links.map(\.label) == ["Source"])
+		#expect(
+			table.headerDescription.links.map(\.target.url.absoluteString)
+				== ["https://example.com/source"])
+		#expect(table.rowDescriptions.map { $0.links.map(\.label) } == [["Load"], []])
+		#expect(
+			table.rowDescriptions.map { $0.links.map(\.target.url.absoluteString) }
+				== [["https://example.com/load"], []])
+	}
+
 	private func table(_ source: String) throws -> ReplyTable {
 		guard case .blocks(let blocks) = ReplyParser.foundation.document(source),
 			case .table(let table) = blocks.first
