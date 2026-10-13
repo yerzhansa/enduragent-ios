@@ -152,22 +152,16 @@ struct ReviewCardReading {
 	@discardableResult
 	func reach(_ control: Control) -> XCUIElement {
 		let button = run.named(control.rawValue)
-		let bar = run.app.navigationBars.firstMatch
-		let composer = run.named("chat.composer.container")
-		let screen = run.app.coordinate(withNormalizedOffset: .zero)
 		TutorialHarness.wait(
 			until: {
 				if button.exists && button.isHittable { return true }
-				let top = bar.frame.maxY
-				let height = composer.frame.minY - top
-				let upper = screen.withOffset(
-					CGVector(dx: run.app.frame.midX, dy: top + height * 0.2))
-				let lower = screen.withOffset(
-					CGVector(dx: run.app.frame.midX, dy: top + height * 0.8))
-				if button.frame.midY < top + height / 2 {
-					upper.press(forDuration: 0.05, thenDragTo: lower)
+				let band = TutorialHarness.transcriptBand(run.app)
+				let upper = CGPoint(x: band.midX, y: band.minY + band.height * 0.2)
+				let lower = CGPoint(x: band.midX, y: band.minY + band.height * 0.8)
+				if button.frame.midY < band.midY {
+					TutorialHarness.drag(run.app, from: upper, to: lower, pace: .fling)
 				} else {
-					lower.press(forDuration: 0.05, thenDragTo: upper)
+					TutorialHarness.drag(run.app, from: lower, to: upper, pace: .fling)
 				}
 				return button.exists && button.isHittable
 			}, message: "[\(run.language.rawValue)] \(control.rawValue) cannot be tapped")

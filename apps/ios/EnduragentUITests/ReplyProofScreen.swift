@@ -100,7 +100,8 @@ enum ReplyProofScreen {
 		TutorialHarness.wait(TutorialHarness.named(app, "archive.readOnly"))
 	}
 
-	static func scroll(until condition: @escaping () -> Bool, action: @escaping () -> Void) {
+	private static func scroll(until condition: @escaping () -> Bool, action: @escaping () -> Void)
+	{
 		TutorialHarness.wait(
 			until: {
 				if condition() { return true }

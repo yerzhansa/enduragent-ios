@@ -79,19 +79,26 @@ enum ReplyTableScreen {
 	}
 
 	static func assertLapTableScrollsToItsLastColumn(_ app: XCUIApplication) {
+		let table = app.scrollViews.matching(identifier: "reply.table").firstMatch
+		TutorialHarness.scroll(app, to: table)
+		assertLapTableReachesItsLastColumn(app) { table.swipeLeft(velocity: .slow) }
+	}
+
+	static func assertLapTableReachesItsLastColumn(
+		_ app: XCUIApplication, swipe: @escaping () -> Void
+	) {
 		guard let laps = ReplyProofScreen.tables(NumbersReplyFixture.source).last else {
 			XCTFail("The numbers fixture must end with its lap table")
 			return
 		}
 		let table = app.scrollViews.matching(identifier: "reply.table").firstMatch
-		TutorialHarness.scroll(app, to: table)
 		let header = line(app, "reply.table.header", laps.headerDescription)
 		let rows = laps.rowDescriptions.map { line(app, "reply.table.row", $0) }
 		XCTAssertGreaterThan(header.frame.maxX, table.frame.maxX)
 		TutorialHarness.wait(
 			until: {
 				if header.frame.maxX <= table.frame.maxX + 1 { return true }
-				table.swipeLeft(velocity: .slow)
+				swipe()
 				return header.frame.maxX <= table.frame.maxX + 1
 			}, within: .longTurn, message: "The lap table did not scroll to its last column")
 		XCTAssertLessThan(header.frame.minX, table.frame.minX)

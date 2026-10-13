@@ -33,22 +33,44 @@ private enum ReplyTableLargeText {
 			message: "[\(language.rawValue)] the labels at the largest text size differ")
 		ReplyProofScreen.assertDocument(app, source: NumbersReplyFixture.source)
 		ReplyTableScreen.assertSummaryFitsTheReply(app)
-		attach(test, language, "summary-top", app)
-		guard let summary = ReplyProofScreen.tables(NumbersReplyFixture.source).first,
-			let ending = summary.rowDescriptions.last
+		let tables = ReplyProofScreen.tables(NumbersReplyFixture.source)
+		guard let summary = tables.first, let laps = tables.last,
+			let opening = summary.rowDescriptions.first, let ending = summary.rowDescriptions.last
 		else {
-			XCTFail("The numbers fixture must start with its summary table")
+			XCTFail("The numbers fixture must hold its summary table and its lap table")
 			return
 		}
-		let last = ReplyTableScreen.line(app, "reply.table.row", ending)
-		ReplyProofScreen.scroll(
-			until: { last.isHittable }, action: { app.swipeUp(velocity: .slow) })
+		TutorialHarness.bringIntoTranscript(
+			app, ReplyTableScreen.line(app, "reply.table.row", opening))
+		attach(test, language, "summary-top", app)
+		var strides = 0
+		let pass = { (table: String) in
+			strides += 1
+			attach(test, language, "\(table)-pass-\(strides)", app)
+		}
+		TutorialHarness.bringIntoTranscript(
+			app, ReplyTableScreen.line(app, "reply.table.row", ending)
+		) { pass("summary") }
 		attach(test, language, "summary-end", app)
-		TutorialHarness.scroll(
-			app, to: app.scrollViews.matching(identifier: "reply.table").firstMatch)
+		let header = ReplyTableScreen.line(app, "reply.table.header", laps.headerDescription)
+		TutorialHarness.bringIntoTranscript(app, header, topShare: 0.5)
 		attach(test, language, "laps-first-column", app)
-		ReplyTableScreen.assertLapTableScrollsToItsLastColumn(app)
+		ReplyTableScreen.assertLapTableReachesItsLastColumn(app) {
+			let row = header.frame.midY
+			TutorialHarness.drag(
+				app, from: CGPoint(x: app.frame.width * 0.8, y: row),
+				to: CGPoint(x: app.frame.width * 0.2, y: row), pace: .steady)
+		}
 		attach(test, language, "laps-last-column", app)
+		guard let closing = laps.rowDescriptions.last else {
+			XCTFail("The lap table of the numbers fixture must hold rows")
+			return
+		}
+		strides = 0
+		TutorialHarness.bringIntoTranscript(
+			app, ReplyTableScreen.line(app, "reply.table.row", closing)
+		) { pass("laps-last-column") }
+		attach(test, language, "laps-last-column-end", app)
 	}
 
 	private static func attach(
