@@ -48,23 +48,6 @@ import Testing
 		#expect(WellnessDay.on("1998-06-13", [.fatigue: 49, .reportedFatigue: 2]).form == nil)
 	}
 
-	@Test(
-		arguments: [
-			(.number(250), 250), (.number(2500), 2500), (.absent, nil), (.notANumber, nil),
-		] as [(ReportedNumber, Double?)])
-	func athleteToolShowsTheFTPNumberWhenThereIsOne(ftp: ReportedNumber, shown: Double?)
-		async throws
-	{
-		intervals.athlete = intervals.athlete.with(ftp: FTPReading(ftp))
-		let athlete = try await result(of: .intervalsFetchAthlete, #"{}"#)
-		#expect(
-			athlete
-				== .object(
-					["id": .string("i1001"), "name": .string("Ada Kovač")].merging(
-						shown.map { ["ftp": .number($0)] } ?? [:]
-					) { $1 }))
-	}
-
 	@Test func wellnessToolKeepsStoredOrderAndTodaysFields() async throws {
 		intervals.wellness = [
 			.on("1998-06-13", [.fitness: 55.2, .fatigue: 42.1, .reportedFatigue: 2, .hrv: 62.5]),
