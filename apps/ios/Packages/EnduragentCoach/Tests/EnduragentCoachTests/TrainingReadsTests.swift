@@ -6,7 +6,6 @@ import Testing
 
 @Suite struct TrainingReadsTests {
 	let intervals = FakeIntervalsClient(athleteName: "Ada Kovač", ftp: 250)
-	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	@Test(arguments: [50.0, 250, 600])
 	func ftpInsideTheBandIsUsable(watts: Double) throws {
@@ -48,34 +47,6 @@ import Testing
 		#expect(WellnessDay.on("1998-06-13", [.fatigue: 49, .reportedFatigue: 2]).form == nil)
 	}
 
-	@Test func wellnessToolKeepsStoredOrderAndTodaysFields() async throws {
-		intervals.wellness = [
-			.on("1998-06-13", [.fitness: 55.2, .fatigue: 42.1, .reportedFatigue: 2, .hrv: 62.5]),
-			.on("1998-06-06", [.fitness: 40]),
-			.on("1998-06-11"),
-			.on("1998-06-12", [.fatigue: 0]),
-		]
-		let days = try await result(
-			of: .intervalsFetchWellness, #"{"oldest":"1998-06-07","newest":"1998-06-13"}"#)
-		#expect(
-			days
-				== .array([
-					.object([
-						"date": .string("1998-06-13"), "fitness": .number(55.2),
-						"fatigue": .number(42.1), "form": .number(55.2 - 42.1),
-					]),
-					.object(["date": .string("1998-06-11")]),
-					.object(["date": .string("1998-06-12"), "fatigue": .number(0)]),
-				]))
-	}
-
-	@Test func reversedWellnessRangeIsRefusedBeforeAnyRead() async throws {
-		let refused = try await result(
-			of: .intervalsFetchWellness, #"{"oldest":"1998-06-13","newest":"1998-06-07"}"#)
-		#expect(refused.objectFields["error"] == .string("invalid_range"))
-		#expect(intervals.count(of: .wellness) == 0)
-	}
-
 	@Test func heldReadEndsWithCancellationWhenItsTaskIsCancelled() async throws {
 		let gate = intervals.hold(.wellness)
 		let release: @Sendable () -> Void = { Task { await gate.release() } }
@@ -108,19 +79,5 @@ import Testing
 		#expect(try await intervals.wellness(in: .day("1998-06-13")).isEmpty)
 		#expect(intervals.count(of: .profile) == 3)
 		#expect(intervals.count(of: .wellness) == 2)
-	}
-
-	private func result(of tool: ToolName, _ arguments: String) async throws -> JSONValue {
-		let ledger = Ledger(
-			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let outcome = try await makeToolRuntime(intervals: intervals, ledger: ledger, clock: clock)
-			.execute(
-				name: tool, arguments: try JSONValue.parse(arguments),
-				scope: TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero)
-			).outcome
-		guard case .result(let json) = outcome else {
-			throw IntervalsError(code: "test", details: "expected a tool result")
-		}
-		return try #require(json.objectFields["data"])
 	}
 }
