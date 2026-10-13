@@ -122,7 +122,6 @@ ICloudKeychainStore.storeOpenRouterAccountKey(_:at:)
 IntervalsClient
 IntervalsClient.createChatEvent(_:)
 IntervalsClient.deleteEvent(id:)
-IntervalsClient.fetchActivity(id:)
 IntervalsClient.fetchEvent(id:)
 IntervalsClient.fetchStreams(id:)
 IntervalsClient.listEvents(oldest:newest:)

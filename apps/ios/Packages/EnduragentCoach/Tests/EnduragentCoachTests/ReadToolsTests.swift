@@ -205,7 +205,6 @@ struct ReadToolsTests {
 
 	@Test func fetchAthleteAndActivityAndStreamsAndEvents() async throws {
 		let activityID = try #require(ActivityID(rawValue: "i1234567"))
-		intervals.activity = try JSONValue.parse(#"{"id":"i1234567","name":"Sunday long ride"}"#)
 		intervals.streams = try JSONValue.parse(
 			try #require(String(data: try fixtureData("streams-ts"), encoding: .utf8)))
 		intervals.events = [

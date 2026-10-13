@@ -53,7 +53,7 @@ import Testing
 			try await client.wellness(in: .day(approval.date)).isEmpty)
 		#expect(try await client.activities(in: .day(approval.date)).total == 0)
 		let activity = try #require(ActivityID(rawValue: "42"))
-		_ = try await client.fetchActivity(id: activity)
+		#expect(try await client.activity(activity) == .notFound)
 		_ = try await client.fetchStreams(id: activity)
 		await #expect(throws: URLError(.notConnectedToInternet)) {
 			if fetchFirst {

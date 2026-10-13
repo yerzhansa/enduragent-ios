@@ -37,7 +37,12 @@ extension CoachTools {
 			required: ["activityId"]
 		)
 	) { arguments, reach in
-		.result(try await reach.calendar.fetchActivity(id: try arguments.activityID()))
+		let id = try arguments.activityID()
+		do {
+			return .result(CoachReadout.activity(try await reach.reads.activity(id), asked: id))
+		} catch let error as IntervalsError {
+			return .result(CoachReadout.activityUnread(id, error))
+		}
 	}
 
 	static let fetchStreams = CoachTool.training(
@@ -144,80 +149,6 @@ enum CoachReadout {
 		]
 		if !units.isEmpty { result["units"] = .object(units) }
 		return .object(result)
-	}
-
-	static func activities(_ listing: ActivityListing) -> JSONValue {
-		var units: [String: JSONValue] = [:]
-		var result: [String: JSONValue] = [
-			"oldest": .string(listing.range.oldest.rawValue),
-			"newest": .string(listing.range.newest.rawValue),
-			"activities": .array(listing.activities.map { row(of: $0, units: &units) }),
-			"hiddenByStrava": .number(Double(listing.hiddenByStrava)),
-		]
-		if listing.hiddenByStrava > 0 {
-			result["stravaNotice"] = .string(
-				stravaNotice(hidden: listing.hiddenByStrava, of: listing.total))
-		}
-		if listing.unreadable > 0 { result["unreadable"] = .number(Double(listing.unreadable)) }
-		if !units.isEmpty { result["units"] = .object(units) }
-		return .object(result)
-	}
-
-	static func stravaNotice(hidden: Int, of total: Int) -> String {
-		"\(hidden) of \(total) activities are hidden by Strava, so they aren’t included. Strava does not allow third-party AI tools to use data from its API. For future rides, connect your recording source directly to intervals.icu and keep Strava connected. For past rides, use Import All Strava Data in intervals.icu settings; it requires an intervals.icu supporter subscription."
-	}
-
-	private static func row(of activity: Activity, units: inout [String: JSONValue]) -> JSONValue {
-		var fields: [String: JSONValue] = [
-			"id": .string(activity.id.rawValue),
-			"start": .string(activity.start.readout),
-		]
-		if let name = activity.name { fields["name"] = .string(name) }
-		if let sport = activity.sport { fields["sport"] = .string(sport) }
-		for field in ActivityField.allCases {
-			guard let value = activity.readings[field] else { continue }
-			fields[field.readoutKey] = .number(value)
-			if let unit = field.unit { units[field.readoutKey] = .string(unit) }
-		}
-		return .object(fields)
-	}
-}
-
-extension LocalStart {
-	var readout: String {
-		guard let secondOfDay else { return date.rawValue }
-		let clock = [secondOfDay / 3_600, secondOfDay / 60 % 60, secondOfDay % 60]
-			.map { $0 < 10 ? "0\($0)" : "\($0)" }
-			.joined(separator: ":")
-		return "\(date.rawValue)T\(clock)"
-	}
-}
-
-extension ActivityField {
-	var readoutKey: String {
-		switch self {
-		case .duration: "durationSeconds"
-		case .distance: "distance"
-		case .load: "load"
-		case .intensity: "intensity"
-		case .averagePower: "averagePower"
-		case .weightedPower: "weightedPower"
-		case .averageHeartRate: "averageHeartRate"
-		case .maxHeartRate: "maxHeartRate"
-		case .ftp: "ftp"
-		case .elevationGain: "elevationGain"
-		}
-	}
-
-	var unit: String? {
-		switch self {
-		case .duration: "s"
-		case .distance, .elevationGain: "m"
-		case .load: nil
-		case .intensity: "%"
-		case .averagePower, .weightedPower, .ftp: "W"
-		case .averageHeartRate, .maxHeartRate: "bpm"
-		}
 	}
 }
 

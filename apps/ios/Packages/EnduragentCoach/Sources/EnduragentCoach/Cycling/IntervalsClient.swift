@@ -106,7 +106,6 @@ public enum CalendarEventType: String, Sendable {
 }
 
 public protocol IntervalsClient: Sendable {
-	func fetchActivity(id: ActivityID) async throws -> JSONValue
 	func fetchStreams(id: ActivityID) async throws -> JSONValue
 	func fetchEvent(id: EventID) async throws -> CalendarEvent
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent]

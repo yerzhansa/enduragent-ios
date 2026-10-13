@@ -15,8 +15,8 @@ extension ForwardingIntervals {
 	func activities(in range: ReadRange) async throws -> ActivityListing {
 		try await base.activities(in: range)
 	}
-	func fetchActivity(id: ActivityID) async throws -> JSONValue {
-		try await base.fetchActivity(id: id)
+	func activity(_ id: ActivityID) async throws -> ActivityDetailRead {
+		try await base.activity(id)
 	}
 	func fetchStreams(id: ActivityID) async throws -> JSONValue {
 		try await base.fetchStreams(id: id)

@@ -19,7 +19,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	package var activities: [Activity]
 	package var stravaHidden: [CivilDate]
 	package var unreadable: [CivilDate]
-	public var activity: JSONValue
+	package var details: [ActivityID: ActivityDetailRead]
 	public var streams: JSONValue
 	public var events: [CalendarEvent]
 	private let recordedCalls = Mutex<[FakeIntervalsCall]>([])
@@ -53,7 +53,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		self.stravaHidden = []
 		self.unreadable = []
 		self.wellness = []
-		self.activity = .object([:])
+		self.details = [:]
 		self.streams = .object([
 			"sampleCount": .number(0),
 			"channels": .object([:]),
@@ -94,9 +94,23 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		if let failure { throw failure }
 	}
 
-	public func fetchActivity(id: ActivityID) async throws -> JSONValue {
+	package func activity(_ id: ActivityID) async throws -> ActivityDetailRead {
 		recordedCalls.withLock { $0.append(.activity(id)) }
-		return activity
+		try await begin(.activity)
+		switch details[id] {
+		case .found(let detail)?:
+			return .found(
+				try ActivityDetail(
+					asked: id, activity: detail.activity, extras: detail.extras, laps: detail.laps))
+		case let answer?:
+			return answer
+		case nil:
+			guard let stored = activities.first(where: { $0.id == id }) else { return .notFound }
+			return .found(
+				try ActivityDetail(
+					asked: id, activity: stored, extras: ActivityDetailExtras(),
+					laps: .notSupplied))
+		}
 	}
 
 	public func fetchStreams(id: ActivityID) async throws -> JSONValue {

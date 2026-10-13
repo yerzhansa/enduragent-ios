@@ -4,6 +4,7 @@ package protocol TrainingReads: Sendable {
 	func profile() async throws -> AthleteProfile
 	func wellness(in range: ReadRange) async throws -> [WellnessDay]
 	func activities(in range: ReadRange) async throws -> ActivityListing
+	func activity(_ id: ActivityID) async throws -> ActivityDetailRead
 }
 
 package typealias TrainingClient = TrainingReads & IntervalsClient

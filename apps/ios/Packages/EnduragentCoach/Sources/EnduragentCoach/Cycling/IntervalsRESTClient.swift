@@ -28,10 +28,6 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 				resourceTimeout: IntervalsPolicy.requestTimeout)
 	}
 
-	package func fetchActivity(id: ActivityID) async throws -> JSONValue {
-		try await getJSON(path: ["activity", id.rawValue])
-	}
-
 	package func fetchStreams(id: ActivityID) async throws -> JSONValue {
 		let json = try await getJSON(
 			path: ["activity", id.rawValue, "streams.json"],

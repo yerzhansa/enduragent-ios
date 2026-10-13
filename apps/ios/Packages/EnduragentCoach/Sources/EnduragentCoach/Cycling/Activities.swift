@@ -97,3 +97,92 @@ package struct ActivityListing: Sendable, Equatable {
 		self.unreadable = unreadable
 	}
 }
+
+package struct ActivityLap: Sendable, Equatable {
+	package let number: Int
+	package let label: String?
+	package let kind: String?
+	package let readings: Readings<ActivityField>
+
+	package init(number: Int, label: String?, kind: String?, readings: Readings<ActivityField>) {
+		self.number = number
+		self.label = label
+		self.kind = kind
+		self.readings = readings
+	}
+}
+
+package enum Laps: Sendable, Equatable {
+	case notSupplied
+	case recorded([ActivityLap])
+}
+
+package enum ActivityDetailField: Hashable, Sendable, CaseIterable {
+	case perceivedExertion
+	case feel
+	case averageCadence
+	case averageSpeed
+	case maxSpeed
+	case calories
+	case work
+	case variabilityIndex
+	case efficiencyFactor
+	case decoupling
+}
+
+package struct ZoneSeconds: Sendable, Equatable {
+	package let zone: String
+	package let seconds: Int
+
+	package init(zone: String, seconds: Int) {
+		self.zone = zone
+		self.seconds = seconds
+	}
+}
+
+package struct ActivityDetailExtras: Sendable, Equatable {
+	package let notes: String?
+	package let indoor: Bool?
+	package let readings: Readings<ActivityDetailField>
+	package let powerZoneSeconds: [ZoneSeconds]
+	package let heartRateZoneSeconds: [Int]
+
+	package init(
+		notes: String? = nil, indoor: Bool? = nil,
+		readings: Readings<ActivityDetailField> = Readings([:]),
+		powerZoneSeconds: [ZoneSeconds] = [], heartRateZoneSeconds: [Int] = []
+	) {
+		self.notes = notes
+		self.indoor = indoor
+		self.readings = readings
+		self.powerZoneSeconds = powerZoneSeconds
+		self.heartRateZoneSeconds = heartRateZoneSeconds
+	}
+}
+
+package struct ActivityDetail: Sendable, Equatable {
+	package let activity: Activity
+	package let extras: ActivityDetailExtras
+	package let laps: Laps
+
+	package init(
+		asked: ActivityID, activity: Activity, extras: ActivityDetailExtras, laps: Laps
+	) throws(IntervalsError) {
+		guard activity.id == asked else {
+			throw IntervalsError(
+				code: "activity_mismatch",
+				details:
+					"intervals.icu answered with a different activity than \(asked.rawValue). Nothing from that answer is shown."
+			)
+		}
+		self.activity = activity
+		self.extras = extras
+		self.laps = laps
+	}
+}
+
+package enum ActivityDetailRead: Sendable, Equatable {
+	case found(ActivityDetail)
+	case notFound
+	case hiddenByStrava
+}
