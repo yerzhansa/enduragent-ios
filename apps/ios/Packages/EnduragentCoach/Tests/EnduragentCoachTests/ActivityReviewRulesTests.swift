@@ -177,7 +177,8 @@ import Testing
 				"Calories", "Work", "Variability index / efficiency factor", "Decoupling",
 				"Time in power / heart-rate zones",
 			])
-		#expect(carried.topic.says("After an activity detail read, append only the rows it supplied:"))
+		#expect(
+			carried.topic.says("After an activity detail read, append only the rows it supplied:"))
 		#expect(tables[3] == [["Lap", "Label / kind", "Duration", "Distance"]])
 		#expect(
 			carried.topic.says(
@@ -194,7 +195,9 @@ import Testing
 		let carried = try await carried()
 		intervals.activities = [Self.ride, Self.hidden]
 		intervals.details[Self.hidden.id] = .hiddenByStrava
-		var returned = [try await detail(of: "i7654321"), try await detail(of: Self.hidden.id.rawValue)]
+		var returned = [
+			try await detail(of: "i7654321"), try await detail(of: Self.hidden.id.rawValue),
+		]
 		#expect(try await detail(of: Self.ride.id.rawValue)["lapsSupplied"] == .bool(false))
 		intervals.fail(.activity, with: IntervalsError(code: "http", details: "status 503"))
 		returned.append(try await detail(of: Self.ride.id.rawValue))
@@ -222,7 +225,8 @@ import Testing
 	{
 		let rules = try await carried().rules
 
-		#expect(rules.says("1. Call `intervals_fetch_activities` for the last 7 days, newest first."))
+		#expect(
+			rules.says("1. Call `intervals_fetch_activities` for the last 7 days, newest first."))
 		#expect(
 			rules.says(
 				"2. If empty: reply \"No activity in the last 7 days — want me to look further back?\" and stop."
