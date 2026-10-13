@@ -3,9 +3,22 @@ import Foundation
 package protocol TrainingReads: Sendable {
 	func profile() async throws -> AthleteProfile
 	func wellness(in range: ReadRange) async throws -> [WellnessDay]
+	func activities(in range: ReadRange) async throws -> ActivityListing
+	func activity(_ id: ActivityID) async throws -> ActivityDetailRead
+	func streams(of id: ActivityID, channels: StreamChannels) async throws -> StreamSummary
 }
 
 package typealias TrainingClient = TrainingReads & IntervalsClient
+
+package func reachingIntervals<Answer>(_ read: () async throws -> Answer) async throws -> Answer {
+	do {
+		return try await read()
+	} catch let error as URLError where error.code != .cancelled {
+		throw IntervalsError(
+			code: "network",
+			details: "intervals.icu could not be reached (URLError \(error.code.rawValue)).")
+	}
+}
 
 package struct ReadRange: Sendable, Equatable {
 	package let oldest: CivilDate
@@ -22,15 +35,6 @@ package struct ReadRange: Sendable, Equatable {
 		try Self.rejectTooWide(IntervalsPolicy.inclusiveDayCount(from: oldest, to: newest))
 		self.oldest = oldest
 		self.newest = newest
-	}
-
-	package init(endingOn today: CivilDate, days: Int) throws(IntervalsError) {
-		guard days >= 1 else {
-			throw IntervalsError(code: "invalid_input", details: "days must be a positive integer.")
-		}
-		try Self.rejectTooWide(days)
-		self.oldest = today.adding(days: -(days - 1))
-		self.newest = today
 	}
 
 	private init(endingOn today: CivilDate, lookback days: Int) {
@@ -59,6 +63,21 @@ package struct ReadRange: Sendable, Equatable {
 					"Range is \(days) days; the maximum is \(limit). Fetch the range in chunks of at most \(limit) days."
 			)
 		}
+	}
+}
+
+package struct StreamChannels: Sendable, Equatable {
+	package static let standard = StreamChannels(
+		names: ["watts", "heartrate", "cadence", "time", "altitude"])
+
+	package let names: [String]
+
+	package init(requested: [String]?) {
+		self = requested.flatMap { $0.isEmpty ? nil : StreamChannels(names: $0) } ?? .standard
+	}
+
+	private init(names: [String]) {
+		self.names = names
 	}
 }
 

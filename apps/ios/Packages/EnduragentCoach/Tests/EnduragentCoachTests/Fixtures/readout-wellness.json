@@ -1,0 +1,480 @@
+[
+  {
+    "name": "full history, sent out of date order",
+    "arguments": {
+      "oldest": "1998-06-10",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "1998-06-12",
+        "ctl": 54.8,
+        "atl": 40,
+        "rampRate": 1.1,
+        "fatigue": 3
+      },
+      {
+        "id": "1998-06-13",
+        "ctl": 55.2,
+        "atl": 42.1,
+        "rampRate": 1.4,
+        "weight": 58.4,
+        "restingHR": 47,
+        "hrv": 62.5,
+        "sleepSecs": 25500,
+        "sleepScore": 81,
+        "sleepQuality": 2,
+        "readiness": 74,
+        "soreness": 3,
+        "stress": 1,
+        "mood": 4,
+        "motivation": 5,
+        "injury": 6,
+        "fatigue": 2,
+        "sportInfo": [
+          {
+            "type": "Ride",
+            "eftp": 251.3,
+            "wPrime": 20000,
+            "pMax": 1100
+          }
+        ]
+      },
+      {
+        "id": "1998-06-11"
+      },
+      {
+        "id": "1998-06-10",
+        "ctl": 53.9,
+        "atl": "invalid",
+        "hrv": null,
+        "sleepSecs": 0,
+        "soreness": 0
+      }
+    ],
+    "npm": [
+      {
+        "id": "1998-06-12",
+        "ctl": 54.8,
+        "atl": 40,
+        "rampRate": 1.1,
+        "fatigue": 3
+      },
+      {
+        "id": "1998-06-13",
+        "ctl": 55.2,
+        "atl": 42.1,
+        "rampRate": 1.4,
+        "weight": 58.4,
+        "restingHR": 47,
+        "hrv": 62.5,
+        "sleepSecs": 25500,
+        "sleepScore": 81,
+        "sleepQuality": 2,
+        "readiness": 74,
+        "soreness": 3,
+        "stress": 1,
+        "mood": 4,
+        "motivation": 5,
+        "injury": 6,
+        "fatigue": 2,
+        "sportInfo": [
+          {
+            "type": "Ride",
+            "eftp": 251.3,
+            "wPrime": 20000,
+            "pMax": 1100
+          }
+        ]
+      },
+      {
+        "id": "1998-06-11"
+      },
+      {
+        "id": "1998-06-10",
+        "ctl": 53.9,
+        "atl": "invalid",
+        "sleepSecs": 0,
+        "soreness": 0
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-10",
+      "newest": "1998-06-13",
+      "days": [
+        {
+          "date": "1998-06-10",
+          "fitness": 53.9,
+          "sleepSeconds": 0,
+          "soreness": 0
+        },
+        {
+          "date": "1998-06-11"
+        },
+        {
+          "date": "1998-06-12",
+          "fitness": 54.8,
+          "fatigue": 40,
+          "form": 14.8,
+          "rampRate": 1.1,
+          "reportedFatigue": 3
+        },
+        {
+          "date": "1998-06-13",
+          "fitness": 55.2,
+          "fatigue": 42.1,
+          "form": 13.1,
+          "rampRate": 1.4,
+          "weight": 58.4,
+          "restingHeartRate": 47,
+          "hrv": 62.5,
+          "sleepSeconds": 25500,
+          "sleepScore": 81,
+          "sleepQuality": 2,
+          "readiness": 74,
+          "soreness": 3,
+          "stress": 1,
+          "mood": 4,
+          "motivation": 5,
+          "injury": 6,
+          "reportedFatigue": 2
+        }
+      ],
+      "units": {
+        "rampRate": "Fitness per week",
+        "weight": "kg",
+        "restingHeartRate": "bpm",
+        "hrv": "ms",
+        "sleepSeconds": "s"
+      }
+    }
+  },
+  {
+    "name": "no rows",
+    "arguments": {
+      "oldest": "1998-06-10",
+      "newest": "1998-06-13"
+    },
+    "response": [],
+    "npm": [],
+    "phone": {
+      "oldest": "1998-06-10",
+      "newest": "1998-06-13",
+      "days": []
+    }
+  },
+  {
+    "name": "a day with no readings is its date alone",
+    "arguments": {
+      "oldest": "1998-06-13",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "1998-06-13"
+      }
+    ],
+    "npm": [
+      {
+        "id": "1998-06-13"
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-13",
+      "newest": "1998-06-13",
+      "days": [
+        {
+          "date": "1998-06-13"
+        }
+      ]
+    }
+  },
+  {
+    "name": "nulls have no key and zeros stay",
+    "arguments": {
+      "oldest": "1998-06-13",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "1998-06-13",
+        "ctl": 0,
+        "atl": 0,
+        "rampRate": 0,
+        "weight": null,
+        "restingHR": 0,
+        "hrv": null,
+        "sleepSecs": 0,
+        "sleepScore": null,
+        "sleepQuality": null,
+        "readiness": 0,
+        "soreness": null,
+        "stress": null,
+        "mood": 0,
+        "motivation": null,
+        "injury": null,
+        "fatigue": 0,
+        "sportInfo": []
+      }
+    ],
+    "npm": [
+      {
+        "id": "1998-06-13",
+        "ctl": 0,
+        "atl": 0,
+        "rampRate": 0,
+        "restingHR": 0,
+        "sleepSecs": 0,
+        "readiness": 0,
+        "mood": 0,
+        "fatigue": 0
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-13",
+      "newest": "1998-06-13",
+      "days": [
+        {
+          "date": "1998-06-13",
+          "fitness": 0,
+          "fatigue": 0,
+          "form": 0,
+          "rampRate": 0,
+          "restingHeartRate": 0,
+          "sleepSeconds": 0,
+          "readiness": 0,
+          "mood": 0,
+          "reportedFatigue": 0
+        }
+      ],
+      "units": {
+        "rampRate": "Fitness per week",
+        "restingHeartRate": "bpm",
+        "sleepSeconds": "s"
+      }
+    }
+  },
+  {
+    "name": "calculated Fatigue and reported fatigue each stand alone, and Form needs Fitness and Fatigue",
+    "arguments": {
+      "oldest": "1998-06-10",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "1998-06-10",
+        "atl": 40.5
+      },
+      {
+        "id": "1998-06-11",
+        "fatigue": 4
+      },
+      {
+        "id": "1998-06-12",
+        "ctl": 51.5
+      },
+      {
+        "id": "1998-06-13",
+        "ctl": 51.5,
+        "fatigue": 4
+      }
+    ],
+    "npm": [
+      {
+        "id": "1998-06-10",
+        "atl": 40.5
+      },
+      {
+        "id": "1998-06-11",
+        "fatigue": 4
+      },
+      {
+        "id": "1998-06-12",
+        "ctl": 51.5
+      },
+      {
+        "id": "1998-06-13",
+        "ctl": 51.5,
+        "fatigue": 4
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-10",
+      "newest": "1998-06-13",
+      "days": [
+        {
+          "date": "1998-06-10",
+          "fatigue": 40.5
+        },
+        {
+          "date": "1998-06-11",
+          "reportedFatigue": 4
+        },
+        {
+          "date": "1998-06-12",
+          "fitness": 51.5
+        },
+        {
+          "date": "1998-06-13",
+          "fitness": 51.5,
+          "reportedFatigue": 4
+        }
+      ]
+    }
+  },
+  {
+    "name": "Form is rounded to one decimal, and the readings are not",
+    "arguments": {
+      "oldest": "1998-06-10",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "1998-06-11",
+        "ctl": 61.37,
+        "atl": 75.03
+      },
+      {
+        "id": "1998-06-12",
+        "ctl": 48.26,
+        "atl": 48.24
+      },
+      {
+        "id": "1998-06-13",
+        "ctl": 70.123,
+        "atl": 60.049
+      }
+    ],
+    "npm": [
+      {
+        "id": "1998-06-11",
+        "ctl": 61.37,
+        "atl": 75.03
+      },
+      {
+        "id": "1998-06-12",
+        "ctl": 48.26,
+        "atl": 48.24
+      },
+      {
+        "id": "1998-06-13",
+        "ctl": 70.123,
+        "atl": 60.049
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-10",
+      "newest": "1998-06-13",
+      "days": [
+        {
+          "date": "1998-06-11",
+          "fitness": 61.37,
+          "fatigue": 75.03,
+          "form": -13.7
+        },
+        {
+          "date": "1998-06-12",
+          "fitness": 48.26,
+          "fatigue": 48.24,
+          "form": 0
+        },
+        {
+          "date": "1998-06-13",
+          "fitness": 70.123,
+          "fatigue": 60.049,
+          "form": 10.1
+        }
+      ]
+    }
+  },
+  {
+    "name": "a field that is not a number has no key",
+    "arguments": {
+      "oldest": "1998-06-13",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "1998-06-13",
+        "ctl": "55.2",
+        "atl": 42.1,
+        "weight": true,
+        "hrv": [
+          62.5
+        ],
+        "sleepSecs": {
+          "value": 25500
+        },
+        "fatigue": "high"
+      }
+    ],
+    "npm": [
+      {
+        "id": "1998-06-13",
+        "ctl": "55.2",
+        "atl": 42.1,
+        "weight": true,
+        "hrv": [
+          62.5
+        ],
+        "sleepSecs": {
+          "value": 25500
+        },
+        "fatigue": "high"
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-13",
+      "newest": "1998-06-13",
+      "days": [
+        {
+          "date": "1998-06-13",
+          "fatigue": 42.1
+        }
+      ]
+    }
+  },
+  {
+    "name": "a row without a real date is left out",
+    "arguments": {
+      "oldest": "1998-06-10",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "1998-02-30",
+        "ctl": 50
+      },
+      {
+        "ctl": 51
+      },
+      {
+        "id": "1998-06-13",
+        "ctl": 55
+      }
+    ],
+    "npm": [
+      {
+        "id": "1998-02-30",
+        "ctl": 50
+      },
+      {
+        "ctl": 51
+      },
+      {
+        "id": "1998-06-13",
+        "ctl": 55
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-10",
+      "newest": "1998-06-13",
+      "days": [
+        {
+          "date": "1998-06-13",
+          "fitness": 55
+        }
+      ]
+    }
+  }
+]

@@ -13,7 +13,9 @@ import Testing
 	@Test func tenStepChatInvocationChargesOneCall() async throws {
 		var script: [ScriptedEvent] = []
 		for _ in 0..<9 {
-			script.append(.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#))
+			script.append(
+				.toolCall(
+					name: "intervals_fetch_activities", arguments: #"{"oldest":"1998-06-07"}"#))
 			script.append(.finish(reason: .toolCalls))
 		}
 		script.append(contentsOf: [.text("Ten steps."), .finish(reason: .stop)])

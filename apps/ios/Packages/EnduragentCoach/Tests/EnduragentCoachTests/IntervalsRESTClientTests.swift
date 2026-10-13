@@ -28,15 +28,6 @@ struct IntervalsRESTClientTests {
 		)
 	}
 
-	@Test func fetchActivitiesProjectsAdaRides() async throws {
-		let client = try makeClient()
-		let rows = try await client.fetchActivities(oldest: "1998-06-01", newest: "1998-06-13")
-		#expect(rows.map(\.name) == ["Sunday long ride", "Tuesday tempo"])
-		#expect(rows[0].date == "1998-06-07")
-		#expect(rows[0].durationS == 7200)
-		#expect(rows[0].trainingLoad == 120)
-	}
-
 	@Test func listEventsDoesNotFilterAwayMovedIdentities() async throws {
 		let client = try makeClient()
 		let events = try await client.listEvents(oldest: "1998-06-14", newest: "1998-06-20")
@@ -52,27 +43,10 @@ struct IntervalsRESTClientTests {
 		#expect(!events[1].coachCreated)
 	}
 
-	@Test func fetchStreamsReturnsSummaryWithoutSeries() async throws {
-		let client = try makeClient()
-		let summary = try await client.fetchStreams(
-			id: try #require(ActivityID(rawValue: "i1234567")))
-		let expected = try JSONValue.parse(
-			try #require(String(data: try fixtureData("streams-ts"), encoding: .utf8)))
-		#expect(summary.canonicalDigestInput() == expected.canonicalDigestInput())
-		let encoded = canonicalJSON(summary)
-		#expect(!encoded.contains("\"data\""))
-	}
-
 	@Test func rangeOf367DaysIsRejected() async throws {
 		let client = try makeClient()
 		let oldest: CivilDate = "1998-01-01"
 		let newest = oldest.adding(days: 366)
-		do {
-			_ = try await client.fetchActivities(oldest: oldest, newest: newest)
-			Issue.record("expected range_too_wide")
-		} catch let error as IntervalsError {
-			#expect(error.code == "range_too_wide")
-		}
 		do {
 			_ = try await client.listEvents(oldest: oldest, newest: newest)
 			Issue.record("expected range_too_wide")
@@ -86,7 +60,7 @@ struct IntervalsRESTClientTests {
 		let client = try makeClient()
 		let oldest: CivilDate = "1998-01-01"
 		let newest = oldest.adding(days: 365)
-		_ = try await client.fetchActivities(oldest: oldest, newest: newest)
+		_ = try await client.listEvents(oldest: oldest, newest: newest)
 		#expect(IntervalsURLProtocolStub.lastRequest != nil)
 	}
 
