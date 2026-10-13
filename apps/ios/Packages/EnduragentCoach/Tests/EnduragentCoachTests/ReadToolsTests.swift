@@ -79,7 +79,7 @@ struct ReadToolsTests {
 		#expect(encoded.contains("\"Fatigue\"") == false)
 		#expect(unwrapData(json).arrayValue?.first?.objectFields["fatigue"]?.numberValue == 42.1)
 		#expect(
-			unwrapData(json).arrayValue?.first?.objectFields["form"]?.numberValue == 13.1)
+			unwrapData(json).arrayValue?.first?.objectFields["form"]?.numberValue == 55.2 - 42.1)
 	}
 
 	@Test func fetchAthleteAndActivityAndStreamsAndEvents() async throws {
