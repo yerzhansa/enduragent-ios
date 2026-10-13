@@ -29,7 +29,9 @@ package enum TrainingSnapshot: Sendable, Equatable {
 
 	package var promptSection: String {
 		switch self {
-		case .notConnected, .unavailable:
+		case .notConnected:
+			return PromptStaticBlocks.snapshotNotConnected
+		case .unavailable:
 			return PromptStaticBlocks.snapshotFallback
 		case .available(let lines):
 			var section =
@@ -168,10 +170,10 @@ package struct TrainingSnapshotReader: Sendable {
 	package func snapshot(for training: TrainingConnection, attempt: AttemptID)
 		async throws(CancellationError) -> TrainingSnapshot
 	{
-		guard training.account != .unconnected else { return .notConnected }
+		guard case .connected(let connected) = training else { return .notConnected }
 		let lookback = ReadRange.snapshotLookback(
 			endingOn: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone))
-		let client = training.client
+		let client = connected.client
 		let race = await withTaskGroup(of: SnapshotArrival.self) { group in
 			group.addTask { .profile(await Self.outcome { try await client.profile() }) }
 			group.addTask {

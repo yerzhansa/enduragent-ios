@@ -184,8 +184,7 @@ import Testing
 			displayLocale: testDisplayLocale(.automatic),
 			session: .npmDefaults,
 			access: testAccess,
-			training: TrainingConnection(
-				account: testConnection.account, client: intervals),
+			training: connectedTraining(intervals),
 			process: ProcessID(ulid: scope.stamp.attempt.ulid)
 		)
 	}

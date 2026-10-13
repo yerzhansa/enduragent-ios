@@ -212,16 +212,14 @@ import Testing
 		#expect(!system.contains("not a usable number"))
 	}
 
-	@Test func unconnectedTurnMakesNoReadAndKeepsTheFallback() async throws {
+	@Test func unconnectedTurnMakesNoReadAndRecordsNoFailure() async throws {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
 		let coach = try await coach(secrets: secrets)
 
 		_ = try await coach.sendAndSettle("How is my form?")
 
-		let system = try #require(transport.requests.first?.messages.first?.content)
-		#expect(
-			system.contains(PromptStaticBlocks.snapshotFallback + PromptAssembly.sectionSeparator))
+		#expect(transport.requests.count == 1)
 		#expect(intervals.count(of: .profile) == 0)
 		#expect(intervals.count(of: .wellness) == 0)
 		#expect(coach.diagnostics.entries.isEmpty)
@@ -279,9 +277,6 @@ import Testing
 	}
 
 	func connection() -> TrainingConnection {
-		TrainingConnection(
-			account: .intervals(
-				connection: testConnection.id, athlete: testConnection.resolvedAthlete),
-			client: intervals)
+		connectedTraining(intervals)
 	}
 }

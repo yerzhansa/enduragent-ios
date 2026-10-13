@@ -44,6 +44,15 @@ extension SingleProposalReviewsTests {
 extension SingleProposalReviewsTests {
 	@Test func unconnectedApprovalOffersConnectWithoutDispatch() async throws {
 		try secrets.delete(.intervalsConnection)
+		let ledger = Ledger(log: records, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let input = GatedToolInput.createStrengthWorkout(
+			date: "1998-06-14", name: "Core", description: "20 min floor")
+		_ = try await makeReviews(ledger: ledger, clock: clock).propose(
+			chatId: .main, tool: .intervalsCreateStrengthWorkout, input: input,
+			summary: ProposalPolicy.summary(for: input), description: "20 min floor",
+			scope: TurnScope(
+				stamp: testStamp(account: .unconnected), policy: .npm, ladder: .npm,
+				uptime: clock.uptime))
 		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 

@@ -18,7 +18,6 @@ struct ReadToolsTests {
 			let outcome = try await tools.execute(
 				name: .calculateZones,
 				arguments: .object(["ftpWatts": .number(Double(ftp))]),
-				chatId: .main,
 				scope: turnScope()
 			).outcome
 			guard case .result(let json) = outcome else {
@@ -41,7 +40,6 @@ struct ReadToolsTests {
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchActivities,
 			arguments: try JSONValue.parse(#"{"days":7}"#),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		#expect(intervals.calls == [.activities(days: 7)])
@@ -56,7 +54,6 @@ struct ReadToolsTests {
 		_ = try await runtime().execute(
 			name: .intervalsFetchWellness,
 			arguments: try JSONValue.parse(#"{"oldest":"1998-06-07"}"#),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		#expect(intervals.calls == [.wellness(oldest: "1998-06-07", newest: "1998-06-13")])
@@ -69,7 +66,6 @@ struct ReadToolsTests {
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchWellness,
 			arguments: try JSONValue.parse(#"{"oldest":"1998-06-13","newest":"1998-06-13"}"#),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		guard case .result(let json) = outcome else {
@@ -117,7 +113,6 @@ struct ReadToolsTests {
 		let athlete = try await tools.execute(
 			name: .intervalsFetchAthlete,
 			arguments: .object([:]),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		guard case .result(let athleteJSON) = athlete else {
@@ -129,20 +124,17 @@ struct ReadToolsTests {
 		_ = try await tools.execute(
 			name: .intervalsFetchActivity,
 			arguments: try JSONValue.parse(#"{"activityId":"i1234567"}"#),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		_ = try await tools.execute(
 			name: .intervalsFetchStreams,
 			arguments: try JSONValue.parse(#"{"activityId":"i1234567"}"#),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		let listed = try await tools.execute(
 			name: .intervalsListEvents,
 			arguments: try JSONValue.parse(
 				#"{"oldest":"1998-06-14","newest":"1998-06-20","coachCreatedOnly":true}"#),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		#expect(intervals.calls.contains(.activity(activityID)))
@@ -174,7 +166,6 @@ struct ReadToolsTests {
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchActivities,
 			arguments: .object(["oldest": .string(oldest), "newest": .string(newest)]),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		guard case .result(let json) = outcome else {
@@ -185,14 +176,13 @@ struct ReadToolsTests {
 		#expect(intervals.calls.isEmpty)
 	}
 
-	@Test func toolCatalogSchemasHaveNoUnions() {
-		let schemas = ToolCatalog.schemas(
-			memory: MemoryView(
-				sections: [:],
-				todayNotes: nil,
-				planHeadline: nil,
-				orphanNames: []
-			))
+	@Test func offeredSchemasHaveNoUnions() {
+		let schemas = makeToolOffer(
+			training: connectedTraining(intervals),
+			ledger: Ledger(
+				log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock
+		).schemas
 		#expect(
 			schemas.map(\.name) == [
 				.calculateZones,
