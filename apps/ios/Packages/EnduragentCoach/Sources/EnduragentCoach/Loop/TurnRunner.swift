@@ -59,7 +59,7 @@ package struct TurnRunner: Sendable {
 	let diagnostics: DiagnosticsLog
 	let ladder: RetryLadder
 	let reviews: SingleProposalReviews
-	private let evidence: any TurnEvidence
+	private let snapshots: TrainingSnapshotReader
 
 	package init(
 		transport: any ModelTransport,
@@ -67,7 +67,6 @@ package struct TurnRunner: Sendable {
 		clock: any Clock,
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
-		evidence: any TurnEvidence,
 		reviews: SingleProposalReviews,
 		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
 		authorizeInvocation: @escaping @Sendable (ModelInvocation) async throws -> Void
@@ -79,7 +78,8 @@ package struct TurnRunner: Sendable {
 		self.watchdogSleep = watchdogSleep
 		self.diagnostics = diagnostics
 		self.ladder = ladder
-		self.evidence = evidence
+		self.snapshots = TrainingSnapshotReader(
+			clock: clock, deadlineSleep: watchdogSleep, diagnostics: diagnostics)
 		self.reviews = reviews
 	}
 
@@ -231,12 +231,12 @@ package struct TurnRunner: Sendable {
 		let (context, view) = try await memory.prompt(for: attempt.training.account)
 		let schemas = ToolCatalog.schemas(memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
-		let block = try await evidence.block(
-			for: attempt.training, attempt: attempt.attempt, now: clock.now)
+		let snapshot = try await snapshots.snapshot(
+			for: attempt.training, attempt: attempt.attempt)
 		let zone = clock.timeZone
 		let volatile = PromptAssembly.volatile(
 			context: context,
-			evidence: block,
+			snapshot: snapshot,
 			timeZoneName: zone.identifier,
 			displayLocale: attempt.displayLocale
 		)

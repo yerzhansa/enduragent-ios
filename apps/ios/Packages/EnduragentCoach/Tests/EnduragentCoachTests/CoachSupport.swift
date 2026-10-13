@@ -245,7 +245,10 @@ func failure(_ state: TurnState) -> CoachFailure? {
 func systemTokens(clock: any Clock) -> Int {
 	let volatile = PromptAssembly.volatile(
 		context: "",
-		evidence: EvidenceBlock(wellnessLine: nil),
+		snapshot: TrainingSnapshot(
+			profile: .read(.cyclist(name: "Ada", ftp: 250)), wellness: .read([]),
+			lookback: .snapshotLookback(
+				endingOn: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone))),
 		timeZoneName: clock.timeZone.identifier,
 		displayLocale: testDisplayLocale(.automatic)
 	)

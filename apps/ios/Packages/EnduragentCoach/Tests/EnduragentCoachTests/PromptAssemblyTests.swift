@@ -28,22 +28,73 @@ import Testing
 		#expect(estimateTokens(gated) < TurnPolicy.gatedPrefixTokenCeiling)
 	}
 
-	@Test func volatileOmitsCivilDateAndFencesContext() {
+	@Test(arguments: [
+		TrainingSnapshot(
+			profile: .read(.cyclist(name: "Ada", ftp: 250)),
+			wellness: .read([.on("1998-06-12", [.fitness: 55.2, .fatigue: 42.1])]),
+			lookback: .snapshotLookback(endingOn: "1998-06-13")),
+		.unavailable(.nothingUsable), .unavailable(.deadlineMissed), .notConnected,
+	])
+	func volatileCarriesTheSnapshotSectionBetweenContextAndTime(snapshot: TrainingSnapshot) {
 		let section = PromptAssembly.volatile(
 			context: "Ada rides on Saturdays.",
-			evidence: EvidenceBlock(wellnessLine: "Fitness 55.2 · Fatigue 42.1 · Form +13.1"),
+			snapshot: snapshot,
 			timeZoneName: "Europe/Amsterdam",
 			displayLocale: testDisplayLocale(.automatic)
 		)
-		#expect(section.contains(PromptAssembly.athleteDataOpen))
-		#expect(section.contains("Ada rides on Saturdays."))
-		#expect(section.contains("Fitness"))
-		#expect(section.contains("Fatigue"))
-		#expect(section.contains("Form"))
-		#expect(section.contains("Time zone: Europe/Amsterdam"))
-		#expect(section.contains("# Reply language"))
+		#expect(
+			section.hasPrefix(
+				"""
+				# Athlete Context
+
+				\(PromptAssembly.athleteDataOpen)
+				Ada rides on Saturdays.
+				\(PromptAssembly.athleteDataClose)
+
+				---
+
+				\(snapshot.promptSection)
+
+				---
+
+				# Current Date & Time
+
+				Time zone: Europe/Amsterdam
+
+				---
+
+				# Reply language
+				"""))
 		#expect(section.contains("1998-06-13") == false)
 		#expect(section.contains("CTL") == false)
+	}
+
+	@Test func snapshotSectionTextForEachState() {
+		let available = TrainingSnapshot(
+			profile: .read(.cyclist(name: "Ada", ftp: 250)),
+			wellness: .read([.on("1998-06-12", [.fitness: 55.2, .fatigue: 42.1])]),
+			lookback: .snapshotLookback(endingOn: "1998-06-13"))
+		#expect(
+			available.promptSection == """
+				# Athlete Profile & Latest Wellness
+
+				Profile: FTP 250 W
+				Wellness 1998-06-12: Fitness 55.2 · Fatigue 42.1 · Form +13.1
+				Fetch wellness or activities only for a date range or history not shown here. \
+				Treat a single HRV or resting-HR value as one signal, not a verdict; \
+				weigh the athlete's reported feel at least as much.
+				""")
+		let fallback = """
+			# Athlete Profile & Latest Wellness
+
+			Athlete snapshot: unavailable this turn; fetch the profile and latest wellness \
+			before prescribing intensity.
+			"""
+		for snapshot: TrainingSnapshot in [
+			.unavailable(.nothingUsable), .unavailable(.deadlineMissed), .notConnected,
+		] {
+			#expect(snapshot.promptSection == fallback)
+		}
 	}
 
 	@Test func wrapAthleteContextTruncatesAndNeutralizesFence() {

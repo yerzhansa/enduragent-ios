@@ -190,7 +190,8 @@ private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 	case .secureStorageFailed, .toolFailed, .skippedRecord, .recoveryUnavailable,
 		.importsUnavailable,
 		.preferencesUnavailable, .consentUnavailable,
-		.evidenceUnavailable, .reviewOutcomeUnsaved, .settlementUnsaved, .reviewUnavailable:
+		.snapshotReadFailed, .snapshotDeadlineMissed, .reviewOutcomeUnsaved, .settlementUnsaved,
+		.reviewUnavailable:
 		return nil
 	}
 }

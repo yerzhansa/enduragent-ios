@@ -1,0 +1,1411 @@
+[
+  {
+    "name": "full data",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_weight": 70,
+        "weight": 71,
+        "icu_ftp": 240,
+        "icu_lthr": 160,
+        "icu_max_hr": 180,
+        "icu_resting_hr": 50,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride",
+              "VirtualRide"
+            ],
+            "ftp": 250,
+            "lthr": 165,
+            "max_hr": 188,
+            "resting_hr": 48,
+            "weight": 72
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 62,
+          "atl": 70.5,
+          "rampRate": 1.4,
+          "weight": 70,
+          "restingHR": 48,
+          "hrv": 71,
+          "sleepSecs": 25500,
+          "sleepScore": 82,
+          "sleepQuality": 3,
+          "readiness": 64,
+          "fatigue": 2,
+          "soreness": 1,
+          "stress": 2,
+          "mood": 3,
+          "motivation": 3,
+          "injury": 1
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W · LTHR 165 bpm · max HR 188 bpm · resting HR 48 bpm · weight 70 kg\nWellness 1998-06-13: Fitness 62 · Fatigue 70.5 · Form -8.5 · resting HR 48 bpm · HRV 71 · sleep 7h05 · sleep score 82 · sleep quality 3 · weight 70 kg · readiness 64 · reported fatigue 2 · soreness 1 · stress 2 · mood 3 · motivation 3 · injury 1\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "profile only, no wellness rows",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_weight": 70,
+        "weight": 71,
+        "icu_ftp": 240,
+        "icu_lthr": 160,
+        "icu_max_hr": 180,
+        "icu_resting_hr": 50,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride",
+              "VirtualRide"
+            ],
+            "ftp": 250,
+            "lthr": 165,
+            "max_hr": 188,
+            "resting_hr": 48,
+            "weight": 72
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W · LTHR 165 bpm · max HR 188 bpm · resting HR 48 bpm · weight 70 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "wellness only, profile has no numbers",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 62,
+          "atl": 70.5,
+          "rampRate": 1.4,
+          "weight": 70,
+          "restingHR": 48,
+          "hrv": 71,
+          "sleepSecs": 25500,
+          "sleepScore": 82,
+          "sleepQuality": 3,
+          "readiness": 64,
+          "fatigue": 2,
+          "soreness": 1,
+          "stress": 2,
+          "mood": 3,
+          "motivation": 3,
+          "injury": 1
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 62 · Fatigue 70.5 · Form -8.5 · resting HR 48 bpm · HRV 71 · sleep 7h05 · sleep score 82 · sleep quality 3 · weight 70 kg · readiness 64 · reported fatigue 2 · soreness 1 · stress 2 · mood 3 · motivation 3 · injury 1\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "usable profile with empty wellness rows",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_weight": 70,
+        "weight": 71,
+        "icu_ftp": 240,
+        "icu_lthr": 160,
+        "icu_max_hr": 180,
+        "icu_resting_hr": 50,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride",
+              "VirtualRide"
+            ],
+            "ftp": 250,
+            "lthr": 165,
+            "max_hr": 188,
+            "resting_hr": 48,
+            "weight": 72
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": null,
+          "atl": null
+        },
+        {
+          "id": "1998-06-12",
+          "ctl": null,
+          "atl": null,
+          "rampRate": 0.5
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W · LTHR 165 bpm · max HR 188 bpm · resting HR 48 bpm · weight 70 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "both reads failing",
+    "today": "1998-06-13",
+    "athlete": {
+      "failed": true
+    },
+    "wellness": {
+      "failed": true
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nAthlete snapshot: unavailable this turn; fetch the profile and latest wellness before prescribing intensity."
+  },
+  {
+    "name": "profile read failing",
+    "today": "1998-06-13",
+    "athlete": {
+      "failed": true
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 62,
+          "atl": 70.5,
+          "rampRate": 1.4,
+          "weight": 70,
+          "restingHR": 48,
+          "hrv": 71,
+          "sleepSecs": 25500,
+          "sleepScore": 82,
+          "sleepQuality": 3,
+          "readiness": 64,
+          "fatigue": 2,
+          "soreness": 1,
+          "stress": 2,
+          "mood": 3,
+          "motivation": 3,
+          "injury": 1
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 62 · Fatigue 70.5 · Form -8.5 · resting HR 48 bpm · HRV 71 · sleep 7h05 · sleep score 82 · sleep quality 3 · weight 70 kg · readiness 64 · reported fatigue 2 · soreness 1 · stress 2 · mood 3 · motivation 3 · injury 1\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "wellness read failing",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_weight": 70,
+        "weight": 71,
+        "icu_ftp": 240,
+        "icu_lthr": 160,
+        "icu_max_hr": 180,
+        "icu_resting_hr": 50,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride",
+              "VirtualRide"
+            ],
+            "ftp": 250,
+            "lthr": 165,
+            "max_hr": 188,
+            "resting_hr": 48,
+            "weight": 72
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "failed": true
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W · LTHR 165 bpm · max HR 188 bpm · resting HR 48 bpm · weight 70 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "both reads with nothing to show",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": null,
+          "atl": null
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nAthlete snapshot: unavailable this turn; fetch the profile and latest wellness before prescribing intensity."
+  },
+  {
+    "name": "unordered rows with an empty newest row",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": null,
+          "atl": null
+        },
+        {
+          "id": "1998-06-10",
+          "ctl": 60,
+          "atl": null
+        },
+        {
+          "id": "1998-06-12",
+          "ctl": null,
+          "atl": null,
+          "hrv": 55,
+          "sleepSecs": 25500
+        },
+        {
+          "id": "1998-06-11",
+          "ctl": 61,
+          "atl": 59
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-12: HRV 55 · sleep 7h05\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "oldest day of the seven-day window",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-07",
+          "ctl": 60,
+          "atl": 50
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-07: Fitness 60 · Fatigue 50 · Form +10\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "rounding ties in every number",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_resting_hr": 47.5,
+        "icu_weight": 70.25,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": 250.5,
+            "lthr": 165.25,
+            "max_hr": 188.75
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 70.25,
+          "atl": 62.35,
+          "weight": 70.75,
+          "restingHR": 47.25,
+          "hrv": 71.45,
+          "sleepSecs": 25530,
+          "sleepScore": 82.75,
+          "sleepQuality": 2.5,
+          "readiness": 0.05,
+          "fatigue": 1.15,
+          "soreness": 0.25,
+          "stress": 1.95,
+          "mood": 3.05,
+          "motivation": 2.675,
+          "injury": 1.005
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250.5 W · LTHR 165.3 bpm · max HR 188.8 bpm · resting HR 47.5 bpm · weight 70.3 kg\nWellness 1998-06-13: Fitness 70.3 · Fatigue 62.4 · Form +7.9 · resting HR 47.3 bpm · HRV 71.5 · sleep 7h06 · sleep score 82.8 · sleep quality 2.5 · weight 70.8 kg · readiness 0.1 · reported fatigue 1.1 · soreness 0.3 · stress 1.9 · mood 3.0 · motivation 2.7 · injury 1.0\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "negative Form on a tie",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 50,
+          "atl": 58.25
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 50 · Fatigue 58.3 · Form -8.2\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "positive Form on a tie",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 58.25,
+          "atl": 50
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 58.3 · Fatigue 50 · Form +8.3\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "Form that rounds to negative zero",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 10,
+          "atl": 10.03
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 10 · Fatigue 10.0 · Form 0\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "whole positive Form",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 55,
+          "atl": 50
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 55 · Fatigue 50 · Form +5\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "zeros are shown",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 0,
+          "atl": 0,
+          "hrv": 0,
+          "sleepSecs": 0,
+          "sleepScore": 0,
+          "fatigue": 0,
+          "soreness": 0,
+          "injury": 0
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 0 · Fatigue 0 · Form 0 · HRV 0 · sleep 0h00 · sleep score 0 · reported fatigue 0 · soreness 0 · injury 0\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "sleep one second under an hour",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": null,
+          "atl": null,
+          "sleepSecs": 3599
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: sleep 1h00\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "sleep on a half minute",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": null,
+          "atl": null,
+          "sleepSecs": 25470
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: sleep 7h05\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "very large Fitness and Fatigue",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 100000000000000000000,
+          "atl": 100000000000000000000
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 100000000000000000000 · Fatigue 100000000000000000000 · Form 0\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "very negative Fitness and Fatigue",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": -100000000000000000000,
+          "atl": -100000000000000000000
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness -100000000000000000000 · Fatigue -100000000000000000000 · Form 0\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "profile second sources when the settings row lacks the keys",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_ftp": 240,
+        "icu_lthr": 160,
+        "icu_max_hr": 180,
+        "icu_resting_hr": 50,
+        "weight": 71,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "weight": 72
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 240 W · LTHR 160 bpm · max HR 180 bpm · resting HR 50 bpm · weight 71 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "profile second sources when the first are null",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_ftp": 240,
+        "icu_lthr": 160,
+        "icu_max_hr": 180,
+        "icu_resting_hr": 50,
+        "icu_weight": null,
+        "weight": 71,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": null,
+            "lthr": null,
+            "max_hr": null,
+            "resting_hr": null,
+            "weight": 72
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 240 W · LTHR 160 bpm · max HR 180 bpm · resting HR 50 bpm · weight 71 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "profile weight from the settings row",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_weight": null,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": 250,
+            "weight": 72
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W · weight 72 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "profile without a cycling row reads the first row",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_weight": 70,
+        "weight": 71,
+        "icu_ftp": 240,
+        "icu_lthr": 160,
+        "icu_max_hr": 180,
+        "icu_resting_hr": 50,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Swim"
+            ],
+            "ftp": 200,
+            "lthr": 150
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 300 W · LTHR 171 bpm · max HR 195 bpm · resting HR 52 bpm · weight 70 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "profile without settings rows reads the athlete",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_weight": 70,
+        "weight": 71,
+        "icu_ftp": 240,
+        "icu_lthr": 160,
+        "icu_max_hr": 180,
+        "icu_resting_hr": 50,
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 240 W · LTHR 160 bpm · max HR 180 bpm · resting HR 50 bpm · weight 70 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "profile cycling row found by a later sport",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Swim",
+              "GravelRide"
+            ],
+            "ftp": 262,
+            "lthr": 158
+          },
+          {
+            "types": [
+              "Ride",
+              "VirtualRide"
+            ],
+            "ftp": 250,
+            "lthr": 165,
+            "max_hr": 188,
+            "resting_hr": 48,
+            "weight": 72
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 262 W · LTHR 158 bpm\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "band edges are shown",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_weight": 200,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": 250,
+            "resting_hr": 220
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": null,
+          "atl": null,
+          "weight": 30,
+          "restingHR": 30
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W · resting HR 220 bpm · weight 200 kg\nWellness 1998-06-13: resting HR 30 bpm · weight 30 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "FTP at the lower bound",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": 50
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 50 W\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "FTP at the upper bound",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": 600
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 600 W\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "FTP above the band",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": 2500,
+            "lthr": 165
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 62,
+          "atl": 70.5
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 2500 W · LTHR 165 bpm\nWellness 1998-06-13: Fitness 62 · Fatigue 70.5 · Form -8.5\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 2,
+    "phone": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 2500 W (not usable) · LTHR 165 bpm\nWellness 1998-06-13: Fitness 62 · Fatigue 70.5 · Form -8.5\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.\nThe profile's FTP is not a usable number (it must be between 50 and 600 W). Keep intensity guidance qualitative, do not work out zones or watt targets from it, and ask the athlete to check their FTP in intervals.icu."
+  },
+  {
+    "name": "FTP below the band",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": 49.5
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 49.5 W\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 2,
+    "phone": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 49.5 W (not usable)\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.\nThe profile's FTP is not a usable number (it must be between 50 and 600 W). Keep intensity guidance qualitative, do not work out zones or watt targets from it, and ask the athlete to check their FTP in intervals.icu."
+  },
+  {
+    "name": "FTP of zero",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": 0
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 0 W\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 2,
+    "phone": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 0 W (not usable)\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.\nThe profile's FTP is not a usable number (it must be between 50 and 600 W). Keep intensity guidance qualitative, do not work out zones or watt targets from it, and ask the athlete to check their FTP in intervals.icu."
+  },
+  {
+    "name": "FTP that is not a number, with other profile values",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": "abc",
+            "lthr": 165
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: LTHR 165 bpm\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 2,
+    "phone": "# Athlete Profile & Latest Wellness\n\nProfile: FTP not usable · LTHR 165 bpm\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.\nThe profile's FTP is not a usable number (it must be between 50 and 600 W). Keep intensity guidance qualitative, do not work out zones or watt targets from it, and ask the athlete to check their FTP in intervals.icu."
+  },
+  {
+    "name": "FTP that is not a number and nothing else",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": "abc"
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nAthlete snapshot: unavailable this turn; fetch the profile and latest wellness before prescribing intensity.",
+    "difference": 2,
+    "phone": "# Athlete Profile & Latest Wellness\n\nProfile: FTP not usable\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.\nThe profile's FTP is not a usable number (it must be between 50 and 600 W). Keep intensity guidance qualitative, do not work out zones or watt targets from it, and ask the athlete to check their FTP in intervals.icu."
+  },
+  {
+    "name": "profile weight below the band is left out without falling through",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_weight": 25,
+        "weight": 71,
+        "icu_ftp": 240,
+        "icu_lthr": 160,
+        "icu_max_hr": 180,
+        "icu_resting_hr": 50,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride",
+              "VirtualRide"
+            ],
+            "ftp": 250,
+            "lthr": 165,
+            "max_hr": 188,
+            "resting_hr": 48,
+            "weight": 72
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W · LTHR 165 bpm · max HR 188 bpm · resting HR 48 bpm · weight 25 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 3,
+    "phone": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W · LTHR 165 bpm · max HR 188 bpm · resting HR 48 bpm\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "wellness weight above the band is left out",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 62,
+          "atl": null,
+          "weight": 200.1,
+          "hrv": 71
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 62 · HRV 71 · weight 200.1 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 3,
+    "phone": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 62 · HRV 71\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "profile resting heart rate below the band is left out without falling through",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_resting_hr": 50,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride"
+            ],
+            "ftp": 250,
+            "resting_hr": 20
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": []
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W · resting HR 20 bpm\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 4,
+    "phone": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "wellness resting heart rate above the band is left out",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": 62,
+          "atl": null,
+          "restingHR": 221,
+          "hrv": 71
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 62 · resting HR 221 bpm · HRV 71\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 4,
+    "phone": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: Fitness 62 · HRV 71\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "newest row with only out-of-band values counts as empty",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": null,
+          "atl": null,
+          "weight": 25,
+          "restingHR": 29.9
+        },
+        {
+          "id": "1998-06-11",
+          "ctl": null,
+          "atl": null,
+          "restingHR": 48,
+          "sleepSecs": 25500
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-13: resting HR 29.9 bpm · weight 25 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 5,
+    "phone": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-11: resting HR 48 bpm · sleep 7h05\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "profile with only an out-of-band value has no line",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_weight": 250,
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-13",
+          "ctl": null,
+          "atl": null
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: weight 250 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 5,
+    "phone": "# Athlete Profile & Latest Wellness\n\nAthlete snapshot: unavailable this turn; fetch the profile and latest wellness before prescribing intensity."
+  },
+  {
+    "name": "row before the seven-day window is ignored",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "icu_weight": 70,
+        "weight": 71,
+        "icu_ftp": 240,
+        "icu_lthr": 160,
+        "icu_max_hr": 180,
+        "icu_resting_hr": 50,
+        "sportSettings": [
+          {
+            "types": [
+              "Run"
+            ],
+            "ftp": 300,
+            "lthr": 171,
+            "max_hr": 195,
+            "resting_hr": 52,
+            "weight": 73
+          },
+          {
+            "types": [
+              "Ride",
+              "VirtualRide"
+            ],
+            "ftp": 250,
+            "lthr": 165,
+            "max_hr": 188,
+            "resting_hr": 48,
+            "weight": 72
+          }
+        ]
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-06",
+          "ctl": 60,
+          "atl": 50
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W · LTHR 165 bpm · max HR 188 bpm · resting HR 48 bpm · weight 70 kg\nWellness 1998-06-06: Fitness 60 · Fatigue 50 · Form +10\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 6,
+    "phone": "# Athlete Profile & Latest Wellness\n\nProfile: FTP 250 W · LTHR 165 bpm · max HR 188 bpm · resting HR 48 bpm · weight 70 kg\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "row after today is ignored",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "1998-06-14",
+          "ctl": 60,
+          "atl": 50
+        },
+        {
+          "id": "1998-06-12",
+          "ctl": 58,
+          "atl": 52
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-14: Fitness 60 · Fatigue 50 · Form +10\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 6,
+    "phone": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-12: Fitness 58 · Fatigue 52 · Form +6\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  },
+  {
+    "name": "row whose id is not a date is ignored",
+    "today": "1998-06-13",
+    "athlete": {
+      "response": {
+        "id": "i1001",
+        "name": "Ada",
+        "sportSettings": []
+      }
+    },
+    "wellness": {
+      "response": [
+        {
+          "id": "latest",
+          "ctl": 60,
+          "atl": 50
+        },
+        {
+          "id": "1998-06-12",
+          "ctl": 58,
+          "atl": 52
+        }
+      ]
+    },
+    "npm": "# Athlete Profile & Latest Wellness\n\nWellness latest: Fitness 60 · Fatigue 50 · Form +10\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much.",
+    "difference": 6,
+    "phone": "# Athlete Profile & Latest Wellness\n\nWellness 1998-06-12: Fitness 58 · Fatigue 52 · Form +6\nFetch wellness or activities only for a date range or history not shown here. Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+  }
+]

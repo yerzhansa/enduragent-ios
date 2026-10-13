@@ -45,20 +45,14 @@ package enum PromptAssembly {
 
 	package static func volatile(
 		context: String,
-		evidence: EvidenceBlock,
+		snapshot: TrainingSnapshot,
 		timeZoneName: String,
 		displayLocale: DisplayLocale
 	) -> String {
 		var parts: [String] = [
-			"# Athlete Context\n\n" + wrapAthleteContext(context)
+			"# Athlete Context\n\n" + wrapAthleteContext(context),
+			snapshot.promptSection,
 		]
-		if let wellness = evidence.wellnessLine {
-			parts.append(
-				PromptStaticBlocks.snapshotHeading + "\n\n" + wellness + "\n"
-					+ PromptStaticBlocks.snapshotGuidance)
-		} else {
-			parts.append(PromptStaticBlocks.snapshotFallback)
-		}
 		parts.append("# Current Date & Time\n\nTime zone: \(timeZoneName)")
 		parts.append(replyLanguageSection(displayLocale.language))
 		parts.append(displayLocale.formattingInstruction)

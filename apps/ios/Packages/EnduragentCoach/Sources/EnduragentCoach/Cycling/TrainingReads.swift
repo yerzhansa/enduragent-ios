@@ -70,6 +70,12 @@ package struct Readings<Field: Hashable & Sendable>: Sendable, Equatable {
 	}
 
 	package subscript(field: Field) -> Double? { values[field] }
+
+	package var isEmpty: Bool { values.isEmpty }
+
+	package func keeping(_ isShown: (Field, Double) -> Bool) -> Readings<Field> {
+		Readings(values.filter { isShown($0.key, $0.value) })
+	}
 }
 
 package enum ReportedNumber: Sendable, Equatable {

@@ -165,7 +165,6 @@ import Testing
 			clock: clock,
 			diagnostics: diagnostics,
 			ladder: ladder,
-			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
 			reviews: makeReviews(ledger: ledger, clock: clock),
 			authorizeInvocation: { _ in }
 		)
