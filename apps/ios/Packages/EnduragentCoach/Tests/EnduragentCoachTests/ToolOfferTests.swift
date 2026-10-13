@@ -122,6 +122,23 @@ import Testing
 				.isEmpty)
 	}
 
+	@Test func unofferedToolCalledWithMalformedArgumentsReturnsUnknownTool() async throws {
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "intervals_fetch_athlete", arguments: "{not json"),
+				.finish(reason: .toolCalls),
+				.text("That is unavailable."), .finish(reason: .stop),
+			], otherwise: transport.respond)
+		let coach = await unconnectedCoach()
+
+		_ = try await coach.sendAndSettle("Read my training")
+
+		let result = try #require(transport.requests.last?.messages.last { $0.role == .tool })
+		#expect(
+			try JSONValue.parse(result.content).objectFields["error"] == .string("unknown_tool"))
+		#expect(intervals.calls.isEmpty)
+	}
+
 	@Test func repeatedReadInOneAttemptReachesTheClientOnceAndStaysEnveloped() async throws {
 		intervals.wellness = [.on("1998-06-02", [.fitness: 51, .fatigue: 40])]
 		let read = ScriptedEvent.toolCall(

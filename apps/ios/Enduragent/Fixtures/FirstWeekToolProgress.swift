@@ -10,8 +10,11 @@
 		static let toolProgressIntroduction = "Checking your recent rides. "
 		static let toolProgressCompletion = "I've prepared the ride. Confirm to add it."
 
-		static func toolProgressReply(step: Int) -> ScriptedReply {
-			ScriptedReply(
+		static func toolProgressReply(_ request: ScriptedRequest) -> ScriptedReply {
+			guard request.tools.contains(.intervalsCreateWorkout) else {
+				return ScriptedReply([.text(trainingDataMissing), .finish(reason: .stop)])
+			}
+			return ScriptedReply(
 				[
 					.text(toolProgressIntroduction),
 					.toolCall(
@@ -22,8 +25,8 @@
 					.finish(reason: .toolCalls),
 					.text(toolProgressCompletion),
 					.finish(reason: .stop),
-				], requestDelay: step == 0 ? slowToolModelDelay : nil
-			).step(step)
+				], requestDelay: request.step == 0 ? slowToolModelDelay : nil
+			).step(request.step)
 		}
 	}
 #endif

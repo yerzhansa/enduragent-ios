@@ -52,7 +52,7 @@
 			credits.balanceResult = .success(CreditBalance(credits: Credits(units: 200)))
 		}
 
-		static func script(for text: String) -> [ScriptedEvent] {
+		static func script(for text: String, tools: [ToolName]) -> [ScriptedEvent] {
 			let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
 			if SlashRouting.parse(trimmed) == .review {
 				return [
@@ -66,6 +66,9 @@
 				return [.text(rememberReply), .finish(reason: .stop)]
 			}
 			if isWorkoutRequest(trimmed) {
+				guard tools.contains(.intervalsCreateWorkout) else {
+					return [.text(trainingDataMissing), .finish(reason: .stop)]
+				}
 				return [
 					.toolCall(
 						name: ToolName.intervalsCreateWorkout.rawValue, arguments: workoutArguments),
