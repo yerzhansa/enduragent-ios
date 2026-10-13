@@ -86,8 +86,8 @@ struct GatedReviewIntervals: TrainingClient {
 	func wellness(in range: ReadRange) async throws -> [WellnessDay] {
 		try await base.wellness(in: range)
 	}
-	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary] {
-		try await base.fetchActivities(oldest: oldest, newest: newest)
+	func activities(in range: ReadRange) async throws -> ActivityListing {
+		try await base.activities(in: range)
 	}
 	func fetchActivity(id: ActivityID) async throws -> JSONValue {
 		try await base.fetchActivity(id: id)

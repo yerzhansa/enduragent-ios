@@ -1,18 +1,119 @@
 [
   {
-    "id": "i1234567",
-    "name": "Sunday long ride",
-    "start_date_local": "1998-06-07T08:00:00",
-    "moving_time": 7200,
-    "icu_training_load": 120,
-    "type": "Ride"
+    "id": "i1234575",
+    "name": "Evening spin",
+    "type": "VirtualRide",
+    "start_date_local": "1998-06-13",
+    "moving_time": 1800,
+    "elapsed_time": 1800,
+    "icu_training_load": 18,
+    "source": "MANUAL"
+  },
+  {
+    "id": "i1234574",
+    "name": "Second leg",
+    "type": "Ride",
+    "start_date_local": "1998-06-12T17:31:00",
+    "moving_time": 1500,
+    "elapsed_time": 1500,
+    "distance": 12000,
+    "source": "GARMIN_CONNECT"
+  },
+  {
+    "id": "i1234573",
+    "name": "First leg",
+    "type": "Ride",
+    "start_date_local": "1998-06-12T17:00:00",
+    "moving_time": 1500,
+    "elapsed_time": 1500,
+    "distance": 12500,
+    "source": "GARMIN_CONNECT"
+  },
+  {
+    "id": "i1234572",
+    "name": "Warm-up continued",
+    "type": "Ride",
+    "start_date_local": "1998-06-11T17:29:00",
+    "moving_time": 2400,
+    "elapsed_time": 2400,
+    "distance": 20000,
+    "source": "GARMIN_CONNECT"
+  },
+  {
+    "id": "i1234571",
+    "name": "Warm-up",
+    "type": "Ride",
+    "start_date_local": "1998-06-11T17:00:00",
+    "moving_time": 1200,
+    "elapsed_time": 1200,
+    "distance": 9000,
+    "source": "GARMIN_CONNECT"
+  },
+  {
+    "id": "i1234570",
+    "name": "Lunch ride",
+    "type": "Ride",
+    "start_date_local": "1998-06-10T18:00:05",
+    "moving_time": 2700,
+    "elapsed_time": 2800,
+    "distance": 21000,
+    "icu_training_load": 35,
+    "source": "GARMIN_CONNECT"
+  },
+  {
+    "id": "i1234569",
+    "name": "Lunch ride",
+    "type": "Ride",
+    "start_date_local": "1998-06-10T12:15:00",
+    "moving_time": 3000,
+    "elapsed_time": 3100,
+    "distance": 24000,
+    "icu_training_load": 41,
+    "source": "GARMIN_CONNECT"
   },
   {
     "id": "i1234568",
     "name": "Tuesday tempo",
+    "type": "Ride",
     "start_date_local": "1998-06-09T07:30:00",
-    "moving_time": 3600,
+    "elapsed_time": 3700,
     "icu_training_load": 80,
-    "type": "Ride"
+    "source": "UPLOAD"
+  },
+  {
+    "id": "98765432",
+    "start_date_local": "1998-06-08T09:00:00",
+    "source": "STRAVA",
+    "_note": "This activity came from Strava and is not available through the API"
+  },
+  {
+    "id": "i1234567",
+    "name": "Sunday long ride",
+    "type": "Ride",
+    "start_date_local": "1998-06-07T08:00:00",
+    "moving_time": 7200,
+    "elapsed_time": 7500,
+    "distance": 62400.5,
+    "icu_training_load": 120,
+    "icu_intensity": 78.5,
+    "icu_average_watts": 172,
+    "icu_weighted_avg_watts": 196,
+    "average_watts": 171,
+    "average_heartrate": 141,
+    "max_heartrate": 173,
+    "icu_ftp": 250,
+    "total_elevation_gain": 640.5,
+    "source": "GARMIN_CONNECT",
+    "icu_rpe": 6,
+    "calories": 1450,
+    "paired_event_id": 42
+  },
+  {
+    "name": "No identifier",
+    "type": "Ride",
+    "start_date_local": "1998-06-06T10:00:00",
+    "moving_time": 600,
+    "elapsed_time": 600,
+    "source": "UPLOAD"
   }
 ]

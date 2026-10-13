@@ -4,11 +4,15 @@ public struct ActivityID: Hashable, Sendable {
 	public let rawValue: String
 
 	public init?(rawValue: String) {
-		let digits = rawValue.allSatisfy(\.isNumber)
-		let prefixed = rawValue.first == "i" && rawValue.dropFirst().allSatisfy(\.isNumber)
+		let digits = Self.isDigits(rawValue[...])
+		let prefixed = rawValue.first == "i" && Self.isDigits(rawValue.dropFirst())
 		let hex = rawValue.count == 64 && rawValue.allSatisfy { $0.isHexDigit && !$0.isUppercase }
 		guard digits || prefixed || hex else { return nil }
 		self.rawValue = rawValue
+	}
+
+	private static func isDigits(_ text: Substring) -> Bool {
+		!text.isEmpty && text.allSatisfy { $0.isASCII && $0.isNumber }
 	}
 }
 
@@ -53,24 +57,6 @@ public struct ChatExternalID: Hashable, Sendable {
 			}
 		}
 		return slug.isEmpty ? "workout" : slug
-	}
-}
-
-public struct ActivitySummary: Sendable, Equatable {
-	public var name: String
-	public var date: CivilDate
-	public var durationS: Int
-	public var trainingLoad: Int?
-
-	public static func ride(name: String, date: String, durationS: Int, trainingLoad: Int)
-		-> ActivitySummary
-	{
-		ActivitySummary(
-			name: name,
-			date: CivilDate(stringLiteral: date),
-			durationS: durationS,
-			trainingLoad: trainingLoad
-		)
 	}
 }
 
@@ -120,7 +106,6 @@ public enum CalendarEventType: String, Sendable {
 }
 
 public protocol IntervalsClient: Sendable {
-	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary]
 	func fetchActivity(id: ActivityID) async throws -> JSONValue
 	func fetchStreams(id: ActivityID) async throws -> JSONValue
 	func fetchEvent(id: EventID) async throws -> CalendarEvent
@@ -164,6 +149,7 @@ package enum IntervalsPolicy {
 		return url
 	}()
 	package static let coachTag = "cycling-coach"
+	package static let stravaSource = "STRAVA"
 	package static let ftpRange = 50...600
 	package static let cyclingSports: Set<String> = [
 		"Ride", "VirtualRide", "MountainBikeRide", "GravelRide", "EBikeRide",

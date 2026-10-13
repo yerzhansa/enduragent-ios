@@ -76,7 +76,7 @@ struct IntervalsLiveTests {
 
 		_ = try await client.profile()
 		_ = try await client.wellness(in: .snapshotLookback(endingOn: today))
-		_ = try await client.fetchActivities(oldest: past, newest: today)
+		_ = try await client.activities(in: ReadRange(oldest: past, newest: today, today: today))
 		_ = try await client.listEvents(oldest: today, newest: future)
 	}
 }

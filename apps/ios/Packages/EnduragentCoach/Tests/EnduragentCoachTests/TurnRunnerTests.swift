@@ -12,12 +12,15 @@ import Testing
 
 	@Test func tenthStepRunsToolsThenStops() async throws {
 		intervals.activities = [
-			.ride(name: "Sunday long ride", date: "1998-06-07", durationS: 7200, trainingLoad: 120)
+			.recorded(
+				"i1234567", "Sunday long ride", on: "1998-06-07", [.duration: 7200, .load: 120])
 		]
 		var script: [ScriptedEvent] = []
 		for _ in 0..<10 {
 			script.append(.text("."))
-			script.append(.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#))
+			script.append(
+				.toolCall(
+					name: "intervals_fetch_activities", arguments: #"{"oldest":"1998-06-07"}"#))
 			script.append(.finish(reason: .toolCalls))
 		}
 		transport.respond = ScriptedReply.sequence(
@@ -74,7 +77,7 @@ import Testing
 		intervals.fail(.wellness, with: failure)
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(name: "intervals_fetch_wellness", arguments: #"{"days":7}"#),
+				.toolCall(name: "intervals_fetch_wellness", arguments: #"{"oldest":"1998-06-07"}"#),
 				.finish(reason: .toolCalls),
 				.text("I could not read your wellness data."),
 				.finish(reason: .stop),

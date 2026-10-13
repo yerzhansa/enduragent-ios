@@ -90,10 +90,6 @@
    "name": "intervals_fetch_activities",
    "parameters": {
     "properties": {
-     "days": {
-      "description": "Inclusive day count ending today in the athlete time zone",
-      "type": "integer"
-     },
      "newest": {
       "description": "Newest date (YYYY-MM-DD)",
       "type": "string"
@@ -103,6 +99,9 @@
       "type": "string"
      }
     },
+    "required": [
+     "oldest"
+    ],
     "type": "object"
    }
   },
@@ -411,10 +410,6 @@
    "name": "intervals_fetch_activities",
    "parameters": {
     "properties": {
-     "days": {
-      "description": "Inclusive day count ending today in the athlete time zone",
-      "type": "integer"
-     },
      "newest": {
       "description": "Newest date (YYYY-MM-DD)",
       "type": "string"
@@ -424,6 +419,9 @@
       "type": "string"
      }
     },
+    "required": [
+     "oldest"
+    ],
     "type": "object"
    }
   },

@@ -67,17 +67,12 @@ extension CoachTools {
 			properties: [
 				"oldest": ToolParameters.string("Oldest date (YYYY-MM-DD)"),
 				"newest": ToolParameters.string("Newest date (YYYY-MM-DD)"),
-				"days": ToolParameters.integer(
-					"Inclusive day count ending today in the athlete time zone"
-				),
 			],
-			required: []
+			required: ["oldest"]
 		)
 	) { arguments, reach in
 		let range = try arguments.readRange(today: reach.local.today)
-		let rows = try await reach.calendar.fetchActivities(
-			oldest: range.oldest, newest: range.newest)
-		return .result(CoachReadout.activities(rows))
+		return .result(CoachReadout.activities(try await reach.reads.activities(in: range)))
 	}
 }
 
@@ -151,19 +146,78 @@ enum CoachReadout {
 		return .object(result)
 	}
 
-	static func activities(_ rows: [ActivitySummary]) -> JSONValue {
-		.array(
-			rows.map { row in
-				var fields: [String: JSONValue] = [
-					"name": .string(row.name),
-					"date": .string(row.date.rawValue),
-					"durationS": .number(Double(row.durationS)),
-				]
-				if let load = row.trainingLoad {
-					fields["trainingLoad"] = .number(Double(load))
-				}
-				return .object(fields)
-			})
+	static func activities(_ listing: ActivityListing) -> JSONValue {
+		var units: [String: JSONValue] = [:]
+		var result: [String: JSONValue] = [
+			"oldest": .string(listing.range.oldest.rawValue),
+			"newest": .string(listing.range.newest.rawValue),
+			"activities": .array(listing.activities.map { row(of: $0, units: &units) }),
+			"hiddenByStrava": .number(Double(listing.hiddenByStrava)),
+		]
+		if listing.hiddenByStrava > 0 {
+			result["stravaNotice"] = .string(
+				stravaNotice(hidden: listing.hiddenByStrava, of: listing.total))
+		}
+		if listing.unreadable > 0 { result["unreadable"] = .number(Double(listing.unreadable)) }
+		if !units.isEmpty { result["units"] = .object(units) }
+		return .object(result)
+	}
+
+	static func stravaNotice(hidden: Int, of total: Int) -> String {
+		"\(hidden) of \(total) activities are hidden by Strava, so they aren’t included. Strava does not allow third-party AI tools to use data from its API. For future rides, connect your recording source directly to intervals.icu and keep Strava connected. For past rides, use Import All Strava Data in intervals.icu settings; it requires an intervals.icu supporter subscription."
+	}
+
+	private static func row(of activity: Activity, units: inout [String: JSONValue]) -> JSONValue {
+		var fields: [String: JSONValue] = [
+			"id": .string(activity.id.rawValue),
+			"start": .string(activity.start.readout),
+		]
+		if let name = activity.name { fields["name"] = .string(name) }
+		if let sport = activity.sport { fields["sport"] = .string(sport) }
+		for field in ActivityField.allCases {
+			guard let value = activity.readings[field] else { continue }
+			fields[field.readoutKey] = .number(value)
+			if let unit = field.unit { units[field.readoutKey] = .string(unit) }
+		}
+		return .object(fields)
+	}
+}
+
+extension LocalStart {
+	var readout: String {
+		guard let secondOfDay else { return date.rawValue }
+		let clock = [secondOfDay / 3_600, secondOfDay / 60 % 60, secondOfDay % 60]
+			.map { $0 < 10 ? "0\($0)" : "\($0)" }
+			.joined(separator: ":")
+		return "\(date.rawValue)T\(clock)"
+	}
+}
+
+extension ActivityField {
+	var readoutKey: String {
+		switch self {
+		case .duration: "durationSeconds"
+		case .distance: "distance"
+		case .load: "load"
+		case .intensity: "intensity"
+		case .averagePower: "averagePower"
+		case .weightedPower: "weightedPower"
+		case .averageHeartRate: "averageHeartRate"
+		case .maxHeartRate: "maxHeartRate"
+		case .ftp: "ftp"
+		case .elevationGain: "elevationGain"
+		}
+	}
+
+	var unit: String? {
+		switch self {
+		case .duration: "s"
+		case .distance, .elevationGain: "m"
+		case .load: nil
+		case .intensity: "%"
+		case .averagePower, .weightedPower, .ftp: "W"
+		case .averageHeartRate, .maxHeartRate: "bpm"
+		}
 	}
 }
 
@@ -236,13 +290,6 @@ extension JSONValue {
 			return try ReadRange(
 				oldest: oldest, newest: try Self.optionalDate(fields["newest"], label: "newest"),
 				today: today)
-		}
-		if let value = fields["days"] {
-			guard let days = value.intValue() else {
-				throw IntervalsError(
-					code: "invalid_input", details: "days must be a positive integer.")
-			}
-			return try ReadRange(endingOn: today, days: days)
 		}
 		throw IntervalsError(
 			code: "invalid_date",

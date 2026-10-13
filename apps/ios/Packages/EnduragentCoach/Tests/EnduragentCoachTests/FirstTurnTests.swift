@@ -104,11 +104,13 @@ import Testing
 
 	@Test func toolCallRunsAndFeedsBackIntoTheTurn() async throws {
 		intervals.activities = [
-			.ride(name: "Sunday long ride", date: "1998-06-07", durationS: 7200, trainingLoad: 120)
+			.recorded(
+				"i1234567", "Sunday long ride", on: "1998-06-07", [.duration: 7200, .load: 120])
 		]
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
+				.toolCall(
+					name: "intervals_fetch_activities", arguments: #"{"oldest":"1998-06-07"}"#),
 				.finish(reason: .toolCalls),
 				.text("Sunday long ride, 2 h, load 120."),
 				.finish(reason: .stop),
@@ -129,7 +131,7 @@ import Testing
 		#expect(
 			intervals.calls == [
 				.wellness(oldest: "1998-06-07", newest: "1998-06-13"),
-				.activities(days: 7),
+				.activities(oldest: "1998-06-07", newest: "1998-06-13"),
 			]
 		)
 		#expect(

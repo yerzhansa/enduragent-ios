@@ -1,0 +1,943 @@
+[
+  {
+    "name": "a week, sent newest first",
+    "arguments": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "i1234575",
+        "name": "Evening spin",
+        "type": "VirtualRide",
+        "start_date_local": "1998-06-13",
+        "moving_time": 1800,
+        "elapsed_time": 1800,
+        "icu_training_load": 18,
+        "source": "MANUAL"
+      },
+      {
+        "id": "i1234574",
+        "name": "Second leg",
+        "type": "Ride",
+        "start_date_local": "1998-06-12T17:31:00",
+        "moving_time": 1500,
+        "elapsed_time": 1500,
+        "distance": 12000,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234573",
+        "name": "First leg",
+        "type": "Ride",
+        "start_date_local": "1998-06-12T17:00:00",
+        "moving_time": 1500,
+        "elapsed_time": 1500,
+        "distance": 12500,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234572",
+        "name": "Warm-up continued",
+        "type": "Ride",
+        "start_date_local": "1998-06-11T17:29:00",
+        "moving_time": 2400,
+        "elapsed_time": 2400,
+        "distance": 20000,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234571",
+        "name": "Warm-up",
+        "type": "Ride",
+        "start_date_local": "1998-06-11T17:00:00",
+        "moving_time": 1200,
+        "elapsed_time": 1200,
+        "distance": 9000,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234570",
+        "name": "Lunch ride",
+        "type": "Ride",
+        "start_date_local": "1998-06-10T18:00:05",
+        "moving_time": 2700,
+        "elapsed_time": 2800,
+        "distance": 21000,
+        "icu_training_load": 35,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234569",
+        "name": "Lunch ride",
+        "type": "Ride",
+        "start_date_local": "1998-06-10T12:15:00",
+        "moving_time": 3000,
+        "elapsed_time": 3100,
+        "distance": 24000,
+        "icu_training_load": 41,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234568",
+        "name": "Tuesday tempo",
+        "type": "Ride",
+        "start_date_local": "1998-06-09T07:30:00",
+        "elapsed_time": 3700,
+        "icu_training_load": 80,
+        "source": "UPLOAD"
+      },
+      {
+        "id": "98765432",
+        "start_date_local": "1998-06-08T09:00:00",
+        "source": "STRAVA",
+        "_note": "This activity came from Strava and is not available through the API"
+      },
+      {
+        "id": "i1234567",
+        "name": "Sunday long ride",
+        "type": "Ride",
+        "start_date_local": "1998-06-07T08:00:00",
+        "moving_time": 7200,
+        "elapsed_time": 7500,
+        "distance": 62400.5,
+        "icu_training_load": 120,
+        "icu_intensity": 78.5,
+        "icu_average_watts": 172,
+        "icu_weighted_avg_watts": 196,
+        "average_watts": 171,
+        "average_heartrate": 141,
+        "max_heartrate": 173,
+        "icu_ftp": 250,
+        "total_elevation_gain": 640.5,
+        "source": "GARMIN_CONNECT",
+        "icu_rpe": 6,
+        "calories": 1450,
+        "paired_event_id": 42
+      },
+      {
+        "name": "No identifier",
+        "type": "Ride",
+        "start_date_local": "1998-06-06T10:00:00",
+        "moving_time": 600,
+        "elapsed_time": 600,
+        "source": "UPLOAD"
+      }
+    ],
+    "npm": [
+      {
+        "id": "i1234575",
+        "name": "Evening spin",
+        "type": "VirtualRide",
+        "startDateLocal": "1998-06-13",
+        "movingTime": 1800,
+        "icuTrainingLoad": 18,
+        "source": "MANUAL"
+      },
+      {
+        "id": "i1234574",
+        "name": "Second leg",
+        "type": "Ride",
+        "startDateLocal": "1998-06-12T17:31:00",
+        "movingTime": 1500,
+        "distance": 12000,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234573",
+        "name": "First leg",
+        "type": "Ride",
+        "startDateLocal": "1998-06-12T17:00:00",
+        "movingTime": 1500,
+        "distance": 12500,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234572",
+        "name": "Warm-up continued",
+        "type": "Ride",
+        "startDateLocal": "1998-06-11T17:29:00",
+        "movingTime": 2400,
+        "distance": 20000,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234571",
+        "name": "Warm-up",
+        "type": "Ride",
+        "startDateLocal": "1998-06-11T17:00:00",
+        "movingTime": 1200,
+        "distance": 9000,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234570",
+        "name": "Lunch ride",
+        "type": "Ride",
+        "startDateLocal": "1998-06-10T18:00:05",
+        "movingTime": 2700,
+        "distance": 21000,
+        "icuTrainingLoad": 35,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234569",
+        "name": "Lunch ride",
+        "type": "Ride",
+        "startDateLocal": "1998-06-10T12:15:00",
+        "movingTime": 3000,
+        "distance": 24000,
+        "icuTrainingLoad": 41,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "id": "i1234568",
+        "name": "Tuesday tempo",
+        "type": "Ride",
+        "startDateLocal": "1998-06-09T07:30:00",
+        "icuTrainingLoad": 80,
+        "source": "UPLOAD"
+      },
+      {
+        "id": "98765432",
+        "startDateLocal": "1998-06-08T09:00:00",
+        "source": "STRAVA"
+      },
+      {
+        "id": "i1234567",
+        "name": "Sunday long ride",
+        "type": "Ride",
+        "startDateLocal": "1998-06-07T08:00:00",
+        "movingTime": 7200,
+        "distance": 62400.5,
+        "icuTrainingLoad": 120,
+        "icuIntensity": 78.5,
+        "icuWeightedAvgWatts": 196,
+        "averageWatts": 171,
+        "averageHeartrate": 141,
+        "maxHeartrate": 173,
+        "icuFtp": 250,
+        "totalElevationGain": 640.5,
+        "source": "GARMIN_CONNECT"
+      },
+      {
+        "name": "No identifier",
+        "type": "Ride",
+        "startDateLocal": "1998-06-06T10:00:00",
+        "movingTime": 600,
+        "source": "UPLOAD"
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13",
+      "activities": [
+        {
+          "id": "i1234567",
+          "name": "Sunday long ride",
+          "sport": "Ride",
+          "start": "1998-06-07T08:00:00",
+          "durationSeconds": 7200,
+          "distance": 62400.5,
+          "load": 120,
+          "intensity": 78.5,
+          "averagePower": 172,
+          "weightedPower": 196,
+          "averageHeartRate": 141,
+          "maxHeartRate": 173,
+          "ftp": 250,
+          "elevationGain": 640.5
+        },
+        {
+          "id": "i1234568",
+          "name": "Tuesday tempo",
+          "sport": "Ride",
+          "start": "1998-06-09T07:30:00",
+          "load": 80
+        },
+        {
+          "id": "i1234569",
+          "name": "Lunch ride",
+          "sport": "Ride",
+          "start": "1998-06-10T12:15:00",
+          "durationSeconds": 3000,
+          "distance": 24000,
+          "load": 41
+        },
+        {
+          "id": "i1234570",
+          "name": "Lunch ride",
+          "sport": "Ride",
+          "start": "1998-06-10T18:00:05",
+          "durationSeconds": 2700,
+          "distance": 21000,
+          "load": 35
+        },
+        {
+          "id": "i1234571",
+          "name": "Warm-up",
+          "sport": "Ride",
+          "start": "1998-06-11T17:00:00",
+          "durationSeconds": 1200,
+          "distance": 9000
+        },
+        {
+          "id": "i1234572",
+          "name": "Warm-up continued",
+          "sport": "Ride",
+          "start": "1998-06-11T17:29:00",
+          "durationSeconds": 2400,
+          "distance": 20000
+        },
+        {
+          "id": "i1234573",
+          "name": "First leg",
+          "sport": "Ride",
+          "start": "1998-06-12T17:00:00",
+          "durationSeconds": 1500,
+          "distance": 12500
+        },
+        {
+          "id": "i1234574",
+          "name": "Second leg",
+          "sport": "Ride",
+          "start": "1998-06-12T17:31:00",
+          "durationSeconds": 1500,
+          "distance": 12000
+        },
+        {
+          "id": "i1234575",
+          "name": "Evening spin",
+          "sport": "VirtualRide",
+          "start": "1998-06-13",
+          "durationSeconds": 1800,
+          "load": 18
+        }
+      ],
+      "hiddenByStrava": 1,
+      "stravaNotice": "1 of 11 activities are hidden by Strava, so they aren’t included. Strava does not allow third-party AI tools to use data from its API. For future rides, connect your recording source directly to intervals.icu and keep Strava connected. For past rides, use Import All Strava Data in intervals.icu settings; it requires an intervals.icu supporter subscription.",
+      "unreadable": 1,
+      "units": {
+        "durationSeconds": "s",
+        "distance": "m",
+        "intensity": "%",
+        "averagePower": "W",
+        "weightedPower": "W",
+        "averageHeartRate": "bpm",
+        "maxHeartRate": "bpm",
+        "ftp": "W",
+        "elevationGain": "m"
+      }
+    }
+  },
+  {
+    "name": "no rows",
+    "arguments": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13"
+    },
+    "response": [],
+    "npm": [],
+    "phone": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13",
+      "activities": [],
+      "hiddenByStrava": 0
+    }
+  },
+  {
+    "name": "a row with an identifier and a start alone is listed with nothing else",
+    "arguments": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "i1234580",
+        "start_date_local": "1998-06-12T06:45:10"
+      }
+    ],
+    "npm": [
+      {
+        "id": "i1234580",
+        "startDateLocal": "1998-06-12T06:45:10"
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13",
+      "activities": [
+        {
+          "id": "i1234580",
+          "start": "1998-06-12T06:45:10"
+        }
+      ],
+      "hiddenByStrava": 0
+    }
+  },
+  {
+    "name": "nulls have no key and zeros stay",
+    "arguments": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "i1234581",
+        "name": null,
+        "type": "Ride",
+        "start_date_local": "1998-06-12T06:45:10",
+        "moving_time": 0,
+        "elapsed_time": 0,
+        "distance": 0,
+        "icu_training_load": 0,
+        "icu_intensity": null,
+        "icu_average_watts": null,
+        "icu_weighted_avg_watts": 0,
+        "average_heartrate": null,
+        "max_heartrate": null,
+        "icu_ftp": null,
+        "total_elevation_gain": 0,
+        "source": null
+      }
+    ],
+    "npm": [
+      {
+        "id": "i1234581",
+        "type": "Ride",
+        "startDateLocal": "1998-06-12T06:45:10",
+        "movingTime": 0,
+        "distance": 0,
+        "icuTrainingLoad": 0,
+        "icuWeightedAvgWatts": 0,
+        "totalElevationGain": 0
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13",
+      "activities": [
+        {
+          "id": "i1234581",
+          "sport": "Ride",
+          "start": "1998-06-12T06:45:10",
+          "durationSeconds": 0,
+          "distance": 0,
+          "load": 0,
+          "weightedPower": 0,
+          "elevationGain": 0
+        }
+      ],
+      "hiddenByStrava": 0,
+      "units": {
+        "durationSeconds": "s",
+        "distance": "m",
+        "weightedPower": "W",
+        "elevationGain": "m"
+      }
+    }
+  },
+  {
+    "name": "a field that is not a number has no key",
+    "arguments": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "i1234582",
+        "name": "Morning ride",
+        "type": "Ride",
+        "start_date_local": "1998-06-12T06:45:10",
+        "moving_time": "3600",
+        "elapsed_time": 3600,
+        "distance": true,
+        "icu_training_load": [
+          50
+        ],
+        "icu_intensity": {
+          "value": 70
+        },
+        "average_heartrate": "high",
+        "max_heartrate": 168
+      }
+    ],
+    "npm": [
+      {
+        "id": "i1234582",
+        "name": "Morning ride",
+        "type": "Ride",
+        "startDateLocal": "1998-06-12T06:45:10",
+        "movingTime": "3600",
+        "distance": true,
+        "icuTrainingLoad": [
+          50
+        ],
+        "icuIntensity": {
+          "value": 70
+        },
+        "averageHeartrate": "high",
+        "maxHeartrate": 168
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13",
+      "activities": [
+        {
+          "id": "i1234582",
+          "name": "Morning ride",
+          "sport": "Ride",
+          "start": "1998-06-12T06:45:10",
+          "maxHeartRate": 168
+        }
+      ],
+      "hiddenByStrava": 0,
+      "units": {
+        "maxHeartRate": "bpm"
+      }
+    }
+  },
+  {
+    "name": "the three identifier forms are listed as the source gave them",
+    "arguments": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": 17654321,
+        "start_date_local": "1998-06-10T09:00:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654322",
+        "start_date_local": "1998-06-11T09:00:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "start_date_local": "1998-06-12T09:00:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      }
+    ],
+    "npm": [
+      {
+        "id": 17654321,
+        "startDateLocal": "1998-06-10T09:00:00",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "17654322",
+        "startDateLocal": "1998-06-11T09:00:00",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "startDateLocal": "1998-06-12T09:00:00",
+        "type": "Ride",
+        "movingTime": 600
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13",
+      "activities": [
+        {
+          "id": "17654321",
+          "sport": "Ride",
+          "start": "1998-06-10T09:00:00",
+          "durationSeconds": 600
+        },
+        {
+          "id": "17654322",
+          "sport": "Ride",
+          "start": "1998-06-11T09:00:00",
+          "durationSeconds": 600
+        },
+        {
+          "id": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "sport": "Ride",
+          "start": "1998-06-12T09:00:00",
+          "durationSeconds": 600
+        }
+      ],
+      "hiddenByStrava": 0,
+      "units": {
+        "durationSeconds": "s"
+      }
+    }
+  },
+  {
+    "name": "a Strava row is hidden only when it lacks the sport, the moving time or the elapsed time",
+    "arguments": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "17654330",
+        "start_date_local": "1998-06-08T09:00:00",
+        "source": "STRAVA",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654331",
+        "start_date_local": "1998-06-09T09:00:00",
+        "source": "STRAVA",
+        "_note": "hidden"
+      },
+      {
+        "id": "17654332",
+        "start_date_local": "1998-06-10T09:00:00",
+        "source": "STRAVA",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654333",
+        "start_date_local": "1998-06-11T09:00:00",
+        "source": "STRAVA",
+        "type": "Ride",
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654334",
+        "start_date_local": "1998-06-12T09:00:00",
+        "source": "STRAVA",
+        "type": "Ride",
+        "moving_time": 600
+      },
+      {
+        "id": "17654335",
+        "start_date_local": "1998-06-12T10:00:00",
+        "source": "STRAVA",
+        "type": "Ride",
+        "moving_time": -1,
+        "elapsed_time": 600
+      },
+      {
+        "start_date_local": "1998-06-12T11:00:00",
+        "source": "STRAVA"
+      },
+      {
+        "id": "17654336",
+        "start_date_local": "1998-06-13T09:00:00",
+        "source": "UPLOAD"
+      }
+    ],
+    "npm": [
+      {
+        "id": "17654330",
+        "startDateLocal": "1998-06-08T09:00:00",
+        "source": "STRAVA",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "17654331",
+        "startDateLocal": "1998-06-09T09:00:00",
+        "source": "STRAVA"
+      },
+      {
+        "id": "17654332",
+        "startDateLocal": "1998-06-10T09:00:00",
+        "source": "STRAVA",
+        "movingTime": 600
+      },
+      {
+        "id": "17654333",
+        "startDateLocal": "1998-06-11T09:00:00",
+        "source": "STRAVA",
+        "type": "Ride"
+      },
+      {
+        "id": "17654334",
+        "startDateLocal": "1998-06-12T09:00:00",
+        "source": "STRAVA",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "17654335",
+        "startDateLocal": "1998-06-12T10:00:00",
+        "source": "STRAVA",
+        "type": "Ride",
+        "movingTime": -1
+      },
+      {
+        "startDateLocal": "1998-06-12T11:00:00",
+        "source": "STRAVA"
+      },
+      {
+        "id": "17654336",
+        "startDateLocal": "1998-06-13T09:00:00",
+        "source": "UPLOAD"
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13",
+      "activities": [
+        {
+          "id": "17654330",
+          "sport": "Ride",
+          "start": "1998-06-08T09:00:00",
+          "durationSeconds": 600
+        },
+        {
+          "id": "17654336",
+          "start": "1998-06-13T09:00:00"
+        }
+      ],
+      "hiddenByStrava": 6,
+      "stravaNotice": "6 of 8 activities are hidden by Strava, so they aren’t included. Strava does not allow third-party AI tools to use data from its API. For future rides, connect your recording source directly to intervals.icu and keep Strava connected. For past rides, use Import All Strava Data in intervals.icu settings; it requires an intervals.icu supporter subscription.",
+      "units": {
+        "durationSeconds": "s"
+      }
+    }
+  },
+  {
+    "name": "every row hidden by Strava",
+    "arguments": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "id": "17654340",
+        "start_date_local": "1998-06-08T09:00:00",
+        "source": "STRAVA",
+        "_note": "hidden"
+      },
+      {
+        "id": "17654341",
+        "start_date_local": "1998-06-09T09:00:00",
+        "source": "STRAVA",
+        "_note": "hidden"
+      }
+    ],
+    "npm": [
+      {
+        "id": "17654340",
+        "startDateLocal": "1998-06-08T09:00:00",
+        "source": "STRAVA"
+      },
+      {
+        "id": "17654341",
+        "startDateLocal": "1998-06-09T09:00:00",
+        "source": "STRAVA"
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13",
+      "activities": [],
+      "hiddenByStrava": 2,
+      "stravaNotice": "2 of 2 activities are hidden by Strava, so they aren’t included. Strava does not allow third-party AI tools to use data from its API. For future rides, connect your recording source directly to intervals.icu and keep Strava connected. For past rides, use Import All Strava Data in intervals.icu settings; it requires an intervals.icu supporter subscription."
+    }
+  },
+  {
+    "name": "rows with no usable identifier or start are counted",
+    "arguments": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13"
+    },
+    "response": [
+      {
+        "start_date_local": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "",
+        "start_date_local": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "ride-7",
+        "start_date_local": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": -5,
+        "start_date_local": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": 1.5,
+        "start_date_local": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654350",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654351",
+        "start_date_local": "yesterday",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654352",
+        "start_date_local": "1998-02-30T09:00:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654353",
+        "start_date_local": "1998-06-08T24:00:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654354",
+        "start_date_local": "1998-06-08T09:00:00Z",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654355",
+        "start_date_local": "1998-06-08T09:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654356",
+        "start_date_local": 19980608,
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      },
+      {
+        "id": "17654357",
+        "start_date_local": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "moving_time": 600,
+        "elapsed_time": 600
+      }
+    ],
+    "npm": [
+      {
+        "startDateLocal": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "",
+        "startDateLocal": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "ride-7",
+        "startDateLocal": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": -5,
+        "startDateLocal": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": 1.5,
+        "startDateLocal": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "17654350",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "17654351",
+        "startDateLocal": "yesterday",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "17654352",
+        "startDateLocal": "1998-02-30T09:00:00",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "17654353",
+        "startDateLocal": "1998-06-08T24:00:00",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "17654354",
+        "startDateLocal": "1998-06-08T09:00:00Z",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "17654355",
+        "startDateLocal": "1998-06-08T09:00",
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "17654356",
+        "startDateLocal": 19980608,
+        "type": "Ride",
+        "movingTime": 600
+      },
+      {
+        "id": "17654357",
+        "startDateLocal": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "movingTime": 600
+      }
+    ],
+    "phone": {
+      "oldest": "1998-06-06",
+      "newest": "1998-06-13",
+      "activities": [
+        {
+          "id": "17654357",
+          "sport": "Ride",
+          "start": "1998-06-08T09:00:00",
+          "durationSeconds": 600
+        }
+      ],
+      "hiddenByStrava": 0,
+      "unreadable": 12,
+      "units": {
+        "durationSeconds": "s"
+      }
+    }
+  }
+]

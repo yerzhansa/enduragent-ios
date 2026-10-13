@@ -40,7 +40,7 @@ extension TurnRunnerTests {
 			.wellness, with: URLError(.timedOut, userInfo: [NSURLErrorFailingURLErrorKey: url]))
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(name: "intervals_fetch_wellness", arguments: #"{"days":7}"#),
+				.toolCall(name: "intervals_fetch_wellness", arguments: #"{"oldest":"1998-06-07"}"#),
 				.finish(reason: .toolCalls),
 				.text("I could not read your wellness data."),
 				.finish(reason: .stop),

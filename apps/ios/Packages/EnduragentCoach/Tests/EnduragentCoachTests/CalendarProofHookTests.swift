@@ -51,8 +51,7 @@ import Testing
 		#expect(try await client.profile().name == "Ada")
 		#expect(
 			try await client.wellness(in: .day(approval.date)).isEmpty)
-		#expect(
-			try await client.fetchActivities(oldest: approval.date, newest: approval.date).isEmpty)
+		#expect(try await client.activities(in: .day(approval.date)).total == 0)
 		let activity = try #require(ActivityID(rawValue: "42"))
 		_ = try await client.fetchActivity(id: activity)
 		_ = try await client.fetchStreams(id: activity)

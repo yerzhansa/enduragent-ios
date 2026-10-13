@@ -41,7 +41,7 @@
 				return ScriptedReply([
 					.toolCall(name: ToolName.intervalsFetchAthlete.rawValue, arguments: "{}"),
 					.toolCall(
-						name: ToolName.intervalsListEvents.rawValue, arguments: #"{"days":7}"#),
+						name: ToolName.intervalsListEvents.rawValue, arguments: weekArguments),
 					.finish(reason: .toolCalls),
 				])
 			}

@@ -3,6 +3,7 @@ import Foundation
 package protocol TrainingReads: Sendable {
 	func profile() async throws -> AthleteProfile
 	func wellness(in range: ReadRange) async throws -> [WellnessDay]
+	func activities(in range: ReadRange) async throws -> ActivityListing
 }
 
 package typealias TrainingClient = TrainingReads & IntervalsClient
@@ -22,15 +23,6 @@ package struct ReadRange: Sendable, Equatable {
 		try Self.rejectTooWide(IntervalsPolicy.inclusiveDayCount(from: oldest, to: newest))
 		self.oldest = oldest
 		self.newest = newest
-	}
-
-	package init(endingOn today: CivilDate, days: Int) throws(IntervalsError) {
-		guard days >= 1 else {
-			throw IntervalsError(code: "invalid_input", details: "days must be a positive integer.")
-		}
-		try Self.rejectTooWide(days)
-		self.oldest = today.adding(days: -(days - 1))
-		self.newest = today
 	}
 
 	private init(endingOn today: CivilDate, lookback days: Int) {
