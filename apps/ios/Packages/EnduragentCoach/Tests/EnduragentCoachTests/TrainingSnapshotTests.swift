@@ -139,8 +139,8 @@ import Testing
 
 		let turn = try #require(
 			try await coach.send(draft("How is my form?"), to: .main).acceptedTurn)
-		await profile.waitUntilEntered()
-		await wellness.waitUntilEntered()
+		try #require(try await entered(profile))
+		try #require(try await entered(wellness))
 		try await watchdog.waitUntilHeld(SnapshotPolicy.deadline)
 		#expect(transport.requests.isEmpty)
 		watchdog.release(SnapshotPolicy.deadline)
@@ -164,13 +164,17 @@ import Testing
 		let wellness = intervals.hold(.wellness)
 		let connection = connection()
 
-		async let snapshot = reader.snapshot(
-			for: connection, attempt: AttemptID(ulid: fixedUlid(1)))
-		await wellness.waitUntilEntered()
+		let reading = Task {
+			try await reader.snapshot(for: connection, attempt: AttemptID(ulid: fixedUlid(1)))
+		}
+		defer { reading.cancel() }
+		try #require(try await entered(wellness))
 		try await watchdog.waitUntilHeld(SnapshotPolicy.deadline)
 		watchdog.release(SnapshotPolicy.deadline)
 
-		let missed = try await snapshot
+		let missed = try await beforeDeadline(within: .hangGuard, onTimeout: { reading.cancel() }) {
+			try await reading.value
+		}
 		#expect(missed == .unavailable(.deadlineMissed))
 		#expect(intervals.count(of: .profile) == 1)
 	}
@@ -266,6 +270,10 @@ import Testing
 			secrets: secrets, watchdogClock: watchdog)
 		_ = try await coach.vault.trainingConnection()
 		return coach
+	}
+
+	func entered(_ gate: FakeIntervalsReadGate) async throws -> Bool {
+		try await beforeDeadline(within: .hangGuard) { await gate.waitUntilEntered() } != nil
 	}
 
 	func connection() -> TrainingConnection {

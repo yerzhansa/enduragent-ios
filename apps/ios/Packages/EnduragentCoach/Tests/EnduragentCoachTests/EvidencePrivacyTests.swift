@@ -20,7 +20,7 @@ extension TrainingSnapshotTests {
 		_ = try await coach.sendAndSettle("How is my form?")
 		let held = intervals.hold(.profile)
 		let turn = try #require(try await coach.send(draft("And now?"), to: .main).acceptedTurn)
-		await held.waitUntilEntered()
+		try #require(try await entered(held))
 		try await watchdog.waitUntilHeld(SnapshotPolicy.deadline)
 		watchdog.release(SnapshotPolicy.deadline)
 		_ = try #require(await coach.settledState(of: turn, in: .main, within: .hangGuard))
