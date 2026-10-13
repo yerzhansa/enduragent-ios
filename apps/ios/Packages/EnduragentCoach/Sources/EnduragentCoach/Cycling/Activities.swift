@@ -168,16 +168,20 @@ package struct ActivityDetail: Sendable, Equatable {
 	package init(
 		asked: ActivityID, activity: Activity, extras: ActivityDetailExtras, laps: Laps
 	) throws(IntervalsError) {
-		guard activity.id == asked else {
-			throw IntervalsError(
-				code: "activity_mismatch",
-				details:
-					"intervals.icu answered with a different activity than \(asked.rawValue). Nothing from that answer is shown."
-			)
-		}
+		guard activity.id == asked else { throw IntervalsError.activityMismatch(asked: asked) }
 		self.activity = activity
 		self.extras = extras
 		self.laps = laps
+	}
+}
+
+extension IntervalsError {
+	package static func activityMismatch(asked: ActivityID) -> IntervalsError {
+		IntervalsError(
+			code: "activity_mismatch",
+			details:
+				"intervals.icu answered with a different activity than \(asked.rawValue). Nothing from that answer is shown."
+		)
 	}
 }
 

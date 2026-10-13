@@ -61,9 +61,11 @@ extension IntervalsRESTClient: TrainingReads {
 	package func activity(_ id: ActivityID) async throws -> ActivityDetailRead {
 		let json: JSONValue
 		do {
-			json = try await getJSON(
-				path: ["activity", id.rawValue],
-				query: [URLQueryItem(name: "intervals", value: "true")])
+			json = try await reachingIntervals {
+				try await getJSON(
+					path: ["activity", id.rawValue],
+					query: [URLQueryItem(name: "intervals", value: "true")])
+			}
 		} catch let error as IntervalsError where error.status == 404 {
 			return .notFound
 		}
@@ -73,6 +75,9 @@ extension IntervalsRESTClient: TrainingReads {
 		}
 		switch Self.activityRow(from: json) {
 		case .hiddenByStrava:
+			if let answered = Self.activityID(in: fields), answered != id {
+				throw IntervalsError.activityMismatch(asked: id)
+			}
 			return .hiddenByStrava
 		case .unreadable:
 			throw IntervalsError(
@@ -177,15 +182,18 @@ extension IntervalsRESTClient: TrainingReads {
 			activity: activity(from: fields))
 	}
 
+	private static func activityID(in fields: [String: JSONValue]) -> ActivityID? {
+		switch fields["id"] {
+		case .string(let raw)?: ActivityID(rawValue: raw)
+		case .number(let number)?:
+			JSONValue.number(number).intValue().flatMap { ActivityID(rawValue: String($0)) }
+		default: nil
+		}
+	}
+
 	private static func activity(from fields: [String: JSONValue]) -> Activity? {
-		let id: ActivityID? =
-			switch fields["id"] {
-			case .string(let raw)?: ActivityID(rawValue: raw)
-			case .number(let number)?:
-				JSONValue.number(number).intValue().flatMap { ActivityID(rawValue: String($0)) }
-			default: nil
-			}
-		guard let id, let start = fields["start_date_local"]?.stringValue.flatMap(localStart)
+		guard let id = activityID(in: fields),
+			let start = fields["start_date_local"]?.stringValue.flatMap(localStart)
 		else { return nil }
 		return Activity(
 			id: id, name: fields["name"]?.stringValue, sport: fields["type"]?.stringValue,
