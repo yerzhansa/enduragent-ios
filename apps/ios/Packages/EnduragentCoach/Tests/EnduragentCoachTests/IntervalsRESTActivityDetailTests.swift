@@ -114,11 +114,42 @@ extension IntervalsRESTClientTests {
 		}
 	}
 
+	@Test func unreachableServiceIsANetworkFailureAndCancellationIsNotRenamed() async throws {
+		let client = try makeClient()
+		IntervalsURLProtocolStub.handler = { _ in throw URLError(.notConnectedToInternet) }
+		await #expect(
+			throws: IntervalsError(
+				code: "network", details: "intervals.icu could not be reached (URLError -1009).")
+		) {
+			_ = try await client.activity(try id("i1234567"))
+		}
+		IntervalsURLProtocolStub.handler = { _ in throw URLError(.cancelled) }
+		await #expect {
+			_ = try await client.activity(try id("i1234567"))
+		} throws: {
+			($0 as? URLError)?.code == .cancelled
+		}
+	}
+
+	@Test(arguments: [
+		#"{"id":"17654332","start_date_local":"1998-06-09T09:00:00","source":"STRAVA","_note":"hidden"}"#,
+		#"{"id":17654332,"start_date_local":"1998-06-09T09:00:00","source":"STRAVA","type":"Ride","moving_time":600}"#,
+		#"{"id":"17654332","source":"STRAVA"}"#,
+	])
+	func hiddenAnswerForAnotherIdentifierIsRefusedAsAMismatch(body: String) async throws {
+		let client = try makeClient()
+		IntervalsURLProtocolStub.handler = { _ in (200, Data(body.utf8)) }
+		await #expect(throws: IntervalsError.activityMismatch(asked: try id("17654331"))) {
+			_ = try await client.activity(try id("17654331"))
+		}
+	}
+
 	@Test(arguments: [
 		(
 			#"{"id":"17654331","start_date_local":"1998-06-09T09:00:00","source":"STRAVA","_note":"hidden"}"#,
 			true
 		),
+		(#"{"start_date_local":"1998-06-09T09:00:00","source":"STRAVA","_note":"hidden"}"#, true),
 		(
 			#"{"id":"17654331","start_date_local":"1998-06-09T09:00:00","source":"STRAVA","type":"Ride","moving_time":600}"#,
 			true
