@@ -6,98 +6,151 @@ import Testing
 
 @Suite struct ToolResultCapTests {
 	let transport = FakeModelTransport()
+	static let ride = Activity.recorded("i1234567", "Sunday long ride", on: "1998-06-07")
+	static let detailTool = "intervals_fetch_activity"
+	static let detailArguments = #"{"activityId":"i1234567"}"#
+
 	let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+	let store = InMemoryRecordLog()
 
 	@Test func oversizedArrayReportsEveryOmittedRow() async throws {
-		try await expectOmitted(.array(oversizedRows(150)), records: 150)
+		intervals.events = (1...150).map { number in
+			CalendarEvent(
+				id: EventID(rawValue: number), startDateLocal: "1998-06-14T00:00:00",
+				name: wide(number), category: "WORKOUT", externalId: nil, uid: nil, tags: [],
+				coachCreated: false)
+		}
+		try await expectOmitted(
+			"intervals_list_events", #"{"oldest":"1998-06-14","newest":"1998-06-14"}"#,
+			records: 150)
 	}
 
-	@Test func oversizedObjectCountsOnlyItsLargestDirectArray() async throws {
-		try await expectOmitted(
-			.object([
-				"rows": .array(oversizedRows(150)),
-				"otherRows": .array(oversizedRows(10)),
-				"nested": .object(["rows": .array(oversizedRows(200))]),
-				"reportedCount": .number(999),
-			]), records: 150)
+	@Test func oversizedObjectCountsItsLargestDirectArray() async throws {
+		intervals.athlete = AthleteProfile.cyclist(name: "Ada", ftp: 250).with(
+			[:], settingsSports: (0..<10).map(wide),
+			powerZones: (0..<150).map { TrainingZone(name: wide($0), upperBound: Double($0)) },
+			heartRateZones: (0..<20).map { TrainingZone(name: wide($0), upperBound: Double($0)) })
+		try await expectOmitted("intervals_fetch_athlete", "{}", records: 150)
+	}
+
+	@Test func oversizedObjectDoesNotCountADeeperArray() async throws {
+		try seed(
+			detail(
+				zones: 200,
+				laps: .recorded(
+					(1...150).map {
+						ActivityLap(number: $0, label: wide($0), kind: nil, readings: Readings([:]))
+					})))
+		try await expectOmitted(Self.detailTool, Self.detailArguments, records: 150)
 	}
 
 	@Test func oversizedObjectWithOnlyDeeperRowsReportsZero() async throws {
-		try await expectOmitted(
-			.object(["nested": .object(["rows": .array(oversizedRows(150))])]), records: 0)
+		try seed(detail(zones: 150, laps: .notSupplied))
+		try await expectOmitted(Self.detailTool, Self.detailArguments, records: 0)
 	}
 
-	@Test func oversizedScalarReportsZero() async throws {
-		try await expectOmitted(
-			.string(String(repeating: "omitted-row", count: 10_000)), records: 0)
+	@Test func oversizedTextReportsZero() async throws {
+		let hidden = SectionName.cyclingEffective.filter { !$0.inject }
+		try await EnduragentCoachTests.seed(
+			store,
+			hidden.enumerated().map { index, section in
+				storedRecord(
+					device: store.deviceId, wall: Int64(index + 1), ulid: fixedUlid(index + 1),
+					account: testConnection.account,
+					body: .synced(
+						.memorySection(
+							MemorySectionBody(
+								name: section,
+								content: (0..<40).map(wide).joined(separator: "\n")))))
+			})
+		try await expectOmitted("memory_read", "{}", records: 0)
 	}
 
 	@Test(arguments: [100, 23_999, 24_000])
 	func resultsAtOrBelowCapStayIntact(tokens: Int) async throws {
-		let payload = payload(estimatedTokens: tokens)
+		let payload = try seedDetail(estimatedTokens: tokens)
 		#expect(estimateTokens(UntrustedEnvelope.wrap(payload).canonicalDigestInput()) == tokens)
-		let result = try await toolResult(payload)
+		let result = try await toolResult(Self.detailTool, Self.detailArguments)
 		#expect(result.objectFields["data"] == payload)
 		#expect(result.objectFields["untrusted_data"] == .string(UntrustedEnvelope.banner))
 		#expect(result.objectFields["truncated"] == nil)
 	}
 
 	@Test func resultJustAboveCapIsOmitted() async throws {
-		let payload = payload(estimatedTokens: 24_001)
+		let payload = try seedDetail(estimatedTokens: 24_001)
 		#expect(estimateTokens(UntrustedEnvelope.wrap(payload).canonicalDigestInput()) == 24_001)
-		try await expectOmitted(payload, records: 1)
+		let fields = try await expectOmitted(Self.detailTool, Self.detailArguments, records: 1)
+		#expect(fields["estimatedTokens"] == .number(24_001))
 	}
 
-	private func oversizedRows(_ count: Int) -> [JSONValue] {
-		(0..<count).map { index in
-			.object([
-				"label": .string("omitted-row-\(index)"),
-				"details": .string(String(repeating: "x", count: 1024)),
-			])
-		}
+	private func wide(_ index: Int) -> String {
+		"omitted-row-\(index)" + String(repeating: "x", count: 1024)
 	}
 
-	private func payload(estimatedTokens: Int) -> JSONValue {
-		let empty: JSONValue = .object(["rows": .array([.string("")])])
+	private func detail(notes: String? = nil, zones: Int = 0, laps: Laps) throws
+		-> ActivityDetailRead
+	{
+		.found(
+			try ActivityDetail(
+				asked: Self.ride.id, activity: Self.ride,
+				extras: ActivityDetailExtras(
+					notes: notes,
+					powerZoneSeconds: (0..<zones).map { ZoneSeconds(zone: wide($0), seconds: 60) }),
+				laps: laps))
+	}
+
+	private func seed(_ read: ActivityDetailRead) {
+		intervals.activities = [Self.ride]
+		intervals.details[Self.ride.id] = read
+	}
+
+	private func seedDetail(estimatedTokens: Int) throws -> JSONValue {
+		let lap = Laps.recorded([
+			ActivityLap(number: 1, label: nil, kind: nil, readings: Readings([:]))
+		])
+		let empty = CoachReadout.activity(try detail(notes: "", laps: lap), asked: Self.ride.id)
 		let overhead = UntrustedEnvelope.wrap(empty).canonicalDigestInput().utf16.count
-		let characters = estimatedTokens * 10 / 3 - overhead
-		return .object(["rows": .array([.string(String(repeating: "x", count: characters))])])
+		let read = try detail(
+			notes: String(repeating: "x", count: estimatedTokens * 10 / 3 - overhead), laps: lap)
+		seed(read)
+		return CoachReadout.activity(read, asked: Self.ride.id)
 	}
 
-	private func expectOmitted(_ payload: JSONValue, records: Int) async throws {
-		let result = try await toolResult(payload)
+	@discardableResult
+	private func expectOmitted(_ tool: String, _ arguments: String, records: Int) async throws
+		-> [String: JSONValue]
+	{
+		let result = try await toolResult(tool, arguments)
 		let fields = result.objectFields
 		#expect(fields["truncated"] == .bool(true))
 		#expect(fields["omittedSamples"] == .number(Double(records)))
-		let estimated = estimateTokens(UntrustedEnvelope.wrap(payload).canonicalDigestInput())
+		let estimated = try #require(fields["estimatedTokens"]?.intValue())
 		#expect(estimated > 24_000)
-		#expect(fields["estimatedTokens"] == .number(Double(estimated)))
 		let notice = try #require(fields["notice"]?.stringValue)
 		#expect(notice.contains("~\(estimated) tokens"))
 		#expect(notice.contains("Rerun with narrower arguments"))
 		#expect(notice.contains("a smaller date range, fewer stream types, or a shorter activity"))
 		#expect(Set(fields.keys) == ["truncated", "notice", "omittedSamples", "estimatedTokens"])
 		#expect(!result.canonicalDigestInput().contains("omitted-row"))
+		return fields
 	}
 
-	private func toolResult(_ payload: JSONValue) async throws -> JSONValue {
-		intervals.streams = payload
+	private func toolResult(_ tool: String, _ arguments: String) async throws -> JSONValue {
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "intervals_fetch_streams", arguments: #"{"activityId":"i1234567"}"#),
+				.toolCall(name: tool, arguments: arguments),
 				.finish(reason: .toolCalls),
 				.text("Read complete."), .finish(reason: .stop),
 			], otherwise: transport.respond)
 		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: InMemoryRecordLog())
+			transport: transport, intervals: intervals, store: store)
 		let settled = try await coach.sendAndSettle("Read my training data")
 		#expect(replyText(settled) == "Read complete.")
 		try #require(transport.requests.count == 2)
 		let next = try #require(transport.requests.last)
 		let call = try #require(next.messages.flatMap(\.toolCalls).first)
 		let result = try #require(next.messages.last { $0.role == .tool })
-		#expect(call.name == "intervals_fetch_streams")
+		#expect(call.name == tool)
 		#expect(result.toolCallId == call.id)
 		return try JSONValue.parse(result.content)
 	}

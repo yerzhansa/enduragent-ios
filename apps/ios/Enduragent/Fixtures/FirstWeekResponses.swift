@@ -38,7 +38,8 @@
 					}
 					let slowTool = request.text == toolProgressDirective && !request.retry
 					if request.step == 0 {
-						intervals.delayNextActivityRead(
+						holdActivityRead(
+							on: intervals,
 							for: slowTool && request.tools.contains(.intervalsFetchActivities)
 								? slowToolReadDelay : .zero)
 					}
@@ -122,7 +123,7 @@
 
 		private static func stepLimitReply(commitsMemory: Bool) -> ScriptedReply {
 			let read: [ScriptedEvent] = [
-				.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
+				.toolCall(name: "intervals_fetch_activities", arguments: weekArguments),
 				.finish(reason: .toolCalls),
 			]
 			return ScriptedReply(

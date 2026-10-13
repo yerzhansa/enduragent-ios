@@ -9,6 +9,7 @@
 		static let today: CivilDate = "1998-06-15"
 		static let creditsKey = "fixture-credits-key"
 		static let tomorrow: CivilDate = "1998-06-16"
+		static let weekArguments = #"{"oldest":"\#(today.adding(days: -6).rawValue)"}"#
 
 		static let weekSummary =
 			"This week has Tuesday sweet spot, 1 h, Training Load 72, and Saturday group ride, 2 h 10 min, Training Load 118. Two solid rides with a quieter stretch between them."

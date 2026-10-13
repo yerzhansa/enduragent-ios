@@ -32,22 +32,126 @@ struct ReadToolsTests {
 		)
 	}
 
-	@Test func fetchActivitiesDaysSevenRecordsCall() async throws {
+	@Test func listedIdentifiersAreAcceptedByTheDetailAndStreamTools() async throws {
+		let hex = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 		intervals.activities = [
-			.ride(name: "Sunday long ride", date: "1998-06-07", durationS: 7200, trainingLoad: 120),
-			.ride(name: "Too old", date: "1998-05-01", durationS: 1800, trainingLoad: 40),
+			.recorded("i1234567", "Sunday long ride", on: "1998-06-07", at: 8 * 3_600),
+			.recorded("17654321", "Tuesday tempo", on: "1998-06-09", at: 7 * 3_600),
+			.recorded(hex, nil, on: "1998-06-11"),
 		]
-		let outcome = try await runtime().execute(
-			name: .intervalsFetchActivities,
-			arguments: try JSONValue.parse(#"{"days":7}"#),
-			scope: turnScope()
-		).outcome
-		#expect(intervals.calls == [.activities(days: 7)])
-		guard case .result(let json) = outcome, let rows = unwrapData(json).arrayValue else {
-			Issue.record("expected activities")
-			return
+		let shown = try await read(.intervalsFetchActivities, #"{"oldest":"1998-06-07"}"#)
+		let listed = try #require(shown.objectFields["activities"]?.arrayValue).map {
+			$0.objectFields["id"]
 		}
-		#expect(rows.map { $0.objectFields["name"]?.stringValue } == ["Sunday long ride"])
+		#expect(listed == [.string("i1234567"), .string("17654321"), .string(hex)])
+		var expected = [FakeIntervalsCall.activities(oldest: "1998-06-07", newest: "1998-06-13")]
+		for value in listed {
+			let raw = try #require(value?.stringValue)
+			let id = try #require(ActivityID(rawValue: raw))
+			let arguments = canonicalJSON(.object(["activityId": .string(raw)]))
+			#expect(
+				try await read(.intervalsFetchActivity, arguments).objectFields["error"] == nil)
+			#expect(
+				try await read(.intervalsFetchStreams, arguments).objectFields["error"] == nil)
+			expected += [.activity(id), .streams(id, channels: StreamChannels.standard.names)]
+		}
+		#expect(intervals.calls == expected)
+	}
+
+	@Test(arguments: [
+		(#"{}"#, "invalid_date"),
+		(#"{"newest":"1998-06-13"}"#, "invalid_date"),
+		(#"{"oldest":"1998-02-30","newest":"1998-06-13"}"#, "invalid_date"),
+		(#"{"oldest":"1998-06-07","newest":"13-06-1998"}"#, "invalid_date"),
+		(#"{"oldest":19980607}"#, "invalid_date"),
+		(#"{"oldest":"1998-06-13","newest":"1998-06-07"}"#, "invalid_range"),
+		(#"{"oldest":"1998-06-14"}"#, "invalid_range"),
+		(#"{"oldest":"1997-06-12","newest":"1998-06-13"}"#, "range_too_wide"),
+		(#"{"oldest":"1997-06-12"}"#, "range_too_wide"),
+	])
+	func activityRangeThatIsNotValidIsRefusedBeforeAnyRead(arguments: String, code: String)
+		async throws
+	{
+		intervals.activities = [.recorded("i1234567", "Sunday long ride", on: "1998-06-13")]
+		let shown = try await read(.intervalsFetchActivities, arguments)
+		#expect(shown.objectFields["error"]?.stringValue == code)
+		#expect(shown.objectFields["activities"] == nil)
+		#expect(intervals.count(of: .activities) == 0)
+	}
+
+	@Test func activityRangeOf366DaysIsReadAndIncludesBothEnds() async throws {
+		intervals.activities = [
+			.recorded("i4", "Day after", on: "1998-06-14"),
+			.recorded("i3", "Newest day", on: "1998-06-13"),
+			.recorded("i2", "Oldest day", on: "1997-06-13"),
+			.recorded("i1", "Day before", on: "1997-06-12"),
+		]
+		let shown = try await read(
+			.intervalsFetchActivities, #"{"oldest":"1997-06-13","newest":"1998-06-13"}"#)
+		#expect(intervals.count(of: .activities) == 1)
+		#expect(shown.objectFields["oldest"] == .string("1997-06-13"))
+		#expect(shown.objectFields["newest"] == .string("1998-06-13"))
+		#expect(identifiers(in: shown) == ["i2", "i3"])
+	}
+
+	@Test(arguments: [
+		("1998-06-13T00:30:00+02:00", "Europe/Amsterdam"),
+		("1998-06-13T23:30:00-04:00", "America/New_York"),
+	])
+	func omittedNewestOfAnActivityRangeIsTodayInThePhonesTimeZone(now: String, zone: String)
+		async throws
+	{
+		let phone = FixedClock(now: now, timeZone: zone)
+		#expect(IntervalsPolicy.today(now: phone.now, timeZone: .gmt) != "1998-06-13")
+		intervals.activities = [
+			.recorded("i1", "Yesterday", on: "1998-06-12"),
+			.recorded("i2", "Today", on: "1998-06-13"),
+			.recorded("i3", "Tomorrow", on: "1998-06-14"),
+		]
+		let shown = try await read(
+			.intervalsFetchActivities, #"{"oldest":"1998-06-12"}"#, clock: phone)
+		#expect(intervals.calls == [.activities(oldest: "1998-06-12", newest: "1998-06-13")])
+		#expect(shown.objectFields["newest"] == .string("1998-06-13"))
+		#expect(identifiers(in: shown) == ["i1", "i2"])
+	}
+
+	@Test(arguments: [
+		ToolName.intervalsFetchActivities, .intervalsFetchWellness, .intervalsListEvents,
+	])
+	func daysWithoutOldestIsRefusedAsAMissingDate(tool: ToolName) async throws {
+		let shown = try await read(tool, #"{"days":7}"#)
+		#expect(shown.objectFields["error"] == .string("invalid_date"))
+		#expect(
+			shown.objectFields["details"]
+				== .string("oldest is not a real calendar date. Use YYYY-MM-DD."))
+		#expect(intervals.calls.isEmpty)
+		#expect(intervals.count(of: .activities) == 0)
+		#expect(intervals.count(of: .wellness) == 0)
+	}
+
+	@Test func daysBesideOldestChangesNothing() async throws {
+		_ = try await read(.intervalsFetchActivities, #"{"oldest":"1998-06-12","days":400}"#)
+		_ = try await read(.intervalsFetchWellness, #"{"oldest":"1998-06-12","days":400}"#)
+		_ = try await read(.intervalsListEvents, #"{"oldest":"1998-06-12","days":400}"#)
+		#expect(
+			intervals.calls == [
+				.activities(oldest: "1998-06-12", newest: "1998-06-13"),
+				.wellness(oldest: "1998-06-12", newest: "1998-06-13"),
+				.events(oldest: "1998-06-12", newest: "1998-06-13"),
+			])
+	}
+
+	@Test func rangeWithNoActivityStillCarriesWhatItHides() async throws {
+		intervals.stravaHidden = ["1998-06-08", "1998-06-09", "1998-05-01"]
+		intervals.unreadable = ["1998-06-10", "1998-05-02"]
+		let shown = try await read(.intervalsFetchActivities, #"{"oldest":"1998-06-07"}"#)
+		#expect(shown.objectFields["activities"] == .array([]))
+		#expect(shown.objectFields["hiddenByStrava"] == .number(2))
+		#expect(shown.objectFields["unreadable"] == .number(1))
+		#expect(
+			shown.objectFields["stravaNotice"]?.stringValue?.hasPrefix(
+				"2 of 3 activities are hidden by Strava") == true)
+		#expect(shown.objectFields["units"] == nil)
 	}
 
 	@Test(arguments: [
@@ -101,9 +205,6 @@ struct ReadToolsTests {
 
 	@Test func fetchAthleteAndActivityAndStreamsAndEvents() async throws {
 		let activityID = try #require(ActivityID(rawValue: "i1234567"))
-		intervals.activity = try JSONValue.parse(#"{"id":"i1234567","name":"Sunday long ride"}"#)
-		intervals.streams = try JSONValue.parse(
-			try #require(String(data: try fixtureData("streams-ts"), encoding: .utf8)))
 		intervals.events = [
 			CalendarEvent(
 				id: EventID(rawValue: 42),
@@ -155,7 +256,9 @@ struct ReadToolsTests {
 			scope: turnScope()
 		).outcome
 		#expect(intervals.calls.contains(.activity(activityID)))
-		#expect(intervals.calls.contains(.streams(activityID)))
+		#expect(
+			intervals.calls.contains(
+				.streams(activityID, channels: StreamChannels.standard.names)))
 		#expect(intervals.calls.contains(.events(oldest: "1998-06-14", newest: "1998-06-20")))
 		guard case .result(let eventsJSON) = listed, let events = unwrapData(eventsJSON).arrayValue
 		else {
@@ -164,6 +267,20 @@ struct ReadToolsTests {
 		}
 		#expect(events.count == 1)
 		#expect(events[0].objectFields["name"]?.stringValue == "Endurance")
+	}
+
+	@Test(arguments: [
+		#"{"activityId":"i1234567"}"#, #"{"activityId":"i1234567","types":[]}"#,
+		#"{"activityId":"i1234567","types":null}"#,
+	])
+	func streamReadWithNoChannelNamedAsksForTheStandardFive(arguments: String) async throws {
+		let shown = try await read(.intervalsFetchStreams, arguments)
+		let standard = ["watts", "heartrate", "cadence", "time", "altitude"]
+		#expect(
+			intervals.calls == [
+				.streams(try #require(ActivityID(rawValue: "i1234567")), channels: standard)
+			])
+		#expect(shown.objectFields["unanswered"] == .array(standard.map(JSONValue.string)))
 	}
 
 	@Test(arguments: [
@@ -230,14 +347,23 @@ struct ReadToolsTests {
 	}
 
 	private func wellness(_ arguments: String, clock: FixedClock) async throws -> JSONValue {
-		let outcome = try await runtime(clock: clock).execute(
-			name: .intervalsFetchWellness, arguments: try JSONValue.parse(arguments),
-			scope: turnScope()
+		try await read(.intervalsFetchWellness, arguments, clock: clock)
+	}
+
+	private func read(_ tool: ToolName, _ arguments: String, clock: FixedClock? = nil)
+		async throws -> JSONValue
+	{
+		let outcome = try await runtime(clock: clock ?? self.clock).execute(
+			name: tool, arguments: try JSONValue.parse(arguments), scope: turnScope()
 		).outcome
 		guard case .result(let json) = outcome else {
 			throw IntervalsError(code: "no_result", details: "\(outcome)")
 		}
 		return unwrapData(json)
+	}
+
+	private func identifiers(in shown: JSONValue) -> [String?]? {
+		shown.objectFields["activities"]?.arrayValue?.map { $0.objectFields["id"]?.stringValue }
 	}
 
 	private func dates(in shown: JSONValue) -> [String?]? {
