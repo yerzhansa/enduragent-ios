@@ -79,7 +79,7 @@ To resume, read `summary.md` in the suite folder and run the same command with o
 
 ## Gotchas
 
-- The fixture needs text containing `endurance ride`; `/workout` alone produces the week summary.
+- The fixture presents a review only for a message that contains `endurance ride` and does not start with `/workout` or `/status`. `/workout`, alone or with text after it, waits 8 seconds and replies in text with no workout review.
 - `fixture.failNextAppend` fails the next record append. Arm it through `TutorialHarness.fixtureControl` in Settings > Debug after the review is presented and the proposing turn has settled, then tap Add or Cancel. Reach every Debug row through `TutorialHarness.debugRow`, and use `TutorialHarness.returnToChat` to leave Settings or the language picker.
 - `FixtureArguments(calendarSaveFault: .loseAnswerOnce)` stores the full approval under its UID before losing the answer. `calendarReadFault: .failOnce` affects only the next event list or event fetch. Relaunch with `.keep` retains the unknown write records and opens an empty fake calendar for the absent-read proof. The record-read launch hook waits for a presented, settled card. Settings > Debug controls, reached with `fixtureControl`, arm the same read fault for other layouts. Try again restores controls without checking the calendar.
 - The fake intervals.icu client keeps calendar writes in memory. The Done line and Records are the visible evidence because the app has no calendar screen.

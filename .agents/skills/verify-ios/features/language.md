@@ -94,6 +94,7 @@ The `LanguageMatrix` classes prove the retained screens in every supported langu
 | `testHistory` | `history-empty`, `history-earlier-athlete`, `history-conversation`. |
 | `testUncertainSave` | `review-save-uncertain`, `review-unreadable` with Try again, `review-save-again`, `review-cancelled` with the cancellation note. |
 | `testOpenRouter` | `openrouter-blocked-request` with the 403 notice, `settings-openrouter`, `settings-model`. |
+| `testShortcuts` | `shortcut-choices` with the `/workout` and `/status` rows, whose command names stay untranslated beside their catalog titles, `shortcut-working` after `/workout 45 minutes indoors` is sent, `shortcut-reply`. |
 
 Every flow except `testOnboarding` launches in English and chooses the language in Settings > Language. `testOpenRouter` launches already onboarded and only accepts consent. The other flows finish the fixture onboarding first. The keyboard therefore stays English, so the typed fixture directives arrive unchanged in Korean, Japanese and Chinese. `testOnboarding` types only into the ASCII key field.
 
