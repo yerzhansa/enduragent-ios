@@ -3,6 +3,7 @@ import EnduragentCoach
 public enum FakeTrainingRead: Hashable, Sendable, CaseIterable {
 	case profile
 	case wellness
+	case activities
 }
 
 struct FakeReadFaults {

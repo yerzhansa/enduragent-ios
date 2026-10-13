@@ -9,6 +9,7 @@
 		static let today: CivilDate = "1998-06-15"
 		static let creditsKey = "fixture-credits-key"
 		static let tomorrow: CivilDate = "1998-06-16"
+		static let weekArguments = #"{"oldest":"\#(today.adding(days: -6).rawValue)"}"#
 
 		static let weekSummary =
 			"This week has Tuesday sweet spot, 1 h, Training Load 72, and Saturday group ride, 2 h 10 min, Training Load 118. Two solid rides with a quieter stretch between them."
@@ -52,7 +53,7 @@
 			credits.balanceResult = .success(CreditBalance(credits: Credits(units: 200)))
 		}
 
-		static func script(for text: String) -> [ScriptedEvent] {
+		static func script(for text: String, tools: [ToolName]) -> [ScriptedEvent] {
 			let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
 			if SlashRouting.parse(trimmed) == .review {
 				return [
@@ -66,6 +67,9 @@
 				return [.text(rememberReply), .finish(reason: .stop)]
 			}
 			if isWorkoutRequest(trimmed) {
+				guard tools.contains(.intervalsCreateWorkout) else {
+					return [.text(trainingDataMissing), .finish(reason: .stop)]
+				}
 				return [
 					.toolCall(
 						name: ToolName.intervalsCreateWorkout.rawValue, arguments: workoutArguments),

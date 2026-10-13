@@ -23,7 +23,15 @@
     "mood": 4,
     "motivation": 5,
     "injury": 6,
-    "fatigue": 2
+    "fatigue": 2,
+    "sportInfo": [
+      {
+        "type": "Ride",
+        "eftp": 251.3,
+        "wPrime": 20000,
+        "pMax": 1100
+      }
+    ]
   },
   {
     "id": "1998-06-11"

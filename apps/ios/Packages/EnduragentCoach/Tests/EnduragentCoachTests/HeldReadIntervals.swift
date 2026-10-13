@@ -12,8 +12,8 @@ extension ForwardingIntervals {
 	func wellness(in range: ReadRange) async throws -> [WellnessDay] {
 		try await base.wellness(in: range)
 	}
-	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary] {
-		try await base.fetchActivities(oldest: oldest, newest: newest)
+	func activities(in range: ReadRange) async throws -> ActivityListing {
+		try await base.activities(in: range)
 	}
 	func fetchActivity(id: ActivityID) async throws -> JSONValue {
 		try await base.fetchActivity(id: id)
@@ -40,12 +40,12 @@ struct HeldReadIntervals: ForwardingIntervals {
 	let clock: HeldClock
 	let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 
-	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary] {
+	func activities(in range: ReadRange) async throws -> ActivityListing {
 		do {
 			try await clock.sleep(for: .seconds(30))
 		} catch is CancellationError {
 			throw URLError(.cancelled)
 		}
-		return try await base.fetchActivities(oldest: oldest, newest: newest)
+		return try await base.activities(in: range)
 	}
 }

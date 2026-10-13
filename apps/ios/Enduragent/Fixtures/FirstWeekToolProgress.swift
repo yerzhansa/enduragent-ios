@@ -10,20 +10,39 @@
 		static let toolProgressIntroduction = "Checking your recent rides. "
 		static let toolProgressCompletion = "I've prepared the ride. Confirm to add it."
 
-		static func toolProgressReply(step: Int) -> ScriptedReply {
-			ScriptedReply(
+		static func holdActivityRead(on intervals: FakeIntervalsClient, for delay: Duration) {
+			let gate = intervals.hold(.activities)
+			Task {
+				if delay > .zero {
+					await gate.waitUntilEntered()
+					do {
+						try await Task.sleep(for: delay)
+					} catch is CancellationError {
+					} catch {
+						fatalError("Task.sleep failed: \(error)")
+					}
+				}
+				await gate.release()
+			}
+		}
+
+		static func toolProgressReply(_ request: ScriptedRequest) -> ScriptedReply {
+			guard request.tools.contains(.intervalsCreateWorkout) else {
+				return ScriptedReply([.text(trainingDataMissing), .finish(reason: .stop)])
+			}
+			return ScriptedReply(
 				[
 					.text(toolProgressIntroduction),
 					.toolCall(
-						name: ToolName.intervalsFetchActivities.rawValue, arguments: #"{"days":7}"#),
+						name: ToolName.intervalsFetchActivities.rawValue, arguments: weekArguments),
 					.finish(reason: .toolCalls),
 					.toolCall(
 						name: ToolName.intervalsCreateWorkout.rawValue, arguments: workoutArguments),
 					.finish(reason: .toolCalls),
 					.text(toolProgressCompletion),
 					.finish(reason: .stop),
-				], requestDelay: step == 0 ? slowToolModelDelay : nil
-			).step(step)
+				], requestDelay: request.step == 0 ? slowToolModelDelay : nil
+			).step(request.step)
 		}
 	}
 #endif

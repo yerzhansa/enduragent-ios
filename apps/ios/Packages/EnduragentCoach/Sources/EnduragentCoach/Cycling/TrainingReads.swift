@@ -3,6 +3,7 @@ import Foundation
 package protocol TrainingReads: Sendable {
 	func profile() async throws -> AthleteProfile
 	func wellness(in range: ReadRange) async throws -> [WellnessDay]
+	func activities(in range: ReadRange) async throws -> ActivityListing
 }
 
 package typealias TrainingClient = TrainingReads & IntervalsClient
@@ -22,15 +23,6 @@ package struct ReadRange: Sendable, Equatable {
 		try Self.rejectTooWide(IntervalsPolicy.inclusiveDayCount(from: oldest, to: newest))
 		self.oldest = oldest
 		self.newest = newest
-	}
-
-	package init(endingOn today: CivilDate, days: Int) throws(IntervalsError) {
-		guard days >= 1 else {
-			throw IntervalsError(code: "invalid_input", details: "days must be a positive integer.")
-		}
-		try Self.rejectTooWide(days)
-		self.oldest = today.adding(days: -(days - 1))
-		self.newest = today
 	}
 
 	private init(endingOn today: CivilDate, lookback days: Int) {
@@ -126,6 +118,21 @@ package enum ProfileField: Hashable, Sendable, CaseIterable {
 	case maxHeartRate
 	case restingHeartRate
 	case weight
+	case indoorFTP
+	case wPrime
+	case maxPower
+	case sweetSpotMin
+	case sweetSpotMax
+}
+
+package struct TrainingZone: Sendable, Equatable {
+	package let name: String?
+	package let upperBound: Double
+
+	package init(name: String?, upperBound: Double) {
+		self.name = name
+		self.upperBound = upperBound
+	}
 }
 
 package struct AthleteProfile: Sendable, Equatable {
@@ -133,12 +140,26 @@ package struct AthleteProfile: Sendable, Equatable {
 	package let name: String
 	package let ftp: FTPReading
 	package let readings: Readings<ProfileField>
+	package let sex: String?
+	package let ageYears: Int?
+	package let settingsSports: [String]
+	package let powerZones: [TrainingZone]
+	package let heartRateZones: [TrainingZone]
 
-	package init(id: String, name: String, ftp: FTPReading, readings: Readings<ProfileField>) {
+	package init(
+		id: String, name: String, ftp: FTPReading, readings: Readings<ProfileField>,
+		sex: String? = nil, ageYears: Int? = nil, settingsSports: [String] = [],
+		powerZones: [TrainingZone] = [], heartRateZones: [TrainingZone] = []
+	) {
 		self.id = id
 		self.name = name
 		self.ftp = ftp
 		self.readings = readings
+		self.sex = sex
+		self.ageYears = ageYears
+		self.settingsSports = settingsSports
+		self.powerZones = powerZones
+		self.heartRateZones = heartRateZones
 	}
 }
 

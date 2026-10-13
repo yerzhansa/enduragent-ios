@@ -24,7 +24,7 @@ extension CoachTools {
 		)
 	) { arguments, reach in
 		let range = try arguments.readRange(today: reach.local.today)
-		return .result(CoachReadout.wellness(try await reach.reads.wellness(in: range)))
+		return .result(CoachReadout.wellness(try await reach.reads.wellness(in: range), in: range))
 	}
 
 	static let fetchActivity = CoachTool.training(
@@ -67,17 +67,12 @@ extension CoachTools {
 			properties: [
 				"oldest": ToolParameters.string("Oldest date (YYYY-MM-DD)"),
 				"newest": ToolParameters.string("Newest date (YYYY-MM-DD)"),
-				"days": ToolParameters.integer(
-					"Inclusive day count ending today in the athlete time zone"
-				),
 			],
-			required: []
+			required: ["oldest"]
 		)
 	) { arguments, reach in
 		let range = try arguments.readRange(today: reach.local.today)
-		let rows = try await reach.calendar.fetchActivities(
-			oldest: range.oldest, newest: range.newest)
-		return .result(CoachReadout.activities(rows))
+		return .result(CoachReadout.activities(try await reach.reads.activities(in: range)))
 	}
 }
 
@@ -87,41 +82,204 @@ enum CoachReadout {
 			"id": .string(profile.id),
 			"name": .string(profile.name),
 		]
-		switch profile.ftp {
-		case .usable(let watts):
-			fields["ftp"] = .number(watts.value)
-		case .implausible(let reported?):
-			fields["ftp"] = .number(reported)
-		case .absent, .implausible(nil):
-			break
+		var units: [String: JSONValue] = [:]
+		func measure(_ key: String, _ value: JSONValue, unit: String) {
+			fields[key] = value
+			units[key] = .string(unit)
 		}
+		switch profile.ftp {
+		case .absent:
+			break
+		case .usable(let watts):
+			measure("ftp", .number(watts.value), unit: "W")
+		case .implausible(let reported):
+			if let reported { measure("ftp", .number(reported), unit: "W") }
+			fields["ftpUsable"] = .bool(false)
+			fields["ftpNotice"] = .string(PromptStaticBlocks.snapshotQualitativeFTP)
+		}
+		for field in ProfileField.allCases {
+			guard let value = profile.readings[field] else { continue }
+			measure(field.readoutKey, .number(value), unit: field.unit)
+		}
+		if let sex = profile.sex { fields["sex"] = .string(sex) }
+		if let age = profile.ageYears { fields["ageYears"] = .number(Double(age)) }
+		if !profile.settingsSports.isEmpty {
+			fields["sports"] = .array(profile.settingsSports.map(JSONValue.string))
+		}
+		if !profile.powerZones.isEmpty {
+			measure("powerZones", ladder(profile.powerZones), unit: "% of FTP")
+		}
+		if !profile.heartRateZones.isEmpty {
+			measure("heartRateZones", ladder(profile.heartRateZones), unit: "bpm")
+		}
+		if !units.isEmpty { fields["units"] = .object(units) }
 		return .object(fields)
 	}
 
-	static func wellness(_ days: [WellnessDay]) -> JSONValue {
+	private static func ladder(_ zones: [TrainingZone]) -> JSONValue {
 		.array(
-			days.map { day in
-				var fields: [String: JSONValue] = ["date": .string(day.date.rawValue)]
-				if let fitness = day.fitness { fields["fitness"] = .number(fitness) }
-				if let fatigue = day.fatigue { fields["fatigue"] = .number(fatigue) }
-				if let form = day.form { fields["form"] = .number(form) }
+			zones.map { zone in
+				var fields: [String: JSONValue] = ["upTo": .number(zone.upperBound)]
+				if let name = zone.name { fields["name"] = .string(name) }
 				return .object(fields)
 			})
 	}
 
-	static func activities(_ rows: [ActivitySummary]) -> JSONValue {
-		.array(
-			rows.map { row in
-				var fields: [String: JSONValue] = [
-					"name": .string(row.name),
-					"date": .string(row.date.rawValue),
-					"durationS": .number(Double(row.durationS)),
-				]
-				if let load = row.trainingLoad {
-					fields["trainingLoad"] = .number(Double(load))
-				}
-				return .object(fields)
-			})
+	static func wellness(_ days: [WellnessDay], in range: ReadRange) -> JSONValue {
+		var units: [String: JSONValue] = [:]
+		let rows = days.sorted { $0.date < $1.date }.map { day in
+			var fields: [String: JSONValue] = ["date": .string(day.date.rawValue)]
+			for field in WellnessField.allCases {
+				guard let value = day.readings[field] else { continue }
+				fields[field.readoutKey] = .number(value)
+				if let unit = field.unit { units[field.readoutKey] = .string(unit) }
+			}
+			if let form = day.form { fields["form"] = .number(OneDecimal.round(form)) }
+			return JSONValue.object(fields)
+		}
+		var result: [String: JSONValue] = [
+			"oldest": .string(range.oldest.rawValue),
+			"newest": .string(range.newest.rawValue),
+			"days": .array(rows),
+		]
+		if !units.isEmpty { result["units"] = .object(units) }
+		return .object(result)
+	}
+
+	static func activities(_ listing: ActivityListing) -> JSONValue {
+		var units: [String: JSONValue] = [:]
+		var result: [String: JSONValue] = [
+			"oldest": .string(listing.range.oldest.rawValue),
+			"newest": .string(listing.range.newest.rawValue),
+			"activities": .array(listing.activities.map { row(of: $0, units: &units) }),
+			"hiddenByStrava": .number(Double(listing.hiddenByStrava)),
+		]
+		if listing.hiddenByStrava > 0 {
+			result["stravaNotice"] = .string(
+				stravaNotice(hidden: listing.hiddenByStrava, of: listing.total))
+		}
+		if listing.unreadable > 0 { result["unreadable"] = .number(Double(listing.unreadable)) }
+		if !units.isEmpty { result["units"] = .object(units) }
+		return .object(result)
+	}
+
+	static func stravaNotice(hidden: Int, of total: Int) -> String {
+		"\(hidden) of \(total) activities are hidden by Strava, so they aren’t included. Strava does not allow third-party AI tools to use data from its API. For future rides, connect your recording source directly to intervals.icu and keep Strava connected. For past rides, use Import All Strava Data in intervals.icu settings; it requires an intervals.icu supporter subscription."
+	}
+
+	private static func row(of activity: Activity, units: inout [String: JSONValue]) -> JSONValue {
+		var fields: [String: JSONValue] = [
+			"id": .string(activity.id.rawValue),
+			"start": .string(activity.start.readout),
+		]
+		if let name = activity.name { fields["name"] = .string(name) }
+		if let sport = activity.sport { fields["sport"] = .string(sport) }
+		for field in ActivityField.allCases {
+			guard let value = activity.readings[field] else { continue }
+			fields[field.readoutKey] = .number(value)
+			if let unit = field.unit { units[field.readoutKey] = .string(unit) }
+		}
+		return .object(fields)
+	}
+}
+
+extension LocalStart {
+	var readout: String {
+		guard let secondOfDay else { return date.rawValue }
+		let clock = [secondOfDay / 3_600, secondOfDay / 60 % 60, secondOfDay % 60]
+			.map { $0 < 10 ? "0\($0)" : "\($0)" }
+			.joined(separator: ":")
+		return "\(date.rawValue)T\(clock)"
+	}
+}
+
+extension ActivityField {
+	var readoutKey: String {
+		switch self {
+		case .duration: "durationSeconds"
+		case .distance: "distance"
+		case .load: "load"
+		case .intensity: "intensity"
+		case .averagePower: "averagePower"
+		case .weightedPower: "weightedPower"
+		case .averageHeartRate: "averageHeartRate"
+		case .maxHeartRate: "maxHeartRate"
+		case .ftp: "ftp"
+		case .elevationGain: "elevationGain"
+		}
+	}
+
+	var unit: String? {
+		switch self {
+		case .duration: "s"
+		case .distance, .elevationGain: "m"
+		case .load: nil
+		case .intensity: "%"
+		case .averagePower, .weightedPower, .ftp: "W"
+		case .averageHeartRate, .maxHeartRate: "bpm"
+		}
+	}
+}
+
+extension ProfileField {
+	var readoutKey: String {
+		switch self {
+		case .lthr: "lthr"
+		case .maxHeartRate: "maxHeartRate"
+		case .restingHeartRate: "restingHeartRate"
+		case .weight: "weight"
+		case .indoorFTP: "indoorFtp"
+		case .wPrime: "wPrime"
+		case .maxPower: "maxPower"
+		case .sweetSpotMin: "sweetSpotMin"
+		case .sweetSpotMax: "sweetSpotMax"
+		}
+	}
+
+	var unit: String {
+		switch self {
+		case .lthr, .maxHeartRate, .restingHeartRate: "bpm"
+		case .weight: "kg"
+		case .indoorFTP, .maxPower: "W"
+		case .wPrime: "J"
+		case .sweetSpotMin, .sweetSpotMax: "% of FTP"
+		}
+	}
+}
+
+extension WellnessField {
+	var readoutKey: String {
+		switch self {
+		case .fitness: "fitness"
+		case .fatigue: "fatigue"
+		case .rampRate: "rampRate"
+		case .weight: "weight"
+		case .restingHeartRate: "restingHeartRate"
+		case .hrv: "hrv"
+		case .sleepSeconds: "sleepSeconds"
+		case .sleepScore: "sleepScore"
+		case .sleepQuality: "sleepQuality"
+		case .readiness: "readiness"
+		case .soreness: "soreness"
+		case .stress: "stress"
+		case .mood: "mood"
+		case .motivation: "motivation"
+		case .injury: "injury"
+		case .reportedFatigue: "reportedFatigue"
+		}
+	}
+
+	var unit: String? {
+		switch self {
+		case .rampRate: "Fitness per week"
+		case .weight: "kg"
+		case .restingHeartRate: "bpm"
+		case .hrv: "ms"
+		case .sleepSeconds: "s"
+		case .fitness, .fatigue, .sleepScore, .sleepQuality, .readiness, .soreness, .stress,
+			.mood, .motivation, .injury, .reportedFatigue:
+			nil
+		}
 	}
 }
 
@@ -132,13 +290,6 @@ extension JSONValue {
 			return try ReadRange(
 				oldest: oldest, newest: try Self.optionalDate(fields["newest"], label: "newest"),
 				today: today)
-		}
-		if let value = fields["days"] {
-			guard let days = value.intValue() else {
-				throw IntervalsError(
-					code: "invalid_input", details: "days must be a positive integer.")
-			}
-			return try ReadRange(endingOn: today, days: days)
 		}
 		throw IntervalsError(
 			code: "invalid_date",

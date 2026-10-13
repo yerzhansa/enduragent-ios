@@ -5,7 +5,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private let session: URLSession
 	private let baseURL: URL
 	let athletePath: String
-	private let clock: any Clock
+	let clock: any Clock
 
 	package init(
 		credential: IntervalsCredential, athlete: AthleteSelection = .keyOwner,
@@ -26,20 +26,6 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 			?? ephemeralSession(
 				requestTimeout: IntervalsPolicy.requestTimeout,
 				resourceTimeout: IntervalsPolicy.requestTimeout)
-	}
-
-	package func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws
-		-> [ActivitySummary]
-	{
-		_ = try ReadRange(oldest: oldest, newest: newest, today: newest)
-		let json = try await getJSON(
-			path: ["athlete", athletePath, "activities"],
-			query: [
-				URLQueryItem(name: "oldest", value: oldest.rawValue),
-				URLQueryItem(name: "newest", value: newest.rawValue),
-			]
-		)
-		return (json.arrayValue ?? []).compactMap(Self.activitySummary(from:))
 	}
 
 	package func fetchActivity(id: ActivityID) async throws -> JSONValue {
@@ -221,18 +207,6 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		} catch {
 			throw IntervalsError(code: "invalid_json", details: "response was not JSON")
 		}
-	}
-
-	private static func activitySummary(from json: JSONValue) -> ActivitySummary? {
-		let fields = json.objectFields
-		guard let name = fields["name"]?.stringValue else { return nil }
-		let local = fields["start_date_local"]?.stringValue ?? fields["startDateLocal"]?.stringValue
-		guard let local, let date = CivilDate(rawValue: String(local.prefix(10))) else {
-			return nil
-		}
-		let duration = fields["moving_time"]?.intValue() ?? fields["movingTime"]?.intValue() ?? 0
-		let load = fields["icu_training_load"]?.intValue() ?? fields["icuTrainingLoad"]?.intValue()
-		return ActivitySummary(name: name, date: date, durationS: duration, trainingLoad: load)
 	}
 
 	private static func calendarEvent(from json: JSONValue) throws -> CalendarEvent {
