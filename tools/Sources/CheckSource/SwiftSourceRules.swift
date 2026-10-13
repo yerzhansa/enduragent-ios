@@ -9,16 +9,11 @@ private enum Unit {
 }
 
 extension SourceChecker {
-	static let stringLiteral = #"(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1"#
 	static let setter =
 		#"^\s*(?:@\w+(?:\([^)]*\))?\s+)*(?:(?:nonmutating|mutating)\s+)?"#
 		+ #"(?:set|_modify|willSet|didSet)(?:\s*\([^)]*\))?\s*$"#
 	static let duration =
 		#"(?:Duration\s*\.\s*)?\.?(?:seconds|milliseconds|microseconds|nanoseconds|zero)\b"#
-
-	func withoutStrings(_ text: String) throws -> String {
-		try patterns.replaceAll(Self.stringLiteral, text, with: "\"\"")
-	}
 
 	func hasReleaseReference(_ text: String, _ reference: String) throws -> Bool {
 		var guards: [(debug: Bool, alternate: Bool)] = []
@@ -53,7 +48,7 @@ extension SourceChecker {
 	}
 
 	func hasExposedMailboxState(_ text: String) throws -> Bool {
-		let code = try withoutStrings(text)
+		let code = try patterns.withoutStrings(text)
 		let length = code.utf16.count
 		var depth = 0
 		var projection = false
@@ -110,7 +105,7 @@ extension SourceChecker {
 	}
 
 	func hasUnboundedTestWait(_ text: String) throws -> Bool {
-		let code = try withoutStrings(text)
+		let code = try patterns.withoutStrings(text)
 		let loops = try trailingBlocks(code, #"\bwhile\b"#)
 		let deadlines = try trailingBlocks(code, #"\bbeforeDeadline\b"#)
 		let waits = try patterns.matchAll(
@@ -123,7 +118,7 @@ extension SourceChecker {
 	}
 
 	func hasLiteralTestHangGuard(_ text: String) throws -> Bool {
-		let code = try withoutStrings(text)
+		let code = try patterns.withoutStrings(text)
 		return try patterns.test(#"\bwithin(?:\s+\w+\s*:\s*\w+\s*=|\s*:)\s*"# + Self.duration, code)
 			|| patterns.test(
 				#"\bContinuousClock(?:\s*\(\s*\))?\s*\.\s*now\s*\+\s*"# + Self.duration, code)
@@ -138,7 +133,7 @@ extension SourceChecker {
 		var views: [String: SourceFile] = [:]
 		var roots: [SourceFile] = []
 		for source in sources {
-			let code = try withoutStrings(source.text)
+			let code = try patterns.withoutStrings(source.text)
 			let names = try patterns.matchAll(declarations, code).map { $0.groups[1] }
 			for (index, block) in try trailingBlocks(code, declarations).enumerated() {
 				let body = code.slice(block.start + 1, block.end)

@@ -40,6 +40,55 @@ extension TutorialHarness {
 		}
 	}
 
+	enum DragPace {
+		case fling, steady
+	}
+
+	static func transcriptBand(_ app: XCUIApplication) -> CGRect {
+		let top = app.navigationBars.firstMatch.frame.maxY
+		let bottom = named(app, "chat.composer.container").frame.minY
+		return CGRect(x: app.frame.minX, y: top, width: app.frame.width, height: bottom - top)
+	}
+
+	static func drag(
+		_ app: XCUIApplication, from start: CGPoint, to end: CGPoint, pace: DragPace
+	) {
+		let screen = app.coordinate(withNormalizedOffset: .zero)
+		let press = screen.withOffset(CGVector(dx: start.x, dy: start.y))
+		let release = screen.withOffset(CGVector(dx: end.x, dy: end.y))
+		switch pace {
+		case .fling:
+			press.press(forDuration: 0.05, thenDragTo: release)
+		case .steady:
+			press.press(
+				forDuration: 0.05, thenDragTo: release, withVelocity: .slow,
+				thenHoldForDuration: 0.2)
+		}
+	}
+
+	static func bringIntoTranscript(
+		_ app: XCUIApplication, _ element: XCUIElement, topShare: CGFloat = 1,
+		afterStride: @escaping () -> Void = {}
+	) {
+		wait(element)
+		wait(
+			until: {
+				let band = transcriptBand(app)
+				let frame = element.frame
+				let floor = band.minY + band.height * topShare
+				if frame.minY >= band.minY && frame.maxY <= floor { return true }
+				let above = frame.minY < band.minY
+				let remaining = above ? band.minY - frame.minY : frame.maxY - floor
+				let far = remaining > band.height
+				let reach = band.height * (far ? 0.35 : 0.1)
+				let upper = CGPoint(x: band.midX, y: band.midY - reach)
+				let lower = CGPoint(x: band.midX, y: band.midY + reach)
+				drag(app, from: above ? upper : lower, to: above ? lower : upper, pace: .steady)
+				if far { afterStride() }
+				return false
+			}, within: .bulk, message: "\(element) did not scroll into the visible transcript")
+	}
+
 	static func debugRow(
 		_ app: XCUIApplication, _ identifier: String, direction: ScrollDirection = .up
 	) -> XCUIElement {
