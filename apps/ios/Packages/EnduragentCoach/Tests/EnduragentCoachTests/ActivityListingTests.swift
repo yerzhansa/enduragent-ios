@@ -7,19 +7,32 @@ import Testing
 	static let ride = Activity.recorded("i1234567", "Sunday long ride", on: "1998-06-07")
 
 	@Test(arguments: [
-		ActivityRowCase("STRAVA", sport: nil, moving: nil, elapsed: nil, readable: true, .hiddenByStrava),
-		ActivityRowCase("STRAVA", sport: nil, moving: nil, elapsed: nil, readable: false, .hiddenByStrava),
-		ActivityRowCase("STRAVA", sport: nil, moving: 600, elapsed: 600, readable: true, .hiddenByStrava),
-		ActivityRowCase("STRAVA", sport: "Ride", moving: nil, elapsed: 600, readable: true, .hiddenByStrava),
-		ActivityRowCase("STRAVA", sport: "Ride", moving: 600, elapsed: nil, readable: true, .hiddenByStrava),
-		ActivityRowCase("STRAVA", sport: "Ride", moving: -1, elapsed: 600, readable: true, .hiddenByStrava),
-		ActivityRowCase("STRAVA", sport: "Ride", moving: 600, elapsed: -1, readable: true, .hiddenByStrava),
-		ActivityRowCase("STRAVA", sport: "Ride", moving: 0, elapsed: 0, readable: true, .activity(ride)),
-		ActivityRowCase("STRAVA", sport: "Ride", moving: 600, elapsed: 600, readable: false, .unreadable),
-		ActivityRowCase("strava", sport: nil, moving: nil, elapsed: nil, readable: true, .activity(ride)),
-		ActivityRowCase("UPLOAD", sport: nil, moving: nil, elapsed: nil, readable: true, .activity(ride)),
-		ActivityRowCase(nil, sport: nil, moving: nil, elapsed: nil, readable: true, .activity(ride)),
-		ActivityRowCase(nil, sport: "Ride", moving: 600, elapsed: 600, readable: false, .unreadable),
+		ActivityRowCase(
+			"STRAVA", sport: nil, moving: nil, elapsed: nil, readable: true, .hiddenByStrava),
+		ActivityRowCase(
+			"STRAVA", sport: nil, moving: nil, elapsed: nil, readable: false, .hiddenByStrava),
+		ActivityRowCase(
+			"STRAVA", sport: nil, moving: 600, elapsed: 600, readable: true, .hiddenByStrava),
+		ActivityRowCase(
+			"STRAVA", sport: "Ride", moving: nil, elapsed: 600, readable: true, .hiddenByStrava),
+		ActivityRowCase(
+			"STRAVA", sport: "Ride", moving: 600, elapsed: nil, readable: true, .hiddenByStrava),
+		ActivityRowCase(
+			"STRAVA", sport: "Ride", moving: -1, elapsed: 600, readable: true, .hiddenByStrava),
+		ActivityRowCase(
+			"STRAVA", sport: "Ride", moving: 600, elapsed: -1, readable: true, .hiddenByStrava),
+		ActivityRowCase(
+			"STRAVA", sport: "Ride", moving: 0, elapsed: 0, readable: true, .activity(ride)),
+		ActivityRowCase(
+			"STRAVA", sport: "Ride", moving: 600, elapsed: 600, readable: false, .unreadable),
+		ActivityRowCase(
+			"strava", sport: nil, moving: nil, elapsed: nil, readable: true, .activity(ride)),
+		ActivityRowCase(
+			"UPLOAD", sport: nil, moving: nil, elapsed: nil, readable: true, .activity(ride)),
+		ActivityRowCase(
+			nil, sport: nil, moving: nil, elapsed: nil, readable: true, .activity(ride)),
+		ActivityRowCase(
+			nil, sport: "Ride", moving: 600, elapsed: 600, readable: false, .unreadable),
 	])
 	func rowIsClassifiedByTheStravaRuleThenByWhetherItCouldBeRead(sample: ActivityRowCase) {
 		#expect(

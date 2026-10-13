@@ -10,7 +10,9 @@ extension IntervalsRESTClientTests {
 		#expect(
 			IntervalsURLProtocolStub.lastRequest?.url?.query
 				== "oldest=1998-06-06&newest=1998-06-13")
-		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path.hasSuffix("/athlete/0/activities") == true)
+		#expect(
+			IntervalsURLProtocolStub.lastRequest?.url?.path.hasSuffix("/athlete/0/activities")
+				== true)
 		#expect(
 			listing.activities.map(\.id.rawValue) == [
 				"i1234567", "i1234568", "i1234569", "i1234570", "i1234571", "i1234572",
@@ -36,7 +38,10 @@ extension IntervalsRESTClientTests {
 
 	@Test func activityRowWithoutDurationAndDistanceHasNeitherReading() async throws {
 		let tempo = try #require(try await week().activities.first { $0.id.rawValue == "i1234568" })
-		#expect(tempo == .recorded("i1234568", "Tuesday tempo", on: "1998-06-09", at: 27_000, [.load: 80]))
+		#expect(
+			tempo
+				== .recorded("i1234568", "Tuesday tempo", on: "1998-06-09", at: 27_000, [.load: 80])
+		)
 		#expect(tempo.readings[.duration] == nil)
 		#expect(tempo.readings[.distance] == nil)
 	}
