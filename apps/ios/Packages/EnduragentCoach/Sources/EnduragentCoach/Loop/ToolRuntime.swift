@@ -9,13 +9,13 @@ package enum ToolOutcome: Sendable, Equatable {
 package struct ToolRuntime: Sendable {
 	private static let memoryReads: Set<ToolName> = [.memoryRead, .memoryQuery]
 
-	private let intervals: any IntervalsClient
+	private let intervals: any TrainingClient
 	let ledger: Ledger
 	let clock: any Clock
 	let reviews: SingleProposalReviews
 
 	package init(
-		intervals: any IntervalsClient, ledger: Ledger, clock: any Clock,
+		intervals: any TrainingClient, ledger: Ledger, clock: any Clock,
 		reviews: SingleProposalReviews
 	) {
 		self.intervals = intervals
@@ -86,6 +86,10 @@ package struct ToolRuntime: Sendable {
 		}
 	}
 
+	private var today: CivilDate {
+		IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
+	}
+
 	private func executeBody(
 		name: ToolName,
 		arguments: JSONValue,
@@ -96,11 +100,9 @@ package struct ToolRuntime: Sendable {
 			case .calculateZones:
 				return try executeCalculateZones(arguments)
 			case .intervalsFetchAthlete:
-				return .result(encodeAthlete(try await intervals.fetchAthlete()))
+				return .result(encodeAthlete(try await intervals.profile()))
 			case .intervalsFetchWellness:
-				let range = try listRange(from: arguments)
-				let days = try await intervals.fetchWellness(
-					oldest: range.oldest, newest: range.newest)
+				let days = try await intervals.wellness(in: try arguments.readRange(today: today))
 				return .result(.array(days.map(encodeWellness)))
 			case .intervalsFetchActivity:
 				let id = try activityID(from: arguments)
@@ -109,12 +111,12 @@ package struct ToolRuntime: Sendable {
 				let id = try activityID(from: arguments)
 				return .result(try await intervals.fetchStreams(id: id))
 			case .intervalsFetchActivities:
-				let range = try listRange(from: arguments)
+				let range = try arguments.readRange(today: today)
 				let rows = try await intervals.fetchActivities(
 					oldest: range.oldest, newest: range.newest)
 				return .result(.array(rows.map(encodeActivity)))
 			case .intervalsListEvents:
-				let range = try listRange(from: arguments)
+				let range = try arguments.readRange(today: today)
 				var events = try await intervals.listEvents(
 					oldest: range.oldest, newest: range.newest)
 				if arguments.objectFields["coachCreatedOnly"]?.boolValue == true {

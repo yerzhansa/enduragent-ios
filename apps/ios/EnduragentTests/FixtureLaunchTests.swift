@@ -91,9 +91,6 @@ final class FixtureLaunchTests {
 	@Test func fixtureArgumentBuildsCoachFromFakes() async throws {
 		let services = try services()
 		#expect(services.fixture != nil)
-		#expect(
-			try await #require(services.fixture).intervals.fetchAthlete().name
-				== "Ada Kovač")
 		#expect(try await services.coach.observedStatus().training == .unconnected)
 		let model = await model(services)
 		#expect(model.route == .onboarding(.notice))

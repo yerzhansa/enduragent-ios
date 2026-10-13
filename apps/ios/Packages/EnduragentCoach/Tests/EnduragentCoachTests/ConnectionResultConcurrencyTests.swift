@@ -28,25 +28,25 @@ extension ConnectionResultTests {
 
 	@Test func firstObservationPublishesWaitingThenReadsTheSavedConnection() async throws {
 		try secrets.storeIntervalsConnection(testConnection)
-		let gate = client.holdNextProfileRead()
+		let gate = client.hold(.profile)
 		defer { Task { await gate.release() } }
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
 		try await entered(gate)
 		let waiting = try #require(try await statuses.status { _ in true })
 		#expect(try summary(waiting).profile == .waiting)
-		#expect(client.wellnessReadCount == 0)
+		#expect(client.count(of: .wellness) == 0)
 		await gate.release()
 		let loaded = try await landed(in: statuses)
 		#expect(loaded.athleteName == "Ada")
 		#expect(loaded.wellness == .available(.noData(on: "1998-06-13")))
-		#expect(client.profileReadCount == 1)
+		#expect(client.count(of: .profile) == 1)
 		#expect(try secrets.intervalsConnection() == testConnection)
 	}
 
 	@Test func blankReplacementKeepsTheSavedDisplayRefreshUsable() async throws {
 		try secrets.storeIntervalsConnection(testConnection)
-		let gate = client.holdNextProfileRead()
+		let gate = client.hold(.profile)
 		defer { Task { await gate.release() } }
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
@@ -55,7 +55,7 @@ extension ConnectionResultTests {
 			await coach.changeTraining(.replace(apiKey: " ", athlete: .keyOwner))
 				== .refused(.blankReplacementKeepsCurrent))
 		#expect(try summary(try await coach.observedStatus()).profile == .waiting)
-		#expect(client.profileReadCount == 1)
+		#expect(client.count(of: .profile) == 1)
 		await gate.release()
 		let current = try await landed(in: statuses)
 		#expect(current.connectionID == testConnection.id)
@@ -64,7 +64,7 @@ extension ConnectionResultTests {
 	}
 
 	@Test func savedReceiptAndAthletePublishBeforeWellnessFinishes() async throws {
-		let gate = client.holdNextWellnessRead()
+		let gate = client.hold(.wellness)
 		defer { Task { await gate.release() } }
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
@@ -86,17 +86,18 @@ extension ConnectionResultTests {
 		#expect(reading.notice?.key == Catalog.connectWellnessWaiting)
 		await gate.release()
 		_ = try await landed(in: statuses)
-		#expect(client.profileReadCount == 1)
+		#expect(client.count(of: .profile) == 1)
 	}
 
 	@Test func duplicateWellnessRetriesJoinAndStaleOrSuccessfulRetriesReadNothing() async throws {
-		client.setWellnessOutcome(.failure(failure(503)))
+		client.fail(.wellness, with: failure(503))
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
 		_ = await coach.changeTraining(.replace(apiKey: "synthetic-key", athlete: .keyOwner))
 		let failed = try await landed(in: statuses)
-		client.setWellnessOutcome(.success([]))
-		let gate = client.holdNextWellnessRead()
+		client.wellness = []
+		client.restore(.wellness)
+		let gate = client.hold(.wellness)
 		defer { Task { await gate.release() } }
 		let first = Task { await coach.retryTrainingDisplay(for: failed.connectionID) }
 		try await entered(gate)
@@ -106,8 +107,8 @@ extension ConnectionResultTests {
 		try await finished(first, releasing: gate)
 		try await finished(second, releasing: gate)
 		await coach.retryTrainingDisplay(for: failed.connectionID)
-		#expect(client.profileReadCount == 1)
-		#expect(client.wellnessReadCount == 2)
+		#expect(client.count(of: .profile) == 1)
+		#expect(client.count(of: .wellness) == 2)
 		#expect(
 			try summary(try await coach.observedStatus()).wellness
 				== .available(.noData(on: "1998-06-13")))
@@ -118,9 +119,9 @@ extension ConnectionResultTests {
 		async throws
 	{
 		if wellness {
-			client.setWellnessOutcome(.failure(failure(503)))
+			client.fail(.wellness, with: failure(503))
 		} else {
-			client.setProfileOutcome(.failure(failure(503)))
+			client.fail(.profile, with: failure(503))
 		}
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
@@ -128,20 +129,21 @@ extension ConnectionResultTests {
 		let failed = try await landed(in: statuses)
 		let gate: FakeIntervalsReadGate
 		if wellness {
-			client.setWellnessOutcome(
-				.success([WellnessDay(date: "1998-06-13", fitness: 42, fatigue: nil, form: nil)]))
-			gate = client.holdNextWellnessRead()
+			client.wellness = [.on("1998-06-13", [.fitness: 42])]
+			client.restore(.wellness)
+			gate = client.hold(.wellness)
 		} else {
-			client.setProfileOutcome(.success(AthleteProfile(id: "i1001", name: "Ada", ftp: 250)))
-			gate = client.holdNextProfileRead()
+			client.athlete = .cyclist(id: "i1001", name: "Ada", ftp: 250)
+			client.restore(.profile)
+			gate = client.hold(.profile)
 		}
 		defer { Task { await gate.release() } }
 		let retry = Task { await coach.retryTrainingDisplay(for: failed.connectionID) }
 		try await entered(gate)
-		client.setProfileOutcome(.success(AthleteProfile(id: "i2002", name: "Bo", ftp: 240)))
+		client.athlete = .cyclist(id: "i2002", name: "Bo", ftp: 240)
 		if wellness {
-			client.setWellnessOutcome(
-				.success([WellnessDay(date: "1998-06-13", fitness: 90, fatigue: nil, form: nil)]))
+			client.wellness = [.on("1998-06-13", [.fitness: 90])]
+			client.restore(.wellness)
 		}
 		_ = await coach.changeTraining(
 			disconnect ? .disconnect : .replace(apiKey: "synthetic-b", athlete: .keyOwner))
@@ -161,17 +163,19 @@ extension ConnectionResultTests {
 	}
 
 	@Test func newerSameConnectionReadWinsAndAloneResolvesStoredAthlete() async throws {
-		client.setProfileOutcome(.failure(failure(503)))
+		client.fail(.profile, with: failure(503))
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
 		_ = await coach.changeTraining(.replace(apiKey: "synthetic-key", athlete: .keyOwner))
 		let failed = try await landed(in: statuses)
-		client.setProfileOutcome(.success(AthleteProfile(id: "i1001", name: "Old", ftp: 250)))
-		let gate = client.holdNextProfileRead()
+		client.athlete = .cyclist(id: "i1001", name: "Old", ftp: 250)
+		client.restore(.profile)
+		let gate = client.hold(.profile)
 		defer { Task { await gate.release() } }
 		let old = Task { await coach.retryTrainingDisplay(for: failed.connectionID) }
 		try await entered(gate)
-		client.setProfileOutcome(.success(AthleteProfile(id: "i2002", name: "Current", ftp: 240)))
+		client.athlete = .cyclist(id: "i2002", name: "Current", ftp: 240)
+		client.restore(.profile)
 		try #require(
 			try await beforeDeadline(
 				within: .hangGuard,

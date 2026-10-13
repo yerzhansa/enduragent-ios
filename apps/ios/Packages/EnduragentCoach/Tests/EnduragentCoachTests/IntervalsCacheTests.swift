@@ -16,9 +16,9 @@ extension IntervalsRESTClientTests {
 		let base = try await server.start()
 		let client = IntervalsRESTClient(
 			credential: .apiKey("test-cookie-key"), baseURL: base)
-		let first = try await client.fetchWellness(oldest: "1998-06-13", newest: "1998-06-13")
-		let second = try await client.fetchWellness(oldest: "1998-06-13", newest: "1998-06-13")
-		let expected = [WellnessDay(date: "1998-06-13", fitness: 55, fatigue: nil, form: nil)]
+		let first = try await client.wellness(in: .day("1998-06-13"))
+		let second = try await client.wellness(in: .day("1998-06-13"))
+		let expected: [WellnessDay] = [.on("1998-06-13", [.fitness: 55])]
 		#expect(first == expected)
 		#expect(second == expected)
 		let requests = server.requests.withLock { $0 }
@@ -38,10 +38,10 @@ extension IntervalsRESTClientTests {
 		let base = try await server.start()
 		let client = IntervalsRESTClient(
 			credential: .apiKey("test-cache-key"), baseURL: base)
-		let first = try await client.fetchWellness(oldest: "1998-06-13", newest: "1998-06-13")
-		let second = try await client.fetchWellness(oldest: "1998-06-13", newest: "1998-06-13")
-		#expect(first == [WellnessDay(date: "1998-06-13", fitness: 55, fatigue: nil, form: nil)])
-		#expect(second == [WellnessDay(date: "1998-06-13", fitness: 56, fatigue: nil, form: nil)])
+		let first = try await client.wellness(in: .day("1998-06-13"))
+		let second = try await client.wellness(in: .day("1998-06-13"))
+		#expect(first == [.on("1998-06-13", [.fitness: 55])])
+		#expect(second == [.on("1998-06-13", [.fitness: 56])])
 		let requests = server.requests.withLock { $0 }
 		#expect(requests.count == 2)
 		let authorization = Data("API_KEY:test-cache-key".utf8).base64EncodedString()

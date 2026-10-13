@@ -4,7 +4,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private let credential: IntervalsCredential
 	private let session: URLSession
 	private let baseURL: URL
-	private let athletePath: String
+	let athletePath: String
 	private let clock: any Clock
 
 	package init(
@@ -28,33 +28,10 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 				resourceTimeout: IntervalsPolicy.requestTimeout)
 	}
 
-	package func fetchAthlete() async throws -> AthleteProfile {
-		let json = try await getJSON(path: ["athlete", athletePath])
-		let fields = json.objectFields
-		return AthleteProfile(
-			id: fields["id"]?.stringValue ?? athletePath,
-			name: fields["name"]?.stringValue ?? "",
-			ftp: fields["icu_ftp"]?.intValue() ?? fields["icuFtp"]?.intValue()
-		)
-	}
-
-	package func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
-		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
-		let data = try await get(
-			path: ["athlete", athletePath, "wellness"],
-			query: [
-				URLQueryItem(name: "oldest", value: oldest.rawValue),
-				URLQueryItem(name: "newest", value: newest.rawValue),
-			]
-		)
-		let rows = try JSONDecoder().decode([IntervalsWellnessJSON].self, from: data)
-		return rows.map(WellnessDay.init(json:))
-	}
-
 	package func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws
 		-> [ActivitySummary]
 	{
-		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
+		_ = try ReadRange(oldest: oldest, newest: newest, today: newest)
 		let json = try await getJSON(
 			path: ["athlete", athletePath, "activities"],
 			query: [
@@ -81,7 +58,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 	}
 
 	package func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
-		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
+		_ = try ReadRange(oldest: oldest, newest: newest, today: newest)
 		let query = [
 			URLQueryItem(name: "oldest", value: oldest.rawValue),
 			URLQueryItem(name: "newest", value: newest.rawValue),
@@ -183,7 +160,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		return try Self.calendarEvent(from: json)
 	}
 
-	private func getJSON(path: [String], query: [URLQueryItem] = []) async throws -> JSONValue {
+	func getJSON(path: [String], query: [URLQueryItem] = []) async throws -> JSONValue {
 		try parseJSON(try await send(method: "GET", path: path, query: query))
 	}
 
@@ -194,10 +171,6 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		body: JSONValue
 	) async throws -> JSONValue {
 		try parseJSON(try await send(method: method, path: path, query: query, body: body))
-	}
-
-	private func get(path: [String], query: [URLQueryItem] = []) async throws -> Data {
-		try await send(method: "GET", path: path, query: query)
 	}
 
 	private func send(

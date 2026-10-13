@@ -67,9 +67,9 @@ final class ShellLanguageTests {
 			}
 			return false
 		}
-		#expect(intervals.profileReadCount == 1)
-		#expect(intervals.wellnessReadCount == 1)
-		intervals.athleteName = "Ada Lovelace"
+		#expect(intervals.count(of: .profile) == 1)
+		#expect(intervals.count(of: .wellness) == 1)
+		intervals.rename(athleteTo: "Ada Lovelace")
 		await model.sceneChanged(.becameActive)
 		try await model.waitForStatus {
 			if case .connected(let summary, _) = $0.training {
@@ -78,10 +78,10 @@ final class ShellLanguageTests {
 			}
 			return false
 		}
-		#expect(intervals.profileReadCount == 2)
-		#expect(intervals.wellnessReadCount == 2)
+		#expect(intervals.count(of: .profile) == 2)
+		#expect(intervals.count(of: .wellness) == 2)
 		#expect(model.connected?.athleteName == "Ada Lovelace")
-		intervals.athleteName = "Ada"
+		intervals.rename(athleteTo: "Ada")
 		await model.sceneChanged(.enteredBackground)
 		await model.sceneChanged(.becameActive)
 		try await model.waitForStatus {
@@ -91,8 +91,8 @@ final class ShellLanguageTests {
 			}
 			return false
 		}
-		#expect(intervals.profileReadCount == 3)
-		#expect(intervals.wellnessReadCount == 3)
+		#expect(intervals.count(of: .profile) == 3)
+		#expect(intervals.count(of: .wellness) == 3)
 		#expect(model.connected?.athleteName == "Ada")
 	}
 
@@ -183,9 +183,7 @@ final class ShellLanguageTests {
 	{
 		let phone = ShellDisplayPhone()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		intervals.wellness = [
-			WellnessDay(date: "1998-06-13", fitness: 1234.5, fatigue: 2345.5, form: -1111)
-		]
+		intervals.seedWellness([(date: "1998-06-13", fitness: 1234.5, fatigue: 2345.5)])
 		let credits = FakeCreditsClient()
 		credits.grantResult = .success(.minted(Credits(units: 12345)))
 		credits.catalogResult = .success(
@@ -236,7 +234,7 @@ final class ShellLanguageTests {
 		#expect(model.starterLine == "12,345 crédits")
 	}
 
-	private func returningModel(intervals: any IntervalsClient) async throws -> ShellModel {
+	private func returningModel(intervals: FakeIntervalsClient) async throws -> ShellModel {
 		await fixtureModel(
 			environment: AppEnvironment(services: try services(), defaults: defaults)
 		).agreeAndStartChatting()
@@ -246,7 +244,7 @@ final class ShellLanguageTests {
 	}
 
 	private func services(
-		intervals: any IntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
+		intervals: FakeIntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
 		displayLocale: @escaping DisplayLocaleResolver = testLocaleResolver(),
 		credits: FakeCreditsClient = FakeCreditsClient()
 	) throws -> AppServices {

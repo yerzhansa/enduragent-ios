@@ -7,8 +7,8 @@ struct GatedProfileIntervals: ForwardingIntervals {
 	let base: FakeIntervalsClient
 	let gate: Gate
 
-	func fetchAthlete() async throws -> AthleteProfile {
+	func profile() async throws -> AthleteProfile {
 		await gate.wait()
-		return try await base.fetchAthlete()
+		return try await base.profile()
 	}
 }

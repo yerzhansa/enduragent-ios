@@ -7,10 +7,6 @@ ActivitySummary.durationS
 ActivitySummary.name
 ActivitySummary.ride(name:date:durationS:trainingLoad:)
 ActivitySummary.trainingLoad
-AthleteProfile
-AthleteProfile.ftp
-AthleteProfile.id
-AthleteProfile.name
 CalendarEvent
 CalendarEvent.category
 CalendarEvent.coachCreated
@@ -134,10 +130,8 @@ IntervalsClient.createChatEvent(_:)
 IntervalsClient.deleteEvent(id:)
 IntervalsClient.fetchActivities(oldest:newest:)
 IntervalsClient.fetchActivity(id:)
-IntervalsClient.fetchAthlete()
 IntervalsClient.fetchEvent(id:)
 IntervalsClient.fetchStreams(id:)
-IntervalsClient.fetchWellness(oldest:newest:)
 IntervalsClient.listEvents(oldest:newest:)
 IntervalsClient.updateEvent(id:name:description:date:)
 IntervalsCredential
@@ -288,8 +282,6 @@ WellnessDay.date
 WellnessDay.fatigue
 WellnessDay.fitness
 WellnessDay.form
-WellnessDay.formattedNumber(_:fractionDigits:)
-WellnessDay.init(date:fitness:fatigue:form:)
 AccessStatus.notice
 CredentialOutcome.notice
 CreditBalance.notice

@@ -1,0 +1,174 @@
+import Foundation
+
+package protocol TrainingReads: Sendable {
+	func profile() async throws -> AthleteProfile
+	func wellness(in range: ReadRange) async throws -> [WellnessDay]
+}
+
+package typealias TrainingClient = TrainingReads & IntervalsClient
+
+package struct ReadRange: Sendable, Equatable {
+	package let oldest: CivilDate
+	package let newest: CivilDate
+
+	package init(oldest: CivilDate, newest: CivilDate?, today: CivilDate) throws(IntervalsError) {
+		let newest = newest ?? today
+		if oldest > newest {
+			throw IntervalsError(
+				code: "invalid_range",
+				details: "oldest (\(oldest)) is after newest (\(newest)). Swap the bounds."
+			)
+		}
+		try Self.rejectTooWide(IntervalsPolicy.inclusiveDayCount(from: oldest, to: newest))
+		self.oldest = oldest
+		self.newest = newest
+	}
+
+	package init(endingOn today: CivilDate, days: Int) throws(IntervalsError) {
+		guard days >= 1 else {
+			throw IntervalsError(code: "invalid_input", details: "days must be a positive integer.")
+		}
+		try Self.rejectTooWide(days)
+		self.oldest = today.adding(days: -(days - 1))
+		self.newest = today
+	}
+
+	private init(endingOn today: CivilDate, lookback days: Int) {
+		self.oldest = today.adding(days: -(days - 1))
+		self.newest = today
+	}
+
+	package static func snapshotLookback(endingOn today: CivilDate) -> ReadRange {
+		ReadRange(endingOn: today, lookback: 7)
+	}
+
+	package static func day(_ date: CivilDate) -> ReadRange {
+		ReadRange(endingOn: date, lookback: 1)
+	}
+
+	package func contains(_ date: CivilDate) -> Bool {
+		date >= oldest && date <= newest
+	}
+
+	private static func rejectTooWide(_ days: Int) throws(IntervalsError) {
+		let limit = IntervalsPolicy.listMaxRangeDays
+		if days > limit {
+			throw IntervalsError(
+				code: "range_too_wide",
+				details:
+					"Range is \(days) days; the maximum is \(limit). Fetch the range in chunks of at most \(limit) days."
+			)
+		}
+	}
+}
+
+package struct Readings<Field: Hashable & Sendable>: Sendable, Equatable {
+	private let values: [Field: Double]
+
+	package init(_ values: [Field: Double]) {
+		self.values = values.filter(\.value.isFinite)
+	}
+
+	package subscript(field: Field) -> Double? { values[field] }
+}
+
+package enum ReportedNumber: Sendable, Equatable {
+	case absent
+	case number(Double)
+	case notANumber
+}
+
+package struct FTPWatts: Sendable, Equatable {
+	package let value: Double
+
+	package init?(_ reported: Double) {
+		let range = IntervalsPolicy.ftpRange
+		guard reported >= Double(range.lowerBound), reported <= Double(range.upperBound) else {
+			return nil
+		}
+		self.value = reported
+	}
+}
+
+package enum FTPReading: Sendable, Equatable {
+	case absent
+	case usable(FTPWatts)
+	case implausible(reported: Double?)
+
+	package init(_ reported: ReportedNumber) {
+		switch reported {
+		case .absent:
+			self = .absent
+		case .number(let watts):
+			self = FTPWatts(watts).map(FTPReading.usable) ?? .implausible(reported: watts)
+		case .notANumber:
+			self = .implausible(reported: nil)
+		}
+	}
+}
+
+package enum OneDecimal {
+	package static func round(_ value: Double) -> Double {
+		let scaled = value * 10
+		let floor = scaled.rounded(.down)
+		return (scaled - floor >= 0.5 ? floor + 1 : floor) / 10
+	}
+}
+
+package enum ProfileField: Hashable, Sendable, CaseIterable {
+	case lthr
+	case maxHeartRate
+	case restingHeartRate
+	case weight
+}
+
+package struct AthleteProfile: Sendable, Equatable {
+	package let id: String
+	package let name: String
+	package let ftp: FTPReading
+	package let readings: Readings<ProfileField>
+
+	package init(id: String, name: String, ftp: FTPReading, readings: Readings<ProfileField>) {
+		self.id = id
+		self.name = name
+		self.ftp = ftp
+		self.readings = readings
+	}
+}
+
+package enum WellnessField: Hashable, Sendable, CaseIterable {
+	case fitness
+	case fatigue
+	case rampRate
+	case weight
+	case restingHeartRate
+	case hrv
+	case sleepSeconds
+	case sleepScore
+	case sleepQuality
+	case readiness
+	case soreness
+	case stress
+	case mood
+	case motivation
+	case injury
+	case reportedFatigue
+}
+
+public struct WellnessDay: Sendable, Equatable {
+	public let date: CivilDate
+	package let readings: Readings<WellnessField>
+
+	package init(date: CivilDate, readings: Readings<WellnessField>) {
+		self.date = date
+		self.readings = readings
+	}
+
+	public var fitness: Double? { readings[.fitness] }
+	public var fatigue: Double? { readings[.fatigue] }
+
+	public var form: Double? {
+		guard let fitness, let fatigue else { return nil }
+		return OneDecimal.round(fitness - fatigue)
+	}
+}

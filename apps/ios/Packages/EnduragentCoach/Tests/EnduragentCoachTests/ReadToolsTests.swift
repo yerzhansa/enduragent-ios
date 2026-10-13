@@ -64,8 +64,7 @@ struct ReadToolsTests {
 
 	@Test func wellnessToolOmitsCtlAtl() async throws {
 		intervals.wellness = [
-			WellnessDay(
-				date: "1998-06-13", fitness: 55.2, fatigue: 42.1, form: 55.2 - 42.1)
+			.on("1998-06-13", [.fitness: 55.2, .fatigue: 42.1])
 		]
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchWellness,
@@ -84,7 +83,7 @@ struct ReadToolsTests {
 		#expect(encoded.contains("\"Fatigue\"") == false)
 		#expect(unwrapData(json).arrayValue?.first?.objectFields["fatigue"]?.numberValue == 42.1)
 		#expect(
-			unwrapData(json).arrayValue?.first?.objectFields["form"]?.numberValue == 55.2 - 42.1)
+			unwrapData(json).arrayValue?.first?.objectFields["form"]?.numberValue == 13.1)
 	}
 
 	@Test func fetchAthleteAndActivityAndStreamsAndEvents() async throws {

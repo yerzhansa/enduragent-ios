@@ -117,50 +117,6 @@ extension ToolRuntime {
 				}))
 	}
 
-	func listRange(from arguments: JSONValue) throws -> (
-		oldest: CivilDate, newest: CivilDate
-	) {
-		let fields = arguments.objectFields
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		if let oldest = try optionalDate(fields["oldest"], label: "oldest") {
-			let newest = try optionalDate(fields["newest"], label: "newest") ?? today
-			try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
-			return (oldest, newest)
-		}
-		if let value = fields["days"] {
-			guard let days = value.intValue(), days >= 1 else {
-				throw IntervalsError(
-					code: "invalid_input", details: "days must be a positive integer.")
-			}
-			try IntervalsPolicy.rejectListDayCount(days)
-			let newest = today
-			let oldest = today.adding(days: -(days - 1))
-			try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
-			return (oldest, newest)
-		}
-		throw IntervalsError(
-			code: "invalid_date",
-			details: "oldest is not a real calendar date. Use YYYY-MM-DD."
-		)
-	}
-
-	private func optionalDate(_ value: JSONValue?, label: String) throws -> CivilDate? {
-		guard let value else { return nil }
-		guard let raw = value.stringValue else {
-			throw IntervalsError(
-				code: "invalid_date",
-				details: "\(label) is not a real calendar date. Use YYYY-MM-DD."
-			)
-		}
-		guard let date = CivilDate(rawValue: raw) else {
-			throw IntervalsError(
-				code: "invalid_date",
-				details: "\(raw) is not a real calendar date. Use YYYY-MM-DD."
-			)
-		}
-		return date
-	}
-
 	func activityID(from arguments: JSONValue) throws -> ActivityID {
 		let value = arguments.objectFields["activityId"]
 		if let raw = value?.stringValue, let id = ActivityID(rawValue: raw) {
@@ -180,8 +136,13 @@ extension ToolRuntime {
 			"id": .string(profile.id),
 			"name": .string(profile.name),
 		]
-		if let ftp = profile.ftp {
-			fields["ftp"] = .number(Double(ftp))
+		switch profile.ftp {
+		case .usable(let watts):
+			fields["ftp"] = .number(watts.value)
+		case .implausible(let reported?):
+			fields["ftp"] = .number(reported)
+		case .absent, .implausible(nil):
+			break
 		}
 		return .object(fields)
 	}
@@ -222,5 +183,46 @@ extension ToolRuntime {
 			fields["uid"] = .string(uid)
 		}
 		return .object(fields)
+	}
+}
+
+extension JSONValue {
+	func readRange(today: CivilDate) throws(IntervalsError) -> ReadRange {
+		let fields = objectFields
+		if let oldest = try Self.optionalDate(fields["oldest"], label: "oldest") {
+			return try ReadRange(
+				oldest: oldest, newest: try Self.optionalDate(fields["newest"], label: "newest"),
+				today: today)
+		}
+		if let value = fields["days"] {
+			guard let days = value.intValue() else {
+				throw IntervalsError(
+					code: "invalid_input", details: "days must be a positive integer.")
+			}
+			return try ReadRange(endingOn: today, days: days)
+		}
+		throw IntervalsError(
+			code: "invalid_date",
+			details: "oldest is not a real calendar date. Use YYYY-MM-DD."
+		)
+	}
+
+	private static func optionalDate(_ value: JSONValue?, label: String) throws(IntervalsError)
+		-> CivilDate?
+	{
+		guard let value else { return nil }
+		guard let raw = value.stringValue else {
+			throw IntervalsError(
+				code: "invalid_date",
+				details: "\(label) is not a real calendar date. Use YYYY-MM-DD."
+			)
+		}
+		guard let date = CivilDate(rawValue: raw) else {
+			throw IntervalsError(
+				code: "invalid_date",
+				details: "\(raw) is not a real calendar date. Use YYYY-MM-DD."
+			)
+		}
+		return date
 	}
 }

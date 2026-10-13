@@ -3,14 +3,14 @@ import Foundation
 
 @testable import EnduragentCoach
 
-protocol ForwardingIntervals: IntervalsClient {
+protocol ForwardingIntervals: TrainingClient {
 	var base: FakeIntervalsClient { get }
 }
 
 extension ForwardingIntervals {
-	func fetchAthlete() async throws -> AthleteProfile { try await base.fetchAthlete() }
-	func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
-		try await base.fetchWellness(oldest: oldest, newest: newest)
+	func profile() async throws -> AthleteProfile { try await base.profile() }
+	func wellness(in range: ReadRange) async throws -> [WellnessDay] {
+		try await base.wellness(in: range)
 	}
 	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary] {
 		try await base.fetchActivities(oldest: oldest, newest: newest)

@@ -13,25 +13,23 @@
 			let unavailable = IntervalsError(code: "http", details: "Fixture outage", status: 503)
 			switch display {
 			case .profileRejected:
-				intervals.setProfileOutcome(.failure(rejected), once: true)
+				intervals.fail(.profile, with: rejected, once: true)
 			case .profileRequestRejected:
-				intervals.setProfileOutcome(
-					.failure(
-						IntervalsError(
-							code: "http", details: "Fixture missing account", status: 404)),
+				intervals.fail(
+					.profile,
+					with: IntervalsError(
+						code: "http", details: "Fixture missing account", status: 404),
 					once: true)
 			case .profileUnavailable:
-				intervals.setProfileOutcome(.failure(unavailable), once: true)
+				intervals.fail(.profile, with: unavailable, once: true)
 			case .wellnessRejected:
-				intervals.setWellnessOutcome(.failure(rejected), once: true)
+				intervals.fail(.wellness, with: rejected, once: true)
 			case .wellnessUnavailable:
-				intervals.setWellnessOutcome(.failure(unavailable), once: true)
+				intervals.fail(.wellness, with: unavailable, once: true)
 			case .emptyWellness:
-				intervals.wellness = []
+				intervals.seedWellness([])
 			case .partialWellness:
-				intervals.wellness = [
-					WellnessDay(date: today, fitness: 42, fatigue: nil, form: nil)
-				]
+				intervals.seedWellness([(date: today, fitness: 42, fatigue: nil)])
 			}
 		}
 

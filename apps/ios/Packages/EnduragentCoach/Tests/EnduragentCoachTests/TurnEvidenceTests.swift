@@ -12,7 +12,7 @@ import Testing
 	@Test(arguments: [1e20, -1e20])
 	func extremeWellnessStillCompletesTurn(value: Double) async throws {
 		intervals.wellness = [
-			WellnessDay(date: "1998-06-13", fitness: value, fatigue: value, form: value)
+			.on("1998-06-13", [.fitness: value, .fatigue: value])
 		]
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
@@ -28,7 +28,7 @@ import Testing
 
 	@Test func failedWellnessReadOmitsLineAndLogsDiagnostics() async throws {
 		let failure = IntervalsError(code: "http", details: "private upstream detail", status: 503)
-		intervals.setWellnessOutcome(.failure(failure))
+		intervals.fail(.wellness, with: failure)
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
@@ -53,8 +53,8 @@ import Testing
 
 	@Test func wellnessLineCarriesTheLatestDay() async throws {
 		intervals.wellness = [
-			WellnessDay(date: "1998-06-12", fitness: 50, fatigue: 40, form: 10),
-			WellnessDay(date: "1998-06-13", fitness: 55.2, fatigue: 42.1, form: 13.1),
+			.on("1998-06-12", [.fitness: 50, .fatigue: 40]),
+			.on("1998-06-13", [.fitness: 55.2, .fatigue: 42.1]),
 		]
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,

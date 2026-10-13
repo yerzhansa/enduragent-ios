@@ -14,7 +14,7 @@ extension CredentialVaultTests {
 		let held = GatedReviewIntervals(base: ada, gate: gate)
 		let coach = await coach(
 			secrets,
-			training: .fake { credential, _ in
+			training: TrainingService { credential, _, _ in
 				if credential == .apiKey("other-athlete") { return bo }
 				return held
 			})

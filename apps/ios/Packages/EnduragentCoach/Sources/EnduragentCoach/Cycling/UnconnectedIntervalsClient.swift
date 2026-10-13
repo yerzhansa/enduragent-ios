@@ -1,4 +1,4 @@
-package struct UnconnectedIntervalsClient: IntervalsClient, Sendable {
+package struct UnconnectedIntervalsClient: TrainingClient, Sendable {
 	package static let error = IntervalsError(
 		code: "not_connected",
 		details:
@@ -7,10 +7,8 @@ package struct UnconnectedIntervalsClient: IntervalsClient, Sendable {
 
 	package init() {}
 
-	package func fetchAthlete() async throws -> AthleteProfile { throw Self.error }
-	package func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
-		throw Self.error
-	}
+	package func profile() async throws -> AthleteProfile { throw Self.error }
+	package func wellness(in range: ReadRange) async throws -> [WellnessDay] { throw Self.error }
 	package func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws
 		-> [ActivitySummary]
 	{ throw Self.error }

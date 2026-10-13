@@ -37,8 +37,7 @@
 			}
 			let clock = FixtureClock(
 				calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
-			let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
-			FirstWeekFixture.install(on: intervals)
+			let intervals = FakeIntervalsClient.firstWeek(today: FirstWeekFixture.today)
 			FirstWeekFixture.install(launch.trainingDisplay, on: intervals)
 			intervals.loseCalendarSaveAnswerOnce = launch.calendarSaveFault == .loseAnswerOnce
 			intervals.failCalendarReadOnce = launch.calendarReadFault == .failOnce
