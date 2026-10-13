@@ -5,6 +5,7 @@ package protocol TrainingReads: Sendable {
 	func wellness(in range: ReadRange) async throws -> [WellnessDay]
 	func activities(in range: ReadRange) async throws -> ActivityListing
 	func activity(_ id: ActivityID) async throws -> ActivityDetailRead
+	func streams(of id: ActivityID, channels: StreamChannels) async throws -> StreamSummary
 }
 
 package typealias TrainingClient = TrainingReads & IntervalsClient
@@ -52,6 +53,21 @@ package struct ReadRange: Sendable, Equatable {
 					"Range is \(days) days; the maximum is \(limit). Fetch the range in chunks of at most \(limit) days."
 			)
 		}
+	}
+}
+
+package struct StreamChannels: Sendable, Equatable {
+	package static let standard = StreamChannels(
+		names: ["watts", "heartrate", "cadence", "time", "altitude"])
+
+	package let names: [String]
+
+	package init(requested: [String]?) {
+		self = requested.flatMap { $0.isEmpty ? nil : StreamChannels(names: $0) } ?? .standard
+	}
+
+	private init(names: [String]) {
+		self.names = names
 	}
 }
 

@@ -49,6 +49,23 @@ extension CoachReadout {
 			cause: error.code)
 	}
 
+	static func streams(_ summary: StreamSummary) -> JSONValue {
+		var result: [String: JSONValue] = [
+			"sampleCount": .number(Double(summary.sampleCount)),
+			"channels": .object(
+				summary.channels.mapValues { channel in
+					.object([
+						"min": .number(channel.min), "max": .number(channel.max),
+						"mean": .number(channel.mean),
+					])
+				}),
+		]
+		if !summary.unanswered.isEmpty {
+			result["unanswered"] = .array(summary.unanswered.map(JSONValue.string))
+		}
+		return .object(result)
+	}
+
 	private static func unread(
 		_ id: ActivityID, _ code: String, _ details: String, cause: String? = nil
 	) -> JSONValue {

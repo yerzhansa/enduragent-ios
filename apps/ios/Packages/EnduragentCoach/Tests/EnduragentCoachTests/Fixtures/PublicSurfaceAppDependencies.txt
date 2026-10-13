@@ -123,7 +123,6 @@ IntervalsClient
 IntervalsClient.createChatEvent(_:)
 IntervalsClient.deleteEvent(id:)
 IntervalsClient.fetchEvent(id:)
-IntervalsClient.fetchStreams(id:)
 IntervalsClient.listEvents(oldest:newest:)
 IntervalsClient.updateEvent(id:name:description:date:)
 IntervalsCredential

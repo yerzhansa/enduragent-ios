@@ -186,3 +186,59 @@ package enum ActivityDetailRead: Sendable, Equatable {
 	case notFound
 	case hiddenByStrava
 }
+
+package struct StreamSamples: Sendable, Equatable {
+	package let channel: String
+	package let values: [Double?]
+
+	package init(channel: String, values: [Double?]) {
+		self.channel = channel
+		self.values = values
+	}
+}
+
+package struct ChannelSummary: Sendable, Equatable {
+	package let min: Double
+	package let max: Double
+	package let mean: Double
+
+	fileprivate init?(of values: [Double?]) {
+		var min = Double.infinity
+		var max = -Double.infinity
+		var sum = 0.0
+		var count = 0
+		for case let value? in values where value.isFinite {
+			if value < min { min = value }
+			if value > max { max = value }
+			sum += value
+			count += 1
+		}
+		guard count > 0 else { return nil }
+		self.min = min
+		self.max = max
+		self.mean = OneDecimal.round(sum / Double(count))
+	}
+}
+
+package struct StreamSummary: Sendable, Equatable {
+	package let sampleCount: Int
+	package let channels: [String: ChannelSummary]
+	package let unanswered: [String]
+
+	package init(summarizing samples: [StreamSamples], asked: StreamChannels) {
+		var channels: [String: ChannelSummary] = [:]
+		var sampleCount = 0
+		for stream in samples {
+			guard let summary = ChannelSummary(of: stream.values) else { continue }
+			channels[stream.channel] = summary
+			sampleCount = Swift.max(sampleCount, stream.values.count)
+		}
+		var unanswered: [String] = []
+		for name in asked.names where channels[name] == nil && !unanswered.contains(name) {
+			unanswered.append(name)
+		}
+		self.sampleCount = sampleCount
+		self.channels = channels
+		self.unanswered = unanswered
+	}
+}

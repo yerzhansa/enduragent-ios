@@ -5,6 +5,7 @@ public enum FakeTrainingRead: Hashable, Sendable, CaseIterable {
 	case wellness
 	case activities
 	case activity
+	case streams
 }
 
 struct FakeReadFaults {

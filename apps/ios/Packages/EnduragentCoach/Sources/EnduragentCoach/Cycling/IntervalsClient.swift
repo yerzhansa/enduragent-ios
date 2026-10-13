@@ -106,7 +106,6 @@ public enum CalendarEventType: String, Sendable {
 }
 
 public protocol IntervalsClient: Sendable {
-	func fetchStreams(id: ActivityID) async throws -> JSONValue
 	func fetchEvent(id: EventID) async throws -> CalendarEvent
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent]
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent
@@ -154,7 +153,6 @@ package enum IntervalsPolicy {
 		"Ride", "VirtualRide", "MountainBikeRide", "GravelRide", "EBikeRide",
 	]
 	package static let requestTimeout: TimeInterval = 30
-	package static let defaultStreamTypes = ["watts", "heartrate", "cadence", "time", "altitude"]
 
 	package static func chatCreateBody(_ draft: ChatCalendarCreate) -> JSONValue {
 		var fields: [String: JSONValue] = [

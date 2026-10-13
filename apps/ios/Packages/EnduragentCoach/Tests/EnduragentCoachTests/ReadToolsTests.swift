@@ -53,7 +53,7 @@ struct ReadToolsTests {
 				try await read(.intervalsFetchActivity, arguments).objectFields["error"] == nil)
 			#expect(
 				try await read(.intervalsFetchStreams, arguments).objectFields["error"] == nil)
-			expected += [.activity(id), .streams(id)]
+			expected += [.activity(id), .streams(id, channels: StreamChannels.standard.names)]
 		}
 		#expect(intervals.calls == expected)
 	}
@@ -205,8 +205,6 @@ struct ReadToolsTests {
 
 	@Test func fetchAthleteAndActivityAndStreamsAndEvents() async throws {
 		let activityID = try #require(ActivityID(rawValue: "i1234567"))
-		intervals.streams = try JSONValue.parse(
-			try #require(String(data: try fixtureData("streams-ts"), encoding: .utf8)))
 		intervals.events = [
 			CalendarEvent(
 				id: EventID(rawValue: 42),
@@ -258,7 +256,9 @@ struct ReadToolsTests {
 			scope: turnScope()
 		).outcome
 		#expect(intervals.calls.contains(.activity(activityID)))
-		#expect(intervals.calls.contains(.streams(activityID)))
+		#expect(
+			intervals.calls.contains(
+				.streams(activityID, channels: StreamChannels.standard.names)))
 		#expect(intervals.calls.contains(.events(oldest: "1998-06-14", newest: "1998-06-20")))
 		guard case .result(let eventsJSON) = listed, let events = unwrapData(eventsJSON).arrayValue
 		else {
@@ -267,6 +267,20 @@ struct ReadToolsTests {
 		}
 		#expect(events.count == 1)
 		#expect(events[0].objectFields["name"]?.stringValue == "Endurance")
+	}
+
+	@Test(arguments: [
+		#"{"activityId":"i1234567"}"#, #"{"activityId":"i1234567","types":[]}"#,
+		#"{"activityId":"i1234567","types":null}"#,
+	])
+	func streamReadWithNoChannelNamedAsksForTheStandardFive(arguments: String) async throws {
+		let shown = try await read(.intervalsFetchStreams, arguments)
+		let standard = ["watts", "heartrate", "cadence", "time", "altitude"]
+		#expect(
+			intervals.calls == [
+				.streams(try #require(ActivityID(rawValue: "i1234567")), channels: standard)
+			])
+		#expect(shown.objectFields["unanswered"] == .array(standard.map(JSONValue.string)))
 	}
 
 	@Test(arguments: [

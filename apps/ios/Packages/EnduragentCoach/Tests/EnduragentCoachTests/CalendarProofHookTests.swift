@@ -54,7 +54,9 @@ import Testing
 		#expect(try await client.activities(in: .day(approval.date)).total == 0)
 		let activity = try #require(ActivityID(rawValue: "42"))
 		#expect(try await client.activity(activity) == .notFound)
-		_ = try await client.fetchStreams(id: activity)
+		#expect(
+			try await client.streams(of: activity, channels: .standard).unanswered
+				== StreamChannels.standard.names)
 		await #expect(throws: URLError(.notConnectedToInternet)) {
 			if fetchFirst {
 				_ = try await client.fetchEvent(id: event.id)

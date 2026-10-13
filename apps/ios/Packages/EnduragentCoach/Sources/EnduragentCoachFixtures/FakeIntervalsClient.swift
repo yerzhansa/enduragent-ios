@@ -6,7 +6,7 @@ public enum FakeIntervalsCall: Sendable, Equatable {
 	case activities(oldest: CivilDate, newest: CivilDate)
 	case wellness(oldest: CivilDate, newest: CivilDate)
 	case activity(ActivityID)
-	case streams(ActivityID)
+	case streams(ActivityID, channels: [String])
 	case events(oldest: CivilDate, newest: CivilDate)
 	case createEvent(date: CivilDate, externalId: String)
 	case updateEvent(EventID)
@@ -20,7 +20,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	package var stravaHidden: [CivilDate]
 	package var unreadable: [CivilDate]
 	package var details: [ActivityID: ActivityDetailRead]
-	public var streams: JSONValue
+	package var streams: [ActivityID: [StreamSamples]]
 	public var events: [CalendarEvent]
 	private let recordedCalls = Mutex<[FakeIntervalsCall]>([])
 	public var calls: [FakeIntervalsCall] { recordedCalls.withLock { $0 } }
@@ -54,10 +54,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		self.unreadable = []
 		self.wellness = []
 		self.details = [:]
-		self.streams = .object([
-			"sampleCount": .number(0),
-			"channels": .object([:]),
-		])
+		self.streams = [:]
 		self.events = []
 		self.writeFailure = nil
 	}
@@ -113,9 +110,14 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		}
 	}
 
-	public func fetchStreams(id: ActivityID) async throws -> JSONValue {
-		recordedCalls.withLock { $0.append(.streams(id)) }
-		return streams
+	package func streams(of id: ActivityID, channels: StreamChannels) async throws
+		-> StreamSummary
+	{
+		recordedCalls.withLock { $0.append(.streams(id, channels: channels.names)) }
+		try await begin(.streams)
+		return StreamSummary(
+			summarizing: (streams[id] ?? []).filter { channels.names.contains($0.channel) },
+			asked: channels)
 	}
 
 	public func fetchEvent(id: EventID) async throws -> CalendarEvent {

@@ -43,17 +43,6 @@ struct IntervalsRESTClientTests {
 		#expect(!events[1].coachCreated)
 	}
 
-	@Test func fetchStreamsReturnsSummaryWithoutSeries() async throws {
-		let client = try makeClient()
-		let summary = try await client.fetchStreams(
-			id: try #require(ActivityID(rawValue: "i1234567")))
-		let expected = try JSONValue.parse(
-			try #require(String(data: try fixtureData("streams-ts"), encoding: .utf8)))
-		#expect(summary.canonicalDigestInput() == expected.canonicalDigestInput())
-		let encoded = canonicalJSON(summary)
-		#expect(!encoded.contains("\"data\""))
-	}
-
 	@Test func rangeOf367DaysIsRejected() async throws {
 		let client = try makeClient()
 		let oldest: CivilDate = "1998-01-01"

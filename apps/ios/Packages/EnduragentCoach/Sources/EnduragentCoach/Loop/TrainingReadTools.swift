@@ -62,7 +62,10 @@ extension CoachTools {
 			required: ["activityId"]
 		)
 	) { arguments, reach in
-		.result(try await reach.calendar.fetchStreams(id: try arguments.activityID()))
+		let id = try arguments.activityID()
+		let channels = try arguments.streamChannels()
+		return .result(
+			CoachReadout.streams(try await reach.reads.streams(of: id, channels: channels)))
 	}
 
 	static let fetchActivities = CoachTool.training(
@@ -240,6 +243,20 @@ extension JSONValue {
 			code: "invalid_input",
 			details: "activityId must be a positive integer, i-prefixed id, or lowercase 64-hex id."
 		)
+	}
+
+	func streamChannels() throws(IntervalsError) -> StreamChannels {
+		switch objectFields["types"] {
+		case nil, .null?:
+			return .standard
+		case .array(let entries)?:
+			let names = entries.compactMap(\.stringValue)
+			if names.count == entries.count { return StreamChannels(requested: names) }
+		default:
+			break
+		}
+		throw IntervalsError(
+			code: "invalid_input", details: "types must be a list of channel names.")
 	}
 
 	private static func optionalDate(_ value: JSONValue?, label: String) throws(IntervalsError)
