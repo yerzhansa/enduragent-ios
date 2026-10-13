@@ -71,7 +71,7 @@ import Testing
 
 	@Test func toolErrorReturnsToTheModelAsAResult() async throws {
 		let failure = IntervalsError(code: "down", details: "intervals.icu is unavailable.")
-		intervals.setWellnessOutcome(.failure(failure))
+		intervals.fail(.wellness, with: failure)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(name: "intervals_fetch_wellness", arguments: #"{"days":7}"#),

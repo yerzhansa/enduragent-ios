@@ -82,8 +82,8 @@ struct GatedToolsTests {
 			chatId: .main,
 			scope: turnScope()
 		).outcome
-		intervals.setWellnessOutcome(
-			.failure(IntervalsError(code: "http", details: "status 503", status: 503)))
+		intervals.fail(
+			.wellness, with: IntervalsError(code: "http", details: "status 503", status: 503))
 		let unavailable = try await runtime().execute(
 			name: .intervalsFetchWellness,
 			arguments: try JSONValue.parse(#"{"oldest":"1998-06-07","newest":"1998-06-13"}"#),

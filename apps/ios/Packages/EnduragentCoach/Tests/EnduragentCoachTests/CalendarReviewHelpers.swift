@@ -5,7 +5,7 @@ import Foundation
 
 func makeReviews(
 	ledger: Ledger, clock: any EnduragentCoach.Clock,
-	intervals: any IntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+	intervals: any TrainingClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 ) -> SingleProposalReviews {
 	SingleProposalReviews(
 		ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock),
@@ -15,7 +15,7 @@ func makeReviews(
 }
 
 func makeToolRuntime(
-	intervals: any IntervalsClient, ledger: Ledger, clock: any EnduragentCoach.Clock
+	intervals: any TrainingClient, ledger: Ledger, clock: any EnduragentCoach.Clock
 ) -> ToolRuntime {
 	ToolRuntime(
 		intervals: intervals, ledger: ledger, clock: clock,

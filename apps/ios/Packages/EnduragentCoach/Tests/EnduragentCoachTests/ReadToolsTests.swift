@@ -64,8 +64,7 @@ struct ReadToolsTests {
 
 	@Test func wellnessToolOmitsCtlAtl() async throws {
 		intervals.wellness = [
-			WellnessDay(
-				date: "1998-06-13", fitness: 55.2, fatigue: 42.1, form: 55.2 - 42.1)
+			.on("1998-06-13", [.fitness: 55.2, .fatigue: 42.1])
 		]
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchWellness,

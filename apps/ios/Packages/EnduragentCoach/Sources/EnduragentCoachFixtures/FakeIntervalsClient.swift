@@ -13,56 +13,45 @@ public enum FakeIntervalsCall: Sendable, Equatable {
 	case deleteEvent(EventID)
 }
 
-public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
+public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @unchecked Sendable {
+	package var athlete: AthleteProfile
+	package var wellness: [WellnessDay]
 	public var activities: [ActivitySummary]
-	public var wellness: [WellnessDay]
 	public var activity: JSONValue
 	public var streams: JSONValue
 	public var events: [CalendarEvent]
 	private let recordedCalls = Mutex<[FakeIntervalsCall]>([])
 	public var calls: [FakeIntervalsCall] { recordedCalls.withLock { $0 } }
-	public var athleteId: String
-	public var athleteName: String
-	public var ftp: Int
 	public var writeFailure: (any Error)?
-	private let displayReads = Mutex(FakeIntervalsDisplayReads())
+	private let faults = Mutex(FakeReadFaults())
 	private let nextActivityReadDelay = Mutex<Duration>(.zero)
 
 	public func delayNextActivityRead(for duration: Duration) {
 		nextActivityReadDelay.withLock { $0 = duration }
 	}
 
-	public var profileReadCount: Int { displayReads.withLock { $0.profileCount } }
-	public var wellnessReadCount: Int { displayReads.withLock { $0.wellnessCount } }
-
-	public func setProfileOutcome(_ result: Result<AthleteProfile, any Error>, once: Bool = false) {
-		displayReads.withLock { $0.profile = (result, once) }
+	public func fail(_ read: FakeTrainingRead, with error: any Error, once: Bool = false) {
+		faults.withLock { $0.fail(read, with: error, once: once) }
 	}
 
-	public func setWellnessOutcome(_ result: Result<[WellnessDay], any Error>, once: Bool = false) {
-		displayReads.withLock { $0.wellness = (result, once) }
+	public func restore(_ read: FakeTrainingRead) {
+		faults.withLock { $0.restore(read) }
 	}
 
-	public func holdNextProfileRead() -> FakeIntervalsReadGate {
-		let gate = FakeIntervalsReadGate()
-		displayReads.withLock { $0.profileGate = gate }
-		return gate
+	public func hold(_ read: FakeTrainingRead) -> FakeIntervalsReadGate {
+		faults.withLock { $0.hold(read) }
 	}
 
-	public func holdNextWellnessRead() -> FakeIntervalsReadGate {
-		let gate = FakeIntervalsReadGate()
-		displayReads.withLock { $0.wellnessGate = gate }
-		return gate
+	public func count(of read: FakeTrainingRead) -> Int {
+		faults.withLock { $0.count(of: read) }
 	}
 	#if DEBUG
 		public var loseCalendarSaveAnswerOnce = false
 		public var failCalendarReadOnce = false
 	#endif
 
-	public init(athleteName: String, ftp: Int, athleteId: String = "i1001") {
-		self.athleteId = athleteId
-		self.athleteName = athleteName
-		self.ftp = ftp
+	package init(athlete: AthleteProfile) {
+		self.athlete = athlete
 		self.activities = []
 		self.wellness = []
 		self.activity = .object([:])
@@ -74,33 +63,23 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		self.writeFailure = nil
 	}
 
-	public func fetchAthlete() async throws -> AthleteProfile {
-		let (outcome, gate) = displayReads.withLock {
-			$0.profileCount += 1
-			let result =
-				$0.profile?.result
-				?? .success(AthleteProfile(id: athleteId, name: athleteName, ftp: ftp))
-			if $0.profile?.once == true { $0.profile = nil }
-			let gate = $0.profileGate
-			$0.profileGate = nil
-			return (result, gate)
-		}
-		await gate?.enter()
-		return try outcome.get()
+	package func profile() async throws -> AthleteProfile {
+		try await begin(.profile)
+		return athlete
 	}
 
-	public func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
-		let (outcome, gate) = displayReads.withLock {
-			$0.wellnessCount += 1
-			let result = $0.wellness?.result ?? .success(wellness)
-			if $0.wellness?.once == true { $0.wellness = nil }
-			let gate = $0.wellnessGate
-			$0.wellnessGate = nil
-			return (result, gate)
+	package func wellness(in range: ReadRange) async throws -> [WellnessDay] {
+		recordedCalls.withLock {
+			$0.append(.wellness(oldest: range.oldest, newest: range.newest))
 		}
-		recordedCalls.withLock { $0.append(.wellness(oldest: oldest, newest: newest)) }
-		await gate?.enter()
-		return try outcome.get().filter { $0.date >= oldest && $0.date <= newest }
+		try await begin(.wellness)
+		return wellness.filter { range.contains($0.date) }
+	}
+
+	private func begin(_ read: FakeTrainingRead) async throws {
+		let (failure, gate) = faults.withLock { $0.begin(read) }
+		try await gate?.enter()
+		if let failure { throw failure }
 	}
 
 	public func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws

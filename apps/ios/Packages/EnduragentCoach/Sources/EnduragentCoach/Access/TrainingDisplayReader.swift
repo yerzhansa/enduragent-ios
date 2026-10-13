@@ -4,13 +4,13 @@ struct TrainingDisplayReader: Sendable {
 	let training: TrainingService
 	let clock: any Clock
 
-	func client(for connection: IntervalsConnection) -> any IntervalsClient {
+	func client(for connection: IntervalsConnection) -> any TrainingClient {
 		training.makeClient(connection.credential, connection.selection, clock)
 	}
 
 	func profile(for connection: IntervalsConnection) async -> IntervalsProfileState {
 		do {
-			let athlete = try await client(for: connection).fetchAthlete()
+			let athlete = try await client(for: connection).profile()
 			guard let id = IntervalsAthleteID(rawValue: athlete.id) else {
 				return .failed(.temporarilyUnavailable)
 			}
@@ -24,7 +24,7 @@ struct TrainingDisplayReader: Sendable {
 	func wellness(for connection: IntervalsConnection) async -> IntervalsWellnessState {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		do {
-			let days = try await client(for: connection).fetchWellness(oldest: today, newest: today)
+			let days = try await client(for: connection).wellness(in: .day(today))
 			return .available(
 				days.first(where: { $0.date == today }).map(IntervalsWellnessResult.day)
 					?? .noData(on: today))

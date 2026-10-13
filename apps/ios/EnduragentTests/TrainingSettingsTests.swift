@@ -168,10 +168,10 @@ struct TrainingSettingsTests {
 	func savedDisplayFailuresHaveCorrectionAndRetryRoutes(rejected: Bool) async throws {
 		let services = try harness.services()
 		let fixture = try #require(services.fixture)
-		let profile = try await fixture.intervals.fetchAthlete()
-		fixture.intervals.setProfileOutcome(
-			.failure(
-				IntervalsError(code: "http", details: "unavailable", status: rejected ? 401 : 503)))
+		fixture.intervals.fail(
+			.profile,
+			with: IntervalsError(code: "http", details: "unavailable", status: rejected ? 401 : 503)
+		)
 		let model = await harness.model(services)
 		await model.agreeAndStartChatting()
 		try await harness.observed(model)
@@ -199,7 +199,7 @@ struct TrainingSettingsTests {
 			#expect(try fixture.secrets.intervalsConnection() == saved)
 		} else {
 			#expect(summary.notice?.key == Catalog.connectErrorProfileUnavailable)
-			fixture.intervals.setProfileOutcome(.success(profile))
+			fixture.intervals.restore(.profile)
 			await model.performTrainingDisplay(action)
 			try await model.waitForStatus {
 				if case .connected(let summary, _) = $0.training {
@@ -217,7 +217,7 @@ struct TrainingSettingsTests {
 	@Test func leavingDuringFailedSaveDoesNotRestoreTheSecretDraft() async throws {
 		let model = try await connectedModel()
 		let fixture = try #require(model.services.fixture)
-		let gate = fixture.intervals.holdNextProfileRead()
+		let gate = fixture.intervals.hold(.profile)
 		defer { Task { await gate.release() } }
 		let editor = model.trainingSettings
 		editor.edit()

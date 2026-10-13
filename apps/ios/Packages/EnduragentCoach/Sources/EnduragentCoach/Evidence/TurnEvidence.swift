@@ -14,8 +14,6 @@ package struct EvidenceBlock: Sendable, Equatable {
 }
 
 package struct WellnessEvidence: TurnEvidence {
-	private static let days = 7
-
 	private let clock: any Clock
 	private let diagnostics: DiagnosticsLog
 
@@ -31,8 +29,7 @@ package struct WellnessEvidence: TurnEvidence {
 		let today = IntervalsPolicy.today(now: now, timeZone: clock.timeZone)
 		let days: [WellnessDay]
 		do {
-			days = try await training.client.fetchWellness(
-				oldest: today.adding(days: -(Self.days - 1)), newest: today)
+			days = try await training.client.wellness(in: .snapshotLookback(endingOn: today))
 		} catch is CancellationError {
 			throw CancellationError()
 		} catch {
@@ -59,5 +56,14 @@ package struct WellnessEvidence: TurnEvidence {
 	private static func signed(_ value: Double) -> String {
 		let body = WellnessDay.formattedNumber((value * 10).rounded() / 10, fractionDigits: 1)
 		return value > 0 ? "+\(body)" : body
+	}
+}
+
+extension WellnessDay {
+	package static func formattedNumber(_ value: Double?, fractionDigits: Int = 0) -> String {
+		guard let value, value.isFinite else { return "—" }
+		let number = fractionDigits == 0 ? value.rounded() : value
+		return wholeInt(number).map(String.init)
+			?? String(format: "%.*f", fractionDigits, number)
 	}
 }

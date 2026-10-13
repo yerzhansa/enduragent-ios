@@ -5,7 +5,7 @@ import Testing
 @testable import EnduragentCoach
 
 extension SingleProposalReviewsTests {
-	func gatedCoach(log: any RecordLog, client: any IntervalsClient) async -> Coach {
+	func gatedCoach(log: any RecordLog, client: any TrainingClient) async -> Coach {
 		await consentingCoach(
 			Coach(
 				sport: .cycling,
@@ -79,12 +79,12 @@ struct GatedReviewLog: RecordLog {
 	}
 }
 
-struct GatedReviewIntervals: IntervalsClient {
+struct GatedReviewIntervals: TrainingClient {
 	let base: FakeIntervalsClient
 	let gate: ReviewGate
-	func fetchAthlete() async throws -> AthleteProfile { try await base.fetchAthlete() }
-	func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
-		try await base.fetchWellness(oldest: oldest, newest: newest)
+	func profile() async throws -> AthleteProfile { try await base.profile() }
+	func wellness(in range: ReadRange) async throws -> [WellnessDay] {
+		try await base.wellness(in: range)
 	}
 	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary] {
 		try await base.fetchActivities(oldest: oldest, newest: newest)

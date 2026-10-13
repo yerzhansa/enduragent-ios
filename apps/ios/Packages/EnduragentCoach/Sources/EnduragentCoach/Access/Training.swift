@@ -2,7 +2,7 @@ import Foundation
 
 public struct TrainingService: Sendable {
 	package typealias ClientFactory =
-		@Sendable (IntervalsCredential, AthleteSelection, any Clock) -> any IntervalsClient
+		@Sendable (IntervalsCredential, AthleteSelection, any Clock) -> any TrainingClient
 
 	package let makeClient: ClientFactory
 
@@ -22,7 +22,7 @@ public struct TrainingService: Sendable {
 
 package struct TrainingConnection: Sendable {
 	package let account: TrainingAccount
-	package let client: any IntervalsClient
+	package let client: any TrainingClient
 
 	package static let unconnected = TrainingConnection(
 		account: .unconnected, client: UnconnectedIntervalsClient())

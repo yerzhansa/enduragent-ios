@@ -19,7 +19,8 @@ struct AthleteScopedCoachingFixture {
 		secrets = keyedSecrets(backing: backing)
 		peer = FixtureTrainingPeer(
 			secrets: ICloudKeychainStore(backing: backing),
-			athleteA: FakeIntervalsClient(athleteName: "Fixture A", ftp: 220, athleteId: "i1001"))
+			athleteA: FakeIntervalsClient(
+				athlete: .cyclist(id: "i1001", name: "Fixture A", ftp: 220)))
 		accountA = testConnection.account
 		accountB = .intervals(
 			connection: ConnectionID(), athlete: IntervalsAthleteID(rawValue: "i2002"))

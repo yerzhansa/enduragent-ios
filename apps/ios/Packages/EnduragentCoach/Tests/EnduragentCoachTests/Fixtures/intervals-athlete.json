@@ -1,7 +1,29 @@
 {
   "id": "i1001",
   "name": "Ada Kovač",
-  "icu_ftp": 250,
   "sex": "F",
-  "weight": 58
+  "icu_ftp": 240,
+  "icu_lthr": 160,
+  "icu_max_hr": 180,
+  "icu_resting_hr": 50,
+  "icu_weight": 58,
+  "weight": 59,
+  "sportSettings": [
+    {
+      "types": ["Run", "VirtualRun"],
+      "ftp": 300,
+      "lthr": 172,
+      "max_hr": 192,
+      "resting_hr": 46,
+      "weight": 61
+    },
+    {
+      "types": ["Ride", "VirtualRide"],
+      "ftp": 250,
+      "lthr": 165,
+      "max_hr": 185,
+      "resting_hr": 48,
+      "weight": 60
+    }
+  ]
 }

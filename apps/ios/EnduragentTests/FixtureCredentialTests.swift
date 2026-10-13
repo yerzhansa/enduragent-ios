@@ -14,9 +14,8 @@ extension FixtureLaunchTests {
 		await onboarding.connect()
 		await onboarding.agreeAndStartChatting()
 		#expect(onboarding.didConnect)
-		try #require(services.fixture).intervals.setProfileOutcome(
-			.failure(URLError(.notConnectedToInternet))
-		)
+		try #require(services.fixture).intervals.fail(
+			.profile, with: URLError(.notConnectedToInternet))
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let model = await model(services)
 		await model.appear()
@@ -73,7 +72,7 @@ extension FixtureLaunchTests {
 
 	@Test func successfulConnectClearsSubmittedKey() async throws {
 		let services = try services()
-		let wellness = try #require(services.fixture).intervals.holdNextWellnessRead()
+		let wellness = try #require(services.fixture).intervals.hold(.wellness)
 		defer { Task { await wellness.release() } }
 		let model = await model(services)
 		await model.appear()

@@ -53,7 +53,7 @@ func testRequest(
 
 func makeCoach(
 	transport: FakeModelTransport,
-	intervals: any IntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
+	intervals: any TrainingClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
 	store: any RecordLog,
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 	coalescing: CoalescingPolicy = quickWindow,
@@ -66,7 +66,7 @@ func makeCoach(
 ) async -> Coach {
 	var ports = CoachPorts(
 		records: RecordStore(log: store), secrets: secrets, models: .scripted(transport),
-		training: .fake { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
+		training: TrainingService { _, _, _ in intervals }, credits: .fake(FakeCreditsClient()),
 		host: host, clock: clock)
 	ports.watchdogSleep = watchdogClock.sleep
 	if let coalescingClock { ports.coalescingSleep = coalescingClock.sleep }

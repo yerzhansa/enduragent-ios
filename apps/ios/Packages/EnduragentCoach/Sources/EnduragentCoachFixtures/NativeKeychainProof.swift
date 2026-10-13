@@ -42,9 +42,9 @@ public final class NativeKeychainProof: Sendable {
 			let report = Receipt(
 				service: Self.service, buildVersion: buildVersion,
 				attempts: attempts.withLock { $0 },
-				bindings: bindings.withLock { $0 }, athleteID: intervals.athleteId,
-				profileReads: intervals.profileReadCount,
-				wellnessReads: intervals.wellnessReadCount,
+				bindings: bindings.withLock { $0 }, athleteID: intervals.athlete.id,
+				profileReads: intervals.count(of: .profile),
+				wellnessReads: intervals.count(of: .wellness),
 				calendarReads: intervals.calls.filter {
 					if case .events = $0 { return true }
 					return false

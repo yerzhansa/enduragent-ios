@@ -74,7 +74,7 @@ import Testing
 	func profileFailureReportsSavedAndOffersTheRightAction(status: Int, expected: TrainingFailure)
 		async throws
 	{
-		client.setProfileOutcome(.failure(failure(status)))
+		client.fail(.profile, with: failure(status))
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
 		let outcome = await coach.changeTraining(
@@ -99,21 +99,22 @@ import Testing
 					? CatalogKey(rawValue: "connect.error.profileUnavailable")
 					: expected == .credentialRejected
 						? Catalog.connectErrorRejected : Catalog.coachErrorIntervalsCredentials))
-		#expect(client.wellnessReadCount == 0)
-		#expect(client.profileReadCount == 1)
+		#expect(client.count(of: .wellness) == 0)
+		#expect(client.count(of: .profile) == 1)
 	}
 
 	@Test func networkProfileFailureRecoversUsingSavedKeyAndID() async throws {
-		client.setProfileOutcome(.failure(URLError(.notConnectedToInternet)))
+		client.fail(.profile, with: URLError(.notConnectedToInternet))
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
 		_ = await coach.changeTraining(.replace(apiKey: "synthetic-key", athlete: .keyOwner))
 		let failed = try await landed(in: statuses)
 		#expect(failed.profile == .failed(.temporarilyUnavailable))
 		let active = try #require(try secrets.intervalsConnection())
-		client.setProfileOutcome(.success(AthleteProfile(id: "i1001", name: "Ada", ftp: 250)))
-		client.setWellnessOutcome(
-			.success([WellnessDay(date: "1998-06-13", fitness: 42, fatigue: nil, form: nil)]))
+		client.athlete = .cyclist(id: "i1001", name: "Ada", ftp: 250)
+		client.restore(.profile)
+		client.wellness = [.on("1998-06-13", [.fitness: 42])]
+		client.restore(.wellness)
 		await coach.retryTrainingDisplay(for: active.id)
 		let recovered = try summary(try await coach.observedStatus())
 		#expect(recovered.athleteName == "Ada")
@@ -124,12 +125,12 @@ import Testing
 		#expect(resolved.id == active.id)
 		#expect(resolved.credential == active.credential)
 		#expect(resolved.resolvedAthlete?.rawValue == "i1001")
-		#expect(client.profileReadCount == 2)
-		#expect(client.wellnessReadCount == 1)
+		#expect(client.count(of: .profile) == 2)
+		#expect(client.count(of: .wellness) == 1)
 	}
 
 	@Test func wellnessRejectionKeepsAthleteWithoutRejectingSavedKey() async throws {
-		client.setWellnessOutcome(.failure(failure(403)))
+		client.fail(.wellness, with: failure(403))
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
 		let outcome = await coach.changeTraining(
@@ -143,20 +144,20 @@ import Testing
 		#expect(display.today == nil)
 		#expect(display.notice?.key.rawValue == "connect.error.wellnessRejected")
 		#expect(display.action == .reviewConnection)
-		#expect(client.profileReadCount == 1)
+		#expect(client.count(of: .profile) == 1)
 	}
 
 	@Test(arguments: [401, 403, 422, 408, 429, 503])
 	func wellnessRetryReadsOnlyWellnessAndRetainsAthlete(status: Int) async throws {
-		client.setWellnessOutcome(.failure(failure(503)))
+		client.fail(.wellness, with: failure(503))
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
 		_ = await coach.changeTraining(.replace(apiKey: "synthetic-key", athlete: .keyOwner))
 		let failed = try await landed(in: statuses)
 		#expect(failed.notice?.key.rawValue == "connect.error.wellnessUnavailable")
 		let active = try #require(try secrets.intervalsConnection())
-		let profileReads = client.profileReadCount
-		client.setWellnessOutcome(.failure(failure(status)))
+		let profileReads = client.count(of: .profile)
+		client.fail(.wellness, with: failure(status))
 		await coach.retryTrainingDisplay(for: active.id)
 		let retried = try summary(try await coach.observedStatus())
 		#expect(retried.athleteName == "Ada")
@@ -169,22 +170,23 @@ import Testing
 			profile.wellness
 				== .failed(
 					[408, 429, 503].contains(status) ? .temporarilyUnavailable : .requestRejected))
-		#expect(client.profileReadCount == profileReads)
-		#expect(client.wellnessReadCount == 2)
+		#expect(client.count(of: .profile) == profileReads)
+		#expect(client.count(of: .wellness) == 2)
 		#expect(try secrets.intervalsConnection() == active)
 	}
 
 	@Test(arguments: [
-		[WellnessDay](), [WellnessDay(date: "1998-06-13", fitness: 42, fatigue: nil, form: nil)],
-		[WellnessDay(date: "1998-06-13", fitness: nil, fatigue: nil, form: nil)],
+		[WellnessDay](), [.on("1998-06-13", [.fitness: 42])],
+		[.on("1998-06-13")],
 	])
 	func wellnessRepresentsEmptyAndMissingValuesWithoutNumbers(days: [WellnessDay]) async throws {
-		client.setWellnessOutcome(.failure(failure(503)))
+		client.fail(.wellness, with: failure(503))
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
 		_ = await coach.changeTraining(.replace(apiKey: "synthetic-key", athlete: .keyOwner))
 		let failed = try await landed(in: statuses)
-		client.setWellnessOutcome(.success(days))
+		client.wellness = days
+		client.restore(.wellness)
 		await coach.retryTrainingDisplay(for: failed.connectionID)
 		let display = try summary(try await coach.observedStatus())
 		#expect(
@@ -194,17 +196,29 @@ import Testing
 		#expect(display.today == days.first)
 		#expect(display.today?.fatigue == nil)
 		#expect(display.today?.form == nil)
-		#expect(client.profileReadCount == 1)
+		#expect(client.count(of: .profile) == 1)
 		#expect(display.notice?.key.rawValue == (days.isEmpty ? "connect.wellness.empty" : nil))
 	}
 
+	@Test(arguments: [(50.0, 42.54, "7"), (42.0, 48.47, "-6"), (55.2, 42.1, "13")])
+	func connectedFormIsRoundedToAWholeNumberOnce(fitness: Double, fatigue: Double, shown: String)
+		async throws
+	{
+		client.wellness = [.on("1998-06-13", [.fitness: fitness, .fatigue: fatigue])]
+		let coach = await coach()
+		let statuses = await coach.observeStatus()
+		_ = await coach.changeTraining(.replace(apiKey: "synthetic-key", athlete: .keyOwner))
+		let today = try #require(try await landed(in: statuses).today)
+		#expect(displayLocale().number(today.form, precision: .whole) == shown)
+	}
+
 	@Test func invalidOwnerIDNeverBecomesAnAvailableProfile() async throws {
-		client.setProfileOutcome(.success(AthleteProfile(id: "0", name: "Unknown", ftp: nil)))
+		client.athlete = .cyclist(id: "0", name: "Unknown", ftp: 250)
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
 		_ = await coach.changeTraining(.replace(apiKey: "synthetic-key", athlete: .keyOwner))
 		let display = try await landed(in: statuses)
 		#expect(display.profile == .failed(.temporarilyUnavailable))
-		#expect(client.wellnessReadCount == 0)
+		#expect(client.count(of: .wellness) == 0)
 	}
 }

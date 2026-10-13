@@ -48,9 +48,9 @@ import Testing
 		let approval = draft()
 		let event = try await client.createChatEvent(approval)
 		client.failCalendarReadOnce = true
-		#expect(try await client.fetchAthlete().name == "Ada")
+		#expect(try await client.profile().name == "Ada")
 		#expect(
-			try await client.fetchWellness(oldest: approval.date, newest: approval.date).isEmpty)
+			try await client.wellness(in: .day(approval.date)).isEmpty)
 		#expect(
 			try await client.fetchActivities(oldest: approval.date, newest: approval.date).isEmpty)
 		let activity = try #require(ActivityID(rawValue: "42"))

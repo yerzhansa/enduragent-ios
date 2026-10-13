@@ -15,12 +15,12 @@ import Testing
 				guard case .connected(let summary, _) = $0.training else { return false }
 				return summary.wellness != .waiting
 			} != nil)
-		let reads = intervals.profileReadCount
+		let reads = intervals.count(of: .profile)
 		try await coach.setLanguage(.fixed(.es))
 		let snapshot = try await coach.observedStatus()
 		#expect(snapshot.language == .fixed(.es))
-		#expect(intervals.profileReadCount == reads)
-		#expect(intervals.wellnessReadCount == 1)
+		#expect(intervals.count(of: .profile) == reads)
+		#expect(intervals.count(of: .wellness) == 1)
 	}
 
 	@Test func activationRefreshesTrainingOnce() async {

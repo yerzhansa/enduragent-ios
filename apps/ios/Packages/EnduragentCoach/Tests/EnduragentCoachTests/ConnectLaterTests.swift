@@ -7,14 +7,15 @@ import Testing
 @Suite struct ConnectLaterTests {
 	@Test func missingTrainingToolResultsThenSavedKeyOwnerReachTheModel() async throws {
 		let transport = FakeModelTransport()
-		let owner = FakeIntervalsClient(athleteName: "Key Owner", ftp: 250, athleteId: "i4242")
+		let owner = FakeIntervalsClient(athlete: .cyclist(id: "i4242", name: "Key Owner", ftp: 250))
 		owner.events = [
 			CalendarEvent(
 				id: EventID(rawValue: 17), startDateLocal: "1998-06-13T08:00:00",
 				name: "Owner's ride", category: "WORKOUT", externalId: nil,
 				uid: nil, tags: [], coachCreated: false)
 		]
-		let wrong = FakeIntervalsClient(athleteName: "Wrong Athlete", ftp: 200, athleteId: "i9090")
+		let wrong = FakeIntervalsClient(
+			athlete: .cyclist(id: "i9090", name: "Wrong Athlete", ftp: 200))
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
 		let coach = await consentingCoach(
@@ -46,9 +47,9 @@ import Testing
 				missing[name]?.objectFields["details"]?.stringValue?.contains(
 					"training data is unavailable") == true)
 		}
-		#expect(owner.profileReadCount == 0)
+		#expect(owner.count(of: .profile) == 0)
 		#expect(owner.calls.isEmpty)
-		#expect(wrong.profileReadCount == 0)
+		#expect(wrong.count(of: .profile) == 0)
 		let before = try #require(await coach.currentSnapshot(.main)?.turns.first)
 		let saved = await coach.changeTraining(
 			.replace(apiKey: "synthetic-owner-key", athlete: .keyOwner))
@@ -65,7 +66,7 @@ import Testing
 		#expect(calendar.count == 1)
 		#expect(calendar.first?.objectFields["name"] == .string("Owner's ride"))
 		#expect(owner.calls.contains(.events(oldest: "1998-06-07", newest: "1998-06-13")))
-		#expect(wrong.profileReadCount == 0)
+		#expect(wrong.count(of: .profile) == 0)
 		#expect(wrong.calls.isEmpty)
 		#expect(await coach.currentSnapshot(.main)?.turns.first == before)
 	}

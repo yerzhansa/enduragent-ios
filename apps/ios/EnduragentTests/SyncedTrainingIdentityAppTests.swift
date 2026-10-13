@@ -38,14 +38,14 @@ struct SyncedTrainingIdentityAppTests {
 		let draft = model.draft
 		for background in [false, true, false] {
 			if background { await model.sceneChanged(.enteredBackground) }
-			let profileReads = fixture.intervals.profileReadCount
+			let profileReads = fixture.intervals.count(of: .profile)
 			await model.sceneChanged(.becameActive)
 			let rechecked = try #require(await harness.firstSnapshot(services, chat: .main))
 			#expect(rechecked.revision == finished.revision)
 			#expect(model.chat?.revision == finished.revision)
 			#expect(model.chat == finished)
 			#expect(model.draft == draft)
-			if connected { #expect(fixture.intervals.profileReadCount > profileReads) }
+			if connected { #expect(fixture.intervals.count(of: .profile) > profileReads) }
 		}
 	}
 
@@ -71,10 +71,10 @@ struct SyncedTrainingIdentityAppTests {
 		let finished = try #require(model.chat)
 		model.draft.text = "What about Friday?"
 		let draft = model.draft
-		fixture.intervals.setProfileOutcome(.failure(URLError(.notConnectedToInternet)))
+		fixture.intervals.fail(.profile, with: URLError(.notConnectedToInternet))
 		for background in [true, false] {
 			if background { await model.sceneChanged(.enteredBackground) }
-			let profileReads = fixture.intervals.profileReadCount
+			let profileReads = fixture.intervals.count(of: .profile)
 			await model.sceneChanged(.becameActive)
 			try await model.waitForStatus {
 				$0.training.notice?.key == Catalog.connectErrorProfileUnavailable
@@ -91,7 +91,7 @@ struct SyncedTrainingIdentityAppTests {
 			#expect(rechecked.revision == finished.revision)
 			#expect(model.chat?.revision == finished.revision)
 			#expect(model.draft == draft)
-			#expect(fixture.intervals.profileReadCount > profileReads)
+			#expect(fixture.intervals.count(of: .profile) > profileReads)
 		}
 	}
 

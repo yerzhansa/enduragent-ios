@@ -35,7 +35,8 @@ extension DurableCalendarWriteTests {
 				ports: CoachPorts(
 					records: RecordStore(log: fixture.store), secrets: keyedSecrets(),
 					models: ModelService(catalog: .fixture) { _ in model },
-					training: .fake { _, _ in fixture.client }, credits: .fake(FakeCreditsClient()),
+					training: TrainingService { _, _, _ in fixture.client },
+					credits: .fake(FakeCreditsClient()),
 					host: ImmediateExecutionHost(), clock: clock),
 				builtInModel: testModel, displayLocale: testDisplayLocale,
 				coalescing: CoalescingPolicy(window: .zero)))
