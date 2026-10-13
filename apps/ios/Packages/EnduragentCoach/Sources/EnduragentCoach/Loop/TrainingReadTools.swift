@@ -24,7 +24,7 @@ extension CoachTools {
 		)
 	) { arguments, reach in
 		let range = try arguments.readRange(today: reach.local.today)
-		return .result(CoachReadout.wellness(try await reach.reads.wellness(in: range)))
+		return .result(CoachReadout.wellness(try await reach.reads.wellness(in: range), in: range))
 	}
 
 	static let fetchActivity = CoachTool.training(
@@ -130,15 +130,25 @@ enum CoachReadout {
 			})
 	}
 
-	static func wellness(_ days: [WellnessDay]) -> JSONValue {
-		.array(
-			days.map { day in
-				var fields: [String: JSONValue] = ["date": .string(day.date.rawValue)]
-				if let fitness = day.fitness { fields["fitness"] = .number(fitness) }
-				if let fatigue = day.fatigue { fields["fatigue"] = .number(fatigue) }
-				if let form = day.form { fields["form"] = .number(form) }
-				return .object(fields)
-			})
+	static func wellness(_ days: [WellnessDay], in range: ReadRange) -> JSONValue {
+		var units: [String: JSONValue] = [:]
+		let rows = days.sorted { $0.date < $1.date }.map { day in
+			var fields: [String: JSONValue] = ["date": .string(day.date.rawValue)]
+			for field in WellnessField.allCases {
+				guard let value = day.readings[field] else { continue }
+				fields[field.readoutKey] = .number(value)
+				if let unit = field.unit { units[field.readoutKey] = .string(unit) }
+			}
+			if let form = day.form { fields["form"] = .number(OneDecimal.round(form)) }
+			return JSONValue.object(fields)
+		}
+		var result: [String: JSONValue] = [
+			"oldest": .string(range.oldest.rawValue),
+			"newest": .string(range.newest.rawValue),
+			"days": .array(rows),
+		]
+		if !units.isEmpty { result["units"] = .object(units) }
+		return .object(result)
 	}
 
 	static func activities(_ rows: [ActivitySummary]) -> JSONValue {
@@ -179,6 +189,42 @@ extension ProfileField {
 		case .indoorFTP, .maxPower: "W"
 		case .wPrime: "J"
 		case .sweetSpotMin, .sweetSpotMax: "% of FTP"
+		}
+	}
+}
+
+extension WellnessField {
+	var readoutKey: String {
+		switch self {
+		case .fitness: "fitness"
+		case .fatigue: "fatigue"
+		case .rampRate: "rampRate"
+		case .weight: "weight"
+		case .restingHeartRate: "restingHeartRate"
+		case .hrv: "hrv"
+		case .sleepSeconds: "sleepSeconds"
+		case .sleepScore: "sleepScore"
+		case .sleepQuality: "sleepQuality"
+		case .readiness: "readiness"
+		case .soreness: "soreness"
+		case .stress: "stress"
+		case .mood: "mood"
+		case .motivation: "motivation"
+		case .injury: "injury"
+		case .reportedFatigue: "reportedFatigue"
+		}
+	}
+
+	var unit: String? {
+		switch self {
+		case .rampRate: "Fitness per week"
+		case .weight: "kg"
+		case .restingHeartRate: "bpm"
+		case .hrv: "ms"
+		case .sleepSeconds: "s"
+		case .fitness, .fatigue, .sleepScore, .sleepQuality, .readiness, .soreness, .stress,
+			.mood, .motivation, .injury, .reportedFatigue:
+			nil
 		}
 	}
 }
