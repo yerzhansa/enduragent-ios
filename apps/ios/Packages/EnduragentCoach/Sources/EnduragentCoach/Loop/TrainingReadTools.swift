@@ -2,7 +2,7 @@ import Foundation
 
 extension CoachTools {
 	private static let activityIDDescription =
-		"Activity ID from intervals_fetch_activities — a positive integer or digit string, optionally i-prefixed for intervals-native activities, or a lowercase 64-hex canonical ID. Pass exactly as listed."
+		"Activity `id` from intervals_fetch_activities. Pass exactly as listed."
 
 	static let fetchAthlete = CoachTool.training(
 		.intervalsFetchAthlete,
@@ -29,7 +29,7 @@ extension CoachTools {
 
 	static let fetchActivity = CoachTool.training(
 		.intervalsFetchActivity,
-		"Fetch one recorded activity by legacy or canonical ID. Store-backed results return a bounded source-neutral summary plus laps; other readers may include additional source fields. Use only fields actually returned. Use this for Tier B+ workout reviews; for summary-only Tier A, use `intervals_fetch_activities`.",
+		"Fetch one recorded activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Returns the activity's summary measurements plus `laps` when intervals.icu supplies them; `lapsSupplied: false` means it supplied none. Use only fields actually returned. Use this for Tier B+ workout reviews; for summary-only Tier A, use `intervals_fetch_activities`.",
 		parameters: ToolParameters.object(
 			properties: [
 				"activityId": ToolParameters.string(activityIDDescription)
@@ -37,12 +37,17 @@ extension CoachTools {
 			required: ["activityId"]
 		)
 	) { arguments, reach in
-		.result(try await reach.calendar.fetchActivity(id: try arguments.activityID()))
+		let id = try arguments.activityID()
+		do {
+			return .result(CoachReadout.activity(try await reach.reads.activity(id), asked: id))
+		} catch let error as IntervalsError {
+			return .result(CoachReadout.activityUnread(id, error))
+		}
 	}
 
 	static let fetchStreams = CoachTool.training(
 		.intervalsFetchStreams,
-		"Fetch time-series channels for an activity by legacy or canonical ID. Store-backed reads accept up to 16 unique public channels; platform-backed reads also accept provider-specific channels such as smooth_grade. Returns only per-channel min/max/mean over the full series plus the sample count; no per-second data; do not use it for pacing, duration-based best efforts, quartile trends, decoupling, HR recovery, fade patterns, or indoor/outdoor comparisons. Use only minimum, maximum, and mean as descriptive recorded observations. They alone cannot establish session quality, recovery, or readiness, or justify changing the next session. Expensive to fetch (~10,800 samples per type for a 3-hour ride): call it only for Tier C deep reviews the athlete explicitly requests. For Tier A/B use `intervals_fetch_activities` and `intervals_fetch_activity`. Default types: watts, heartrate, cadence, time, altitude.",
+		"Fetch time-series channels for an activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Channel names are intervals.icu's own, including provider-specific channels such as smooth_grade. Returns only per-channel min/max/mean over the full series plus the sample count; no per-second data; do not use it for pacing, duration-based best efforts, quartile trends, decoupling, HR recovery, fade patterns, or indoor/outdoor comparisons. Use only minimum, maximum, and mean as descriptive recorded observations. They alone cannot establish session quality, recovery, or readiness, or justify changing the next session. Expensive to fetch (~10,800 samples per type for a 3-hour ride): call it only for Tier C deep reviews the athlete explicitly requests. For Tier A/B use `intervals_fetch_activities` and `intervals_fetch_activity`. Default types: watts, heartrate, cadence, time, altitude. A requested channel with nothing to summarize is named in `unanswered` and has no numbers.",
 		parameters: ToolParameters.object(
 			properties: [
 				"activityId": ToolParameters.string(activityIDDescription),
@@ -57,27 +62,25 @@ extension CoachTools {
 			required: ["activityId"]
 		)
 	) { arguments, reach in
-		.result(try await reach.calendar.fetchStreams(id: try arguments.activityID()))
+		let id = try arguments.activityID()
+		let channels = try arguments.streamChannels()
+		return .result(
+			CoachReadout.streams(try await reach.reads.streams(of: id, channels: channels)))
 	}
 
 	static let fetchActivities = CoachTool.training(
 		.intervalsFetchActivities,
-		"Fetch up to 200 recorded activity summaries for a date range. Store-backed results use positive integer or lowercase 64-hex IDs and a bounded source-neutral shape; other readers may include additional source fields. If more than 200 store-backed activities match, narrow the date range.",
+		"Fetch recorded activity summaries for a date range. Each activity has an `id`, a local `start`, and the measurements intervals.icu recorded for it. Pass an `id` exactly as listed to `intervals_fetch_activity` or `intervals_fetch_streams`. Use only fields actually returned.",
 		parameters: ToolParameters.object(
 			properties: [
 				"oldest": ToolParameters.string("Oldest date (YYYY-MM-DD)"),
 				"newest": ToolParameters.string("Newest date (YYYY-MM-DD)"),
-				"days": ToolParameters.integer(
-					"Inclusive day count ending today in the athlete time zone"
-				),
 			],
-			required: []
+			required: ["oldest"]
 		)
 	) { arguments, reach in
 		let range = try arguments.readRange(today: reach.local.today)
-		let rows = try await reach.calendar.fetchActivities(
-			oldest: range.oldest, newest: range.newest)
-		return .result(CoachReadout.activities(rows))
+		return .result(CoachReadout.activities(try await reach.reads.activities(in: range)))
 	}
 }
 
@@ -149,21 +152,6 @@ enum CoachReadout {
 		]
 		if !units.isEmpty { result["units"] = .object(units) }
 		return .object(result)
-	}
-
-	static func activities(_ rows: [ActivitySummary]) -> JSONValue {
-		.array(
-			rows.map { row in
-				var fields: [String: JSONValue] = [
-					"name": .string(row.name),
-					"date": .string(row.date.rawValue),
-					"durationS": .number(Double(row.durationS)),
-				]
-				if let load = row.trainingLoad {
-					fields["trainingLoad"] = .number(Double(load))
-				}
-				return .object(fields)
-			})
 	}
 }
 
@@ -237,13 +225,6 @@ extension JSONValue {
 				oldest: oldest, newest: try Self.optionalDate(fields["newest"], label: "newest"),
 				today: today)
 		}
-		if let value = fields["days"] {
-			guard let days = value.intValue() else {
-				throw IntervalsError(
-					code: "invalid_input", details: "days must be a positive integer.")
-			}
-			return try ReadRange(endingOn: today, days: days)
-		}
 		throw IntervalsError(
 			code: "invalid_date",
 			details: "oldest is not a real calendar date. Use YYYY-MM-DD."
@@ -262,6 +243,20 @@ extension JSONValue {
 			code: "invalid_input",
 			details: "activityId must be a positive integer, i-prefixed id, or lowercase 64-hex id."
 		)
+	}
+
+	func streamChannels() throws(IntervalsError) -> StreamChannels {
+		switch objectFields["types"] {
+		case nil, .null?:
+			return .standard
+		case .array(let entries)?:
+			let names = entries.compactMap(\.stringValue)
+			if names.count == entries.count { return StreamChannels(requested: names) }
+		default:
+			break
+		}
+		throw IntervalsError(
+			code: "invalid_input", details: "types must be a list of channel names.")
 	}
 
 	private static func optionalDate(_ value: JSONValue?, label: String) throws(IntervalsError)

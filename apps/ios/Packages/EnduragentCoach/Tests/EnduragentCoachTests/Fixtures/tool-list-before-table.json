@@ -47,12 +47,12 @@
    }
   },
   {
-   "description": "Fetch one recorded activity by legacy or canonical ID. Store-backed results return a bounded source-neutral summary plus laps; other readers may include additional source fields. Use only fields actually returned. Use this for Tier B+ workout reviews; for summary-only Tier A, use `intervals_fetch_activities`.",
+   "description": "Fetch one recorded activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Returns the activity's summary measurements plus `laps` when intervals.icu supplies them; `lapsSupplied: false` means it supplied none. Use only fields actually returned. Use this for Tier B+ workout reviews; for summary-only Tier A, use `intervals_fetch_activities`.",
    "name": "intervals_fetch_activity",
    "parameters": {
     "properties": {
      "activityId": {
-      "description": "Activity ID from intervals_fetch_activities — a positive integer or digit string, optionally i-prefixed for intervals-native activities, or a lowercase 64-hex canonical ID. Pass exactly as listed.",
+      "description": "Activity `id` from intervals_fetch_activities. Pass exactly as listed.",
       "type": "string"
      }
     },
@@ -63,12 +63,12 @@
    }
   },
   {
-   "description": "Fetch time-series channels for an activity by legacy or canonical ID. Store-backed reads accept up to 16 unique public channels; platform-backed reads also accept provider-specific channels such as smooth_grade. Returns only per-channel min/max/mean over the full series plus the sample count; no per-second data; do not use it for pacing, duration-based best efforts, quartile trends, decoupling, HR recovery, fade patterns, or indoor/outdoor comparisons. Use only minimum, maximum, and mean as descriptive recorded observations. They alone cannot establish session quality, recovery, or readiness, or justify changing the next session. Expensive to fetch (~10,800 samples per type for a 3-hour ride): call it only for Tier C deep reviews the athlete explicitly requests. For Tier A/B use `intervals_fetch_activities` and `intervals_fetch_activity`. Default types: watts, heartrate, cadence, time, altitude.",
+   "description": "Fetch time-series channels for an activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Channel names are intervals.icu's own, including provider-specific channels such as smooth_grade. Returns only per-channel min/max/mean over the full series plus the sample count; no per-second data; do not use it for pacing, duration-based best efforts, quartile trends, decoupling, HR recovery, fade patterns, or indoor/outdoor comparisons. Use only minimum, maximum, and mean as descriptive recorded observations. They alone cannot establish session quality, recovery, or readiness, or justify changing the next session. Expensive to fetch (~10,800 samples per type for a 3-hour ride): call it only for Tier C deep reviews the athlete explicitly requests. For Tier A/B use `intervals_fetch_activities` and `intervals_fetch_activity`. Default types: watts, heartrate, cadence, time, altitude. A requested channel with nothing to summarize is named in `unanswered` and has no numbers.",
    "name": "intervals_fetch_streams",
    "parameters": {
     "properties": {
      "activityId": {
-      "description": "Activity ID from intervals_fetch_activities — a positive integer or digit string, optionally i-prefixed for intervals-native activities, or a lowercase 64-hex canonical ID. Pass exactly as listed.",
+      "description": "Activity `id` from intervals_fetch_activities. Pass exactly as listed.",
       "type": "string"
      },
      "types": {
@@ -86,14 +86,10 @@
    }
   },
   {
-   "description": "Fetch up to 200 recorded activity summaries for a date range. Store-backed results use positive integer or lowercase 64-hex IDs and a bounded source-neutral shape; other readers may include additional source fields. If more than 200 store-backed activities match, narrow the date range.",
+   "description": "Fetch recorded activity summaries for a date range. Each activity has an `id`, a local `start`, and the measurements intervals.icu recorded for it. Pass an `id` exactly as listed to `intervals_fetch_activity` or `intervals_fetch_streams`. Use only fields actually returned.",
    "name": "intervals_fetch_activities",
    "parameters": {
     "properties": {
-     "days": {
-      "description": "Inclusive day count ending today in the athlete time zone",
-      "type": "integer"
-     },
      "newest": {
       "description": "Newest date (YYYY-MM-DD)",
       "type": "string"
@@ -103,6 +99,9 @@
       "type": "string"
      }
     },
+    "required": [
+     "oldest"
+    ],
     "type": "object"
    }
   },
@@ -368,12 +367,12 @@
    }
   },
   {
-   "description": "Fetch one recorded activity by legacy or canonical ID. Store-backed results return a bounded source-neutral summary plus laps; other readers may include additional source fields. Use only fields actually returned. Use this for Tier B+ workout reviews; for summary-only Tier A, use `intervals_fetch_activities`.",
+   "description": "Fetch one recorded activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Returns the activity's summary measurements plus `laps` when intervals.icu supplies them; `lapsSupplied: false` means it supplied none. Use only fields actually returned. Use this for Tier B+ workout reviews; for summary-only Tier A, use `intervals_fetch_activities`.",
    "name": "intervals_fetch_activity",
    "parameters": {
     "properties": {
      "activityId": {
-      "description": "Activity ID from intervals_fetch_activities — a positive integer or digit string, optionally i-prefixed for intervals-native activities, or a lowercase 64-hex canonical ID. Pass exactly as listed.",
+      "description": "Activity `id` from intervals_fetch_activities. Pass exactly as listed.",
       "type": "string"
      }
     },
@@ -384,12 +383,12 @@
    }
   },
   {
-   "description": "Fetch time-series channels for an activity by legacy or canonical ID. Store-backed reads accept up to 16 unique public channels; platform-backed reads also accept provider-specific channels such as smooth_grade. Returns only per-channel min/max/mean over the full series plus the sample count; no per-second data; do not use it for pacing, duration-based best efforts, quartile trends, decoupling, HR recovery, fade patterns, or indoor/outdoor comparisons. Use only minimum, maximum, and mean as descriptive recorded observations. They alone cannot establish session quality, recovery, or readiness, or justify changing the next session. Expensive to fetch (~10,800 samples per type for a 3-hour ride): call it only for Tier C deep reviews the athlete explicitly requests. For Tier A/B use `intervals_fetch_activities` and `intervals_fetch_activity`. Default types: watts, heartrate, cadence, time, altitude.",
+   "description": "Fetch time-series channels for an activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Channel names are intervals.icu's own, including provider-specific channels such as smooth_grade. Returns only per-channel min/max/mean over the full series plus the sample count; no per-second data; do not use it for pacing, duration-based best efforts, quartile trends, decoupling, HR recovery, fade patterns, or indoor/outdoor comparisons. Use only minimum, maximum, and mean as descriptive recorded observations. They alone cannot establish session quality, recovery, or readiness, or justify changing the next session. Expensive to fetch (~10,800 samples per type for a 3-hour ride): call it only for Tier C deep reviews the athlete explicitly requests. For Tier A/B use `intervals_fetch_activities` and `intervals_fetch_activity`. Default types: watts, heartrate, cadence, time, altitude. A requested channel with nothing to summarize is named in `unanswered` and has no numbers.",
    "name": "intervals_fetch_streams",
    "parameters": {
     "properties": {
      "activityId": {
-      "description": "Activity ID from intervals_fetch_activities — a positive integer or digit string, optionally i-prefixed for intervals-native activities, or a lowercase 64-hex canonical ID. Pass exactly as listed.",
+      "description": "Activity `id` from intervals_fetch_activities. Pass exactly as listed.",
       "type": "string"
      },
      "types": {
@@ -407,14 +406,10 @@
    }
   },
   {
-   "description": "Fetch up to 200 recorded activity summaries for a date range. Store-backed results use positive integer or lowercase 64-hex IDs and a bounded source-neutral shape; other readers may include additional source fields. If more than 200 store-backed activities match, narrow the date range.",
+   "description": "Fetch recorded activity summaries for a date range. Each activity has an `id`, a local `start`, and the measurements intervals.icu recorded for it. Pass an `id` exactly as listed to `intervals_fetch_activity` or `intervals_fetch_streams`. Use only fields actually returned.",
    "name": "intervals_fetch_activities",
    "parameters": {
     "properties": {
-     "days": {
-      "description": "Inclusive day count ending today in the athlete time zone",
-      "type": "integer"
-     },
      "newest": {
       "description": "Newest date (YYYY-MM-DD)",
       "type": "string"
@@ -424,6 +419,9 @@
       "type": "string"
      }
     },
+    "required": [
+     "oldest"
+    ],
     "type": "object"
    }
   },

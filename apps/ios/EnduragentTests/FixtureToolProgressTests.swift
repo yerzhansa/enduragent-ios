@@ -23,8 +23,9 @@ extension FixtureLaunchTests {
 		#expect(model.draft.text.isEmpty)
 		#expect(model.isWorking)
 		#expect(model.chat?.liveReply?.text.isEmpty ?? true)
-		#expect(!intervals.calls.contains(.activities(days: 7)))
-		try await until { intervals.calls.contains(.activities(days: 7)) }
+		let weekRead = FakeIntervalsCall.activities(oldest: "1998-06-09", newest: "1998-06-15")
+		#expect(!intervals.calls.contains(weekRead))
+		try await until { intervals.calls.contains(weekRead) }
 		try await until { model.chat?.liveReply?.text == "Checking your recent rides. " }
 		#expect(model.chat?.turns.map(\.id) == [accepted.id])
 		#expect(model.isWorking)

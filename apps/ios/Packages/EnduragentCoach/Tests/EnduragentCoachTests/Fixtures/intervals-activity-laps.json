@@ -1,0 +1,60 @@
+{
+  "id": "i1234568",
+  "name": "Tuesday sweet spot",
+  "type": "VirtualRide",
+  "start_date_local": "1998-06-09T18:30:00",
+  "moving_time": 2100,
+  "elapsed_time": 2100,
+  "icu_training_load": 38,
+  "trainer": true,
+  "source": "ZWIFT",
+  "icu_intervals": [
+    {
+      "id": 1,
+      "label": "Warm-up",
+      "type": "RECOVERY",
+      "moving_time": 600,
+      "elapsed_time": 600,
+      "distance": 4800,
+      "training_load": 6,
+      "intensity": 55,
+      "average_watts": 138,
+      "weighted_average_watts": 140,
+      "average_heartrate": 112,
+      "max_heartrate": 124,
+      "total_elevation_gain": 12.5,
+      "average_cadence": 84,
+      "start_index": 0,
+      "end_index": 600,
+      "zone": 1
+    },
+    {
+      "id": 2,
+      "label": "Sweet spot",
+      "type": "WORK",
+      "moving_time": 1200,
+      "elapsed_time": 1200,
+      "distance": 11400,
+      "training_load": 30,
+      "intensity": 90,
+      "average_watts": 224,
+      "weighted_average_watts": 226,
+      "average_heartrate": 156,
+      "max_heartrate": 164,
+      "total_elevation_gain": 0,
+      "average_cadence": 91,
+      "start_index": 600,
+      "end_index": 1800,
+      "zone": 4
+    },
+    {
+      "id": 3,
+      "type": "RECOVERY",
+      "moving_time": 300,
+      "start_index": 1800,
+      "end_index": 2100
+    }
+  ],
+  "icu_groups": [{ "id": "1200s@224w", "count": 1, "moving_time": 1200 }],
+  "paired_event_id": 4243
+}

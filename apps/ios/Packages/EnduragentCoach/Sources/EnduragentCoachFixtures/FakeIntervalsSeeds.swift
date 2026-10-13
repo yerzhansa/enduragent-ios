@@ -40,17 +40,33 @@ extension WellnessDay {
 	}
 }
 
+extension Activity {
+	package static func recorded(
+		_ id: String, _ name: String?, sport: String? = "Ride", on date: CivilDate,
+		at secondOfDay: Int? = nil, _ readings: [ActivityField: Double] = [:]
+	) -> Activity {
+		guard let id = ActivityID(rawValue: id) else {
+			fatalError("\(id) is not an activity identifier")
+		}
+		guard let start = LocalStart(date: date, secondOfDay: secondOfDay) else {
+			fatalError("\(String(describing: secondOfDay)) is not a second of the day")
+		}
+		return Activity(
+			id: id, name: name, sport: sport, start: start, readings: Readings(readings))
+	}
+}
+
 extension FakeIntervalsClient {
 	public static func firstWeek(today: CivilDate) -> FakeIntervalsClient {
 		let intervals = FakeIntervalsClient(athleteName: "Ada Kovač", ftp: 250)
 		intervals.wellness = [.on(today, [.fitness: 42, .fatigue: 49])]
 		intervals.activities = [
-			.ride(
-				name: "Tuesday sweet spot", date: today.adding(days: -6).rawValue,
-				durationS: 3_600, trainingLoad: 72),
-			.ride(
-				name: "Saturday group ride", date: today.adding(days: -2).rawValue,
-				durationS: 7_800, trainingLoad: 118),
+			.recorded(
+				"i5501", "Tuesday sweet spot", on: today.adding(days: -6), at: 18 * 3_600,
+				[.duration: 3_600, .load: 72]),
+			.recorded(
+				"i5502", "Saturday group ride", on: today.adding(days: -2), at: 9 * 3_600,
+				[.duration: 7_800, .load: 118]),
 		]
 		return intervals
 	}
