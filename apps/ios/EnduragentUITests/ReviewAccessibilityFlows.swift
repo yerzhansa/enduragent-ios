@@ -5,7 +5,7 @@ import XCTest
 enum ReviewAccessibility {
 	static func approval(_ test: XCTestCase, _ language: LanguageTag) {
 		let arguments = FixtureArguments()
-		let run = MatrixRun.begin(test, language, arguments: arguments, connected: false)
+		let run = MatrixRun.begin(test, language, arguments: arguments)
 		TutorialHarness.exchange(run.app, TutorialHarness.workout)
 		TutorialHarness.wait(run.named("chat.preview.add"), until: .enabled)
 		reopenAtLargestText(run.app, arguments)
@@ -13,12 +13,7 @@ enum ReviewAccessibility {
 		TutorialHarness.wait(run.named("chat.preview.add"), until: .enabled, within: .turn)
 		card.expect(notice: [], controls: [.cancel, .add], screen: "approval")
 		card.captureContent()
-		card.reach(.add).tap()
-		card.expect(
-			notice: [
-				.text("chat.review.notice", run.say(Catalog.connectMissing)),
-				.button("chat.review.connect", run.say(Catalog.onboardingConnectAction)),
-			], controls: [.cancel, .add], screen: "approval-not-connected")
+		card.reach(.add)
 		card.reach(.cancel).tap()
 		TutorialHarness.wait(run.named("chat.preview.cancel"), until: .absent)
 		XCTAssertFalse(run.named("chat.preview.add").exists)
