@@ -30,7 +30,7 @@ extension TurnRunner {
 				origin: attempt.origin,
 				charge: .chatAttempt,
 				messages: [prompt.systemMessage] + prompt.summaryMessages + wire,
-				tools: prompt.schemas,
+				tools: prompt.offer.schemas,
 				deadline: await scope.callDeadline(uptime: clock.uptime)
 			)
 			let step = try await modelCall.run(request: request, progress: progress)
@@ -50,10 +50,11 @@ extension TurnRunner {
 					toolCallId: nil)
 			)
 			let calls = step.toolCalls.map { call in
-				(call, prompt.schemas.first { $0.name.rawValue == call.name }?.name)
+				(call, ToolName(rawValue: call.name))
 			}
-			await progress(.activity(.runningTools(calls.compactMap { $0.1 })))
-			let outcomes = try await runTools(calls, for: attempt, scope: scope)
+			await progress(
+				.activity(.runningTools(calls.compactMap { $0.1 }.filter(prompt.offer.offers))))
+			let outcomes = try await runTools(calls, offer: prompt.offer, scope: scope)
 			for (call, outcome) in outcomes {
 				if case .pending(let proposal) = outcome {
 					await progress(.proposalPending(proposal))
@@ -103,7 +104,7 @@ extension TurnRunner {
 			assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 			? .catalog(Catalog.coachFallbackStepLimit) : .model(assistantText)
 		let templateHash = sha256Hex(
-			prompt.prefix + prompt.schemas.map(\.name.rawValue).joined()
+			prompt.prefix + prompt.offer.schemas.map(\.name.rawValue).joined()
 				+ attempt.access.model.rawValue)
 		let assembledHash = sha256Hex(
 			prompt.system + prompt.timed + reply.sentence(in: CatalogPhrasebook(tag: .en)))
@@ -115,24 +116,15 @@ extension TurnRunner {
 
 	private func runTools(
 		_ calls: [(WireToolCall, ToolName?)],
-		for attempt: TurnAttempt,
+		offer: ToolOffer,
 		scope: TurnScope
 	) async throws -> [(WireToolCall, ToolOutcome)] {
-		let runtime = tools(for: attempt)
+		let runtime = ToolRuntime(offer: offer)
 		return try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
 			for (index, (call, name)) in calls.enumerated() {
 				group.addTask {
 					guard let name else {
-						return (
-							index, call,
-							.result(
-								.object([
-									"error": .string("unknown_tool"),
-									"details": .string(
-										"This tool was not offered for this turn. Use an offered tool."
-									),
-								]))
-						)
+						return (index, call, .result(ToolRuntime.unknownTool))
 					}
 					let arguments: JSONValue
 					do {
@@ -153,7 +145,6 @@ extension TurnRunner {
 						outcome = try await runtime.execute(
 							name: name,
 							arguments: arguments,
-							chatId: attempt.chat,
 							scope: scope
 						).outcome
 					} catch let saved as SavedWorkReached {

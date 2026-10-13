@@ -19,16 +19,16 @@ import Testing
 		let otherChat = scope()
 		let week = try JSONValue.parse(#"{"days":7}"#)
 		_ = try await tools.execute(
-			name: .intervalsFetchActivities, arguments: week, chatId: .main, scope: mainChat)
+			name: .intervalsFetchActivities, arguments: week, scope: mainChat)
 		_ = try await tools.execute(
-			name: .intervalsFetchActivities, arguments: week, chatId: "other", scope: otherChat)
+			name: .intervalsFetchActivities, arguments: week, scope: otherChat)
 		_ = try await tools.execute(
-			name: .intervalsFetchActivities, arguments: week, chatId: .main, scope: mainChat)
+			name: .intervalsFetchActivities, arguments: week, scope: mainChat)
 		#expect(intervals.calls == [.activities(days: 7), .activities(days: 7)])
 		_ = try await tools.execute(
 			name: .memoryWrite,
 			arguments: try JSONValue.parse(#"{"type":"daily","content":"Easy spin today."}"#),
-			chatId: .main, scope: mainChat)
+			scope: mainChat)
 		#expect(await mainChat.written == [CommittedWrite(tool: .memoryWrite)])
 		#expect(await otherChat.written.isEmpty)
 	}
@@ -46,18 +46,18 @@ import Testing
 		let week = try JSONValue.parse(#"{"days":7}"#)
 		let original = Task {
 			try await heldTools.execute(
-				name: .intervalsFetchActivities, arguments: week, chatId: .main, scope: turn)
+				name: .intervalsFetchActivities, arguments: week, scope: turn)
 		}
 		try await readClock.waitUntilHeld(.seconds(30))
 		await turn.evict([.intervalsFetchActivities])
 		let replacement = try await tools.execute(
-			name: .intervalsFetchActivities, arguments: week, chatId: .main, scope: turn)
+			name: .intervalsFetchActivities, arguments: week, scope: turn)
 		original.cancel()
 		await #expect(throws: URLError(.cancelled)) {
 			try await original.value
 		}
 		let cached = try await tools.execute(
-			name: .intervalsFetchActivities, arguments: week, chatId: .main, scope: turn)
+			name: .intervalsFetchActivities, arguments: week, scope: turn)
 		#expect(cached == replacement)
 		#expect(intervals.calls == [.activities(days: 7)])
 	}

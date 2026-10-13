@@ -128,7 +128,7 @@ import Testing
 			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let outcome = try await makeToolRuntime(intervals: intervals, ledger: ledger, clock: clock)
 			.execute(
-				name: tool, arguments: try JSONValue.parse(arguments), chatId: .main,
+				name: tool, arguments: try JSONValue.parse(arguments),
 				scope: TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero)
 			).outcome
 		guard case .result(let json) = outcome else {

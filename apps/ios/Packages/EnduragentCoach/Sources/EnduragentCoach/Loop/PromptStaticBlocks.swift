@@ -251,6 +251,14 @@ package enum PromptStaticBlocks {
 		+ "\n\n"
 		+ "Athlete snapshot: unavailable this turn; fetch the profile and latest wellness before prescribing intensity."
 
+	package static let snapshotNotConnected =
+		snapshotHeading
+		+ "\n\n"
+		+ "Training data is not connected. No intervals.icu account is linked, so you have no profile, "
+		+ "wellness, activities or calendar for this athlete and no tools to read them. "
+		+ "When the athlete asks for something that needs that data, say so, tell them they can "
+		+ "connect intervals.icu in Settings, and do not invent numbers."
+
 	package static let snapshotGuidance =
 		"Fetch wellness or activities only for a date range or history not shown here. "
 		+ "Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."

@@ -34,6 +34,9 @@
 		}
 
 		static func trainingDataReply(_ request: ScriptedRequest) -> ScriptedReply {
+			if !request.tools.contains(.intervalsFetchAthlete) {
+				return ScriptedReply([.text(trainingDataMissing), .finish(reason: .stop)])
+			}
 			if request.step == 0 {
 				return ScriptedReply([
 					.toolCall(name: ToolName.intervalsFetchAthlete.rawValue, arguments: "{}"),
@@ -48,9 +51,6 @@
 					guard case .object(let envelope) = result,
 						case .object(let data)? = envelope["data"]
 					else { continue }
-					if data["error"] == .string("not_connected") {
-						return ScriptedReply([.text(trainingDataMissing), .finish(reason: .stop)])
-					}
 					if case .string(let name)? = data["name"],
 						results.contains(where: {
 							guard case .object(let envelope) = $0,

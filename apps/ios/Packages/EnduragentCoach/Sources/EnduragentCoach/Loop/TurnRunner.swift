@@ -229,7 +229,10 @@ package struct TurnRunner: Sendable {
 
 		let memory = Memory(ledger: ledger, clock: clock)
 		let (context, view) = try await memory.prompt(for: attempt.training.account)
-		let schemas = ToolCatalog.schemas(memory: view)
+		let offer = ToolOffer(
+			for: TurnReach(
+				training: attempt.training, memory: view, chat: attempt.chat, ledger: ledger,
+				clock: clock, reviews: reviews))
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let snapshot = try await snapshots.snapshot(
 			for: attempt.training, attempt: attempt.attempt)
@@ -292,7 +295,7 @@ package struct TurnRunner: Sendable {
 		var wire = kept
 		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
 		return TurnPrompt(
-			prefix: prefix, system: system, schemas: schemas, timed: timed, summary: summary,
+			prefix: prefix, system: system, offer: offer, timed: timed, summary: summary,
 			wire: wire,
 			inTurnRows: transcript.window + [transcript.current].compactMap { $0 },
 			window: attempt.session.effectiveContextWindow)
@@ -324,17 +327,12 @@ package struct TurnRunner: Sendable {
 		return (summary.markdown, records)
 	}
 
-	func tools(for attempt: TurnAttempt) -> ToolRuntime {
-		ToolRuntime(
-			intervals: attempt.training.client, ledger: ledger, clock: clock, reviews: reviews)
-	}
-
 }
 
 struct TurnPrompt: Sendable {
 	let prefix: String
 	let system: String
-	let schemas: [ToolSchema]
+	let offer: ToolOffer
 	let timed: String
 	var summary: String?
 	var wire: [WireMessage]

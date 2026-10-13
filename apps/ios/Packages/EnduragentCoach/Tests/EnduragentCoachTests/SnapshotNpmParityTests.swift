@@ -120,10 +120,7 @@ extension IntervalsRESTClientTests {
 				clock: clock, deadlineSleep: HeldClock().sleep,
 				diagnostics: diagnostics ?? DiagnosticsLog(clock: clock))
 			return try await reader.snapshot(
-				for: TrainingConnection(
-					account: .intervals(
-						connection: testConnection.id, athlete: testConnection.resolvedAthlete),
-					client: client),
+				for: connectedTraining(client),
 				attempt: attempt)
 		}
 

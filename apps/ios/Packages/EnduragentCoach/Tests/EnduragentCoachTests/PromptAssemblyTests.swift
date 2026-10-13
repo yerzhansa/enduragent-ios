@@ -91,10 +91,19 @@ import Testing
 			before prescribing intensity.
 			"""
 		for snapshot: TrainingSnapshot in [
-			.unavailable(.nothingUsable), .unavailable(.deadlineMissed), .notConnected,
+			.unavailable(.nothingUsable), .unavailable(.deadlineMissed),
 		] {
 			#expect(snapshot.promptSection == fallback)
 		}
+		#expect(
+			TrainingSnapshot.notConnected.promptSection == """
+				# Athlete Profile & Latest Wellness
+
+				Training data is not connected. No intervals.icu account is linked, so you have \
+				no profile, wellness, activities or calendar for this athlete and no tools to \
+				read them. When the athlete asks for something that needs that data, say so, \
+				tell them they can connect intervals.icu in Settings, and do not invent numbers.
+				""")
 	}
 
 	@Test func wrapAthleteContextTruncatesAndNeutralizesFence() {

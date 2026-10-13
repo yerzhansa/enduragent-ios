@@ -20,11 +20,32 @@ public struct TrainingService: Sendable {
 	}
 }
 
-package struct TrainingConnection: Sendable {
-	package let account: TrainingAccount
+package enum TrainingConnection: Sendable {
+	case unconnected
+	case connected(ConnectedTraining)
+
+	package var account: TrainingAccount {
+		switch self {
+		case .unconnected: .unconnected
+		case .connected(let training): training.account
+		}
+	}
+}
+
+package struct ConnectedTraining: Sendable {
+	package let connection: ConnectionID
+	package let athlete: IntervalsAthleteID?
 	package let client: any TrainingClient
 
-	package static let unconnected = TrainingConnection(
-		account: .unconnected, client: UnconnectedIntervalsClient())
+	package init(
+		connection: ConnectionID, athlete: IntervalsAthleteID?, client: any TrainingClient
+	) {
+		self.connection = connection
+		self.athlete = athlete
+		self.client = client
+	}
 
+	package var account: TrainingAccount {
+		.intervals(connection: connection, athlete: athlete)
+	}
 }
