@@ -71,7 +71,7 @@ import Testing
 			return
 		}
 		#expect(table.rows == [[[], [text("second")]]])
-		#expect(document.accessibilityText == "a\tb\n\tsecond")
+		#expect(document.accessibilityText == "a, b\nsecond")
 	}
 
 	@Test(arguments: [0, 5_000]) func crlfParagraphsKeepFormattingAndSafeLinks(prefixLength: Int)

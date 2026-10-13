@@ -49,6 +49,18 @@ public struct ScriptedReply: Sendable {
 		}
 	}
 
+	static func deltasThenHang(_ text: String) -> ScriptedReply {
+		var events: [ScriptedEvent] = []
+		var start = text.startIndex
+		while start < text.endIndex {
+			let end = text.index(start, offsetBy: 128, limitedBy: text.endIndex) ?? text.endIndex
+			events.append(.text(String(text[start..<end])))
+			start = end
+		}
+		events.append(.hang)
+		return ScriptedReply(events, deltaDelay: .milliseconds(50))
+	}
+
 	private static func takeStep(from events: inout [ScriptedEvent], repeatingHang: Bool)
 		-> [ScriptedEvent]
 	{
