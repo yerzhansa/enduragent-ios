@@ -66,9 +66,13 @@ import Testing
 		let boWithoutEquipment = try await ask(coach)
 		try await remember([(.cyclingEquipment, bo.equipment)], using: coach)
 		let forBo = try await readMemory(coach)
+		try await fixture.connect(mira.key, using: coach)
+		let forMiraAfterBo = try await readMemory(coach)
 
 		#expect(!boWithoutEquipment.tools.map(\.name).contains(.memoryRead))
-		for (request, own, other) in [(forMira, mira, bo), (forBo, bo, mira)] {
+		for (request, own, other) in [
+			(forMira, mira, bo), (forBo, bo, mira), (forMiraAfterBo, mira, bo),
+		] {
 			let system = try MemoryProbe.systemText(in: request)
 			#expect(system.contains(own.goals))
 			#expect(!system.contains(own.equipment))
