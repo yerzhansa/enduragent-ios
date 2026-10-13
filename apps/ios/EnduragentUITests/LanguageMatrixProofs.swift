@@ -10,6 +10,7 @@ final class LanguageMatrixEnSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .en) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .en) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .en) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .en) }
 }
 
 @MainActor
@@ -21,6 +22,7 @@ final class LanguageMatrixEsSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .es) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .es) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .es) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .es) }
 }
 
 @MainActor
@@ -32,6 +34,7 @@ final class LanguageMatrixFrSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .fr) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .fr) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .fr) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .fr) }
 }
 
 @MainActor
@@ -43,6 +46,7 @@ final class LanguageMatrixItSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .it) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .it) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .it) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .it) }
 }
 
 @MainActor
@@ -54,6 +58,7 @@ final class LanguageMatrixDeProof: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .de) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .de) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .de) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .de) }
 }
 
 @MainActor
@@ -65,6 +70,7 @@ final class LanguageMatrixNlSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .nl) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .nl) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .nl) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .nl) }
 }
 
 @MainActor
@@ -76,6 +82,7 @@ final class LanguageMatrixDaSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .da) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .da) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .da) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .da) }
 }
 
 @MainActor
@@ -87,6 +94,7 @@ final class LanguageMatrixSvSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .sv) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .sv) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .sv) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .sv) }
 }
 
 @MainActor
@@ -98,6 +106,7 @@ final class LanguageMatrixNbSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .nb) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .nb) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .nb) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .nb) }
 }
 
 @MainActor
@@ -109,6 +118,7 @@ final class LanguageMatrixFiSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .fi) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .fi) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .fi) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .fi) }
 }
 
 @MainActor
@@ -120,6 +130,7 @@ final class LanguageMatrixPtPTProof: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .ptPT) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .ptPT) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .ptPT) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .ptPT) }
 }
 
 @MainActor
@@ -131,6 +142,7 @@ final class LanguageMatrixPtBRSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .ptBR) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .ptBR) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .ptBR) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .ptBR) }
 }
 
 @MainActor
@@ -142,6 +154,7 @@ final class LanguageMatrixPlSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .pl) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .pl) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .pl) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .pl) }
 }
 
 @MainActor
@@ -153,6 +166,7 @@ final class LanguageMatrixKoSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .ko) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .ko) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .ko) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .ko) }
 }
 
 @MainActor
@@ -164,6 +178,7 @@ final class LanguageMatrixJaSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .ja) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .ja) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .ja) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .ja) }
 }
 
 @MainActor
@@ -175,6 +190,7 @@ final class LanguageMatrixZhHansSweep: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .zhHans) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .zhHans) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .zhHans) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .zhHans) }
 }
 
 @MainActor
@@ -186,4 +202,5 @@ final class LanguageMatrixZhHantProof: XCTestCase {
 	func testHistory() { LanguageMatrix.history(self, .zhHant) }
 	func testUncertainSave() { LanguageMatrix.uncertainSave(self, .zhHant) }
 	func testOpenRouter() { LanguageMatrix.openRouter(self, .zhHant) }
+	func testShortcuts() { LanguageMatrix.shortcuts(self, .zhHant) }
 }
