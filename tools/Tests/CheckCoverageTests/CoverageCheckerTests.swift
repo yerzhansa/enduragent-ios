@@ -38,6 +38,8 @@ struct CoverageCheckerTests {
 struct CoverageCase: Sendable, CustomTestStringConvertible {
 	static let packageTests = "Tests/ReadTests.swift"
 	static let proofs = "UITests/ShortcutProofs.swift"
+	static let outside = "../Outside/ReadTests.swift"
+	static let page = "features/chat.md"
 	static let listed = function("rangeIsRefused")
 	static let picked = proof("ShortcutProof", "testPick")
 	static let complete = [
@@ -85,9 +87,10 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 			files: sources.filter { $0.key != packageTests },
 			problems: ["1.1.1 [missing-test-file] \(packageTests)"]),
 		CoverageCase(
-			name: "listed test file is outside the repository",
-			rows: replacing(0, with: row("1.1.1", function("a", in: "../\(packageTests)"))),
-			problems: ["1.1.1 [missing-test-file] ../\(packageTests)"]),
+			name: "listed test file that declares the function is outside the repository",
+			rows: replacing(0, with: row("1.1.1", function("rangeIsRefused", in: outside))),
+			files: sources.merging([outside: sources[packageTests, default: ""]]) { $1 },
+			problems: ["1.1.1 [missing-test-file] \(outside)"]),
 		CoverageCase(
 			name: "listed test function was renamed",
 			rows: replacing(0, with: row("1.1.1", function("rangeIsRefuse"))),
@@ -126,6 +129,30 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 			),
 			problems: ["1.1.1 [more-than-one-proof]"]),
 		CoverageCase(
+			name: "a part checked by hand is named beside the tests with its page",
+			rows: replacing(0, with: row("1.1.1", listed, handCheck("The trait.", in: page))),
+			files: sources.merging([page: "Check the trait with VoiceOver."]) { $1 }),
+		CoverageCase(
+			name: "hand check names no part",
+			rows: replacing(0, with: row("1.1.1", listed, handCheck("", in: page))),
+			files: sources.merging([page: "Check the trait with VoiceOver."]) { $1 },
+			problems: ["1.1.1 [empty-hand-check]"]),
+		CoverageCase(
+			name: "hand check names no page",
+			rows: replacing(0, with: row("1.1.1", listed, handCheck("The trait.", in: ""))),
+			problems: ["1.1.1 [empty-hand-check]"]),
+		CoverageCase(
+			name: "hand check names a page that does not exist",
+			rows: replacing(0, with: row("1.1.1", listed, handCheck("The trait.", in: page))),
+			problems: ["1.1.1 [missing-hand-check-file] \(page)"]),
+		CoverageCase(
+			name: "hand check alone is neither a test nor a mark",
+			rows: replacing(
+				2,
+				with: #"{"id": "1.2.1", "statement": "S.", \#(handCheck("The trait.", in: page))}"#),
+			files: sources.merging([page: "Check the trait with VoiceOver."]) { $1 },
+			problems: ["1.2.1 [no-proof]"]),
+		CoverageCase(
 			name: "criterion has no statement",
 			rows: replacing(0, with: #"{"id": "1.1.1", "tests": [\#(listed)]}"#),
 			problems: ["1.1.1 [no-statement]"]),
@@ -159,8 +186,13 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 		#"{"file": "\#(proofs)", "class": "\#(type)", "method": "\#(method)"}"#
 	}
 
-	static func row(_ identifier: String, _ test: String) -> String {
-		#"{"id": "\#(identifier)", "statement": "S.", "tests": [\#(test)]}"#
+	static func handCheck(_ part: String, in file: String) -> String {
+		#""checkedByHand": {"part": "\#(part)", "described": "\#(file)"}"#
+	}
+
+	static func row(_ identifier: String, _ test: String, _ members: String...) -> String {
+		(["{\"id\": \"\(identifier)\"", #""statement": "S.""#, #""tests": [\#(test)]"#] + members)
+			.joined(separator: ", ") + "}"
 	}
 
 	static func replacing(_ index: Int, with row: String) -> [String] {
@@ -188,8 +220,9 @@ struct Scratch {
 	let files: [String: String]
 
 	func inRoot<Result>(_ body: (String) throws -> Result) throws -> Result {
-		let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+		let folder = FileManager.default.temporaryDirectory.appendingPathComponent(
 			"ios-coverage-check-\(UUID().uuidString)", isDirectory: true)
+		let root = folder.appendingPathComponent("Repository", isDirectory: true)
 		try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 		let outcome = Swift.Result {
 			for (file, content) in files {
@@ -200,7 +233,7 @@ struct Scratch {
 			}
 			return try body(try FileSystem.realPath(root.path))
 		}
-		try FileManager.default.removeItem(at: root)
+		try FileManager.default.removeItem(at: folder)
 		return try outcome.get()
 	}
 

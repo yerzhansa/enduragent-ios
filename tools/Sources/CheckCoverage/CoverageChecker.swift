@@ -21,6 +21,7 @@ struct CoverageFailure: DescribedFailure {
 
 struct CoverageChecker {
 	static let marks = ["phoneSession", "noAutomatedProof"]
+	static let handCheck = "checkedByHand"
 
 	let root: String
 	let milestone: Milestone
@@ -77,6 +78,23 @@ struct CoverageChecker {
 		for test in tests {
 			try check(test, identifier, in: &sources)
 		}
+		try checkHandCheck(of: row, identifier, in: sources)
+	}
+
+	private func checkHandCheck(
+		of row: JSONValue, _ identifier: String, in sources: SourceFiles
+	) throws {
+		let check = try row.member(Self.handCheck)
+		if case .undefined = check { return }
+		guard case .object = check, try check.member("part").text != nil,
+			let described = try check.member("described").text
+		else {
+			try problems.report(identifier, "empty-hand-check")
+			return
+		}
+		if sources.path(of: described) == nil {
+			try problems.report(identifier, "missing-hand-check-file", described)
+		}
 	}
 
 	private func check(
@@ -95,7 +113,7 @@ struct CoverageChecker {
 		}
 		switch (function, proof, method) {
 		case (let function?, nil, nil):
-			if !declarations.declares(function: function) {
+			if !declarations.functions.contains(function) {
 				try problems.report(identifier, "missing-test-function", file, function)
 			}
 		case (nil, let proof?, let method?):
@@ -110,6 +128,7 @@ struct CoverageChecker {
 
 private struct SourceFiles {
 	let root: String
+	private let patterns = JavaScriptPatterns()
 	private var read: [String: SwiftDeclarations?] = [:]
 
 	init(root: String) {
@@ -123,17 +142,21 @@ private struct SourceFiles {
 		return declarations
 	}
 
-	private func load(_ file: String) throws -> SwiftDeclarations? {
+	func path(of file: String) -> String? {
 		let path = NodePath.resolve(root, file)
 		var isDirectory: ObjCBool = false
 		guard !NodePath.isAbsolute(file), path.hasUnitPrefix(root + "/"),
 			FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory),
 			!isDirectory.boolValue
 		else { return nil }
-		guard let text = String(validating: try FileSystem.read(path), as: UTF8.self) else {
-			return nil
-		}
-		return SwiftDeclarations(source: text)
+		return path
+	}
+
+	private func load(_ file: String) throws -> SwiftDeclarations? {
+		guard let path = path(of: file),
+			let text = String(validating: try FileSystem.read(path), as: UTF8.self)
+		else { return nil }
+		return try SwiftDeclarations(code: try patterns.withoutStrings(text), patterns: patterns)
 	}
 }
 

@@ -45,10 +45,12 @@
 		},
 		{
 			"id": "1.1.6",
-			"statement": "Settings and the read tools show what they showed before the port, with Form still the unrounded difference of Fitness and Fatigue.",
+			"statement": "Settings shows what it showed before the port, with Form the difference of Fitness and Fatigue rounded once to a whole number; the two read tools now show the wider results of units 2.1 and 2.2.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ConnectionResultTests.swift", "function": "connectedFormIsRoundedToAWholeNumberOnce"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingReadsTests.swift", "function": "formIsFitnessMinusFatigueUnrounded"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingReadsTests.swift", "function": "formIsFitnessMinusFatigueUnrounded"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "profileToolShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "wellnessToolShowsTheExpectedResultForEveryCase"}
 			]
 		},
 		{
@@ -87,7 +89,8 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "bothReadsFailingGiveTheFallbackAndNoLines"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "missedDeadlineCancelsBothReadsAndGivesTheFallback"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "readFinishedBeforeAMissedDeadlineStillGivesNoLines"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "readFinishedBeforeAMissedDeadlineStillGivesNoLines"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotNpmParityTests.swift", "function": "snapshotTextMatchesNpmOutsideTheNamedDifferences"}
 			]
 		},
 		{
@@ -175,11 +178,12 @@
 		},
 		{
 			"id": "1.3.7",
-			"statement": "A connected turn behaves as before: reads are memoized per attempt, a write evicts memory reads, and results stay inside the envelope and the token cap.",
+			"statement": "A connected turn behaves as before: reads are memoized per attempt, a write evicts memory reads, a workout proposal is saved for approval, and results stay inside the envelope and the token cap.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "repeatedReadInOneAttemptReachesTheClientOnceAndStaysEnveloped"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "memoryReadAfterAWriteInTheSameAttemptSeesTheWrite"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolResultCapTests.swift", "function": "resultJustAboveCapIsOmitted"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolResultCapTests.swift", "function": "resultJustAboveCapIsOmitted"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FirstTurnTests.swift", "function": "calendarWriteBecomesAReview"}
 			]
 		},
 		{
@@ -480,7 +484,8 @@
 			"statement": "No series leaves the client, and both source layouts of a stream answer decode to the same summary.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamSummaryTests.swift", "function": "listAndKeyedLayoutsGiveTheSameSummary"}
-			]
+			],
+			"checkedByHand": {"part": "That no series leaves the client. It is a property of the types: the stream read of the training port returns only the summary type, which holds three numbers per channel. The reviewer confirmed it from the definitions.", "described": "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Cycling/TrainingReads.swift"}
 		},
 		{
 			"id": "4.1.7",
@@ -681,15 +686,17 @@
 			"statement": "A table with three or more columns keeps the grid, scrolls sideways to its last column, and keeps the header above its columns.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/ReplyTableProofs.swift", "class": "ReplyTableProof", "method": "testNumbersTablesStackScrollAndReadRowByRowInChatAndHistory"}
-			]
+			],
+			"checkedByHand": {"part": "That each header cell is drawn over its own column. Table cells are hidden from accessibility, so the proof compares only the extent of the header row with the extent of each row below it; the columns are inspected on the reply-table-laps-last-column screenshot.", "described": ".agents/skills/verify-ios/features/chat.md"}
 		},
 		{
 			"id": "6.2.3",
-			"statement": "VoiceOver reads a table one row at a time, each row labelled with its description.",
+			"statement": "VoiceOver reads a table one row at a time, each row labelled with its description, and the header row of a grid has the header trait.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/ReplyTableProofs.swift", "class": "ReplyTableProof", "method": "testNumbersTablesStackScrollAndReadRowByRowInChatAndHistory"},
 				{"file": "apps/ios/EnduragentUITests/ReplyFormattingProofs.swift", "class": "ReplyFormattingProof", "method": "testFormattedReplyInChatAndHistory"}
-			]
+			],
+			"checkedByHand": {"part": "The header trait of the header row. A UI proof cannot read an accessibility trait, so it is checked with VoiceOver or the Accessibility Inspector.", "described": ".agents/skills/verify-ios/features/chat.md"}
 		},
 		{
 			"id": "6.2.4",
@@ -697,7 +704,8 @@
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/ReplyTableProofs.swift", "class": "ReplyTableProof", "method": "testNumbersTablesStackScrollAndReadRowByRowInChatAndHistory"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/NumbersReplyFixtureTests.swift", "function": "theNumbersReplyHoldsALongSummaryTableAndALapTableWithEmptyCells"}
-			]
+			],
+			"checkedByHand": {"part": "That the empty cell is drawn blank in its own column with the later cells under their own headers. Table cells are hidden from accessibility, so the proof reads only the row labels; the drawn columns are inspected on the reply-table-laps-last-column screenshot.", "described": ".agents/skills/verify-ios/features/chat.md"}
 		},
 		{
 			"id": "6.2.5",
@@ -727,7 +735,8 @@
 				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testGermanNumbersStayWholeAtTheLargestTextSize"},
 				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testPortugueseOfPortugalNumbersStayWholeAtTheLargestTextSize"},
 				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testTraditionalChineseNumbersStayWholeAtTheLargestTextSize"}
-			]
+			],
+			"checkedByHand": {"part": "That each lap cell is drawn under its own header at that size. Table cells are hidden from accessibility, so the proof compares only the extent of the header row with the extent of each row below it; the columns are inspected on the laps-first-column and laps-last-column screenshots of each language.", "described": ".agents/skills/verify-ios/features/chat.md"}
 		},
 		{
 			"id": "6.3.3",
@@ -746,7 +755,8 @@
 				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testGermanNumbersStayWholeAtTheLargestTextSize"},
 				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testPortugueseOfPortugalNumbersStayWholeAtTheLargestTextSize"},
 				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testTraditionalChineseNumbersStayWholeAtTheLargestTextSize"}
-			]
+			],
+			"checkedByHand": {"part": "The drawn characters of the lap table. The proofs compare row labels, which come from the row description and not from the drawn text, and the image test draws the summary table only; the lap cells are read on the laps-first-column and laps-last-column screenshots of each language.", "described": ".agents/skills/verify-ios/features/chat.md"}
 		},
 		{
 			"id": "6.4.1",
@@ -880,7 +890,8 @@
 			"statement": "A finished workout shortcut reply is text, with no review card and no calendar success line.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/ShortcutProofs.swift", "class": "ShortcutProof", "method": "testShortcutIsPickedSentWithItsTextAndAnsweredInText"},
-				{"file": "apps/ios/EnduragentTests/FixtureShortcutTests.swift", "function": "sentShortcutShowsItsTextAndWorksUntilTheReplyInText"}
+				{"file": "apps/ios/EnduragentTests/FixtureShortcutTests.swift", "function": "sentShortcutShowsItsTextAndWorksUntilTheReplyInText"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "shortcutEndingInTextLeavesNoReviewAndMakesNoCalendarCall"}
 			]
 		},
 		{
