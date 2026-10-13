@@ -25,9 +25,12 @@ private struct ReplyTableLine {
 	}
 
 	func cell(_ runs: [ReplyRun]) -> some View {
+		text(runs).padding(.vertical, 7)
+	}
+
+	func text(_ runs: [ReplyRun]) -> some View {
 		ReplyInlineView(runs: runs, font: isHeader ? .caption.bold() : .subheadline)
 			.foregroundStyle(isHeader ? .secondary : .primary)
-			.padding(.vertical, 7)
 	}
 }
 
@@ -62,6 +65,7 @@ private struct ReplyTableSeparator: View {
 
 private struct ReplyStackedTable: View {
 	let lines: [ReplyTableLine]
+	@Environment(\.dynamicTypeSize) private var textSize
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 0) {
@@ -73,6 +77,28 @@ private struct ReplyStackedTable: View {
 	}
 
 	private func row(_ line: ReplyTableLine) -> some View {
+		Group {
+			if textSize.isAccessibilitySize {
+				valueUnderMetric(line)
+			} else {
+				valueBesideMetric(line)
+			}
+		}
+		.overlay(alignment: .bottom) { ReplyTableSeparator() }
+		.modifier(ReplyTableLineElement(line: line))
+	}
+
+	private func valueUnderMetric(_ line: ReplyTableLine) -> some View {
+		VStack(alignment: .leading, spacing: 2) {
+			ForEach(line.cells.indices, id: \.self) { column in
+				line.text(line.cells[column])
+			}
+		}
+		.padding(.vertical, 7)
+		.frame(maxWidth: .infinity, alignment: .leading)
+	}
+
+	private func valueBesideMetric(_ line: ReplyTableLine) -> some View {
 		HStack(alignment: .firstTextBaseline, spacing: 10) {
 			ForEach(line.cells.indices, id: \.self) { column in
 				if column == line.cells.startIndex {
@@ -84,8 +110,6 @@ private struct ReplyStackedTable: View {
 				}
 			}
 		}
-		.overlay(alignment: .bottom) { ReplyTableSeparator() }
-		.modifier(ReplyTableLineElement(line: line))
 	}
 }
 
