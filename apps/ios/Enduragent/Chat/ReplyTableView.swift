@@ -5,11 +5,96 @@ struct ReplyTableView: View {
 	let table: ReplyTable
 
 	var body: some View {
+		switch table.layout {
+		case .stacked: ReplyStackedTable(lines: ReplyTableLine.lines(of: table))
+		case .grid: ReplyGridTable(table: table, lines: ReplyTableLine.lines(of: table))
+		}
+	}
+}
+
+private struct ReplyTableLine {
+	let cells: [[ReplyRun]]
+	let description: ReplyRowDescription
+	let isHeader: Bool
+
+	static func lines(of table: ReplyTable) -> [ReplyTableLine] {
+		[ReplyTableLine(cells: table.header, description: table.headerDescription, isHeader: true)]
+			+ zip(table.rows, table.rowDescriptions).map { cells, description in
+				ReplyTableLine(cells: cells, description: description, isHeader: false)
+			}
+	}
+
+	func cell(_ runs: [ReplyRun]) -> some View {
+		ReplyInlineView(runs: runs, font: isHeader ? .caption.bold() : .subheadline)
+			.foregroundStyle(isHeader ? .secondary : .primary)
+			.padding(.vertical, 7)
+	}
+}
+
+private struct ReplyTableLineElement: ViewModifier {
+	let line: ReplyTableLine
+
+	func body(content: Content) -> some View {
+		content
+			.accessibilityElement(children: .ignore)
+			.accessibilityLabel(Text(verbatim: line.description.accessibilityText))
+			.accessibilityAddTraits(line.isHeader ? .isHeader : [])
+			.accessibilityHidden(line.description.parts.isEmpty)
+			.accessibilityIdentifier(line.isHeader ? "reply.table.header" : "reply.table.row")
+	}
+}
+
+private struct ReplyTableSeparator: View {
+	var body: some View {
+		Rectangle().fill(.separator).frame(height: 0.5)
+	}
+}
+
+private struct ReplyStackedTable: View {
+	let lines: [ReplyTableLine]
+
+	var body: some View {
+		VStack(alignment: .leading, spacing: 0) {
+			ForEach(lines.indices, id: \.self) { index in
+				row(lines[index])
+			}
+		}
+		.frame(maxWidth: .infinity, alignment: .leading)
+	}
+
+	private func row(_ line: ReplyTableLine) -> some View {
+		HStack(alignment: .firstTextBaseline, spacing: 10) {
+			ForEach(line.cells.indices, id: \.self) { column in
+				if column == line.cells.startIndex {
+					line.cell(line.cells[column])
+						.frame(maxWidth: .infinity, alignment: .leading)
+				} else {
+					line.cell(line.cells[column])
+						.multilineTextAlignment(.trailing)
+				}
+			}
+		}
+		.overlay(alignment: .bottom) { ReplyTableSeparator() }
+		.modifier(ReplyTableLineElement(line: line))
+	}
+}
+
+private struct ReplyGridTable: View {
+	let table: ReplyTable
+	let lines: [ReplyTableLine]
+
+	var body: some View {
 		ScrollView(.horizontal) {
 			Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 0) {
-				row(table.header, header: true)
-				ForEach(table.rows.indices, id: \.self) { index in
-					row(table.rows[index], header: false)
+				ForEach(lines.indices, id: \.self) { index in
+					row(lines[index], at: index)
+				}
+			}
+			.overlayPreferenceValue(ReplyTableLineBounds.self) { bounds in
+				GeometryReader { proxy in
+					ForEach(lines.indices, id: \.self) { index in
+						element(lines[index], cells: bounds[index] ?? [], in: proxy)
+					}
 				}
 			}
 			.fixedSize(horizontal: true, vertical: true)
@@ -19,18 +104,31 @@ struct ReplyTableView: View {
 		.accessibilityIdentifier("reply.table")
 	}
 
-	private func row(_ cells: [[ReplyRun]], header: Bool) -> some View {
+	private func row(_ line: ReplyTableLine, at index: Int) -> some View {
 		GridRow(alignment: .firstTextBaseline) {
-			ForEach(cells.indices, id: \.self) { index in
-				ReplyInlineView(runs: cells[index], font: header ? .caption.bold() : .subheadline)
-					.foregroundStyle(header ? .secondary : .primary)
-					.padding(.vertical, 7)
-					.gridColumnAlignment(alignment(table.columns.elements[index]))
-					.accessibilityIdentifier("reply.table.cell")
+			ForEach(line.cells.indices, id: \.self) { column in
+				line.cell(line.cells[column])
+					.anchorPreference(key: ReplyTableLineBounds.self, value: .bounds) {
+						[index: [$0]]
+					}
+					.accessibilityHidden(true)
+					.gridColumnAlignment(alignment(table.columns.elements[column]))
 			}
 		}
-		.overlay(alignment: .bottom) {
-			Rectangle().fill(.separator).frame(height: 0.5)
+		.overlay(alignment: .bottom) { ReplyTableSeparator() }
+	}
+
+	@ViewBuilder
+	private func element(
+		_ line: ReplyTableLine, cells: [Anchor<CGRect>], in proxy: GeometryProxy
+	) -> some View {
+		let frame = cells.reduce(CGRect.null) { $0.union(proxy[$1]) }
+		if !frame.isNull {
+			Color.clear
+				.frame(width: proxy.size.width, height: frame.height)
+				.offset(y: frame.minY)
+				.allowsHitTesting(false)
+				.modifier(ReplyTableLineElement(line: line))
 		}
 	}
 
@@ -40,5 +138,15 @@ struct ReplyTableView: View {
 		case .center: .center
 		case .right: .trailing
 		}
+	}
+}
+
+private struct ReplyTableLineBounds: PreferenceKey {
+	static var defaultValue: [Int: [Anchor<CGRect>]] { [:] }
+
+	static func reduce(
+		value: inout [Int: [Anchor<CGRect>]], nextValue: () -> [Int: [Anchor<CGRect>]]
+	) {
+		value.merge(nextValue()) { $0 + $1 }
 	}
 }

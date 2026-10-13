@@ -4,15 +4,17 @@ import XCTest
 
 @MainActor
 enum ReplyProofScreen {
-	static let leafIDs = ["reply.heading", "reply.paragraph", "reply.code", "reply.table.cell"]
+	static let leafIDs = [
+		"reply.heading", "reply.paragraph", "reply.code", "reply.table.header", "reply.table.row",
+	]
 
 	static func labels(_ app: XCUIApplication) -> [String: [String]] {
 		Dictionary(
 			uniqueKeysWithValues: leafIDs.map { identifier in
 				(
 					identifier,
-					app.staticTexts.matching(identifier: identifier).allElementsBoundByIndex.map(
-						\.label)
+					app.descendants(matching: .any).matching(identifier: identifier)
+						.allElementsBoundByIndex.map(\.label)
 				)
 			})
 	}
@@ -30,7 +32,7 @@ enum ReplyProofScreen {
 		XCTAssertEqual(
 			tables.count,
 			blocks.filter {
-				if case .table = $0 { return true }
+				if case .table(let table) = $0 { return table.layout == .grid }
 				return false
 			}.count)
 		for table in tables { XCTAssertGreaterThan(table.frame.height, 44) }
@@ -117,10 +119,8 @@ enum ReplyProofScreen {
 		case .codeBlock:
 			labels["reply.code", default: []].append(block.accessibilityText)
 		case .table(let table):
-			labels["reply.table.cell", default: []] += ([table.header] + table.rows).flatMap {
-				row in
-				row.map { $0.map(\.accessibilityText).joined() }
-			}
+			labels["reply.table.header", default: []] += spoken([table.headerDescription])
+			labels["reply.table.row", default: []] += spoken(table.rowDescriptions)
 		case .list(let list):
 			switch list {
 			case .ordered(let items):
@@ -132,6 +132,21 @@ enum ReplyProofScreen {
 					for child in item.elements { collect(child, into: &labels) }
 				}
 			}
+		}
+	}
+
+	static func spoken(_ descriptions: [ReplyRowDescription]) -> [String] {
+		descriptions.map(\.accessibilityText).filter { !$0.isEmpty }
+	}
+
+	static func tables(_ source: String) -> [ReplyTable] {
+		guard case .blocks(let blocks) = ReplyParser.foundation.document(source) else {
+			XCTFail("The fixture must produce a formatted document")
+			return []
+		}
+		return blocks.compactMap { block in
+			if case .table(let table) = block { return table }
+			return nil
 		}
 	}
 
