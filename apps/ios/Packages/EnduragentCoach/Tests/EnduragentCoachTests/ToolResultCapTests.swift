@@ -11,6 +11,7 @@ import Testing
 	static let detailArguments = #"{"activityId":"i1234567"}"#
 
 	let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+	let store = InMemoryRecordLog()
 
 	@Test func oversizedArrayReportsEveryOmittedRow() async throws {
 		intervals.events = (1...150).map { number in
@@ -46,6 +47,23 @@ import Testing
 	@Test func oversizedObjectWithOnlyDeeperRowsReportsZero() async throws {
 		try seed(detail(zones: 150, laps: .notSupplied))
 		try await expectOmitted(Self.detailTool, Self.detailArguments, records: 0)
+	}
+
+	@Test func oversizedTextReportsZero() async throws {
+		let hidden = SectionName.cyclingEffective.filter { !$0.inject }
+		try await EnduragentCoachTests.seed(
+			store,
+			hidden.enumerated().map { index, section in
+				storedRecord(
+					device: store.deviceId, wall: Int64(index + 1), ulid: fixedUlid(index + 1),
+					account: testConnection.account,
+					body: .synced(
+						.memorySection(
+							MemorySectionBody(
+								name: section,
+								content: (0..<40).map(wide).joined(separator: "\n")))))
+			})
+		try await expectOmitted("memory_read", "{}", records: 0)
 	}
 
 	@Test(arguments: [100, 23_999, 24_000])
@@ -125,7 +143,7 @@ import Testing
 				.text("Read complete."), .finish(reason: .stop),
 			], otherwise: transport.respond)
 		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: InMemoryRecordLog())
+			transport: transport, intervals: intervals, store: store)
 		let settled = try await coach.sendAndSettle("Read my training data")
 		#expect(replyText(settled) == "Read complete.")
 		try #require(transport.requests.count == 2)
