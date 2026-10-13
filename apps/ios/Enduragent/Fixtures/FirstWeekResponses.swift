@@ -69,6 +69,7 @@
 		private static func reply(to text: String, tools: [ToolName], retry: Bool)
 			-> ScriptedReply
 		{
+			if let shortcut = shortcutReply(to: text, retry: retry) { return shortcut }
 			let normal = script(for: text, tools: tools)
 			guard !retry, text.hasPrefix("fixture:") else { return ScriptedReply(normal) }
 			let words = text.dropFirst("fixture:".count).split(separator: " ").map(String.init)
