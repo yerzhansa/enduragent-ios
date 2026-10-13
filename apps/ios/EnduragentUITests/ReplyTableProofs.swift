@@ -53,7 +53,7 @@ final class ReplyTableProof: XCTestCase {
 }
 
 @MainActor
-private enum ReplyTableScreen {
+enum ReplyTableScreen {
 	static func assertSummaryFitsTheReply(_ app: XCUIApplication) {
 		guard let summary = ReplyProofScreen.tables(NumbersReplyFixture.source).first else {
 			XCTFail("The numbers fixture must start with its summary table")
@@ -113,7 +113,7 @@ private enum ReplyTableScreen {
 		).firstMatch
 	}
 
-	private static func line(
+	static func line(
 		_ app: XCUIApplication, _ identifier: String, _ description: ReplyRowDescription
 	) -> XCUIElement {
 		text(app, identifier, description.accessibilityText)

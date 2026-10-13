@@ -46,7 +46,7 @@ enum ReviewAccessibility {
 		card.capture("cancelled-unknown")
 	}
 
-	private static func reopenAtLargestText(_ app: XCUIApplication, _ arguments: FixtureArguments) {
+	static func reopenAtLargestText(_ app: XCUIApplication, _ arguments: FixtureArguments) {
 		app.terminate()
 		XCTAssertEqual(app.state, .notRunning)
 		var reopened = arguments
