@@ -50,36 +50,53 @@ struct ReadToolsTests {
 		#expect(rows.map { $0.objectFields["name"]?.stringValue } == ["Sunday long ride"])
 	}
 
-	@Test func omittedNewestUsesAthleteTimeZoneToday() async throws {
-		_ = try await runtime().execute(
-			name: .intervalsFetchWellness,
-			arguments: try JSONValue.parse(#"{"oldest":"1998-06-07"}"#),
-			scope: turnScope()
-		).outcome
-		#expect(intervals.calls == [.wellness(oldest: "1998-06-07", newest: "1998-06-13")])
+	@Test(arguments: [
+		("1998-06-13T00:30:00+02:00", "Europe/Amsterdam"),
+		("1998-06-13T23:30:00-04:00", "America/New_York"),
+	])
+	func omittedNewestIsTodayInThePhonesTimeZone(now: String, zone: String) async throws {
+		let phone = FixedClock(now: now, timeZone: zone)
+		#expect(IntervalsPolicy.today(now: phone.now, timeZone: .gmt) != "1998-06-13")
+		intervals.wellness = [
+			.on("1998-06-12", [.fitness: 54]), .on("1998-06-13", [.fitness: 55]),
+			.on("1998-06-14", [.fitness: 56]),
+		]
+		let shown = try await wellness(#"{"oldest":"1998-06-12"}"#, clock: phone)
+		#expect(intervals.calls == [.wellness(oldest: "1998-06-12", newest: "1998-06-13")])
+		#expect(shown.objectFields["newest"] == .string("1998-06-13"))
+		#expect(dates(in: shown) == ["1998-06-12", "1998-06-13"])
 	}
 
-	@Test func wellnessToolOmitsCtlAtl() async throws {
+	@Test(arguments: [
+		(#"{"oldest":"1998-02-30","newest":"1998-06-13"}"#, "invalid_date"),
+		(#"{"oldest":"1998-06-07","newest":"13-06-1998"}"#, "invalid_date"),
+		(#"{"oldest":"1998-06-07","newest":19980613}"#, "invalid_date"),
+		(#"{"oldest":"1998-06-13","newest":"1998-06-07"}"#, "invalid_range"),
+		(#"{"oldest":"1998-06-14"}"#, "invalid_range"),
+		(#"{"oldest":"1997-06-12","newest":"1998-06-13"}"#, "range_too_wide"),
+		(#"{"oldest":"1997-06-12"}"#, "range_too_wide"),
+	])
+	func wellnessRangeThatIsNotValidIsRefusedBeforeAnyRead(arguments: String, code: String)
+		async throws
+	{
+		intervals.wellness = [.on("1998-06-13", [.fitness: 55])]
+		let shown = try await wellness(arguments, clock: clock)
+		#expect(shown.objectFields["error"]?.stringValue == code)
+		#expect(shown.objectFields["days"] == nil)
+		#expect(intervals.count(of: .wellness) == 0)
+	}
+
+	@Test func wellnessRangeOf366DaysIsReadAndIncludesBothEnds() async throws {
 		intervals.wellness = [
-			.on("1998-06-13", [.fitness: 55.2, .fatigue: 42.1])
+			.on("1998-06-14", [.fitness: 56]), .on("1998-06-13", [.fitness: 55]),
+			.on("1997-06-13", [.fitness: 41]), .on("1997-06-12", [.fitness: 40]),
 		]
-		let outcome = try await runtime().execute(
-			name: .intervalsFetchWellness,
-			arguments: try JSONValue.parse(#"{"oldest":"1998-06-13","newest":"1998-06-13"}"#),
-			scope: turnScope()
-		).outcome
-		guard case .result(let json) = outcome else {
-			Issue.record("expected wellness")
-			return
-		}
-		let encoded = canonicalJSON(unwrapData(json))
-		#expect(!encoded.contains("\"ctl\""))
-		#expect(!encoded.contains("\"atl\""))
-		#expect(encoded.contains("\"fitness\""))
-		#expect(encoded.contains("\"Fatigue\"") == false)
-		#expect(unwrapData(json).arrayValue?.first?.objectFields["fatigue"]?.numberValue == 42.1)
-		#expect(
-			unwrapData(json).arrayValue?.first?.objectFields["form"]?.numberValue == 55.2 - 42.1)
+		let shown = try await wellness(
+			#"{"oldest":"1997-06-13","newest":"1998-06-13"}"#, clock: clock)
+		#expect(intervals.count(of: .wellness) == 1)
+		#expect(shown.objectFields["oldest"] == .string("1997-06-13"))
+		#expect(shown.objectFields["newest"] == .string("1998-06-13"))
+		#expect(dates(in: shown) == ["1997-06-13", "1998-06-13"])
 	}
 
 	@Test func fetchAthleteAndActivityAndStreamsAndEvents() async throws {
@@ -212,7 +229,26 @@ struct ReadToolsTests {
 		json.objectFields["data"] ?? json
 	}
 
+	private func wellness(_ arguments: String, clock: FixedClock) async throws -> JSONValue {
+		let outcome = try await runtime(clock: clock).execute(
+			name: .intervalsFetchWellness, arguments: try JSONValue.parse(arguments),
+			scope: turnScope()
+		).outcome
+		guard case .result(let json) = outcome else {
+			throw IntervalsError(code: "no_result", details: "\(outcome)")
+		}
+		return unwrapData(json)
+	}
+
+	private func dates(in shown: JSONValue) -> [String?]? {
+		shown.objectFields["days"]?.arrayValue?.map { $0.objectFields["date"]?.stringValue }
+	}
+
 	private func runtime() -> ToolRuntime {
+		runtime(clock: clock)
+	}
+
+	private func runtime(clock: FixedClock) -> ToolRuntime {
 		let store = InMemoryRecordLog()
 		return makeToolRuntime(
 			intervals: intervals,

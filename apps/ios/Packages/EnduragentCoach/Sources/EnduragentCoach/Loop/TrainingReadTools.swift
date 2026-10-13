@@ -24,7 +24,7 @@ extension CoachTools {
 		)
 	) { arguments, reach in
 		let range = try arguments.readRange(today: reach.local.today)
-		return .result(CoachReadout.wellness(try await reach.reads.wellness(in: range)))
+		return .result(CoachReadout.wellness(try await reach.reads.wellness(in: range), in: range))
 	}
 
 	static let fetchActivity = CoachTool.training(
@@ -87,26 +87,68 @@ enum CoachReadout {
 			"id": .string(profile.id),
 			"name": .string(profile.name),
 		]
-		switch profile.ftp {
-		case .usable(let watts):
-			fields["ftp"] = .number(watts.value)
-		case .implausible(let reported?):
-			fields["ftp"] = .number(reported)
-		case .absent, .implausible(nil):
-			break
+		var units: [String: JSONValue] = [:]
+		func measure(_ key: String, _ value: JSONValue, unit: String) {
+			fields[key] = value
+			units[key] = .string(unit)
 		}
+		switch profile.ftp {
+		case .absent:
+			break
+		case .usable(let watts):
+			measure("ftp", .number(watts.value), unit: "W")
+		case .implausible(let reported):
+			if let reported { measure("ftp", .number(reported), unit: "W") }
+			fields["ftpUsable"] = .bool(false)
+			fields["ftpNotice"] = .string(PromptStaticBlocks.snapshotQualitativeFTP)
+		}
+		for field in ProfileField.allCases {
+			guard let value = profile.readings[field] else { continue }
+			measure(field.readoutKey, .number(value), unit: field.unit)
+		}
+		if let sex = profile.sex { fields["sex"] = .string(sex) }
+		if let age = profile.ageYears { fields["ageYears"] = .number(Double(age)) }
+		if !profile.settingsSports.isEmpty {
+			fields["sports"] = .array(profile.settingsSports.map(JSONValue.string))
+		}
+		if !profile.powerZones.isEmpty {
+			measure("powerZones", ladder(profile.powerZones), unit: "% of FTP")
+		}
+		if !profile.heartRateZones.isEmpty {
+			measure("heartRateZones", ladder(profile.heartRateZones), unit: "bpm")
+		}
+		if !units.isEmpty { fields["units"] = .object(units) }
 		return .object(fields)
 	}
 
-	static func wellness(_ days: [WellnessDay]) -> JSONValue {
+	private static func ladder(_ zones: [TrainingZone]) -> JSONValue {
 		.array(
-			days.map { day in
-				var fields: [String: JSONValue] = ["date": .string(day.date.rawValue)]
-				if let fitness = day.fitness { fields["fitness"] = .number(fitness) }
-				if let fatigue = day.fatigue { fields["fatigue"] = .number(fatigue) }
-				if let form = day.form { fields["form"] = .number(form) }
+			zones.map { zone in
+				var fields: [String: JSONValue] = ["upTo": .number(zone.upperBound)]
+				if let name = zone.name { fields["name"] = .string(name) }
 				return .object(fields)
 			})
+	}
+
+	static func wellness(_ days: [WellnessDay], in range: ReadRange) -> JSONValue {
+		var units: [String: JSONValue] = [:]
+		let rows = days.sorted { $0.date < $1.date }.map { day in
+			var fields: [String: JSONValue] = ["date": .string(day.date.rawValue)]
+			for field in WellnessField.allCases {
+				guard let value = day.readings[field] else { continue }
+				fields[field.readoutKey] = .number(value)
+				if let unit = field.unit { units[field.readoutKey] = .string(unit) }
+			}
+			if let form = day.form { fields["form"] = .number(OneDecimal.round(form)) }
+			return JSONValue.object(fields)
+		}
+		var result: [String: JSONValue] = [
+			"oldest": .string(range.oldest.rawValue),
+			"newest": .string(range.newest.rawValue),
+			"days": .array(rows),
+		]
+		if !units.isEmpty { result["units"] = .object(units) }
+		return .object(result)
 	}
 
 	static func activities(_ rows: [ActivitySummary]) -> JSONValue {
@@ -122,6 +164,68 @@ enum CoachReadout {
 				}
 				return .object(fields)
 			})
+	}
+}
+
+extension ProfileField {
+	var readoutKey: String {
+		switch self {
+		case .lthr: "lthr"
+		case .maxHeartRate: "maxHeartRate"
+		case .restingHeartRate: "restingHeartRate"
+		case .weight: "weight"
+		case .indoorFTP: "indoorFtp"
+		case .wPrime: "wPrime"
+		case .maxPower: "maxPower"
+		case .sweetSpotMin: "sweetSpotMin"
+		case .sweetSpotMax: "sweetSpotMax"
+		}
+	}
+
+	var unit: String {
+		switch self {
+		case .lthr, .maxHeartRate, .restingHeartRate: "bpm"
+		case .weight: "kg"
+		case .indoorFTP, .maxPower: "W"
+		case .wPrime: "J"
+		case .sweetSpotMin, .sweetSpotMax: "% of FTP"
+		}
+	}
+}
+
+extension WellnessField {
+	var readoutKey: String {
+		switch self {
+		case .fitness: "fitness"
+		case .fatigue: "fatigue"
+		case .rampRate: "rampRate"
+		case .weight: "weight"
+		case .restingHeartRate: "restingHeartRate"
+		case .hrv: "hrv"
+		case .sleepSeconds: "sleepSeconds"
+		case .sleepScore: "sleepScore"
+		case .sleepQuality: "sleepQuality"
+		case .readiness: "readiness"
+		case .soreness: "soreness"
+		case .stress: "stress"
+		case .mood: "mood"
+		case .motivation: "motivation"
+		case .injury: "injury"
+		case .reportedFatigue: "reportedFatigue"
+		}
+	}
+
+	var unit: String? {
+		switch self {
+		case .rampRate: "Fitness per week"
+		case .weight: "kg"
+		case .restingHeartRate: "bpm"
+		case .hrv: "ms"
+		case .sleepSeconds: "s"
+		case .fitness, .fatigue, .sleepScore, .sleepQuality, .readiness, .soreness, .stress,
+			.mood, .motivation, .injury, .reportedFatigue:
+			nil
+		}
 	}
 }
 

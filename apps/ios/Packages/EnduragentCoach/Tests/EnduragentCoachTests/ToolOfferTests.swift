@@ -161,8 +161,8 @@ import Testing
 		let envelope = try JSONValue.parse(try #require(results.first))
 		#expect(envelope.objectFields["untrusted_data"] == .string(UntrustedEnvelope.banner))
 		#expect(
-			envelope.objectFields["data"]?.arrayValue?.first?.objectFields["fitness"]
-				== .number(51))
+			envelope.objectFields["data"]?.objectFields["days"]?.arrayValue?.first?
+				.objectFields["fitness"] == .number(51))
 		#expect(
 			intervals.calls.filter { $0 == .wellness(oldest: "1998-06-01", newest: "1998-06-05") }
 				.count == 1)
