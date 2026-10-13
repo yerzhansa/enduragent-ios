@@ -9,6 +9,7 @@ Use Xcode `26.6`, XcodeGen `2.46.0`, and SwiftLint `0.65.1`. Run `make` from the
 ```sh
 make check-catalogs
 make check-source
+make check-coverage
 make lint-swift
 make check-format
 make test-swift

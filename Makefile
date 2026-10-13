@@ -11,7 +11,7 @@ DERIVED_DATA ?= DerivedData
 ONLY ?= EnduragentTests
 IPHONE_SIMULATOR := xcodebuild -project $(APP_PROJECT) -scheme Enduragent -showdestinations | awk '/Available destinations for/ { available = 1; next } /Ineligible destinations for/ { available = 0 } available && /platform:iOS Simulator/ && /name:iPhone/ { sub(/^.*id:/, ""); sub(/,.*/, ""); print; exit }'
 
-.PHONY: project generate-catalogs check-catalogs check-source lint-swift format-swift check-format test-tools test-swift test-app
+.PHONY: project generate-catalogs check-catalogs check-source check-coverage lint-swift format-swift check-format test-tools test-swift test-app
 
 project:
 	$(AT_ROOT) xcodegen generate --spec apps/ios/project.yml
@@ -24,6 +24,9 @@ check-catalogs: generate-catalogs
 
 check-source:
 	$(AT_ROOT) $(TOOL) check-source
+
+check-coverage:
+	$(AT_ROOT) $(TOOL) check-coverage
 
 lint-swift:
 	$(AT_ROOT) swiftlint lint --strict --quiet $(ARGS)
