@@ -36,6 +36,18 @@ _Avoid_: User, customer, account
 The saved intervals.icu key and the athlete it belongs to. It lets the coach read training data and add workouts to the calendar.
 _Avoid_: Integration, link, intervals account
 
+**Training snapshot**:
+The athlete's profile and latest wellness, read from intervals.icu for each turn and given to the coach.
+_Avoid_: Reference, cache, sync
+
+**Activity**:
+A recorded session read from intervals.icu.
+_Avoid_: Ride, session, workout
+
+**Activity review**:
+The coach's read of one activity, at brief, default, or deep depth.
+_Avoid_: Session review, analysis
+
 ### Conversation
 
 **Conversation**:
