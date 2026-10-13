@@ -118,14 +118,6 @@ package struct PlanningCommandID: Hashable, Sendable {
 	}
 }
 
-package struct RefreshID: Hashable, Sendable {
-	package let ulid: ULID
-
-	package init(ulid: ULID) {
-		self.ulid = ulid
-	}
-}
-
 package struct DebugSampleID: Hashable, Sendable {
 	package let ulid: ULID
 

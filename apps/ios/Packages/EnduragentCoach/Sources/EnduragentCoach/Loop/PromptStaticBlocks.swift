@@ -254,4 +254,9 @@ package enum PromptStaticBlocks {
 	package static let snapshotGuidance =
 		"Fetch wellness or activities only for a date range or history not shown here. "
 		+ "Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+
+	package static let snapshotQualitativeFTP =
+		"The profile's FTP is not a usable number (it must be between 50 and 600 W). "
+		+ "Keep intensity guidance qualitative, do not work out zones or watt targets from it, "
+		+ "and ask the athlete to check their FTP in intervals.icu."
 }
