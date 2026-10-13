@@ -87,15 +87,47 @@ enum CoachReadout {
 			"id": .string(profile.id),
 			"name": .string(profile.name),
 		]
-		switch profile.ftp {
-		case .usable(let watts):
-			fields["ftp"] = .number(watts.value)
-		case .implausible(let reported?):
-			fields["ftp"] = .number(reported)
-		case .absent, .implausible(nil):
-			break
+		var units: [String: JSONValue] = [:]
+		func measure(_ key: String, _ value: JSONValue, unit: String) {
+			fields[key] = value
+			units[key] = .string(unit)
 		}
+		switch profile.ftp {
+		case .absent:
+			break
+		case .usable(let watts):
+			measure("ftp", .number(watts.value), unit: "W")
+		case .implausible(let reported):
+			if let reported { measure("ftp", .number(reported), unit: "W") }
+			fields["ftpUsable"] = .bool(false)
+			fields["ftpNotice"] = .string(PromptStaticBlocks.snapshotQualitativeFTP)
+		}
+		for field in ProfileField.allCases {
+			guard let value = profile.readings[field] else { continue }
+			measure(field.readoutKey, .number(value), unit: field.unit)
+		}
+		if let sex = profile.sex { fields["sex"] = .string(sex) }
+		if let age = profile.ageYears { fields["ageYears"] = .number(Double(age)) }
+		if !profile.settingsSports.isEmpty {
+			fields["sports"] = .array(profile.settingsSports.map(JSONValue.string))
+		}
+		if !profile.powerZones.isEmpty {
+			measure("powerZones", ladder(profile.powerZones), unit: "% of FTP")
+		}
+		if !profile.heartRateZones.isEmpty {
+			measure("heartRateZones", ladder(profile.heartRateZones), unit: "bpm")
+		}
+		if !units.isEmpty { fields["units"] = .object(units) }
 		return .object(fields)
+	}
+
+	private static func ladder(_ zones: [TrainingZone]) -> JSONValue {
+		.array(
+			zones.map { zone in
+				var fields: [String: JSONValue] = ["upTo": .number(zone.upperBound)]
+				if let name = zone.name { fields["name"] = .string(name) }
+				return .object(fields)
+			})
 	}
 
 	static func wellness(_ days: [WellnessDay]) -> JSONValue {
@@ -122,6 +154,32 @@ enum CoachReadout {
 				}
 				return .object(fields)
 			})
+	}
+}
+
+extension ProfileField {
+	var readoutKey: String {
+		switch self {
+		case .lthr: "lthr"
+		case .maxHeartRate: "maxHeartRate"
+		case .restingHeartRate: "restingHeartRate"
+		case .weight: "weight"
+		case .indoorFTP: "indoorFtp"
+		case .wPrime: "wPrime"
+		case .maxPower: "maxPower"
+		case .sweetSpotMin: "sweetSpotMin"
+		case .sweetSpotMax: "sweetSpotMax"
+		}
+	}
+
+	var unit: String {
+		switch self {
+		case .lthr, .maxHeartRate, .restingHeartRate: "bpm"
+		case .weight: "kg"
+		case .indoorFTP, .maxPower: "W"
+		case .wPrime: "J"
+		case .sweetSpotMin, .sweetSpotMax: "% of FTP"
+		}
 	}
 }
 

@@ -126,6 +126,21 @@ package enum ProfileField: Hashable, Sendable, CaseIterable {
 	case maxHeartRate
 	case restingHeartRate
 	case weight
+	case indoorFTP
+	case wPrime
+	case maxPower
+	case sweetSpotMin
+	case sweetSpotMax
+}
+
+package struct TrainingZone: Sendable, Equatable {
+	package let name: String?
+	package let upperBound: Double
+
+	package init(name: String?, upperBound: Double) {
+		self.name = name
+		self.upperBound = upperBound
+	}
 }
 
 package struct AthleteProfile: Sendable, Equatable {
@@ -133,12 +148,26 @@ package struct AthleteProfile: Sendable, Equatable {
 	package let name: String
 	package let ftp: FTPReading
 	package let readings: Readings<ProfileField>
+	package let sex: String?
+	package let ageYears: Int?
+	package let settingsSports: [String]
+	package let powerZones: [TrainingZone]
+	package let heartRateZones: [TrainingZone]
 
-	package init(id: String, name: String, ftp: FTPReading, readings: Readings<ProfileField>) {
+	package init(
+		id: String, name: String, ftp: FTPReading, readings: Readings<ProfileField>,
+		sex: String? = nil, ageYears: Int? = nil, settingsSports: [String] = [],
+		powerZones: [TrainingZone] = [], heartRateZones: [TrainingZone] = []
+	) {
 		self.id = id
 		self.name = name
 		self.ftp = ftp
 		self.readings = readings
+		self.sex = sex
+		self.ageYears = ageYears
+		self.settingsSports = settingsSports
+		self.powerZones = powerZones
+		self.heartRateZones = heartRateZones
 	}
 }
 
