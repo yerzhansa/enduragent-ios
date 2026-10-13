@@ -102,6 +102,10 @@
 				return FormattedReplyFixture.finished
 			case "formatted-then-hang" where arguments.isEmpty:
 				return FormattedReplyFixture.streamingThenHang
+			case "numbers" where arguments.isEmpty:
+				return NumbersReplyFixture.finished
+			case "numbers-held" where arguments.isEmpty:
+				return NumbersReplyFixture.heldThenHang
 			case "long" where arguments.isEmpty:
 				return ScriptedReply([.text(longReply), .finish(reason: .stop)])
 			case "flush-partial" where arguments.isEmpty:

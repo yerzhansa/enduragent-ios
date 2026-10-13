@@ -53,6 +53,29 @@ extension FixtureLaunchTests {
 				"Next week at a glance"))
 	}
 
+	@Test func numbersDirectiveRepliesWithTheNumbersTables() async throws {
+		let model = await model(try services())
+		await model.agreeAndStartChatting()
+		model.draft.text = "fixture:numbers"
+		await model.send()
+		let turn = try await settledTurn(model)
+		#expect(replyText(turn.state) == NumbersReplyFixture.source)
+	}
+
+	@Test func heldNumbersDirectiveStopsAfterTheThirdLapRow() async throws {
+		let model = await model(try services())
+		await model.agreeAndStartChatting()
+		model.draft.text = "fixture:numbers-held"
+		await model.send()
+		try await until { model.chat?.liveReply?.text == NumbersReplyFixture.held }
+		await model.stop()
+		guard case .interrupted(let interrupted) = try await settledTurn(model).state else {
+			Issue.record("Stop did not interrupt the held numbers turn")
+			return
+		}
+		#expect(interrupted.partial == NumbersReplyFixture.held)
+	}
+
 	@Test func launchFaultFallsBackToTheWholeActualCoachReply() async throws {
 		var configured = launch
 		configured.replyParserFault = .fail

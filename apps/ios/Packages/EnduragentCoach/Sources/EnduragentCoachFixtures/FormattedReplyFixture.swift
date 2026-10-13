@@ -130,19 +130,6 @@
 			ScriptedReply([.text(source), .finish(reason: .stop)])
 		}
 
-		public static var streamingThenHang: ScriptedReply {
-			let prefix = streamingPrefix
-			var events: [ScriptedEvent] = []
-			var start = prefix.startIndex
-			while start < prefix.endIndex {
-				let end =
-					prefix.index(start, offsetBy: 128, limitedBy: prefix.endIndex)
-					?? prefix.endIndex
-				events.append(.text(String(prefix[start..<end])))
-				start = end
-			}
-			events.append(.hang)
-			return ScriptedReply(events, deltaDelay: .milliseconds(50))
-		}
+		public static var streamingThenHang: ScriptedReply { .deltasThenHang(streamingPrefix) }
 	}
 #endif
