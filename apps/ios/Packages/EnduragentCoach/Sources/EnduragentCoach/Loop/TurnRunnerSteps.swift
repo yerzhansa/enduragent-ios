@@ -123,7 +123,7 @@ extension TurnRunner {
 		return try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
 			for (index, (call, name)) in calls.enumerated() {
 				group.addTask {
-					guard let name else {
+					guard let name, offer.offers(name) else {
 						return (index, call, .result(ToolRuntime.unknownTool))
 					}
 					let arguments: JSONValue

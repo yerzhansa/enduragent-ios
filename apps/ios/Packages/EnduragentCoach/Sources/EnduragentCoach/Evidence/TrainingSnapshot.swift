@@ -99,8 +99,8 @@ package struct ProfileLine: Sendable, Equatable {
 			parts.append("FTP not usable")
 		}
 		for field in ProfileField.allCases {
-			guard let value = shown[field] else { continue }
-			parts.append("\(field.label) \(SnapshotNumber.text(value)) \(field.unit)")
+			guard let value = shown[field], let label = field.label else { continue }
+			parts.append("\(label) \(SnapshotNumber.text(value)) \(field.unit)")
 		}
 		return "Profile: " + parts.joined(separator: SnapshotNumber.separator)
 	}
@@ -268,22 +268,17 @@ extension ProfileField {
 		case .lthr, .maxHeartRate: true
 		case .restingHeartRate: SnapshotPolicy.restingHeartRate.contains(value)
 		case .weight: SnapshotPolicy.weightKilograms.contains(value)
+		case .indoorFTP, .wPrime, .maxPower, .sweetSpotMin, .sweetSpotMax: false
 		}
 	}
 
-	fileprivate var label: String {
+	fileprivate var label: String? {
 		switch self {
 		case .lthr: "LTHR"
 		case .maxHeartRate: "max HR"
 		case .restingHeartRate: "resting HR"
 		case .weight: "weight"
-		}
-	}
-
-	fileprivate var unit: String {
-		switch self {
-		case .lthr, .maxHeartRate, .restingHeartRate: "bpm"
-		case .weight: "kg"
+		case .indoorFTP, .wPrime, .maxPower, .sweetSpotMin, .sweetSpotMax: nil
 		}
 	}
 }

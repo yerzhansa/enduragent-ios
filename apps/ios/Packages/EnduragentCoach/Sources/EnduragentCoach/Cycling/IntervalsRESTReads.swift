@@ -3,7 +3,8 @@ import Foundation
 extension IntervalsRESTClient: TrainingReads {
 	package func profile() async throws -> AthleteProfile {
 		let athlete = try await getJSON(path: ["athlete", athletePath]).objectFields
-		let wire = ProfileWire(athlete: athlete, settings: Self.cyclingSettings(of: athlete))
+		let settings = Self.cyclingSettings(of: athlete)
+		let wire = ProfileWire(athlete: athlete, settings: settings)
 		var readings: [ProfileField: Double] = [:]
 		for field in ProfileField.allCases {
 			if case .number(let value) = wire.resolve(field.sources) {
@@ -14,7 +15,16 @@ extension IntervalsRESTClient: TrainingReads {
 			id: athlete["id"]?.stringValue ?? athletePath,
 			name: athlete["name"]?.stringValue ?? "",
 			ftp: FTPReading(wire.resolve([.settings("ftp"), .athlete("icu_ftp")])),
-			readings: Readings(readings)
+			readings: Readings(readings),
+			sex: athlete["sex"]?.stringValue,
+			ageYears: Self.wholeYears(
+				since: athlete["icu_date_of_birth"],
+				on: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)),
+			settingsSports: (settings["types"]?.arrayValue ?? []).compactMap(\.stringValue),
+			powerZones: Self.zones(
+				bounds: settings["power_zones"], names: settings["power_zone_names"]),
+			heartRateZones: Self.zones(
+				bounds: settings["hr_zones"], names: settings["hr_zone_names"])
 		)
 	}
 
@@ -33,6 +43,87 @@ extension IntervalsRESTClient: TrainingReads {
 		return rows.compactMap(Self.wellnessDay(from:))
 	}
 
+	package func activities(in range: ReadRange) async throws -> ActivityListing {
+		let json = try await getJSON(
+			path: ["athlete", athletePath, "activities"],
+			query: [
+				URLQueryItem(name: "oldest", value: range.oldest.rawValue),
+				URLQueryItem(name: "newest", value: range.newest.rawValue),
+			]
+		)
+		guard let rows = json.arrayValue else {
+			throw IntervalsError(
+				code: "invalid_json", details: "activities response was not an array")
+		}
+		return ActivityListing(range: range, rows: rows.map(Self.activityRow(from:)))
+	}
+
+	package func activity(_ id: ActivityID) async throws -> ActivityDetailRead {
+		let json: JSONValue
+		do {
+			json = try await reachingIntervals {
+				try await getJSON(
+					path: ["activity", id.rawValue],
+					query: [URLQueryItem(name: "intervals", value: "true")])
+			}
+		} catch let error as IntervalsError where error.status == 404 {
+			return .notFound
+		}
+		guard case .object(let fields) = json else {
+			throw IntervalsError(
+				code: "invalid_json", details: "activity response was not an object")
+		}
+		switch Self.activityRow(from: json) {
+		case .hiddenByStrava:
+			if let answered = Self.activityID(in: fields), answered != id {
+				throw IntervalsError.activityMismatch(asked: id)
+			}
+			return .hiddenByStrava
+		case .unreadable:
+			throw IntervalsError(
+				code: "invalid_json",
+				details: "activity response had no usable identifier or start")
+		case .activity(let activity):
+			return .found(
+				try ActivityDetail(
+					asked: id, activity: activity, extras: Self.extras(from: fields),
+					laps: try Self.laps(from: fields["icu_intervals"])))
+		}
+	}
+
+	package func streams(of id: ActivityID, channels: StreamChannels) async throws
+		-> StreamSummary
+	{
+		let json = try await getJSON(
+			path: ["activity", id.rawValue, "streams.json"],
+			query: [URLQueryItem(name: "types", value: channels.names.joined(separator: ","))])
+		return StreamSummary(summarizing: try Self.streamSamples(from: json), asked: channels)
+	}
+
+	private static func streamSamples(from wire: JSONValue) throws(IntervalsError)
+		-> [StreamSamples]
+	{
+		let sent: [(channel: String?, data: JSONValue?)]
+		switch wire {
+		case .array(let entries):
+			sent = entries.map { ($0.objectFields["type"]?.stringValue, $0.objectFields["data"]) }
+		case .object(let fields):
+			sent = fields.map { ($0.key, $0.value) }
+		default:
+			throw IntervalsError(
+				code: "invalid_json", details: "streams response was not a list or an object")
+		}
+		return sent.compactMap { channel, data in
+			guard let channel, let slots = data?.arrayValue else { return nil }
+			return StreamSamples(
+				channel: channel,
+				values: slots.map { slot in
+					guard case .number(let value) = slot, value.isFinite else { return nil }
+					return value
+				})
+		}
+	}
+
 	private static func cyclingSettings(of athlete: [String: JSONValue]) -> [String: JSONValue] {
 		let rows: [[String: JSONValue]] = (athlete["sportSettings"]?.arrayValue ?? []).compactMap {
 			guard case .object(let row) = $0 else { return nil }
@@ -44,6 +135,25 @@ extension IntervalsRESTClient: TrainingReads {
 			}
 		}
 		return cycling ?? rows.first ?? [:]
+	}
+
+	private static func wholeYears(since birth: JSONValue?, on today: CivilDate) -> Int? {
+		guard let born = birth?.stringValue.flatMap(CivilDate.init(rawValue:)), born <= today
+		else { return nil }
+		return (DateKey.from(today).rawValue - DateKey.from(born).rawValue) / 10_000
+	}
+
+	private static func zones(bounds: JSONValue?, names: JSONValue?) -> [TrainingZone] {
+		let names = names?.arrayValue ?? []
+		var ladder: [TrainingZone] = []
+		for (index, bound) in (bounds?.arrayValue ?? []).enumerated() {
+			guard case .number(let upperBound) = ReportedNumber(wire: bound) else { return [] }
+			ladder.append(
+				TrainingZone(
+					name: index < names.count ? names[index].stringValue : nil,
+					upperBound: upperBound))
+		}
+		return ladder
 	}
 
 	private static func wellnessDay(from row: JSONValue) -> WellnessDay? {
@@ -58,6 +168,107 @@ extension IntervalsRESTClient: TrainingReads {
 			}
 		}
 		return WellnessDay(date: date, readings: Readings(readings))
+	}
+
+	private static func activityRow(from row: JSONValue) -> ActivityRow {
+		let fields = row.objectFields
+		func number(_ key: String) -> Double? {
+			guard case .number(let value) = ReportedNumber(wire: fields[key]) else { return nil }
+			return value
+		}
+		return ActivityRow(
+			source: fields["source"]?.stringValue, sport: fields["type"]?.stringValue,
+			movingTime: number("moving_time"), elapsedTime: number("elapsed_time"),
+			activity: activity(from: fields))
+	}
+
+	private static func activityID(in fields: [String: JSONValue]) -> ActivityID? {
+		switch fields["id"] {
+		case .string(let raw)?: ActivityID(rawValue: raw)
+		case .number(let number)?:
+			JSONValue.number(number).intValue().flatMap { ActivityID(rawValue: String($0)) }
+		default: nil
+		}
+	}
+
+	private static func activity(from fields: [String: JSONValue]) -> Activity? {
+		guard let id = activityID(in: fields),
+			let start = fields["start_date_local"]?.stringValue.flatMap(localStart)
+		else { return nil }
+		return Activity(
+			id: id, name: fields["name"]?.stringValue, sport: fields["type"]?.stringValue,
+			start: start, readings: readings(in: fields, under: \ActivityField.wireKey))
+	}
+
+	private static func readings<Field: Hashable & Sendable & CaseIterable>(
+		in fields: [String: JSONValue], under key: (Field) -> String?
+	) -> Readings<Field> {
+		var readings: [Field: Double] = [:]
+		for field in Field.allCases {
+			guard let key = key(field) else { continue }
+			if case .number(let value) = ReportedNumber(wire: fields[key]) {
+				readings[field] = value
+			}
+		}
+		return Readings(readings)
+	}
+
+	private static func laps(from wire: JSONValue?) throws(IntervalsError) -> Laps {
+		switch wire {
+		case nil, .null?:
+			return .notSupplied
+		case .array(let entries)?:
+			return .recorded(
+				entries.enumerated().map { index, entry in
+					let fields = entry.objectFields
+					return ActivityLap(
+						number: index + 1, label: fields["label"]?.stringValue,
+						kind: fields["type"]?.stringValue,
+						readings: readings(in: fields, under: \ActivityField.lapWireKey))
+				})
+		default:
+			throw IntervalsError(code: "invalid_json", details: "activity laps were not a list")
+		}
+	}
+
+	private static func extras(from fields: [String: JSONValue]) -> ActivityDetailExtras {
+		ActivityDetailExtras(
+			notes: fields["description"]?.stringValue, indoor: fields["trainer"]?.boolValue,
+			readings: readings(in: fields, under: \ActivityDetailField.wireKey),
+			powerZoneSeconds: (fields["icu_zone_times"]?.arrayValue ?? []).compactMap { entry in
+				let zone = entry.objectFields
+				guard let name = zone["id"]?.stringValue, let seconds = wholeSeconds(zone["secs"])
+				else { return nil }
+				return ZoneSeconds(zone: name, seconds: seconds)
+			},
+			heartRateZoneSeconds: heartRateZoneSeconds(fields["icu_hr_zone_times"]))
+	}
+
+	private static func heartRateZoneSeconds(_ wire: JSONValue?) -> [Int] {
+		var ladder: [Int] = []
+		for entry in wire?.arrayValue ?? [] {
+			guard let seconds = wholeSeconds(entry) else { return [] }
+			ladder.append(seconds)
+		}
+		return ladder
+	}
+
+	private static func wholeSeconds(_ wire: JSONValue?) -> Int? {
+		guard case .number(let value)? = wire, value >= 0 else { return nil }
+		return JSONValue.number(value).intValue()
+	}
+
+	private static func localStart(_ wire: String) -> LocalStart? {
+		guard let date = CivilDate(rawValue: String(wire.prefix(10))) else { return nil }
+		let time = wire.dropFirst(10)
+		if time.isEmpty { return LocalStart(date: date, secondOfDay: nil) }
+		let parts = time.dropFirst().split(separator: ":", omittingEmptySubsequences: false)
+		guard time.first == "T", parts.count == 3,
+			parts.allSatisfy({ $0.count == 2 && $0.allSatisfy { $0.isASCII && $0.isNumber } }),
+			let hour = Int(parts[0]), let minute = Int(parts[1]), let second = Int(parts[2]),
+			hour < 24, minute < 60, second < 60
+		else { return nil }
+		return LocalStart(date: date, secondOfDay: hour * 3_600 + minute * 60 + second)
 	}
 }
 
@@ -103,6 +314,62 @@ extension ProfileField {
 		case .maxHeartRate: [.settings("max_hr"), .athlete("icu_max_hr")]
 		case .restingHeartRate: [.settings("resting_hr"), .athlete("icu_resting_hr")]
 		case .weight: [.athlete("icu_weight"), .athlete("weight"), .settings("weight")]
+		case .indoorFTP: [.settings("indoor_ftp")]
+		case .wPrime: [.settings("w_prime")]
+		case .maxPower: [.settings("p_max")]
+		case .sweetSpotMin: [.settings("sweet_spot_min")]
+		case .sweetSpotMax: [.settings("sweet_spot_max")]
+		}
+	}
+}
+
+extension ActivityField {
+	fileprivate var wireKey: String {
+		switch self {
+		case .duration: "moving_time"
+		case .distance: "distance"
+		case .load: "icu_training_load"
+		case .intensity: "icu_intensity"
+		case .averagePower: "icu_average_watts"
+		case .weightedPower: "icu_weighted_avg_watts"
+		case .averageHeartRate: "average_heartrate"
+		case .maxHeartRate: "max_heartrate"
+		case .ftp: "icu_ftp"
+		case .elevationGain: "total_elevation_gain"
+		}
+	}
+}
+
+extension ActivityField {
+	fileprivate var lapWireKey: String? {
+		switch self {
+		case .duration: "moving_time"
+		case .distance: "distance"
+		case .load: "training_load"
+		case .intensity: "intensity"
+		case .averagePower: "average_watts"
+		case .weightedPower: "weighted_average_watts"
+		case .averageHeartRate: "average_heartrate"
+		case .maxHeartRate: "max_heartrate"
+		case .ftp: nil
+		case .elevationGain: "total_elevation_gain"
+		}
+	}
+}
+
+extension ActivityDetailField {
+	fileprivate var wireKey: String {
+		switch self {
+		case .perceivedExertion: "icu_rpe"
+		case .feel: "feel"
+		case .averageCadence: "average_cadence"
+		case .averageSpeed: "average_speed"
+		case .maxSpeed: "max_speed"
+		case .calories: "calories"
+		case .work: "icu_joules"
+		case .variabilityIndex: "icu_variability_index"
+		case .efficiencyFactor: "icu_efficiency_factor"
+		case .decoupling: "decoupling"
 		}
 	}
 }

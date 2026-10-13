@@ -17,14 +17,18 @@ import Testing
 		)
 		let mainChat = scope()
 		let otherChat = scope()
-		let week = try JSONValue.parse(#"{"days":7}"#)
+		let week = try JSONValue.parse(#"{"oldest":"1998-06-07"}"#)
 		_ = try await tools.execute(
 			name: .intervalsFetchActivities, arguments: week, scope: mainChat)
 		_ = try await tools.execute(
 			name: .intervalsFetchActivities, arguments: week, scope: otherChat)
 		_ = try await tools.execute(
 			name: .intervalsFetchActivities, arguments: week, scope: mainChat)
-		#expect(intervals.calls == [.activities(days: 7), .activities(days: 7)])
+		#expect(
+			intervals.calls == [
+				.activities(oldest: "1998-06-07", newest: "1998-06-13"),
+				.activities(oldest: "1998-06-07", newest: "1998-06-13"),
+			])
 		_ = try await tools.execute(
 			name: .memoryWrite,
 			arguments: try JSONValue.parse(#"{"type":"daily","content":"Easy spin today."}"#),
@@ -43,7 +47,7 @@ import Testing
 		let tools = makeToolRuntime(
 			intervals: intervals, ledger: ledger, clock: clock)
 		let turn = scope()
-		let week = try JSONValue.parse(#"{"days":7}"#)
+		let week = try JSONValue.parse(#"{"oldest":"1998-06-07"}"#)
 		let original = Task {
 			try await heldTools.execute(
 				name: .intervalsFetchActivities, arguments: week, scope: turn)
@@ -59,7 +63,7 @@ import Testing
 		let cached = try await tools.execute(
 			name: .intervalsFetchActivities, arguments: week, scope: turn)
 		#expect(cached == replacement)
-		#expect(intervals.calls == [.activities(days: 7)])
+		#expect(intervals.calls == [.activities(oldest: "1998-06-07", newest: "1998-06-13")])
 	}
 
 	@Test func flushLatchReturnsTrueOnce() async {

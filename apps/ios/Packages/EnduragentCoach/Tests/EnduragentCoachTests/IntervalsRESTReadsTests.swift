@@ -16,6 +16,32 @@ extension IntervalsRESTClientTests {
 		#expect(profile.readings[.weight] == 58)
 	}
 
+	@Test func profileKeepsTheAddedFieldsOfTheCyclingRowAndTheAthlete() async throws {
+		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+		let profile = try await makeClient(clock: clock).profile()
+		#expect(
+			profile
+				== AthleteProfile.cyclist(id: "i1001", name: "Ada Kovač", ftp: 250).with(
+					[
+						.lthr: 165, .maxHeartRate: 185, .restingHeartRate: 48, .weight: 58,
+						.indoorFTP: 245, .wPrime: 20_000, .maxPower: 1_100, .sweetSpotMin: 84,
+						.sweetSpotMax: 97,
+					],
+					sex: "F", ageYears: 27, settingsSports: ["Ride", "VirtualRide"],
+					powerZones: zip(
+						[
+							"Active Recovery", "Endurance", "Tempo", "Threshold", "VO2 Max",
+							"Anaerobic", "Neuromuscular",
+						], [55, 75, 90, 105, 120, 150, 999]
+					).map(TrainingZone.init),
+					heartRateZones: zip(
+						[
+							"Recovery", "Aerobic", "Tempo", "SubThreshold", "SuperThreshold",
+							"Aerobic Capacity", "Anaerobic",
+						], [135, 150, 156, 166, 171, 176, 185]
+					).map(TrainingZone.init)))
+	}
+
 	@Test(arguments: ProfileChainStep.all)
 	func profileUsesTheFirstSourceThatHasAValue(step: ProfileChainStep) async throws {
 		let profile = try await profile(from: step.body)

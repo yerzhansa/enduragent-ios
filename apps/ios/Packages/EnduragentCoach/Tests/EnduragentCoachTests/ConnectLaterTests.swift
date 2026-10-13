@@ -35,7 +35,8 @@ import Testing
 				builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow))
 		let reads: [ScriptedEvent] = [
 			.toolCall(name: ToolName.intervalsFetchAthlete.rawValue, arguments: "{}"),
-			.toolCall(name: ToolName.intervalsListEvents.rawValue, arguments: #"{"days":7}"#),
+			.toolCall(
+				name: ToolName.intervalsListEvents.rawValue, arguments: #"{"oldest":"1998-06-07"}"#),
 			.finish(reason: .toolCalls), .text("Training checked."), .finish(reason: .stop),
 		]
 		transport.respond = ScriptedReply.sequence(reads)
