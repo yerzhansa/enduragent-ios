@@ -31,12 +31,16 @@ import Testing
 		#expect(readings[.mood] == nil)
 	}
 
-	@Test(arguments: [
-		(55.2, 42.1, 13.1), (42.0, 49.0, -7.0), (0.25, 0.0, 0.3), (0.0, 0.25, -0.2),
-		(0.0, 0.0, 0.0),
-	])
-	func formIsFitnessMinusFatigueToOneDecimal(fitness: Double, fatigue: Double, form: Double) {
-		#expect(WellnessDay.on("1998-06-13", [.fitness: fitness, .fatigue: fatigue]).form == form)
+	@Test(arguments: [(55.2, 42.1), (42.0, 49.0), (50.0, 42.54), (0.0, 0.25), (0.0, 0.0)])
+	func formIsFitnessMinusFatigueUnrounded(fitness: Double, fatigue: Double) {
+		#expect(
+			WellnessDay.on("1998-06-13", [.fitness: fitness, .fatigue: fatigue]).form
+				== fitness - fatigue)
+	}
+
+	@Test(arguments: [(13.1, 13.1), (7.46, 7.5), (0.25, 0.3), (-0.25, -0.2), (-6.47, -6.5)])
+	func oneDecimalRoundsATieTowardPositiveInfinity(value: Double, rounded: Double) {
+		#expect(OneDecimal.round(value) == rounded)
 	}
 
 	@Test func formNeedsBothFitnessAndFatigue() {
@@ -75,7 +79,7 @@ import Testing
 				== .array([
 					.object([
 						"date": .string("1998-06-13"), "fitness": .number(55.2),
-						"fatigue": .number(42.1), "form": .number(13.1),
+						"fatigue": .number(42.1), "form": .number(55.2 - 42.1),
 					]),
 					.object(["date": .string("1998-06-11")]),
 					.object(["date": .string("1998-06-12"), "fatigue": .number(0)]),

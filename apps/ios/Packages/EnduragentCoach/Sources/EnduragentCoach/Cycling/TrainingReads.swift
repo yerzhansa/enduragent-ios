@@ -175,6 +175,6 @@ public struct WellnessDay: Sendable, Equatable {
 
 	public var form: Double? {
 		guard let fitness, let fatigue else { return nil }
-		return OneDecimal.round(fitness - fatigue)
+		return fitness - fatigue
 	}
 }

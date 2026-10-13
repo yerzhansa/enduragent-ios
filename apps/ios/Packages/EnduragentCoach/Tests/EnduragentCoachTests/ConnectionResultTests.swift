@@ -200,6 +200,18 @@ import Testing
 		#expect(display.notice?.key.rawValue == (days.isEmpty ? "connect.wellness.empty" : nil))
 	}
 
+	@Test(arguments: [(50.0, 42.54, "7"), (42.0, 48.47, "-6"), (55.2, 42.1, "13")])
+	func connectedFormIsRoundedToAWholeNumberOnce(fitness: Double, fatigue: Double, shown: String)
+		async throws
+	{
+		client.wellness = [.on("1998-06-13", [.fitness: fitness, .fatigue: fatigue])]
+		let coach = await coach()
+		let statuses = await coach.observeStatus()
+		_ = await coach.changeTraining(.replace(apiKey: "synthetic-key", athlete: .keyOwner))
+		let today = try #require(try await landed(in: statuses).today)
+		#expect(displayLocale().number(today.form, precision: .whole) == shown)
+	}
+
 	@Test func invalidOwnerIDNeverBecomesAnAvailableProfile() async throws {
 		client.athlete = .cyclist(id: "0", name: "Unknown", ftp: 250)
 		let coach = await coach()
