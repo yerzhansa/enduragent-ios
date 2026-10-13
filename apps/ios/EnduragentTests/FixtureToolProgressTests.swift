@@ -58,4 +58,19 @@ extension FixtureLaunchTests {
 		#expect(transport.requestCount == 3)
 		#expect(intervals.events.isEmpty)
 	}
+
+	@Test(arguments: [TutorialCopy.rideRequest, FirstWeekFixture.toolProgressDirective])
+	func unconnectedWorkoutRequestSaysTrainingDataIsNotConnected(text: String) async throws {
+		let services = try services()
+		let fixture = try #require(services.fixture)
+		let model = await model(services)
+		await model.agreeAndStartChatting()
+		model.draft.text = text
+		await model.send()
+		let settled = try await settledTurn(model)
+		#expect(replyText(settled.state) == FirstWeekFixture.trainingDataMissing)
+		#expect(model.chat?.review == nil)
+		#expect(fixture.transport.requestCount == 1)
+		#expect(fixture.intervals.calls.isEmpty)
+	}
 }
