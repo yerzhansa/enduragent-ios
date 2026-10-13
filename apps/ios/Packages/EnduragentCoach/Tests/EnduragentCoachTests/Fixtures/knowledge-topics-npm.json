@@ -1,0 +1,61 @@
+{
+  "npmRevision": "d192cb974e715e1527645e0acf0d8353ed4d0edc",
+  "reason": "The phone has no plan tools (build_plan_skeleton, get_sample_week) until Milestone 5, so three knowledge topics leave out npm's passages that tell the coach to call them, and the race preparation topic loses its taper-length section with them. Agreed by the operator for Milestone 3. The baseline text returns with the plan tools.",
+  "topics": {
+    "cycling-intervals-icu": {
+      "npmSHA256": "12dc55e81cdce1509794be12e8c48fd80a29ad55952c9901df9b6d9262ee104e",
+      "differences": []
+    },
+    "cycling-periodization": {
+      "npmSHA256": "89cf5982e01de04fce1112c6803f46ee814b7651bbed3c4e102815fab9195eb5",
+      "differences": [
+        {
+          "npm": "`build_plan_skeleton` decides the actual model deterministically; your job is to\nexplain *why* it fits the athlete, not to re-run the selection by hand.",
+          "phone": "## Per-phase emphasis"
+        },
+        {
+          "npm": "## Where the numbers come from\n\nThe periodized structure — phase boundaries, intensity distributions,\nbuild:recovery cadence, volume multipliers, and taper length — is computed by the\n`build_plan_skeleton` tool. Call it with the athlete's profile and narrate the\noutput; never invent these numbers in prose, because they live in one\ndeterministic place and drift the moment they're copied.\n\nWhat stays your job is per-phase *emphasis*, which the tool doesn't fully surface:\ntraining",
+          "phone": "Training"
+        },
+        {
+          "npm": " and let the tool supply the exact figures",
+          "phone": ""
+        }
+      ]
+    },
+    "cycling-prescription-posture": {
+      "npmSHA256": "76311fe54186c18a0b97981eeb5e6ffbfd1ad19211344520f4dbf9f7b4c372bc",
+      "differences": [
+        {
+          "npm": "`build_plan_skeleton`, `get_sample_week`, or ",
+          "phone": ""
+        }
+      ]
+    },
+    "cycling-race-prep": {
+      "npmSHA256": "787ecae108709000bac5a50c500f0e1633fa381ecc952f7fc0516078396db99b",
+      "differences": [
+        {
+          "npm": "## Taper Length by Race Type\n\nTaper length per race type — how many weeks of reduced volume each event needs —\nis computed by the `build_plan_skeleton` tool, which returns the taper phase as\npart of the plan. Call the tool with the athlete's race type and narrate the\ntaper it returns rather than quoting a per-race-type week count from memory; the\nnumbers live in one deterministic place and drift the moment they're copied. The\n*how* of the taper is below.\n\n",
+          "phone": ""
+        }
+      ]
+    },
+    "cycling-recovery": {
+      "npmSHA256": "0d5c56a7dbecaf9e20f7fcac8bf66f345ebfbe898dea1bbb975dfec0052db88c",
+      "differences": []
+    },
+    "cycling-review": {
+      "npmSHA256": "b65c370f6c0e183688cd10e2d9d874cee16a72176e1da6ec5b66cc36c2810542",
+      "differences": []
+    },
+    "cycling-workout-design": {
+      "npmSHA256": "d68461b520c77cd80933bc882c567746f25047b01ad4229cf181e624d74d53e7",
+      "differences": []
+    },
+    "cycling-zone-reference": {
+      "npmSHA256": "11f74428df64fc168828ee7d7c89c4cf2d56e2a74ba7ecf3bd1e5cb761950223",
+      "differences": []
+    }
+  }
+}
