@@ -9,6 +9,16 @@ package protocol TrainingReads: Sendable {
 
 package typealias TrainingClient = TrainingReads & IntervalsClient
 
+package func reachingIntervals<Answer>(_ read: () async throws -> Answer) async throws -> Answer {
+	do {
+		return try await read()
+	} catch let error as URLError where error.code != .cancelled {
+		throw IntervalsError(
+			code: "network",
+			details: "intervals.icu could not be reached (URLError \(error.code.rawValue)).")
+	}
+}
+
 package struct ReadRange: Sendable, Equatable {
 	package let oldest: CivilDate
 	package let newest: CivilDate

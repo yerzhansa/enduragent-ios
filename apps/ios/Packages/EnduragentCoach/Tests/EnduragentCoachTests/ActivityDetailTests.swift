@@ -134,6 +134,20 @@ import Testing
 			])
 	}
 
+	@Test func detailThatCannotReachIntervalsNamesTheActivityAndTheCause() async throws {
+		intervals.activities = [Self.noon, Self.evening]
+		intervals.fail(.activity, with: URLError(.notConnectedToInternet))
+
+		let shown = try await detail(of: "i1234569").objectFields
+
+		#expect(shown["error"] == .string("activity_detail_unavailable"))
+		#expect(shown["activityId"] == .string("i1234569"))
+		#expect(shown["cause"] == .string("network"))
+		#expect(shown["details"]?.stringValue?.contains("could not be reached") == true)
+		#expect(Set(shown.keys) == ["error", "activityId", "cause", "details"])
+		#expect(intervals.calls == [.activity(Self.noon.id)])
+	}
+
 	@Test func storedAnswerForAnotherIdentifierIsNeverShownAsTheAskedActivity() async throws {
 		intervals.activities = [Self.noon, Self.evening]
 		intervals.details[Self.noon.id] = try found(Self.evening, laps: .recorded([]))

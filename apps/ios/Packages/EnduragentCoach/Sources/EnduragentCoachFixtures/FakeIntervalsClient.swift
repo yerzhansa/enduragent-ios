@@ -96,7 +96,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 
 	package func activity(_ id: ActivityID) async throws -> ActivityDetailRead {
 		recordedCalls.withLock { $0.append(.activity(id)) }
-		try await begin(.activity)
+		try await reachingIntervals { try await begin(.activity) }
 		switch details[id] {
 		case .found(let detail)?:
 			return .found(
