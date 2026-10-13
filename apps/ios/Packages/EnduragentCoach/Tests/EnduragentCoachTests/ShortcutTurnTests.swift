@@ -8,6 +8,8 @@ import Testing
 	@Test(arguments: [
 		("/status", SlashCommand.status),
 		("/status how is my Form this week", .status),
+		("/workout", .workout),
+		("/workout 45 minutes indoors", .workout),
 	])
 	func shortcutReachesTheCoachOnceWithAllItsText(text: String, command: SlashCommand)
 		async throws
@@ -31,6 +33,8 @@ import Testing
 	@Test(arguments: [
 		("/status", "How is my Form this week?"),
 		("/status how is my Form this week", "How is my Form this week?"),
+		("/workout", "What is today's workout?"),
+		("/workout 45 minutes indoors", "What is today's workout?"),
 	])
 	func shortcutAndOrdinaryMessageGiveTheCoachTheSamePromptAndTools(
 		shortcut: String, ordinary: String
@@ -44,8 +48,10 @@ import Testing
 		let system = try #require(command.messages.first)
 		#expect(system.role == .system)
 		#expect(system.content.contains("Profile: FTP 250 W\nWellness 1998-06-13: Fitness 55.2"))
+		#expect(system.content.contains("\n# Cycling Prescription Availability\n"))
 		#expect(plain.messages.first == system)
 		#expect(command.tools.contains { $0.name == .intervalsFetchWellness })
+		#expect(command.tools.contains { $0.name == .intervalsCreateWorkout })
 		#expect(plain.tools == command.tools)
 		#expect(
 			command.messages.dropFirst().map(\.content) == [
@@ -124,11 +130,12 @@ import Testing
 		#expect(!system.contains("Wellness 1998-06-"))
 	}
 
-	@Test func unconnectedStatusPromptSaysSoAndOffersNoTrainingRead() async throws {
+	@Test(arguments: ["/status", "/workout"])
+	func unconnectedShortcutPromptSaysSoAndOffersNoTrainingTool(text: String) async throws {
 		let bench = ShortcutBench()
 		let coach = try await bench.coach(connected: false)
 
-		let request = try await bench.onlyRequest(after: "/status", to: coach)
+		let request = try await bench.onlyRequest(after: text, to: coach)
 
 		let system = try bench.system(of: request)
 		#expect(
@@ -148,11 +155,12 @@ import Testing
 		#expect(bench.intervals.count(of: .wellness) == 0)
 	}
 
-	@Test func statusEndingInTextLeavesNoReviewAndMakesNoCalendarCall() async throws {
+	@Test(arguments: ["/status", "/workout", "/workout 45 minutes indoors"])
+	func shortcutEndingInTextLeavesNoReviewAndMakesNoCalendarCall(text: String) async throws {
 		let bench = ShortcutBench()
 		let coach = try await bench.coach()
 
-		_ = try await bench.onlyRequest(after: "/status", to: coach)
+		_ = try await bench.onlyRequest(after: text, to: coach)
 
 		#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
 		#expect(try await bench.savedProposals() == 0)
@@ -187,11 +195,81 @@ import Testing
 		#expect(bench.intervals.calls.filter(\.isWrite).isEmpty)
 		#expect(bench.intervals.events.isEmpty)
 	}
+
+	@Test(arguments: WorkoutProgress.allCases)
+	func runningWorkoutShowsTheMessageAndAWorkingStateWithNoFinishedReply(
+		reached: WorkoutProgress
+	) async throws {
+		let bench = ShortcutBench()
+		let coach = try await bench.coach(replying: reached.opening + [.hang])
+
+		let turn = try #require(
+			try await coach.send(draft("/workout 45 minutes indoors"), to: .main).acceptedTurn)
+		try await waitUntil { bench.transport.requests.count == 1 }
+		let running = try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				guard case .processing? = $0.turns.first?.state else { return false }
+				return ($0.liveReply?.text ?? "") == reached.streamed
+			})
+
+		#expect(running.turns.map(\.id) == [turn])
+		#expect(running.turns.map(\.athleteText) == ["/workout 45 minutes indoors"])
+		#expect(running.activity == .working(label: Catalog.chatNoticeWorking))
+		#expect(running.turns.compactMap { replyText($0.state) }.isEmpty)
+		#expect(running.review == nil)
+		await coach.stop(.main)
+		let stopped = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(replyText(stopped) == nil)
+	}
+
+	@Test(arguments: WorkoutProgress.allCases)
+	func workoutLosingModelAccessEndsWithANoticeAndNoReplyReviewOrCalendarCall(
+		lost: WorkoutProgress
+	) async throws {
+		let bench = ShortcutBench()
+		let dropped = lost.opening + [ScriptedEvent.fail(.connection(.networkConnectionLost))]
+		let coach = try await bench.coach(replying: dropped + dropped + dropped)
+
+		let turn = try #require(try await coach.send(draft("/workout"), to: .main).acceptedTurn)
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+
+		#expect(failure(settled) == .model(.providerDown(.network)))
+		let notice = try #require(turnNotice(of: settled))
+		#expect(
+			notice.canonicalSentence
+				== "The model provider is having trouble — try again in a few minutes.")
+		#expect(notice.actions == [.tryAgain(turn)])
+		let snapshot = try #require(await coach.currentSnapshot(.main))
+		#expect(snapshot.turns.map(\.athleteText) == ["/workout"])
+		#expect(snapshot.turns.map(\.state) == [settled])
+		#expect(snapshot.liveReply == nil)
+		#expect(snapshot.activity == .idle)
+		#expect(snapshot.review == nil)
+		#expect(try await bench.savedProposals() == 0)
+		#expect(bench.intervals.calls.filter(\.isCalendarCall).isEmpty)
+		#expect(bench.intervals.events.isEmpty)
+	}
 }
 
 enum MissingWellness: CaseIterable {
 	case noRowInSevenDays
 	case readFailed
+}
+
+enum WorkoutProgress: CaseIterable {
+	case beforeAnyText
+	case afterPartialText
+
+	var streamed: String {
+		switch self {
+		case .beforeAnyText: ""
+		case .afterPartialText: "Start with "
+		}
+	}
+
+	var opening: [ScriptedEvent] {
+		streamed.isEmpty ? [] : [.text(streamed)]
+	}
 }
 
 struct ShortcutBench {
