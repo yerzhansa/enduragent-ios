@@ -89,6 +89,8 @@ A message that starts with `fixture:` is a directive to the fakes, typed into `c
 | `fixture:teach` | The model saves a `schedule` memory section, then replies `Noted. I'll remember you ride with a group on Saturdays.` |
 | `fixture:long` | The reply is the week summary written out for 100 days, about 5,200 tokens, so a few messages reach the soft flush gate and the trim. |
 | `fixture:flush-partial` | Replies with the week summary and arms the next memory flush to save a `schedule` section and a `ledgerEvent`, then fail, so its job stays pending until the next launch. `fixture:fail overflow` right after it triggers that flush inside the overflow turn. |
+| `/workout` or `/status`, alone or with text after it | The model waits 8 seconds before its first word, so `chat.working` shows under the message, then replies in text: a 45 minute easy ride for `/workout`, Fitness 42, Fatigue 49 and Form -7 for `/status`. No workout review follows. |
+| `/workout fixture:lost`, `/status fixture:lost` | The model streams `Ride 45 minutes at ` and the connection is lost. The turn fails at once with `coach.error.providerDown` and Try again, because reply text was already shown. Try again gets the text reply. |
 
 Queued messages keep separate scripts and delays. An unknown directive, such as `fixture:fail bogus`, gets an assistant reply saying `Unknown fixture directive: <message>`.
 
