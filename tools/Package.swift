@@ -8,6 +8,7 @@ let package = Package(
 		.macOS(.v15)
 	],
 	products: [
+		.executable(name: "check-coverage", targets: ["CheckCoverage"]),
 		.executable(name: "check-source", targets: ["CheckSource"]),
 		.executable(name: "generate-catalogs", targets: ["GenerateCatalogs"]),
 		.executable(name: "phone-check", targets: ["PhoneCheck"]),
@@ -16,6 +17,8 @@ let package = Package(
 	],
 	targets: [
 		.target(name: "ToolSupport"),
+		.executableTarget(name: "CheckCoverage", dependencies: ["ToolSupport"]),
+		.testTarget(name: "CheckCoverageTests", dependencies: ["CheckCoverage", "ToolSupport"]),
 		.executableTarget(name: "CheckSource", dependencies: ["ToolSupport"]),
 		.testTarget(name: "CheckSourceTests", dependencies: ["CheckSource", "ToolSupport"]),
 		.executableTarget(name: "GenerateCatalogs", dependencies: ["ToolSupport"]),
