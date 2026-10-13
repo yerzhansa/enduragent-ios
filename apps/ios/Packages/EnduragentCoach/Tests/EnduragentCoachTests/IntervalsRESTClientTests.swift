@@ -172,7 +172,11 @@ struct IntervalsRESTClientTests {
 		#expect(
 			IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/wellness")
 		#expect(try secrets.intervalsConnection()?.selection == .athlete(coached))
-		_ = try await vault.trainingConnection().client.profile()
+		guard case .connected(let training) = try await vault.trainingConnection() else {
+			Issue.record("Expected the saved connection to reach coaching")
+			return
+		}
+		_ = try await training.client.profile()
 		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002")
 	}
 

@@ -15,7 +15,7 @@ package struct ChatMessage: Sendable, Equatable {
 	}
 }
 
-public enum ToolName: String, Sendable {
+public enum ToolName: String, Sendable, CaseIterable {
 	case calculateZones = "calculate_zones"
 	case intervalsFetchAthlete = "intervals_fetch_athlete"
 	case intervalsFetchWellness = "intervals_fetch_wellness"

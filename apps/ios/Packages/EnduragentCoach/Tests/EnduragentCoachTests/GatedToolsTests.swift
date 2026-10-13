@@ -13,14 +13,13 @@ struct GatedToolsTests {
 		let outcome = try await runtime().execute(
 			name: .planSave,
 			arguments: try JSONValue.parse(#"{"plan":{"name":"Base"}}"#),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		guard case .result(let json) = outcome else {
 			Issue.record("expected result")
 			return
 		}
-		#expect(unwrapData(json).objectFields["error"]?.stringValue == "not_implemented")
+		#expect(json == ToolRuntime.unknownTool)
 		#expect(intervals.calls.isEmpty)
 	}
 
@@ -31,7 +30,6 @@ struct GatedToolsTests {
 			arguments: try JSONValue.parse(
 				#"{"date":"1998-06-14","name":"Core","description":"20 min floor"}"#
 			),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		guard case .pending(let strengthProposal) = strength else {
@@ -43,7 +41,6 @@ struct GatedToolsTests {
 		let deleted = try await tools.execute(
 			name: .intervalsDeleteWorkout,
 			arguments: try JSONValue.parse(#"{"eventId":42}"#),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		guard case .pending = deleted else {
@@ -54,7 +51,6 @@ struct GatedToolsTests {
 		let updated = try await tools.execute(
 			name: .intervalsUpdateWorkout,
 			arguments: try JSONValue.parse(#"{"eventId":42,"name":"Endurance 2"}"#),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		guard case .pending = updated else {
@@ -79,7 +75,6 @@ struct GatedToolsTests {
 			arguments: try JSONValue.parse(
 				#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"ramp","duration":{"value":10,"unit":"minutes"}}]}}"#
 			),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		intervals.fail(
@@ -87,7 +82,6 @@ struct GatedToolsTests {
 		let unavailable = try await runtime().execute(
 			name: .intervalsFetchWellness,
 			arguments: try JSONValue.parse(#"{"oldest":"1998-06-07","newest":"1998-06-13"}"#),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		for outcome in [invalid, unavailable] {
@@ -114,7 +108,6 @@ struct GatedToolsTests {
 			arguments: try JSONValue.parse(
 				#"{"date":"1998-06-12","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":60}}]}}"#
 			),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		guard case .result(let json) = outcome else {

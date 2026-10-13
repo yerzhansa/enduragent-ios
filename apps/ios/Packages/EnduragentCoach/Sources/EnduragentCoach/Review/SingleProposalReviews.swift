@@ -125,11 +125,11 @@ package actor SingleProposalReviews: WorkoutReviews {
 			guard Self.permits(live.account.authority(under: connection.account)) else {
 				return .refused(.blocked(.accountChanged))
 			}
-			guard connection.account != .unconnected else {
+			guard case .connected(let connected) = connection else {
 				return .refused(.blocked(.trainingNotConnected))
 			}
 			let operation = try await CalendarWriteOperation.prepare(
-				live, client: connection.client,
+				live, client: connected.client,
 				today: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone))
 			if let scope, !(await scope.beginReview()) {
 				return .refused(.blocked(.turnStopping))
@@ -152,7 +152,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 			try await ProposalPolicy.clear(live, reason: .executed, ledger: ledger, stamp: stamp)
 			return .ready(
 				CalendarWriteIntent(record: record, body: body, proposal: live), operation,
-				connection)
+				connected)
 		} catch let error as LedgerFailure {
 			if error == .unavailable { throw error }
 			diagnostics.record(.reviewOutcomeUnsaved(error))
@@ -164,7 +164,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 
 	func dispatch(
 		_ intent: CalendarWriteIntent, operation: CalendarWriteOperation,
-		connection: TrainingConnection, scope: TurnScope?
+		connection: ConnectedTraining, scope: TurnScope?
 	) async -> ReviewOutcome {
 		do {
 			let id = try await operation.dispatch(on: connection.client)
@@ -291,5 +291,5 @@ package actor SingleProposalReviews: WorkoutReviews {
 
 enum PreparedCalendarApproval {
 	case refused(ReviewOutcome)
-	case ready(CalendarWriteIntent, CalendarWriteOperation, TrainingConnection)
+	case ready(CalendarWriteIntent, CalendarWriteOperation, ConnectedTraining)
 }

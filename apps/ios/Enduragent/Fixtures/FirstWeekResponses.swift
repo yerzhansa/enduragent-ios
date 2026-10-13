@@ -36,13 +36,14 @@
 					if request.text == trainingDataDirective {
 						return trainingDataReply(request)
 					}
+					let slowTool = request.text == toolProgressDirective && !request.retry
 					if request.step == 0 {
 						intervals.delayNextActivityRead(
-							for: request.text == toolProgressDirective && !request.retry
+							for: slowTool && request.tools.contains(.intervalsFetchActivities)
 								? slowToolReadDelay : .zero)
 					}
-					if request.text == toolProgressDirective, !request.retry {
-						return toolProgressReply(step: request.step)
+					if slowTool {
+						return toolProgressReply(request)
 					}
 					if request.step == 0, !request.retry {
 						let text = request.text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -58,14 +59,16 @@
 							}
 						}
 					}
-					return reply(to: request.text, retry: request.retry).step(
+					return reply(to: request.text, tools: request.tools, retry: request.retry).step(
 						request.step, repeatingHang: true)
 				}
 			}
 		}
 
-		private static func reply(to text: String, retry: Bool) -> ScriptedReply {
-			let normal = script(for: text)
+		private static func reply(to text: String, tools: [ToolName], retry: Bool)
+			-> ScriptedReply
+		{
+			let normal = script(for: text, tools: tools)
 			guard !retry, text.hasPrefix("fixture:") else { return ScriptedReply(normal) }
 			let words = text.dropFirst("fixture:".count).split(separator: " ").map(String.init)
 			let arguments = Array(words.dropFirst())
@@ -102,6 +105,10 @@
 				return FormattedReplyFixture.finished
 			case "formatted-then-hang" where arguments.isEmpty:
 				return FormattedReplyFixture.streamingThenHang
+			case "numbers" where arguments.isEmpty:
+				return NumbersReplyFixture.finished
+			case "numbers-held" where arguments.isEmpty:
+				return NumbersReplyFixture.heldThenHang
 			case "long" where arguments.isEmpty:
 				return ScriptedReply([.text(longReply), .finish(reason: .stop)])
 			case "flush-partial" where arguments.isEmpty:

@@ -42,13 +42,6 @@ final class CredentialTransactionProof: XCTestCase {
 	}
 }
 
-@MainActor
-final class UnconnectedCalendarProof: XCTestCase {
-	func testSettingsFlow() {
-		TrainingSettingsProofScreen.unconnectedCalendar(self)
-	}
-}
-
 final class UpgradeConnectionProof: XCTestCase {
 	func testConnectionFromBeforeTheVaultReachesTheNextTurn() throws {
 		let app = XCUIApplication()

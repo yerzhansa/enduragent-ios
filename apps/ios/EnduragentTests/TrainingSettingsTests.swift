@@ -236,30 +236,18 @@ struct TrainingSettingsTests {
 		#expect(editor.state == .viewing)
 	}
 
-	@Test func unconnectedCalendarNoticeOpensConnectAboveChat() async throws {
+	@Test func unconnectedNoticeOpensConnectAboveChat() async throws {
 		let model = await harness.model(try harness.services())
 		await model.agreeAndStartChatting()
 		try await harness.observed(model)
-		model.draft.text = TutorialCopy.rideRequest
-		await model.send()
-		_ = try await harness.settledTurn(model)
-		let review = try #require(model.chat?.review)
-		await model.decide(.presented(review.ref))
-		try await until { model.chat?.review?.controls != ReviewControls.none }
-		guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
-			Issue.record("missing approval control")
-			return
-		}
-		await model.decide(.approve(token))
-		let notice = try #require(model.reviewNotice)
+		try await model.waitForStatus { $0.training == .unconnected }
+		let notice = try #require(model.status.training.notice)
 		#expect(notice.key == Catalog.connectMissing)
 		await model.perform(try #require(notice.actions.first))
 		#expect(model.route == .chat)
 		#expect(model.navigation == [.training])
 		#expect(model.trainingSettings.isEditing)
 		#expect(model.trainingSettings.key.isEmpty)
-		#expect(model.chat?.review?.ref == review.ref)
-		#expect(model.chat?.turns.count == 1)
 	}
 
 	private func connectedModel() async throws -> ShellModel {

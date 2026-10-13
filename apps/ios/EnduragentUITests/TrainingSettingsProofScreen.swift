@@ -171,26 +171,6 @@ enum TrainingSettingsProofScreen {
 		TutorialHarness.returnToChat(app)
 	}
 
-	static func unconnectedCalendar(_ test: XCTestCase) {
-		let app = launch(connected: false)
-		TutorialHarness.exchange(app, TutorialHarness.workout)
-		let add = TutorialHarness.named(app, "chat.preview.add")
-		TutorialHarness.wait(add, until: .enabled)
-		add.tap()
-		TutorialHarness.waitForIdentifier(app, "chat.review.notice", reading: missing)
-		let connect = TutorialHarness.named(app, "chat.review.connect")
-		TutorialHarness.wait(connect, until: .hittable)
-		XCTAssertEqual(connect.label, "Connect")
-		capture(test, app, name: "unconnected-calendar-notice")
-		connect.tap()
-		assertEmptyKey(app)
-		capture(test, app, name: "unconnected-calendar-connect")
-		TutorialHarness.named(app, "training.cancel").tap()
-		TutorialHarness.returnToChat(app, maximumBackSteps: 1)
-		XCTAssertEqual(TutorialHarness.named(app, "chat.review.notice").label, missing)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.preview.add").exists)
-	}
-
 	private static func launch(connected: Bool = true) -> XCUIApplication {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)

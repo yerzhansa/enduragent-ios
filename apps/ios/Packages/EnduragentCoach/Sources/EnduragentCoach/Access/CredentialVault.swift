@@ -41,12 +41,14 @@ package actor CredentialVault {
 	{
 		if recheck { invalidateTrainingIdentity() }
 		guard let (active, profile) = try await checkedConnection() else { return .unconnected }
-		guard case .available = profile else {
+		guard case .available(let athlete) = profile else {
 			if case .failed(let failure) = profile { throw .trainingIdentityUnverified(failure) }
 			throw .trainingIdentityUnverified(.temporarilyUnavailable)
 		}
-		return TrainingConnection(
-			account: active.account(verifiedBy: profile), client: display.client(for: active))
+		return .connected(
+			ConnectedTraining(
+				connection: active.id, athlete: athlete.athleteID,
+				client: display.client(for: active)))
 	}
 
 	package func invalidateTrainingIdentity() {

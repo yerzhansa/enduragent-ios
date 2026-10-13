@@ -66,8 +66,9 @@ extension SingleProposalReviews {
 			if await accountBlock(intent.record.account) == .accountChanged {
 				return .blocked(.accountChanged)
 			}
-			let connection = try await training(true)
-			guard Self.permits(intent.record.account.authority(under: connection.account)) else {
+			guard case .connected(let connection) = try await training(true),
+				Self.permits(intent.record.account.authority(under: connection.account))
+			else {
 				return .blocked(.accountChanged)
 			}
 			if repeatWrite && !canRepeat(intent) { return unresolved(intent.body.evidence) }

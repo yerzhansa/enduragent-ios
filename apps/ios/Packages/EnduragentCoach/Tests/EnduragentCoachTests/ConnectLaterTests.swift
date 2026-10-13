@@ -5,7 +5,7 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct ConnectLaterTests {
-	@Test func missingTrainingToolResultsThenSavedKeyOwnerReachTheModel() async throws {
+	@Test func unofferedTrainingToolsThenSavedKeyOwnerReachTheModel() async throws {
 		let transport = FakeModelTransport()
 		let owner = FakeIntervalsClient(athlete: .cyclist(id: "i4242", name: "Key Owner", ftp: 250))
 		owner.events = [
@@ -40,12 +40,11 @@ import Testing
 		]
 		transport.respond = ScriptedReply.sequence(reads)
 		#expect(replyText(try await coach.sendAndSettle("Read my profile and calendar")) != nil)
-		let missing = try results(in: #require(transport.requests.last))
+		let unconnected = try #require(transport.requests.last)
+		#expect(!unconnected.tools.contains { $0.name.rawValue.hasPrefix("intervals_") })
+		let missing = try results(in: unconnected)
 		for name in [ToolName.intervalsFetchAthlete, .intervalsListEvents] {
-			#expect(missing[name]?.objectFields["error"] == .string("not_connected"))
-			#expect(
-				missing[name]?.objectFields["details"]?.stringValue?.contains(
-					"training data is unavailable") == true)
+			#expect(missing[name] == ToolRuntime.unknownTool)
 		}
 		#expect(owner.count(of: .profile) == 0)
 		#expect(owner.calls.isEmpty)
@@ -59,7 +58,9 @@ import Testing
 		}
 		transport.respond = ScriptedReply.sequence(reads)
 		_ = try await coach.sendAndSettle("Read my connected profile and calendar")
-		let connected = try results(in: #require(transport.requests.last))
+		let reconnected = try #require(transport.requests.last)
+		#expect(reconnected.tools.contains { $0.name == .intervalsFetchAthlete })
+		let connected = try results(in: reconnected)
 		#expect(connected[.intervalsFetchAthlete]?.objectFields["id"] == .string("i4242"))
 		#expect(connected[.intervalsFetchAthlete]?.objectFields["name"] == .string("Key Owner"))
 		let calendar = try #require(connected[.intervalsListEvents]?.arrayValue)
@@ -78,7 +79,7 @@ import Testing
 			let call = try #require(calls.first { $0.id == message.toolCallId })
 			let name = try #require(ToolName(rawValue: call.name))
 			let envelope = try JSONValue.parse(message.content)
-			results[name] = try #require(envelope.objectFields["data"])
+			results[name] = envelope.objectFields["data"] ?? envelope
 		}
 		return results
 	}

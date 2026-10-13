@@ -6,11 +6,29 @@ extension AthleteProfile {
 	}
 
 	package func with(ftp: FTPReading) -> AthleteProfile {
-		AthleteProfile(id: id, name: name, ftp: ftp, readings: readings)
+		rebuilt(ftp: ftp)
+	}
+
+	package func with(
+		_ readings: [ProfileField: Double], sex: String? = nil, ageYears: Int? = nil,
+		settingsSports: [String] = [], powerZones: [TrainingZone] = [],
+		heartRateZones: [TrainingZone] = []
+	) -> AthleteProfile {
+		AthleteProfile(
+			id: id, name: name, ftp: ftp, readings: Readings(readings), sex: sex,
+			ageYears: ageYears, settingsSports: settingsSports, powerZones: powerZones,
+			heartRateZones: heartRateZones)
 	}
 
 	fileprivate func named(_ name: String) -> AthleteProfile {
-		AthleteProfile(id: id, name: name, ftp: ftp, readings: readings)
+		rebuilt(name: name)
+	}
+
+	private func rebuilt(name: String? = nil, ftp: FTPReading? = nil) -> AthleteProfile {
+		AthleteProfile(
+			id: id, name: name ?? self.name, ftp: ftp ?? self.ftp, readings: readings, sex: sex,
+			ageYears: ageYears, settingsSports: settingsSports, powerZones: powerZones,
+			heartRateZones: heartRateZones)
 	}
 }
 

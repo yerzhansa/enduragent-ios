@@ -5,7 +5,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private let session: URLSession
 	private let baseURL: URL
 	let athletePath: String
-	private let clock: any Clock
+	let clock: any Clock
 
 	package init(
 		credential: IntervalsCredential, athlete: AthleteSelection = .keyOwner,

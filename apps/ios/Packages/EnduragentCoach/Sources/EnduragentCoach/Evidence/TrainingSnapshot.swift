@@ -29,7 +29,9 @@ package enum TrainingSnapshot: Sendable, Equatable {
 
 	package var promptSection: String {
 		switch self {
-		case .notConnected, .unavailable:
+		case .notConnected:
+			return PromptStaticBlocks.snapshotNotConnected
+		case .unavailable:
 			return PromptStaticBlocks.snapshotFallback
 		case .available(let lines):
 			var section =
@@ -97,8 +99,8 @@ package struct ProfileLine: Sendable, Equatable {
 			parts.append("FTP not usable")
 		}
 		for field in ProfileField.allCases {
-			guard let value = shown[field] else { continue }
-			parts.append("\(field.label) \(SnapshotNumber.text(value)) \(field.unit)")
+			guard let value = shown[field], let label = field.label else { continue }
+			parts.append("\(label) \(SnapshotNumber.text(value)) \(field.unit)")
 		}
 		return "Profile: " + parts.joined(separator: SnapshotNumber.separator)
 	}
@@ -168,10 +170,10 @@ package struct TrainingSnapshotReader: Sendable {
 	package func snapshot(for training: TrainingConnection, attempt: AttemptID)
 		async throws(CancellationError) -> TrainingSnapshot
 	{
-		guard training.account != .unconnected else { return .notConnected }
+		guard case .connected(let connected) = training else { return .notConnected }
 		let lookback = ReadRange.snapshotLookback(
 			endingOn: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone))
-		let client = training.client
+		let client = connected.client
 		let race = await withTaskGroup(of: SnapshotArrival.self) { group in
 			group.addTask { .profile(await Self.outcome { try await client.profile() }) }
 			group.addTask {
@@ -266,22 +268,17 @@ extension ProfileField {
 		case .lthr, .maxHeartRate: true
 		case .restingHeartRate: SnapshotPolicy.restingHeartRate.contains(value)
 		case .weight: SnapshotPolicy.weightKilograms.contains(value)
+		case .indoorFTP, .wPrime, .maxPower, .sweetSpotMin, .sweetSpotMax: false
 		}
 	}
 
-	fileprivate var label: String {
+	fileprivate var label: String? {
 		switch self {
 		case .lthr: "LTHR"
 		case .maxHeartRate: "max HR"
 		case .restingHeartRate: "resting HR"
 		case .weight: "weight"
-		}
-	}
-
-	fileprivate var unit: String {
-		switch self {
-		case .lthr, .maxHeartRate, .restingHeartRate: "bpm"
-		case .weight: "kg"
+		case .indoorFTP, .wPrime, .maxPower, .sweetSpotMin, .sweetSpotMax: nil
 		}
 	}
 }
