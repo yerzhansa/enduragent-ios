@@ -175,7 +175,7 @@
 			do {
 				let read = try await reader.snapshot(
 					for: training, attempt: AttemptID(ulid: ULID.generate(at: clock.now)))
-				snapshot = read.promptSection
+				snapshot = PromptAssembly.snapshotSection(read)
 				if case .unavailable = read {
 					let causes = diagnostics.entries.map { String(describing: $0.event) }
 					let cause = causes.isEmpty ? "nothing usable" : causes.joined(separator: ", ")

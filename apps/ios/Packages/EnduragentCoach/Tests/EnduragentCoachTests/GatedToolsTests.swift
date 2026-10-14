@@ -10,17 +10,24 @@ struct GatedToolsTests {
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	@Test func planSaveIsRefused() async throws {
-		let outcome = try await runtime().execute(
-			name: .planSave,
-			arguments: try JSONValue.parse(#"{"plan":{"name":"Base"}}"#),
-			scope: turnScope()
-		).outcome
-		guard case .result(let json) = outcome else {
-			Issue.record("expected result")
-			return
-		}
-		#expect(json == ToolRuntime.unknownTool)
-		#expect(intervals.calls.isEmpty)
+		let transport = FakeModelTransport()
+		let store = InMemoryRecordLog()
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: ToolName.planSave.rawValue, arguments: #"{"plan":{"name":"Base"}}"#),
+				.finish(reason: .toolCalls), .text("Not saved."), .finish(reason: .stop),
+			], otherwise: transport.respond)
+		let coach = await makeCoach(
+			transport: transport, intervals: intervals, store: store, clock: clock)
+
+		_ = try await coach.sendAndSettle("Save my base plan")
+
+		let result = try #require(transport.requests.last?.messages.last { $0.role == .tool })
+		#expect(try JSONValue.parse(result.content) == ToolRuntime.unknownTool)
+		#expect(
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
+				.isEmpty)
 	}
 
 	@Test func strengthDeleteAndUpdateAreGated() async throws {
@@ -124,9 +131,9 @@ struct GatedToolsTests {
 		json.objectFields["data"] ?? json
 	}
 
-	private func runtime() -> ToolRuntime {
+	private func runtime() -> OfferedTools {
 		let store = InMemoryRecordLog()
-		return makeToolRuntime(
+		return makeOfferedTools(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock

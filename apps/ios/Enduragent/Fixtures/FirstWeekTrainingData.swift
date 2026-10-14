@@ -34,7 +34,7 @@
 		}
 
 		static func trainingDataReply(_ request: ScriptedRequest) -> ScriptedReply {
-			if !request.tools.contains(.intervalsFetchAthlete) {
+			if !request.offersTrainingTools {
 				return ScriptedReply([.text(trainingDataMissing), .finish(reason: .stop)])
 			}
 			if request.step == 0 {

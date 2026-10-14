@@ -56,7 +56,7 @@ enum LiveParkedQuestions {
 			decoding: [
 				DecodingSite("Cycling/IntervalsRESTReads.swift", #"case .rampRate: "rampRate""#),
 				DecodingSite(
-					"Loop/TrainingReadTools.swift", #"case .rampRate: "Fitness per week""#),
+					"Loop/CoachReadout.swift", #"case .rampRate: "Fitness per week""#),
 			],
 			verdict: differences.isEmpty
 				? "not decidable from this window (no row with Fitness 7 days earlier)"
@@ -74,7 +74,7 @@ enum LiveParkedQuestions {
 			],
 			decoding: [
 				DecodingSite("Cycling/IntervalsRESTReads.swift", #"case .hrv: "hrv""#),
-				DecodingSite("Loop/TrainingReadTools.swift", #"case .hrv: "ms""#),
+				DecodingSite("Loop/CoachReadout.swift", #"case .hrv: "ms""#),
 			],
 			verdict: values.isEmpty
 				? "not observed: no HRV in the window"
@@ -93,7 +93,7 @@ enum LiveParkedQuestions {
 			decoding: [
 				DecodingSite(
 					"Cycling/IntervalsRESTReads.swift", #"case .intensity: "icu_intensity""#),
-				DecodingSite("Loop/ActivityReadout.swift", #"case .intensity: "%""#),
+				DecodingSite("Loop/CoachReadout.swift", #"case .intensity: "%""#),
 			],
 			verdict: values.isEmpty
 				? "not observed"
@@ -122,7 +122,7 @@ enum LiveParkedQuestions {
 			],
 			decoding: [
 				DecodingSite("Cycling/IntervalsRESTReads.swift", #"case .distance: "distance""#),
-				DecodingSite("Loop/ActivityReadout.swift", #"case .distance, .elevationGain: "m""#),
+				DecodingSite("Loop/CoachReadout.swift", #"case .distance, .elevationGain: "m""#),
 			],
 			verdict: ratios.isEmpty
 				? "not decidable: no row with distance, average_speed and moving_time"
@@ -142,8 +142,7 @@ enum LiveParkedQuestions {
 			decoding: [
 				DecodingSite("Cycling/IntervalsRESTReads.swift", #"athlete["icu_date_of_birth"]"#),
 				DecodingSite("Cycling/TrainingReads.swift", "func ageYears(on today: CivilDate)"),
-				DecodingSite(
-					"Loop/TrainingReadTools.swift", "if let age = profile.ageYears(on: today)"),
+				DecodingSite("Loop/CoachReadout.swift", "if let age = profile.ageYears(on: today)"),
 			],
 			verdict: format == "dddd-dd-dd"
 				? "matches"
@@ -239,7 +238,7 @@ enum LiveParkedQuestions {
 					"Cycling/IntervalsRESTReads.swift", #"case .perceivedExertion: "icu_rpe""#),
 				DecodingSite("Cycling/IntervalsRESTReads.swift", #"case .feel: "feel""#),
 				DecodingSite(
-					"Loop/ActivityReadout.swift",
+					"Loop/CoachReadout.swift",
 					"case .perceivedExertion, .feel, .variabilityIndex"),
 			],
 			verdict: feel.isEmpty && rpe.isEmpty

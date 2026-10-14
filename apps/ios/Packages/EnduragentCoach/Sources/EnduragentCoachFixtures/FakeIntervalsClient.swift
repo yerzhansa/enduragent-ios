@@ -40,6 +40,10 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		faults.withLock { $0.hold(read) }
 	}
 
+	public func delay(_ read: FakeTrainingRead, by duration: Duration) {
+		faults.withLock { $0.delay(read, by: duration) }
+	}
+
 	public func count(of read: FakeTrainingRead) -> Int {
 		faults.withLock { $0.count(of: read) }
 	}
@@ -88,8 +92,9 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	}
 
 	private func begin(_ read: FakeTrainingRead) async throws {
-		let (failure, gate) = faults.withLock { $0.begin(read) }
+		let (failure, gate, delay) = faults.withLock { $0.begin(read) }
 		try await gate?.enter()
+		if let delay { try await Task.sleep(for: delay) }
 		if let failure { throw failure }
 	}
 

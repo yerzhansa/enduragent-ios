@@ -50,11 +50,10 @@ extension TurnRunner {
 					toolCallId: nil)
 			)
 			let calls = step.toolCalls.map { call in
-				(call, ToolName(rawValue: call.name))
+				(call, prompt.offer.tool(named: call.name))
 			}
-			await progress(
-				.activity(.runningTools(calls.compactMap { $0.1 }.filter(prompt.offer.offers))))
-			let outcomes = try await runTools(calls, offer: prompt.offer, scope: scope)
+			await progress(.activity(.runningTools(calls.compactMap { $0.1?.name })))
+			let outcomes = try await runTools(calls, scope: scope)
 			for (call, outcome) in outcomes {
 				if case .pending(let proposal) = outcome {
 					await progress(.proposalPending(proposal))
@@ -115,15 +114,13 @@ extension TurnRunner {
 	}
 
 	private func runTools(
-		_ calls: [(WireToolCall, ToolName?)],
-		offer: ToolOffer,
+		_ calls: [(WireToolCall, BoundTool?)],
 		scope: TurnScope
 	) async throws -> [(WireToolCall, ToolOutcome)] {
-		let runtime = ToolRuntime(offer: offer)
-		return try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
-			for (index, (call, name)) in calls.enumerated() {
+		try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
+			for (index, (call, tool)) in calls.enumerated() {
 				group.addTask {
-					guard let name, offer.offers(name) else {
+					guard let tool else {
 						return (index, call, .result(ToolRuntime.unknownTool))
 					}
 					let arguments: JSONValue
@@ -142,10 +139,8 @@ extension TurnRunner {
 					}
 					let outcome: ToolOutcome
 					do {
-						outcome = try await runtime.execute(
-							name: name,
-							arguments: arguments,
-							scope: scope
+						outcome = try await ToolRuntime.execute(
+							tool, arguments: arguments, scope: scope
 						).outcome
 					} catch let saved as SavedWorkReached {
 						throw saved
@@ -156,7 +151,7 @@ extension TurnRunner {
 					} catch {
 						self.diagnostics.record(
 							.toolFailed(
-								scope.stamp.attempt, name, failure: ToolFault(error)))
+								scope.stamp.attempt, tool.name, failure: ToolFault(error)))
 						outcome = .result(ToolFault(error).json)
 					}
 					return (index, call, outcome)

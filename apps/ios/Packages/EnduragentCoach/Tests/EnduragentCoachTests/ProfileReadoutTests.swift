@@ -17,21 +17,26 @@ extension IntervalsRESTClientTests {
 
 		@Test func everyKeyOfNpmsProjectionIsAccountedFor() async throws {
 			for sample in try ProfileReadoutCase.all() {
-				let shown = try await readout(of: sample.response, now: sample.noon)
-				#expect(
-					ProjectionKey.unaccounted(in: sample.npm, shown: shown) == [],
-					"\(sample.name)")
+				let shown = try await readout(of: sample.response, now: sample.noon).objectFields
+				var athlete = sample.npm.objectFields
+				let rows = (athlete.removeValue(forKey: "sportSettings")?.arrayValue ?? [])
+					.map(\.objectFields)
+				let cycling = rows.first { row in
+					(row["types"]?.arrayValue ?? []).contains {
+						$0.stringValue.map(IntervalsPolicy.cyclingSports.contains) ?? false
+					}
+				}
+				let read = cycling ?? rows.first ?? [:]
+				let problems = NpmProjectionAudit.problems(
+					in: [
+						(ProfileReadoutCase.athleteProjection, athlete),
+						(ProfileReadoutCase.settingsProjection, read),
+					], shown: shown)
+				let unread = rows.filter { $0 != read }.flatMap {
+					ProfileReadoutCase.settingsProjection.unaccounted(in: $0)
+				}
+				#expect(problems + unread == [], "\(sample.name)")
 			}
-		}
-
-		@Test func projectionKeyWithNoAccountIsReported() throws {
-			let npm = try JSONValue.parse(
-				#"{"id":"i1001","height":1.7,"sportSettings":[{"types":["Run"],"cadence":90}]}"#)
-			let shown = try JSONValue.parse(#"{"id":"i1001"}"#)
-			#expect(
-				ProjectionKey.unaccounted(in: npm, shown: shown) == [
-					"settings row key cadence has no account", "athlete key height has no account",
-				])
 		}
 
 		@Test(arguments: [("1998-06-13T23:30:00+02:00", 27.0), ("1998-06-14T00:30:00+02:00", 28.0)])
@@ -74,7 +79,7 @@ extension IntervalsRESTClientTests {
 			let client = try IntervalsRESTClientTests().makeClient(clock: clock)
 			let body = Data(canonicalJSON(response).utf8)
 			IntervalsURLProtocolStub.handler = { _ in (200, body) }
-			let outcome = try await makeToolRuntime(
+			let outcome = try await makeOfferedTools(
 				intervals: client,
 				ledger: Ledger(
 					log: InMemoryRecordLog(), clock: clock,
@@ -99,6 +104,41 @@ struct ProfileReadoutCase: Sendable {
 	let npm: JSONValue
 	let phone: JSONValue
 
+	static let athleteProjection = NpmProjectionAudit(
+		[
+			"id": .shown(as: "id", .text),
+			"name": .shown(as: "name", .text),
+			"sex": .shown(as: "sex", .text),
+			"icuFtp": .resolved(as: "ftp", precedence: 1),
+			"icuLthr": .resolved(as: ProfileField.lthr.rawValue, precedence: 1),
+			"icuMaxHr": .resolved(as: ProfileField.maxHeartRate.rawValue, precedence: 1),
+			"icuRestingHr": .resolved(as: ProfileField.restingHeartRate.rawValue, precedence: 1),
+			"icuWeight": .resolved(as: ProfileField.weight.rawValue, precedence: 0),
+			"weight": .resolved(as: ProfileField.weight.rawValue, precedence: 1),
+			"icuDateOfBirth": .leftOut(
+				"the coach is shown the age and the date stays on the phone"),
+		], phoneOnly: ["ageYears", "ftpUsable", "ftpNotice", "units"])
+
+	static let settingsProjection = NpmProjectionAudit([
+		"types": .shown(as: "sports", .list(renaming: [:])),
+		"ftp": .resolved(as: "ftp", precedence: 0),
+		"lthr": .resolved(as: ProfileField.lthr.rawValue, precedence: 0),
+		"maxHr": .resolved(as: ProfileField.maxHeartRate.rawValue, precedence: 0),
+		"restingHr": .resolved(as: ProfileField.restingHeartRate.rawValue, precedence: 0),
+		"weight": .resolved(as: ProfileField.weight.rawValue, precedence: 2),
+		"indoorFtp": .measured(ProfileField.indoorFTP),
+		"wPrime": .measured(ProfileField.wPrime),
+		"pMax": .measured(ProfileField.maxPower),
+		"sweetSpotMin": .measured(ProfileField.sweetSpotMin),
+		"sweetSpotMax": .measured(ProfileField.sweetSpotMax),
+		"powerZones": .shown(as: "powerZones", .ladderBounds),
+		"powerZoneNames": .shown(as: "powerZones", .ladderNames),
+		"hrZones": .shown(as: "heartRateZones", .ladderBounds),
+		"hrZoneNames": .shown(as: "heartRateZones", .ladderNames),
+		"thresholdPace": .leftOut("the phone coaches cycling only"),
+		"paceUnits": .leftOut("the phone coaches cycling only"),
+	])
+
 	static func all() throws -> [ProfileReadoutCase] {
 		let text = try #require(String(data: try fixtureData("readout-profile"), encoding: .utf8))
 		return try #require(try JSONValue.parse(text).arrayValue).map { entry in
@@ -109,91 +149,6 @@ struct ProfileReadoutCase: Sendable {
 				response: try #require(fields["response"]),
 				npm: try #require(fields["npm"]),
 				phone: try #require(fields["phone"]))
-		}
-	}
-}
-
-enum ProjectionKey: Equatable {
-	case same(String)
-	case source(of: String)
-	case zoneBounds(String)
-	case zoneNames(String)
-	case replacedByAge
-	case paceLeftOut
-	case settingsRows
-
-	static let athlete: [String: ProjectionKey] = [
-		"id": .same("id"), "name": .same("name"), "sex": .same("sex"),
-		"icuFtp": .source(of: "ftp"), "icuLthr": .source(of: "lthr"),
-		"icuMaxHr": .source(of: "maxHeartRate"), "icuRestingHr": .source(of: "restingHeartRate"),
-		"icuWeight": .source(of: "weight"), "weight": .source(of: "weight"),
-		"icuDateOfBirth": .replacedByAge, "sportSettings": .settingsRows,
-	]
-
-	static let settings: [String: ProjectionKey] = [
-		"types": .same("sports"), "ftp": .source(of: "ftp"), "lthr": .source(of: "lthr"),
-		"maxHr": .source(of: "maxHeartRate"), "restingHr": .source(of: "restingHeartRate"),
-		"weight": .source(of: "weight"), "indoorFtp": .same("indoorFtp"),
-		"wPrime": .same("wPrime"), "pMax": .same("maxPower"),
-		"sweetSpotMin": .same("sweetSpotMin"), "sweetSpotMax": .same("sweetSpotMax"),
-		"powerZones": .zoneBounds("powerZones"), "powerZoneNames": .zoneNames("powerZones"),
-		"hrZones": .zoneBounds("heartRateZones"), "hrZoneNames": .zoneNames("heartRateZones"),
-		"thresholdPace": .paceLeftOut, "paceUnits": .paceLeftOut,
-	]
-
-	static func unaccounted(in npm: JSONValue, shown phone: JSONValue) -> [String] {
-		let shown = phone.objectFields
-		let rows = (npm.objectFields["sportSettings"]?.arrayValue ?? []).map(\.objectFields)
-		let used = rows.first { $0["types"] != nil && $0["types"] == shown["sports"] } ?? [:]
-		var problems = rows.flatMap(\.keys).filter { settings[$0] == nil }.sorted().map {
-			"settings row key \($0) has no account"
-		}
-		var entries: [(key: String, value: JSONValue, rule: ProjectionKey)] = []
-		for (key, value) in npm.objectFields.sorted(by: { $0.key < $1.key }) {
-			guard let rule = athlete[key] else {
-				problems.append("athlete key \(key) has no account")
-				continue
-			}
-			entries.append((key, value, rule))
-		}
-		for (key, value) in used.sorted(by: { $0.key < $1.key }) {
-			if let rule = settings[key] { entries.append((key, value, rule)) }
-		}
-		for entry in entries {
-			let sources = entries.filter { $0.rule == entry.rule }.map(\.value)
-			if !entry.rule.holds(entry.value, sources: sources, shown: shown, phone: phone) {
-				problems.append("\(entry.key) is not shown as \(entry.rule)")
-			}
-		}
-		return problems
-	}
-
-	private func holds(
-		_ value: JSONValue, sources: [JSONValue], shown: [String: JSONValue], phone: JSONValue
-	) -> Bool {
-		switch self {
-		case .same(let key):
-			return shown[key] == value
-		case .source(let key):
-			guard let held = shown[key] else {
-				return sources.contains { $0.numberValue == nil }
-			}
-			return sources.contains(held)
-		case .zoneBounds(let key):
-			let bounds = value.arrayValue ?? []
-			guard let ladder = shown[key]?.arrayValue else {
-				return bounds.isEmpty || bounds.contains { $0.numberValue == nil }
-			}
-			return ladder.map { $0.objectFields["upTo"] } == bounds
-		case .zoneNames(let key):
-			let names = value.arrayValue ?? []
-			return (shown[key]?.arrayValue ?? []).enumerated().allSatisfy { index, zone in
-				zone.objectFields["name"] == (index < names.count ? names[index] : nil)
-			}
-		case .replacedByAge:
-			return value.stringValue.map { !canonicalJSON(phone).contains($0) } ?? false
-		case .paceLeftOut, .settingsRows:
-			return true
 		}
 	}
 }

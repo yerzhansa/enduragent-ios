@@ -116,8 +116,8 @@ import Testing
 		return json.objectFields["data"] ?? json
 	}
 
-	private func runtime(store: InMemoryRecordLog = InMemoryRecordLog()) -> ToolRuntime {
-		makeToolRuntime(
+	private func runtime(store: InMemoryRecordLog = InMemoryRecordLog()) -> OfferedTools {
+		makeOfferedTools(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock

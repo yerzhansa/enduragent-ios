@@ -6,46 +6,35 @@ package enum ToolOutcome: Sendable, Equatable {
 	case truncated(notice: String, estimatedTokens: Int, omittedRecords: Int)
 }
 
-package struct ToolRuntime: Sendable {
-	private static let memoryReads: Set<ToolName> = [.memoryRead, .memoryQuery]
-
+enum ToolRuntime {
 	static let unknownTool = JSONValue.object([
 		"error": .string("unknown_tool"),
 		"details": .string("This tool was not offered for this turn. Use an offered tool."),
 	])
 
-	private let offer: ToolOffer
-
-	package init(offer: ToolOffer) {
-		self.offer = offer
-	}
-
-	package func execute(
-		name: ToolName,
+	static func execute(
+		_ tool: BoundTool,
 		arguments: JSONValue,
 		scope: TurnScope
 	) async throws -> ToolExecution {
-		guard let tool = offer.tool(for: name) else {
-			return .result(Self.unknownTool)
-		}
-		switch name.effect {
+		switch tool.effect {
 		case .proposal:
 			return try await runPrepared(tool, arguments: arguments, scope: scope)
 		case .write:
 			let execution = try await runPrepared(tool, arguments: arguments, scope: scope)
-			await scope.evict(Self.memoryReads)
+			await scope.evict(CoachTools.memoryReads)
 			if let commit = execution.commit {
 				await scope.record(commit)
 			}
 			return execution
 		case .read, .memoryRead:
-			return try await scope.memoized(name, arguments: canonicalJSON(arguments)) {
-				try await self.runPrepared(tool, arguments: arguments, scope: scope)
+			return try await scope.memoized(tool.name, arguments: canonicalJSON(arguments)) {
+				try await runPrepared(tool, arguments: arguments, scope: scope)
 			}
 		}
 	}
 
-	private func runPrepared(
+	private static func runPrepared(
 		_ tool: BoundTool,
 		arguments: JSONValue,
 		scope: TurnScope
@@ -77,7 +66,7 @@ package struct ToolRuntime: Sendable {
 		return ToolExecution(outcome: .result(measured.enveloped), commit: raw.commit)
 	}
 
-	private func omittedRecordCount(in payload: JSONValue) -> Int {
+	private static func omittedRecordCount(in payload: JSONValue) -> Int {
 		switch payload {
 		case .array(let rows):
 			return rows.count

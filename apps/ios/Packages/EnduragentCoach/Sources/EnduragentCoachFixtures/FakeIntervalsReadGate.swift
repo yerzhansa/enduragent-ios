@@ -11,6 +11,7 @@ public enum FakeTrainingRead: Hashable, Sendable, CaseIterable {
 struct FakeReadFaults {
 	private var failures: [FakeTrainingRead: (error: any Error, once: Bool)] = [:]
 	private var gates: [FakeTrainingRead: FakeIntervalsReadGate] = [:]
+	private var delays: [FakeTrainingRead: Duration] = [:]
 	private var counts: [FakeTrainingRead: Int] = [:]
 
 	mutating func fail(_ read: FakeTrainingRead, with error: any Error, once: Bool) {
@@ -27,17 +28,21 @@ struct FakeReadFaults {
 		return gate
 	}
 
+	mutating func delay(_ read: FakeTrainingRead, by duration: Duration) {
+		delays[read] = duration > .zero ? duration : nil
+	}
+
 	func count(of read: FakeTrainingRead) -> Int {
 		counts[read] ?? 0
 	}
 
 	mutating func begin(_ read: FakeTrainingRead) -> (
-		failure: (any Error)?, gate: FakeIntervalsReadGate?
+		failure: (any Error)?, gate: FakeIntervalsReadGate?, delay: Duration?
 	) {
 		counts[read, default: 0] += 1
 		let failure = failures[read]
 		if failure?.once == true { failures[read] = nil }
-		return (failure?.error, gates.removeValue(forKey: read))
+		return (failure?.error, gates.removeValue(forKey: read), delays.removeValue(forKey: read))
 	}
 }
 

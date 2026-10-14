@@ -51,25 +51,38 @@ struct TrainingReach: Sendable {
 
 typealias BoundToolRun = @Sendable (JSONValue, TurnScope) async throws -> ToolExecution
 
+enum ToolEffect: Sendable, Equatable {
+	case read
+	case memoryRead
+	case write
+	case proposal
+}
+
 struct BoundTool: Sendable {
 	let schema: ToolSchema
+	let effect: ToolEffect
 	let run: BoundToolRun
+
+	var name: ToolName { schema.name }
 }
 
 struct CoachTool: Sendable {
 	typealias Run<Reach> = @Sendable (JSONValue, Reach) async throws -> ToolExecution
 	typealias Describe = @Sendable (MemoryView) -> (description: String, parameters: JSONValue)
 
+	let effect: ToolEffect
 	private let bind: @Sendable (TurnReach) -> BoundTool?
 
 	static func local(
-		_ name: ToolName, describe: @escaping Describe, run: @escaping Run<LocalReach>
+		_ effect: ToolEffect, _ name: ToolName, describe: @escaping Describe,
+		run: @escaping Run<LocalReach>
 	) -> CoachTool {
-		CoachTool { turn in
+		CoachTool(effect: effect) { turn in
 			let told = describe(turn.memory)
 			return BoundTool(
 				schema: ToolSchema(
-					name: name, description: told.description, parameters: told.parameters)
+					name: name, description: told.description, parameters: told.parameters),
+				effect: effect
 			) { arguments, scope in
 				try await run(arguments, LocalReach(turn, scope: scope))
 			}
@@ -77,30 +90,30 @@ struct CoachTool: Sendable {
 	}
 
 	static func local(
-		_ name: ToolName, _ description: String, parameters: JSONValue,
+		_ effect: ToolEffect, _ name: ToolName, _ description: String, parameters: JSONValue,
 		run: @escaping Run<LocalReach>
 	) -> CoachTool {
-		local(name, describe: { _ in (description, parameters) }, run: run)
+		local(effect, name, describe: { _ in (description, parameters) }, run: run)
 	}
 
 	static func hiddenMemory(
 		_ name: ToolName, _ description: String, parameters: JSONValue,
 		run: @escaping Run<LocalReach>
 	) -> CoachTool {
-		let always = local(name, description, parameters: parameters, run: run)
-		return CoachTool { turn in
+		let always = local(.memoryRead, name, description, parameters: parameters, run: run)
+		return CoachTool(effect: always.effect) { turn in
 			turn.memory.hidesStoredContent ? always.bound(to: turn) : nil
 		}
 	}
 
 	static func training(
-		_ name: ToolName, _ description: String, parameters: JSONValue,
+		_ effect: ToolEffect, _ name: ToolName, _ description: String, parameters: JSONValue,
 		run: @escaping Run<TrainingReach>
 	) -> CoachTool {
 		let schema = ToolSchema(name: name, description: description, parameters: parameters)
-		return CoachTool { turn in
+		return CoachTool(effect: effect) { turn in
 			guard case .connected(let training) = turn.training else { return nil }
-			return BoundTool(schema: schema) { arguments, scope in
+			return BoundTool(schema: schema, effect: effect) { arguments, scope in
 				try await run(
 					arguments,
 					TrainingReach(local: LocalReach(turn, scope: scope), training: training))
@@ -113,33 +126,10 @@ struct CoachTool: Sendable {
 	}
 }
 
-enum ToolEffect: Sendable, Equatable {
-	case read
-	case memoryRead
-	case write(ReplayUnsafeToolName)
-	case proposal(GatedToolName)
-}
-
-extension ToolName {
-	var effect: ToolEffect {
-		switch self {
-		case .calculateZones, .intervalsFetchAthlete, .intervalsFetchWellness,
-			.intervalsFetchActivity, .intervalsFetchStreams, .intervalsFetchActivities,
-			.intervalsListEvents:
-			.read
-		case .memoryRead, .memoryQuery: .memoryRead
-		case .memoryWrite: .write(.memoryWrite)
-		case .ledgerAppend: .write(.ledgerAppend)
-		case .intervalsCreateWorkout: .proposal(.intervalsCreateWorkout)
-		case .intervalsCreateStrengthWorkout: .proposal(.intervalsCreateStrengthWorkout)
-		case .intervalsDeleteWorkout: .proposal(.intervalsDeleteWorkout)
-		case .intervalsUpdateWorkout: .proposal(.intervalsUpdateWorkout)
-		case .planSave: .proposal(.planSave)
-		}
-	}
-}
-
 enum CoachTools {
+	static let memoryReads = Set(
+		ToolName.allCases.filter { definition(of: $0)?.effect == .memoryRead })
+
 	static func definition(of name: ToolName) -> CoachTool? {
 		switch name {
 		case .calculateZones: calculateZones
@@ -173,12 +163,8 @@ package struct ToolOffer: Sendable {
 		bound.map(\.schema)
 	}
 
-	package func offers(_ name: ToolName) -> Bool {
-		tool(for: name) != nil
-	}
-
-	func tool(for name: ToolName) -> BoundTool? {
-		bound.first { $0.schema.name == name }
+	func tool(named name: String) -> BoundTool? {
+		bound.first { $0.name.rawValue == name }
 	}
 }
 

@@ -21,7 +21,7 @@ public struct ScriptedRequest: Sendable {
 	public let retry: Bool
 	public let purpose: Purpose
 	public let step: Int
-	public let tools: [ToolName]
+	public let offersTrainingTools: Bool
 	public let toolResults: [String]
 	public let credential: String
 	public let accessMethod: AccessMethod
@@ -33,7 +33,7 @@ public struct ScriptedRequest: Sendable {
 		self.credential = request.credential.secret
 		self.accessMethod = request.credential.method
 		self.model = request.model
-		self.tools = request.tools.map(\.name)
+		self.offersTrainingTools = request.tools.contains { $0.name == .intervalsFetchAthlete }
 		self.toolResults = request.messages.filter { $0.role == .tool }.map(\.content)
 		self.userMessages = context.messages.filter { $0.role == .user }.map(\.content)
 		self.text =

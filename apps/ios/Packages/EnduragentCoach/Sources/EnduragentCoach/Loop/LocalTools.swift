@@ -2,7 +2,7 @@ import Foundation
 
 extension CoachTools {
 	static let calculateZones = CoachTool.local(
-		.calculateZones,
+		.read, .calculateZones,
 		"Calculate power-zone watt ranges from FTP watts (7-zone numbering)",
 		parameters: ToolParameters.object(
 			properties: [
@@ -39,7 +39,7 @@ extension CoachTools {
 	}
 
 	static let memoryQuery = CoachTool.local(
-		.memoryQuery,
+		.memoryRead, .memoryQuery,
 		"Query dated athlete memory: daily notes, the event ledger, and section history over a date range. "
 			+ "Use this for any question about past notes, decisions, overrides, illness, or "
 			+ "experiments. Returns matching notes, events, and history grouped by date.",
@@ -75,7 +75,7 @@ extension CoachTools {
 	}
 
 	static let memoryWrite = CoachTool.local(
-		.memoryWrite,
+		.write, .memoryWrite,
 		describe: { memory in
 			let sections = memory.writableSections
 			let sectionList = sections.map { name in
@@ -112,7 +112,7 @@ extension CoachTools {
 	)
 
 	static let ledgerAppend = CoachTool.local(
-		.ledgerAppend,
+		.write, .ledgerAppend,
 		"Record a dated event the athlete just stated: decision, override, illness, experiment, outcome. Skip routine training data and anything already in Athlete Context.",
 		parameters: ToolParameters.object(
 			properties: [

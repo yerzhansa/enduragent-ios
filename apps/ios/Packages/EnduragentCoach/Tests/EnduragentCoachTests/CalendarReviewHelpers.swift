@@ -1,5 +1,6 @@
 import EnduragentCoachFixtures
 import Foundation
+import Testing
 
 @testable import EnduragentCoach
 
@@ -29,9 +30,20 @@ func makeToolOffer(
 			reviews: makeReviews(ledger: ledger, clock: clock)))
 }
 
-func makeToolRuntime(
+func makeOfferedTools(
 	intervals: any TrainingClient, ledger: Ledger, clock: any EnduragentCoach.Clock
-) -> ToolRuntime {
-	ToolRuntime(
+) -> OfferedTools {
+	OfferedTools(
 		offer: makeToolOffer(training: connectedTraining(intervals), ledger: ledger, clock: clock))
+}
+
+struct OfferedTools {
+	let offer: ToolOffer
+
+	func execute(name: ToolName, arguments: JSONValue, scope: TurnScope) async throws
+		-> ToolExecution
+	{
+		try await ToolRuntime.execute(
+			try #require(offer.tool(named: name.rawValue)), arguments: arguments, scope: scope)
+	}
 }
