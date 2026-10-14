@@ -68,7 +68,7 @@ import Testing
 			transport: FakeModelTransport(), intervals: intervals, store: store)
 		#expect(await reopened.languagePreference() == .fixed(.es))
 		#expect(intervals.calls.isEmpty)
-		let gate = intervals.holdNextProfileRead()
+		let gate = intervals.hold(.profile)
 		defer { Task { await gate.release() } }
 		#expect(try await reopened.observedStatus().language == .fixed(.es))
 		try #require(

@@ -91,7 +91,6 @@ public actor Coach {
 		self.runner = TurnRunner(
 			transport: transport, ledger: ledger, clock: clock,
 			diagnostics: diagnostics, ladder: .npm,
-			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
 			reviews: reviews, watchdogSleep: ports.watchdogSleep,
 			authorizeInvocation: authorizeInvocation
 		)

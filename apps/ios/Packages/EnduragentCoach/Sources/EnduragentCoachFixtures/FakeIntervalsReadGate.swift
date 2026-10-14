@@ -1,18 +1,50 @@
 import EnduragentCoach
 
-struct FakeIntervalsDisplayReads {
-	var profile: (result: Result<AthleteProfile, any Error>, once: Bool)?
-	var wellness: (result: Result<[WellnessDay], any Error>, once: Bool)?
-	var profileGate: FakeIntervalsReadGate?
-	var wellnessGate: FakeIntervalsReadGate?
-	var profileCount = 0
-	var wellnessCount = 0
+public enum FakeTrainingRead: Hashable, Sendable, CaseIterable {
+	case profile
+	case wellness
+	case activities
+	case activity
+	case streams
+}
+
+struct FakeReadFaults {
+	private var failures: [FakeTrainingRead: (error: any Error, once: Bool)] = [:]
+	private var gates: [FakeTrainingRead: FakeIntervalsReadGate] = [:]
+	private var counts: [FakeTrainingRead: Int] = [:]
+
+	mutating func fail(_ read: FakeTrainingRead, with error: any Error, once: Bool) {
+		failures[read] = (error, once)
+	}
+
+	mutating func restore(_ read: FakeTrainingRead) {
+		failures[read] = nil
+	}
+
+	mutating func hold(_ read: FakeTrainingRead) -> FakeIntervalsReadGate {
+		let gate = FakeIntervalsReadGate()
+		gates[read] = gate
+		return gate
+	}
+
+	func count(of read: FakeTrainingRead) -> Int {
+		counts[read] ?? 0
+	}
+
+	mutating func begin(_ read: FakeTrainingRead) -> (
+		failure: (any Error)?, gate: FakeIntervalsReadGate?
+	) {
+		counts[read, default: 0] += 1
+		let failure = failures[read]
+		if failure?.once == true { failures[read] = nil }
+		return (failure?.error, gates.removeValue(forKey: read))
+	}
 }
 
 public actor FakeIntervalsReadGate {
 	private let arrivals: AsyncStream<Void>
 	private let arrived: AsyncStream<Void>.Continuation
-	private var blocked: CheckedContinuation<Void, Never>?
+	private var blocked: CheckedContinuation<Void, any Error>?
 	private var released = false
 
 	init() {
@@ -23,15 +55,31 @@ public actor FakeIntervalsReadGate {
 		await arrivals.first { _ in true }
 	}
 
-	func enter() async {
+	func enter() async throws {
 		arrived.yield()
 		guard !released else { return }
-		await withCheckedContinuation { blocked = $0 }
+		try await withTaskCancellationHandler {
+			try await withCheckedThrowingContinuation {
+				(continuation: CheckedContinuation<Void, any Error>) in
+				if Task.isCancelled {
+					continuation.resume(throwing: CancellationError())
+				} else {
+					blocked = continuation
+				}
+			}
+		} onCancel: {
+			Task { await self.abandon() }
+		}
 	}
 
 	public func release() {
 		released = true
 		blocked?.resume()
+		blocked = nil
+	}
+
+	private func abandon() {
+		blocked?.resume(throwing: CancellationError())
 		blocked = nil
 	}
 }

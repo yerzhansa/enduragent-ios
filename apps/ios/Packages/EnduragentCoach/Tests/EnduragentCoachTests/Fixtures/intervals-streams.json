@@ -1,7 +1,11 @@
 [
-  {"type": "watts", "data": [100, 200, 300, 400]},
-  {"type": "heartrate", "data": [140, 150, 160, 150]},
-  {"type": "cadence", "data": [80, 90, 90, 85]},
-  {"type": "time", "data": [0, 1, 2, 3]},
-  {"type": "altitude", "data": [100, 101, 102, 103]}
+  {"type": "time", "name": null, "data": [0, 1, 2, 3, 4, 5, 6, 7], "data2": null, "valueTypeIsArray": false, "anomalies": null, "custom": false},
+  {"type": "watts", "name": null, "data": [100, 200, null, 300, 400, null, 250, 251, 0, null], "data2": null, "valueTypeIsArray": false, "anomalies": null, "custom": false},
+  {"type": "heartrate", "name": null, "data": [140, "150", 160, 150, true, 155], "data2": null, "valueTypeIsArray": false, "anomalies": null, "custom": false},
+  {"type": "cadence", "name": null, "data": [80, 90, 90, 85], "data2": null, "valueTypeIsArray": false, "anomalies": null, "custom": false},
+  {"type": "altitude", "name": null, "data": [-3, -3.5, -2.5, -4], "data2": null, "valueTypeIsArray": false, "anomalies": null, "custom": false},
+  {"type": "smooth_grade", "name": "Smooth grade", "data": [1.5, -2.5, 0.5, null, [1, 2]], "data2": null, "valueTypeIsArray": false, "anomalies": null, "custom": true},
+  {"type": "temp", "name": null, "data": [null, null, null, null, null, null, null, null, null, null, null, null], "data2": null, "valueTypeIsArray": false, "anomalies": null, "custom": false, "allNull": true},
+  {"type": "dfa_a1", "name": null, "data": [], "data2": null, "valueTypeIsArray": false, "anomalies": null, "custom": false},
+  {"type": "torque", "name": null, "data2": null, "valueTypeIsArray": false, "anomalies": null, "custom": false}
 ]

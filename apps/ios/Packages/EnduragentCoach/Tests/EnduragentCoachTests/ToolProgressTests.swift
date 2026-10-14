@@ -19,7 +19,8 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[
 				.text(introduction),
-				.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
+				.toolCall(
+					name: "intervals_fetch_activities", arguments: #"{"oldest":"1998-06-07"}"#),
 				.finish(reason: .toolCalls),
 			] + workoutProposal + [.text(completion), .finish(reason: .stop)],
 			requestDelay: .seconds(10))

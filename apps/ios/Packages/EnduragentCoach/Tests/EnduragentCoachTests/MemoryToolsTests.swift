@@ -9,18 +9,21 @@ import Testing
 	let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	@Test func memoryReadOmittedWhenNotesAreStampOnly() async throws {
-		let store = InMemoryRecordLog()
-		let memory = Memory(
-			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
-			clock: clock)
+		let ledger = Ledger(
+			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let memory = Memory(ledger: ledger, clock: clock)
 		try await memory.writeSection(.notes, content: "", source: .chat, stamp: testStamp())
 		let view = try await memory.prompt(for: .unconnected).view
-		let schemas = ToolCatalog.schemas(memory: view)
+		let schemas = makeToolOffer(
+			training: .unconnected, ledger: ledger, clock: clock, memory: view
+		).schemas
 		#expect(!schemas.map(\.name).contains(.memoryRead))
 		try await memory.writeSection(
 			.notes, content: "- Prefers hill repeats", source: .chat, stamp: testStamp())
 		let withNotes = try await memory.prompt(for: .unconnected).view
-		let offered = ToolCatalog.schemas(memory: withNotes)
+		let offered = makeToolOffer(
+			training: .unconnected, ledger: ledger, clock: clock, memory: withNotes
+		).schemas
 		#expect(offered.map(\.name).contains(.memoryRead))
 	}
 
@@ -31,9 +34,9 @@ import Testing
 			#"{"date":"1998-06-13","kind":"decision","text":"Rides with a group on Saturdays"}"#
 		)
 		let first = try await tools.execute(
-			name: .ledgerAppend, arguments: arguments, chatId: .main, scope: turnScope())
+			name: .ledgerAppend, arguments: arguments, scope: turnScope())
 		let second = try await tools.execute(
-			name: .ledgerAppend, arguments: arguments, chatId: .main, scope: turnScope())
+			name: .ledgerAppend, arguments: arguments, scope: turnScope())
 		#expect(unwrap(first.outcome).objectFields["recorded"]?.boolValue == true)
 		#expect(first.commit == CommittedWrite(tool: .ledgerAppend))
 		#expect(unwrap(second.outcome).objectFields["recorded"]?.boolValue == false)
@@ -48,21 +51,19 @@ import Testing
 			name: .memoryWrite,
 			arguments: try JSONValue.parse(
 				#"{"type":"memory","section":"schedule","content":"Rides on Saturdays"}"#),
-			chatId: .main,
 			scope: turnScope()
 		)
 		let refused = try await tools.execute(
 			name: .memoryWrite,
 			arguments: try JSONValue.parse(
 				#"{"type":"memory","section":"nonsense","content":"Rides on Saturdays"}"#),
-			chatId: .main,
 			scope: turnScope()
 		)
 		let daily = try JSONValue.parse(#"{"type":"daily","content":"Group ride on Saturdays"}"#)
 		let note = try await tools.execute(
-			name: .memoryWrite, arguments: daily, chatId: .main, scope: turnScope())
+			name: .memoryWrite, arguments: daily, scope: turnScope())
 		let repeated = try await tools.execute(
-			name: .memoryWrite, arguments: daily, chatId: .main, scope: turnScope())
+			name: .memoryWrite, arguments: daily, scope: turnScope())
 		#expect(section.commit == CommittedWrite(tool: .memoryWrite))
 		#expect(refused.commit == nil)
 		#expect(note.commit == CommittedWrite(tool: .memoryWrite))
@@ -75,17 +76,16 @@ import Testing
 
 	@Test func memoryWriteAcceptsOrphanName() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(
-			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
-			clock: clock)
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let memory = Memory(ledger: ledger, clock: clock)
 		try await memory.writeSection(
 			SectionName(rawValue: "random-legacy"), content: "stale orphan body", source: .chat,
 			stamp: testStamp())
 		let tools = runtime(store: store)
 		let view = try await memory.prompt(for: .unconnected).view
-		let schema = ToolCatalog.schemas(memory: view).first {
-			$0.name == .memoryWrite
-		}
+		let schema = makeToolOffer(
+			training: .unconnected, ledger: ledger, clock: clock, memory: view
+		).schemas.first { $0.name == .memoryWrite }
 		let encoded = canonicalJSON(schema?.parameters ?? .null)
 		#expect(encoded.contains("random-legacy"))
 		let result = try await tools.execute(
@@ -93,7 +93,6 @@ import Testing
 			arguments: try JSONValue.parse(
 				#"{"type":"memory","section":"random-legacy","content":"updated orphan"}"#
 			),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		#expect(unwrap(result).objectFields["saved"]?.boolValue == true)
@@ -105,7 +104,6 @@ import Testing
 			name: .memoryWrite,
 			arguments: try JSONValue.parse(
 				#"{"type":"daily","content":"Group ride on Saturdays"}"#),
-			chatId: .main,
 			scope: turnScope()
 		).outcome
 		#expect(unwrap(result).objectFields["saved"]?.boolValue == true)

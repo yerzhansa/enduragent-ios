@@ -60,12 +60,12 @@ The `ReviewAccessibility` classes prove the review card at the largest accessibi
 
 | Test method | States it checks, in order |
 | --- | --- |
-| `testApprovalControls` | An athlete with no intervals.icu connection. `approval` with Cancel and Add to calendar, `content` scrolled to the workout, `approval-not-connected` after Add with the not-connected sentence and Connect above the decision buttons, `cancelled` after Cancel. |
+| `testApprovalControls` | A connected athlete. `approval` with Cancel and Add to calendar, `content` scrolled to the workout, `cancelled` after Cancel. Add is reached and not tapped. |
 | `testUncertainSaveControls` | A connected athlete whose save lost its answer. `save-uncertain` with the pending sentence and Check again, `save-again` with Check again, Cancel and Save approved workout again, `cancelled-unknown` with the cancellation note. |
 
 Each flow launches in English at the default text size, finishes onboarding, chooses the language in Settings > Language and asks for the workout. It then relaunches the same store with `FixtureArguments.textSize = .accessibilityXXXL`, which passes `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL`. Only the review is driven at the largest size, so typing and Settings stay at the size the harness is proven at.
 
-For each state the proof reads one accessibility snapshot of the transcript row that holds the review. It fails unless the elements are, in order, the localized title, the workout text, the notice lines, then each control with its catalog title. Each element must start below or to the right of the one before it and stay inside the row. Each control must be enabled and at least 44 points tall, which also fails if the text size did not apply. `performAccessibilityAudit` then checks clipped text, Dynamic Type and hit regions for the elements inside that row. XCUITest cannot drive VoiceOver itself; the snapshot order and the frames are what VoiceOver reads from. The proof taps Add to calendar, Cancel and Check again and brings Save approved workout again on screen. Screenshots are named `u9-6-<tag>-<state>`.
+For each state the proof reads one accessibility snapshot of the transcript row that holds the review. It fails unless the elements are, in order, the localized title, the workout text, the notice lines, then each control with its catalog title. Each element must start below or to the right of the one before it and stay inside the row. Each control must be enabled and at least 44 points tall, which also fails if the text size did not apply. `performAccessibilityAudit` then checks clipped text, Dynamic Type and hit regions for the elements inside that row. XCUITest cannot drive VoiceOver itself; the snapshot order and the frames are what VoiceOver reads from. The proof taps Cancel and Check again and brings Add to calendar and Save approved workout again on screen. Screenshots are named `u9-6-<tag>-<state>`.
 
 The proof does not open Settings > Debug at the largest text size, so it does not read the fixture request count.
 
@@ -79,7 +79,7 @@ To resume, read `summary.md` in the suite folder and run the same command with o
 
 ## Gotchas
 
-- The fixture needs text containing `endurance ride`; `/workout` alone produces the week summary.
+- The fixture presents a review only for a message that contains `endurance ride` and does not start with `/workout` or `/status`. `/workout`, alone or with text after it, waits 8 seconds and replies in text with no workout review.
 - `fixture.failNextAppend` fails the next record append. Arm it through `TutorialHarness.fixtureControl` in Settings > Debug after the review is presented and the proposing turn has settled, then tap Add or Cancel. Reach every Debug row through `TutorialHarness.debugRow`, and use `TutorialHarness.returnToChat` to leave Settings or the language picker.
 - `FixtureArguments(calendarSaveFault: .loseAnswerOnce)` stores the full approval under its UID before losing the answer. `calendarReadFault: .failOnce` affects only the next event list or event fetch. Relaunch with `.keep` retains the unknown write records and opens an empty fake calendar for the absent-read proof. The record-read launch hook waits for a presented, settled card. Settings > Debug controls, reached with `fixtureControl`, arm the same read fault for other layouts. Try again restores controls without checking the calendar.
 - The fake intervals.icu client keeps calendar writes in memory. The Done line and Records are the visible evidence because the app has no calendar screen.

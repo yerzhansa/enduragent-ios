@@ -168,10 +168,10 @@ struct TrainingSettingsTests {
 	func savedDisplayFailuresHaveCorrectionAndRetryRoutes(rejected: Bool) async throws {
 		let services = try harness.services()
 		let fixture = try #require(services.fixture)
-		let profile = try await fixture.intervals.fetchAthlete()
-		fixture.intervals.setProfileOutcome(
-			.failure(
-				IntervalsError(code: "http", details: "unavailable", status: rejected ? 401 : 503)))
+		fixture.intervals.fail(
+			.profile,
+			with: IntervalsError(code: "http", details: "unavailable", status: rejected ? 401 : 503)
+		)
 		let model = await harness.model(services)
 		await model.agreeAndStartChatting()
 		try await harness.observed(model)
@@ -199,7 +199,7 @@ struct TrainingSettingsTests {
 			#expect(try fixture.secrets.intervalsConnection() == saved)
 		} else {
 			#expect(summary.notice?.key == Catalog.connectErrorProfileUnavailable)
-			fixture.intervals.setProfileOutcome(.success(profile))
+			fixture.intervals.restore(.profile)
 			await model.performTrainingDisplay(action)
 			try await model.waitForStatus {
 				if case .connected(let summary, _) = $0.training {
@@ -217,7 +217,7 @@ struct TrainingSettingsTests {
 	@Test func leavingDuringFailedSaveDoesNotRestoreTheSecretDraft() async throws {
 		let model = try await connectedModel()
 		let fixture = try #require(model.services.fixture)
-		let gate = fixture.intervals.holdNextProfileRead()
+		let gate = fixture.intervals.hold(.profile)
 		defer { Task { await gate.release() } }
 		let editor = model.trainingSettings
 		editor.edit()
@@ -236,30 +236,18 @@ struct TrainingSettingsTests {
 		#expect(editor.state == .viewing)
 	}
 
-	@Test func unconnectedCalendarNoticeOpensConnectAboveChat() async throws {
+	@Test func unconnectedNoticeOpensConnectAboveChat() async throws {
 		let model = await harness.model(try harness.services())
 		await model.agreeAndStartChatting()
 		try await harness.observed(model)
-		model.draft.text = TutorialCopy.rideRequest
-		await model.send()
-		_ = try await harness.settledTurn(model)
-		let review = try #require(model.chat?.review)
-		await model.decide(.presented(review.ref))
-		try await until { model.chat?.review?.controls != ReviewControls.none }
-		guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
-			Issue.record("missing approval control")
-			return
-		}
-		await model.decide(.approve(token))
-		let notice = try #require(model.reviewNotice)
+		try await model.waitForStatus { $0.training == .unconnected }
+		let notice = try #require(model.status.training.notice)
 		#expect(notice.key == Catalog.connectMissing)
 		await model.perform(try #require(notice.actions.first))
 		#expect(model.route == .chat)
 		#expect(model.navigation == [.training])
 		#expect(model.trainingSettings.isEditing)
 		#expect(model.trainingSettings.key.isEmpty)
-		#expect(model.chat?.review?.ref == review.ref)
-		#expect(model.chat?.turns.count == 1)
 	}
 
 	private func connectedModel() async throws -> ShellModel {

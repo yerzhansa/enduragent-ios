@@ -5,7 +5,7 @@ import Testing
 @testable import EnduragentCoach
 
 extension SingleProposalReviewsTests {
-	func gatedCoach(log: any RecordLog, client: any IntervalsClient) async -> Coach {
+	func gatedCoach(log: any RecordLog, client: any TrainingClient) async -> Coach {
 		await consentingCoach(
 			Coach(
 				sport: .cycling,
@@ -79,21 +79,21 @@ struct GatedReviewLog: RecordLog {
 	}
 }
 
-struct GatedReviewIntervals: IntervalsClient {
+struct GatedReviewIntervals: TrainingClient {
 	let base: FakeIntervalsClient
 	let gate: ReviewGate
-	func fetchAthlete() async throws -> AthleteProfile { try await base.fetchAthlete() }
-	func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
-		try await base.fetchWellness(oldest: oldest, newest: newest)
+	func profile() async throws -> AthleteProfile { try await base.profile() }
+	func wellness(in range: ReadRange) async throws -> [WellnessDay] {
+		try await base.wellness(in: range)
 	}
-	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary] {
-		try await base.fetchActivities(oldest: oldest, newest: newest)
+	func activities(in range: ReadRange) async throws -> ActivityListing {
+		try await base.activities(in: range)
 	}
-	func fetchActivity(id: ActivityID) async throws -> JSONValue {
-		try await base.fetchActivity(id: id)
+	func activity(_ id: ActivityID) async throws -> ActivityDetailRead {
+		try await base.activity(id)
 	}
-	func fetchStreams(id: ActivityID) async throws -> JSONValue {
-		try await base.fetchStreams(id: id)
+	func streams(of id: ActivityID, channels: StreamChannels) async throws -> StreamSummary {
+		try await base.streams(of: id, channels: channels)
 	}
 	func fetchEvent(id: EventID) async throws -> CalendarEvent { try await base.fetchEvent(id: id) }
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {

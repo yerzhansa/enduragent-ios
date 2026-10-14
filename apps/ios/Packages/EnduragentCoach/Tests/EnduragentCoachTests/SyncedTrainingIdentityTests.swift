@@ -47,7 +47,7 @@ import Testing
 		async throws
 	{
 		let coach = await open()
-		let held = fixture.ada.holdNextProfileRead()
+		let held = fixture.ada.hold(.profile)
 		let oldRead = Task {
 			if localReplacement {
 				_ = await coach.changeTraining(
@@ -94,8 +94,9 @@ import Testing
 		case .unavailable: try peer.replace(.unavailable)
 		case .locked: backing.locked = true
 		case .revoked:
-			fixture.ada.setProfileOutcome(
-				.failure(IntervalsError(code: "http", details: "Revoked fixture key", status: 401)))
+			fixture.ada.fail(
+				.profile,
+				with: IntervalsError(code: "http", details: "Revoked fixture key", status: 401))
 		}
 		let block: ReviewBlock = state == .deleted ? .accountChanged : .cannotVerify
 		#expect(await coach.decide(.approve(token), in: .main) == .blocked(block))
@@ -135,7 +136,7 @@ import Testing
 		await coach.lifecycle(.becameActive)
 		let rotated = try #require(try secrets.intervalsConnection())
 		#expect(testConnection.account.authority(under: rotated.account) == .sameAthlete)
-		#expect(fixture.ada.profileReadCount >= 2)
+		#expect(fixture.ada.count(of: .profile) >= 2)
 		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
@@ -200,7 +201,7 @@ import Testing
 		let results = request.messages.filter { $0.role == .tool }.map(\.content).joined()
 		#expect(results.contains("Bo Lind"))
 		#expect(!results.contains("Ada Kovač"))
-		#expect(peer.athleteB.profileReadCount >= 2)
+		#expect(peer.athleteB.count(of: .profile) >= 2)
 	}
 }
 

@@ -60,7 +60,7 @@ extension SwiftDataSuites {
 			).records
 			await coach.lifecycle(.willTerminate)
 			try fixture.peer.replace(.rotatedA)
-			let reads = fixture.peer.athleteA.profileReadCount
+			let reads = fixture.peer.athleteA.count(of: .profile)
 			let reopened = try await reopen()
 			await reopened.lifecycle(.becameActive)
 			let retained = try #require(await reopened.currentSnapshot(.main)?.review)
@@ -74,10 +74,10 @@ extension SwiftDataSuites {
 			#expect(
 				await reopened.decide(.presented(retained.ref), in: .main) == .presentationRecorded)
 			let approval = try #require(await reopened.currentSnapshot(.main)?.review?.token)
-			#expect(fixture.peer.athleteA.profileReadCount > reads)
-			let beforeApproval = fixture.peer.athleteA.profileReadCount
+			#expect(fixture.peer.athleteA.count(of: .profile) > reads)
+			let beforeApproval = fixture.peer.athleteA.count(of: .profile)
 			#expect(await reopened.decide(.approve(approval), in: .main) == confirmed)
-			#expect(fixture.peer.athleteA.profileReadCount > beforeApproval)
+			#expect(fixture.peer.athleteA.count(of: .profile) > beforeApproval)
 			#expect(fixture.peer.athleteA.events.map(\.name) == ["Strength"])
 			#expect(fixture.peer.athleteA.calls.filter(\.isWrite).count == 1)
 			#expect(fixture.peer.athleteB.calls.allSatisfy { !$0.isWrite })
@@ -120,15 +120,15 @@ extension SwiftDataSuites {
 			}
 			let aCalls = fixture.peer.athleteA.calls
 			let bCalls = fixture.peer.athleteB.calls
-			let aReads = fixture.peer.athleteA.profileReadCount
-			let bReads = fixture.peer.athleteB.profileReadCount
+			let aReads = fixture.peer.athleteA.count(of: .profile)
+			let bReads = fixture.peer.athleteB.count(of: .profile)
 			#expect(
 				await reopened.decide(.checkAgain(blocked.ref), in: .main)
 					== .blocked(.accountChanged))
 			#expect(fixture.peer.athleteA.calls == aCalls)
 			#expect(fixture.peer.athleteB.calls == bCalls)
-			#expect(fixture.peer.athleteA.profileReadCount == aReads)
-			#expect(fixture.peer.athleteB.profileReadCount == bReads)
+			#expect(fixture.peer.athleteA.count(of: .profile) == aReads)
+			#expect(fixture.peer.athleteB.count(of: .profile) == bReads)
 			let afterB = try await fixture.store.fetch(
 				RecordQuery(scope: .synced([.reviewWrite]))
 			).records
@@ -167,8 +167,8 @@ extension SwiftDataSuites {
 			let pending = try await unknownSave(on: coach)
 			let aCalls = fixture.peer.athleteA.calls
 			let bCalls = fixture.peer.athleteB.calls
-			let bReads = fixture.peer.athleteB.profileReadCount
-			fixture.peer.athleteA.setProfileOutcome(.failure(URLError(.notConnectedToInternet)))
+			let bReads = fixture.peer.athleteB.count(of: .profile)
+			fixture.peer.athleteA.fail(.profile, with: URLError(.notConnectedToInternet))
 			let failed = await coach.decide(.checkAgain(pending.ref), in: .main)
 			#expect(failed.notice?.key == Catalog.reviewWriteReadFailed)
 			let retry = try #require(await coach.currentSnapshot(.main)?.review)
@@ -176,18 +176,18 @@ extension SwiftDataSuites {
 			#expect(retry.notice?.key == Catalog.reviewWriteReadFailed)
 			#expect(fixture.peer.athleteA.calls == aCalls)
 			#expect(fixture.peer.athleteB.calls == bCalls)
-			fixture.peer.athleteA.setProfileOutcome(
-				.success(AthleteProfile(id: "i1001", name: "Fixture A", ftp: 220)))
-			let reads = fixture.peer.athleteA.profileReadCount
+			fixture.peer.athleteA.athlete = .cyclist(id: "i1001", name: "Fixture A", ftp: 220)
+			fixture.peer.athleteA.restore(.profile)
+			let reads = fixture.peer.athleteA.count(of: .profile)
 			#expect(await coach.decide(.checkAgain(retry.ref), in: .main) == confirmed)
-			#expect(fixture.peer.athleteA.profileReadCount > reads)
+			#expect(fixture.peer.athleteA.count(of: .profile) > reads)
 			#expect(
 				Array(fixture.peer.athleteA.calls.dropFirst(aCalls.count))
 					== [.events(oldest: "1998-06-14", newest: "1998-06-14")])
 			#expect(fixture.peer.athleteA.events.count == 1)
 			#expect(fixture.peer.athleteA.calls.filter(\.isWrite).count == 1)
 			#expect(fixture.peer.athleteB.calls == bCalls)
-			#expect(fixture.peer.athleteB.profileReadCount == bReads)
+			#expect(fixture.peer.athleteB.count(of: .profile) == bReads)
 			#expect(await coach.currentSnapshot(.main)?.review == nil)
 			await coach.lifecycle(.willTerminate)
 		}
@@ -209,18 +209,18 @@ extension SwiftDataSuites {
 				for client in [fixture.peer.athleteA, fixture.peer.athleteB] {
 					client.failCalendarReadOnce = true
 					client.writeFailure = URLError(.notConnectedToInternet)
-					client.setProfileOutcome(.failure(URLError(.notConnectedToInternet)))
+					client.fail(.profile, with: URLError(.notConnectedToInternet))
 				}
 			}
 			let aCalls = fixture.peer.athleteA.calls
 			let bCalls = fixture.peer.athleteB.calls
-			let aReads = fixture.peer.athleteA.profileReadCount
-			let bReads = fixture.peer.athleteB.profileReadCount
+			let aReads = fixture.peer.athleteA.count(of: .profile)
+			let bReads = fixture.peer.athleteB.count(of: .profile)
 			#expect(await reopened.decide(.cancel(token), in: .main) == .canceled(kept: []))
 			#expect(fixture.peer.athleteA.calls == aCalls)
 			#expect(fixture.peer.athleteB.calls == bCalls)
-			#expect(fixture.peer.athleteA.profileReadCount == aReads)
-			#expect(fixture.peer.athleteB.profileReadCount == bReads)
+			#expect(fixture.peer.athleteA.count(of: .profile) == aReads)
+			#expect(fixture.peer.athleteB.count(of: .profile) == bReads)
 			try await assertClosedNote(on: reopened)
 			#expect(await reopened.decide(.checkAgain(token.ref), in: .main) == .staleControl)
 			#expect(await reopened.decide(.approve(token), in: .main) == .staleControl)
@@ -230,8 +230,8 @@ extension SwiftDataSuites {
 			).records
 			#expect(cancellation.count == 1)
 			#expect(cancellation.first?.account == fixture.accountA)
-			fixture.peer.athleteB.setProfileOutcome(
-				.success(AthleteProfile(id: "i2002", name: "Bo Lind", ftp: 240)))
+			fixture.peer.athleteB.athlete = .cyclist(id: "i2002", name: "Bo Lind", ftp: 240)
+			fixture.peer.athleteB.restore(.profile)
 			let (_, fresh) = try await proposals.proposal(
 				on: reopened, model: fixture.transport, name: "B after Cancel")
 			#expect(fresh.ref.set != token.ref.set)

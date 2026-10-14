@@ -9,52 +9,53 @@ package enum ToolOutcome: Sendable, Equatable {
 package struct ToolRuntime: Sendable {
 	private static let memoryReads: Set<ToolName> = [.memoryRead, .memoryQuery]
 
-	private let intervals: any IntervalsClient
-	let ledger: Ledger
-	let clock: any Clock
-	let reviews: SingleProposalReviews
+	static let unknownTool = JSONValue.object([
+		"error": .string("unknown_tool"),
+		"details": .string("This tool was not offered for this turn. Use an offered tool."),
+	])
 
-	package init(
-		intervals: any IntervalsClient, ledger: Ledger, clock: any Clock,
-		reviews: SingleProposalReviews
-	) {
-		self.intervals = intervals
-		self.ledger = ledger
-		self.clock = clock
-		self.reviews = reviews
+	private let offer: ToolOffer
+
+	package init(offer: ToolOffer) {
+		self.offer = offer
 	}
 
 	package func execute(
 		name: ToolName,
 		arguments: JSONValue,
-		chatId: ChatID,
 		scope: TurnScope
 	) async throws -> ToolExecution {
-		let stamp = scope.stamp
-		if let gated = GatedToolName(rawValue: name.rawValue) {
-			let outcome = try await executeGated(
-				gated, arguments: arguments, chatId: chatId, scope: scope)
-			return ToolExecution(outcome: outcome, commit: nil)
+		guard let handler = offer.handler(for: name) else {
+			return .result(Self.unknownTool)
 		}
-		if ReplayUnsafeToolName(rawValue: name.rawValue) != nil {
-			let execution = try await runPrepared(name: name, arguments: arguments, stamp: stamp)
+		switch name.effect {
+		case .proposal:
+			return try await runPrepared(handler, arguments: arguments, scope: scope)
+		case .write:
+			let execution = try await runPrepared(handler, arguments: arguments, scope: scope)
 			await scope.evict(Self.memoryReads)
 			if let commit = execution.commit {
 				await scope.record(commit)
 			}
 			return execution
-		}
-		return try await scope.memoized(name, arguments: canonicalJSON(arguments)) {
-			try await self.runPrepared(name: name, arguments: arguments, stamp: stamp)
+		case .read, .memoryRead:
+			return try await scope.memoized(name, arguments: canonicalJSON(arguments)) {
+				try await self.runPrepared(handler, arguments: arguments, scope: scope)
+			}
 		}
 	}
 
 	private func runPrepared(
-		name: ToolName,
+		_ handler: BoundToolRun,
 		arguments: JSONValue,
-		stamp: OperationStamp
+		scope: TurnScope
 	) async throws -> ToolExecution {
-		let raw = try await executeBody(name: name, arguments: arguments, stamp: stamp)
+		let raw: ToolExecution
+		do {
+			raw = try await handler(arguments, scope)
+		} catch let error as IntervalsError {
+			raw = .result(error.json)
+		}
 		guard case .result(let data) = raw.outcome else {
 			return raw
 		}
@@ -85,61 +86,6 @@ package struct ToolRuntime: Sendable {
 			return 0
 		}
 	}
-
-	private func executeBody(
-		name: ToolName,
-		arguments: JSONValue,
-		stamp: OperationStamp
-	) async throws -> ToolExecution {
-		do {
-			switch name {
-			case .calculateZones:
-				return try executeCalculateZones(arguments)
-			case .intervalsFetchAthlete:
-				return .result(encodeAthlete(try await intervals.fetchAthlete()))
-			case .intervalsFetchWellness:
-				let range = try listRange(from: arguments)
-				let days = try await intervals.fetchWellness(
-					oldest: range.oldest, newest: range.newest)
-				return .result(.array(days.map(encodeWellness)))
-			case .intervalsFetchActivity:
-				let id = try activityID(from: arguments)
-				return .result(try await intervals.fetchActivity(id: id))
-			case .intervalsFetchStreams:
-				let id = try activityID(from: arguments)
-				return .result(try await intervals.fetchStreams(id: id))
-			case .intervalsFetchActivities:
-				let range = try listRange(from: arguments)
-				let rows = try await intervals.fetchActivities(
-					oldest: range.oldest, newest: range.newest)
-				return .result(.array(rows.map(encodeActivity)))
-			case .intervalsListEvents:
-				let range = try listRange(from: arguments)
-				var events = try await intervals.listEvents(
-					oldest: range.oldest, newest: range.newest)
-				if arguments.objectFields["coachCreatedOnly"]?.boolValue == true {
-					events = events.filter(\.coachCreated)
-				}
-				return .result(.array(events.map(encodeEvent)))
-			case .memoryRead:
-				return try await executeMemoryRead(for: stamp.binding.account)
-			case .memoryQuery:
-				return try await executeMemoryQuery(arguments, for: stamp.binding.account)
-			case .memoryWrite:
-				return try await memory().executeMemoryWrite(
-					arguments, source: .chat, stamp: stamp)
-			case .ledgerAppend:
-				return try await memory().executeLedgerAppend(
-					arguments, source: .chat, stamp: stamp)
-			case .intervalsCreateWorkout, .intervalsCreateStrengthWorkout,
-				.intervalsDeleteWorkout, .intervalsUpdateWorkout, .planSave:
-				fatalError("gated tools are handled in execute")
-			}
-		} catch let error as IntervalsError {
-			return .result(error.json)
-		}
-	}
-
 }
 
 package struct ToolSchema: Sendable, Equatable {

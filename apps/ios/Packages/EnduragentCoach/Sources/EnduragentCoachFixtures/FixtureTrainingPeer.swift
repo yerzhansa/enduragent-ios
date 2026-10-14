@@ -31,11 +31,13 @@ public final class FixtureTrainingPeer: Sendable {
 	public init(secrets: any SecretStore, athleteA: FakeIntervalsClient) {
 		self.secrets = secrets
 		self.athleteA = athleteA
-		self.athleteB = FakeIntervalsClient(athleteName: "Bo Lind", ftp: 240, athleteId: "i2002")
-		athleteB.wellness = [WellnessDay(date: "1998-06-15", fitness: 35, fatigue: 40, form: -5)]
-		rejected.setProfileOutcome(
-			.failure(IntervalsError(code: "http", details: "Rejected fixture key", status: 401)))
-		unavailable.setProfileOutcome(.failure(URLError(.notConnectedToInternet)))
+		self.athleteB = FakeIntervalsClient(
+			athlete: .cyclist(id: "i2002", name: "Bo Lind", ftp: 240))
+		athleteB.wellness = [.on("1998-06-15", [.fitness: 35, .fatigue: 40])]
+		rejected.fail(
+			.profile,
+			with: IntervalsError(code: "http", details: "Rejected fixture key", status: 401))
+		unavailable.fail(.profile, with: URLError(.notConnectedToInternet))
 	}
 
 	public func client(for credential: IntervalsCredential) -> FakeIntervalsClient {
@@ -59,7 +61,7 @@ public final class FixtureTrainingPeer: Sendable {
 	}
 
 	public func holdNextProfile() {
-		heldProfile.withLock { $0 = athleteA.holdNextProfileRead() }
+		heldProfile.withLock { $0 = athleteA.hold(.profile) }
 	}
 
 	public func releaseProfile() async {
@@ -75,8 +77,8 @@ public final class FixtureTrainingPeer: Sendable {
 		let key = Key.allCases.first { current?.credential == .apiKey($0.secret) }
 		let receipt = Receipt(
 			key: current == nil ? "deleted" : key?.rawValue ?? "athleteA",
-			athleteAProfileReads: athleteA.profileReadCount,
-			athleteBProfileReads: athleteB.profileReadCount,
+			athleteAProfileReads: athleteA.count(of: .profile),
+			athleteBProfileReads: athleteB.count(of: .profile),
 			athleteAWrites: writes(athleteA), athleteBWrites: writes(athleteB),
 			athleteACalendarCalls: calendarCalls(athleteA),
 			athleteBCalendarCalls: calendarCalls(athleteB))

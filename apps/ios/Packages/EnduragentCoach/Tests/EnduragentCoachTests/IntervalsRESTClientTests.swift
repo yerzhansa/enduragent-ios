@@ -9,7 +9,7 @@ import Testing
 struct IntervalsRESTClientTests {
 	@Test func basicAuthHeaderBytes() async throws {
 		let client = try makeClient(credential: .apiKey("test-key"))
-		_ = try await client.fetchAthlete()
+		_ = try await client.profile()
 		let expected = "Basic " + Data("API_KEY:test-key".utf8).base64EncodedString()
 		#expect(
 			IntervalsURLProtocolStub.lastRequest?.value(forHTTPHeaderField: "Authorization")
@@ -21,50 +21,11 @@ struct IntervalsRESTClientTests {
 	@Test func oauthSendsBearer() async throws {
 		let client = try makeClient(
 			credential: .oauth(access: "access-token", refresh: "refresh-token"))
-		_ = try await client.fetchAthlete()
+		_ = try await client.profile()
 		#expect(
 			IntervalsURLProtocolStub.lastRequest?.value(forHTTPHeaderField: "Authorization")
 				== "Bearer access-token"
 		)
-	}
-
-	@Test func fetchAthleteReadsAda() async throws {
-		let client = try makeClient()
-		let athlete = try await client.fetchAthlete()
-		#expect(athlete.id == "i1001")
-		#expect(athlete.name == "Ada Kovač")
-		#expect(athlete.ftp == 250)
-	}
-
-	@Test func wellnessDecodeMapsCtlAtlAndHidesThemOnWellnessDay() async throws {
-		let client = try makeClient()
-		let days = try await client.fetchWellness(oldest: "1998-06-12", newest: "1998-06-13")
-		#expect(days.count == 2)
-		let today = try #require(days.first { $0.date == "1998-06-13" })
-		#expect(today.fitness == 55.2)
-		#expect(today.fatigue == 42.1)
-		#expect(today.form == 55.2 - 42.1)
-	}
-
-	@Test(arguments: [#""ramp_rate":"invalid""#, #""fatigue":"invalid""#, #""fatigue":2.5"#])
-	func wellnessLoadsWithMalformedUnusedFields(unusedField: String) async throws {
-		let client = try makeClient()
-		let body = #"[{"id":"1998-06-13","ctl":55.2,"atl":42.1,\#(unusedField)}]"#
-		IntervalsURLProtocolStub.handler = { _ in (200, Data(body.utf8)) }
-		let days = try await client.fetchWellness(oldest: "1998-06-13", newest: "1998-06-13")
-		#expect(
-			days == [
-				WellnessDay(date: "1998-06-13", fitness: 55.2, fatigue: 42.1, form: 55.2 - 42.1)
-			])
-	}
-
-	@Test func fetchActivitiesProjectsAdaRides() async throws {
-		let client = try makeClient()
-		let rows = try await client.fetchActivities(oldest: "1998-06-01", newest: "1998-06-13")
-		#expect(rows.map(\.name) == ["Sunday long ride", "Tuesday tempo"])
-		#expect(rows[0].date == "1998-06-07")
-		#expect(rows[0].durationS == 7200)
-		#expect(rows[0].trainingLoad == 120)
 	}
 
 	@Test func listEventsDoesNotFilterAwayMovedIdentities() async throws {
@@ -82,27 +43,10 @@ struct IntervalsRESTClientTests {
 		#expect(!events[1].coachCreated)
 	}
 
-	@Test func fetchStreamsReturnsSummaryWithoutSeries() async throws {
-		let client = try makeClient()
-		let summary = try await client.fetchStreams(
-			id: try #require(ActivityID(rawValue: "i1234567")))
-		let expected = try JSONValue.parse(
-			try #require(String(data: try fixtureData("streams-ts"), encoding: .utf8)))
-		#expect(summary.canonicalDigestInput() == expected.canonicalDigestInput())
-		let encoded = canonicalJSON(summary)
-		#expect(!encoded.contains("\"data\""))
-	}
-
 	@Test func rangeOf367DaysIsRejected() async throws {
 		let client = try makeClient()
 		let oldest: CivilDate = "1998-01-01"
 		let newest = oldest.adding(days: 366)
-		do {
-			_ = try await client.fetchActivities(oldest: oldest, newest: newest)
-			Issue.record("expected range_too_wide")
-		} catch let error as IntervalsError {
-			#expect(error.code == "range_too_wide")
-		}
 		do {
 			_ = try await client.listEvents(oldest: oldest, newest: newest)
 			Issue.record("expected range_too_wide")
@@ -116,7 +60,7 @@ struct IntervalsRESTClientTests {
 		let client = try makeClient()
 		let oldest: CivilDate = "1998-01-01"
 		let newest = oldest.adding(days: 365)
-		_ = try await client.fetchActivities(oldest: oldest, newest: newest)
+		_ = try await client.listEvents(oldest: oldest, newest: newest)
 		#expect(IntervalsURLProtocolStub.lastRequest != nil)
 	}
 
@@ -162,15 +106,16 @@ struct IntervalsRESTClientTests {
 	@Test func selectedAthleteGoesIntoEveryAthletePath() async throws {
 		let coached = try #require(IntervalsAthleteID(rawValue: "i2002"))
 		let client = try makeClient(athlete: .athlete(coached))
-		_ = try await client.fetchAthlete()
+		_ = try await client.profile()
 		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002")
-		_ = try await client.fetchWellness(oldest: "1998-06-12", newest: "1998-06-13")
+		_ = try await client.wellness(
+			in: try ReadRange(oldest: "1998-06-12", newest: "1998-06-13", today: "1998-06-13"))
 		#expect(
 			IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/wellness")
 		_ = try await client.listEvents(oldest: "1998-06-12", newest: "1998-06-13")
 		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/events")
 		let owner = try makeClient(athlete: .keyOwner)
-		_ = try await owner.fetchAthlete()
+		_ = try await owner.profile()
 		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/0")
 	}
 
@@ -201,11 +146,15 @@ struct IntervalsRESTClientTests {
 		#expect(
 			IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/wellness")
 		#expect(try secrets.intervalsConnection()?.selection == .athlete(coached))
-		_ = try await vault.trainingConnection().client.fetchAthlete()
+		guard case .connected(let training) = try await vault.trainingConnection() else {
+			Issue.record("Expected the saved connection to reach coaching")
+			return
+		}
+		_ = try await training.client.profile()
 		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002")
 	}
 
-	private func makeClient(
+	func makeClient(
 		credential: IntervalsCredential = .apiKey("test-key"),
 		athlete: AthleteSelection = .keyOwner,
 		clock: any Clock = SystemClock()
@@ -214,7 +163,7 @@ struct IntervalsRESTClientTests {
 			credential: credential, athlete: athlete, session: try stubSession(), clock: clock)
 	}
 
-	private func stubSession() throws -> URLSession {
+	func stubSession() throws -> URLSession {
 		IntervalsURLProtocolStub.reset()
 		IntervalsURLProtocolStub.handler = { request in
 			let path = request.url?.path ?? ""

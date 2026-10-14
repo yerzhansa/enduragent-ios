@@ -112,7 +112,9 @@ extension SwiftDataSuites {
 						.saturdayScheduleWrite)
 				} else {
 					events.append(
-						.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#))
+						.toolCall(
+							name: "intervals_fetch_activities",
+							arguments: #"{"oldest":"1998-06-07"}"#))
 				}
 				events.append(.finish(reason: .toolCalls))
 			}

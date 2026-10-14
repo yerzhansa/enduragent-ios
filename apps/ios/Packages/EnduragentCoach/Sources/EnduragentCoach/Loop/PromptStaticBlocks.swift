@@ -87,10 +87,11 @@ package enum PromptStaticBlocks {
 	package static let workoutReviewRules = #"""
 		# Workout Review (when user types /review or asks to review a session)
 
-		You are reviewing recorded activity data. Store-backed reads expose bounded canonical
-		activities. When `workoutId` and `sessionSequence` are present, they group and order
-		the recorded workout. Other readers may return additional source fields or omit those
-		grouping fields. Use only fields that are actually present. Activity data does not by
+		You are reviewing recorded activity data read live from intervals.icu. Each listed
+		activity has an `id`, a local start, and the measurements intervals.icu recorded for it;
+		the cycling review skill lists them. Nothing in the data marks two activities as one
+		workout. Use only fields that are actually present: an absent measurement is
+		unavailable, never inferred from another. Activity data does not by
 		itself link to a planned calendar prescription; never infer plan compliance from it.
 
 		## Parsing arguments after /review
@@ -105,10 +106,10 @@ package enum PromptStaticBlocks {
 		1. Call `intervals_fetch_activities` for the last 7 days, newest first.
 		2. If empty: reply "No activity in the last 7 days — want me to look further back?" and stop.
 		3. If newest activity is older than 7 days: reply "Your last session was X days ago — want me to review that?" and stop until the athlete confirms.
-		4. Otherwise: when `workoutId` is present, include every activity with that value and
-		   order them by `sessionSequence` when present. If grouping fields are absent, use
-		   start-time proximity within 30 minutes and state that the
-		   grouping is an inference.
+		4. Otherwise: intervals.icu supplies no grouping field, so use start-time proximity
+		   within 30 minutes to treat activities as possible legs of one workout, order
+		   the legs by start time, and state that the grouping is an inference. When a start
+		   has a date and no time of day, make no grouping at all.
 		5. If earlier same-day sessions exist, mention them briefly as duration/distance context —
 		   do not deep-review them.
 		6. The list result is a bounded summary. If nullable duration or distance fields are
@@ -117,21 +118,21 @@ package enum PromptStaticBlocks {
 
 		## Multi-activity and multisport sessions
 		A recorded workout may contain any number of ordered sport and transition activities.
-		Summarize every activity in the group and preserve `sessionSequence` when available.
+		Summarize every activity in the inferred group in start-time order.
 		At Tier B+, detail may stay scoped to the requested sport's main non-transition
 		activity, or one representative non-transition activity when no sport was requested.
 		State which legs were not detailed, and never judge the whole workout or change the
 		next session from one selected leg alone.
 
-		## Depth — scaled by the request and available canonical data
+		## Depth — scaled by the request and available data
 		- **Tier A (~50 words)**: explicit `brief` / `summary`. Call only
-		  `intervals_fetch_activities` and use only available summary fields. Store-backed
-		  summaries may include sport/sub-sport, local date/start, duration, distance, and
-		  recorded-workout grouping. One-line factual takeaway; no intensity, load, or
-		  per-lap claims.
-		- **Tier B (~200 words)**: default review. Call `intervals_fetch_activity` for the
-		  selected activity's bounded summary and bounded `laps`. Laps support timing and
-		  distance observations only; do not rename them as prescribed reps or invent targets.
+		  `intervals_fetch_activities` and use only available summary fields. You may state
+		  the measurements the list supplies as recorded values, Load and Intensity among
+		  them. One-line factual takeaway; no per-lap claims.
+		- **Tier B (~200 words)**: default review. Call `intervals_fetch_activity` with the
+		  selected activity's `id` exactly as the list gave it, and use its `laps` when
+		  supplied. You may state the measurements a lap carries as recorded values; do not
+		  rename laps as prescribed reps or invent targets.
 		- **Tier C (~500–600 words)**: explicit `deep` / `in depth` only. Call
 		  `intervals_fetch_activity` AND `intervals_fetch_streams` (limit to watts,
 		  heartrate, cadence, time, altitude). Follow the stream-evidence limits in the `intervals_fetch_streams` tool description.
@@ -153,7 +154,7 @@ package enum PromptStaticBlocks {
 		3. **What does this mean for the next session?** (One recommendation.)
 		Plus a 4th when concerning: **Is the bigger picture still on track?** (Form / wellness trends / streaks.)
 
-		**Evidence-limit rule:** summary fields, lap timing/distance, and independently
+		**Evidence-limit rule:** summary measurements, lap measurements, and independently
 		summarized stream statistics alone cannot establish session quality, recovery,
 		readiness, or justify changing the next session. In that case, answer question 1 with
 		the factual record and say there is not enough evidence to judge how it went; ask for
@@ -179,11 +180,12 @@ package enum PromptStaticBlocks {
 		| Metric | Value |
 		|---|---|
 
-		with one row per available summary metric the sport reports. When bounded lap data is
-		present, follow the headline table with a lap table (one row per lap). The sport's
-		review skill names which rows and columns fill these tables. Show local time only when
-		a timezone offset is present; otherwise label UTC or omit the time. Render nullable
-		lap cells as unavailable.
+		with one row per available summary metric the sport reports. When lap data is
+		supplied, follow the headline table with a lap table (one row per lap). The sport's
+		review skill names which rows and columns fill these tables. A start is the athlete's
+		local time as intervals.icu recorded it: show it as local time, never label it as
+		universal time or any other time zone, and leave the time out when the start has a
+		date only. Render nullable lap cells as unavailable.
 
 		Keep it compact. The athlete asked for numbers — no prose around the table.
 
@@ -214,7 +216,8 @@ package enum PromptStaticBlocks {
 		  analysis unless the athlete supplies the plan separately.
 		- Streams call fails: degrade to Tier B (note "stream data unavailable for deep review" briefly), don't error out.
 		- Streams payload is empty or missing watts/heartrate (manual entry, indoor without power, virtual ride with no recorded streams): note "stream data not available for this activity" and degrade to Tier B — do NOT invent pacing curves or best-efforts content.
-		- When an activity read returns an error, say it plainly and do not invent a review: `NotFound` → I can't find that activity; `Unauthorized` → I don't have access to your connected activity account; `RateLimit` → the activity service rate-limited me, try again in a minute; `Network` / `Timeout` → I couldn't reach the activity service; anything else → relay its `message`. Never surface the raw error token.
+		- When an activity read returns an `error`, name the limit in plain words and do not present a full review or invent one: `activity_not_found` → I can't find that activity; `activity_hidden_by_strava` → Strava hides that activity from me, then give the guidance in its `details`; `activity_detail_unavailable` → I couldn't read that activity's detail, with the cause its `details` names; any other `error` → I couldn't read it, then relay its `details`. Never surface the raw error code.
+		- Activity detail returns `lapsSupplied: false`: intervals.icu supplied no laps. Say lap data is unavailable for this activity, make no per-lap claim, and do not present the result as a full review.
 		"""#
 
 	package static func ruleBlocks(gated: Bool) -> [String] {
@@ -251,7 +254,20 @@ package enum PromptStaticBlocks {
 		+ "\n\n"
 		+ "Athlete snapshot: unavailable this turn; fetch the profile and latest wellness before prescribing intensity."
 
+	package static let snapshotNotConnected =
+		snapshotHeading
+		+ "\n\n"
+		+ "Training data is not connected. No intervals.icu account is linked, so you have no profile, "
+		+ "wellness, activities or calendar for this athlete and no tools to read them. "
+		+ "When the athlete asks for something that needs that data, say so, tell them they can "
+		+ "connect intervals.icu in Settings, and do not invent numbers."
+
 	package static let snapshotGuidance =
 		"Fetch wellness or activities only for a date range or history not shown here. "
 		+ "Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
+
+	package static let snapshotQualitativeFTP =
+		"The profile's FTP is not a usable number (it must be between 50 and 600 W). "
+		+ "Keep intensity guidance qualitative, do not work out zones or watt targets from it, "
+		+ "and ask the athlete to check their FTP in intervals.icu."
 }

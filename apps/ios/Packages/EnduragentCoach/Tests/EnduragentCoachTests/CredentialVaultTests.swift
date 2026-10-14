@@ -9,9 +9,9 @@ import Testing
 	let transport = FakeModelTransport()
 	let records = InMemoryRecordLog()
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-	let ada = FakeIntervalsClient(athleteName: "Ada Kovač", ftp: 250, athleteId: "i1001")
-	let bo = FakeIntervalsClient(athleteName: "Bo Lind", ftp: 240, athleteId: "i2002")
-	let offline = FakeIntervalsClient(athleteName: "Nobody", ftp: 200, athleteId: "i3003")
+	let ada = FakeIntervalsClient(athlete: .cyclist(id: "i1001", name: "Ada Kovač", ftp: 250))
+	let bo = FakeIntervalsClient(athlete: .cyclist(id: "i2002", name: "Bo Lind", ftp: 240))
+	let offline = FakeIntervalsClient(athlete: .cyclist(id: "i3003", name: "Nobody", ftp: 200))
 	let built = CredentialLog()
 	let adaAthlete: IntervalsAthleteID
 
@@ -38,10 +38,10 @@ import Testing
 
 	init() throws {
 		adaAthlete = try #require(testConnection.resolvedAthlete)
-		offline.setProfileOutcome(
-			.failure(
-				IntervalsError(
-					code: "down", details: "intervals.icu is unavailable.", status: 503)))
+		offline.fail(
+			.profile,
+			with: IntervalsError(
+				code: "down", details: "intervals.icu is unavailable.", status: 503))
 	}
 
 	var training: TrainingService {
@@ -215,7 +215,8 @@ import Testing
 			return
 		}
 		#expect(try secrets.intervalsConnection()?.resolvedAthlete == nil)
-		offline.setProfileOutcome(.success(AthleteProfile(id: "i3003", name: "Nobody", ftp: 200)))
+		offline.athlete = .cyclist(id: "i3003", name: "Nobody", ftp: 200)
+		offline.restore(.profile)
 		let status = try await coach.refreshedStatus()
 		let resolved = try #require(try secrets.intervalsConnection())
 		let athlete = try #require(IntervalsAthleteID(rawValue: "i3003"))

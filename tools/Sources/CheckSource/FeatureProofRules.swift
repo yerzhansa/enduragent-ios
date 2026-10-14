@@ -11,19 +11,10 @@ extension SourceChecker {
 		var classes: [String: ProofClass] = [:]
 		var mapped: Set<String> = []
 		for source in sources where try patterns.test(Self.proofFile, source.file) {
-			let text = source.text
-			let declarations = try patterns.matchAll(#"\bclass\s+(\w+)\s*:\s*XCTestCase\b"#, text)
-			for (index, declaration) in declarations.enumerated() {
-				let name = declaration.groups[1]
-				let end =
-					index + 1 < declarations.count
-					? declarations[index + 1].index : text.utf16.count
-				let body = text.slice(declaration.end, end)
-				let methods = try patterns.matchAll(#"\bfunc\s+(test\w+)\s*\("#, body).map {
-					$0.groups[1]
-				}
-				if classes[name] == nil { classNames.append(name) }
-				classes[name] = ProofClass(file: source.file, methods: Set(methods))
+			let declarations = try SwiftDeclarations(code: source.text, patterns: patterns)
+			for testCase in declarations.testCases {
+				if classes[testCase.name] == nil { classNames.append(testCase.name) }
+				classes[testCase.name] = ProofClass(file: source.file, methods: testCase.methods)
 			}
 		}
 		for source in sources where try patterns.test(Self.featureFile, source.file) {

@@ -23,8 +23,9 @@ extension FixtureLaunchTests {
 		#expect(model.draft.text.isEmpty)
 		#expect(model.isWorking)
 		#expect(model.chat?.liveReply?.text.isEmpty ?? true)
-		#expect(!intervals.calls.contains(.activities(days: 7)))
-		try await until { intervals.calls.contains(.activities(days: 7)) }
+		let weekRead = FakeIntervalsCall.activities(oldest: "1998-06-09", newest: "1998-06-15")
+		#expect(!intervals.calls.contains(weekRead))
+		try await until { intervals.calls.contains(weekRead) }
 		try await until { model.chat?.liveReply?.text == "Checking your recent rides. " }
 		#expect(model.chat?.turns.map(\.id) == [accepted.id])
 		#expect(model.isWorking)
@@ -57,5 +58,20 @@ extension FixtureLaunchTests {
 		#expect(review.totals.additions == 1)
 		#expect(transport.requestCount == 3)
 		#expect(intervals.events.isEmpty)
+	}
+
+	@Test(arguments: [TutorialCopy.rideRequest, FirstWeekFixture.toolProgressDirective])
+	func unconnectedWorkoutRequestSaysTrainingDataIsNotConnected(text: String) async throws {
+		let services = try services()
+		let fixture = try #require(services.fixture)
+		let model = await model(services)
+		await model.agreeAndStartChatting()
+		model.draft.text = text
+		await model.send()
+		let settled = try await settledTurn(model)
+		#expect(replyText(settled.state) == FirstWeekFixture.trainingDataMissing)
+		#expect(model.chat?.review == nil)
+		#expect(fixture.transport.requestCount == 1)
+		#expect(fixture.intervals.calls.isEmpty)
 	}
 }

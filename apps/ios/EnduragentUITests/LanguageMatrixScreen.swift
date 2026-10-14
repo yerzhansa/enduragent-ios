@@ -10,16 +10,14 @@ struct MatrixRun {
 
 	static func begin(
 		_ test: XCTestCase, _ language: LanguageTag,
-		arguments: FixtureArguments = FixtureArguments(), connected: Bool = true
+		arguments: FixtureArguments = FixtureArguments()
 	) -> MatrixRun {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app, arguments: arguments)
 		if arguments.onboarded {
 			TutorialHarness.agreeToProviderConsent(app)
-		} else if connected {
-			TutorialHarness.completeOnboarding(app)
 		} else {
-			TutorialHarness.startUnconnected(app)
+			TutorialHarness.completeOnboarding(app)
 		}
 		let run = MatrixRun(test: test, app: app, language: language)
 		run.chooseLanguage()
@@ -134,7 +132,7 @@ enum MatrixSweep {
 	static let messages = [
 		TutorialHarness.weekQuestion, TutorialHarness.workout, TutorialHarness.draft,
 		"Read the connected athlete's week", "fixture:text-then-hang", "fixture:fail 402",
-		"fixture:fail 400", "fixture:fail 403", "/language",
+		"fixture:fail 400", "fixture:fail 403", "/language", ShortcutScreen.workoutMessage,
 	]
 
 	private static let unswept = [

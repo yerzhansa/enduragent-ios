@@ -31,9 +31,8 @@ public indirect enum ReplyBlock: Sendable, Equatable {
 				$0.elements.map(\.accessibilityText).joined(separator: "\n")
 			}.joined(separator: "\n")
 		case .table(let table):
-			return ([table.header] + table.rows).map { row in
-				row.map { $0.map(\.accessibilityText).joined() }.joined(separator: "\t")
-			}.joined(separator: "\n")
+			return ([table.headerDescription] + table.rowDescriptions)
+				.map(\.accessibilityText).filter { !$0.isEmpty }.joined(separator: "\n")
 		}
 	}
 }
@@ -101,6 +100,60 @@ public struct ReplyTable: Sendable, Equatable {
 		self.header = header
 		self.rows = rows
 	}
+
+	public var layout: ReplyTableLayout { columns.rest.count == 1 ? .stacked : .grid }
+
+	public var headerDescription: ReplyRowDescription {
+		ReplyRowDescription(
+			parts: header.map(Self.spoken).filter { !$0.isEmpty }, links: Self.links(in: header))
+	}
+
+	public var rowDescriptions: [ReplyRowDescription] {
+		let titles = header.map(Self.spoken)
+		return rows.map { row in
+			let cells = row.map(Self.spoken)
+			switch layout {
+			case .stacked:
+				return ReplyRowDescription(
+					parts: cells.filter { !$0.isEmpty }, links: Self.links(in: row))
+			case .grid:
+				return ReplyRowDescription(
+					parts: zip(titles, cells).flatMap { title, cell in
+						cell.isEmpty ? [] : [title, cell].filter { !$0.isEmpty }
+					}, links: Self.links(in: row))
+			}
+		}
+	}
+
+	private static func spoken(_ cell: [ReplyRun]) -> String {
+		cell.map(\.accessibilityText).joined()
+	}
+
+	private static func links(in cells: [[ReplyRun]]) -> [ReplyRowLink] {
+		cells.joined().compactMap { run in
+			guard case .link(_, let target) = run, !run.accessibilityText.isEmpty else {
+				return nil
+			}
+			return ReplyRowLink(label: run.accessibilityText, target: target)
+		}
+	}
+}
+
+public enum ReplyTableLayout: Sendable, Equatable {
+	case stacked
+	case grid
+}
+
+public struct ReplyRowDescription: Sendable, Equatable {
+	public let parts: [String]
+	public let links: [ReplyRowLink]
+
+	public var accessibilityText: String { parts.joined(separator: ", ") }
+}
+
+public struct ReplyRowLink: Sendable, Equatable {
+	public let label: String
+	public let target: HTTPLink
 }
 
 public enum ReplyParseFailure: Error, Sendable, Equatable {

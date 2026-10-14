@@ -3,127 +3,121 @@ import Foundation
 import Synchronization
 
 public enum FakeIntervalsCall: Sendable, Equatable {
-	case activities(days: Int)
+	case activities(oldest: CivilDate, newest: CivilDate)
 	case wellness(oldest: CivilDate, newest: CivilDate)
 	case activity(ActivityID)
-	case streams(ActivityID)
+	case streams(ActivityID, channels: [String])
 	case events(oldest: CivilDate, newest: CivilDate)
 	case createEvent(date: CivilDate, externalId: String)
 	case updateEvent(EventID)
 	case deleteEvent(EventID)
 }
 
-public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
-	public var activities: [ActivitySummary]
-	public var wellness: [WellnessDay]
-	public var activity: JSONValue
-	public var streams: JSONValue
+public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @unchecked Sendable {
+	package var athlete: AthleteProfile
+	package var wellness: [WellnessDay]
+	package var activities: [Activity]
+	package var stravaHidden: [CivilDate]
+	package var unreadable: [CivilDate]
+	package var details: [ActivityID: ActivityDetailRead]
+	package var streams: [ActivityID: [StreamSamples]]
 	public var events: [CalendarEvent]
 	private let recordedCalls = Mutex<[FakeIntervalsCall]>([])
 	public var calls: [FakeIntervalsCall] { recordedCalls.withLock { $0 } }
-	public var athleteId: String
-	public var athleteName: String
-	public var ftp: Int
 	public var writeFailure: (any Error)?
-	private let displayReads = Mutex(FakeIntervalsDisplayReads())
-	private let nextActivityReadDelay = Mutex<Duration>(.zero)
+	private let faults = Mutex(FakeReadFaults())
 
-	public func delayNextActivityRead(for duration: Duration) {
-		nextActivityReadDelay.withLock { $0 = duration }
+	public func fail(_ read: FakeTrainingRead, with error: any Error, once: Bool = false) {
+		faults.withLock { $0.fail(read, with: error, once: once) }
 	}
 
-	public var profileReadCount: Int { displayReads.withLock { $0.profileCount } }
-	public var wellnessReadCount: Int { displayReads.withLock { $0.wellnessCount } }
-
-	public func setProfileOutcome(_ result: Result<AthleteProfile, any Error>, once: Bool = false) {
-		displayReads.withLock { $0.profile = (result, once) }
+	public func restore(_ read: FakeTrainingRead) {
+		faults.withLock { $0.restore(read) }
 	}
 
-	public func setWellnessOutcome(_ result: Result<[WellnessDay], any Error>, once: Bool = false) {
-		displayReads.withLock { $0.wellness = (result, once) }
+	public func hold(_ read: FakeTrainingRead) -> FakeIntervalsReadGate {
+		faults.withLock { $0.hold(read) }
 	}
 
-	public func holdNextProfileRead() -> FakeIntervalsReadGate {
-		let gate = FakeIntervalsReadGate()
-		displayReads.withLock { $0.profileGate = gate }
-		return gate
-	}
-
-	public func holdNextWellnessRead() -> FakeIntervalsReadGate {
-		let gate = FakeIntervalsReadGate()
-		displayReads.withLock { $0.wellnessGate = gate }
-		return gate
+	public func count(of read: FakeTrainingRead) -> Int {
+		faults.withLock { $0.count(of: read) }
 	}
 	#if DEBUG
 		public var loseCalendarSaveAnswerOnce = false
 		public var failCalendarReadOnce = false
 	#endif
 
-	public init(athleteName: String, ftp: Int, athleteId: String = "i1001") {
-		self.athleteId = athleteId
-		self.athleteName = athleteName
-		self.ftp = ftp
+	package init(athlete: AthleteProfile) {
+		self.athlete = athlete
 		self.activities = []
+		self.stravaHidden = []
+		self.unreadable = []
 		self.wellness = []
-		self.activity = .object([:])
-		self.streams = .object([
-			"sampleCount": .number(0),
-			"channels": .object([:]),
-		])
+		self.details = [:]
+		self.streams = [:]
 		self.events = []
 		self.writeFailure = nil
 	}
 
-	public func fetchAthlete() async throws -> AthleteProfile {
-		let (outcome, gate) = displayReads.withLock {
-			$0.profileCount += 1
-			let result =
-				$0.profile?.result
-				?? .success(AthleteProfile(id: athleteId, name: athleteName, ftp: ftp))
-			if $0.profile?.once == true { $0.profile = nil }
-			let gate = $0.profileGate
-			$0.profileGate = nil
-			return (result, gate)
-		}
-		await gate?.enter()
-		return try outcome.get()
+	package func profile() async throws -> AthleteProfile {
+		try await begin(.profile)
+		return athlete
 	}
 
-	public func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
-		let (outcome, gate) = displayReads.withLock {
-			$0.wellnessCount += 1
-			let result = $0.wellness?.result ?? .success(wellness)
-			if $0.wellness?.once == true { $0.wellness = nil }
-			let gate = $0.wellnessGate
-			$0.wellnessGate = nil
-			return (result, gate)
+	package func wellness(in range: ReadRange) async throws -> [WellnessDay] {
+		recordedCalls.withLock {
+			$0.append(.wellness(oldest: range.oldest, newest: range.newest))
 		}
-		recordedCalls.withLock { $0.append(.wellness(oldest: oldest, newest: newest)) }
-		await gate?.enter()
-		return try outcome.get().filter { $0.date >= oldest && $0.date <= newest }
+		try await begin(.wellness)
+		return wellness.filter { range.contains($0.date) }
 	}
 
-	public func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws
-		-> [ActivitySummary]
-	{
-		let days = IntervalsPolicy.inclusiveDayCount(from: oldest, to: newest)
-		recordedCalls.withLock { $0.append(.activities(days: days)) }
-		let delay = nextActivityReadDelay.withLock { pending in
-			defer { pending = .zero }
-			return pending
+	package func activities(in range: ReadRange) async throws -> ActivityListing {
+		recordedCalls.withLock {
+			$0.append(.activities(oldest: range.oldest, newest: range.newest))
 		}
-		if delay > .zero { try await Task.sleep(for: delay) }
-		return activities.filter { $0.date >= oldest && $0.date <= newest }
+		try await begin(.activities)
+		let listed = activities.filter { range.contains($0.start.date) }
+		return ActivityListing(
+			range: range,
+			rows: listed.map(ActivityRow.activity)
+				+ stravaHidden.filter(range.contains).map { _ in .hiddenByStrava }
+				+ unreadable.filter(range.contains).map { _ in .unreadable })
 	}
 
-	public func fetchActivity(id: ActivityID) async throws -> JSONValue {
+	private func begin(_ read: FakeTrainingRead) async throws {
+		let (failure, gate) = faults.withLock { $0.begin(read) }
+		try await gate?.enter()
+		if let failure { throw failure }
+	}
+
+	package func activity(_ id: ActivityID) async throws -> ActivityDetailRead {
 		recordedCalls.withLock { $0.append(.activity(id)) }
-		return activity
+		try await reachingIntervals { try await begin(.activity) }
+		switch details[id] {
+		case .found(let detail)?:
+			return .found(
+				try ActivityDetail(
+					asked: id, activity: detail.activity, extras: detail.extras, laps: detail.laps))
+		case let answer?:
+			return answer
+		case nil:
+			guard let stored = activities.first(where: { $0.id == id }) else { return .notFound }
+			return .found(
+				try ActivityDetail(
+					asked: id, activity: stored, extras: ActivityDetailExtras(),
+					laps: .notSupplied))
+		}
 	}
 
-	public func fetchStreams(id: ActivityID) async throws -> JSONValue {
-		recordedCalls.withLock { $0.append(.streams(id)) }
-		return streams
+	package func streams(of id: ActivityID, channels: StreamChannels) async throws
+		-> StreamSummary
+	{
+		recordedCalls.withLock { $0.append(.streams(id, channels: channels.names)) }
+		try await begin(.streams)
+		return StreamSummary(
+			summarizing: (streams[id] ?? []).filter { channels.names.contains($0.channel) },
+			asked: channels)
 	}
 
 	public func fetchEvent(id: EventID) async throws -> CalendarEvent {

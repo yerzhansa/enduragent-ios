@@ -1,7 +1,56 @@
 {
   "id": "i1001",
   "name": "Ada Kovač",
-  "icu_ftp": 250,
   "sex": "F",
-  "weight": 58
+  "city": "Rotterdam",
+  "height": 1.7,
+  "timezone": "Europe/Amsterdam",
+  "icu_date_of_birth": "1970-06-14",
+  "icu_ftp": 240,
+  "icu_lthr": 160,
+  "icu_max_hr": 180,
+  "icu_resting_hr": 50,
+  "icu_weight": 58,
+  "weight": 59,
+  "sportSettings": [
+    {
+      "id": 11,
+      "types": ["Run", "VirtualRun"],
+      "ftp": 300,
+      "indoor_ftp": 310,
+      "lthr": 172,
+      "max_hr": 192,
+      "resting_hr": 46,
+      "weight": 61,
+      "w_prime": 15000,
+      "p_max": 700,
+      "threshold_pace": 4.2,
+      "pace_units": "MINS_KM",
+      "sweet_spot_min": 80,
+      "sweet_spot_max": 90,
+      "power_zones": [60, 80, 999],
+      "power_zone_names": ["Easy", "Steady", "Hard"],
+      "hr_zones": [140, 160, 192],
+      "hr_zone_names": ["Low", "Mid", "High"]
+    },
+    {
+      "id": 12,
+      "types": ["Ride", "VirtualRide"],
+      "ftp": 250,
+      "indoor_ftp": 245,
+      "lthr": 165,
+      "max_hr": 185,
+      "resting_hr": 48,
+      "weight": 60,
+      "w_prime": 20000,
+      "p_max": 1100,
+      "sweet_spot_min": 84,
+      "sweet_spot_max": 97,
+      "power_zones": [55, 75, 90, 105, 120, 150, 999],
+      "power_zone_names": ["Active Recovery", "Endurance", "Tempo", "Threshold", "VO2 Max", "Anaerobic", "Neuromuscular"],
+      "hr_zones": [135, 150, 156, 166, 171, 176, 185],
+      "hr_zone_names": ["Recovery", "Aerobic", "Tempo", "SubThreshold", "SuperThreshold", "Aerobic Capacity", "Anaerobic"],
+      "warmup_time": 1200
+    }
+  ]
 }

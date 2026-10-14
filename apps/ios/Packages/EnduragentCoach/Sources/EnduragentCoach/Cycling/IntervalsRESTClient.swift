@@ -4,8 +4,8 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private let credential: IntervalsCredential
 	private let session: URLSession
 	private let baseURL: URL
-	private let athletePath: String
-	private let clock: any Clock
+	let athletePath: String
+	let clock: any Clock
 
 	package init(
 		credential: IntervalsCredential, athlete: AthleteSelection = .keyOwner,
@@ -28,60 +28,8 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 				resourceTimeout: IntervalsPolicy.requestTimeout)
 	}
 
-	package func fetchAthlete() async throws -> AthleteProfile {
-		let json = try await getJSON(path: ["athlete", athletePath])
-		let fields = json.objectFields
-		return AthleteProfile(
-			id: fields["id"]?.stringValue ?? athletePath,
-			name: fields["name"]?.stringValue ?? "",
-			ftp: fields["icu_ftp"]?.intValue() ?? fields["icuFtp"]?.intValue()
-		)
-	}
-
-	package func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
-		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
-		let data = try await get(
-			path: ["athlete", athletePath, "wellness"],
-			query: [
-				URLQueryItem(name: "oldest", value: oldest.rawValue),
-				URLQueryItem(name: "newest", value: newest.rawValue),
-			]
-		)
-		let rows = try JSONDecoder().decode([IntervalsWellnessJSON].self, from: data)
-		return rows.map(WellnessDay.init(json:))
-	}
-
-	package func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws
-		-> [ActivitySummary]
-	{
-		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
-		let json = try await getJSON(
-			path: ["athlete", athletePath, "activities"],
-			query: [
-				URLQueryItem(name: "oldest", value: oldest.rawValue),
-				URLQueryItem(name: "newest", value: newest.rawValue),
-			]
-		)
-		return (json.arrayValue ?? []).compactMap(Self.activitySummary(from:))
-	}
-
-	package func fetchActivity(id: ActivityID) async throws -> JSONValue {
-		try await getJSON(path: ["activity", id.rawValue])
-	}
-
-	package func fetchStreams(id: ActivityID) async throws -> JSONValue {
-		let json = try await getJSON(
-			path: ["activity", id.rawValue, "streams.json"],
-			query: [
-				URLQueryItem(
-					name: "types", value: IntervalsPolicy.defaultStreamTypes.joined(separator: ","))
-			]
-		)
-		return IntervalsStreamSummary.summarize(json)
-	}
-
 	package func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
-		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
+		_ = try ReadRange(oldest: oldest, newest: newest, today: newest)
 		let query = [
 			URLQueryItem(name: "oldest", value: oldest.rawValue),
 			URLQueryItem(name: "newest", value: newest.rawValue),
@@ -183,7 +131,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		return try Self.calendarEvent(from: json)
 	}
 
-	private func getJSON(path: [String], query: [URLQueryItem] = []) async throws -> JSONValue {
+	func getJSON(path: [String], query: [URLQueryItem] = []) async throws -> JSONValue {
 		try parseJSON(try await send(method: "GET", path: path, query: query))
 	}
 
@@ -196,16 +144,29 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		try parseJSON(try await send(method: method, path: path, query: query, body: body))
 	}
 
-	private func get(path: [String], query: [URLQueryItem] = []) async throws -> Data {
-		try await send(method: "GET", path: path, query: query)
-	}
-
 	private func send(
 		method: String,
 		path: [String],
 		query: [URLQueryItem] = [],
 		body: JSONValue? = nil
 	) async throws -> Data {
+		try Self.accepted(try await exchange(method: method, path: path, query: query, body: body))
+	}
+
+	static func accepted(_ answer: IntervalsAnswer) throws(IntervalsError) -> Data {
+		guard (200..<300).contains(answer.status) else {
+			throw IntervalsError(
+				code: "http", details: "status \(answer.status)", status: answer.status)
+		}
+		return answer.body
+	}
+
+	func exchange(
+		method: String,
+		path: [String],
+		query: [URLQueryItem] = [],
+		body: JSONValue? = nil
+	) async throws -> IntervalsAnswer {
 		var url = baseURL
 		for component in path {
 			url.append(path: component)
@@ -232,14 +193,10 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		guard let http = response as? HTTPURLResponse else {
 			throw IntervalsError(code: "network", details: "missing http response")
 		}
-		guard (200..<300).contains(http.statusCode) else {
-			throw IntervalsError(
-				code: "http", details: "status \(http.statusCode)", status: http.statusCode)
-		}
-		return data
+		return IntervalsAnswer(status: http.statusCode, body: data)
 	}
 
-	private func parseJSON(_ data: Data) throws -> JSONValue {
+	func parseJSON(_ data: Data) throws -> JSONValue {
 		guard let text = String(data: data, encoding: .utf8) else {
 			throw IntervalsError(code: "invalid_json", details: "response was not UTF-8")
 		}
@@ -248,18 +205,6 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		} catch {
 			throw IntervalsError(code: "invalid_json", details: "response was not JSON")
 		}
-	}
-
-	private static func activitySummary(from json: JSONValue) -> ActivitySummary? {
-		let fields = json.objectFields
-		guard let name = fields["name"]?.stringValue else { return nil }
-		let local = fields["start_date_local"]?.stringValue ?? fields["startDateLocal"]?.stringValue
-		guard let local, let date = CivilDate(rawValue: String(local.prefix(10))) else {
-			return nil
-		}
-		let duration = fields["moving_time"]?.intValue() ?? fields["movingTime"]?.intValue() ?? 0
-		let load = fields["icu_training_load"]?.intValue() ?? fields["icuTrainingLoad"]?.intValue()
-		return ActivitySummary(name: name, date: date, durationS: duration, trainingLoad: load)
 	}
 
 	private static func calendarEvent(from json: JSONValue) throws -> CalendarEvent {
@@ -280,63 +225,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 
 }
 
-package enum IntervalsStreamSummary {
-	package static func summarize(_ raw: JSONValue) -> JSONValue {
-		var channels: [String: JSONValue] = [:]
-		var sampleCount = 0
-		for (name, values) in channelArrays(raw) {
-			guard let summary = summarizeChannel(values) else { continue }
-			channels[name] = summary
-			if values.count > sampleCount {
-				sampleCount = values.count
-			}
-		}
-		return .object([
-			"sampleCount": .number(Double(sampleCount)),
-			"channels": .object(channels),
-		])
-	}
-
-	private static func channelArrays(_ raw: JSONValue) -> [(String, [JSONValue])] {
-		if let items = raw.arrayValue {
-			var out: [(String, [JSONValue])] = []
-			for element in items {
-				let fields = element.objectFields
-				guard let type = fields["type"]?.stringValue, let data = fields["data"]?.arrayValue
-				else {
-					continue
-				}
-				out.append((type, data))
-			}
-			return out
-		}
-		if case .object(let object) = raw {
-			return object.compactMap { key, value in
-				guard let data = value.arrayValue else { return nil }
-				return (key, data)
-			}
-		}
-		return []
-	}
-
-	private static func summarizeChannel(_ values: [JSONValue]) -> JSONValue? {
-		var min = Double.infinity
-		var max = -Double.infinity
-		var sum = 0.0
-		var count = 0
-		for value in values {
-			guard let number = value.numberValue, number.isFinite else { continue }
-			if number < min { min = number }
-			if number > max { max = number }
-			sum += number
-			count += 1
-		}
-		guard count > 0 else { return nil }
-		let mean = (sum / Double(count) * 10).rounded() / 10
-		return .object([
-			"min": .number(min),
-			"max": .number(max),
-			"mean": .number(mean),
-		])
-	}
+struct IntervalsAnswer: Sendable {
+	let status: Int
+	let body: Data
 }

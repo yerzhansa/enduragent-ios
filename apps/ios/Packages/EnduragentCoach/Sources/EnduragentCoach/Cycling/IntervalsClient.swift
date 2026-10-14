@@ -4,11 +4,15 @@ public struct ActivityID: Hashable, Sendable {
 	public let rawValue: String
 
 	public init?(rawValue: String) {
-		let digits = rawValue.allSatisfy(\.isNumber)
-		let prefixed = rawValue.first == "i" && rawValue.dropFirst().allSatisfy(\.isNumber)
+		let digits = Self.isDigits(rawValue[...])
+		let prefixed = rawValue.first == "i" && Self.isDigits(rawValue.dropFirst())
 		let hex = rawValue.count == 64 && rawValue.allSatisfy { $0.isHexDigit && !$0.isUppercase }
 		guard digits || prefixed || hex else { return nil }
 		self.rawValue = rawValue
+	}
+
+	private static func isDigits(_ text: Substring) -> Bool {
+		!text.isEmpty && text.allSatisfy { $0.isASCII && $0.isNumber }
 	}
 }
 
@@ -53,95 +57,6 @@ public struct ChatExternalID: Hashable, Sendable {
 			}
 		}
 		return slug.isEmpty ? "workout" : slug
-	}
-}
-
-public struct AthleteProfile: Sendable, Equatable {
-	public var id: String
-	public var name: String
-	public var ftp: Int?
-
-	package init(id: String, name: String, ftp: Int?) {
-		self.id = id
-		self.name = name
-		self.ftp = ftp
-	}
-}
-
-package struct IntervalsWellnessJSON: Sendable, Equatable, Decodable {
-	package var date: CivilDate
-	package var ctl: Double?
-	package var atl: Double?
-
-	private enum CodingKeys: String, CodingKey {
-		case id
-		case ctl
-		case atl
-	}
-
-	package init(from decoder: Decoder) throws {
-		let container = try decoder.container(keyedBy: CodingKeys.self)
-		let id = try container.decode(String.self, forKey: .id)
-		guard let date = CivilDate(rawValue: id) else {
-			throw DecodingError.dataCorruptedError(
-				forKey: .id,
-				in: container,
-				debugDescription: "invalid civil date"
-			)
-		}
-		self.date = date
-		self.ctl = try container.decodeIfPresent(Double.self, forKey: .ctl)
-		self.atl = try container.decodeIfPresent(Double.self, forKey: .atl)
-	}
-}
-
-public struct WellnessDay: Sendable, Equatable {
-	public var date: CivilDate
-	public var fitness: Double?
-	public var fatigue: Double?
-	public var form: Double?
-
-	public init(date: CivilDate, fitness: Double?, fatigue: Double?, form: Double?) {
-		self.date = date
-		self.fitness = fitness
-		self.fatigue = fatigue
-		self.form = form
-	}
-
-	public static func formattedNumber(_ value: Double?, fractionDigits: Int = 0) -> String {
-		guard let value, value.isFinite else { return "—" }
-		let number = fractionDigits == 0 ? value.rounded() : value
-		return wholeInt(number).map(String.init)
-			?? String(format: "%.*f", fractionDigits, number)
-	}
-
-	package init(json: IntervalsWellnessJSON) {
-		self.date = json.date
-		self.fitness = json.ctl
-		self.fatigue = json.atl
-		if let fitness = json.ctl, let fatigue = json.atl {
-			self.form = fitness - fatigue
-		} else {
-			self.form = nil
-		}
-	}
-}
-
-public struct ActivitySummary: Sendable, Equatable {
-	public var name: String
-	public var date: CivilDate
-	public var durationS: Int
-	public var trainingLoad: Int?
-
-	public static func ride(name: String, date: String, durationS: Int, trainingLoad: Int)
-		-> ActivitySummary
-	{
-		ActivitySummary(
-			name: name,
-			date: CivilDate(stringLiteral: date),
-			durationS: durationS,
-			trainingLoad: trainingLoad
-		)
 	}
 }
 
@@ -191,11 +106,6 @@ public enum CalendarEventType: String, Sendable {
 }
 
 public protocol IntervalsClient: Sendable {
-	func fetchAthlete() async throws -> AthleteProfile
-	func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay]
-	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary]
-	func fetchActivity(id: ActivityID) async throws -> JSONValue
-	func fetchStreams(id: ActivityID) async throws -> JSONValue
 	func fetchEvent(id: EventID) async throws -> CalendarEvent
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent]
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent
@@ -237,9 +147,13 @@ package enum IntervalsPolicy {
 		return url
 	}()
 	package static let coachTag = "cycling-coach"
+	package static let stravaSource = "STRAVA"
 	package static let ftpRange = 50...600
+	package static let cyclingSports: Set<String> = [
+		"Ride", "VirtualRide", "MountainBikeRide", "GravelRide", "EBikeRide",
+	]
 	package static let requestTimeout: TimeInterval = 30
-	package static let defaultStreamTypes = ["watts", "heartrate", "cadence", "time", "altitude"]
+	package static let streamRequestLimit = 3
 
 	package static func chatCreateBody(_ draft: ChatCalendarCreate) -> JSONValue {
 		var fields: [String: JSONValue] = [
@@ -274,26 +188,6 @@ package enum IntervalsPolicy {
 		let leapDay = month > 2 && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) ? 1 : 0
 		return previousYear * 365 + previousYear / 4 - previousYear / 100 + previousYear / 400
 			+ daysBeforeMonth[month - 1] + leapDay + day
-	}
-
-	package static func rejectListRange(oldest: CivilDate, newest: CivilDate) throws {
-		if oldest > newest {
-			throw IntervalsError(
-				code: "invalid_range",
-				details: "oldest (\(oldest)) is after newest (\(newest)). Swap the bounds."
-			)
-		}
-		try rejectListDayCount(inclusiveDayCount(from: oldest, to: newest))
-	}
-
-	package static func rejectListDayCount(_ days: Int) throws {
-		if days > listMaxRangeDays {
-			throw IntervalsError(
-				code: "range_too_wide",
-				details:
-					"Range is \(days) days; the maximum is \(listMaxRangeDays). Fetch the range in chunks of at most \(listMaxRangeDays) days."
-			)
-		}
 	}
 
 	package static func isCoachOwned(externalId: String?, tags: [String]) -> Bool {

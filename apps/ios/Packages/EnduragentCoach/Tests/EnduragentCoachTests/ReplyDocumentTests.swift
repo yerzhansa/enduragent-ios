@@ -81,7 +81,9 @@ import Testing
 				[[text("Tue")], [text("48", [.bold])], []],
 				[[text("Thu")], [text("82")], [text("easy", [.inlineCode])]],
 			])
-		#expect(parsed.first?.accessibilityText == "Day\tLoad\tNote\nTue\t48\t\nThu\t82\teasy")
+		#expect(
+			parsed.first?.accessibilityText
+				== "Day, Load, Note\nDay, Tue, Load, 48\nDay, Thu, Load, 82, Note, easy")
 	}
 
 	@Test func tableRejectsUnequalWidths() {

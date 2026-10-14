@@ -503,6 +503,13 @@ ReplyParseFailure.foundation
 ReplyParser
 ReplyParser.document(_:)
 ReplyParser.foundation
+ReplyRowDescription
+ReplyRowDescription.accessibilityText
+ReplyRowDescription.links
+ReplyRowDescription.parts
+ReplyRowLink
+ReplyRowLink.label
+ReplyRowLink.target
 ReplyRun
 ReplyRun.accessibilityText
 ReplyRun.link
@@ -511,7 +518,13 @@ ReplyRun.text
 ReplyTable
 ReplyTable.columns
 ReplyTable.header
+ReplyTable.headerDescription
+ReplyTable.layout
+ReplyTable.rowDescriptions
 ReplyTable.rows
+ReplyTableLayout
+ReplyTableLayout.grid
+ReplyTableLayout.stacked
 ReplyText
 ReplyText.catalog
 ReplyText.model

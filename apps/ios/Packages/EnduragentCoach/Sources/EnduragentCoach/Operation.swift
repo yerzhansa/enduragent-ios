@@ -9,7 +9,6 @@ package enum OperationID: Hashable, Sendable {
 	case launchRecovery(LaunchID)
 	case workoutChangeSet(ChangeSetID, ChangeSetRevision)
 	case planningCommand(PlanningCommandID)
-	case referenceRefresh(RefreshID)
 	case debugSample(DebugSampleID)
 }
 

@@ -13,7 +13,9 @@ import Testing
 	@Test func tenStepChatInvocationChargesOneCall() async throws {
 		var script: [ScriptedEvent] = []
 		for _ in 0..<9 {
-			script.append(.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#))
+			script.append(
+				.toolCall(
+					name: "intervals_fetch_activities", arguments: #"{"oldest":"1998-06-07"}"#))
 			script.append(.finish(reason: .toolCalls))
 		}
 		script.append(contentsOf: [.text("Ten steps."), .finish(reason: .stop)])
@@ -165,7 +167,6 @@ import Testing
 			clock: clock,
 			diagnostics: diagnostics,
 			ladder: ladder,
-			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
 			reviews: makeReviews(ledger: ledger, clock: clock),
 			authorizeInvocation: { _ in }
 		)
@@ -185,8 +186,7 @@ import Testing
 			displayLocale: testDisplayLocale(.automatic),
 			session: .npmDefaults,
 			access: testAccess,
-			training: TrainingConnection(
-				account: testConnection.account, client: intervals),
+			training: connectedTraining(intervals),
 			process: ProcessID(ulid: scope.stamp.attempt.ulid)
 		)
 	}

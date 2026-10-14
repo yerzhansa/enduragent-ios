@@ -16,7 +16,8 @@ extension StopAndLeaseEdgeTests {
 		transport.respond = ScriptedReply.sequence(
 			[
 				.text("Checking your recent rides. "),
-				.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
+				.toolCall(
+					name: "intervals_fetch_activities", arguments: #"{"oldest":"1998-06-07"}"#),
 				.finish(reason: .toolCalls),
 			], otherwise: transport.respond)
 		let store = InMemoryRecordLog()

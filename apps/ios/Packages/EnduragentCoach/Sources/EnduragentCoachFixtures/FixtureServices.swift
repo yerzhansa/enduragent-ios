@@ -51,7 +51,7 @@ extension ICloudKeychainStore {
 
 extension TrainingService {
 	public static func fake(
-		_ client: @escaping @Sendable (IntervalsCredential, AthleteSelection) -> any IntervalsClient
+		_ client: @escaping @Sendable (IntervalsCredential, AthleteSelection) -> FakeIntervalsClient
 	) -> TrainingService {
 		TrainingService { credential, athlete, _ in client(credential, athlete) }
 	}

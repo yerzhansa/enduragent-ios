@@ -289,4 +289,37 @@ enum LanguageMatrix {
 		run.screen("settings-model")
 		TutorialHarness.returnToChat(app)
 	}
+
+	static func shortcuts(_ test: XCTestCase, _ language: LanguageTag) {
+		let run = MatrixRun.begin(test, language)
+		let app = run.app
+		let composer = run.named("chat.composer")
+		TutorialHarness.wait(composer, until: .hittable)
+		composer.tap()
+		composer.typeText("/")
+		let titles: [(SlashCommand, CatalogKey)] = [
+			(.workout, Catalog.telegramMenuWorkout), (.status, Catalog.telegramMenuStatus),
+		]
+		for (command, title) in titles {
+			run.expect(ShortcutScreen.rowIdentifier(command), contains: title)
+			let row = ShortcutScreen.row(command, in: app)
+			XCTAssertTrue(row.label.hasPrefix(command.rawValue), row.label)
+		}
+		run.screen("shortcut-choices")
+		let workout = ShortcutScreen.row(.workout, in: app)
+		TutorialHarness.scroll(app, to: workout, direction: .down)
+		workout.tap()
+		TutorialHarness.wait(composer, until: .value("/workout "))
+		TutorialHarness.send(app, ShortcutScreen.workoutRequest)
+		let transcript = run.named("chat.transcript")
+		TutorialHarness.wait(transcript.staticTexts[ShortcutScreen.workoutMessage])
+		run.expect("chat.working", Catalog.chatNoticeWorking)
+		run.screen("shortcut-working")
+		TutorialHarness.wait(
+			run.named("chat.turnProgress"), until: .value("turns 1 settled 1"), within: .turn)
+		TutorialHarness.wait(run.named("chat.working"), until: .absent)
+		TutorialHarness.waitForLabel(app, ShortcutScreen.workoutReply)
+		ShortcutScreen.assertNoReviewAndNoCalendarLine(app)
+		run.screen("shortcut-reply")
+	}
 }

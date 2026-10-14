@@ -106,7 +106,7 @@ extension RetryLadderTests {
 		#expect(base.calls.filter(\.isWrite).isEmpty)
 	}
 
-	func reopenedApprovalCoaches(intervals: any IntervalsClient) async -> [Coach] {
+	func reopenedApprovalCoaches(intervals: any TrainingClient) async -> [Coach] {
 		let logs: [any RecordLog] = [
 			store, DeviceAliasLog(inner: store, deviceId: DeviceID(rawValue: "second-phone")),
 		]

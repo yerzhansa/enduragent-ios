@@ -74,9 +74,9 @@ struct IntervalsLiveTests {
 		let past = today.adding(days: -(days - 1))
 		let future = today.adding(days: days - 1)
 
-		_ = try await client.fetchAthlete()
-		_ = try await client.fetchWellness(oldest: past, newest: today)
-		_ = try await client.fetchActivities(oldest: past, newest: today)
+		_ = try await client.profile()
+		_ = try await client.wellness(in: .snapshotLookback(endingOn: today))
+		_ = try await client.activities(in: ReadRange(oldest: past, newest: today, today: today))
 		_ = try await client.listEvents(oldest: today, newest: future)
 	}
 }

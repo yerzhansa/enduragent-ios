@@ -123,7 +123,7 @@ extension RetryLadderTests {
 	}
 
 	func heldApprovalCoach(
-		_ held: HeldClock, model: any ModelTransport, intervals: any IntervalsClient,
+		_ held: HeldClock, model: any ModelTransport, intervals: any TrainingClient,
 		records: (any RecordLog)? = nil
 	) async -> Coach {
 		await consentingCoach(

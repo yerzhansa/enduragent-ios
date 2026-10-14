@@ -8,8 +8,8 @@ import Testing
 	let transport = FakeModelTransport()
 	let records = InMemoryRecordLog()
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-	let ada = FakeIntervalsClient(athleteName: "Ada Kovač", ftp: 250, athleteId: "i1001")
-	let bo = FakeIntervalsClient(athleteName: "Bo Lind", ftp: 240, athleteId: "i2002")
+	let ada = FakeIntervalsClient(athlete: .cyclist(id: "i1001", name: "Ada Kovač", ftp: 250))
+	let bo = FakeIntervalsClient(athlete: .cyclist(id: "i2002", name: "Bo Lind", ftp: 240))
 	let secretBacking = FixtureSecretStoreBacking()
 	let secrets: ICloudKeychainStore
 
