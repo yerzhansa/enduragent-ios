@@ -50,15 +50,15 @@ test-app: project
 	$(AT_ROOT) destination="$$($(IPHONE_SIMULATOR))" && test -n "$$destination" && xcodebuild test -project $(APP_PROJECT) -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,arch=arm64,id=$$destination" -derivedDataPath $(DERIVED_DATA) -only-testing:$(ONLY) CODE_SIGNING_ALLOWED=NO
 
 live-reads:
-	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=reads swift test --package-path $(COACH) --filter LiveReadsCheck $(ARGS)
+	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=reads swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LiveReadsCheck $(ARGS)
 
 live-coach:
-	$(AT_ROOT) status=0; $(LIVE_CHECK) ENDURAGENT_LIVE=coach swift test --package-path $(COACH) --filter LiveCoachCheck $(ARGS) || status=$$?; \
+	$(AT_ROOT) status=0; $(LIVE_CHECK) ENDURAGENT_LIVE=coach swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LiveCoachCheck $(ARGS) || status=$$?; \
 	if [ -f "$(LIVE_LOGS)/spend.tsv" ]; then $(LIVE_SPEND) "$(LIVE_LOGS)/spend.tsv"; fi; \
 	exit $$status
 
 live-seed:
-	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=seed swift test --package-path $(COACH) --filter LiveSeedCheck $(ARGS)
+	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=seed swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LiveSeedCheck $(ARGS)
 
 live-unseed:
-	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=unseed swift test --package-path $(COACH) --filter LiveSeedCheck $(ARGS)
+	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=unseed swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LiveSeedCheck $(ARGS)

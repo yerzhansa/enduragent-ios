@@ -150,7 +150,9 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		query: [URLQueryItem] = [],
 		body: JSONValue? = nil
 	) async throws -> Data {
-		try Self.accepted(try await exchange(method: method, path: path, query: query, body: body))
+		try Self.accepted(
+			try await exchange(
+				method: method, path: path, query: query, body: body.map(IntervalsBody.json)))
 	}
 
 	static func accepted(_ answer: IntervalsAnswer) throws(IntervalsError) -> Data {
@@ -165,7 +167,8 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		method: String,
 		path: [String],
 		query: [URLQueryItem] = [],
-		body: JSONValue? = nil
+		body: IntervalsBody? = nil,
+		timeout: TimeInterval = IntervalsPolicy.requestTimeout
 	) async throws -> IntervalsAnswer {
 		var url = baseURL
 		for component in path {
@@ -184,10 +187,10 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		request.httpMethod = method
 		request.setValue(authorization, forHTTPHeaderField: "Authorization")
 		request.setValue("application/json", forHTTPHeaderField: "Accept")
-		request.timeoutInterval = IntervalsPolicy.requestTimeout
+		request.timeoutInterval = timeout
 		if let body {
-			request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-			request.httpBody = Data(body.canonicalDigestInput().utf8)
+			request.setValue(body.contentType, forHTTPHeaderField: "Content-Type")
+			request.httpBody = body.data
 		}
 		let (data, response) = try await session.data(for: request)
 		guard let http = response as? HTTPURLResponse else {
@@ -228,4 +231,14 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 struct IntervalsAnswer: Sendable {
 	let status: Int
 	let body: Data
+}
+
+struct IntervalsBody: Sendable {
+	let data: Data
+	let contentType: String
+
+	static func json(_ value: JSONValue) -> IntervalsBody {
+		IntervalsBody(
+			data: Data(value.canonicalDigestInput().utf8), contentType: "application/json")
+	}
 }

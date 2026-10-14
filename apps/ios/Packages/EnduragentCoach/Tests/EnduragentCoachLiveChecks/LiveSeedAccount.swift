@@ -3,13 +3,14 @@ import Foundation
 @testable import EnduragentCoach
 
 struct IntervalsSeedAccount: SeedAccount {
+	static let writeTimeout: TimeInterval = 120
+
 	let client: IntervalsRESTClient
-	private let authorization: String
-	private let session = ephemeralSession(requestTimeout: 120, resourceTimeout: 300)
 
 	init(key: String) {
-		self.client = IntervalsRESTClient(credential: .apiKey(key))
-		self.authorization = "Basic \(Data("API_KEY:\(key)".utf8).base64EncodedString())"
+		self.client = IntervalsRESTClient(
+			credential: .apiKey(key),
+			session: ephemeralSession(requestTimeout: Self.writeTimeout, resourceTimeout: 300))
 	}
 
 	func athleteID() async throws -> String {
@@ -21,7 +22,7 @@ struct IntervalsSeedAccount: SeedAccount {
 		return rows.map { row in
 			let fields = row.objectFields
 			return SeedListing(
-				id: Self.identifier(fields["id"]) ?? "no id", name: fields["name"]?.stringValue,
+				id: Self.identifier(fields) ?? "no id", name: fields["name"]?.stringValue,
 				externalID: fields["external_id"]?.stringValue,
 				start: fields["start_date_local"]?.stringValue,
 				load: fields["icu_training_load"]?.numberValue,
@@ -53,7 +54,7 @@ struct IntervalsSeedAccount: SeedAccount {
 			#"Content-Disposition: form-data; name="file"; filename="\#(activity.key).tcx""#,
 			"Content-Type: application/vnd.garmin.tcx+xml", "", "",
 		].joined(separator: "\r\n")
-		let answer = try await send(
+		let answer = try await write(
 			"POST", ["athlete", IntervalsPolicy.athletePath, "activities"],
 			query: [
 				URLQueryItem(name: "name", value: activity.name),
@@ -64,13 +65,14 @@ struct IntervalsSeedAccount: SeedAccount {
 				),
 				URLQueryItem(name: "external_id", value: activity.externalID),
 			],
-			body: Data(head.utf8) + file + Data("\r\n--\(boundary)--\r\n".utf8),
-			contentType: "multipart/form-data; boundary=\(boundary)")
-		let fields = try Self.json(answer.data).objectFields
+			body: IntervalsBody(
+				data: Data(head.utf8) + file + Data("\r\n--\(boundary)--\r\n".utf8),
+				contentType: "multipart/form-data; boundary=\(boundary)"))
+		let fields = try client.parseJSON(answer).objectFields
 		let created = (fields["activities"]?.arrayValue ?? []).compactMap {
-			Self.identifier($0.objectFields["id"])
+			Self.identifier($0.objectFields)
 		}
-		guard let id = created.count == 1 ? created[0] : Self.identifier(fields["id"]) else {
+		guard let id = created.count == 1 ? created[0] : Self.identifier(fields) else {
 			throw LiveCheckStop(
 				description: "Uploading \(activity.externalID) answered without an activity id.")
 		}
@@ -81,13 +83,11 @@ struct IntervalsSeedAccount: SeedAccount {
 		let body = JSONValue.object([
 			"feel": .number(Double(feel)), "icu_rpe": .number(Double(rpe)),
 		])
-		_ = try await send(
-			"PUT", ["activity", id], body: Data(body.canonicalDigestInput().utf8),
-			contentType: "application/json")
+		_ = try await write("PUT", ["activity", id], body: .json(body))
 	}
 
 	func delete(_ id: String) async throws {
-		_ = try await send("DELETE", ["activity", id], absentIsDone: true)
+		_ = try await write("DELETE", ["activity", id], absentIsDone: true)
 	}
 
 	func writeWellness(_ days: [CivilDate: [String: Double?]]) async throws {
@@ -98,10 +98,9 @@ struct IntervalsSeedAccount: SeedAccount {
 			}
 			return JSONValue.object(fields)
 		}
-		_ = try await send(
+		_ = try await write(
 			"PUT", ["athlete", IntervalsPolicy.athletePath, "wellness-bulk"],
-			body: Data(JSONValue.array(rows).canonicalDigestInput().utf8),
-			contentType: "application/json")
+			body: .json(.array(rows)))
 	}
 
 	private func rows(of kind: String, oldest: CivilDate, newest: CivilDate) async throws
@@ -119,45 +118,22 @@ struct IntervalsSeedAccount: SeedAccount {
 		return rows
 	}
 
-	private func send(
-		_ method: String, _ path: [String], query: [URLQueryItem] = [], body: Data? = nil,
-		contentType: String? = nil, absentIsDone: Bool = false
-	) async throws -> (status: Int, data: Data) {
-		var url = IntervalsPolicy.baseURL
-		for component in path {
-			url.append(path: component)
-		}
-		if !query.isEmpty {
-			url.append(queryItems: query)
-		}
-		var request = URLRequest(url: url)
-		request.httpMethod = method
-		request.setValue(authorization, forHTTPHeaderField: "Authorization")
-		request.setValue("application/json", forHTTPHeaderField: "Accept")
-		if let contentType {
-			request.setValue(contentType, forHTTPHeaderField: "Content-Type")
-		}
-		request.httpBody = body
-		let (data, response) = try await session.data(for: request)
-		let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-		if (200..<300).contains(status) || (absentIsDone && status == 404) {
-			return (status, data)
+	private func write(
+		_ method: String, _ path: [String], query: [URLQueryItem] = [],
+		body: IntervalsBody? = nil, absentIsDone: Bool = false
+	) async throws -> Data {
+		let answer = try await client.exchange(
+			method: method, path: path, query: query, body: body, timeout: Self.writeTimeout)
+		if (200..<300).contains(answer.status) || (absentIsDone && answer.status == 404) {
+			return answer.body
 		}
 		throw LiveCheckStop(
 			description:
-				"\(method) /\(path.joined(separator: "/")) answered \(status): \(String(decoding: data.prefix(300), as: UTF8.self))"
+				"\(method) /\(path.joined(separator: "/")) answered \(answer.status): \(String(decoding: answer.body.prefix(300), as: UTF8.self))"
 		)
 	}
 
-	private static func json(_ data: Data) throws -> JSONValue {
-		try JSONValue.parse(String(decoding: data, as: UTF8.self))
-	}
-
-	private static func identifier(_ value: JSONValue?) -> String? {
-		switch value {
-		case .string(let text): text
-		case .number(let number): String(Int(number))
-		default: nil
-		}
+	private static func identifier(_ fields: [String: JSONValue]) -> String? {
+		IntervalsRESTClient.activityID(in: fields)?.rawValue
 	}
 }
