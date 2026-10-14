@@ -158,7 +158,7 @@ private struct SourceFiles {
 		guard let path = path(of: file),
 			let text = String(validating: try FileSystem.read(path), as: UTF8.self)
 		else { return nil }
-		return try SwiftDeclarations(code: try patterns.withoutStrings(text), patterns: patterns)
+		return try SwiftDeclarations(code: text, patterns: patterns)
 	}
 }
 

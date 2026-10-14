@@ -5,7 +5,8 @@ import ToolSupport
 @testable import CheckCoverage
 
 struct CoverageCheckerTests {
-	@Test(.timeLimit(.minutes(1)), arguments: CoverageCase.all)
+	@Test(
+		.timeLimit(.minutes(1)), arguments: CoverageCase.all + CoverageCase.hiddenProofMethods)
 	func reportsExactlyTheProblemsOfATable(_ coverageCase: CoverageCase) throws {
 		let result = try coverageCase.check()
 		#expect(result.problems == coverageCase.problems)
@@ -92,7 +93,26 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 				XCTAssertTrue(launch().buttons["{"].exists)
 			}
 
+			@MainActor
+			final func testRestore() async throws {}
+
 			private func launch() -> XCUIApplication { XCUIApplication() }
+			private func testHidden() {}
+			fileprivate func testFileHidden() {}
+			static func testShared() {}
+			class func testInherited() {}
+
+			struct Step {
+				func testNested() {}
+			}
+		}
+
+		private struct LaunchHelper {
+			func testLaunch() {}
+		}
+
+		extension XCUIApplication {
+			func testTap() {}
 		}
 
 		final class LanguageProof: XCTestCase {
@@ -138,6 +158,9 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 			name: "listed proof method is a helper of the proof class",
 			rows: replacing(1, with: row("1.1.2", proof("ShortcutProof", "launch"))),
 			problems: ["1.1.2 [missing-proof-method] \(proofs) ShortcutProof.launch"]),
+		CoverageCase(
+			name: "listed proof method has an attribute and modifiers that XCTest still runs",
+			rows: replacing(1, with: row("1.1.2", proof("ShortcutProof", "testRestore")))),
 		CoverageCase(
 			name: "listed test function is only named inside a string",
 			rows: replacing(0, with: row("1.1.1", function("onlyInText"))),
@@ -220,6 +243,21 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 			rows: complete + [#"{"statement": "S.", "tests": [\#(listed)]}"#],
 			problems: ["row 4 [no-identifier]"]),
 	]
+
+	static let hiddenProofMethods = [
+		("a helper type declared after the proof class", "testLaunch"),
+		("an extension declared after the proof class", "testTap"),
+		("a type nested in the proof class", "testNested"),
+		("a static method of the proof class", "testShared"),
+		("a class method of the proof class", "testInherited"),
+		("a private method of the proof class", "testHidden"),
+		("a fileprivate method of the proof class", "testFileHidden"),
+	].map { place, method in
+		CoverageCase(
+			name: "listed proof method is \(place)",
+			rows: replacing(1, with: row("1.1.2", proof("ShortcutProof", method))),
+			problems: ["1.1.2 [missing-proof-method] \(proofs) ShortcutProof.\(method)"])
+	}
 
 	static func function(_ name: String, in file: String = packageTests) -> String {
 		#"{"file": "\#(file)", "function": "\#(name)"}"#

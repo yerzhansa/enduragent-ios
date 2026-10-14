@@ -8,28 +8,55 @@ public struct SwiftDeclarations {
 	public let testCases: [TestCase]
 
 	public init(code: String, patterns: JavaScriptPatterns) throws {
+		let code = try patterns.withoutStrings(code)
 		let units = Array(code.utf16)
 		testFunctions = Set(
 			try patterns.matchAll(#"@Test\b"#, code).compactMap { attribute in
 				var reader = AttributedDeclaration(units: units, position: attribute.end)
 				return reader.functionName()
 			})
-		let declarations = try patterns.matchAll(#"\bclass\s+(\w+)\s*:\s*XCTestCase\b"#, code)
-		testCases = try declarations.enumerated().map { index, declaration in
-			let end =
-				index + 1 < declarations.count
-				? declarations[index + 1].index : code.utf16.count
-			return TestCase(
+		testCases = try patterns.matchAll(#"\bclass\s+(\w+)\s*:\s*XCTestCase\b"#, code).map {
+			declaration in
+			TestCase(
 				name: declaration.groups[1],
-				testMethods: Set(
-					try patterns.matchAll(
-						#"\bfunc\s+(test\w*)\s*\(\s*\)"#, code.slice(declaration.end, end)
-					).map { $0.groups[1] }))
+				testMethods: try Self.runnableTests(
+					in: Self.members(of: units, after: declaration.end), patterns: patterns))
 		}
 	}
 
 	public func declares(method: String, in testCase: String) -> Bool {
 		testCases.contains { $0.name == testCase && $0.testMethods.contains(method) }
+	}
+
+	private static let hidingModifiers: Set<String> = ["static", "class", "private", "fileprivate"]
+
+	private static func runnableTests(in members: String, patterns: JavaScriptPatterns) throws
+		-> Set<String>
+	{
+		Set(
+			try patterns.matchAll(#"((?:\w+[ \t]+)*)\bfunc\s+(test\w*)\s*\(\s*\)"#, members)
+				.compactMap { method in
+					let modifiers = try patterns.matchAll(#"\w+"#, method.groups[1]).map(\.text)
+					return modifiers.contains(where: hidingModifiers.contains)
+						? nil : method.groups[2]
+				})
+	}
+
+	private static func members(of units: [UInt16], after start: Int) -> String {
+		let open = UInt16(UInt8(ascii: "{"))
+		let close = UInt16(UInt8(ascii: "}"))
+		guard let body = units[start...].firstIndex(of: open) else { return "" }
+		var depth = 0
+		var members: [UInt16] = []
+		for unit in units[body...] {
+			if unit == close {
+				depth -= 1
+				if depth == 0 { break }
+			}
+			if depth == 1 { members.append(unit) }
+			if unit == open { depth += 1 }
+		}
+		return String(decoding: members, as: UTF16.self)
 	}
 }
 
