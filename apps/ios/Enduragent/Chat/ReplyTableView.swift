@@ -127,7 +127,7 @@ private struct ReplyGridTable: View {
 			.overlayPreferenceValue(ReplyTableLineBounds.self) { bounds in
 				GeometryReader { proxy in
 					ForEach(lines.indices, id: \.self) { index in
-						element(lines[index], cells: bounds[index] ?? [], in: proxy)
+						lineOverlay(lines[index], cells: bounds[index] ?? [], in: proxy)
 					}
 				}
 			}
@@ -149,17 +149,17 @@ private struct ReplyGridTable: View {
 					.gridColumnAlignment(alignment(table.columns.elements[column]))
 			}
 		}
-		.overlay(alignment: .bottom) { ReplyTableSeparator() }
 	}
 
 	@ViewBuilder
-	private func element(
+	private func lineOverlay(
 		_ line: ReplyTableLine, cells: [Anchor<CGRect>], in proxy: GeometryProxy
 	) -> some View {
 		let frame = cells.reduce(CGRect.null) { $0.union(proxy[$1]) }
 		if !frame.isNull {
 			Color.clear
 				.frame(width: proxy.size.width, height: frame.height)
+				.overlay(alignment: .bottom) { ReplyTableSeparator() }
 				.offset(y: frame.minY)
 				.allowsHitTesting(false)
 				.modifier(ReplyTableLineElement(line: line))
