@@ -14,7 +14,8 @@ extension SourceChecker {
 			let declarations = try SwiftDeclarations(code: source.text, patterns: patterns)
 			for testCase in declarations.testCases {
 				if classes[testCase.name] == nil { classNames.append(testCase.name) }
-				classes[testCase.name] = ProofClass(file: source.file, methods: testCase.methods)
+				classes[testCase.name] = ProofClass(
+					file: source.file, methods: testCase.testMethods)
 			}
 		}
 		for source in sources where try patterns.test(Self.featureFile, source.file) {
