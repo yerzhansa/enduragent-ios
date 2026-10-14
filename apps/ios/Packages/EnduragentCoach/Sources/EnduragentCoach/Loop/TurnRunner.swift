@@ -55,7 +55,7 @@ package struct TurnRunner: Sendable {
 	let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void
 	private let ledger: Ledger
 	let clock: any Clock
-	let watchdogSleep: @Sendable (Duration) async throws -> Void
+	let watchdogSleep: @Sendable (Duration) async throws(CancellationError) -> Void
 	let diagnostics: DiagnosticsLog
 	let ladder: RetryLadder
 	let reviews: SingleProposalReviews
@@ -68,7 +68,8 @@ package struct TurnRunner: Sendable {
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
 		reviews: SingleProposalReviews,
-		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
+		watchdogSleep: @escaping @Sendable (Duration) async throws(CancellationError) -> Void =
+			SystemClock().sleep,
 		authorizeInvocation: @escaping @Sendable (ModelInvocation) async throws -> Void
 	) {
 		self.authorizeInvocation = authorizeInvocation

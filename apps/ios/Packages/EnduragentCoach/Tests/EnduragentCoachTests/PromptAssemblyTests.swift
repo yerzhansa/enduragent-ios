@@ -30,8 +30,8 @@ import Testing
 
 	@Test(arguments: [
 		TrainingSnapshot(
-			profile: .read(.cyclist(name: "Ada", ftp: 250)),
-			wellness: .read([.on("1998-06-12", [.fitness: 55.2, .fatigue: 42.1])]),
+			profile: .cyclist(name: "Ada", ftp: 250),
+			wellness: [.on("1998-06-12", [.fitness: 55.2, .fatigue: 42.1])],
 			lookback: .snapshotLookback(endingOn: "1998-06-13")),
 		.unavailable(.nothingUsable), .unavailable(.deadlineMissed), .notConnected,
 	])
@@ -71,8 +71,8 @@ import Testing
 
 	@Test func snapshotSectionTextForEachState() {
 		let available = TrainingSnapshot(
-			profile: .read(.cyclist(name: "Ada", ftp: 250)),
-			wellness: .read([.on("1998-06-12", [.fitness: 55.2, .fatigue: 42.1])]),
+			profile: .cyclist(name: "Ada", ftp: 250),
+			wellness: [.on("1998-06-12", [.fitness: 55.2, .fatigue: 42.1])],
 			lookback: .snapshotLookback(endingOn: "1998-06-13"))
 		#expect(
 			available.promptSection == """

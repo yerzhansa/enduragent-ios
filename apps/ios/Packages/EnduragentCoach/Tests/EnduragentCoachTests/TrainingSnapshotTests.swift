@@ -21,7 +21,7 @@ import Testing
 		let rotated = Array(rows[rotation...] + rows[..<rotation])
 
 		let snapshot = TrainingSnapshot(
-			profile: .failed(.temporarilyUnavailable), wellness: .read(rotated),
+			profile: nil, wellness: rotated,
 			lookback: .snapshotLookback(endingOn: "1998-06-13"))
 
 		guard case .available(let lines) = snapshot else {
@@ -31,6 +31,19 @@ import Testing
 		#expect(lines.profile == nil)
 		#expect(lines.wellness?.date == "1998-06-10")
 		#expect(lines.wellness?.text == "Wellness 1998-06-10: resting HR 48 bpm · sleep 7h05")
+	}
+
+	@Test(arguments: [(-0.25, "-0.3"), (-0.75, "-0.8"), (-70.25, "-70.3")])
+	func negativeValueOnATieRoundsAwayFromZeroLikeJavaScriptToFixed(value: Double, text: String) {
+		let snapshot = TrainingSnapshot(
+			profile: nil, wellness: [.on("1998-06-13", [.fitness: value])],
+			lookback: .snapshotLookback(endingOn: "1998-06-13"))
+
+		guard case .available(let lines) = snapshot else {
+			Issue.record("expected a wellness line, got \(snapshot)")
+			return
+		}
+		#expect(lines.wellness?.text == "Wellness 1998-06-13: Fitness \(text)")
 	}
 
 	@Test func turnPromptCarriesBothLinesAndLeavesAbsentFieldsOut() async throws {
