@@ -66,6 +66,38 @@ import Testing
 				== plan.unavailable.map { "not available, so not covered: \($0)" })
 	}
 
+	@Test func aScenarioThatNeverPassedAndASpendCapStopEachFailTheCoachRun() {
+		func run(_ attempt: Int, _ violations: [String]) -> LiveScenarioRun {
+			LiveScenarioRun(attempt: attempt, turns: [], violations: violations, transcript: "")
+		}
+		var report = LiveCoachReport(unavailable: [], spentBefore: 0)
+		report.results = [
+			(
+				"status",
+				[
+					run(1, ["the reply does not mention Form"]),
+					run(2, ["the reply does not mention Fatigue"]),
+				]
+			),
+			(
+				"workout",
+				[run(1, ["calendar tools were called: intervals_create_workout"]), run(2, [])]
+			),
+			("zones", [run(1, [])]),
+			("review-brief", [run(1, ["intervals_fetch_activity was not called"])]),
+		]
+		report.stoppedBefore = "review-deep"
+
+		let failed = [
+			"status: run 1: the reply does not mention Form; run 2: the reply does not mention Fatigue",
+			"review-brief: run 1: intervals_fetch_activity was not called",
+		]
+		#expect(report.failures(capReached: false) == failed)
+		#expect(
+			report.failures(capReached: true)
+				== failed + ["The spend cap stopped the suite before review-deep."])
+	}
+
 	@Test(arguments: [
 		AmbiguousReviewCase(
 			"a Wednesday after a Monday ride and three rides the week before",

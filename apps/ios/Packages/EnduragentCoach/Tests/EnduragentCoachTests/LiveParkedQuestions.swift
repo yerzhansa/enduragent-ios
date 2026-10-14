@@ -8,19 +8,58 @@ struct LiveRawReads: Sendable {
 	var activities: JSONValue?
 	var details: [JSONValue] = []
 	var streams: TappedResponse?
-	var unknownChannel: TappedResponse?
+	var unknownChannel: LiveReadOutcome?
 	var unknownChannelName = ""
 	var askedChannels: [String] = []
+}
+
+struct LiveReadOutcome: Sendable {
+	let responses: [TappedResponse]
+	let threw: Bool
+
+	var answer: TappedResponse? { threw ? nil : responses.last }
+}
+
+struct DecodingSite: Sendable, Equatable {
+	static let sources = (0..<3).reduce(URL(fileURLWithPath: #filePath)) { path, _ in
+		path.deletingLastPathComponent()
+	}.appending(path: "Sources/EnduragentCoach")
+
+	let file: String
+	let anchor: String
+
+	init(_ file: String, _ anchor: String) {
+		self.file = file
+		self.anchor = anchor
+	}
+
+	var citation: String {
+		let text: String
+		do {
+			text = try String(contentsOf: Self.sources.appending(path: file), encoding: .utf8)
+		} catch {
+			return "\(file) could not be read (\(error.localizedDescription))"
+		}
+		let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
+		guard let index = lines.firstIndex(where: { $0.contains(anchor) }) else {
+			return "\(file) no longer holds `\(anchor)`"
+		}
+		return "\(file):\(index + 1)"
+	}
 }
 
 struct ParkedAnswer: Sendable, Equatable {
 	let question: String
 	let evidence: [String]
+	let decoding: [DecodingSite]
 	let verdict: String
 
 	var markdown: String {
-		(["## \(question)", ""] + evidence.map { "- \($0)" } + ["", "Verdict: \(verdict)", ""])
-			.joined(separator: "\n")
+		let sites = "Decoding code: " + decoding.map(\.citation).joined(separator: ", ")
+		return
+			(["## \(question)", ""] + (evidence + [sites]).map { "- \($0)" } + [
+				"", "Verdict: \(verdict)", "",
+			]).joined(separator: "\n")
 	}
 }
 
@@ -75,6 +114,11 @@ enum LiveParkedQuestions {
 				"|rampRate − (Fitness − Fitness 7 days earlier)|: \(range(differences))",
 				"App: decoded by WellnessField.rampRate, shown with unit \"Fitness per week\".",
 			],
+			decoding: [
+				DecodingSite("Cycling/IntervalsRESTReads.swift", #"case .rampRate: "rampRate""#),
+				DecodingSite(
+					"Loop/TrainingReadTools.swift", #"case .rampRate: "Fitness per week""#),
+			],
 			verdict: differences.isEmpty
 				? "not decidable from this window (no row with Fitness 7 days earlier)"
 				: consistent
@@ -89,6 +133,10 @@ enum LiveParkedQuestions {
 			evidence: [
 				"hrv: \(range(values))", "App: shown with unit \"ms\".",
 			],
+			decoding: [
+				DecodingSite("Cycling/IntervalsRESTReads.swift", #"case .hrv: "hrv""#),
+				DecodingSite("Loop/TrainingReadTools.swift", #"case .hrv: "ms""#),
+			],
 			verdict: values.isEmpty
 				? "not observed: no HRV in the window"
 				: values.allSatisfy { (5...300).contains($0) }
@@ -102,6 +150,11 @@ enum LiveParkedQuestions {
 			question: "Units and range of icu_intensity",
 			evidence: [
 				"icu_intensity: \(range(values))", "App: shown as intensity with unit \"%\".",
+			],
+			decoding: [
+				DecodingSite(
+					"Cycling/IntervalsRESTReads.swift", #"case .intensity: "icu_intensity""#),
+				DecodingSite("Loop/ActivityReadout.swift", #"case .intensity: "%""#),
 			],
 			verdict: values.isEmpty
 				? "not observed"
@@ -128,6 +181,10 @@ enum LiveParkedQuestions {
 				"distance ÷ (average_speed × moving_time): \(range(ratios))",
 				"App: shown with unit \"m\".",
 			],
+			decoding: [
+				DecodingSite("Cycling/IntervalsRESTReads.swift", #"case .distance: "distance""#),
+				DecodingSite("Loop/ActivityReadout.swift", #"case .distance, .elevationGain: "m""#),
+			],
 			verdict: ratios.isEmpty
 				? "not decidable: no row with distance, average_speed and moving_time"
 				: metres ? "matches: distance is in metres" : "mismatch: distance is not in metres")
@@ -140,8 +197,12 @@ enum LiveParkedQuestions {
 			question: "Format of icu_date_of_birth",
 			evidence: [
 				"icu_date_of_birth shape: \(format)",
-				"App: parsed as a YYYY-MM-DD CivilDate and given to the coach as whole-year age (Cycling/IntervalsRESTReads.swift:140, wholeYears).",
-				"App: a null or absent date gives no age, so the coach is given no ageYears (Loop/TrainingReadTools.swift:113; the readout-profile fixture case \"nulls have no key and zeros stay\").",
+				"App: parsed as a YYYY-MM-DD CivilDate and given to the coach as whole-year age.",
+				"App: a null or absent date gives no age, so the coach is given no ageYears (the readout-profile fixture case \"nulls have no key and zeros stay\").",
+			],
+			decoding: [
+				DecodingSite("Cycling/IntervalsRESTReads.swift", "func wholeYears(since birth"),
+				DecodingSite("Loop/TrainingReadTools.swift", "if let age = profile.ageYears"),
 			],
 			verdict: format == "dddd-dd-dd"
 				? "matches"
@@ -156,6 +217,12 @@ enum LiveParkedQuestions {
 			evidence: [
 				"shapes: \(shapes.sorted().joined(separator: ", "))",
 				"App: read as a local wall-clock start with no offset, or a date alone.",
+			],
+			decoding: [
+				DecodingSite(
+					"Cycling/IntervalsRESTReads.swift",
+					#"fields["start_date_local"]?.stringValue.flatMap(localStart)"#),
+				DecodingSite("Cycling/IntervalsRESTReads.swift", "func localStart(_ wire: String)"),
 			],
 			verdict: shapes.isEmpty
 				? "not observed" : shapes.isSubset(of: readable) ? "matches" : "mismatch")
@@ -178,6 +245,10 @@ enum LiveParkedQuestions {
 				"detail answer keys: \(detailShapes.sorted().joined(separator: " | "))",
 				"App: a row with source STRAVA that lacks type, moving_time or elapsed_time is hidden.",
 			],
+			decoding: [
+				DecodingSite(
+					"Cycling/Activities.swift", "if source == IntervalsPolicy.stravaSource")
+			],
 			verdict: rows.isEmpty
 				? "not observed: this account has no Strava-hidden activity in 30 days"
 				: "matches: every such row has source STRAVA and lacks a time or type")
@@ -197,6 +268,14 @@ enum LiveParkedQuestions {
 			question: "Does intervals=true return icu_intervals",
 			evidence: answers.enumerated().map { "detail \($0.offset + 1): \($0.element)" }
 				+ ["App: asks GET /activity/{id}?intervals=true and reads icu_intervals as laps."],
+			decoding: [
+				DecodingSite(
+					"Cycling/IntervalsRESTReads.swift",
+					#"URLQueryItem(name: "intervals", value: "true")"#),
+				DecodingSite(
+					"Cycling/IntervalsRESTReads.swift", #"Self.laps(from: fields["icu_intervals"])"#
+				),
+			],
 			verdict: details.isEmpty
 				? "not observed: no detail was read"
 				: supplied
@@ -212,6 +291,14 @@ enum LiveParkedQuestions {
 				"feel values seen: \(feel.isEmpty ? "none" : feel.joined(separator: ", "))",
 				"icu_rpe values seen: \(rpe.isEmpty ? "none" : rpe.joined(separator: ", "))",
 				"App: both passed through as plain numbers with no unit and no scale.",
+			],
+			decoding: [
+				DecodingSite(
+					"Cycling/IntervalsRESTReads.swift", #"case .perceivedExertion: "icu_rpe""#),
+				DecodingSite("Cycling/IntervalsRESTReads.swift", #"case .feel: "feel""#),
+				DecodingSite(
+					"Loop/ActivityReadout.swift",
+					"case .perceivedExertion, .feel, .variabilityIndex"),
 			],
 			verdict: feel.isEmpty && rpe.isEmpty
 				? "not observed: the athlete recorded neither"
@@ -237,21 +324,19 @@ enum LiveParkedQuestions {
 				"icu_hr_zone_times entries: \(heartShapes.sorted().joined(separator: " | "))",
 				"App: power entries read as {id, secs}; heart-rate entries as whole seconds.",
 			],
+			decoding: [
+				DecodingSite(
+					"Cycling/IntervalsRESTReads.swift",
+					#"powerZoneSeconds: (fields["icu_zone_times"]"#),
+				DecodingSite(
+					"Cycling/IntervalsRESTReads.swift", "func heartRateZoneSeconds(_ wire"),
+			],
 			verdict: power.isEmpty && heart.isEmpty
 				? "not observed" : readable ? "matches" : "mismatch")
 	}
 
 	private static func streamTypes(_ reads: LiveRawReads) -> ParkedAnswer {
 		let returned = channels(in: reads.streams?.json)
-		let unknown = reads.unknownChannel
-		let unknownAnswer: String
-		if let unknown {
-			let named = channels(in: unknown.json).contains(reads.unknownChannelName)
-			unknownAnswer =
-				"HTTP \(unknown.status); unknown channel \(named ? "returned" : "absent") in the answer; channels returned: \(channels(in: unknown.json).sorted().joined(separator: ", "))"
-		} else {
-			unknownAnswer = "not read"
-		}
 		let asked = Set(reads.askedChannels)
 		return ParkedAnswer(
 			question: "Stream types: comma-joined, and an unknown channel",
@@ -259,8 +344,12 @@ enum LiveParkedQuestions {
 				"query sent: \(reads.streams?.query ?? "none")",
 				"asked: \(reads.askedChannels.joined(separator: ", "))",
 				"returned: \(returned.sorted().joined(separator: ", "))",
-				"unknown channel: \(unknownAnswer)",
+				"unknown channel: \(unknownChannel(reads))",
 				"App: joins channel names with commas in one types parameter; a channel with no samples is listed under unanswered.",
+			],
+			decoding: [
+				DecodingSite("Cycling/IntervalsRESTReads.swift", #"URLQueryItem(name: "types""#),
+				DecodingSite("Cycling/Activities.swift", "where channels[name] == nil"),
 			],
 			verdict: reads.streams == nil
 				? "not observed: no ride in 30 days"
@@ -268,6 +357,21 @@ enum LiveParkedQuestions {
 					? "matches: intervals.icu honours comma-joined types"
 					: "check: intervals.icu returned \(returned.count) of \(asked.count) asked channels"
 		)
+	}
+
+	private static func unknownChannel(_ reads: LiveRawReads) -> String {
+		guard let outcome = reads.unknownChannel else { return "not read" }
+		let answers = outcome.responses.map { response in
+			guard response.answered else {
+				return "HTTP \(response.status) to \(response.request): \(response.excerpt)"
+			}
+			let returned = channels(in: response.json)
+			return
+				"HTTP \(response.status) to \(response.request): \(reads.unknownChannelName) \(returned.contains(reads.unknownChannelName) ? "returned" : "absent"); channels returned: \(returned.sorted().joined(separator: ", "))"
+		}
+		return
+			([outcome.threw ? "the app's read threw" : "the app's read answered"]
+			+ (answers.isEmpty ? ["no response was captured"] : answers)).joined(separator: "; ")
 	}
 
 	private static func channels(in json: JSONValue?) -> Set<String> {

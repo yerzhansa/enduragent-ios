@@ -19,6 +19,17 @@ struct TappedResponse: Sendable {
 		return json
 	}
 
+	var answered: Bool { (200..<300).contains(status) }
+
+	var request: String { "\(method) \(path)\(query.map { "?\($0)" } ?? "")" }
+
+	var excerpt: String {
+		let text =
+			json.map { LiveRedaction.blanked($0).canonicalDigestInput() }
+			?? String(decoding: body, as: UTF8.self)
+		return text.count > 300 ? String(text.prefix(300)) + "…" : text
+	}
+
 	func redactedBody() throws -> Data {
 		guard let json else { return body }
 		let blanked = LiveRedaction.blanked(json)
@@ -65,6 +76,10 @@ final class LiveResponseTap: URLProtocol, @unchecked Sendable {
 			requestTimeout: IntervalsPolicy.requestTimeout,
 			resourceTimeout: IntervalsPolicy.requestTimeout, protocolClasses: [LiveResponseTap.self]
 		)
+	}
+
+	static func record(_ response: TappedResponse) {
+		taken.withLock { $0.append(response) }
 	}
 
 	static func drain() -> [TappedResponse] {

@@ -49,14 +49,14 @@
 		mutating func readEverything() async {
 			raw.profile = await read("profile", audit: LiveReadAudit.profile) { [client] in
 				CoachReadout.profile(try await client.profile())
-			}?.json
+			}.answer?.json
 			raw.wellness = await read(
 				"wellness-14-days", audit: LiveReadAudit.wellness
 			) { [client, today] in
 				let range = try ReadRange(
 					oldest: today.adding(days: -13), newest: today, today: today)
 				return CoachReadout.wellness(try await client.wellness(in: range), in: range)
-			}?.json
+			}.answer?.json
 			var listing: ActivityListing?
 			raw.activities = await read(
 				"activities-30-days", audit: LiveReadAudit.activities
@@ -66,7 +66,7 @@
 				let read = try await client.activities(in: range)
 				listing = read
 				return CoachReadout.activities(read)
-			}?.json
+			}.answer?.json
 			let newest = (listing?.activities ?? []).sorted(by: Self.newerFirst)
 			for (position, activity) in newest.prefix(3).enumerated() {
 				await readDetail(activity.id, as: "activity-\(position + 1)")
@@ -88,6 +88,9 @@
 
 		static func uncovered(_ raw: LiveRawReads) -> [String] {
 			var gaps: [String] = []
+			if (raw.wellness?.arrayValue ?? []).isEmpty {
+				gaps.append("not covered: no wellness day in the last 14 days")
+			}
 			if (raw.activities?.arrayValue ?? []).isEmpty {
 				gaps.append("not covered: the account has no activity in the last 30 days")
 			}
@@ -123,12 +126,12 @@
 		}
 
 		private mutating func readDetail(_ id: ActivityID, as name: String) async {
-			if let response = await read(
+			if let json = await read(
 				name, audit: LiveReadAudit.activity,
 				{ [client] in
 					CoachReadout.activity(try await client.activity(id), asked: id)
-				}), let json = response.json
-			{
+				}
+			).answer?.json {
 				raw.details.append(json)
 			}
 		}
@@ -138,7 +141,7 @@
 			raw.askedChannels = standard.names
 			raw.streams = await read("streams", audit: LiveReadAudit.streams) { [client] in
 				CoachReadout.streams(try await client.streams(of: id, channels: standard))
-			}
+			}.answer
 			let asked = StreamChannels(requested: ["watts", Self.unknownChannel])
 			raw.unknownChannelName = Self.unknownChannel
 			raw.unknownChannel = await read("streams-unknown-channel", audit: LiveReadAudit.streams)
@@ -170,28 +173,25 @@
 			}
 		}
 
-		private mutating func read(
+		mutating func read(
 			_ name: String, audit: (JSONValue, JSONValue) -> [String],
 			_ read: () async throws -> JSONValue
-		) async -> TappedResponse? {
+		) async -> LiveReadOutcome {
 			let given: JSONValue
 			do {
 				given = try await read()
 			} catch let error as IntervalsError {
-				failures.append("\(name): the read threw \(error.code): \(error.details)")
-				save(LiveResponseTap.drain(), as: name)
-				return nil
+				return threw(name, "\(error.code): \(error.details)")
 			} catch {
-				failures.append("\(name): the read threw \(String(describing: error))")
-				save(LiveResponseTap.drain(), as: name)
-				return nil
+				return threw(name, String(describing: error))
 			}
 			let responses = LiveResponseTap.drain()
 			save(responses, as: name)
 			record { [folder] in try folder.write(json: given, to: "given/\(name).json") }
-			guard let response = responses.last else {
+			let outcome = LiveReadOutcome(responses: responses, threw: false)
+			guard let response = outcome.answer else {
 				failures.append("\(name): no raw response was captured")
-				return nil
+				return outcome
 			}
 			switch response.parsed {
 			case .success(let json):
@@ -199,7 +199,19 @@
 			case .failure(let error):
 				failures.append("\(name): the raw response is not JSON (\(error))")
 			}
-			return response
+			return outcome
+		}
+
+		private mutating func threw(_ name: String, _ reason: String) -> LiveReadOutcome {
+			let responses = LiveResponseTap.drain()
+			save(responses, as: name)
+			failures.append(
+				(["\(name): the read threw \(reason)"]
+					+ responses.map {
+						"intervals.icu answered HTTP \($0.status) to \($0.request): \($0.excerpt)"
+					})
+					.joined(separator: "; "))
+			return LiveReadOutcome(responses: responses, threw: true)
 		}
 
 		mutating func save(_ responses: [TappedResponse], as name: String) {

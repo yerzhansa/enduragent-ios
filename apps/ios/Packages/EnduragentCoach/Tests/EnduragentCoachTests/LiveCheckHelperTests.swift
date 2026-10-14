@@ -192,9 +192,105 @@ import Testing
 			rows.map { $0.split(separator: "\t").suffix(2).first.map(String.init) } == ["bound"])
 	}
 
+	@Test func aCallThatFailsMidStreamIsChargedItsBound() async throws {
+		let file = try TestTemporaryFolders.make().appending(path: "spend.tsv")
+		let ledger = try LiveSpendLedger(file: file, limit: 10)
+		let model = FakeModelTransport { _ in
+			ScriptedReply([.text("Fitness is"), .fail(.connection(.networkConnectionLost))])
+		}
+		let log = LiveExchangeLog()
+		let metered = LiveMeteredTransport(inner: model, ledger: ledger, log: log)
+		let request = testRequest([WireMessage(role: .user, content: "/status", toolCalls: [])])
+
+		await #expect(throws: (any Error).self) { _ = try await collect(metered.stream(request)) }
+
+		let bound = LiveSpendEstimate.bound(for: request)
+		#expect(bound > 0.4)
+		#expect(abs(ledger.total - bound) < 1e-9)
+		let rows = try String(contentsOf: file, encoding: .utf8).split(separator: "\n").dropFirst()
+		#expect(
+			rows.map { $0.split(separator: "\t").suffix(2).first.map(String.init) } == ["bound"])
+		#expect(log.drain().map { $0.failure != nil } == [true])
+	}
+
+	@Test func aReadThatThrowsReportsTheStatusAndBodyIntervalsAnsweredWhateverTheAppDoes()
+		async throws
+	{
+		var run = LiveReadsRun(
+			folder: try LiveRunFolder(
+				logs: try TestTemporaryFolders.make(), kind: .reads,
+				startedAt: Date(timeIntervalSince1970: 899_164_800)),
+			client: IntervalsRESTClient(credential: .apiKey("synthetic-intervals-key")),
+			today: try #require(CivilDate(rawValue: "1998-06-13")))
+		let path = "/api/v1/activity/i5501/streams.json"
+		let query = "types=watts,\(LiveReadsRun.unknownChannel)"
+		LiveResponseTap.record(
+			TappedResponse(
+				method: "GET", path: path, query: query, status: 422,
+				body: Data(
+					#"{"status":422,"error":"Invalid stream type [enduragent_unknown_channel]"}"#
+						.utf8)))
+		let refused = await run.read("streams-unknown-channel", audit: LiveReadAudit.streams) {
+			throw IntervalsError(code: "http", details: "status 422", status: 422)
+		}
+		LiveResponseTap.record(
+			TappedResponse(
+				method: "GET", path: path, query: query, status: 200,
+				body: Data(#"[{"type":"watts","data":[200,210]}]"#.utf8)))
+		let answered = await run.read("streams-unknown-channel", audit: { _, _ in [] }) {
+			.object([:])
+		}
+
+		let reply =
+			#"HTTP 422 to GET /api/v1/activity/i5501/streams.json?types=watts,enduragent_unknown_channel: {"error":"Invalid stream type [enduragent_unknown_channel]","status":422}"#
+		#expect(
+			run.failures == [
+				"streams-unknown-channel: the read threw http: status 422; intervals.icu answered "
+					+ reply
+			])
+		func unknownChannel(_ outcome: LiveReadOutcome) -> String? {
+			LiveParkedQuestions.answers(
+				LiveRawReads(
+					unknownChannel: outcome, unknownChannelName: LiveReadsRun.unknownChannel)
+			)
+			.first { $0.question == "Stream types: comma-joined, and an unknown channel" }?
+			.evidence.first { $0.hasPrefix("unknown channel:") }
+		}
+		#expect(unknownChannel(refused) == "unknown channel: the app's read threw; " + reply)
+		#expect(
+			unknownChannel(answered)
+				== "unknown channel: the app's read answered; HTTP 200 to GET /api/v1/activity/i5501/streams.json?types=watts,enduragent_unknown_channel: enduragent_unknown_channel absent; channels returned: watts"
+		)
+	}
+
+	@Test func everyParkedAnswerCitesItsDecodingCodeByFileAndLine() throws {
+		let sources = (0..<3).reduce(URL(fileURLWithPath: #filePath)) { path, _ in
+			path.deletingLastPathComponent()
+		}.appending(path: "Sources/EnduragentCoach")
+		let answers = LiveParkedQuestions.answers(LiveRawReads())
+
+		#expect(answers.count == 11)
+		for answer in answers {
+			let citations = answer.markdown.matches(of: /([A-Za-z]+\/[A-Za-z]+\.swift):(\d+)/)
+			#expect(!citations.isEmpty, "\(answer.question) cites no decoding code")
+			#expect(!answer.markdown.contains("no longer holds"), "\(answer.question)")
+			for citation in citations {
+				let lines = try String(
+					contentsOf: sources.appending(path: String(citation.1)), encoding: .utf8
+				).split(separator: "\n", omittingEmptySubsequences: false)
+				let line = try #require(Int(citation.2))
+				#expect(
+					lines.indices.contains(line - 1)
+						&& !lines[line - 1].trimmingCharacters(in: .whitespaces).isEmpty,
+					"\(answer.question): \(citation.0)")
+			}
+		}
+	}
+
 	@Test func theReadsCheckNamesWhatAnEmptyAccountLeavesUncovered() throws {
 		#expect(
-			LiveReadsRun.uncovered(LiveRawReads(activities: .array([]))) == [
+			LiveReadsRun.uncovered(LiveRawReads(wellness: .array([]), activities: .array([]))) == [
+				"not covered: no wellness day in the last 14 days",
 				"not covered: the account has no activity in the last 30 days",
 				"not covered: no activity detail or laps were read",
 				"not covered: no ride's streams were read",
@@ -205,6 +301,7 @@ import Testing
 		#expect(
 			LiveReadsRun.uncovered(
 				LiveRawReads(
+					wellness: try JSONValue.parse(#"[{"id":"1998-06-13","ctl":41}]"#),
 					activities: try JSONValue.parse(#"[{"id":"i5501"}]"#),
 					details: [try JSONValue.parse(#"{"id":"i5501"}"#)], streams: streams)
 			).isEmpty)
