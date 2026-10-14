@@ -167,7 +167,7 @@
 			do {
 				let read = try await reader.snapshot(
 					for: training, attempt: AttemptID(ulid: ULID.generate(at: clock.now)))
-				snapshot = read.promptSection
+				snapshot = PromptAssembly.snapshotSection(read)
 				if case .unavailable(let gap) = read {
 					failures.append("snapshot: the coach is given no lines (\(gap))")
 				}

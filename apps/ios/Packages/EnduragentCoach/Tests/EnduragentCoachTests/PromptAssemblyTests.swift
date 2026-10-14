@@ -53,7 +53,7 @@ import Testing
 
 				---
 
-				\(snapshot.promptSection)
+				\(PromptAssembly.snapshotSection(snapshot))
 
 				---
 
@@ -75,7 +75,7 @@ import Testing
 			wellness: [.on("1998-06-12", [.fitness: 55.2, .fatigue: 42.1])],
 			lookback: .snapshotLookback(endingOn: "1998-06-13"))
 		#expect(
-			available.promptSection == """
+			PromptAssembly.snapshotSection(available) == """
 				# Athlete Profile & Latest Wellness
 
 				Profile: FTP 250 W
@@ -93,10 +93,10 @@ import Testing
 		for snapshot: TrainingSnapshot in [
 			.unavailable(.nothingUsable), .unavailable(.deadlineMissed),
 		] {
-			#expect(snapshot.promptSection == fallback)
+			#expect(PromptAssembly.snapshotSection(snapshot) == fallback)
 		}
 		#expect(
-			TrainingSnapshot.notConnected.promptSection == """
+			PromptAssembly.snapshotSection(.notConnected) == """
 				# Athlete Profile & Latest Wellness
 
 				Training data is not connected. No intervals.icu account is linked, so you have \

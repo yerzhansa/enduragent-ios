@@ -219,8 +219,7 @@
 			"id": "2.1.2",
 			"statement": "Every key of npm's projection of the same profile is accounted for, as the same value under the phone's key or as a named difference.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "everyKeyOfNpmsProjectionIsAccountedFor"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "projectionKeyWithNoAccountIsReported"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "everyKeyOfNpmsProjectionIsAccountedFor"}
 			]
 		},
 		{
@@ -311,8 +310,7 @@
 			"id": "2.2.7",
 			"statement": "Every key of npm's projection of the same wellness rows is accounted for, as the same value under the phone's key or as a named difference.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "everyKeyOfNpmsProjectionIsAccountedFor"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "projectionKeyWithNoAccountIsReported"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "everyKeyOfNpmsProjectionIsAccountedFor"}
 			]
 		},
 		{
@@ -328,7 +326,8 @@
 			"statement": "Each listed activity shows its title, sport, local start and every measurement the source supplies, with one units object.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivitiesTests.swift", "function": "completeActivityRowKeepsEveryMeasurement"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "activityListShowsTheExpectedResultForEveryCase"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "activityListShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "everyKeyOfNpmsProjectionIsAccountedFor"}
 			]
 		},
 		{
@@ -461,7 +460,7 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "detailOnlyFieldsTheSourceSentAreShownAndTheOthersHaveNoKey"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "detailKeepsTheRowAndEveryDetailOnlyField"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailReadoutTests.swift", "function": "everyFieldNpmPassesIsShownUnderItsKeyOrDroppedByName"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailReadoutTests.swift", "function": "everyKeyNpmPassesIsAccountedFor"}
 			]
 		},
 		{
