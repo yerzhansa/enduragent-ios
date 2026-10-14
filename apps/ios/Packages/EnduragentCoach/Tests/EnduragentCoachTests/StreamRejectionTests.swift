@@ -8,6 +8,7 @@ import Testing
 extension IntervalsRESTClientTests {
 	@Suite struct StreamRejectionTests {
 		static let unknown = "enduragent_unknown_channel"
+		static let requestLimit = 10
 		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 		private let asked = AskedTypes()
 
@@ -97,22 +98,27 @@ extension IntervalsRESTClientTests {
 
 		@Test func eachUnknownNameCostsOneRequestAndTheReadEndsWithTheKnownOnes() async throws {
 			let shown = try await readout(
-				types: ["u1", "watts", "u2", "u1", "u3", "u2"], rejecting: ["u1", "u2", "u3"])
-			#expect(
-				shown.objectFields["unanswered"]
-					== .array(["u1", "u2", "u3"].map(JSONValue.string)))
+				types: ["u1", "watts", "u2", "u1", "u2"], rejecting: ["u1", "u2"])
+			#expect(shown.objectFields["unanswered"] == .array(["u1", "u2"].map(JSONValue.string)))
 			#expect(shown.objectFields["channels"]?.objectFields.keys.sorted() == ["watts"])
+			#expect(asked.all == ["u1,watts,u2,u1,u2", "watts,u2,u2", "watts"])
+		}
+
+		@Test func readNamingManyUnknownChannelsStopsAfterThreeRequests() async throws {
+			let invented = (1...12).map { "u\($0)" }
+			let shown = try await readout(types: invented + ["watts"], rejecting: Set(invented))
 			#expect(
-				asked.all == [
-					"u1,watts,u2,u1,u3,u2", "watts,u2,u3,u2", "watts,u3", "watts",
-				])
+				shown
+					== .object([
+						"sampleCount": .number(0), "channels": .object([:]),
+						"unanswered": .array((invented + ["watts"]).map(JSONValue.string)),
+					]), "\(canonicalJSON(shown))")
+			#expect(asked.all.count == 3)
 		}
 
 		@Test func rejectionNamingAChannelNoLongerAskedForEndsTheRead() async throws {
 			let rejection = try fixtureData("intervals-streams-invalid-type")
-			let client = try serving { _ in
-				asked.all.count > 5 ? (500, Data()) : (422, rejection)
-			}
+			let client = try serving { _ in (422, rejection) }
 			await #expect(throws: IntervalsError(code: "http", details: "status 422", status: 422))
 			{
 				_ = try await client.streams(
@@ -133,6 +139,9 @@ extension IntervalsRESTClientTests {
 					URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?
 						.first { $0.name == "types" }?.value)
 				asked.record(types)
+				guard asked.all.count <= Self.requestLimit else {
+					throw URLError(.cannotLoadFromNetwork)
+				}
 				return try answer(types)
 			}
 			return client

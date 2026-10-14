@@ -5,7 +5,7 @@ extension IntervalsRESTClient {
 		-> StreamSummary
 	{
 		var asking = channels.names
-		while !asking.isEmpty {
+		for _ in 0..<IntervalsPolicy.streamRequestLimit where !asking.isEmpty {
 			let answer = try await exchange(
 				method: "GET", path: ["activity", id.rawValue, "streams.json"],
 				query: [URLQueryItem(name: "types", value: asking.joined(separator: ","))])
