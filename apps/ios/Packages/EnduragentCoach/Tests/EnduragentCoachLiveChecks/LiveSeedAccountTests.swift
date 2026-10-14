@@ -43,6 +43,23 @@ struct LiveSeedAccountTests {
 		#expect(request.timeoutInterval == 120)
 	}
 
+	@Test func aClearedWellnessFieldIsSentAsMinusOneBecauseIntervalsIgnoresNull() async throws {
+		let account = Self.account { _ in (200, Data("[]".utf8)) }
+
+		try await account.writeWellness(["2026-10-01": ["hrv": nil, "weight": 72.5]])
+
+		let request = try #require(SeedAccountURLProtocolStub.lastRequest)
+		let body = try #require(SeedAccountURLProtocolStub.lastBody)
+		let rows = try #require(JSONSerialization.jsonObject(with: body) as? [[String: Any]])
+		let row = try #require(rows.first)
+		#expect(request.httpMethod == "PUT")
+		#expect(request.url?.path == "/api/v1/athlete/0/wellness-bulk")
+		#expect(rows.count == 1)
+		#expect(row["id"] as? String == "2026-10-01")
+		#expect(row["hrv"] as? Double == -1)
+		#expect(row["weight"] as? Double == 72.5)
+	}
+
 	@Test func deleteTreatsAnActivityTheAccountNoLongerHasAsDone() async throws {
 		let account = Self.account { _ in (404, Data()) }
 
