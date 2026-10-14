@@ -9,7 +9,8 @@ public struct CoachPorts: Sendable {
 	public let host: any ExecutionHost
 	public let clock: any Clock
 	public let openRouterSignIn: OpenRouterSignInService?
-	package var watchdogSleep: @Sendable (Duration) async throws -> Void = SystemClock().sleep
+	package var watchdogSleep: @Sendable (Duration) async throws(CancellationError) -> Void =
+		SystemClock().sleep
 	package var coalescingSleep: @Sendable (Duration) async throws -> Void = SystemClock().sleep
 
 	public init(
