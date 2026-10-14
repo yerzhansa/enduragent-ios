@@ -79,7 +79,7 @@ struct ActivityReadoutCase: Sendable {
 		"icuWeightedAvgWatts": .measured(ActivityField.weightedPower),
 		"averageHeartrate": .measured(ActivityField.averageHeartRate),
 		"maxHeartrate": .measured(ActivityField.maxHeartRate),
-		"icuFtp": .measured(ActivityField.ftp),
+		"icuFtp": .shown(as: "ftp", .number),
 		"totalElevationGain": .measured(ActivityField.elevationGain),
 		"averageWatts": .leftOut("the phone shows icu_average_watts as the average power"),
 		"source": .leftOut("only the Strava rule reads it"),

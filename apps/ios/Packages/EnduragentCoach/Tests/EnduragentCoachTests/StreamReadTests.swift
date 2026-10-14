@@ -30,6 +30,21 @@ import Testing
 			])
 	}
 
+	@Test func channelsTheSourceReportedUnknownOrUnreadAreNamedUnderTheirOwnLists() async throws {
+		intervals.streams[Self.ride.id] = [StreamSamples(channel: "watts", values: [100, 300])]
+		intervals.streamGaps[Self.ride.id] = [
+			"enduragent_unknown_channel": .unknown, "cadence": .unread, "watts": .unread,
+		]
+		let shown = try await read(
+			#"{"activityId":"i1234567","types":["watts","enduragent_unknown_channel","cadence","temp"]}"#
+		)
+		#expect(
+			shown
+				== (try JSONValue.parse(
+					#"{"sampleCount":2,"channels":{"watts":{"min":100,"max":300,"mean":200}},"unanswered":["temp"],"unknown":["enduragent_unknown_channel"],"unread":["cadence"]}"#
+				)), "\(canonicalJSON(shown))")
+	}
+
 	@Test func streamsOfAnotherActivityAreNotSummarized() async throws {
 		intervals.streams[Self.ride.id] = [StreamSamples(channel: "watts", values: [100, 300])]
 		let shown = try await read(#"{"activityId":"i7654321","types":["watts"]}"#)

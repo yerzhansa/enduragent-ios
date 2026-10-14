@@ -22,19 +22,22 @@ import Testing
 		#expect(intervals.calls == [call])
 	}
 
-	@Test(arguments: [
-		(
-			#"{"oldest":"1998-06-13","newest":"1998-06-07"}"#,
-			#"{"error":"invalid_range","details":"oldest (1998-06-13) is after newest (1998-06-07). Swap the bounds."}"#
-		),
-		(
-			#"{"oldest":"1997-06-12"}"#,
-			#"{"error":"range_too_wide","details":"Range is 367 days; the maximum is 366. Fetch the range in chunks of at most 366 days."}"#
-		),
-	])
-	func rangeRefusalTellsTheCoachHowToAskAgain(arguments: String, answer: String) async throws {
-		#expect(
-			try await read(.intervalsFetchActivities, arguments) == (try JSONValue.parse(answer)))
+	@Test(
+		arguments: [ToolName.intervalsFetchActivities, .intervalsListEvents],
+		[
+			(
+				#"{"oldest":"1998-06-13","newest":"1998-06-07"}"#,
+				#"{"error":"invalid_range","details":"oldest (1998-06-13) is after newest (1998-06-07). Swap the bounds."}"#
+			),
+			(
+				#"{"oldest":"1997-06-12"}"#,
+				#"{"error":"range_too_wide","details":"Range is 367 days; the maximum is 366. Fetch the range in chunks of at most 366 days."}"#
+			),
+		])
+	func rangeRefusalTellsTheCoachHowToAskAgain(tool: ToolName, refusal: (String, String))
+		async throws
+	{
+		#expect(try await read(tool, refusal.0) == (try JSONValue.parse(refusal.1)))
 		#expect(intervals.calls.isEmpty)
 	}
 

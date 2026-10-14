@@ -21,6 +21,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	package var unreadable: [CivilDate]
 	package var details: [ActivityID: ActivityDetailRead]
 	package var streams: [ActivityID: [StreamSamples]]
+	package var streamGaps: [ActivityID: [String: ChannelGap]]
 	public var events: [CalendarEvent]
 	private let recordedCalls = Mutex<[FakeIntervalsCall]>([])
 	public var calls: [FakeIntervalsCall] { recordedCalls.withLock { $0 } }
@@ -59,6 +60,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		self.wellness = []
 		self.details = [:]
 		self.streams = [:]
+		self.streamGaps = [:]
 		self.events = []
 		self.writeFailure = nil
 	}
@@ -120,7 +122,8 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	{
 		recordedCalls.withLock { $0.append(.streams(id, channels: channels.names)) }
 		try await begin(.streams)
-		return StreamSummary(summarizing: streams[id] ?? [], asked: channels)
+		return StreamSummary(
+			summarizing: streams[id] ?? [], asked: channels, reported: streamGaps[id] ?? [:])
 	}
 
 	public func fetchEvent(id: EventID) async throws -> CalendarEvent {
@@ -133,16 +136,14 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		return event
 	}
 
-	public func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
-		recordedCalls.withLock { $0.append(.events(oldest: oldest, newest: newest)) }
+	package func listEvents(in range: ReadRange) async throws -> [CalendarEvent] {
+		recordedCalls.withLock { $0.append(.events(oldest: range.oldest, newest: range.newest)) }
 		#if DEBUG
 			try consumeCalendarReadFault()
 		#endif
 		return events.filter { event in
-			guard let date = CivilDate(rawValue: String(event.startDateLocal.prefix(10))) else {
-				return false
-			}
-			return date >= oldest && date <= newest
+			CivilDate(rawValue: String(event.startDateLocal.prefix(10))).map(range.contains)
+				?? false
 		}
 	}
 

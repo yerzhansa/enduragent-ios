@@ -10,13 +10,13 @@ extension AthleteProfile {
 	}
 
 	package func with(
-		_ readings: [ProfileField: Double], sex: String? = nil, ageYears: Int? = nil,
+		_ readings: [ProfileField: Double], sex: String? = nil, dateOfBirth: CivilDate? = nil,
 		settingsSports: [String] = [], powerZones: [TrainingZone] = [],
 		heartRateZones: [TrainingZone] = []
 	) -> AthleteProfile {
 		AthleteProfile(
 			id: id, name: name, ftp: ftp, readings: Readings(readings), sex: sex,
-			ageYears: ageYears, settingsSports: settingsSports, powerZones: powerZones,
+			dateOfBirth: dateOfBirth, settingsSports: settingsSports, powerZones: powerZones,
 			heartRateZones: heartRateZones)
 	}
 
@@ -27,7 +27,7 @@ extension AthleteProfile {
 	private func rebuilt(name: String? = nil, ftp: FTPReading? = nil) -> AthleteProfile {
 		AthleteProfile(
 			id: id, name: name ?? self.name, ftp: ftp ?? self.ftp, readings: readings, sex: sex,
-			ageYears: ageYears, settingsSports: settingsSports, powerZones: powerZones,
+			dateOfBirth: dateOfBirth, settingsSports: settingsSports, powerZones: powerZones,
 			heartRateZones: heartRateZones)
 	}
 }
@@ -43,7 +43,7 @@ extension WellnessDay {
 extension Activity {
 	package static func recorded(
 		_ id: String, _ name: String?, sport: String? = "Ride", on date: CivilDate,
-		at secondOfDay: Int? = nil, _ readings: [ActivityField: Double] = [:]
+		at secondOfDay: Int? = nil, ftp: Double? = nil, _ readings: [ActivityField: Double] = [:]
 	) -> Activity {
 		guard let id = ActivityID(rawValue: id) else {
 			fatalError("\(id) is not an activity identifier")
@@ -52,7 +52,7 @@ extension Activity {
 			fatalError("\(String(describing: secondOfDay)) is not a second of the day")
 		}
 		return Activity(
-			id: id, name: name, sport: sport, start: start, readings: Readings(readings))
+			id: id, name: name, sport: sport, start: start, readings: Readings(readings), ftp: ftp)
 	}
 }
 

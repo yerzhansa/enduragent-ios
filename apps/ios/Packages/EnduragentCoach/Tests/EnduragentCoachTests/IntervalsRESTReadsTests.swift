@@ -27,7 +27,7 @@ extension IntervalsRESTClientTests {
 						.indoorFTP: 245, .wPrime: 20_000, .maxPower: 1_100, .sweetSpotMin: 84,
 						.sweetSpotMax: 97,
 					],
-					sex: "F", ageYears: 27, settingsSports: ["Ride", "VirtualRide"],
+					sex: "F", dateOfBirth: "1970-06-14", settingsSports: ["Ride", "VirtualRide"],
 					powerZones: zip(
 						[
 							"Active Recovery", "Endurance", "Tempo", "Threshold", "VO2 Max",

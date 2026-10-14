@@ -5,7 +5,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private let session: URLSession
 	private let baseURL: URL
 	let athletePath: String
-	let clock: any Clock
+	private let clock: any Clock
 
 	package init(
 		credential: IntervalsCredential, athlete: AthleteSelection = .keyOwner,
@@ -28,11 +28,10 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 				resourceTimeout: IntervalsPolicy.requestTimeout)
 	}
 
-	package func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
-		_ = try ReadRange(oldest: oldest, newest: newest, today: newest)
+	package func listEvents(in range: ReadRange) async throws -> [CalendarEvent] {
 		let query = [
-			URLQueryItem(name: "oldest", value: oldest.rawValue),
-			URLQueryItem(name: "newest", value: newest.rawValue),
+			URLQueryItem(name: "oldest", value: range.oldest.rawValue),
+			URLQueryItem(name: "newest", value: range.newest.rawValue),
 		]
 		let json = try await getJSON(path: ["athlete", athletePath, "events"], query: query)
 		guard let rows = json.arrayValue else {

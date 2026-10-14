@@ -6,42 +6,6 @@ import Testing
 @Suite struct ActivityListingTests {
 	static let ride = Activity.recorded("i1234567", "Sunday long ride", on: "1998-06-07")
 
-	@Test(arguments: [
-		ActivityRowCase(
-			"STRAVA", sport: nil, moving: nil, elapsed: nil, readable: true, .hiddenByStrava),
-		ActivityRowCase(
-			"STRAVA", sport: nil, moving: nil, elapsed: nil, readable: false, .hiddenByStrava),
-		ActivityRowCase(
-			"STRAVA", sport: nil, moving: 600, elapsed: 600, readable: true, .hiddenByStrava),
-		ActivityRowCase(
-			"STRAVA", sport: "Ride", moving: nil, elapsed: 600, readable: true, .hiddenByStrava),
-		ActivityRowCase(
-			"STRAVA", sport: "Ride", moving: 600, elapsed: nil, readable: true, .hiddenByStrava),
-		ActivityRowCase(
-			"STRAVA", sport: "Ride", moving: -1, elapsed: 600, readable: true, .hiddenByStrava),
-		ActivityRowCase(
-			"STRAVA", sport: "Ride", moving: 600, elapsed: -1, readable: true, .hiddenByStrava),
-		ActivityRowCase(
-			"STRAVA", sport: "Ride", moving: 0, elapsed: 0, readable: true, .activity(ride)),
-		ActivityRowCase(
-			"STRAVA", sport: "Ride", moving: 600, elapsed: 600, readable: false, .unreadable),
-		ActivityRowCase(
-			"strava", sport: nil, moving: nil, elapsed: nil, readable: true, .activity(ride)),
-		ActivityRowCase(
-			"UPLOAD", sport: nil, moving: nil, elapsed: nil, readable: true, .activity(ride)),
-		ActivityRowCase(
-			nil, sport: nil, moving: nil, elapsed: nil, readable: true, .activity(ride)),
-		ActivityRowCase(
-			nil, sport: "Ride", moving: 600, elapsed: 600, readable: false, .unreadable),
-	])
-	func rowIsClassifiedByTheStravaRuleThenByWhetherItCouldBeRead(sample: ActivityRowCase) {
-		#expect(
-			ActivityRow(
-				source: sample.source, sport: sample.sport, movingTime: sample.moving,
-				elapsedTime: sample.elapsed, activity: sample.readable ? Self.ride : nil)
-				== sample.row)
-	}
-
 	@Test func countsAddUpToEveryRowTheSourceReturned() throws {
 		let range = try ReadRange(oldest: "1998-06-01", newest: "1998-06-13", today: "1998-06-13")
 		let listing = ActivityListing(
@@ -91,32 +55,5 @@ import Testing
 	])
 	func identifierInOneOfTheThreeFormsIsKeptAsGiven(raw: String) {
 		#expect(ActivityID(rawValue: raw)?.rawValue == raw)
-	}
-}
-
-struct ActivityRowCase: Sendable, CustomTestStringConvertible {
-	let source: String?
-	let sport: String?
-	let moving: Double?
-	let elapsed: Double?
-	let readable: Bool
-	let row: ActivityRow
-
-	init(
-		_ source: String?, sport: String?, moving: Double?, elapsed: Double?, readable: Bool,
-		_ row: ActivityRow
-	) {
-		self.source = source
-		self.sport = sport
-		self.moving = moving
-		self.elapsed = elapsed
-		self.readable = readable
-		self.row = row
-	}
-
-	var testDescription: String {
-		let times = [moving, elapsed].map { $0.map { "\($0)" } ?? "none" }
-		return
-			"source \(source ?? "none"), sport \(sport ?? "none"), times \(times), readable \(readable)"
 	}
 }

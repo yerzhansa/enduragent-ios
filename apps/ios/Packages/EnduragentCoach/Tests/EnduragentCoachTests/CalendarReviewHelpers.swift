@@ -7,8 +7,7 @@ import Testing
 func connectedTraining(_ client: any TrainingClient) -> TrainingConnection {
 	.connected(
 		ConnectedTraining(
-			connection: testConnection.id, athlete: testConnection.resolvedAthlete,
-			client: client))
+			connection: testConnection.id, athlete: testAthlete, client: client))
 }
 
 func makeReviews(

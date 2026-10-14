@@ -226,6 +226,16 @@ struct ReadToolsTests {
 				tags: [],
 				coachCreated: false
 			),
+			CalendarEvent(
+				id: EventID(rawValue: 44),
+				startDateLocal: "1998-06-21T00:00:00",
+				name: "Recovery",
+				category: "WORKOUT",
+				externalId: "cycling-coach:1998-06-21:recovery",
+				uid: nil,
+				tags: ["cycling-coach"],
+				coachCreated: true
+			),
 		]
 		let tools = runtime()
 		let athlete = try await tools.execute(

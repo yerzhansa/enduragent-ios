@@ -8,7 +8,7 @@ package enum SnapshotPolicy {
 
 package enum TrainingSnapshot: Sendable, Equatable {
 	case notConnected
-	case unavailable(SnapshotGap)
+	case unavailable
 	case available(SnapshotLines)
 
 	package init(profile: AthleteProfile?, wellness: [WellnessDay]?, lookback: ReadRange) {
@@ -16,13 +16,8 @@ package enum TrainingSnapshot: Sendable, Equatable {
 			SnapshotLines(
 				profile: profile.flatMap(ProfileLine.init),
 				wellness: wellness.flatMap { WellnessLine(latestOf: $0, in: lookback) }
-			).map(Self.available) ?? .unavailable(.nothingUsable)
+			).map(Self.available) ?? .unavailable
 	}
-}
-
-package enum SnapshotGap: Sendable, Equatable {
-	case nothingUsable
-	case deadlineMissed
 }
 
 package enum SnapshotLineKind: Sendable, Equatable {
@@ -182,7 +177,7 @@ package struct TrainingSnapshotReader: Sendable {
 		}
 		guard let profile, let wellness else {
 			diagnostics.record(.snapshotDeadlineMissed(attempt))
-			return .unavailable(.deadlineMissed)
+			return .unavailable
 		}
 		return TrainingSnapshot(
 			profile: profile.success, wellness: wellness.success, lookback: lookback)

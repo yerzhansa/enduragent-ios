@@ -17,9 +17,8 @@ extension IntervalsRESTClient: TrainingReads {
 			ftp: FTPReading(wire.resolve([.settings("ftp"), .athlete("icu_ftp")])),
 			readings: Readings(readings),
 			sex: athlete["sex"]?.stringValue,
-			ageYears: Self.wholeYears(
-				since: athlete["icu_date_of_birth"],
-				on: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)),
+			dateOfBirth: athlete["icu_date_of_birth"]?.stringValue.flatMap(
+				CivilDate.init(rawValue:)),
 			settingsSports: (settings["types"]?.arrayValue ?? []).compactMap(\.stringValue),
 			powerZones: Self.zones(
 				bounds: settings["power_zones"], names: settings["power_zone_names"]),
@@ -55,7 +54,7 @@ extension IntervalsRESTClient: TrainingReads {
 			throw IntervalsError(
 				code: "invalid_json", details: "activities response was not an array")
 		}
-		return ActivityListing(range: range, rows: rows.map(Self.activityRow(from:)))
+		return ActivityListing(range: range, rows: rows.map { Self.classify($0.objectFields) })
 	}
 
 	package func activity(_ id: ActivityID) async throws -> ActivityDetailRead {
@@ -71,22 +70,45 @@ extension IntervalsRESTClient: TrainingReads {
 			throw IntervalsError(
 				code: "invalid_json", details: "activity response was not an object")
 		}
-		switch Self.activityRow(from: json) {
-		case .hiddenByStrava:
-			if let answered = Self.activityID(in: fields), answered != id {
-				throw IntervalsError.activityMismatch(asked: id)
-			}
-			return .hiddenByStrava
-		case .unreadable:
+		return try Self.classifyDetail(fields, asked: id)
+	}
+
+	private static func classify(_ fields: [String: JSONValue]) -> ActivityRow {
+		if isHiddenByStrava(fields) { return .hiddenByStrava }
+		guard let activity = activity(from: fields) else { return .unreadable }
+		return .activity(activity)
+	}
+
+	private static func classifyDetail(_ fields: [String: JSONValue], asked id: ActivityID)
+		throws(IntervalsError) -> ActivityDetailRead
+	{
+		if let answered = activityID(in: fields), answered != id {
+			throw IntervalsError.activityMismatch(asked: id)
+		}
+		if isHiddenByStrava(fields) { return .hiddenByStrava }
+		guard let activity = activity(from: fields) else {
 			throw IntervalsError(
 				code: "invalid_json",
 				details: "activity response had no usable identifier or start")
-		case .activity(let activity):
-			return .found(
-				try ActivityDetail(
-					asked: id, activity: activity, extras: Self.extras(from: fields),
-					laps: try Self.laps(from: fields["icu_intervals"])))
 		}
+		return .found(
+			try ActivityDetail(
+				asked: id, activity: activity, extras: extras(from: fields),
+				laps: try laps(from: fields["icu_intervals"])))
+	}
+
+	private static func isHiddenByStrava(_ fields: [String: JSONValue]) -> Bool {
+		guard fields["source"]?.stringValue == IntervalsPolicy.stravaSource else { return false }
+		let lacksATime = ["moving_time", "elapsed_time"].contains { key in
+			guard let seconds = number(fields[key]) else { return true }
+			return seconds < 0
+		}
+		return fields["type"]?.stringValue == nil || lacksATime
+	}
+
+	private static func number(_ wire: JSONValue?) -> Double? {
+		guard case .number(let value) = ReportedNumber(wire: wire) else { return nil }
+		return value
 	}
 
 	private static func cyclingSettings(of athlete: [String: JSONValue]) -> [String: JSONValue] {
@@ -100,12 +122,6 @@ extension IntervalsRESTClient: TrainingReads {
 			}
 		}
 		return cycling ?? rows.first ?? [:]
-	}
-
-	private static func wholeYears(since birth: JSONValue?, on today: CivilDate) -> Int? {
-		guard let born = birth?.stringValue.flatMap(CivilDate.init(rawValue:)), born <= today
-		else { return nil }
-		return (DateKey.from(today).rawValue - DateKey.from(born).rawValue) / 10_000
 	}
 
 	private static func zones(bounds: JSONValue?, names: JSONValue?) -> [TrainingZone] {
@@ -130,18 +146,6 @@ extension IntervalsRESTClient: TrainingReads {
 			date: date, readings: readings(in: fields, under: \WellnessField.wireKey))
 	}
 
-	private static func activityRow(from row: JSONValue) -> ActivityRow {
-		let fields = row.objectFields
-		func number(_ key: String) -> Double? {
-			guard case .number(let value) = ReportedNumber(wire: fields[key]) else { return nil }
-			return value
-		}
-		return ActivityRow(
-			source: fields["source"]?.stringValue, sport: fields["type"]?.stringValue,
-			movingTime: number("moving_time"), elapsedTime: number("elapsed_time"),
-			activity: activity(from: fields))
-	}
-
 	static func activityID(in fields: [String: JSONValue]) -> ActivityID? {
 		switch fields["id"] {
 		case .string(let raw)?: ActivityID(rawValue: raw)
@@ -157,18 +161,16 @@ extension IntervalsRESTClient: TrainingReads {
 		else { return nil }
 		return Activity(
 			id: id, name: fields["name"]?.stringValue, sport: fields["type"]?.stringValue,
-			start: start, readings: readings(in: fields, under: \ActivityField.wireKey))
+			start: start, readings: readings(in: fields, under: \ActivityField.wireKey),
+			ftp: number(fields["icu_ftp"]))
 	}
 
 	private static func readings<Field: Hashable & Sendable & CaseIterable>(
-		in fields: [String: JSONValue], under key: (Field) -> String?
+		in fields: [String: JSONValue], under key: (Field) -> String
 	) -> Readings<Field> {
 		var readings: [Field: Double] = [:]
 		for field in Field.allCases {
-			guard let key = key(field) else { continue }
-			if case .number(let value) = ReportedNumber(wire: fields[key]) {
-				readings[field] = value
-			}
+			readings[field] = number(fields[key(field)])
 		}
 		return Readings(readings)
 	}
@@ -294,14 +296,13 @@ extension ActivityField {
 		case .weightedPower: "icu_weighted_avg_watts"
 		case .averageHeartRate: "average_heartrate"
 		case .maxHeartRate: "max_heartrate"
-		case .ftp: "icu_ftp"
 		case .elevationGain: "total_elevation_gain"
 		}
 	}
 }
 
 extension ActivityField {
-	fileprivate var lapWireKey: String? {
+	fileprivate var lapWireKey: String {
 		switch self {
 		case .duration: "moving_time"
 		case .distance: "distance"
@@ -311,7 +312,6 @@ extension ActivityField {
 		case .weightedPower: "weighted_average_watts"
 		case .averageHeartRate: "average_heartrate"
 		case .maxHeartRate: "max_heartrate"
-		case .ftp: nil
 		case .elevationGain: "total_elevation_gain"
 		}
 	}

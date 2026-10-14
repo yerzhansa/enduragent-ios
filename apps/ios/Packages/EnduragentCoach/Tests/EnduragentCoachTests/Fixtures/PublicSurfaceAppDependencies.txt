@@ -119,12 +119,6 @@ ICloudKeychainStore.storeAccessSelection(_:)
 ICloudKeychainStore.storeCreditsAccount(_:)
 ICloudKeychainStore.storeIntervalsConnection(_:)
 ICloudKeychainStore.storeOpenRouterAccountKey(_:at:)
-IntervalsClient
-IntervalsClient.createChatEvent(_:)
-IntervalsClient.deleteEvent(id:)
-IntervalsClient.fetchEvent(id:)
-IntervalsClient.listEvents(oldest:newest:)
-IntervalsClient.updateEvent(id:name:description:date:)
 IntervalsCredential
 IntervalsCredential.apiKey
 IntervalsCredential.oauth

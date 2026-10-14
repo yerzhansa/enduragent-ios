@@ -9,7 +9,7 @@ extension CoachTools {
 		"Fetch athlete profile from intervals.icu (FTP, weight, max HR, sport settings, zones)",
 		parameters: ToolParameters.none
 	) { _, reach in
-		.result(CoachReadout.profile(try await reach.reads.profile()))
+		.result(CoachReadout.profile(try await reach.reads.profile(), on: reach.local.today))
 	}
 
 	static let fetchWellness = CoachTool.training(

@@ -105,9 +105,9 @@ public enum CalendarEventType: String, Sendable {
 	case weightTraining = "WeightTraining"
 }
 
-public protocol IntervalsClient: Sendable {
+package protocol IntervalsClient: Sendable {
 	func fetchEvent(id: EventID) async throws -> CalendarEvent
-	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent]
+	func listEvents(in range: ReadRange) async throws -> [CalendarEvent]
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent

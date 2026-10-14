@@ -1,7 +1,7 @@
 import Foundation
 
 enum CoachReadout {
-	static func profile(_ profile: AthleteProfile) -> JSONValue {
+	static func profile(_ profile: AthleteProfile, on today: CivilDate) -> JSONValue {
 		var fields: [String: JSONValue] = [
 			"id": .string(profile.id),
 			"name": .string(profile.name),
@@ -20,7 +20,7 @@ enum CoachReadout {
 		if fields["ftp"] != nil { units["ftp"] = .string("W") }
 		write(profile.readings, to: &fields, units: &units)
 		if let sex = profile.sex { fields["sex"] = .string(sex) }
-		if let age = profile.ageYears { fields["ageYears"] = .number(Double(age)) }
+		if let age = profile.ageYears(on: today) { fields["ageYears"] = .number(Double(age)) }
 		if !profile.settingsSports.isEmpty {
 			fields["sports"] = .array(profile.settingsSports.map(JSONValue.string))
 		}
@@ -111,11 +111,8 @@ enum CoachReadout {
 					])
 				}),
 		]
-		for (key, names) in [
-			("unanswered", summary.unanswered), ("unknown", summary.unknown),
-			("unread", summary.unread),
-		] where !names.isEmpty {
-			result[key] = .array(names.map(JSONValue.string))
+		for (gap, names) in summary.gaps {
+			result[gap.rawValue] = .array(names.map(JSONValue.string))
 		}
 		return .object(result)
 	}
@@ -208,6 +205,10 @@ enum CoachReadout {
 		if let name = activity.name { fields["name"] = .string(name) }
 		if let sport = activity.sport { fields["sport"] = .string(sport) }
 		write(activity.readings, to: &fields, units: &units)
+		if let ftp = activity.ftp {
+			fields["ftp"] = .number(ftp)
+			units["ftp"] = .string("W")
+		}
 		return .object(fields)
 	}
 
@@ -244,7 +245,7 @@ extension ActivityField: ReadoutMeasurement {
 		case .distance, .elevationGain: "m"
 		case .load: nil
 		case .intensity: "%"
-		case .averagePower, .weightedPower, .ftp: "W"
+		case .averagePower, .weightedPower: "W"
 		case .averageHeartRate, .maxHeartRate: "bpm"
 		}
 	}

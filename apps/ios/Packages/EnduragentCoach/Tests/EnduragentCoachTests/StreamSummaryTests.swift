@@ -15,7 +15,7 @@ extension IntervalsRESTClientTests {
 		#expect(request.httpMethod == "GET")
 		let custom = try #require(summary.channels["smooth_grade"])
 		#expect([custom.min, custom.max, custom.mean] == [-2.5, 1.5, -0.2])
-		#expect(summary.unanswered == [])
+		#expect(summary.gaps == [:])
 	}
 
 	@Test(arguments: [nil, []] as [[String]?])
@@ -72,7 +72,7 @@ extension IntervalsRESTClientTests {
 			#expect(fromKeyed == fromList)
 			#expect(fromKeyed.sampleCount == 10)
 			#expect(Set(fromKeyed.channels.keys) == Set(Self.answering))
-			#expect(fromKeyed.unanswered == ["temp", "torque"])
+			#expect(fromKeyed.gaps == [.unanswered: ["temp", "torque"]])
 		}
 
 		@Test func samplesThatAreNotFiniteNumbersAreLeftOutOfEveryStatistic() throws {
@@ -81,12 +81,13 @@ extension IntervalsRESTClientTests {
 					StreamSamples(channel: "watts", values: [nil, 250, .infinity, 150, .nan]),
 					StreamSamples(channel: "cadence", values: [90]),
 					StreamSamples(channel: "temp", values: [nil, .nan, -.infinity, nil, nil, nil]),
-				], asked: try StreamChannels(requested: ["watts", "temp", "cadence"]))
+				], asked: try StreamChannels(requested: ["watts", "temp", "cadence"]), reported: [:]
+			)
 			#expect(summary.sampleCount == 5)
 			#expect(Set(summary.channels.keys) == ["watts", "cadence"])
 			let watts = summary.channels["watts"]
 			#expect([watts?.min, watts?.max, watts?.mean] == [150, 250, 200])
-			#expect(summary.unanswered == ["temp"])
+			#expect(summary.gaps == [.unanswered: ["temp"]])
 		}
 
 		@Test(arguments: [#""no streams""#, "7", "null"])

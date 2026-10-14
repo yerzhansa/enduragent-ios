@@ -87,7 +87,7 @@ struct CalendarWriteOperation: Sendable {
 		switch live.body.toolInput {
 		case .createWorkout, .createStrengthWorkout:
 			let draft = try creation(live)
-			let events = try await client.listEvents(oldest: draft.date, newest: draft.date)
+			let events = try await client.listEvents(in: .day(draft.date))
 			let matches = events.filter {
 				if let writeID = intent.body.writeID {
 					return $0.uid == writeID.uid || $0.externalId == writeID.externalID

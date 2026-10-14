@@ -42,8 +42,8 @@ struct LiveReadOnlyTraining: TrainingReads, IntervalsClient {
 		try await inner.fetchEvent(id: id)
 	}
 
-	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
-		try await inner.listEvents(oldest: oldest, newest: newest)
+	func listEvents(in range: ReadRange) async throws -> [CalendarEvent] {
+		try await inner.listEvents(in: range)
 	}
 
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {

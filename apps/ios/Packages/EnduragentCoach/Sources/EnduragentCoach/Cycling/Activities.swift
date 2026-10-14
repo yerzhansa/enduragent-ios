@@ -9,7 +9,6 @@ package enum ActivityField: String, Hashable, Sendable, CaseIterable {
 	case weightedPower
 	case averageHeartRate
 	case maxHeartRate
-	case ftp
 	case elevationGain
 }
 
@@ -27,7 +26,11 @@ package struct LocalStart: Sendable, Equatable, Comparable {
 
 	package static func < (lhs: LocalStart, rhs: LocalStart) -> Bool {
 		if lhs.date != rhs.date { return lhs.date < rhs.date }
-		return (lhs.secondOfDay ?? -1) < (rhs.secondOfDay ?? -1)
+		switch (lhs.secondOfDay, rhs.secondOfDay) {
+		case (let earlier?, let later?): return earlier < later
+		case (nil, .some): return true
+		case (.some, nil), (nil, nil): return false
+		}
 	}
 }
 
@@ -37,16 +40,18 @@ package struct Activity: Sendable, Equatable {
 	package let sport: String?
 	package let start: LocalStart
 	package let readings: Readings<ActivityField>
+	package let ftp: Double?
 
 	package init(
 		id: ActivityID, name: String?, sport: String?, start: LocalStart,
-		readings: Readings<ActivityField>
+		readings: Readings<ActivityField>, ftp: Double?
 	) {
 		self.id = id
 		self.name = name
 		self.sport = sport
 		self.start = start
 		self.readings = readings
+		self.ftp = ftp
 	}
 }
 
@@ -54,20 +59,6 @@ package enum ActivityRow: Sendable, Equatable {
 	case activity(Activity)
 	case hiddenByStrava
 	case unreadable
-
-	package init(
-		source: String?, sport: String?, movingTime: Double?, elapsedTime: Double?,
-		activity: Activity?
-	) {
-		let lacksATime = [movingTime, elapsedTime].contains { ($0 ?? -1) < 0 }
-		if source == IntervalsPolicy.stravaSource, sport == nil || lacksATime {
-			self = .hiddenByStrava
-		} else if let activity {
-			self = .activity(activity)
-		} else {
-			self = .unreadable
-		}
-	}
 }
 
 package struct ActivityListing: Sendable, Equatable {
@@ -224,16 +215,20 @@ package struct ChannelSummary: Sendable, Equatable {
 	}
 }
 
+package enum ChannelGap: String, Sendable, Equatable, CaseIterable {
+	case unanswered
+	case unknown
+	case unread
+}
+
 package struct StreamSummary: Sendable, Equatable {
 	package let sampleCount: Int
 	package let channels: [String: ChannelSummary]
-	package let unanswered: [String]
-	package let unknown: [String]
-	package let unread: [String]
+	package let gaps: [ChannelGap: [String]]
 
 	package init(
 		summarizing samples: [StreamSamples], asked: StreamChannels,
-		unknown: Set<String> = [], unread: Set<String> = []
+		reported: [String: ChannelGap]
 	) {
 		var channels: [String: ChannelSummary] = [:]
 		var sampleCount = 0
@@ -243,11 +238,12 @@ package struct StreamSummary: Sendable, Equatable {
 			sampleCount = Swift.max(sampleCount, stream.values.count)
 		}
 		var seen: Set<String> = []
-		let missing = asked.names.filter { channels[$0] == nil && seen.insert($0).inserted }
+		var gaps: [ChannelGap: [String]] = [:]
+		for name in asked.names where channels[name] == nil && seen.insert(name).inserted {
+			gaps[reported[name] ?? .unanswered, default: []].append(name)
+		}
 		self.sampleCount = sampleCount
 		self.channels = channels
-		self.unknown = missing.filter(unknown.contains)
-		self.unread = missing.filter(unread.contains)
-		self.unanswered = missing.filter { !unknown.contains($0) && !unread.contains($0) }
+		self.gaps = gaps
 	}
 }

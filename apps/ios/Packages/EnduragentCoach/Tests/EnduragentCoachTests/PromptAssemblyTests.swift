@@ -33,7 +33,7 @@ import Testing
 			profile: .cyclist(name: "Ada", ftp: 250),
 			wellness: [.on("1998-06-12", [.fitness: 55.2, .fatigue: 42.1])],
 			lookback: .snapshotLookback(endingOn: "1998-06-13")),
-		.unavailable(.nothingUsable), .unavailable(.deadlineMissed), .notConnected,
+		.unavailable, .notConnected,
 	])
 	func volatileCarriesTheSnapshotSectionBetweenContextAndTime(snapshot: TrainingSnapshot) {
 		let section = PromptAssembly.volatile(
@@ -90,11 +90,7 @@ import Testing
 			Athlete snapshot: unavailable this turn; fetch the profile and latest wellness \
 			before prescribing intensity.
 			"""
-		for snapshot: TrainingSnapshot in [
-			.unavailable(.nothingUsable), .unavailable(.deadlineMissed),
-		] {
-			#expect(PromptAssembly.snapshotSection(snapshot) == fallback)
-		}
+		#expect(PromptAssembly.snapshotSection(.unavailable) == fallback)
 		#expect(
 			PromptAssembly.snapshotSection(.notConnected) == """
 				# Athlete Profile & Latest Wellness

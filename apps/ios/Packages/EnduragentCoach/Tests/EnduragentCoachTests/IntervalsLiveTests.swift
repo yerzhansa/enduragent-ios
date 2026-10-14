@@ -27,7 +27,7 @@ struct IntervalsLiveTests {
 			created.insert(first.id)
 			let second = try await client.createChatEvent(approval)
 			created.insert(second.id)
-			let day = try await client.listEvents(oldest: date, newest: date)
+			let day = try await client.listEvents(in: .day(date))
 			let matches = day.filter {
 				$0.uid == identity.uid || $0.externalId == identity.externalID
 			}
@@ -50,7 +50,7 @@ struct IntervalsLiveTests {
 	) async {
 		var events = known
 		do {
-			let day = try await client.listEvents(oldest: approval.date, newest: approval.date)
+			let day = try await client.listEvents(in: .day(approval.date))
 			events.formUnion(
 				day.filter {
 					$0.uid == approval.writeID?.uid || $0.externalId == approval.writeID?.externalID
@@ -77,6 +77,7 @@ struct IntervalsLiveTests {
 		_ = try await client.profile()
 		_ = try await client.wellness(in: .snapshotLookback(endingOn: today))
 		_ = try await client.activities(in: ReadRange(oldest: past, newest: today, today: today))
-		_ = try await client.listEvents(oldest: today, newest: future)
+		_ = try await client.listEvents(
+			in: ReadRange(oldest: today, newest: future, today: today))
 	}
 }

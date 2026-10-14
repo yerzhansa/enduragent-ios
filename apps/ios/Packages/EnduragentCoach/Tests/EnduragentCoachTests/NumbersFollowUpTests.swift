@@ -53,10 +53,10 @@ struct NumbersFollowUpTurn {
 
 @Suite struct NumbersFollowUpTests {
 	static let ride = Activity.recorded(
-		"i1234569", "Lunch ride", on: "1998-06-10", at: 12 * 3_600 + 15 * 60,
+		"i1234569", "Lunch ride", on: "1998-06-10", at: 12 * 3_600 + 15 * 60, ftp: 250,
 		[
 			.duration: 3_000, .distance: 27_500, .load: 61, .intensity: 78, .averagePower: 182,
-			.weightedPower: 196, .averageHeartRate: 141, .maxHeartRate: 172, .ftp: 250,
+			.weightedPower: 196, .averageHeartRate: 141, .maxHeartRate: 172,
 			.elevationGain: 310,
 		])
 	static let undated = Activity.recorded(

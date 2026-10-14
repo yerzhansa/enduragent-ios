@@ -140,8 +140,9 @@ enum LiveParkedQuestions {
 				"App: a null or absent date gives no age, so the coach is given no ageYears (the readout-profile fixture case \"nulls have no key and zeros stay\").",
 			],
 			decoding: [
-				DecodingSite("Cycling/IntervalsRESTReads.swift", "func wholeYears(since birth"),
-				DecodingSite("Loop/CoachReadout.swift", "if let age = profile.ageYears"),
+				DecodingSite("Cycling/IntervalsRESTReads.swift", #"athlete["icu_date_of_birth"]"#),
+				DecodingSite("Cycling/TrainingReads.swift", "func ageYears(on today: CivilDate)"),
+				DecodingSite("Loop/CoachReadout.swift", "if let age = profile.ageYears(on: today)"),
 			],
 			verdict: format == "dddd-dd-dd"
 				? "matches"
@@ -186,7 +187,8 @@ enum LiveParkedQuestions {
 			],
 			decoding: [
 				DecodingSite(
-					"Cycling/Activities.swift", "if source == IntervalsPolicy.stravaSource")
+					"Cycling/IntervalsRESTReads.swift",
+					"private static func isHiddenByStrava(_ fields")
 			],
 			verdict: rows.isEmpty
 				? "not observed: this account has no Strava-hidden activity in 30 days"
@@ -212,7 +214,7 @@ enum LiveParkedQuestions {
 					"Cycling/IntervalsRESTReads.swift",
 					#"URLQueryItem(name: "intervals", value: "true")"#),
 				DecodingSite(
-					"Cycling/IntervalsRESTReads.swift", #"Self.laps(from: fields["icu_intervals"])"#
+					"Cycling/IntervalsRESTReads.swift", #"laps(from: fields["icu_intervals"])"#
 				),
 			],
 			verdict: details.isEmpty
@@ -295,8 +297,9 @@ enum LiveParkedQuestions {
 				DecodingSite(
 					"Cycling/IntervalsRESTStreams.swift",
 					"private static func rejectedStreamType(in answer"),
-				DecodingSite("Cycling/Activities.swift", "self.unknown = missing.filter"),
-				DecodingSite("Cycling/Activities.swift", "self.unanswered = missing.filter"),
+				DecodingSite("Cycling/IntervalsRESTStreams.swift", "reported[rejected] = .unknown"),
+				DecodingSite("Cycling/IntervalsRESTStreams.swift", "reported[name] = .unread"),
+				DecodingSite("Cycling/Activities.swift", "gaps[reported[name] ?? .unanswered"),
 			],
 			verdict: reads.streams == nil
 				? "not observed: no ride in 30 days" : "\(joined); \(unknownVerdict(reads))")

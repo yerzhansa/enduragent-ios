@@ -27,7 +27,7 @@ extension DurableCalendarWriteTests {
 		_ = await fixture.coach.decide(.approve(token), in: .main)
 		await fixture.coach.stop(.main)
 		await #expect(throws: (any Error).self) {
-			_ = try await fixture.client.listEvents(oldest: "1998-06-14", newest: "1998-06-14")
+			_ = try await fixture.client.listEvents(in: .day("1998-06-14"))
 		}
 		let review = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		_ = await fixture.coach.decide(.checkAgain(review.ref), in: .main)

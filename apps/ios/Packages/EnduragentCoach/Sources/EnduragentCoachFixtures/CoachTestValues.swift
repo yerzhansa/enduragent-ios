@@ -6,9 +6,16 @@ package let testKey = "sk-or-test-credits-key"
 package let testAccess = ResolvedAccess(
 	credential: ProviderCredential(secret: testKey, method: .credits), model: testModel)
 
+package let testAthlete: IntervalsAthleteID = {
+	guard let athlete = IntervalsAthleteID(rawValue: "i1001") else {
+		fatalError("i1001 is not an intervals.icu athlete identifier")
+	}
+	return athlete
+}()
+
 package let testConnection = IntervalsConnection(
 	id: ConnectionID(), credential: .apiKey("icu-test-key"), selection: .keyOwner,
-	resolvedAthlete: IntervalsAthleteID(rawValue: "i1001"))
+	resolvedAthlete: testAthlete)
 
 package let testDisplayLocale: DisplayLocaleResolver = { preference in
 	DisplayLocale(

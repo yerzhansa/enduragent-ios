@@ -13,10 +13,10 @@ import Testing
 		[.duration: 2_400, .load: 21]
 	)
 	static let tempo = Activity.recorded(
-		"i7700102", "Thursday tempo", on: "1998-06-11", at: 6 * 3_600 + 45 * 60 + 5,
+		"i7700102", "Thursday tempo", on: "1998-06-11", at: 6 * 3_600 + 45 * 60 + 5, ftp: 250,
 		[
 			.duration: 4_500, .distance: 41_200, .load: 86, .intensity: 83, .averagePower: 205,
-			.weightedPower: 221, .averageHeartRate: 148, .maxHeartRate: 171, .ftp: 250,
+			.weightedPower: 221, .averageHeartRate: 148, .maxHeartRate: 171,
 			.elevationGain: 310,
 		])
 	static let earlier = Activity.recorded(

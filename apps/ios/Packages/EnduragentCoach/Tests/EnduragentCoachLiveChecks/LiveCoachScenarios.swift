@@ -95,7 +95,7 @@ struct LiveCoachPlan: Sendable {
 	let unavailable: [String]
 
 	init(listing: ActivityListing, today: CivilDate) {
-		let newest = listing.activities.sorted(by: LiveReadsRun.newerFirst)
+		let newest = listing.activities.sorted { $0.start > $1.start }
 		let week = newest.filter { $0.start.date >= today.adding(days: -6) }
 		var scenarios = Self.shortcuts + Self.guidance
 		var unavailable: [String] = []
@@ -314,7 +314,7 @@ struct LiveCoachPlan: Sendable {
 
 	static func closePair(in activities: [Activity]) -> LocalStart? {
 		let timed = activities.filter { $0.start.secondOfDay != nil }
-			.sorted(by: LiveReadsRun.newerFirst)
+			.sorted { $0.start > $1.start }
 		for (later, earlier) in zip(timed, timed.dropFirst())
 		where later.start.date == earlier.start.date {
 			if let end = later.start.secondOfDay, let start = earlier.start.secondOfDay,
