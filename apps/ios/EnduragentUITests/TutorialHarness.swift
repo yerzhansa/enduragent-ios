@@ -202,32 +202,43 @@ enum TutorialHarness {
 	}
 
 	static func meanLuminance(_ screenshot: XCUIScreenshot) -> Double {
+		let side = 16
+		guard let pixels = rgba(screenshot, width: side, height: side) else { return 1 }
+		var total = 0.0
+		for index in stride(from: 0, to: pixels.count, by: 4) {
+			total += luminance(pixels, at: index)
+		}
+		return total / Double(side * side) / 255
+	}
+
+	static func rgba(_ screenshot: XCUIScreenshot, width: Int, height: Int) -> [UInt8]? {
 		guard let image = screenshot.image.cgImage else {
 			XCTFail("the screenshot has no bitmap")
-			return 1
+			return nil
 		}
-		let side = 16
-		var pixels = [UInt8](repeating: 0, count: side * side * 4)
+		var pixels = [UInt8](repeating: 0, count: width * height * 4)
 		let drawn = pixels.withUnsafeMutableBytes { buffer -> Bool in
 			guard
 				let context = CGContext(
-					data: buffer.baseAddress, width: side, height: side, bitsPerComponent: 8,
-					bytesPerRow: side * 4, space: CGColorSpaceCreateDeviceRGB(),
+					data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8,
+					bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
 					bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
 			else {
 				return false
 			}
-			context.draw(image, in: CGRect(x: 0, y: 0, width: side, height: side))
+			context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
 			return true
 		}
-		XCTAssertTrue(drawn, "could not sample the screenshot")
-		var total = 0.0
-		for index in stride(from: 0, to: pixels.count, by: 4) {
-			total +=
-				0.2126 * Double(pixels[index]) + 0.7152 * Double(pixels[index + 1])
-				+ 0.0722 * Double(pixels[index + 2])
+		guard drawn else {
+			XCTFail("could not sample the screenshot")
+			return nil
 		}
-		return total / Double(side * side) / 255
+		return pixels
+	}
+
+	static func luminance(_ rgba: [UInt8], at index: Int) -> Double {
+		0.2126 * Double(rgba[index]) + 0.7152 * Double(rgba[index + 1])
+			+ 0.0722 * Double(rgba[index + 2])
 	}
 
 	static func waitForLabel(
