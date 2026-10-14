@@ -16,12 +16,19 @@ import Testing
 
 	@Test func theVerdictNamesMissedToolCallsCalendarCallsAndAUTCStart() throws {
 		let message = "/review deep the ride"
-		let request = testRequest([
-			WireMessage(role: .system, content: "rules", toolCalls: []),
-			WireMessage(role: .user, content: message + "\nCurrent time: 08:00", toolCalls: []),
-		])
-		func turn(_ calls: [(String, String)], reply: String) -> LiveTurnRecord {
-			LiveTurnRecord(
+		func turn(
+			_ calls: [(String, String)], reply: String, sent: String? = nil,
+			offered: [ToolName] = [], reviewPending: Bool = false
+		) -> LiveTurnRecord {
+			let request = testRequest(
+				[
+					WireMessage(role: .system, content: "rules", toolCalls: []),
+					WireMessage(
+						role: .user, content: (sent ?? message) + "\nCurrent time: 08:00",
+						toolCalls: []),
+				],
+				tools: offered.map { ToolSchema(name: $0, description: "", parameters: .null) })
+			return LiveTurnRecord(
 				message: message,
 				exchanges: [
 					LiveExchange(
@@ -30,11 +37,20 @@ import Testing
 							.toolCall(
 								WireToolCall(id: "call-\(index)", name: call.0, arguments: call.1))
 						}, failure: nil)
-				], reply: reply, outcome: "completed", reviewPending: false, calendarWrites: 0)
+				], reply: reply, outcome: "completed", reviewPending: reviewPending,
+				calendarWrites: 0)
 		}
 		let expectations: [LiveExpectation] = [
 			.callsWith(.intervalsFetchStreams, argument: "activityId", oneOf: [.string("i5501")]),
 			.replyMentions(["Fitness"]),
+		]
+		let today = try #require(CivilDate(rawValue: "1998-06-13"))
+		let tenth = try #require(CivilDate(rawValue: "1998-06-10"))
+		let unmet: [LiveExpectation] = [
+			.neverCalls(.intervalsFetchStreams),
+			.listsActivitiesCovering(tenth, today: today),
+			.offersNoTrainingTools,
+			.promptHolds("Training data is not connected."),
 		]
 
 		let good = turn(
@@ -43,15 +59,25 @@ import Testing
 		#expect(LiveVerdict.violations(of: good, against: expectations).isEmpty)
 
 		let bad = turn(
-			[("intervals_create_workout", "{}"), ("intervals_fetch_streams", "not json")],
-			reply: "The ride started at 08:00 UTC.")
+			[
+				("intervals_create_workout", "{}"), ("intervals_fetch_streams", "not json"),
+				("intervals_fetch_activities", #"{"oldest":"1998-06-11","newest":"1998-06-12"}"#),
+			],
+			reply: "The ride started at 08:00 UTC.", sent: "/review the ride",
+			offered: [.intervalsFetchAthlete], reviewPending: true)
 		#expect(
-			LiveVerdict.violations(of: bad, against: expectations) == [
+			LiveVerdict.violations(of: bad, against: expectations + unmet) == [
+				"the coach did not receive the athlete's message unchanged",
 				"the reply labels a time UTC",
 				"calendar tools were called: intervals_create_workout",
+				"a workout review is waiting",
 				"intervals_fetch_streams was called with arguments that are not JSON",
 				#"intervals_fetch_streams was not called with activityId "i5501""#,
 				"the reply does not mention Fitness",
+				"intervals_fetch_streams was called",
+				"no activity list covered 1998-06-10",
+				"training tools were offered: intervals_fetch_athlete",
+				"the prompt does not hold \"Training data is not connected.\"",
 			])
 	}
 
