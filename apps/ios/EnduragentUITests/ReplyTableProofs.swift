@@ -87,7 +87,8 @@ enum ReplyTableScreen {
 		}
 		let header = line(app, "reply.table.header", laps.headerDescription)
 		let lines = [header] + laps.rowDescriptions.map { line(app, "reply.table.row", $0) }
-		TutorialHarness.bringIntoTranscript(app, header, topShare: 0.45)
+		TutorialHarness.bringIntoTranscript(
+			app, text(app, "reply.paragraph", NumbersReplyFixture.closing))
 		let band = TutorialHarness.transcriptBand(app)
 		let table = app.scrollViews.matching(identifier: "reply.table").firstMatch.frame
 		guard let ink = ScreenInk(app) else { return }
