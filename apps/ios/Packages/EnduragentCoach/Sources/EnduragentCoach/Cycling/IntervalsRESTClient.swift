@@ -189,7 +189,14 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 			request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 			request.httpBody = Data(body.canonicalDigestInput().utf8)
 		}
-		let (data, response) = try await session.data(for: request)
+		let (data, response): (Data, URLResponse)
+		do {
+			(data, response) = try await session.data(for: request)
+		} catch let error as URLError where error.code != .cancelled {
+			throw IntervalsError(
+				code: "network",
+				details: "intervals.icu could not be reached (URLError \(error.code.rawValue)).")
+		}
 		guard let http = response as? HTTPURLResponse else {
 			throw IntervalsError(code: "network", details: "missing http response")
 		}

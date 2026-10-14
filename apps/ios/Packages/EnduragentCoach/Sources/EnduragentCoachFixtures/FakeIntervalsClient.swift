@@ -93,7 +93,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 
 	package func activity(_ id: ActivityID) async throws -> ActivityDetailRead {
 		recordedCalls.withLock { $0.append(.activity(id)) }
-		try await reachingIntervals { try await begin(.activity) }
+		try await begin(.activity)
 		switch details[id] {
 		case .found(let detail)?:
 			return .found(
@@ -115,9 +115,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	{
 		recordedCalls.withLock { $0.append(.streams(id, channels: channels.names)) }
 		try await begin(.streams)
-		return StreamSummary(
-			summarizing: (streams[id] ?? []).filter { channels.names.contains($0.channel) },
-			asked: channels)
+		return StreamSummary(summarizing: streams[id] ?? [], asked: channels)
 	}
 
 	public func fetchEvent(id: EventID) async throws -> CalendarEvent {

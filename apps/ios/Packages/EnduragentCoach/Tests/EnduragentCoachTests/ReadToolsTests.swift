@@ -43,7 +43,7 @@ struct ReadToolsTests {
 		let listed = try #require(shown.objectFields["activities"]?.arrayValue).map {
 			$0.objectFields["id"]
 		}
-		#expect(listed == [.string("i1234567"), .string("17654321"), .string(hex)])
+		#expect(listed == [.string(hex), .string("17654321"), .string("i1234567")])
 		var expected = [FakeIntervalsCall.activities(oldest: "1998-06-07", newest: "1998-06-13")]
 		for value in listed {
 			let raw = try #require(value?.stringValue)
@@ -59,8 +59,9 @@ struct ReadToolsTests {
 	}
 
 	@Test(arguments: [
-		(#"{}"#, "invalid_date"),
-		(#"{"newest":"1998-06-13"}"#, "invalid_date"),
+		(#"{}"#, "invalid_input"),
+		(#"{"newest":"1998-06-13"}"#, "invalid_input"),
+		(#"{"oldest":null,"newest":"1998-06-13"}"#, "invalid_input"),
 		(#"{"oldest":"1998-02-30","newest":"1998-06-13"}"#, "invalid_date"),
 		(#"{"oldest":"1998-06-07","newest":"13-06-1998"}"#, "invalid_date"),
 		(#"{"oldest":19980607}"#, "invalid_date"),
@@ -91,7 +92,7 @@ struct ReadToolsTests {
 		#expect(intervals.count(of: .activities) == 1)
 		#expect(shown.objectFields["oldest"] == .string("1997-06-13"))
 		#expect(shown.objectFields["newest"] == .string("1998-06-13"))
-		#expect(identifiers(in: shown) == ["i2", "i3"])
+		#expect(identifiers(in: shown) == ["i3", "i2"])
 	}
 
 	@Test(arguments: [
@@ -112,7 +113,7 @@ struct ReadToolsTests {
 			.intervalsFetchActivities, #"{"oldest":"1998-06-12"}"#, clock: phone)
 		#expect(intervals.calls == [.activities(oldest: "1998-06-12", newest: "1998-06-13")])
 		#expect(shown.objectFields["newest"] == .string("1998-06-13"))
-		#expect(identifiers(in: shown) == ["i1", "i2"])
+		#expect(identifiers(in: shown) == ["i2", "i1"])
 	}
 
 	@Test(arguments: [
@@ -120,10 +121,9 @@ struct ReadToolsTests {
 	])
 	func daysWithoutOldestIsRefusedAsAMissingDate(tool: ToolName) async throws {
 		let shown = try await read(tool, #"{"days":7}"#)
-		#expect(shown.objectFields["error"] == .string("invalid_date"))
+		#expect(shown.objectFields["error"] == .string("invalid_input"))
 		#expect(
-			shown.objectFields["details"]
-				== .string("oldest is not a real calendar date. Use YYYY-MM-DD."))
+			shown.objectFields["details"] == .string("oldest is required. Use YYYY-MM-DD."))
 		#expect(intervals.calls.isEmpty)
 		#expect(intervals.count(of: .activities) == 0)
 		#expect(intervals.count(of: .wellness) == 0)

@@ -138,22 +138,23 @@
 		}
 
 		private mutating func readStreams(of id: ActivityID) async {
-			let standard = StreamChannels.standard
-			raw.askedChannels = standard.names
+			let standard = StreamChannels.standard.names
+			raw.askedChannels = standard
 			raw.streams = await readChannels(standard, of: id, as: "streams").answer
 			raw.unknownChannelName = Self.unknownChannel
 			raw.unknownChannel = await readChannels(
-				StreamChannels(requested: Self.probedChannels), of: id,
-				as: "streams-unknown-channel")
+				Self.probedChannels, of: id, as: "streams-unknown-channel")
 		}
 
 		private mutating func readChannels(
-			_ channels: StreamChannels, of id: ActivityID, as name: String
+			_ names: [String], of id: ActivityID, as name: String
 		) async -> LiveReadOutcome {
 			let outcome = await read(name, audit: LiveReadAudit.streams) { [client] in
-				CoachReadout.streams(try await client.streams(of: id, channels: channels))
+				CoachReadout.streams(
+					try await client.streams(
+						of: id, channels: try StreamChannels(requested: names)))
 			}
-			failures += LiveReadAudit.streamNames(name, asked: channels.names, outcome: outcome)
+			failures += LiveReadAudit.streamNames(name, asked: names, outcome: outcome)
 			return outcome
 		}
 

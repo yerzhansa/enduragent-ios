@@ -95,7 +95,7 @@ import Testing
 		#expect(
 			seen[0]
 				== (try JSONValue.parse(
-					#"{"oldest":"1998-06-07","newest":"1998-06-13","activities":[{"id":"i7700101","name":"Recovery spin","sport":"Ride","start":"1998-06-09T18:00:00","durationSeconds":2400,"load":21},{"id":"i7700102","name":"Thursday tempo","sport":"Ride","start":"1998-06-11T06:45:05","durationSeconds":4500,"distance":41200,"load":86,"intensity":83,"averagePower":205,"weightedPower":221,"averageHeartRate":148,"maxHeartRate":171,"ftp":250,"elevationGain":310}],"hiddenByStrava":0,"units":{"durationSeconds":"s","distance":"m","intensity":"%","averagePower":"W","weightedPower":"W","averageHeartRate":"bpm","maxHeartRate":"bpm","ftp":"W","elevationGain":"m"}}"#
+					#"{"oldest":"1998-06-07","newest":"1998-06-13","activities":[{"id":"i7700102","name":"Thursday tempo","sport":"Ride","start":"1998-06-11T06:45:05","durationSeconds":4500,"distance":41200,"load":86,"intensity":83,"averagePower":205,"weightedPower":221,"averageHeartRate":148,"maxHeartRate":171,"ftp":250,"elevationGain":310},{"id":"i7700101","name":"Recovery spin","sport":"Ride","start":"1998-06-09T18:00:00","durationSeconds":2400,"load":21}],"hiddenByStrava":0,"units":{"durationSeconds":"s","distance":"m","intensity":"%","averagePower":"W","weightedPower":"W","averageHeartRate":"bpm","maxHeartRate":"bpm","ftp":"W","elevationGain":"m"}}"#
 				)), "\(canonicalJSON(seen[0]))")
 		#expect(
 			seen[1]
@@ -136,10 +136,10 @@ import Testing
 		let listed = try Self.rows(in: seen[0])
 		try #require(listed.count == 2)
 		#expect(listed.map { $0["name"] } == [.string("Lunch ride"), .string("Lunch ride")])
-		#expect(listed.map { $0["id"] } == [.string("i7700201"), .string("i7700202")])
+		#expect(listed.map { $0["id"] } == [.string("i7700202"), .string("i7700201")])
 		#expect(
 			listed.map { $0["start"] }
-				== [.string("1998-06-10T12:15:00"), .string("1998-06-10T18:00:05")])
+				== [.string("1998-06-10T18:00:05"), .string("1998-06-10T12:15:00")])
 		#expect(
 			seen[1].objectFields
 				== ["activity": .object(listed[1]), "lapsSupplied": .bool(false), "units": units])
@@ -147,7 +147,7 @@ import Testing
 			seen[2].objectFields
 				== ["activity": .object(listed[0]), "lapsSupplied": .bool(false), "units": units])
 		#expect(
-			activityReads().dropFirst() == [.activity(Self.evening.id), .activity(Self.noon.id)])
+			activityReads().dropFirst() == [.activity(Self.noon.id), .activity(Self.evening.id)])
 	}
 
 	@Test func startsShowTheTimeOfDayThatTheThirtyMinuteRuleReadsAndADateOnlyStartShowsTheDate()
@@ -174,11 +174,11 @@ import Testing
 		let starts = try Self.rows(in: seen[0]).map { try #require($0["start"]?.stringValue) }
 		#expect(
 			starts == [
-				"1998-06-08T07:00:00", "1998-06-08T07:29:00", "1998-06-10T17:00:00",
-				"1998-06-10T17:31:00", "1998-06-12",
+				"1998-06-12", "1998-06-10T17:31:00", "1998-06-10T17:00:00",
+				"1998-06-08T07:29:00", "1998-06-08T07:00:00",
 			])
-		#expect(try Self.minutes(from: starts[0], to: starts[1]) == 29)
-		#expect(try Self.minutes(from: starts[2], to: starts[3]) == 31)
+		#expect(try Self.minutes(from: starts[4], to: starts[3]) == 29)
+		#expect(try Self.minutes(from: starts[2], to: starts[1]) == 31)
 	}
 
 	@Test func emptySevenDayListHasItsCountsAndAnOlderRangeReachesTheNewestActivity()
@@ -242,13 +242,13 @@ import Testing
 					try JSONValue.parse(Self.lastSevenDays)
 				},
 				ScriptedRead(.intervalsFetchActivity) { seen in
-					.object(["activityId": try #require(try Self.rows(in: seen[0]).last?["id"])])
+					.object(["activityId": try #require(try Self.rows(in: seen[0]).first?["id"])])
 				},
 			])
 
 		#expect(
 			try Self.rows(in: seen[0]).map { $0["id"] }
-				== [.string("i7700101"), .string("i7700102")])
+				== [.string("i7700102"), .string("i7700101")])
 		#expect(seen[0].objectFields["error"] == nil)
 		let answer = seen[1].objectFields
 		#expect(answer["error"] == .string(failure.code))

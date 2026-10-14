@@ -233,6 +233,71 @@
       "newest": "1998-06-13",
       "activities": [
         {
+          "id": "i1234575",
+          "name": "Evening spin",
+          "sport": "VirtualRide",
+          "start": "1998-06-13",
+          "durationSeconds": 1800,
+          "load": 18
+        },
+        {
+          "id": "i1234574",
+          "name": "Second leg",
+          "sport": "Ride",
+          "start": "1998-06-12T17:31:00",
+          "durationSeconds": 1500,
+          "distance": 12000
+        },
+        {
+          "id": "i1234573",
+          "name": "First leg",
+          "sport": "Ride",
+          "start": "1998-06-12T17:00:00",
+          "durationSeconds": 1500,
+          "distance": 12500
+        },
+        {
+          "id": "i1234572",
+          "name": "Warm-up continued",
+          "sport": "Ride",
+          "start": "1998-06-11T17:29:00",
+          "durationSeconds": 2400,
+          "distance": 20000
+        },
+        {
+          "id": "i1234571",
+          "name": "Warm-up",
+          "sport": "Ride",
+          "start": "1998-06-11T17:00:00",
+          "durationSeconds": 1200,
+          "distance": 9000
+        },
+        {
+          "id": "i1234570",
+          "name": "Lunch ride",
+          "sport": "Ride",
+          "start": "1998-06-10T18:00:05",
+          "durationSeconds": 2700,
+          "distance": 21000,
+          "load": 35
+        },
+        {
+          "id": "i1234569",
+          "name": "Lunch ride",
+          "sport": "Ride",
+          "start": "1998-06-10T12:15:00",
+          "durationSeconds": 3000,
+          "distance": 24000,
+          "load": 41
+        },
+        {
+          "id": "i1234568",
+          "name": "Tuesday tempo",
+          "sport": "Ride",
+          "start": "1998-06-09T07:30:00",
+          "load": 80
+        },
+        {
           "id": "i1234567",
           "name": "Sunday long ride",
           "sport": "Ride",
@@ -247,71 +312,6 @@
           "maxHeartRate": 173,
           "ftp": 250,
           "elevationGain": 640.5
-        },
-        {
-          "id": "i1234568",
-          "name": "Tuesday tempo",
-          "sport": "Ride",
-          "start": "1998-06-09T07:30:00",
-          "load": 80
-        },
-        {
-          "id": "i1234569",
-          "name": "Lunch ride",
-          "sport": "Ride",
-          "start": "1998-06-10T12:15:00",
-          "durationSeconds": 3000,
-          "distance": 24000,
-          "load": 41
-        },
-        {
-          "id": "i1234570",
-          "name": "Lunch ride",
-          "sport": "Ride",
-          "start": "1998-06-10T18:00:05",
-          "durationSeconds": 2700,
-          "distance": 21000,
-          "load": 35
-        },
-        {
-          "id": "i1234571",
-          "name": "Warm-up",
-          "sport": "Ride",
-          "start": "1998-06-11T17:00:00",
-          "durationSeconds": 1200,
-          "distance": 9000
-        },
-        {
-          "id": "i1234572",
-          "name": "Warm-up continued",
-          "sport": "Ride",
-          "start": "1998-06-11T17:29:00",
-          "durationSeconds": 2400,
-          "distance": 20000
-        },
-        {
-          "id": "i1234573",
-          "name": "First leg",
-          "sport": "Ride",
-          "start": "1998-06-12T17:00:00",
-          "durationSeconds": 1500,
-          "distance": 12500
-        },
-        {
-          "id": "i1234574",
-          "name": "Second leg",
-          "sport": "Ride",
-          "start": "1998-06-12T17:31:00",
-          "durationSeconds": 1500,
-          "distance": 12000
-        },
-        {
-          "id": "i1234575",
-          "name": "Evening spin",
-          "sport": "VirtualRide",
-          "start": "1998-06-13",
-          "durationSeconds": 1800,
-          "load": 18
         }
       ],
       "hiddenByStrava": 1,
@@ -552,9 +552,9 @@
       "newest": "1998-06-13",
       "activities": [
         {
-          "id": "17654321",
+          "id": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
           "sport": "Ride",
-          "start": "1998-06-10T09:00:00",
+          "start": "1998-06-12T09:00:00",
           "durationSeconds": 600
         },
         {
@@ -564,9 +564,9 @@
           "durationSeconds": 600
         },
         {
-          "id": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "id": "17654321",
           "sport": "Ride",
-          "start": "1998-06-12T09:00:00",
+          "start": "1998-06-10T09:00:00",
           "durationSeconds": 600
         }
       ],
@@ -690,14 +690,14 @@
       "newest": "1998-06-13",
       "activities": [
         {
+          "id": "17654336",
+          "start": "1998-06-13T09:00:00"
+        },
+        {
           "id": "17654330",
           "sport": "Ride",
           "start": "1998-06-08T09:00:00",
           "durationSeconds": 600
-        },
-        {
-          "id": "17654336",
-          "start": "1998-06-13T09:00:00"
         }
       ],
       "hiddenByStrava": 6,

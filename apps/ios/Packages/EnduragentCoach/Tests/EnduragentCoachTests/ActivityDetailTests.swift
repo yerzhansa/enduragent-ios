@@ -51,14 +51,14 @@ import Testing
 			try await read(.intervalsFetchActivities, #"{"oldest":"1998-06-10"}"#)
 				.objectFields["activities"]?.arrayValue
 		).compactMap { $0.objectFields["id"]?.stringValue }
-		#expect(listed == ["i1234569", "i1234570"])
+		#expect(listed == ["i1234570", "i1234569"])
 		#expect(
-			try await detail(of: listed[0])
+			try await detail(of: listed[1])
 				== (try JSONValue.parse(
 					#"{"activity":{"id":"i1234569","name":"Lunch ride","sport":"Ride","start":"1998-06-10T12:15:00","durationSeconds":3000},"laps":[{"number":1,"label":"Warm-up","kind":"RECOVERY","durationSeconds":600,"averagePower":140},{"number":2,"kind":"WORK","durationSeconds":1200,"distance":11400}],"units":{"durationSeconds":"s","averagePower":"W","distance":"m"}}"#
 				)))
 		#expect(
-			try await detail(of: listed[1])
+			try await detail(of: listed[0])
 				== (try JSONValue.parse(
 					#"{"activity":{"id":"i1234570","name":"Lunch ride","sport":"Ride","start":"1998-06-10T18:00:05","durationSeconds":2700},"laps":[{"number":1,"label":"Whole ride","averageHeartRate":128}],"units":{"durationSeconds":"s","averageHeartRate":"bpm"}}"#
 				)))
@@ -136,7 +136,10 @@ import Testing
 
 	@Test func detailThatCannotReachIntervalsNamesTheActivityAndTheCause() async throws {
 		intervals.activities = [Self.noon, Self.evening]
-		intervals.fail(.activity, with: URLError(.notConnectedToInternet))
+		intervals.fail(
+			.activity,
+			with: IntervalsError(
+				code: "network", details: "intervals.icu could not be reached (URLError -1009)."))
 
 		let shown = try await detail(of: "i1234569").objectFields
 
@@ -177,15 +180,21 @@ import Testing
 		intervals.activities = [Self.noon, Self.evening]
 		intervals.details[Self.noon.id] = try found(Self.noon, laps: .recorded(laps(2_000)))
 		intervals.details[Self.evening.id] = try found(Self.evening, laps: .recorded(laps(100)))
-		let long = try await outcome(.intervalsFetchActivity, #"{"activityId":"i1234569"}"#)
-		guard case .truncated(_, let estimated, let omitted) = long else {
-			Issue.record("expected the long lap list to be omitted, got \(long)")
-			return
-		}
-		#expect(estimated > TurnPolicy.toolResultTokenCap)
-		#expect(omitted == 2_000)
-		let short = try await detail(of: "i1234570")
-		#expect(short.objectFields["laps"]?.arrayValue?.count == 100)
+		let long = try await detail(of: "i1234569").objectFields
+		#expect(Set(long.keys) == ["activity", "lapCount", "lapsOmitted", "units"])
+		#expect(long["activity"]?.objectFields["id"] == .string("i1234569"))
+		#expect(long["activity"]?.objectFields["durationSeconds"] == .number(3_000))
+		#expect(long["lapCount"] == .number(2_000))
+		#expect(
+			long["lapsOmitted"]
+				== .string(
+					"intervals.icu supplied 2000 laps, more than one tool result can hold, so the laps are left out. The activity's own measurements are complete; lap data is unavailable for this read."
+				))
+		#expect(long["units"] == .object(["durationSeconds": .string("s")]))
+		let short = try await detail(of: "i1234570").objectFields
+		#expect(short["laps"]?.arrayValue?.count == 100)
+		#expect(short["lapCount"] == nil)
+		#expect(short["lapsOmitted"] == nil)
 	}
 
 	private func laps(_ count: Int) -> [ActivityLap] {

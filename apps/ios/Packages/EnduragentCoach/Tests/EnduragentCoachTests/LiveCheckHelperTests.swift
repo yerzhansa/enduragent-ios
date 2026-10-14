@@ -224,7 +224,7 @@ import Testing
 			today: try #require(CivilDate(rawValue: "1998-06-13")))
 		let name = "streams-unknown-channel"
 		let probe = LiveReadsRun.unknownChannel
-		let asked = StreamChannels(requested: LiveReadsRun.probedChannels)
+		let asked = try StreamChannels(requested: LiveReadsRun.probedChannels)
 		let path = "/api/v1/activity/i5501/streams.json"
 		let rejection = TappedResponse(
 			method: "GET", path: path, query: "types=watts,velocity_smooth,\(probe)", status: 422,

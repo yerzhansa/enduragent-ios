@@ -134,8 +134,9 @@ package enum PromptStaticBlocks {
 		  supplied. You may state the measurements a lap carries as recorded values; do not
 		  rename laps as prescribed reps or invent targets.
 		- **Tier C (~500–600 words)**: explicit `deep` / `in depth` only. Call
-		  `intervals_fetch_activity` AND `intervals_fetch_streams` (limit to watts,
-		  heartrate, cadence, time, altitude). Follow the stream-evidence limits in the `intervals_fetch_streams` tool description.
+		  `intervals_fetch_activity` AND `intervals_fetch_streams` (watts, heartrate,
+		  cadence, time, altitude by default, plus any other channel the review needs,
+		  such as one the athlete names). Follow the stream-evidence limits in the `intervals_fetch_streams` tool description.
 
 		Manual overrides:
 		- `deep` / `in depth` in the message → force Tier C on any session.

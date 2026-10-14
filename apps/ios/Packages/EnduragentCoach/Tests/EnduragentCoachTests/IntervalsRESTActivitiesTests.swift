@@ -15,8 +15,8 @@ extension IntervalsRESTClientTests {
 				== true)
 		#expect(
 			listing.activities.map(\.id.rawValue) == [
-				"i1234567", "i1234568", "i1234569", "i1234570", "i1234571", "i1234572",
-				"i1234573", "i1234574", "i1234575",
+				"i1234575", "i1234574", "i1234573", "i1234572", "i1234571", "i1234570",
+				"i1234569", "i1234568", "i1234567",
 			])
 		#expect(listing.hiddenByStrava == 1)
 		#expect(listing.unreadable == 1)
@@ -26,7 +26,7 @@ extension IntervalsRESTClientTests {
 	@Test func completeActivityRowKeepsEveryMeasurement() async throws {
 		let listing = try await week()
 		#expect(
-			listing.activities.first
+			listing.activities.last
 				== .recorded(
 					"i1234567", "Sunday long ride", on: "1998-06-07", at: 8 * 3_600,
 					[
@@ -48,9 +48,9 @@ extension IntervalsRESTClientTests {
 
 	@Test func twoActivitiesWithTheSameDayAndTitleStayTwoRows() async throws {
 		let lunch = try await week().activities.filter { $0.name == "Lunch ride" }
-		#expect(lunch.map(\.id.rawValue) == ["i1234569", "i1234570"])
+		#expect(lunch.map(\.id.rawValue) == ["i1234570", "i1234569"])
 		#expect(lunch.map(\.start.date) == ["1998-06-10", "1998-06-10"])
-		#expect(lunch.map(\.start.secondOfDay) == [12 * 3_600 + 15 * 60, 18 * 3_600 + 5])
+		#expect(lunch.map(\.start.secondOfDay) == [18 * 3_600 + 5, 12 * 3_600 + 15 * 60])
 	}
 
 	@Test(arguments: [("i1234571", "i1234572", 29), ("i1234573", "i1234574", 31)])
@@ -67,7 +67,7 @@ extension IntervalsRESTClientTests {
 	}
 
 	@Test func startWithoutATimeOfDayIsTheDateAlone() async throws {
-		let spin = try #require(try await week().activities.last)
+		let spin = try #require(try await week().activities.first)
 		#expect(spin.id.rawValue == "i1234575")
 		#expect(spin.start == LocalStart(date: "1998-06-13", secondOfDay: nil))
 	}

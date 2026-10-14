@@ -149,9 +149,9 @@ struct NumbersFollowUpTurn {
 		let listed = try #require(results[0].objectFields["activities"]?.arrayValue)
 		#expect(
 			listed.map { $0.objectFields["start"] } == [
-				.string("1998-06-09"), .string("1998-06-10T12:15:00"),
+				.string("1998-06-10T12:15:00"), .string("1998-06-09"),
 			])
-		#expect(listed.map { $0.objectFields["id"] } == [.string("i1234571"), .string("i1234569")])
+		#expect(listed.map { $0.objectFields["id"] } == [.string("i1234569"), .string("i1234571")])
 		#expect(
 			results[1].objectFields["activity"]?.objectFields["start"]
 				== .string("1998-06-10T12:15:00"))
