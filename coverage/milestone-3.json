@@ -350,7 +350,7 @@
 			"id": "3.1.5",
 			"statement": "A row Strava hides is counted and not listed, and the result carries the notice with the hidden count and the total of all rows returned.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityListingTests.swift", "function": "rowIsClassifiedByTheStravaRuleThenByWhetherItCouldBeRead"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivitiesTests.swift", "function": "rowIsClassifiedByTheStravaRuleThenByWhetherItCouldBeRead"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityListingTests.swift", "function": "countsAddUpToEveryRowTheSourceReturned"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "rangeWithNoActivityStillCarriesWhatItHides"}
 			]
@@ -409,7 +409,7 @@
 			"statement": "An answer whose identifier differs from the one asked is refused as a mismatch and never shown as the asked activity, a Strava-hidden answer included.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "answerForAnotherIdentifierIsRefusedAsAMismatch"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "hiddenAnswerForAnotherIdentifierIsRefusedAsAMismatch"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "answerForAnotherIdentifierIsAMismatchWhateverItsShape"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "storedAnswerForAnotherIdentifierIsNeverShownAsTheAskedActivity"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "detailIsBuiltOnlyForTheIdentifierThatWasAsked"}
 			]

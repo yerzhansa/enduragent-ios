@@ -85,19 +85,16 @@ extension IntervalsRESTClient: TrainingReads {
 		if let answered = activityID(in: fields), answered != id {
 			throw IntervalsError.activityMismatch(asked: id)
 		}
-		switch classify(fields) {
-		case .hiddenByStrava:
-			return .hiddenByStrava
-		case .unreadable:
+		if isHiddenByStrava(fields) { return .hiddenByStrava }
+		guard let activity = activity(from: fields) else {
 			throw IntervalsError(
 				code: "invalid_json",
 				details: "activity response had no usable identifier or start")
-		case .activity(let activity):
-			return .found(
-				try ActivityDetail(
-					asked: id, activity: activity, extras: extras(from: fields),
-					laps: try laps(from: fields["icu_intervals"])))
 		}
+		return .found(
+			try ActivityDetail(
+				asked: id, activity: activity, extras: extras(from: fields),
+				laps: try laps(from: fields["icu_intervals"])))
 	}
 
 	private static func isHiddenByStrava(_ fields: [String: JSONValue]) -> Bool {
