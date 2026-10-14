@@ -77,6 +77,12 @@ final class LiveSpendLedger: Sendable {
 	var total: Double { state.withLock { $0.total } }
 	var capReached: Bool { state.withLock { $0.capReached } }
 
+	var statement: String {
+		let (total, capReached) = state.withLock { ($0.total, $0.capReached) }
+		return String(format: "Model spend total: $%.6f of $%.2f", total, limit)
+			+ (capReached ? "; the cap stopped the suite." : ".")
+	}
+
 	func label(_ scenario: String) {
 		state.withLock { $0.scenario = scenario }
 	}

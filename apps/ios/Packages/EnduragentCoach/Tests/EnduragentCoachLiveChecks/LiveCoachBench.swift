@@ -182,22 +182,25 @@ struct LiveCoachBench: Sendable {
 			reads = { _, _, _ in athlete }
 		}
 		let ledger = self.ledger
-		let coach = await consentingCoach(
-			Coach(
-				sport: .cycling,
-				ports: CoachPorts(
-					records: RecordStore(log: InMemoryRecordLog()), secrets: secrets,
-					models: ModelService { [modelTransport] diagnostics in
-						LiveMeteredTransport(
-							inner: modelTransport(diagnostics), ledger: ledger, log: log)
-					},
-					training: TrainingService { credential, selection, clock in
-						LiveReadOnlyTraining(
-							inner: reads(credential, selection, clock), writes: writes)
-					},
-					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
-					clock: SystemClock()),
-				builtInModel: model, displayLocale: testDisplayLocale))
+		let coach = Coach(
+			sport: .cycling,
+			ports: CoachPorts(
+				records: RecordStore(log: InMemoryRecordLog()), secrets: secrets,
+				models: ModelService { [modelTransport] diagnostics in
+					LiveMeteredTransport(
+						inner: modelTransport(diagnostics), ledger: ledger, log: log)
+				},
+				training: TrainingService { credential, selection, clock in
+					LiveReadOnlyTraining(inner: reads(credential, selection, clock), writes: writes)
+				},
+				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
+				clock: SystemClock()),
+			builtInModel: model, displayLocale: testDisplayLocale)
+		if case .required(let challenge) = await coach.vault.accessConsent(
+			builtInModel: coach.builtInModel, recorded: nil)
+		{
+			try await coach.recordConsent(challenge)
+		}
 		if let snapshotFailing {
 			_ = try await coach.vault.trainingConnection()
 			for read in [FakeTrainingRead.profile, .wellness] {

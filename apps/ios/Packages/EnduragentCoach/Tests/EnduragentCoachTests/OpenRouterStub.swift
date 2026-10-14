@@ -121,16 +121,6 @@ final class OpenRouterRequestCapture: Sendable {
 	}
 }
 
-func collect(_ stream: AsyncThrowingStream<TransportEvent, Error>) async throws
-	-> [TransportEvent]
-{
-	var events: [TransportEvent] = []
-	for try await event in stream {
-		events.append(event)
-	}
-	return events
-}
-
 func fixture(_ name: String, ext: String) throws -> String {
 	let url = try #require(
 		Bundle.module.url(forResource: name, withExtension: ext, subdirectory: "Fixtures")

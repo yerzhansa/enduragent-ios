@@ -113,21 +113,6 @@ func seed(_ log: any RecordLog, _ records: [AthleteRecord]) async throws {
 	}
 }
 
-func fixedUlid(_ offset: Int) -> ULID {
-	let alphabet = Array("0123456789ABCDEFGHJKMNPQRSTVWXYZ")
-	let prefix = ULID.generate(at: Date(timeIntervalSince1970: 899_164_800)).rawValue.prefix(10)
-	var suffix = ""
-	var remaining = offset
-	for _ in 0..<16 {
-		suffix = String(alphabet[remaining % 32]) + suffix
-		remaining /= 32
-	}
-	guard let ulid = ULID(rawValue: prefix + suffix) else {
-		preconditionFailure("fixed ulid is well formed")
-	}
-	return ulid
-}
-
 func kinds(_ records: [AthleteRecord]) -> [String] {
 	records.map(\.body.kind)
 }
