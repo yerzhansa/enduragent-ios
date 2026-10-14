@@ -138,15 +138,7 @@ import Testing
 		let request = try await bench.onlyRequest(after: text, to: coach)
 
 		let system = try bench.system(of: request)
-		#expect(
-			system.contains(
-				"""
-				# Athlete Profile & Latest Wellness
-
-				Training data is not connected. No intervals.icu account is linked, so you have \
-				no profile, wellness, activities or calendar for this athlete and no tools to \
-				read them.
-				"""))
+		#expect(system.contains(PromptAssembly.snapshotSection(.notConnected)))
 		#expect(!system.contains("Profile:"))
 		#expect(!system.contains(PromptStaticBlocks.snapshotFallback))
 		#expect(request.tools.contains { $0.name == .memoryQuery })

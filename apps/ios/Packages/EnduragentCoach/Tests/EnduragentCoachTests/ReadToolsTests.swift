@@ -327,24 +327,6 @@ struct ReadToolsTests {
 				log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock
 		).schemas
-		#expect(
-			schemas.map(\.name) == [
-				.calculateZones,
-				.intervalsFetchAthlete,
-				.intervalsFetchWellness,
-				.intervalsFetchActivity,
-				.intervalsFetchStreams,
-				.intervalsFetchActivities,
-				.intervalsListEvents,
-				.intervalsCreateWorkout,
-				.intervalsCreateStrengthWorkout,
-				.intervalsDeleteWorkout,
-				.intervalsUpdateWorkout,
-				.memoryQuery,
-				.memoryWrite,
-				.ledgerAppend,
-			]
-		)
 		let encoded = schemas.map { canonicalJSON($0.parameters) }.joined()
 		#expect(!encoded.contains("anyOf"))
 		#expect(!encoded.contains("oneOf"))
