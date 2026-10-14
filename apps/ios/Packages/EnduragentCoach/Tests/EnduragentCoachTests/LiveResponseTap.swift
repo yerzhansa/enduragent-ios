@@ -18,6 +18,38 @@ struct TappedResponse: Sendable {
 		guard case .success(let json) = parsed else { return nil }
 		return json
 	}
+
+	func redactedBody() throws -> Data {
+		guard let json else { return body }
+		let blanked = LiveRedaction.blanked(json)
+		return blanked == json ? body : try prettyJSON(blanked)
+	}
+}
+
+enum LiveRedaction {
+	static let markers = ["token", "secret", "password", "apikey"]
+
+	static func isCredential(_ field: String, holding value: JSONValue) -> Bool {
+		let name = field.lowercased().replacingOccurrences(of: "_", with: "")
+		switch value {
+		case .null, .bool: return false
+		case .number, .string, .array, .object: return markers.contains { name.contains($0) }
+		}
+	}
+
+	static func blanked(_ value: JSONValue) -> JSONValue {
+		switch value {
+		case .object(let fields):
+			.object(
+				fields.reduce(into: [:]) { result, field in
+					result[field.key] =
+						isCredential(field.key, holding: field.value)
+						? .string("") : blanked(field.value)
+				})
+		case .array(let entries): .array(entries.map(blanked))
+		case .null, .bool, .number, .string: value
+		}
+	}
 }
 
 final class LiveResponseTap: URLProtocol, @unchecked Sendable {

@@ -176,44 +176,88 @@ import Testing
 		#expect(LiveReadAudit.snapshotOutOfRange("Profile: FTP 601 W").count == 1)
 	}
 
-	@Test func theVerdictNamesMissedToolCallsCalendarCallsAndAUTCStart() throws {
-		let message = "/review deep the ride"
-		let request = testRequest([
-			WireMessage(role: .system, content: "rules", toolCalls: []),
-			WireMessage(role: .user, content: message + "\nCurrent time: 08:00", toolCalls: []),
-		])
-		func turn(_ calls: [(String, String)], reply: String) -> LiveTurnRecord {
-			LiveTurnRecord(
-				message: message,
-				exchanges: [
-					LiveExchange(
-						request: request,
-						events: calls.enumerated().map { index, call in
-							.toolCall(
-								WireToolCall(id: "call-\(index)", name: call.0, arguments: call.1))
-						}, failure: nil)
-				], reply: reply, outcome: "completed", reviewPending: false, calendarWrites: 0)
-		}
-		let expectations: [LiveExpectation] = [
-			.callsWith(.intervalsFetchStreams, argument: "activityId", oneOf: [.string("i5501")]),
-			.replyMentions(["Fitness"]),
-		]
+	@Test func aFinishedCallWithNoUsageBlockIsChargedItsBound() async throws {
+		let file = try TestTemporaryFolders.make().appending(path: "spend.tsv")
+		let ledger = try LiveSpendLedger(file: file, limit: 10)
+		let model = FakeModelTransport { _ in ScriptedReply([.text("ok"), .finish(reason: .stop)]) }
+		let metered = LiveMeteredTransport(inner: model, ledger: ledger, log: LiveExchangeLog())
+		let request = testRequest([WireMessage(role: .user, content: "/status", toolCalls: [])])
 
-		let good = turn(
-			[("intervals_fetch_streams", #"{"activityId":"i5501"}"#)],
-			reply: "Fitness held; the ride started at 08:00 local time.")
-		#expect(LiveVerdict.violations(of: good, against: expectations).isEmpty)
+		_ = try await collect(metered.stream(request))
 
-		let bad = turn(
-			[("intervals_create_workout", "{}"), ("intervals_fetch_streams", "not json")],
-			reply: "The ride started at 08:00 UTC.")
+		let bound = LiveSpendEstimate.bound(for: request)
+		#expect(abs(ledger.total - bound) < 1e-9)
+		let rows = try String(contentsOf: file, encoding: .utf8).split(separator: "\n").dropFirst()
 		#expect(
-			LiveVerdict.violations(of: bad, against: expectations) == [
-				"the reply labels a time UTC",
-				"calendar tools were called: intervals_create_workout",
-				"intervals_fetch_streams was called with arguments that are not JSON",
-				#"intervals_fetch_streams was not called with activityId "i5501""#,
-				"the reply does not mention Fitness",
+			rows.map { $0.split(separator: "\t").suffix(2).first.map(String.init) } == ["bound"])
+	}
+
+	@Test func theReadsCheckNamesWhatAnEmptyAccountLeavesUncovered() throws {
+		#expect(
+			LiveReadsRun.uncovered(LiveRawReads(activities: .array([]))) == [
+				"not covered: the account has no activity in the last 30 days",
+				"not covered: no activity detail or laps were read",
+				"not covered: no ride's streams were read",
 			])
+		let streams = TappedResponse(
+			method: "GET", path: "/api/v1/activity/i5501/streams", query: "types=watts",
+			status: 200, body: Data("[]".utf8))
+		#expect(
+			LiveReadsRun.uncovered(
+				LiveRawReads(
+					activities: try JSONValue.parse(#"[{"id":"i5501"}]"#),
+					details: [try JSONValue.parse(#"{"id":"i5501"}"#)], streams: streams)
+			).isEmpty)
+	}
+
+	@Test func savedResponsesLoseTheirCredentialsAndASavedKeyFailsTheRun() throws {
+		let key = "synthetic-intervals-key"
+		var run = LiveReadsRun(
+			folder: try LiveRunFolder(
+				logs: try TestTemporaryFolders.make(), kind: .reads,
+				startedAt: Date(timeIntervalSince1970: 899_164_800)),
+			client: IntervalsRESTClient(credential: .apiKey(key)),
+			today: try #require(CivilDate(rawValue: "1998-06-13")))
+		let profile =
+			#"{"id":"i1001","name":"Ada","icu_api_key":"synthetic-intervals-key","icu_friend_invite_token":"invite-0001","strava_password":null,"has_password":true,"sportSettings":[{"types":["Ride"],"ftp":250,"clientSecret":"secret-0001"}]}"#
+		run.save(
+			[
+				TappedResponse(
+					method: "GET", path: "/api/v1/athlete/0", query: nil, status: 200,
+					body: Data(profile.utf8))
+			], as: "profile")
+		run.save(
+			[
+				TappedResponse(
+					method: "GET", path: "/api/v1/athlete/0/wellness", query: nil, status: 401,
+					body: Data("rejected synthetic-intervals-key".utf8))
+			], as: "wellness-14-days")
+
+		try run.writeFindings(checkingFor: key)
+
+		let saved = try Data(contentsOf: run.folder.run.appending(path: "raw/1-profile.json"))
+		#expect(
+			try JSONValue.parse(String(decoding: saved, as: UTF8.self))
+				== JSONValue.parse(
+					#"{"id":"i1001","name":"Ada","icu_api_key":"","icu_friend_invite_token":"","strava_password":null,"has_password":true,"sportSettings":[{"types":["Ride"],"ftp":250,"clientSecret":""}]}"#
+				))
+		#expect(
+			run.failures == [
+				"raw/2-wellness-14-days.json: the saved file holds the intervals.icu key"
+			])
+	}
+
+	@Test(arguments: [
+		(JSONValue.null, "not supplied by this account"), (.string("1970-06-14"), "matches"),
+		(.string("14/06/1970"), "mismatch"),
+	])
+	func aDateOfBirthTheAccountLeavesNullIsReportedAsNotSupplied(
+		birth: JSONValue, verdict: String
+	) {
+		let answers = LiveParkedQuestions.answers(
+			LiveRawReads(profile: .object(["icu_date_of_birth": birth])))
+
+		#expect(
+			answers.first { $0.question == "Format of icu_date_of_birth" }?.verdict == verdict)
 	}
 }

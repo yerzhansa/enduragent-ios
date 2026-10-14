@@ -10,6 +10,7 @@ APP_PROJECT := apps/ios/Enduragent.xcodeproj
 DERIVED_DATA ?= DerivedData
 ONLY ?= EnduragentTests
 LIVE_LOGS ?= $(HOME)/Library/Logs/enduragent-m3/LIVE
+LIVE_SPEND := awk -F '\t' 'NR > 1 { total = $$8 } END { printf "Model spend total: $$%s of $$10\n", (total == "" ? "0" : total) }'
 LIVE_CHECK := env -u OPENROUTER_API_KEY -u INTERVALS_API_KEY ENDURAGENT_LIVE_LOGS="$(LIVE_LOGS)"
 IPHONE_SIMULATOR := xcodebuild -project $(APP_PROJECT) -scheme Enduragent -showdestinations | awk '/Available destinations for/ { available = 1; next } /Ineligible destinations for/ { available = 0 } available && /platform:iOS Simulator/ && /name:iPhone/ { sub(/^.*id:/, ""); sub(/,.*/, ""); print; exit }'
 
@@ -53,5 +54,5 @@ live-reads:
 
 live-coach:
 	$(AT_ROOT) status=0; $(LIVE_CHECK) ENDURAGENT_LIVE=coach swift test --package-path $(COACH) --filter LiveCoachCheck $(ARGS) || status=$$?; \
-	if [ -f "$(LIVE_LOGS)/spend.tsv" ]; then awk -F '\t' 'NR > 1 { total = $$8 } END { printf "Model spend total: $$%s of $$10\n", total == "" ? "0" : total }' "$(LIVE_LOGS)/spend.tsv"; fi; \
+	if [ -f "$(LIVE_LOGS)/spend.tsv" ]; then $(LIVE_SPEND) "$(LIVE_LOGS)/spend.tsv"; fi; \
 	exit $$status

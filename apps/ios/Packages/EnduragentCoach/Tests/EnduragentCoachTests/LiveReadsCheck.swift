@@ -22,7 +22,7 @@
 					credential: .apiKey(key), session: LiveResponseTap.session()),
 				today: IntervalsPolicy.today(now: started, timeZone: .current))
 			await run.readEverything()
-			try run.writeFindings()
+			try run.writeFindings(checkingFor: key)
 			for failure in run.failures {
 				Issue.record(Comment(rawValue: failure))
 			}
@@ -83,10 +83,26 @@
 				await readStreams(of: ride.id)
 			}
 			await readSnapshot()
+			failures += Self.uncovered(raw)
 		}
 
-		mutating func writeFindings() throws {
+		static func uncovered(_ raw: LiveRawReads) -> [String] {
+			var gaps: [String] = []
+			if (raw.activities?.arrayValue ?? []).isEmpty {
+				gaps.append("not covered: the account has no activity in the last 30 days")
+			}
+			if raw.details.isEmpty {
+				gaps.append("not covered: no activity detail or laps were read")
+			}
+			if raw.streams == nil {
+				gaps.append("not covered: no ride's streams were read")
+			}
+			return gaps
+		}
+
+		mutating func writeFindings(checkingFor key: String) throws {
 			try folder.write(index.joined(separator: "\n") + "\n", to: "raw/index.tsv")
+			failures += try folder.files(containing: key).map(Self.keyLeak)
 			let answers = LiveParkedQuestions.answers(raw)
 			let lines =
 				[
@@ -98,6 +114,12 @@
 					"",
 				] + answers.map(\.markdown)
 			try folder.write(lines.joined(separator: "\n"), to: "findings.md")
+			failures += try folder.files(containing: key).filter { $0 == "findings.md" }.map(
+				Self.keyLeak)
+		}
+
+		private static func keyLeak(_ file: String) -> String {
+			"\(file): the saved file holds the intervals.icu key"
 		}
 
 		private mutating func readDetail(_ id: ActivityID, as name: String) async {
@@ -180,11 +202,11 @@
 			return response
 		}
 
-		private mutating func save(_ responses: [TappedResponse], as name: String) {
+		mutating func save(_ responses: [TappedResponse], as name: String) {
 			for (position, response) in responses.enumerated() {
 				let file =
 					"raw/\(index.count)-\(name)\(responses.count > 1 ? "-\(position + 1)" : "").json"
-				record { [folder] in try folder.write(response.body, to: file) }
+				record { [folder] in try folder.write(try response.redactedBody(), to: file) }
 				index.append(
 					[
 						file, response.method, response.path, response.query ?? "",

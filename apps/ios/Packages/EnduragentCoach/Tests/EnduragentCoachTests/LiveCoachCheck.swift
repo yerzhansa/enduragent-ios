@@ -27,7 +27,14 @@
 			let bench = LiveCoachBench(
 				intervalsKey: intervalsKey, openRouterKey: try #require(keys[.openRouter]),
 				athlete: IntervalsAthleteID(rawValue: profile.id),
-				model: try LiveCoachBench.builtInModel(), ledger: ledger, today: today)
+				model: try LiveCoachBench.builtInModel(), ledger: ledger, today: today,
+				modelTransport: { diagnostics in
+					OpenRouterTransport(
+						baseURL: ModelService.openRouterAPI, diagnostics: diagnostics)
+				},
+				accountReads: { credential, selection, clock in
+					IntervalsRESTClient(credential: credential, athlete: selection, clock: clock)
+				})
 			let plan = LiveCoachPlan(listing: listing, today: today)
 			var report = LiveCoachReport(unavailable: plan.unavailable, spentBefore: ledger.total)
 			for scenario in plan.scenarios {
@@ -76,6 +83,7 @@ struct LiveCoachReport {
 			}
 			return "\(result.name): \(reasons.joined(separator: "; "))"
 		}
+		failures += unavailable.map { "not available, so not covered: \($0)" }
 		if capReached {
 			failures.append(
 				"The spend cap stopped the suite\(stoppedBefore.map { " before \($0)" } ?? "").")

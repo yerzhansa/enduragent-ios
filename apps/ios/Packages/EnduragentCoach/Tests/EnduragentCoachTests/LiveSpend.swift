@@ -27,7 +27,9 @@ enum LiveSpendEstimate {
 			+ outputTokenBound * outputDollarsPerToken
 	}
 
-	static func cost(of usage: Usage) -> (dollars: Double, basis: SpendBasis) {
+	static func cost(of usage: Usage?, bound: Double) -> (dollars: Double, basis: SpendBasis) {
+		guard let usage, usage.cost != nil || usage.inputTokens > 0 || usage.outputTokens > 0
+		else { return (bound, .bound) }
 		if let reported = usage.cost { return (reported, .reported) }
 		return (
 			Double(usage.inputTokens) * inputDollarsPerToken + Double(usage.outputTokens)
@@ -89,7 +91,7 @@ final class LiveSpendLedger: Sendable {
 	}
 
 	func charge(model: ModelID, usage: Usage?, bound: Double, at stamp: Date) throws {
-		let (dollars, basis) = usage.map(LiveSpendEstimate.cost(of:)) ?? (bound, .bound)
+		let (dollars, basis) = LiveSpendEstimate.cost(of: usage, bound: bound)
 		try state.withLock { state in
 			state.total += dollars
 			let row = [

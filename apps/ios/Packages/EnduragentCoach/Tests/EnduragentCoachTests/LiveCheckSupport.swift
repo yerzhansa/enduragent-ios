@@ -94,9 +94,26 @@ struct LiveRunFolder: Sendable {
 					"\(LiveCheck.logsVariable) is not set. Run the check through make live-\(kind.rawValue)."
 			)
 		}
-		self.logs = URL(fileURLWithPath: logs, isDirectory: true)
-		self.run = self.logs.appending(path: kind.rawValue).appending(path: Self.stamp(now))
+		try self.init(
+			logs: URL(fileURLWithPath: logs, isDirectory: true), kind: kind, startedAt: now)
+	}
+
+	init(logs: URL, kind: LiveCheck, startedAt now: Date) throws {
+		self.logs = logs
+		self.run = logs.appending(path: kind.rawValue).appending(path: Self.stamp(now))
 		try FileManager.default.createDirectory(at: run, withIntermediateDirectories: true)
+	}
+
+	func files(containing secret: String) throws -> [String] {
+		let needle = Data(secret.utf8)
+		var holding: [String] = []
+		for path in try FileManager.default.subpathsOfDirectory(atPath: run.path).sorted() {
+			let file = run.appending(path: path)
+			guard try file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true
+			else { continue }
+			if try Data(contentsOf: file).range(of: needle) != nil { holding.append(path) }
+		}
+		return holding
 	}
 
 	static func stamp(_ date: Date) -> String {

@@ -77,6 +77,8 @@ struct LiveCoachBench: Sendable {
 	let model: ModelID
 	let ledger: LiveSpendLedger
 	let today: CivilDate
+	let modelTransport: @Sendable (DiagnosticsLog) -> any ModelTransport
+	let accountReads: TrainingService.ClientFactory
 
 	static func builtInModel() throws -> ModelID {
 		let ios = (0..<5).reduce(URL(fileURLWithPath: #filePath)) { path, _ in
@@ -156,27 +158,21 @@ struct LiveCoachBench: Sendable {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: openRouterKey))
 		let reads: TrainingService.ClientFactory
+		var snapshotFailing: FakeIntervalsClient?
 		switch setting {
 		case .connected:
 			try secrets.storeIntervalsConnection(
 				IntervalsConnection(
 					id: ConnectionID(), credential: .apiKey(intervalsKey), selection: .keyOwner,
 					resolvedAthlete: athlete))
-			reads = { credential, selection, clock in
-				IntervalsRESTClient(credential: credential, athlete: selection, clock: clock)
-			}
+			reads = accountReads
 		case .notConnected:
 			let unused = FakeIntervalsClient(athleteName: "Unconnected athlete", ftp: 250)
 			reads = { _, _, _ in unused }
 		case .readsFailing:
 			try secrets.storeIntervalsConnection(testConnection)
 			let failing = FakeIntervalsClient(athleteName: "Live check athlete", ftp: 250)
-			for read in FakeTrainingRead.allCases {
-				failing.fail(
-					read,
-					with: IntervalsError(
-						code: "network", details: "intervals.icu could not be reached."))
-			}
+			snapshotFailing = failing
 			reads = { _, _, _ in failing }
 		case .implausibleFTP:
 			try secrets.storeIntervalsConnection(testConnection)
@@ -186,22 +182,31 @@ struct LiveCoachBench: Sendable {
 			reads = { _, _, _ in athlete }
 		}
 		let ledger = self.ledger
-		let coach = Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: InMemoryRecordLog()), secrets: secrets,
-				models: ModelService { diagnostics in
-					LiveMeteredTransport(
-						inner: OpenRouterTransport(
-							baseURL: ModelService.openRouterAPI, diagnostics: diagnostics),
-						ledger: ledger, log: log)
-				},
-				training: TrainingService { credential, selection, clock in
-					LiveReadOnlyTraining(inner: reads(credential, selection, clock), writes: writes)
-				},
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
-				clock: SystemClock()),
-			builtInModel: model, displayLocale: testDisplayLocale)
-		return await consentingCoach(coach)
+		let coach = await consentingCoach(
+			Coach(
+				sport: .cycling,
+				ports: CoachPorts(
+					records: RecordStore(log: InMemoryRecordLog()), secrets: secrets,
+					models: ModelService { [modelTransport] diagnostics in
+						LiveMeteredTransport(
+							inner: modelTransport(diagnostics), ledger: ledger, log: log)
+					},
+					training: TrainingService { credential, selection, clock in
+						LiveReadOnlyTraining(
+							inner: reads(credential, selection, clock), writes: writes)
+					},
+					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
+					clock: SystemClock()),
+				builtInModel: model, displayLocale: testDisplayLocale))
+		if let snapshotFailing {
+			_ = try await coach.vault.trainingConnection()
+			for read in [FakeTrainingRead.profile, .wellness] {
+				snapshotFailing.fail(
+					read,
+					with: IntervalsError(
+						code: "network", details: "intervals.icu could not be reached."))
+			}
+		}
+		return coach
 	}
 }

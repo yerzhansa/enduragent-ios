@@ -140,10 +140,12 @@ enum LiveParkedQuestions {
 			question: "Format of icu_date_of_birth",
 			evidence: [
 				"icu_date_of_birth shape: \(format)",
-				"App: parsed as a YYYY-MM-DD CivilDate and given to the coach as whole-year age.",
+				"App: parsed as a YYYY-MM-DD CivilDate and given to the coach as whole-year age (Cycling/IntervalsRESTReads.swift:140, wholeYears).",
+				"App: a null or absent date gives no age, so the coach is given no ageYears (Loop/TrainingReadTools.swift:113; the readout-profile fixture case \"nulls have no key and zeros stay\").",
 			],
 			verdict: format == "dddd-dd-dd"
-				? "matches" : format == "absent" ? "not supplied by this account" : "mismatch")
+				? "matches"
+				: ["absent", "null"].contains(format) ? "not supplied by this account" : "mismatch")
 	}
 
 	private static func starts(_ rows: [[String: JSONValue]]) -> ParkedAnswer {
