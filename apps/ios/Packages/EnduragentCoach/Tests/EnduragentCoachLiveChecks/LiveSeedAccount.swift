@@ -7,10 +7,15 @@ struct IntervalsSeedAccount: SeedAccount {
 
 	let client: IntervalsRESTClient
 
+	init(client: IntervalsRESTClient) {
+		self.client = client
+	}
+
 	init(key: String) {
-		self.client = IntervalsRESTClient(
-			credential: .apiKey(key),
-			session: ephemeralSession(requestTimeout: Self.writeTimeout, resourceTimeout: 300))
+		self.init(
+			client: IntervalsRESTClient(
+				credential: .apiKey(key),
+				session: ephemeralSession(requestTimeout: Self.writeTimeout, resourceTimeout: 300)))
 	}
 
 	func athleteID() async throws -> String {
