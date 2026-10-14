@@ -25,6 +25,8 @@ struct LiveSeedLedger: Sendable {
 				anchor = try Self.date(cells[1], in: row)
 			case ("activity", 3):
 				activities[cells[1]] = cells[2]
+			case ("deleted", 3):
+				activities[cells[1]] = nil
 			case ("wellness", 3):
 				wellness[try Self.date(cells[1], in: row)] = cells[2].split(separator: ",").map(
 					String.init)
@@ -57,6 +59,11 @@ struct LiveSeedLedger: Sendable {
 	mutating func record(activity externalID: String, id: String) throws {
 		try append(["activity", externalID, id])
 		activities[externalID] = id
+	}
+
+	mutating func record(deletedActivity externalID: String) throws {
+		try append(["deleted", externalID, ""])
+		activities[externalID] = nil
 	}
 
 	mutating func record(wellness date: CivilDate, fields: [String]) throws {

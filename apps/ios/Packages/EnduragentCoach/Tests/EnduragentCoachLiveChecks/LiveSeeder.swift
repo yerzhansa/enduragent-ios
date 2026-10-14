@@ -152,12 +152,13 @@ struct LiveSeeder {
 		}
 		var outcome = UnseedOutcome()
 		let rows = Dictionary(listed.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-		for id in ledger.activityIDs {
+		for (externalID, id) in ledger.activities.sorted(by: { $0.key < $1.key }) {
 			guard let row = rows[id], row.isOurs else {
 				outcome.skipped.append(rows[id]?.label ?? "\(id) not listed")
 				continue
 			}
 			try await account.delete(id)
+			try ledger.record(deletedActivity: externalID)
 			outcome.deleted.append(id)
 		}
 		try await clearSeededWellness(into: &outcome)
