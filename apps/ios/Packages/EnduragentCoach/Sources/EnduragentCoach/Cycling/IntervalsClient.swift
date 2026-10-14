@@ -153,6 +153,7 @@ package enum IntervalsPolicy {
 		"Ride", "VirtualRide", "MountainBikeRide", "GravelRide", "EBikeRide",
 	]
 	package static let requestTimeout: TimeInterval = 30
+	package static let streamRequestLimit = 3
 
 	package static func chatCreateBody(_ draft: ChatCalendarCreate) -> JSONValue {
 		var fields: [String: JSONValue] = [

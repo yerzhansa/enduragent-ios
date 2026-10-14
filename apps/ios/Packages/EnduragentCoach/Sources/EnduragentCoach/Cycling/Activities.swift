@@ -228,8 +228,13 @@ package struct StreamSummary: Sendable, Equatable {
 	package let sampleCount: Int
 	package let channels: [String: ChannelSummary]
 	package let unanswered: [String]
+	package let unknown: [String]
+	package let unread: [String]
 
-	package init(summarizing samples: [StreamSamples], asked: StreamChannels) {
+	package init(
+		summarizing samples: [StreamSamples], asked: StreamChannels,
+		unknown: Set<String> = [], unread: Set<String> = []
+	) {
 		var channels: [String: ChannelSummary] = [:]
 		var sampleCount = 0
 		for stream in samples {
@@ -237,12 +242,12 @@ package struct StreamSummary: Sendable, Equatable {
 			channels[stream.channel] = summary
 			sampleCount = Swift.max(sampleCount, stream.values.count)
 		}
-		var unanswered: [String] = []
-		for name in asked.names where channels[name] == nil && !unanswered.contains(name) {
-			unanswered.append(name)
-		}
+		var seen: Set<String> = []
+		let missing = asked.names.filter { channels[$0] == nil && seen.insert($0).inserted }
 		self.sampleCount = sampleCount
 		self.channels = channels
-		self.unanswered = unanswered
+		self.unknown = missing.filter(unknown.contains)
+		self.unread = missing.filter(unread.contains)
+		self.unanswered = missing.filter { !unknown.contains($0) && !unread.contains($0) }
 	}
 }

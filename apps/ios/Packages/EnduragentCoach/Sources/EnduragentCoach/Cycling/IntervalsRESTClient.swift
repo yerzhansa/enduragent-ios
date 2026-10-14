@@ -150,6 +150,23 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		query: [URLQueryItem] = [],
 		body: JSONValue? = nil
 	) async throws -> Data {
+		try Self.accepted(try await exchange(method: method, path: path, query: query, body: body))
+	}
+
+	static func accepted(_ answer: IntervalsAnswer) throws(IntervalsError) -> Data {
+		guard (200..<300).contains(answer.status) else {
+			throw IntervalsError(
+				code: "http", details: "status \(answer.status)", status: answer.status)
+		}
+		return answer.body
+	}
+
+	func exchange(
+		method: String,
+		path: [String],
+		query: [URLQueryItem] = [],
+		body: JSONValue? = nil
+	) async throws -> IntervalsAnswer {
 		var url = baseURL
 		for component in path {
 			url.append(path: component)
@@ -176,14 +193,10 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		guard let http = response as? HTTPURLResponse else {
 			throw IntervalsError(code: "network", details: "missing http response")
 		}
-		guard (200..<300).contains(http.statusCode) else {
-			throw IntervalsError(
-				code: "http", details: "status \(http.statusCode)", status: http.statusCode)
-		}
-		return data
+		return IntervalsAnswer(status: http.statusCode, body: data)
 	}
 
-	private func parseJSON(_ data: Data) throws -> JSONValue {
+	func parseJSON(_ data: Data) throws -> JSONValue {
 		guard let text = String(data: data, encoding: .utf8) else {
 			throw IntervalsError(code: "invalid_json", details: "response was not UTF-8")
 		}
@@ -210,4 +223,9 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 				externalId: payload.externalID, tags: payload.tags ?? []))
 	}
 
+}
+
+struct IntervalsAnswer: Sendable {
+	let status: Int
+	let body: Data
 }
