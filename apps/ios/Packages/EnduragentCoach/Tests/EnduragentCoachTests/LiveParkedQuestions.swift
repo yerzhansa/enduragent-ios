@@ -2,67 +2,6 @@ import Foundation
 
 @testable import EnduragentCoach
 
-struct LiveRawReads: Sendable {
-	var profile: JSONValue?
-	var wellness: JSONValue?
-	var activities: JSONValue?
-	var details: [JSONValue] = []
-	var streams: TappedResponse?
-	var unknownChannel: LiveReadOutcome?
-	var unknownChannelName = ""
-	var askedChannels: [String] = []
-}
-
-struct LiveReadOutcome: Sendable {
-	let responses: [TappedResponse]
-	let threw: Bool
-
-	var answer: TappedResponse? { threw ? nil : responses.last }
-}
-
-struct DecodingSite: Sendable, Equatable {
-	static let sources = (0..<3).reduce(URL(fileURLWithPath: #filePath)) { path, _ in
-		path.deletingLastPathComponent()
-	}.appending(path: "Sources/EnduragentCoach")
-
-	let file: String
-	let anchor: String
-
-	init(_ file: String, _ anchor: String) {
-		self.file = file
-		self.anchor = anchor
-	}
-
-	var citation: String {
-		let text: String
-		do {
-			text = try String(contentsOf: Self.sources.appending(path: file), encoding: .utf8)
-		} catch {
-			return "\(file) could not be read (\(error.localizedDescription))"
-		}
-		let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
-		guard let index = lines.firstIndex(where: { $0.contains(anchor) }) else {
-			return "\(file) no longer holds `\(anchor)`"
-		}
-		return "\(file):\(index + 1)"
-	}
-}
-
-struct ParkedAnswer: Sendable, Equatable {
-	let question: String
-	let evidence: [String]
-	let decoding: [DecodingSite]
-	let verdict: String
-
-	var markdown: String {
-		let sites = "Decoding code: " + decoding.map(\.citation).joined(separator: ", ")
-		return
-			(["## \(question)", ""] + (evidence + [sites]).map { "- \($0)" } + [
-				"", "Verdict: \(verdict)", "",
-			]).joined(separator: "\n")
-	}
-}
-
 enum LiveParkedQuestions {
 	static func answers(_ reads: LiveRawReads) -> [ParkedAnswer] {
 		let wellness = (reads.wellness?.arrayValue ?? []).map(\.objectFields)
@@ -338,6 +277,10 @@ enum LiveParkedQuestions {
 	private static func streamTypes(_ reads: LiveRawReads) -> ParkedAnswer {
 		let returned = channels(in: reads.streams?.json)
 		let asked = Set(reads.askedChannels)
+		let joined =
+			returned.count > 1 && returned.isSubset(of: asked.union(["time"]))
+			? "matches: intervals.icu honours comma-joined types"
+			: "check: intervals.icu returned \(returned.count) of \(asked.count) asked channels"
 		return ParkedAnswer(
 			question: "Stream types: comma-joined, and an unknown channel",
 			evidence: [
@@ -345,18 +288,30 @@ enum LiveParkedQuestions {
 				"asked: \(reads.askedChannels.joined(separator: ", "))",
 				"returned: \(returned.sorted().joined(separator: ", "))",
 				"unknown channel: \(unknownChannel(reads))",
-				"App: joins channel names with commas in one types parameter; a channel with no samples is listed under unanswered.",
+				"App: joins channel names with commas in one types parameter. When intervals.icu answers 422 \"Invalid stream type [name]\" for a name it was asked, the read drops that name and asks again, at most \(IntervalsPolicy.streamRequestLimit) requests. The coach is given each rejected name under unknown, each name the cap left unasked under unread, and each accepted name with no samples under unanswered.",
 			],
 			decoding: [
-				DecodingSite("Cycling/IntervalsRESTReads.swift", #"URLQueryItem(name: "types""#),
-				DecodingSite("Cycling/Activities.swift", "where channels[name] == nil"),
+				DecodingSite("Cycling/IntervalsRESTStreams.swift", #"URLQueryItem(name: "types""#),
+				DecodingSite(
+					"Cycling/IntervalsRESTStreams.swift",
+					"private static func rejectedStreamType(in answer"),
+				DecodingSite("Cycling/Activities.swift", "self.unknown = missing.filter"),
+				DecodingSite("Cycling/Activities.swift", "self.unanswered = missing.filter"),
 			],
 			verdict: reads.streams == nil
-				? "not observed: no ride in 30 days"
-				: returned.count > 1 && returned.isSubset(of: asked.union(["time"]))
-					? "matches: intervals.icu honours comma-joined types"
-					: "check: intervals.icu returned \(returned.count) of \(asked.count) asked channels"
-		)
+				? "not observed: no ride in 30 days" : "\(joined); \(unknownVerdict(reads))")
+	}
+
+	private static func unknownVerdict(_ reads: LiveRawReads) -> String {
+		let probe = reads.unknownChannelName
+		guard let outcome = reads.unknownChannel else { return "unknown channel: not read" }
+		guard let given = outcome.given else {
+			return "mismatch: the app's read threw on the unknown channel \(probe)"
+		}
+		let lists = streamLists(given)
+		return lists["unknown"]?.contains(probe) == true
+			? "matches: the read answered and the coach is given \(probe) under unknown"
+			: "mismatch: the read answered but the coach is given \(probe) under \(lists.filter { $0.value.contains(probe) }.keys.sorted().first ?? "no list")"
 	}
 
 	private static func unknownChannel(_ reads: LiveRawReads) -> String {
@@ -369,9 +324,28 @@ enum LiveParkedQuestions {
 			return
 				"HTTP \(response.status) to \(response.request): \(reads.unknownChannelName) \(returned.contains(reads.unknownChannelName) ? "returned" : "absent"); channels returned: \(returned.sorted().joined(separator: ", "))"
 		}
+		let given = outcome.given.map { given in
+			let lists = streamLists(given)
+			return "the coach is given "
+				+ (["channels": Set((given.objectFields["channels"]?.objectFields ?? [:]).keys)]
+					.merging(lists) { first, _ in first }
+					.filter { !$0.value.isEmpty }
+					.sorted { $0.key < $1.key }
+					.map { "\($0.key) \($0.value.sorted().joined(separator: ", "))" }
+					.joined(separator: "; "))
+		}
 		return
 			([outcome.threw ? "the app's read threw" : "the app's read answered"]
-			+ (answers.isEmpty ? ["no response was captured"] : answers)).joined(separator: "; ")
+			+ (answers.isEmpty ? ["no response was captured"] : answers)
+			+ (given.map { [$0] } ?? []))
+			.joined(separator: "; ")
+	}
+
+	static func streamLists(_ given: JSONValue) -> [String: Set<String>] {
+		Dictionary(
+			uniqueKeysWithValues: ["unanswered", "unknown", "unread"].map { key in
+				(key, Set((given.objectFields[key]?.arrayValue ?? []).compactMap(\.stringValue)))
+			})
 	}
 
 	private static func channels(in json: JSONValue?) -> Set<String> {

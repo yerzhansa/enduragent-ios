@@ -31,6 +31,7 @@
 
 	struct LiveReadsRun {
 		static let unknownChannel = "enduragent_unknown_channel"
+		static let probedChannels = ["watts", "velocity_smooth", unknownChannel]
 
 		let folder: LiveRunFolder
 		let client: IntervalsRESTClient
@@ -139,15 +140,21 @@
 		private mutating func readStreams(of id: ActivityID) async {
 			let standard = StreamChannels.standard
 			raw.askedChannels = standard.names
-			raw.streams = await read("streams", audit: LiveReadAudit.streams) { [client] in
-				CoachReadout.streams(try await client.streams(of: id, channels: standard))
-			}.answer
-			let asked = StreamChannels(requested: ["watts", Self.unknownChannel])
+			raw.streams = await readChannels(standard, of: id, as: "streams").answer
 			raw.unknownChannelName = Self.unknownChannel
-			raw.unknownChannel = await read("streams-unknown-channel", audit: LiveReadAudit.streams)
-			{ [client] in
-				CoachReadout.streams(try await client.streams(of: id, channels: asked))
+			raw.unknownChannel = await readChannels(
+				StreamChannels(requested: Self.probedChannels), of: id,
+				as: "streams-unknown-channel")
+		}
+
+		private mutating func readChannels(
+			_ channels: StreamChannels, of id: ActivityID, as name: String
+		) async -> LiveReadOutcome {
+			let outcome = await read(name, audit: LiveReadAudit.streams) { [client] in
+				CoachReadout.streams(try await client.streams(of: id, channels: channels))
 			}
+			failures += LiveReadAudit.streamNames(name, asked: channels.names, outcome: outcome)
+			return outcome
 		}
 
 		private mutating func readSnapshot() async {
@@ -188,7 +195,7 @@
 			let responses = LiveResponseTap.drain()
 			save(responses, as: name)
 			record { [folder] in try folder.write(json: given, to: "given/\(name).json") }
-			let outcome = LiveReadOutcome(responses: responses, threw: false)
+			let outcome = LiveReadOutcome(responses: responses, given: given)
 			guard let response = outcome.answer else {
 				failures.append("\(name): no raw response was captured")
 				return outcome
@@ -211,7 +218,7 @@
 						"intervals.icu answered HTTP \($0.status) to \($0.request): \($0.excerpt)"
 					})
 					.joined(separator: "; "))
-			return LiveReadOutcome(responses: responses, threw: true)
+			return LiveReadOutcome(responses: responses, given: nil)
 		}
 
 		mutating func save(_ responses: [TappedResponse], as name: String) {

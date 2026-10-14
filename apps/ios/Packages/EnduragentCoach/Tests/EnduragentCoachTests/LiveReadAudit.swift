@@ -172,6 +172,39 @@ enum LiveReadAudit {
 		}
 	}
 
+	static func streamNames(_ name: String, asked: [String], outcome: LiveReadOutcome)
+		-> [String]
+	{
+		guard let given = outcome.given else { return [] }
+		let channels = given.objectFields["channels"]?.objectFields ?? [:]
+		let lists = LiveParkedQuestions.streamLists(given)
+		var findings: [String] = []
+		for channel in Set(asked).sorted() where channels[channel] == nil {
+			let named = lists.filter { $0.value.contains(channel) }.keys.sorted()
+			if named.count != 1 {
+				findings.append(
+					"\(name): the coach is given \(channel) under \(named.isEmpty ? "no list" : named.joined(separator: " and ")) instead of exactly one of unanswered, unknown or unread"
+				)
+			}
+		}
+		for rejected in outcome.responses.compactMap(rejectedStreamType)
+		where lists["unknown"]?.contains(rejected) != true {
+			findings.append(
+				"\(name): intervals.icu rejected \(rejected) as an invalid stream type, but the coach is not given it under unknown"
+			)
+		}
+		return findings
+	}
+
+	static func rejectedStreamType(_ response: TappedResponse) -> String? {
+		let prefix = "Invalid stream type ["
+		guard response.status == 422,
+			let message = response.json?.objectFields["error"]?.stringValue,
+			message.hasPrefix(prefix), message.hasSuffix("]")
+		else { return nil }
+		return String(message.dropFirst(prefix.count).dropLast())
+	}
+
 	static func snapshotOutOfRange(_ section: String) -> [String] {
 		let bands: [(label: String, unit: String, range: ClosedRange<Double>)] = [
 			(
