@@ -96,11 +96,16 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 			@MainActor
 			final func testRestore() async throws {}
 
+			func testSettle() -> Void {}
+			func testClose() throws -> () {}
+
 			private func launch() -> XCUIApplication { XCUIApplication() }
 			private func testHidden() {}
 			fileprivate func testFileHidden() {}
 			static func testShared() {}
 			class func testInherited() {}
+			func testableApp() -> XCUIApplication { XCUIApplication() }
+			func testWithArgument(_ value: Int) {}
 
 			struct Step {
 				func testNested() {}
@@ -161,6 +166,12 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 		CoverageCase(
 			name: "listed proof method has an attribute and modifiers that XCTest still runs",
 			rows: replacing(1, with: row("1.1.2", proof("ShortcutProof", "testRestore")))),
+		CoverageCase(
+			name: "listed proof method spells out that it returns Void",
+			rows: replacing(1, with: row("1.1.2", proof("ShortcutProof", "testSettle")))),
+		CoverageCase(
+			name: "listed proof method throws and spells out that it returns an empty tuple",
+			rows: replacing(1, with: row("1.1.2", proof("ShortcutProof", "testClose")))),
 		CoverageCase(
 			name: "listed test function is only named inside a string",
 			rows: replacing(0, with: row("1.1.1", function("onlyInText"))),
@@ -252,6 +263,8 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 		("a class method of the proof class", "testInherited"),
 		("a private method of the proof class", "testHidden"),
 		("a fileprivate method of the proof class", "testFileHidden"),
+		("a method of the proof class that returns a value", "testableApp"),
+		("a method of the proof class that takes an argument", "testWithArgument"),
 	].map { place, method in
 		CoverageCase(
 			name: "listed proof method is \(place)",

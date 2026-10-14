@@ -29,12 +29,15 @@ public struct SwiftDeclarations {
 	}
 
 	private static let hidingModifiers: Set<String> = ["static", "class", "private", "fileprivate"]
+	private static let runnableTest =
+		#"((?:\w+[ \t]+)*)\bfunc\s+(test\w*)\s*\(\s*\)"#
+		+ #"\s*(?:async\b\s*)?(?:throws\b\s*)?(?:->\s*(?:Void|\(\s*\))\s*)?\{"#
 
 	private static func runnableTests(in members: String, patterns: JavaScriptPatterns) throws
 		-> Set<String>
 	{
 		Set(
-			try patterns.matchAll(#"((?:\w+[ \t]+)*)\bfunc\s+(test\w*)\s*\(\s*\)"#, members)
+			try patterns.matchAll(runnableTest, members)
 				.compactMap { method in
 					let modifiers = try patterns.matchAll(#"\w+"#, method.groups[1]).map(\.text)
 					return modifiers.contains(where: hidingModifiers.contains)
