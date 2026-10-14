@@ -25,14 +25,14 @@ package struct ToolRuntime: Sendable {
 		arguments: JSONValue,
 		scope: TurnScope
 	) async throws -> ToolExecution {
-		guard let handler = offer.handler(for: name) else {
+		guard let tool = offer.tool(for: name) else {
 			return .result(Self.unknownTool)
 		}
 		switch name.effect {
 		case .proposal:
-			return try await runPrepared(handler, arguments: arguments, scope: scope)
+			return try await runPrepared(tool, arguments: arguments, scope: scope)
 		case .write:
-			let execution = try await runPrepared(handler, arguments: arguments, scope: scope)
+			let execution = try await runPrepared(tool, arguments: arguments, scope: scope)
 			await scope.evict(Self.memoryReads)
 			if let commit = execution.commit {
 				await scope.record(commit)
@@ -40,40 +40,41 @@ package struct ToolRuntime: Sendable {
 			return execution
 		case .read, .memoryRead:
 			return try await scope.memoized(name, arguments: canonicalJSON(arguments)) {
-				try await self.runPrepared(handler, arguments: arguments, scope: scope)
+				try await self.runPrepared(tool, arguments: arguments, scope: scope)
 			}
 		}
 	}
 
 	private func runPrepared(
-		_ handler: BoundToolRun,
+		_ tool: BoundTool,
 		arguments: JSONValue,
 		scope: TurnScope
 	) async throws -> ToolExecution {
 		let raw: ToolExecution
 		do {
-			raw = try await handler(arguments, scope)
+			raw = try await tool.run(arguments, scope)
 		} catch let error as IntervalsError {
+			raw = .result(error.json)
+		} catch let error as ToolInputError {
 			raw = .result(error.json)
 		}
 		guard case .result(let data) = raw.outcome else {
 			return raw
 		}
-		let enveloped = UntrustedEnvelope.wrap(data)
-		let estimated = estimateTokens(enveloped.canonicalDigestInput())
-		if estimated > TurnPolicy.toolResultTokenCap {
+		let measured = ToolResultCap.measure(data)
+		if measured.estimatedTokens > TurnPolicy.toolResultTokenCap {
 			return ToolExecution(
 				outcome: .truncated(
-					notice:
-						"Tool result too large (~\(estimated) tokens) and was omitted to protect context. "
-						+ "Rerun with narrower arguments (e.g. a smaller date range, fewer stream types, or a shorter activity).",
-					estimatedTokens: estimated,
+					notice: ToolResultCap.notice(
+						estimatedTokens: measured.estimatedTokens,
+						parameters: tool.schema.parameters),
+					estimatedTokens: measured.estimatedTokens,
 					omittedRecords: omittedRecordCount(in: data)
 				),
 				commit: raw.commit
 			)
 		}
-		return ToolExecution(outcome: .result(enveloped), commit: raw.commit)
+		return ToolExecution(outcome: .result(measured.enveloped), commit: raw.commit)
 	}
 
 	private func omittedRecordCount(in payload: JSONValue) -> Int {
@@ -85,6 +86,42 @@ package struct ToolRuntime: Sendable {
 		case .null, .bool, .number, .string:
 			return 0
 		}
+	}
+}
+
+package struct ToolInputError: Error, Sendable, Equatable {
+	let code: String
+	let details: String
+
+	var json: JSONValue {
+		.object(["error": .string(code), "details": .string(details)])
+	}
+}
+
+enum ToolResultCap {
+	private static let narrowingArguments: [(parameter: String, advice: String)] = [
+		("oldest", "a smaller date range"), ("types", "fewer stream types"),
+	]
+
+	static func measure(_ data: JSONValue) -> (enveloped: JSONValue, estimatedTokens: Int) {
+		let enveloped = UntrustedEnvelope.wrap(data)
+		return (enveloped, estimateTokens(enveloped.canonicalDigestInput()))
+	}
+
+	static func admits(_ data: JSONValue) -> Bool {
+		measure(data).estimatedTokens <= TurnPolicy.toolResultTokenCap
+	}
+
+	static func notice(estimatedTokens: Int, parameters: JSONValue) -> String {
+		let accepted = parameters.objectFields["properties"]?.objectFields ?? [:]
+		let advice = narrowingArguments.filter { accepted[$0.parameter] != nil }.map(\.advice)
+		let omitted =
+			"Tool result too large (~\(estimatedTokens) tokens) and was omitted to protect context. "
+		guard !advice.isEmpty else {
+			return omitted
+				+ "No argument of this tool narrows its result, so calling it again gives the same answer."
+		}
+		return omitted + "Rerun with \(advice.joined(separator: " or "))."
 	}
 }
 

@@ -15,6 +15,17 @@ extension IntervalsRESTClientTests {
 			}
 		}
 
+		@Test func weekSentNewestFirstIsListedInNpmsOrder() async throws {
+			let week = try #require(
+				try ActivityReadoutCase.all().first { $0.name == "a week, sent newest first" })
+			let shown = try #require(
+				try await readout(of: week).objectFields["activities"]?.arrayValue
+			).map { $0.objectFields["id"] }
+			let npm = try #require(week.npm.arrayValue).map { $0.objectFields["id"] }
+			#expect(shown.count == 9)
+			#expect(shown == npm.filter(shown.contains))
+		}
+
 		@Test func everyKeyOfNpmsProjectionIsAccountedFor() async throws {
 			for sample in try ActivityReadoutCase.all() {
 				let shown = try await readout(of: sample)

@@ -47,11 +47,8 @@ struct IntervalsRESTClientTests {
 		let client = try makeClient()
 		let oldest: CivilDate = "1998-01-01"
 		let newest = oldest.adding(days: 366)
-		do {
+		await #expect(throws: ReadRangeRefusal.tooWide(days: 367)) {
 			_ = try await client.listEvents(oldest: oldest, newest: newest)
-			Issue.record("expected range_too_wide")
-		} catch let error as IntervalsError {
-			#expect(error.code == "range_too_wide")
 		}
 		#expect(IntervalsURLProtocolStub.lastRequest == nil)
 	}

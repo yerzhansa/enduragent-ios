@@ -11,10 +11,7 @@ extension CoachTools {
 			required: ["ftpWatts"]
 		)
 	) { arguments, _ in
-		guard let ftp = arguments.objectFields["ftpWatts"]?.intValue() else {
-			throw IntervalsError(code: "invalid_ftp", details: "ftpWatts is required.")
-		}
-		let rows = try DisplayZones.table(ftpWatts: ftp)
+		let rows = try DisplayZones.table(ftpWatts: try arguments.ftpWatts())
 		return .result(
 			.array(
 				rows.map { row in
@@ -163,5 +160,14 @@ extension MemoryView {
 		return (SectionName.cyclingEffective.map(\.rawValue) + orphanNames).filter {
 			seen.insert($0).inserted
 		}
+	}
+}
+
+extension JSONValue {
+	fileprivate func ftpWatts() throws(ToolInputError) -> Int {
+		guard let ftp = objectFields["ftpWatts"]?.intValue() else {
+			throw ToolInputError(code: "invalid_ftp", details: "ftpWatts is required.")
+		}
+		return ftp
 	}
 }

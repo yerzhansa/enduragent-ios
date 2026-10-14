@@ -9,6 +9,8 @@ import Testing
 	static let ride = Activity.recorded("i1234567", "Sunday long ride", on: "1998-06-07")
 	static let detailTool = "intervals_fetch_activity"
 	static let detailArguments = #"{"activityId":"i1234567"}"#
+	static let noNarrowing =
+		"No argument of this tool narrows its result, so calling it again gives the same answer."
 
 	let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 	let store = InMemoryRecordLog()
@@ -22,7 +24,7 @@ import Testing
 		}
 		try await expectOmitted(
 			"intervals_list_events", #"{"oldest":"1998-06-14","newest":"1998-06-14"}"#,
-			records: 150)
+			records: 150, advice: "Rerun with a smaller date range.")
 	}
 
 	@Test func oversizedObjectCountsItsLargestDirectArray() async throws {
@@ -30,7 +32,8 @@ import Testing
 			[:], settingsSports: (0..<10).map(wide),
 			powerZones: (0..<150).map { TrainingZone(name: wide($0), upperBound: Double($0)) },
 			heartRateZones: (0..<20).map { TrainingZone(name: wide($0), upperBound: Double($0)) })
-		try await expectOmitted("intervals_fetch_athlete", "{}", records: 150)
+		try await expectOmitted(
+			"intervals_fetch_athlete", "{}", records: 150, advice: Self.noNarrowing)
 	}
 
 	@Test func oversizedObjectDoesNotCountADeeperArray() async throws {
@@ -41,12 +44,14 @@ import Testing
 					(1...150).map {
 						ActivityLap(number: $0, label: wide($0), kind: nil, readings: Readings([:]))
 					})))
-		try await expectOmitted(Self.detailTool, Self.detailArguments, records: 150)
+		try await expectOmitted(
+			Self.detailTool, Self.detailArguments, records: 150, advice: Self.noNarrowing)
 	}
 
 	@Test func oversizedObjectWithOnlyDeeperRowsReportsZero() async throws {
 		try seed(detail(zones: 150, laps: .notSupplied))
-		try await expectOmitted(Self.detailTool, Self.detailArguments, records: 0)
+		try await expectOmitted(
+			Self.detailTool, Self.detailArguments, records: 0, advice: Self.noNarrowing)
 	}
 
 	@Test func oversizedTextReportsZero() async throws {
@@ -63,7 +68,8 @@ import Testing
 								name: section,
 								content: (0..<40).map(wide).joined(separator: "\n")))))
 			})
-		try await expectOmitted("memory_read", "{}", records: 0)
+		try await expectOmitted(
+			"memory_read", "{}", records: 0, advice: Self.noNarrowing)
 	}
 
 	@Test(arguments: [100, 23_999, 24_000])
@@ -79,7 +85,8 @@ import Testing
 	@Test func resultJustAboveCapIsOmitted() async throws {
 		let payload = try seedDetail(estimatedTokens: 24_001)
 		#expect(estimateTokens(UntrustedEnvelope.wrap(payload).canonicalDigestInput()) == 24_001)
-		let fields = try await expectOmitted(Self.detailTool, Self.detailArguments, records: 1)
+		let fields = try await expectOmitted(
+			Self.detailTool, Self.detailArguments, records: 1, advice: Self.noNarrowing)
 		#expect(fields["estimatedTokens"] == .number(24_001))
 	}
 
@@ -117,9 +124,9 @@ import Testing
 	}
 
 	@discardableResult
-	private func expectOmitted(_ tool: String, _ arguments: String, records: Int) async throws
-		-> [String: JSONValue]
-	{
+	private func expectOmitted(
+		_ tool: String, _ arguments: String, records: Int, advice: String
+	) async throws -> [String: JSONValue] {
 		let result = try await toolResult(tool, arguments)
 		let fields = result.objectFields
 		#expect(fields["truncated"] == .bool(true))
@@ -127,9 +134,10 @@ import Testing
 		let estimated = try #require(fields["estimatedTokens"]?.intValue())
 		#expect(estimated > 24_000)
 		let notice = try #require(fields["notice"]?.stringValue)
-		#expect(notice.contains("~\(estimated) tokens"))
-		#expect(notice.contains("Rerun with narrower arguments"))
-		#expect(notice.contains("a smaller date range, fewer stream types, or a shorter activity"))
+		#expect(
+			notice
+				== "Tool result too large (~\(estimated) tokens) and was omitted to protect context. "
+				+ advice)
 		#expect(Set(fields.keys) == ["truncated", "notice", "omittedSamples", "estimatedTokens"])
 		#expect(!result.canonicalDigestInput().contains("omitted-row"))
 		return fields
