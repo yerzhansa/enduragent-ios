@@ -238,29 +238,6 @@ func jsonObject(from request: URLRequest?) throws -> [String: Any] {
 	return body
 }
 
-func httpBody(from request: URLRequest) -> Data? {
-	if let body = request.httpBody {
-		return body
-	}
-	guard let stream = request.httpBodyStream else {
-		return nil
-	}
-	stream.open()
-	defer { stream.close() }
-	let bufferSize = 1024
-	let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
-	defer { buffer.deallocate() }
-	var data = Data()
-	while stream.hasBytesAvailable {
-		let read = stream.read(buffer, maxLength: bufferSize)
-		if read <= 0 {
-			break
-		}
-		data.append(buffer, count: read)
-	}
-	return data
-}
-
 final class CreditsURLStub: URLProtocol, @unchecked Sendable {
 	struct Response: Sendable {
 		var statusCode: Int

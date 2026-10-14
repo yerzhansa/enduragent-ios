@@ -61,9 +61,15 @@ import Testing
 		try ledger.record(anchor: Self.today)
 		try ledger.record(activity: "enduragent-seed-threshold", id: "i100")
 		let account = FakeSeedAccount(
-			listed: [SeedListing(id: "i101", externalID: "enduragent-seed-base-01", load: 60)],
+			listed: [
+				SeedListing(
+					id: "i101", name: "[synthetic] Endurance",
+					externalID: "enduragent-seed-base-01", load: 60)
+			],
 			listedFromSecondRead: [
-				SeedListing(id: "i100", externalID: "enduragent-seed-threshold", load: 90)
+				SeedListing(
+					id: "i100", name: "[synthetic] Endurance",
+					externalID: "enduragent-seed-threshold", load: 90)
 			])
 		var first = LiveSeeder(
 			account: account, today: Self.today, polling: instantPolling(),
@@ -144,8 +150,12 @@ import Testing
 			athlete: "i1001", activities: ["i100", "i101"], wellness: ["hrv", "weight"])
 		let account = FakeSeedAccount(
 			listed: [
-				SeedListing(id: "i100", externalID: "enduragent-seed-threshold", load: 90),
-				SeedListing(id: "i101", externalID: "enduragent-seed-base-01", load: 60),
+				SeedListing(
+					id: "i100", name: "[synthetic] Endurance",
+					externalID: "enduragent-seed-threshold", load: 90),
+				SeedListing(
+					id: "i101", name: "[synthetic] Endurance",
+					externalID: "enduragent-seed-base-01", load: 60),
 				SeedListing(id: "i555", name: "Commute", load: 20),
 			],
 			days: [
@@ -188,13 +198,53 @@ import Testing
 		#expect(await leftover.deleted.isEmpty)
 	}
 
+	@Test func unseedSkipsAndNamesEveryLedgerActivityTheAccountNoLongerListsAsSeeded()
+		async throws
+	{
+		let ledger = try Self.ledger(
+			athlete: "i1001", activities: ["i100", "i101", "i102", "i103", "i104"], wellness: [])
+		let account = FakeSeedAccount(listed: [
+			SeedListing(
+				id: "i100", name: "[synthetic] Endurance", externalID: "enduragent-seed-base-01",
+				load: 60),
+			SeedListing(
+				id: "i101", name: "Morning Ride", externalID: "garmin-123",
+				start: "2026-10-01T07:00:00", load: 80),
+			SeedListing(
+				id: "i102", name: "Renamed by hand", externalID: "enduragent-seed-base-02",
+				start: "2026-10-03T07:00:00", load: 50),
+			SeedListing(
+				id: "i104", name: "[synthetic] Endurance", externalID: "strava-77",
+				start: "2026-10-05T07:00:00", load: 40),
+		])
+		var seeder = LiveSeeder(
+			account: account, today: Self.today, polling: instantPolling(),
+			ledger: try LiveSeedLedger(file: ledger.file))
+
+		let outcome = try await seeder.unseed(retiringLedgerAs: "ledger-unseeded.tsv")
+
+		#expect(await account.deleted == ["i100"])
+		#expect(outcome.deleted == ["i100"])
+		#expect(
+			outcome.skipped == [
+				#"i101 "Morning Ride" 2026-10-01T07:00:00"#,
+				#"i102 "Renamed by hand" 2026-10-03T07:00:00"#, "i103 not listed",
+				#"i104 "[synthetic] Endurance" 2026-10-05T07:00:00"#,
+			])
+		#expect(await account.listed.map(\.id) == ["i101", "i102", "i104"])
+	}
+
 	@Test func unseedFailsAndKeepsItsLedgerWhenTheClearedWellnessReadsBackSet() async throws {
 		let planned = try #require(
 			LiveSeedPlan(anchor: Self.today).wellness.first { $0.date == "2026-10-01" })
 		let ledger = try Self.ledger(
 			athlete: "i1001", activities: ["i100"], wellness: SeedWellnessDay.fields)
 		let account = FakeSeedAccount(
-			listed: [SeedListing(id: "i100", externalID: "enduragent-seed-threshold", load: 90)],
+			listed: [
+				SeedListing(
+					id: "i100", name: "[synthetic] Endurance",
+					externalID: "enduragent-seed-threshold", load: 90)
+			],
 			days: ["2026-10-01": planned.values], nullClears: false)
 		var seeder = LiveSeeder(
 			account: account, today: Self.today, polling: instantPolling(),
@@ -253,8 +303,12 @@ import Testing
 		let planned = try #require(
 			LiveSeedPlan(anchor: Self.today).wellness.first { $0.date == "2026-10-01" })
 		let seeded = [
-			SeedListing(id: "i100", externalID: "enduragent-seed-threshold", load: 90),
-			SeedListing(id: "i101", externalID: "enduragent-seed-base-01", load: 60),
+			SeedListing(
+				id: "i100", name: "[synthetic] Endurance", externalID: "enduragent-seed-threshold",
+				load: 90),
+			SeedListing(
+				id: "i101", name: "[synthetic] Endurance", externalID: "enduragent-seed-base-01",
+				load: 60),
 		]
 		let legacy = try Self.ledger(
 			athlete: nil, activities: ["i100", "i101"], wellness: SeedWellnessDay.fields)

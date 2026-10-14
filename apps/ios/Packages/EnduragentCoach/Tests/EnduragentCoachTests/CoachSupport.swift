@@ -6,15 +6,6 @@ import Testing
 @testable import EnduragentCoach
 
 let quickWindow = CoalescingPolicy(window: .milliseconds(20))
-let testModel = ModelID(rawValue: "test/coach-model")
-let testKey = "sk-or-test-credits-key"
-let testAccess = ResolvedAccess(
-	credential: ProviderCredential(secret: testKey, method: .credits), model: testModel)
-
-let testConnection = IntervalsConnection(
-	id: ConnectionID(), credential: .apiKey("icu-test-key"), selection: .keyOwner,
-	resolvedAthlete: IntervalsAthleteID(rawValue: "i1001"))
-
 func keyedSecrets(
 	_ key: String = testKey, backing: FixtureSecretStoreBacking = FixtureSecretStoreBacking()
 ) -> ICloudKeychainStore {
@@ -40,15 +31,6 @@ func testVault(
 			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 		diagnostics: DiagnosticsLog(clock: clock),
 		catalogs: ModelCatalogOwner(bundled: .fixture))
-}
-
-func testRequest(
-	_ messages: [WireMessage], tools: [ToolSchema] = [], deadline: Duration = .seconds(600),
-	attempt: AttemptID = AttemptID(ulid: fixedUlid(900))
-) -> CompletionRequest {
-	CompletionRequest(
-		access: testAccess, attempt: attempt, charge: .chatAttempt, messages: messages,
-		tools: tools, deadline: deadline)
 }
 
 func makeCoach(
@@ -91,10 +73,6 @@ func consentingCoach(_ coach: Coach) async -> Coach {
 		Issue.record(error)
 	}
 	return coach
-}
-
-func draft(_ text: String) -> Draft {
-	Draft(id: DraftID(), text: text)
 }
 
 extension Coach {
@@ -225,13 +203,6 @@ func turnNotice(of state: TurnState) -> AthleteNotice? {
 	}
 }
 
-func replyText(_ state: TurnState) -> String? {
-	guard case .completed(let completed) = state, case .model(let text) = completed.reply else {
-		return nil
-	}
-	return text
-}
-
 func isInterrupted(_ state: TurnState) -> Bool {
 	guard case .interrupted = state else { return false }
 	return true
@@ -328,12 +299,6 @@ extension WireMessage {
 		else { return content }
 		return String(content[stamp.upperBound...])
 	}
-}
-
-let testDisplayLocale: DisplayLocaleResolver = { preference in
-	DisplayLocale(
-		preference: preference, preferredLanguages: ["en"],
-		regionalConventions: Locale(identifier: "en_US"))
 }
 
 func displayLocale(_ tag: LanguageTag = .en, region: String = "en_US") -> DisplayLocale {

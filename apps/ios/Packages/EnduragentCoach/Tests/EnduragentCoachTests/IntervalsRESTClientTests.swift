@@ -18,6 +18,24 @@ struct IntervalsRESTClientTests {
 			IntervalsURLProtocolStub.lastRequest?.timeoutInterval == IntervalsPolicy.requestTimeout)
 	}
 
+	@Test func exchangeSendsTheCallersBodyTypeAndTimeout() async throws {
+		let client = try makeClient()
+		let bytes = Data(
+			"--edge\r\nContent-Type: application/vnd.garmin.tcx+xml\r\n\r\n<TrainingCenterDatabase/>\r\n--edge--\r\n"
+				.utf8)
+		let answer = try await client.exchange(
+			method: "POST", path: ["athlete", "0", "activities"],
+			body: IntervalsBody(data: bytes, contentType: "multipart/form-data; boundary=edge"),
+			timeout: 120)
+		let request = try #require(IntervalsURLProtocolStub.lastRequest)
+		#expect(answer.status == 200)
+		#expect(
+			request.value(forHTTPHeaderField: "Content-Type")
+				== "multipart/form-data; boundary=edge")
+		#expect(IntervalsURLProtocolStub.lastBody == bytes)
+		#expect(request.timeoutInterval == 120)
+	}
+
 	@Test func oauthSendsBearer() async throws {
 		let client = try makeClient(
 			credential: .oauth(access: "access-token", refresh: "refresh-token"))
@@ -206,51 +224,6 @@ struct IntervalsRESTClientTests {
 		configuration.timeoutIntervalForRequest = IntervalsPolicy.requestTimeout
 		return URLSession(configuration: configuration)
 	}
-}
-
-final class IntervalsURLProtocolStub: URLProtocol, @unchecked Sendable {
-	nonisolated(unsafe) static var lastRequest: URLRequest?
-	nonisolated(unsafe) static var lastBody: Data?
-	nonisolated(unsafe) static var handler: (@Sendable (URLRequest) throws -> (Int, Data))?
-	private static let lock = NSLock()
-
-	static func reset() {
-		lock.lock()
-		lastRequest = nil
-		lastBody = nil
-		handler = nil
-		lock.unlock()
-	}
-
-	override class func canInit(with request: URLRequest) -> Bool { true }
-	override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-	override func startLoading() {
-		Self.lock.lock()
-		Self.lastRequest = request
-		Self.lastBody = httpBody(from: request)
-		let handler = Self.handler
-		Self.lock.unlock()
-		do {
-			let (status, body) = try handler?(request) ?? (500, Data())
-			let url = try #require(request.url)
-			let response = try #require(
-				HTTPURLResponse(
-					url: url,
-					statusCode: status,
-					httpVersion: "HTTP/1.1",
-					headerFields: ["Content-Type": "application/json"]
-				)
-			)
-			client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-			client?.urlProtocol(self, didLoad: body)
-			client?.urlProtocolDidFinishLoading(self)
-		} catch {
-			client?.urlProtocol(self, didFailWithError: error)
-		}
-	}
-
-	override func stopLoading() {}
 }
 
 func fixtureData(_ name: String) throws -> Data {

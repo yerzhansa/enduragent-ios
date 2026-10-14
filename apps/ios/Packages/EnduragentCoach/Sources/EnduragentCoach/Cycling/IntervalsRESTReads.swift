@@ -142,7 +142,7 @@ extension IntervalsRESTClient: TrainingReads {
 			activity: activity(from: fields))
 	}
 
-	private static func activityID(in fields: [String: JSONValue]) -> ActivityID? {
+	static func activityID(in fields: [String: JSONValue]) -> ActivityID? {
 		switch fields["id"] {
 		case .string(let raw)?: ActivityID(rawValue: raw)
 		case .number(let number)?:

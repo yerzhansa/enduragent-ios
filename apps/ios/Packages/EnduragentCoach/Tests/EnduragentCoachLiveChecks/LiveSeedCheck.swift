@@ -88,6 +88,7 @@
 			return [
 				"# Unseed \(stamp)", "",
 				"- Deleted \(outcome.deleted.count) activities: \(outcome.deleted.joined(separator: ", "))",
+				"- Skipped \(outcome.skipped.count) ledger activities the account no longer lists as seeded: \(outcome.skipped.isEmpty ? "none" : outcome.skipped.joined(separator: "; "))",
 				"- Cleared wellness on \(cleared.count) days, read back as empty: \(cleared.joined(separator: "; "))",
 				"- Left because the value changed since the seed wrote it: \(changed)", "",
 				"The account lists no seeded activity.", "",

@@ -274,6 +274,23 @@ import Testing
 		#expect(run.turns.map(\.outcome) == ["completed"])
 		#expect(run.turns.first?.reply == "Ride easy today.")
 	}
+
+	@Test func theSpendStatementReadsTheTotalAcrossRunsAgainstTheLimitAndNamesTheCapStop()
+		throws
+	{
+		let file = try TestTemporaryFolders.make().appending(path: "spend.tsv")
+		let first = try LiveSpendLedger(file: file, limit: 2.5)
+		try first.charge(
+			model: testModel, usage: Usage(inputTokens: 900, outputTokens: 80, cost: 2.4), bound: 1,
+			at: Date(timeIntervalSince1970: 899_164_800))
+		let second = try LiveSpendLedger(file: file, limit: 2.5)
+
+		#expect(second.statement == "Model spend total: $2.400000 of $2.50.")
+		#expect(throws: ProviderFailure.accessExhausted) { try second.admit(0.5) }
+		#expect(
+			second.statement == "Model spend total: $2.400000 of $2.50; the cap stopped the suite."
+		)
+	}
 }
 
 struct AmbiguousReviewCase: Sendable, CustomTestStringConvertible {
