@@ -72,12 +72,13 @@ import Testing
 		let outcome = try await first.seed(render: Self.render(_:))
 
 		let uploads = await account.uploads
+		let rated = plan.activities.filter { $0.feel != nil }.count
 		#expect(uploads.count == plan.activities.count - 2)
 		#expect(!uploads.contains("enduragent-seed-threshold"))
 		#expect(!uploads.contains("enduragent-seed-base-01"))
 		#expect(Set(outcome.kept) == ["enduragent-seed-threshold", "enduragent-seed-base-01"])
 		#expect(first.ledger.activities["enduragent-seed-base-01"] == "i101")
-		#expect(await account.ratings.count == 5)
+		#expect(await account.ratings.count == rated)
 		#expect(outcome.wellnessWritten.count == LiveSeedPlan.days)
 
 		var rerun = LiveSeeder(
@@ -86,12 +87,51 @@ import Testing
 		let again = try await rerun.seed(render: Self.render(_:))
 
 		#expect(await account.uploads.count == uploads.count)
-		#expect(await account.ratings.count == 5)
+		#expect(await account.ratings.count == rated)
 		#expect(await account.wellnessWrites.count == 1)
 		#expect(again.uploaded.isEmpty && again.rated.isEmpty && again.wellnessWritten.isEmpty)
 		#expect(rerun.ledger.anchor == Self.today)
 		#expect(rerun.ledger.activities.count == plan.activities.count)
 		#expect(rerun.ledger.wellness.count == LiveSeedPlan.days)
+	}
+
+	@Test func aRerunOnTheSeededAccountUploadsAndRatesOnlyTheAfternoonRide() async throws {
+		let plan = LiveSeedPlan(anchor: Self.today)
+		let held = plan.activities.filter { $0.key != "afternoon-ride" }
+		var ledger = try temporarySeedLedger()
+		try ledger.record(anchor: Self.today)
+		var listed: [SeedListing] = []
+		for (position, activity) in held.enumerated() {
+			let id = "i\(3_000 + position)"
+			try ledger.record(activity: activity.externalID, id: id)
+			listed.append(
+				SeedListing(
+					id: id, name: activity.name, externalID: activity.externalID,
+					start: activity.start.date.rawValue, load: 50, feel: activity.feel,
+					rpe: activity.rpe))
+		}
+		for day in plan.wellness {
+			try ledger.record(wellness: day.date, fields: SeedWellnessDay.fields)
+		}
+		let account = FakeSeedAccount(
+			listed: listed,
+			days: Dictionary(uniqueKeysWithValues: plan.wellness.map { ($0.date, $0.values) }))
+		var seeder = LiveSeeder(
+			account: account, today: Self.today, polling: instantPolling(),
+			ledger: try LiveSeedLedger(file: ledger.file))
+
+		let outcome = try await seeder.seed(render: Self.render(_:))
+
+		#expect(held.count == 25)
+		#expect(await account.uploads == ["enduragent-seed-afternoon-ride"])
+		#expect(outcome.uploaded == ["enduragent-seed-afternoon-ride"])
+		#expect(outcome.kept == held.map(\.externalID))
+		#expect(outcome.rated == ["enduragent-seed-afternoon-ride"])
+		#expect(await account.deleted.isEmpty)
+		#expect(await account.wellnessWrites.isEmpty)
+		#expect(outcome.wellnessKept == LiveSeedPlan.days)
+		#expect(seeder.ledger.athlete == "i1001")
+		#expect(seeder.ledger.activities.count == plan.activities.count)
 	}
 
 	@Test func unseedDeletesOnlyTheLedgerIDsAndClearsOnlyTheValuesTheSeedStillHolds()

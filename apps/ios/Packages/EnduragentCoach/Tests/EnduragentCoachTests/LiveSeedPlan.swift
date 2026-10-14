@@ -200,6 +200,13 @@ struct LiveSeedPlan: Sendable {
 					SeedBlock(minutes: 5, 0.7, 0.6),
 				], recordsPower: false, feel: 3, rpe: 6),
 			SeedActivity(
+				key: "afternoon-ride", title: "Afternoon recovery spin", sport: .ride,
+				start: SeedStart(anchor.adding(days: -4), 16, 0),
+				blocks: [
+					SeedBlock(minutes: 5, 0.5, 0.6), SeedBlock(minutes: 30, 0.6),
+					SeedBlock(minutes: 5, 0.55, 0.45),
+				], feel: 3, rpe: 2),
+			SeedActivity(
 				key: "threshold", title: "Threshold 3 × 10 min", sport: .ride,
 				start: SeedStart(anchor.adding(days: -2), 17, 30),
 				blocks: [

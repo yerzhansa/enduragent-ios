@@ -100,38 +100,52 @@ import Testing
 
 	@Test(arguments: [
 		AmbiguousReviewCase(
-			"a Wednesday after a Monday ride and three rides the week before",
-			today: "2026-10-14",
-			activities: [
-				.recorded("i1001", "Easy spin", on: "2026-10-08", at: 6 * 3_600 + 45 * 60),
-				.recorded("i1002", "Endurance", on: "2026-10-09", at: 7 * 3_600),
-				.recorded("i1003", "Openers", on: "2026-10-10", at: 8 * 3_600),
-				.recorded("i1004", "Run off the bike", sport: "Run", on: "2026-10-10", at: 30_300),
-				.recorded("i1005", "Threshold", on: "2026-10-12", at: 17 * 3_600 + 30 * 60),
-			],
-			asks: "/review my ride from Thursday 8 October to Monday 12 October",
-			answers: "The \"Openers\" on Saturday 10 October at 08:00.", chosen: "i1003"),
+			"the seeded account on Wednesday 14 October", today: "2026-10-14",
+			activities: AmbiguousReviewCase.seeded(anchor: "2026-10-14"),
+			asks: "/review my ride on Saturday 10 October",
+			answers: "The \"[synthetic] Afternoon recovery spin\" on Saturday 10 October at 16:00.",
+			chosen: "i4024"),
 		AmbiguousReviewCase(
-			"a Sunday with a ride eight days back left out",
+			"a Sunday with a ride and a virtual ride on one day, and rides 20 minutes apart later",
 			today: "2026-10-18",
 			activities: [
-				.recorded("i2001", "Too old", on: "2026-10-11", at: 9 * 3_600),
-				.recorded("i2002", "Tempo", on: "2026-10-13", at: 18 * 3_600),
-				.recorded("i2003", nil, sport: "VirtualRide", on: "2026-10-17"),
+				.recorded("i2001", "Commute in", on: "2026-10-13", at: 8 * 3_600),
+				.recorded(
+					"i2002", "Zwift race", sport: "VirtualRide", on: "2026-10-13", at: 19 * 3_600),
+				.recorded("i2003", "Group ride", on: "2026-10-16", at: 7 * 3_600),
+				.recorded("i2004", "Coffee spin", on: "2026-10-16", at: 7 * 3_600 + 20 * 60),
+				.recorded("i2005", "Easy run", sport: "Run", on: "2026-10-17", at: 6 * 3_600),
+				.recorded("i2006", "Strides", sport: "Run", on: "2026-10-17", at: 18 * 3_600),
 			],
-			asks: "/review my ride from Tuesday 13 October to Saturday 17 October",
-			answers: "The \"Tempo\" on Tuesday 13 October at 18:00.", chosen: "i2002"),
+			asks: "/review my ride on Tuesday 13 October",
+			answers: "The \"Zwift race\" on Tuesday 13 October at 19:00.", chosen: "i2002"),
 		AmbiguousReviewCase(
-			"two rides on one day and one eight days back",
+			"two rides 31 minutes apart", today: "2026-10-14",
+			activities: [
+				.recorded("i3001", "Commute in", on: "2026-10-13", at: 8 * 3_600),
+				.recorded("i3002", "Errand", on: "2026-10-13", at: 8 * 3_600 + 31 * 60),
+			],
+			asks: "/review my ride on Tuesday 13 October",
+			answers: "The \"Errand\" on Tuesday 13 October at 08:31.", chosen: "i3002"),
+		AmbiguousReviewCase(
+			"rides on separate days, a ride and run linking two rides, rides 30 minutes apart, untimed rides, and a pair eight days back",
 			today: "2026-10-14",
 			activities: [
-				.recorded("i3001", "Too old", on: "2026-10-07", at: 9 * 3_600),
-				.recorded("i3002", "Commute in", on: "2026-10-13", at: 8 * 3_600),
-				.recorded("i3003", "Commute home", on: "2026-10-13", at: 18 * 3_600),
+				.recorded("i4001", "Too old", on: "2026-10-07", at: 8 * 3_600),
+				.recorded("i4002", "Too old too", on: "2026-10-07", at: 18 * 3_600),
+				.recorded("i4003", "Untimed", on: "2026-10-09"),
+				.recorded("i4004", "Untimed too", on: "2026-10-09"),
+				.recorded("i4005", "Brick ride", on: "2026-10-11", at: 7 * 3_600),
+				.recorded(
+					"i4006", "Brick run", sport: "Run", on: "2026-10-11", at: 7 * 3_600 + 25 * 60),
+				.recorded("i4007", "Brick ride two", on: "2026-10-11", at: 7 * 3_600 + 50 * 60),
+				.recorded("i4008", "Commute in", on: "2026-10-12", at: 8 * 3_600),
+				.recorded("i4009", "Commute home", on: "2026-10-12", at: 8 * 3_600 + 30 * 60),
+				.recorded("i4010", "Endurance", on: "2026-10-13", at: 7 * 3_600),
 			],
 			asks: nil, answers: nil, chosen: nil),
 	])
-	func theAmbiguousReviewNamesASpanThatHoldsTwoActivitiesOfItsSport(
+	func theAmbiguousReviewNamesOneDayWithTwoSeparateActivitiesOfItsSport(
 		sample: AmbiguousReviewCase
 	) throws {
 		let today = try #require(CivilDate(rawValue: sample.today))
@@ -146,9 +160,7 @@ import Testing
 		guard let asks = sample.asks, let answers = sample.answers, let chosen = sample.chosen
 		else {
 			#expect(scenario == nil)
-			#expect(
-				plan.unavailable.contains(
-					"ambiguous review: no sport has activities on two days in the last 7 days"))
+			#expect(plan.unavailable.contains(LiveCoachPlan.noAmbiguousDay))
 			return
 		}
 		let turns = try #require(scenario).turns
@@ -256,5 +268,14 @@ struct AmbiguousReviewCase: Sendable, CustomTestStringConvertible {
 		self.asks = asks
 		self.answers = answers
 		self.chosen = chosen
+	}
+
+	static func seeded(anchor: CivilDate) -> [Activity] {
+		LiveSeedPlan(anchor: anchor).activities.enumerated().map { position, activity in
+			.recorded(
+				"i\(4_000 + position)", activity.name,
+				sport: activity.sport == .ride ? "Ride" : "Run", on: activity.start.date,
+				at: activity.start.secondOfDay)
+		}
 	}
 }

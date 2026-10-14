@@ -88,6 +88,8 @@ struct LiveTurnRecord: Sendable {
 
 struct LiveCoachPlan: Sendable {
 	static let implausibleFTP = 720.0
+	static let noAmbiguousDay =
+		"ambiguous review: no day in the last 7 days has two activities of one sport that start more than 30 minutes apart, with no activity in between linking them"
 
 	let scenarios: [LiveScenario]
 	let unavailable: [String]
@@ -105,8 +107,7 @@ struct LiveCoachPlan: Sendable {
 		if let ambiguous = Self.ambiguous(in: week) {
 			scenarios.append(ambiguous)
 		} else {
-			unavailable.append(
-				"ambiguous review: no sport has activities on two days in the last 7 days")
+			unavailable.append(Self.noAmbiguousDay)
 		}
 		if let pair = Self.closePair(in: newest) {
 			scenarios.append(
@@ -260,19 +261,29 @@ struct LiveCoachPlan: Sendable {
 	}
 
 	private static func ambiguous(in week: [Activity]) -> LiveScenario? {
-		let bySport = Dictionary(grouping: week) { sportWord($0) }
-		let spread = bySport.filter { Set($0.value.map(\.start.date)).count >= 2 }
-		guard let pick = spread.min(by: { $0.key < $1.key }),
-			let newest = pick.value.first, let oldest = pick.value.last
-		else { return nil }
-		let word = pick.key
-		let chosen = pick.value[1]
+		let days = Dictionary(grouping: week.filter { $0.start.secondOfDay != nil }) {
+			$0.start.date
+		}
+		let candidates = days.flatMap { date, activities in
+			let workouts = inferredWorkouts(activities)
+			return Set(activities.map(sportWord)).compactMap {
+				word -> (word: String, date: CivilDate, chosen: Activity)? in
+				let holding = workouts.filter { $0.contains { sportWord($0) == word } }
+				guard holding.count >= 2,
+					let chosen = holding.last?.last(where: { sportWord($0) == word })
+				else { return nil }
+				return (word, date, chosen)
+			}
+		}
+		guard let pick = candidates.min(by: { ($0.word, $1.date) < ($1.word, $0.date) }) else {
+			return nil
+		}
+		let chosen = pick.chosen
 		return LiveScenario(
 			name: "review-ambiguous", setting: .connected,
 			turns: [
 				LiveTurnPlan(
-					message:
-						"/review my \(word) from \(day(oldest.start.date)) to \(day(newest.start.date))",
+					message: "/review my \(pick.word) on \(day(pick.date))",
 					expectations: [
 						.neverCalls(.intervalsFetchActivity), .neverCalls(.intervalsFetchStreams),
 					]),
@@ -284,6 +295,21 @@ struct LiveCoachPlan: Sendable {
 							oneOf: [.string(chosen.id.rawValue)])
 					]),
 			])
+	}
+
+	private static func inferredWorkouts(_ activities: [Activity]) -> [[Activity]] {
+		let timed = activities.compactMap { activity in
+			activity.start.secondOfDay.map { (activity, $0) }
+		}.sorted { $0.1 < $1.1 }
+		var workouts: [[(Activity, Int)]] = []
+		for entry in timed {
+			if let previous = workouts.last?.last, entry.1 - previous.1 <= 30 * 60 {
+				workouts[workouts.count - 1].append(entry)
+			} else {
+				workouts.append([entry])
+			}
+		}
+		return workouts.map { $0.map(\.0) }
 	}
 
 	static func closePair(in activities: [Activity]) -> LocalStart? {
