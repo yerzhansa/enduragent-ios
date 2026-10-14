@@ -193,9 +193,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		do {
 			(data, response) = try await session.data(for: request)
 		} catch let error as URLError where error.code != .cancelled {
-			throw IntervalsError(
-				code: "network",
-				details: "intervals.icu could not be reached (URLError \(error.code.rawValue)).")
+			throw IntervalsError.unreachable(error)
 		}
 		guard let http = response as? HTTPURLResponse else {
 			throw IntervalsError(code: "network", details: "missing http response")

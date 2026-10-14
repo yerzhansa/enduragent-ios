@@ -16,7 +16,9 @@ package enum IntervalsSerializer {
 	private static let minZone = 1
 	private static let maxName = 120
 
-	package static func serialize(_ workout: IntervalsWorkoutInput) throws -> SerializedWorkout {
+	package static func serialize(_ workout: IntervalsWorkoutInput) throws(InvalidWorkout)
+		-> SerializedWorkout
+	{
 		try validate(workout)
 		return SerializedWorkout(
 			description: description(workout).joined(separator: "\n"),
@@ -24,9 +26,9 @@ package enum IntervalsSerializer {
 		)
 	}
 
-	package static func validate(_ workout: IntervalsWorkoutInput) throws {
+	package static func validate(_ workout: IntervalsWorkoutInput) throws(InvalidWorkout) {
 		try validateSchema(workout)
-		try workout.steps.enumerated().forEach { index, step in
+		for (index, step) in workout.steps.enumerated() {
 			try preValidate(step, path: "steps[\(index)]")
 		}
 	}
@@ -50,7 +52,9 @@ package enum IntervalsSerializer {
 		ChatExternalID(date: date, slug: slug(date: date, name: name))
 	}
 
-	package static func parseWorkout(_ json: JSONValue) throws -> IntervalsWorkoutInput {
+	package static func parseWorkout(_ json: JSONValue) throws(InvalidWorkout)
+		-> IntervalsWorkoutInput
+	{
 		let fields = json.objectFields
 		guard let name = fields["name"]?.stringValue else {
 			throw InvalidWorkout(message: "name: Required")
@@ -58,13 +62,13 @@ package enum IntervalsSerializer {
 		guard let stepsJSON = fields["steps"]?.arrayValue else {
 			throw InvalidWorkout(message: "steps: Required")
 		}
-		let steps = try stepsJSON.enumerated().map { index, value in
+		let steps = try stepsJSON.enumerated().map { (index, value) throws(InvalidWorkout) in
 			try parseStep(value, path: "steps[\(index)]")
 		}
 		return IntervalsWorkoutInput(name: name, steps: steps)
 	}
 
-	private static func validateSchema(_ workout: IntervalsWorkoutInput) throws {
+	private static func validateSchema(_ workout: IntervalsWorkoutInput) throws(InvalidWorkout) {
 		if workout.name.isEmpty || workout.name.count > maxName {
 			throw InvalidWorkout(
 				message: "name: String must contain at most \(maxName) character(s)")
@@ -88,7 +92,7 @@ package enum IntervalsSerializer {
 		}
 	}
 
-	private static func preValidate(_ step: WorkoutStep, path: String) throws {
+	private static func preValidate(_ step: WorkoutStep, path: String) throws(InvalidWorkout) {
 		switch step {
 		case .set(let set):
 			try preValidate(.simple(set.interval), path: "\(path).interval")
@@ -122,8 +126,10 @@ package enum IntervalsSerializer {
 		}
 	}
 
-	private static func validatePowerBounds(_ power: PowerTarget, path: String) throws {
-		func check(_ value: Double?, name: String) throws {
+	private static func validatePowerBounds(_ power: PowerTarget, path: String)
+		throws(InvalidWorkout)
+	{
+		func check(_ value: Double?, name: String) throws(InvalidWorkout) {
 			guard let value else { return }
 			if power.kind == .watts, value > Double(maxWatts) {
 				throw InvalidWorkout(
@@ -143,7 +149,8 @@ package enum IntervalsSerializer {
 		try check(power.high, name: "high")
 	}
 
-	private static func validatePowerShape(_ power: PowerTarget, isRamp: Bool, path: String) throws
+	private static func validatePowerShape(_ power: PowerTarget, isRamp: Bool, path: String)
+		throws(InvalidWorkout)
 	{
 		let hasRange = power.low != nil && power.high != nil
 		if isRamp && !hasRange {
@@ -168,7 +175,9 @@ package enum IntervalsSerializer {
 		}
 	}
 
-	private static func validateCadenceShape(_ cadence: CadenceTarget, path: String) throws {
+	private static func validateCadenceShape(_ cadence: CadenceTarget, path: String)
+		throws(InvalidWorkout)
+	{
 		let hasLow = cadence.low != nil
 		let hasHigh = cadence.high != nil
 		if hasLow != hasHigh {
@@ -188,7 +197,7 @@ package enum IntervalsSerializer {
 		duration.unit == .seconds ? duration.value : duration.value * 60
 	}
 
-	private static func totalSeconds(_ steps: [WorkoutStep]) throws -> Int {
+	private static func totalSeconds(_ steps: [WorkoutStep]) throws(InvalidWorkout) -> Int {
 		var total = 0.0
 		func visit(_ step: WorkoutStep, multiplier: Double) {
 			switch step {
@@ -208,7 +217,7 @@ package enum IntervalsSerializer {
 		return seconds
 	}
 
-	private static func assertZone(_ value: Double, path: String) throws {
+	private static func assertZone(_ value: Double, path: String) throws(InvalidWorkout) {
 		let integer = value.rounded() == value
 		if !integer || value < Double(minZone) || value > Double(maxZone) {
 			throw InvalidWorkout(
@@ -218,7 +227,9 @@ package enum IntervalsSerializer {
 		}
 	}
 
-	private static func parseStep(_ json: JSONValue, path: String) throws -> WorkoutStep {
+	private static func parseStep(_ json: JSONValue, path: String) throws(InvalidWorkout)
+		-> WorkoutStep
+	{
 		let fields = json.objectFields
 		let type = fields["type"]?.stringValue
 		if type == "set" {
@@ -243,7 +254,9 @@ package enum IntervalsSerializer {
 		return .simple(try parseSimple(json, path: path))
 	}
 
-	private static func parseSimple(_ json: JSONValue, path: String) throws -> SimpleStep {
+	private static func parseSimple(_ json: JSONValue, path: String) throws(InvalidWorkout)
+		-> SimpleStep
+	{
 		let fields = json.objectFields
 		guard let typeRaw = fields["type"]?.stringValue, let type = StepType(rawValue: typeRaw),
 			type != .set
@@ -256,13 +269,19 @@ package enum IntervalsSerializer {
 		return SimpleStep(
 			type: type,
 			duration: try parseDuration(durationJSON, path: "\(path).duration"),
-			power: try fields["power"].map { try parsePower($0, path: "\(path).power") },
-			cadence: try fields["cadence"].map { try parseCadence($0, path: "\(path).cadence") },
+			power: try fields["power"].map { (json) throws(InvalidWorkout) in
+				try parsePower(json, path: "\(path).power")
+			},
+			cadence: try fields["cadence"].map { (json) throws(InvalidWorkout) in
+				try parseCadence(json, path: "\(path).cadence")
+			},
 			label: fields["label"]?.stringValue
 		)
 	}
 
-	private static func parseDuration(_ json: JSONValue, path: String) throws -> DurationInput {
+	private static func parseDuration(_ json: JSONValue, path: String) throws(InvalidWorkout)
+		-> DurationInput
+	{
 		let fields = json.objectFields
 		guard let value = fields["value"]?.numberValue else {
 			throw InvalidWorkout(message: "\(path).value: Required")
@@ -275,7 +294,9 @@ package enum IntervalsSerializer {
 		return DurationInput(value: value, unit: unit)
 	}
 
-	private static func parsePower(_ json: JSONValue, path: String) throws -> PowerTarget {
+	private static func parsePower(_ json: JSONValue, path: String) throws(InvalidWorkout)
+		-> PowerTarget
+	{
 		let fields = json.objectFields
 		guard let kindRaw = fields["kind"]?.stringValue, let kind = PowerKind(rawValue: kindRaw)
 		else {
@@ -289,7 +310,9 @@ package enum IntervalsSerializer {
 		)
 	}
 
-	private static func parseCadence(_ json: JSONValue, path: String) throws -> CadenceTarget {
+	private static func parseCadence(_ json: JSONValue, path: String) throws(InvalidWorkout)
+		-> CadenceTarget
+	{
 		_ = path
 		let fields = json.objectFields
 		let target = fields["target"]?.intValue() ?? fields["value"]?.intValue()

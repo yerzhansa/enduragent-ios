@@ -7,9 +7,9 @@ package enum DisplayZones {
 		package var overlaps: Bool
 	}
 
-	package static func table(ftpWatts: Int) throws -> [Row] {
+	package static func table(ftpWatts: Int) throws(ToolInputError) -> [Row] {
 		guard IntervalsPolicy.ftpRange.contains(ftpWatts) else {
-			throw IntervalsError(
+			throw ToolInputError(
 				code: "invalid_ftp",
 				details: "FTP must be between 50 and 600 watts."
 			)

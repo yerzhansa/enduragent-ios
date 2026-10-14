@@ -170,7 +170,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		#if DEBUG
 			if loseCalendarSaveAnswerOnce {
 				loseCalendarSaveAnswerOnce = false
-				throw URLError(.timedOut)
+				throw IntervalsError.unreachable(URLError(.timedOut))
 			}
 		#endif
 		return event
@@ -180,7 +180,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		private func consumeCalendarReadFault() throws {
 			if failCalendarReadOnce {
 				failCalendarReadOnce = false
-				throw URLError(.notConnectedToInternet)
+				throw IntervalsError.unreachable(URLError(.notConnectedToInternet))
 			}
 		}
 	#endif

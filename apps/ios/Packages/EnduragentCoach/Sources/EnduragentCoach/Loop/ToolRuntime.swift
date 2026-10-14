@@ -89,6 +89,15 @@ package struct ToolRuntime: Sendable {
 	}
 }
 
+package struct ToolInputError: Error, Sendable, Equatable {
+	let code: String
+	let details: String
+
+	var json: JSONValue {
+		.object(["error": .string(code), "details": .string(details)])
+	}
+}
+
 enum ToolResultCap {
 	private static let narrowingArguments: [(parameter: String, advice: String)] = [
 		("oldest", "a smaller date range"), ("types", "fewer stream types"),

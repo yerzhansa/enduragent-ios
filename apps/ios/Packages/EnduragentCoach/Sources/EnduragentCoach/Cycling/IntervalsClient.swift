@@ -135,6 +135,12 @@ public struct IntervalsError: Error, Sendable, Equatable {
 		}
 		return .object(fields)
 	}
+
+	package static func unreachable(_ error: URLError) -> IntervalsError {
+		IntervalsError(
+			code: "network",
+			details: "intervals.icu could not be reached (URLError \(error.code.rawValue)).")
+	}
 }
 
 package enum IntervalsPolicy {
@@ -196,9 +202,11 @@ package enum IntervalsPolicy {
 		return false
 	}
 
-	package static func rejectPastCreationDate(_ date: CivilDate, today: CivilDate) throws {
+	package static func rejectPastCreationDate(_ date: CivilDate, today: CivilDate)
+		throws(ToolInputError)
+	{
 		if date < today {
-			throw IntervalsError(
+			throw ToolInputError(
 				code: "past_date_refused",
 				details:
 					"Cannot create a workout dated \(date.rawValue) — it's before today (\(today.rawValue)). Use today's date or later."

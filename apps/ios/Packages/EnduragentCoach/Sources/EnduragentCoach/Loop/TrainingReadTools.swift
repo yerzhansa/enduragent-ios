@@ -217,15 +217,6 @@ extension WellnessField {
 	}
 }
 
-struct ToolInputError: Error, Equatable {
-	let code: String
-	let details: String
-
-	var json: JSONValue {
-		.object(["error": .string(code), "details": .string(details)])
-	}
-}
-
 extension JSONValue {
 	func readRange(today: CivilDate) throws(ToolInputError) -> ReadRange {
 		let fields = objectFields

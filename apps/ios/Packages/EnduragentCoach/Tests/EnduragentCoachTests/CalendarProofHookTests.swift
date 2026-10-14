@@ -26,7 +26,10 @@ import Testing
 		let client = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let approval = draft()
 		client.loseCalendarSaveAnswerOnce = true
-		await #expect(throws: URLError(.timedOut)) {
+		await #expect(
+			throws: IntervalsError(
+				code: "network", details: "intervals.icu could not be reached (URLError -1001).")
+		) {
 			_ = try await client.createChatEvent(approval)
 		}
 		let stored = try await client.listEvents(oldest: approval.date, newest: approval.date)
@@ -57,7 +60,10 @@ import Testing
 		#expect(
 			try await client.streams(of: activity, channels: .standard).unanswered
 				== StreamChannels.standard.names)
-		await #expect(throws: URLError(.notConnectedToInternet)) {
+		await #expect(
+			throws: IntervalsError(
+				code: "network", details: "intervals.icu could not be reached (URLError -1009).")
+		) {
 			if fetchFirst {
 				_ = try await client.fetchEvent(id: event.id)
 			} else {

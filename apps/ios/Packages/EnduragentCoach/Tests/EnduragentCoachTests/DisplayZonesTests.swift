@@ -10,10 +10,10 @@ struct DisplayZonesTests {
 	let store = InMemoryRecordLog()
 
 	@Test func ftpOutsideRangeThrows() {
-		#expect(throws: IntervalsError.self) {
+		#expect(throws: ToolInputError.self) {
 			_ = try DisplayZones.table(ftpWatts: 49)
 		}
-		#expect(throws: IntervalsError.self) {
+		#expect(throws: ToolInputError.self) {
 			_ = try DisplayZones.table(ftpWatts: 601)
 		}
 	}
