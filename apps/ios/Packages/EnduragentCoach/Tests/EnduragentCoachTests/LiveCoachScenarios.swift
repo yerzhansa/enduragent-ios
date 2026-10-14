@@ -105,7 +105,8 @@ struct LiveCoachPlan: Sendable {
 		if let ambiguous = Self.ambiguous(in: week) {
 			scenarios.append(ambiguous)
 		} else {
-			unavailable.append("ambiguous review: fewer than two activities of one sport in 7 days")
+			unavailable.append(
+				"ambiguous review: no sport has activities on two days in the last 7 days")
 		}
 		if let pair = Self.closePair(in: newest) {
 			scenarios.append(
@@ -260,16 +261,18 @@ struct LiveCoachPlan: Sendable {
 
 	private static func ambiguous(in week: [Activity]) -> LiveScenario? {
 		let bySport = Dictionary(grouping: week) { sportWord($0) }
-		guard let pick = bySport.filter({ $0.value.count >= 2 }).min(by: { $0.key < $1.key }) else {
-			return nil
-		}
+		let spread = bySport.filter { Set($0.value.map(\.start.date)).count >= 2 }
+		guard let pick = spread.min(by: { $0.key < $1.key }),
+			let newest = pick.value.first, let oldest = pick.value.last
+		else { return nil }
 		let word = pick.key
 		let chosen = pick.value[1]
 		return LiveScenario(
 			name: "review-ambiguous", setting: .connected,
 			turns: [
 				LiveTurnPlan(
-					message: "/review my \(word) this week",
+					message:
+						"/review my \(word) from \(day(oldest.start.date)) to \(day(newest.start.date))",
 					expectations: [
 						.neverCalls(.intervalsFetchActivity), .neverCalls(.intervalsFetchStreams),
 					]),

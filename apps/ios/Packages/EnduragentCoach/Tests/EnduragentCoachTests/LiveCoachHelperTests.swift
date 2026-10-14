@@ -66,6 +66,68 @@ import Testing
 				== plan.unavailable.map { "not available, so not covered: \($0)" })
 	}
 
+	@Test(arguments: [
+		AmbiguousReviewCase(
+			"a Wednesday after a Monday ride and three rides the week before",
+			today: "2026-10-14",
+			activities: [
+				.recorded("i1001", "Easy spin", on: "2026-10-08", at: 6 * 3_600 + 45 * 60),
+				.recorded("i1002", "Endurance", on: "2026-10-09", at: 7 * 3_600),
+				.recorded("i1003", "Openers", on: "2026-10-10", at: 8 * 3_600),
+				.recorded("i1004", "Run off the bike", sport: "Run", on: "2026-10-10", at: 30_300),
+				.recorded("i1005", "Threshold", on: "2026-10-12", at: 17 * 3_600 + 30 * 60),
+			],
+			asks: "/review my ride from Thursday 8 October to Monday 12 October",
+			answers: "The \"Openers\" on Saturday 10 October at 08:00.", chosen: "i1003"),
+		AmbiguousReviewCase(
+			"a Sunday with a ride eight days back left out",
+			today: "2026-10-18",
+			activities: [
+				.recorded("i2001", "Too old", on: "2026-10-11", at: 9 * 3_600),
+				.recorded("i2002", "Tempo", on: "2026-10-13", at: 18 * 3_600),
+				.recorded("i2003", nil, sport: "VirtualRide", on: "2026-10-17"),
+			],
+			asks: "/review my ride from Tuesday 13 October to Saturday 17 October",
+			answers: "The \"Tempo\" on Tuesday 13 October at 18:00.", chosen: "i2002"),
+		AmbiguousReviewCase(
+			"two rides on one day and one eight days back",
+			today: "2026-10-14",
+			activities: [
+				.recorded("i3001", "Too old", on: "2026-10-07", at: 9 * 3_600),
+				.recorded("i3002", "Commute in", on: "2026-10-13", at: 8 * 3_600),
+				.recorded("i3003", "Commute home", on: "2026-10-13", at: 18 * 3_600),
+			],
+			asks: nil, answers: nil, chosen: nil),
+	])
+	func theAmbiguousReviewNamesASpanThatHoldsTwoActivitiesOfItsSport(
+		sample: AmbiguousReviewCase
+	) throws {
+		let today = try #require(CivilDate(rawValue: sample.today))
+		let plan = LiveCoachPlan(
+			listing: ActivityListing(
+				range: try ReadRange(oldest: today.adding(days: -29), newest: today, today: today),
+				rows: sample.activities.map(ActivityRow.activity)),
+			today: today)
+
+		let scenario = plan.scenarios.first { $0.name == "review-ambiguous" }
+
+		guard let asks = sample.asks, let answers = sample.answers, let chosen = sample.chosen
+		else {
+			#expect(scenario == nil)
+			#expect(
+				plan.unavailable.contains(
+					"ambiguous review: no sport has activities on two days in the last 7 days"))
+			return
+		}
+		let turns = try #require(scenario).turns
+		#expect(turns.map(\.message) == [asks, answers])
+		#expect(turns.first?.expectations.contains(.neverCalls(.intervalsFetchActivity)) == true)
+		#expect(
+			turns.last?.expectations.last
+				== .callsWith(
+					.intervalsFetchActivity, argument: "activityId", oneOf: [.string(chosen)]))
+	}
+
 	@Test func aConnectedTurnAnsweredOnTheFallbackSnapshotFails() throws {
 		let plan = try Self.planForAnEmptyAccount()
 		let status = try #require(plan.scenarios.first { $0.name == "status" })
@@ -141,5 +203,26 @@ import Testing
 		#expect(run.violations.isEmpty)
 		#expect(run.turns.map(\.outcome) == ["completed"])
 		#expect(run.turns.first?.reply == "Ride easy today.")
+	}
+}
+
+struct AmbiguousReviewCase: Sendable, CustomTestStringConvertible {
+	let testDescription: String
+	let today: String
+	let activities: [Activity]
+	let asks: String?
+	let answers: String?
+	let chosen: String?
+
+	init(
+		_ testDescription: String, today: String, activities: [Activity], asks: String?,
+		answers: String?, chosen: String?
+	) {
+		self.testDescription = testDescription
+		self.today = today
+		self.activities = activities
+		self.asks = asks
+		self.answers = answers
+		self.chosen = chosen
 	}
 }
