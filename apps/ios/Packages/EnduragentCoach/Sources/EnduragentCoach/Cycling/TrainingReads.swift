@@ -131,12 +131,12 @@ package enum OneDecimal {
 	}
 }
 
-package enum ProfileField: Hashable, Sendable, CaseIterable {
+package enum ProfileField: String, Hashable, Sendable, CaseIterable {
 	case lthr
 	case maxHeartRate
 	case restingHeartRate
 	case weight
-	case indoorFTP
+	case indoorFTP = "indoorFtp"
 	case wPrime
 	case maxPower
 	case sweetSpotMin
@@ -181,7 +181,7 @@ package struct AthleteProfile: Sendable, Equatable {
 	}
 }
 
-package enum WellnessField: Hashable, Sendable, CaseIterable {
+package enum WellnessField: String, Hashable, Sendable, CaseIterable {
 	case fitness
 	case fatigue
 	case rampRate

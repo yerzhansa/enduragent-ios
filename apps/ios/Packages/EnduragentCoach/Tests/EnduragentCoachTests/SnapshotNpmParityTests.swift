@@ -19,7 +19,7 @@ extension IntervalsRESTClientTests {
 				}
 
 				#expect(
-					snapshot.promptSection == sample.phone ?? sample.npm,
+					PromptAssembly.snapshotSection(snapshot) == sample.phone ?? sample.npm,
 					"\(sample.name)")
 				if let difference = sample.difference {
 					#expect((2...6).contains(difference), "\(sample.name)")
@@ -53,7 +53,7 @@ extension IntervalsRESTClientTests {
 			) { _ in (status, Data(#"{"error":"Unauthorized"}"#.utf8)) }
 
 			#expect(snapshot == .unavailable(.nothingUsable))
-			#expect(snapshot.promptSection == PromptStaticBlocks.snapshotFallback)
+			#expect(PromptAssembly.snapshotSection(snapshot) == PromptStaticBlocks.snapshotFallback)
 			#expect(
 				diagnostics.entries.map(\.event) == [
 					.snapshotReadFailed(attempt, .profile, .credentialRejected),

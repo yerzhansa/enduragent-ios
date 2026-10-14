@@ -51,12 +51,29 @@ package enum PromptAssembly {
 	) -> String {
 		var parts: [String] = [
 			"# Athlete Context\n\n" + wrapAthleteContext(context),
-			snapshot.promptSection,
+			snapshotSection(snapshot),
 		]
 		parts.append("# Current Date & Time\n\nTime zone: \(timeZoneName)")
 		parts.append(replyLanguageSection(displayLocale.language))
 		parts.append(displayLocale.formattingInstruction)
 		return parts.joined(separator: sectionSeparator)
+	}
+
+	package static func snapshotSection(_ snapshot: TrainingSnapshot) -> String {
+		switch snapshot {
+		case .notConnected:
+			return PromptStaticBlocks.snapshotNotConnected
+		case .unavailable:
+			return PromptStaticBlocks.snapshotFallback
+		case .available(let lines):
+			var section =
+				PromptStaticBlocks.snapshotHeading + "\n\n" + lines.text + "\n"
+				+ PromptStaticBlocks.snapshotGuidance
+			if case .implausible? = lines.profile?.ftp {
+				section += "\n" + PromptStaticBlocks.snapshotQualitativeFTP
+			}
+			return section
+		}
 	}
 
 	package static func wrapAthleteContext(

@@ -18,23 +18,6 @@ package enum TrainingSnapshot: Sendable, Equatable {
 				wellness: wellness.flatMap { WellnessLine(latestOf: $0, in: lookback) }
 			).map(Self.available) ?? .unavailable(.nothingUsable)
 	}
-
-	package var promptSection: String {
-		switch self {
-		case .notConnected:
-			return PromptStaticBlocks.snapshotNotConnected
-		case .unavailable:
-			return PromptStaticBlocks.snapshotFallback
-		case .available(let lines):
-			var section =
-				PromptStaticBlocks.snapshotHeading + "\n\n" + lines.text + "\n"
-				+ PromptStaticBlocks.snapshotGuidance
-			if case .implausible? = lines.profile?.ftp {
-				section += "\n" + PromptStaticBlocks.snapshotQualitativeFTP
-			}
-			return section
-		}
-	}
 }
 
 package enum SnapshotGap: Sendable, Equatable {
@@ -57,7 +40,7 @@ package struct SnapshotLines: Sendable, Equatable {
 		self.wellness = wellness
 	}
 
-	fileprivate var text: String {
+	var text: String {
 		[profile?.text, wellness?.text].compactMap { $0 }.joined(separator: "\n")
 	}
 }
@@ -87,7 +70,9 @@ package struct ProfileLine: Sendable, Equatable {
 		}
 		for field in ProfileField.allCases {
 			guard let value = shown[field], let label = field.label else { continue }
-			parts.append("\(label) \(SnapshotNumber.text(value)) \(field.unit)")
+			parts.append(
+				[label, SnapshotNumber.text(value), field.unit].compactMap { $0 }.joined(
+					separator: " "))
 		}
 		return "Profile: " + parts.joined(separator: SnapshotNumber.separator)
 	}
