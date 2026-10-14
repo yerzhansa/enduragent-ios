@@ -14,7 +14,7 @@ LIVE_SPEND := awk -F '\t' 'NR > 1 { total = $$8 } END { printf "Model spend tota
 LIVE_CHECK := env -u OPENROUTER_API_KEY -u INTERVALS_API_KEY ENDURAGENT_LIVE_LOGS="$(LIVE_LOGS)"
 IPHONE_SIMULATOR := xcodebuild -project $(APP_PROJECT) -scheme Enduragent -showdestinations | awk '/Available destinations for/ { available = 1; next } /Ineligible destinations for/ { available = 0 } available && /platform:iOS Simulator/ && /name:iPhone/ { sub(/^.*id:/, ""); sub(/,.*/, ""); print; exit }'
 
-.PHONY: project generate-catalogs check-catalogs check-source check-coverage lint-swift format-swift check-format test-tools test-swift test-app live-reads live-coach
+.PHONY: project generate-catalogs check-catalogs check-source check-coverage lint-swift format-swift check-format test-tools test-swift test-app live-reads live-coach live-seed live-unseed
 
 project:
 	$(AT_ROOT) xcodegen generate --spec apps/ios/project.yml
@@ -56,3 +56,9 @@ live-coach:
 	$(AT_ROOT) status=0; $(LIVE_CHECK) ENDURAGENT_LIVE=coach swift test --package-path $(COACH) --filter LiveCoachCheck $(ARGS) || status=$$?; \
 	if [ -f "$(LIVE_LOGS)/spend.tsv" ]; then $(LIVE_SPEND) "$(LIVE_LOGS)/spend.tsv"; fi; \
 	exit $$status
+
+live-seed:
+	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=seed swift test --package-path $(COACH) --filter LiveSeedCheck $(ARGS)
+
+live-unseed:
+	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=unseed swift test --package-path $(COACH) --filter LiveSeedCheck $(ARGS)
