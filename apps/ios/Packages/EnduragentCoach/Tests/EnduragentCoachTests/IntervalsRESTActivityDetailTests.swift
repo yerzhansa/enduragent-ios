@@ -17,11 +17,11 @@ extension IntervalsRESTClientTests {
 		let asked = try id("i1234567")
 		let read = try await makeClient().activity(asked)
 		let row = Activity.recorded(
-			"i1234567", "Sunday long ride", on: "1998-06-07", at: 8 * 3_600,
+			"i1234567", "Sunday long ride", on: "1998-06-07", at: 8 * 3_600, ftp: 250,
 			[
 				.duration: 7_200, .distance: 62_400.5, .load: 120, .intensity: 78.5,
 				.averagePower: 172, .weightedPower: 196, .averageHeartRate: 141,
-				.maxHeartRate: 173, .ftp: 250, .elevationGain: 640.5,
+				.maxHeartRate: 173, .elevationGain: 640.5,
 			])
 		let extras = ActivityDetailExtras(
 			notes: "Legs felt heavy on the last climb.", indoor: false,
@@ -135,8 +135,9 @@ extension IntervalsRESTClientTests {
 		#"{"id":"17654332","start_date_local":"1998-06-09T09:00:00","source":"STRAVA","_note":"hidden"}"#,
 		#"{"id":17654332,"start_date_local":"1998-06-09T09:00:00","source":"STRAVA","type":"Ride","moving_time":600}"#,
 		#"{"id":"17654332","source":"STRAVA"}"#,
+		#"{"id":"17654332","source":"UPLOAD","type":"Ride"}"#,
 	])
-	func hiddenAnswerForAnotherIdentifierIsRefusedAsAMismatch(body: String) async throws {
+	func answerForAnotherIdentifierIsAMismatchWhateverItsShape(body: String) async throws {
 		let client = try makeClient()
 		IntervalsURLProtocolStub.handler = { _ in (200, Data(body.utf8)) }
 		await #expect(throws: IntervalsError.activityMismatch(asked: try id("17654331"))) {

@@ -73,7 +73,8 @@ enum CalendarCall: CaseIterable, Sendable {
 		let event = EventID(rawValue: 42)
 		switch self {
 		case .list:
-			_ = try await client.listEvents(oldest: "1998-06-14", newest: "1998-06-20")
+			_ = try await client.listEvents(
+				in: ReadRange(oldest: "1998-06-14", newest: "1998-06-20", today: "1998-06-13"))
 		case .fetch:
 			_ = try await client.fetchEvent(id: event)
 		case .create:

@@ -172,13 +172,15 @@ import Testing
 	}
 
 	@Test func readFinishedBeforeAMissedDeadlineStillGivesNoLines() async throws {
+		let diagnostics = DiagnosticsLog(clock: clock)
 		let reader = TrainingSnapshotReader(
-			clock: clock, deadlineSleep: watchdog.sleep, diagnostics: DiagnosticsLog(clock: clock))
+			clock: clock, deadlineSleep: watchdog.sleep, diagnostics: diagnostics)
 		let wellness = intervals.hold(.wellness)
 		let connection = connection()
+		let attempt = AttemptID(ulid: fixedUlid(1))
 
 		let reading = Task {
-			try await reader.snapshot(for: connection, attempt: AttemptID(ulid: fixedUlid(1)))
+			try await reader.snapshot(for: connection, attempt: attempt)
 		}
 		defer { reading.cancel() }
 		try #require(try await entered(wellness))
@@ -188,7 +190,8 @@ import Testing
 		let missed = try await beforeDeadline(within: .hangGuard, onTimeout: { reading.cancel() }) {
 			try await reading.value
 		}
-		#expect(missed == .unavailable(.deadlineMissed))
+		#expect(missed == .unavailable)
+		#expect(diagnostics.entries.map(\.event) == [.snapshotDeadlineMissed(attempt)])
 		#expect(intervals.count(of: .profile) == 1)
 	}
 

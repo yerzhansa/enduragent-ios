@@ -10,7 +10,7 @@ import Testing
 		let approval = draft()
 		let first = try await client.createChatEvent(approval)
 		let second = try await client.createChatEvent(approval)
-		let events = try await client.listEvents(oldest: approval.date, newest: approval.date)
+		let events = try await client.listEvents(in: .day(approval.date))
 		try #require(events.count == 1)
 		let event = try #require(events.first)
 		#expect(first.id == second.id)
@@ -32,7 +32,7 @@ import Testing
 		) {
 			_ = try await client.createChatEvent(approval)
 		}
-		let stored = try await client.listEvents(oldest: approval.date, newest: approval.date)
+		let stored = try await client.listEvents(in: .day(approval.date))
 		try #require(stored.count == 1)
 		let event = try #require(stored.first)
 		#expect(approval.matches(event))
@@ -42,7 +42,7 @@ import Testing
 		#expect(event.coachCreated)
 		let repeated = try await client.createChatEvent(approval)
 		#expect(repeated == event)
-		#expect(try await client.listEvents(oldest: approval.date, newest: approval.date) == stored)
+		#expect(try await client.listEvents(in: .day(approval.date)) == stored)
 	}
 
 	@Test(arguments: [false, true])
@@ -58,8 +58,8 @@ import Testing
 		let activity = try #require(ActivityID(rawValue: "42"))
 		#expect(try await client.activity(activity) == .notFound)
 		#expect(
-			try await client.streams(of: activity, channels: .standard).unanswered
-				== StreamChannels.standard.names)
+			try await client.streams(of: activity, channels: .standard).gaps
+				== [.unanswered: StreamChannels.standard.names])
 		await #expect(
 			throws: IntervalsError(
 				code: "network", details: "intervals.icu could not be reached (URLError -1009).")
@@ -67,12 +67,12 @@ import Testing
 			if fetchFirst {
 				_ = try await client.fetchEvent(id: event.id)
 			} else {
-				_ = try await client.listEvents(oldest: approval.date, newest: approval.date)
+				_ = try await client.listEvents(in: .day(approval.date))
 			}
 		}
 		#expect(try await client.fetchEvent(id: event.id) == event)
 		#expect(
-			try await client.listEvents(oldest: approval.date, newest: approval.date) == [event])
+			try await client.listEvents(in: .day(approval.date)) == [event])
 	}
 
 	private func draft() -> ChatCalendarCreate {

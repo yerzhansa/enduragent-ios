@@ -60,11 +60,8 @@ extension CoachReadout {
 					])
 				}),
 		]
-		for (key, names) in [
-			("unanswered", summary.unanswered), ("unknown", summary.unknown),
-			("unread", summary.unread),
-		] where !names.isEmpty {
-			result[key] = .array(names.map(JSONValue.string))
+		for (gap, names) in summary.gaps {
+			result[gap.rawValue] = .array(names.map(JSONValue.string))
 		}
 		return .object(result)
 	}
@@ -148,6 +145,10 @@ extension CoachReadout {
 		if let name = activity.name { fields["name"] = .string(name) }
 		if let sport = activity.sport { fields["sport"] = .string(sport) }
 		write(activity.readings, to: &fields, units: &units)
+		if let ftp = activity.ftp {
+			fields["ftp"] = .number(ftp)
+			units["ftp"] = .string("W")
+		}
 		return .object(fields)
 	}
 
@@ -189,7 +190,6 @@ extension ActivityField: ReadoutMeasurement {
 		case .weightedPower: "weightedPower"
 		case .averageHeartRate: "averageHeartRate"
 		case .maxHeartRate: "maxHeartRate"
-		case .ftp: "ftp"
 		case .elevationGain: "elevationGain"
 		}
 	}
@@ -200,7 +200,7 @@ extension ActivityField: ReadoutMeasurement {
 		case .distance, .elevationGain: "m"
 		case .load: nil
 		case .intensity: "%"
-		case .averagePower, .weightedPower, .ftp: "W"
+		case .averagePower, .weightedPower: "W"
 		case .averageHeartRate, .maxHeartRate: "bpm"
 		}
 	}

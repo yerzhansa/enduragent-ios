@@ -9,7 +9,7 @@ extension CoachTools {
 		"Fetch athlete profile from intervals.icu (FTP, weight, max HR, sport settings, zones)",
 		parameters: ToolParameters.none
 	) { _, reach in
-		.result(CoachReadout.profile(try await reach.reads.profile()))
+		.result(CoachReadout.profile(try await reach.reads.profile(), on: reach.local.today))
 	}
 
 	static let fetchWellness = CoachTool.training(
@@ -85,7 +85,7 @@ extension CoachTools {
 }
 
 enum CoachReadout {
-	static func profile(_ profile: AthleteProfile) -> JSONValue {
+	static func profile(_ profile: AthleteProfile, on today: CivilDate) -> JSONValue {
 		var fields: [String: JSONValue] = [
 			"id": .string(profile.id),
 			"name": .string(profile.name),
@@ -110,7 +110,7 @@ enum CoachReadout {
 			measure(field.readoutKey, .number(value), unit: field.unit)
 		}
 		if let sex = profile.sex { fields["sex"] = .string(sex) }
-		if let age = profile.ageYears { fields["ageYears"] = .number(Double(age)) }
+		if let age = profile.ageYears(on: today) { fields["ageYears"] = .number(Double(age)) }
 		if !profile.settingsSports.isEmpty {
 			fields["sports"] = .array(profile.settingsSports.map(JSONValue.string))
 		}

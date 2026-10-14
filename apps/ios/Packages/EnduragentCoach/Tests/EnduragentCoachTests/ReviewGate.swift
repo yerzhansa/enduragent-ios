@@ -96,8 +96,8 @@ struct GatedReviewIntervals: TrainingClient {
 		try await base.streams(of: id, channels: channels)
 	}
 	func fetchEvent(id: EventID) async throws -> CalendarEvent { try await base.fetchEvent(id: id) }
-	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
-		try await base.listEvents(oldest: oldest, newest: newest)
+	func listEvents(in range: ReadRange) async throws -> [CalendarEvent] {
+		try await base.listEvents(in: range)
 	}
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
 		try await gate.pass()

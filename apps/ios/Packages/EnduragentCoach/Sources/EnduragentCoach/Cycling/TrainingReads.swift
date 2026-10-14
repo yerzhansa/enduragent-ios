@@ -159,14 +159,14 @@ package struct AthleteProfile: Sendable, Equatable {
 	package let ftp: FTPReading
 	package let readings: Readings<ProfileField>
 	package let sex: String?
-	package let ageYears: Int?
+	package let dateOfBirth: CivilDate?
 	package let settingsSports: [String]
 	package let powerZones: [TrainingZone]
 	package let heartRateZones: [TrainingZone]
 
 	package init(
 		id: String, name: String, ftp: FTPReading, readings: Readings<ProfileField>,
-		sex: String? = nil, ageYears: Int? = nil, settingsSports: [String] = [],
+		sex: String? = nil, dateOfBirth: CivilDate? = nil, settingsSports: [String] = [],
 		powerZones: [TrainingZone] = [], heartRateZones: [TrainingZone] = []
 	) {
 		self.id = id
@@ -174,10 +174,31 @@ package struct AthleteProfile: Sendable, Equatable {
 		self.ftp = ftp
 		self.readings = readings
 		self.sex = sex
-		self.ageYears = ageYears
+		self.dateOfBirth = dateOfBirth
 		self.settingsSports = settingsSports
 		self.powerZones = powerZones
 		self.heartRateZones = heartRateZones
+	}
+
+	package func ageYears(on today: CivilDate) -> Int? {
+		guard let dateOfBirth, dateOfBirth <= today else { return nil }
+		let born = CalendarDay(dateOfBirth)
+		let now = CalendarDay(today)
+		let birthdayReached = (now.month, now.day) >= (born.month, born.day)
+		return now.year - born.year - (birthdayReached ? 0 : 1)
+	}
+}
+
+private struct CalendarDay {
+	let year: Int
+	let month: Int
+	let day: Int
+
+	init(_ date: CivilDate) {
+		let key = DateKey.from(date).rawValue
+		year = key / 10_000
+		month = key / 100 % 100
+		day = key % 100
 	}
 }
 

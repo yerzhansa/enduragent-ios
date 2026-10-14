@@ -17,8 +17,7 @@ extension CoachTools {
 		)
 	) { arguments, reach in
 		let range = try arguments.readRange(today: reach.local.today)
-		var events = try await reach.calendar.listEvents(
-			oldest: range.oldest, newest: range.newest)
+		var events = try await reach.calendar.listEvents(in: range)
 		if arguments.objectFields["coachCreatedOnly"]?.boolValue == true {
 			events = events.filter(\.coachCreated)
 		}

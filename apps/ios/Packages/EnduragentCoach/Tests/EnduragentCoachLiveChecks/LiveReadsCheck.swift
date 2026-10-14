@@ -48,8 +48,8 @@
 		}
 
 		mutating func readEverything() async {
-			raw.profile = await read("profile", audit: LiveReadAudit.profile) { [client] in
-				CoachReadout.profile(try await client.profile())
+			raw.profile = await read("profile", audit: LiveReadAudit.profile) { [client, today] in
+				CoachReadout.profile(try await client.profile(), on: today)
 			}.answer?.json
 			raw.wellness = await read(
 				"wellness-14-days", audit: LiveReadAudit.wellness
@@ -68,7 +68,7 @@
 				listing = read
 				return CoachReadout.activities(read)
 			}.answer?.json
-			let newest = (listing?.activities ?? []).sorted(by: Self.newerFirst)
+			let newest = (listing?.activities ?? []).sorted { $0.start > $1.start }
 			for (position, activity) in newest.prefix(3).enumerated() {
 				await readDetail(activity.id, as: "activity-\(position + 1)")
 			}
@@ -159,17 +159,27 @@
 		}
 
 		private mutating func readSnapshot() async {
+			guard
+				let athlete = raw.profile?.objectFields["id"]?.stringValue.flatMap(
+					IntervalsAthleteID.init(rawValue:))
+			else {
+				failures.append("snapshot: not read, because the profile read gave no athlete id")
+				return
+			}
 			let clock = SystemClock()
+			let diagnostics = DiagnosticsLog(clock: clock)
 			let reader = TrainingSnapshotReader(
-				clock: clock, deadlineSleep: clock.sleep, diagnostics: DiagnosticsLog(clock: clock))
+				clock: clock, deadlineSleep: clock.sleep, diagnostics: diagnostics)
 			let training = TrainingConnection.connected(
-				ConnectedTraining(connection: ConnectionID(), athlete: nil, client: client))
+				ConnectedTraining(connection: ConnectionID(), athlete: athlete, client: client))
 			do {
 				let read = try await reader.snapshot(
 					for: training, attempt: AttemptID(ulid: ULID.generate(at: clock.now)))
 				snapshot = read.promptSection
-				if case .unavailable(let gap) = read {
-					failures.append("snapshot: the coach is given no lines (\(gap))")
+				if case .unavailable = read {
+					let causes = diagnostics.entries.map { String(describing: $0.event) }
+					let cause = causes.isEmpty ? "nothing usable" : causes.joined(separator: ", ")
+					failures.append("snapshot: the coach is given no lines (\(cause))")
 				}
 			} catch {
 				failures.append("snapshot: the read was cancelled")
@@ -241,11 +251,6 @@
 			} catch {
 				failures.append("could not write the run folder: \(error.localizedDescription)")
 			}
-		}
-
-		static func newerFirst(_ first: Activity, _ second: Activity) -> Bool {
-			(first.start.date, first.start.secondOfDay ?? -1)
-				> (second.start.date, second.start.secondOfDay ?? -1)
 		}
 	}
 #endif

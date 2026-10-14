@@ -48,7 +48,8 @@ struct IntervalsRESTClientTests {
 
 	@Test func listEventsDoesNotFilterAwayMovedIdentities() async throws {
 		let client = try makeClient()
-		let events = try await client.listEvents(oldest: "1998-06-14", newest: "1998-06-20")
+		let events = try await client.listEvents(
+			in: ReadRange(oldest: "1998-06-14", newest: "1998-06-20", today: "1998-06-13"))
 		let items =
 			URLComponents(
 				url: try #require(IntervalsURLProtocolStub.lastRequest?.url),
@@ -59,24 +60,6 @@ struct IntervalsRESTClientTests {
 		#expect(events[0].coachCreated)
 		#expect(events[0].name == "Endurance")
 		#expect(!events[1].coachCreated)
-	}
-
-	@Test func rangeOf367DaysIsRejected() async throws {
-		let client = try makeClient()
-		let oldest: CivilDate = "1998-01-01"
-		let newest = oldest.adding(days: 366)
-		await #expect(throws: ReadRangeRefusal.tooWide(days: 367)) {
-			_ = try await client.listEvents(oldest: oldest, newest: newest)
-		}
-		#expect(IntervalsURLProtocolStub.lastRequest == nil)
-	}
-
-	@Test func inclusive366DaysIsAllowed() async throws {
-		let client = try makeClient()
-		let oldest: CivilDate = "1998-01-01"
-		let newest = oldest.adding(days: 365)
-		_ = try await client.listEvents(oldest: oldest, newest: newest)
-		#expect(IntervalsURLProtocolStub.lastRequest != nil)
 	}
 
 	@Test func createChatEventPostsSnakeCaseBodyWithoutForbiddenFields() async throws {
@@ -127,7 +110,8 @@ struct IntervalsRESTClientTests {
 			in: try ReadRange(oldest: "1998-06-12", newest: "1998-06-13", today: "1998-06-13"))
 		#expect(
 			IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/wellness")
-		_ = try await client.listEvents(oldest: "1998-06-12", newest: "1998-06-13")
+		_ = try await client.listEvents(
+			in: try ReadRange(oldest: "1998-06-12", newest: "1998-06-13", today: "1998-06-13"))
 		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/events")
 		let owner = try makeClient(athlete: .keyOwner)
 		_ = try await owner.profile()

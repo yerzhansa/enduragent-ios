@@ -34,11 +34,11 @@ package enum TrainingConnection: Sendable {
 
 package struct ConnectedTraining: Sendable {
 	package let connection: ConnectionID
-	package let athlete: IntervalsAthleteID?
+	package let athlete: IntervalsAthleteID
 	package let client: any TrainingClient
 
 	package init(
-		connection: ConnectionID, athlete: IntervalsAthleteID?, client: any TrainingClient
+		connection: ConnectionID, athlete: IntervalsAthleteID, client: any TrainingClient
 	) {
 		self.connection = connection
 		self.athlete = athlete

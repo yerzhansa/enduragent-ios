@@ -52,7 +52,7 @@ extension IntervalsRESTClientTests {
 				clock: clock, diagnostics: diagnostics, attempt: attempt
 			) { _ in (status, Data(#"{"error":"Unauthorized"}"#.utf8)) }
 
-			#expect(snapshot == .unavailable(.nothingUsable))
+			#expect(snapshot == .unavailable)
 			#expect(snapshot.promptSection == PromptStaticBlocks.snapshotFallback)
 			#expect(
 				diagnostics.entries.map(\.event) == [
