@@ -220,7 +220,7 @@
 			"statement": "Every key of npm's projection of the same profile is accounted for, as the same value under the phone's key or as a named difference.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "everyKeyOfNpmsProjectionIsAccountedFor"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "projectionKeyWithNoAccountIsReported"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "profileToolShowsTheExpectedResultForEveryCase"}
 			]
 		},
 		{
@@ -312,7 +312,7 @@
 			"statement": "Every key of npm's projection of the same wellness rows is accounted for, as the same value under the phone's key or as a named difference.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "everyKeyOfNpmsProjectionIsAccountedFor"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "projectionKeyWithNoAccountIsReported"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "wellnessToolShowsTheExpectedResultForEveryCase"}
 			]
 		},
 		{
@@ -461,7 +461,7 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "detailOnlyFieldsTheSourceSentAreShownAndTheOthersHaveNoKey"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "detailKeepsTheRowAndEveryDetailOnlyField"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailReadoutTests.swift", "function": "everyFieldNpmPassesIsShownUnderItsKeyOrDroppedByName"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailReadoutTests.swift", "function": "everyKeyNpmPassesIsAccountedFor"}
 			]
 		},
 		{
