@@ -13,6 +13,8 @@ final class ReplyTableProof: XCTestCase {
 		let chat = ReplyProofScreen.labels(app)
 		ReplyTableScreen.assertSummaryFitsTheReply(app)
 		TutorialHarness.attach(self, name: "reply-table-summary", app: app)
+		ReplyTableScreen.assertEachLapRowDrawsOneSeparator(app)
+		TutorialHarness.attach(self, name: "reply-table-laps-separators", app: app)
 		ReplyTableScreen.assertLapTableScrollsToItsLastColumn(app)
 		TutorialHarness.attach(self, name: "reply-table-laps-last-column", app: app)
 		TutorialHarness.startNewConversation(app)
@@ -78,6 +80,36 @@ enum ReplyTableScreen {
 		}
 	}
 
+	static func assertEachLapRowDrawsOneSeparator(_ app: XCUIApplication) {
+		guard let laps = ReplyProofScreen.tables(NumbersReplyFixture.source).last else {
+			XCTFail("The numbers fixture must end with its lap table")
+			return
+		}
+		let header = line(app, "reply.table.header", laps.headerDescription)
+		let lines = [header] + laps.rowDescriptions.map { line(app, "reply.table.row", $0) }
+		TutorialHarness.bringIntoTranscript(app, header, topShare: 0.45)
+		let band = TutorialHarness.transcriptBand(app)
+		let table = app.scrollViews.matching(identifier: "reply.table").firstMatch.frame
+		guard let ink = ScreenInk(app) else { return }
+		for line in lines {
+			XCTAssertTrue(line.exists, "\(line) is missing")
+			let frame = line.frame
+			XCTAssertGreaterThanOrEqual(
+				frame.minY, band.minY, "\(line.label) is above the transcript")
+			XCTAssertLessThanOrEqual(
+				frame.maxY + 3, band.maxY, "\(line.label) is below the transcript")
+			let start = max(frame.minX, table.minX) + 1
+			let end = min(frame.maxX, table.maxX) - 1
+			XCTAssertGreaterThan(end - start, table.width / 2, "\(line.label) is not on the screen")
+			let bare = ink.bareColumns(under: frame.maxY, from: start, to: end)
+			if let first = bare.first {
+				XCTFail(
+					"\(line.label) has no separator along its bottom edge at \(bare.count) pixel "
+						+ "columns, the first at x \(first)")
+			}
+		}
+	}
+
 	static func assertLapTableScrollsToItsLastColumn(_ app: XCUIApplication) {
 		let table = app.scrollViews.matching(identifier: "reply.table").firstMatch
 		TutorialHarness.scroll(app, to: table)
@@ -124,5 +156,53 @@ enum ReplyTableScreen {
 		_ app: XCUIApplication, _ identifier: String, _ description: ReplyRowDescription
 	) -> XCUIElement {
 		text(app, identifier, description.accessibilityText)
+	}
+}
+
+@MainActor
+private struct ScreenInk {
+	private static let contrast = 16.0
+	private let rgba: [UInt8]
+	private let width: Int
+	private let height: Int
+	private let scale: CGFloat
+
+	init?(_ app: XCUIApplication) {
+		let screenshot = app.screenshot()
+		guard let image = screenshot.image.cgImage,
+			let rgba = TutorialHarness.rgba(screenshot, width: image.width, height: image.height)
+		else {
+			XCTFail("could not read the screenshot pixels")
+			return nil
+		}
+		self.rgba = rgba
+		width = image.width
+		height = image.height
+		scale = CGFloat(image.width) / app.frame.width
+	}
+
+	func bareColumns(under bottom: CGFloat, from start: CGFloat, to end: CGFloat) -> [CGFloat] {
+		let above = row(bottom - 3)
+		let below = row(bottom + 2)
+		let edge = row(bottom - 1.5)...row(bottom + 0.5)
+		return stride(from: column(start), through: column(end), by: 1).filter { x in
+			!edge.contains { y in
+				let drawn = luminance(x, y)
+				return abs(drawn - luminance(x, above)) > Self.contrast
+					&& abs(drawn - luminance(x, below)) > Self.contrast
+			}
+		}.map { CGFloat($0) / scale }
+	}
+
+	private func row(_ points: CGFloat) -> Int {
+		min(max(Int((points * scale).rounded()), 0), height - 1)
+	}
+
+	private func column(_ points: CGFloat) -> Int {
+		min(max(Int((points * scale).rounded()), 0), width - 1)
+	}
+
+	private func luminance(_ x: Int, _ y: Int) -> Double {
+		TutorialHarness.luminance(rgba, at: (y * width + x) * 4)
 	}
 }
