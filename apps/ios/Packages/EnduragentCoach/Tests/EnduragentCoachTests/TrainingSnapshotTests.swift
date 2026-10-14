@@ -21,7 +21,7 @@ import Testing
 		let rotated = Array(rows[rotation...] + rows[..<rotation])
 
 		let snapshot = TrainingSnapshot(
-			profile: .failed(.temporarilyUnavailable), wellness: .read(rotated),
+			profile: nil, wellness: rotated,
 			lookback: .snapshotLookback(endingOn: "1998-06-13"))
 
 		guard case .available(let lines) = snapshot else {

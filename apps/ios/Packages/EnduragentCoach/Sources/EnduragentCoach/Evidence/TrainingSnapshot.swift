@@ -11,20 +11,12 @@ package enum TrainingSnapshot: Sendable, Equatable {
 	case unavailable(SnapshotGap)
 	case available(SnapshotLines)
 
-	package init(
-		profile: SnapshotRead<AthleteProfile>,
-		wellness: SnapshotRead<[WellnessDay]>,
-		lookback: ReadRange
-	) {
-		var profileLine: ProfileLine?
-		if case .read(let athlete) = profile { profileLine = ProfileLine(athlete) }
-		var wellnessLine: WellnessLine?
-		if case .read(let days) = wellness {
-			wellnessLine = WellnessLine(latestOf: days, in: lookback)
-		}
+	package init(profile: AthleteProfile?, wellness: [WellnessDay]?, lookback: ReadRange) {
 		self =
-			SnapshotLines(profile: profileLine, wellness: wellnessLine).map(Self.available)
-			?? .unavailable(.nothingUsable)
+			SnapshotLines(
+				profile: profile.flatMap(ProfileLine.init),
+				wellness: wellness.flatMap { WellnessLine(latestOf: $0, in: lookback) }
+			).map(Self.available) ?? .unavailable(.nothingUsable)
 	}
 
 	package var promptSection: String {
@@ -48,11 +40,6 @@ package enum TrainingSnapshot: Sendable, Equatable {
 package enum SnapshotGap: Sendable, Equatable {
 	case nothingUsable
 	case deadlineMissed
-}
-
-package enum SnapshotRead<Value: Sendable>: Sendable {
-	case read(Value)
-	case failed(TrainingFailure)
 }
 
 package enum SnapshotLineKind: Sendable, Equatable {
@@ -154,12 +141,12 @@ package struct WellnessLine: Sendable, Equatable {
 
 package struct TrainingSnapshotReader: Sendable {
 	private let clock: any Clock
-	private let deadlineSleep: @Sendable (Duration) async throws -> Void
+	private let deadlineSleep: @Sendable (Duration) async throws(CancellationError) -> Void
 	private let diagnostics: DiagnosticsLog
 
 	package init(
 		clock: any Clock,
-		deadlineSleep: @escaping @Sendable (Duration) async throws -> Void,
+		deadlineSleep: @escaping @Sendable (Duration) async throws(CancellationError) -> Void,
 		diagnostics: DiagnosticsLog
 	) {
 		self.clock = clock
@@ -174,91 +161,72 @@ package struct TrainingSnapshotReader: Sendable {
 		let lookback = ReadRange.snapshotLookback(
 			endingOn: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone))
 		let client = connected.client
-		let race = await withTaskGroup(of: SnapshotArrival.self) { group in
-			group.addTask { .profile(await Self.outcome { try await client.profile() }) }
+		var profile: Result<AthleteProfile, any Error>?
+		var wellness: Result<[WellnessDay], any Error>?
+		let stopped = await withTaskGroup(of: Arrival.self) { group in
+			group.addTask { await Self.arrival(Arrival.profile) { try await client.profile() } }
 			group.addTask {
-				.wellness(await Self.outcome { try await client.wellness(in: lookback) })
+				await Self.arrival(Arrival.wellness) { try await client.wellness(in: lookback) }
 			}
 			group.addTask { [deadlineSleep] in
 				do {
 					try await deadlineSleep(SnapshotPolicy.deadline)
-				} catch is CancellationError {
-					return .deadlineAbandoned
 				} catch {
-					fatalError("Snapshot deadline sleep failed: \(error)")
+					return .stopped
 				}
-				return .deadlinePassed
+				return .deadline
 			}
-			var race = SnapshotRace()
+			defer { group.cancelAll() }
 			for await arrival in group {
-				race.take(arrival)
-				if race.isDecided { break }
+				switch arrival {
+				case .profile(let read): profile = read
+				case .wellness(let read): wellness = read
+				case .deadline: return false
+				case .stopped: return true
+				}
+				if profile != nil, wellness != nil { return false }
 			}
-			group.cancelAll()
-			return race
+			return false
 		}
-		return try settle(race, lookback: lookback, attempt: attempt)
-	}
-
-	private func settle(_ race: SnapshotRace, lookback: ReadRange, attempt: AttemptID)
-		throws(CancellationError) -> TrainingSnapshot
-	{
-		if race.stopped || Task.isCancelled { throw CancellationError() }
-		if case .failed(let failure)? = race.profile {
-			diagnostics.record(.snapshotReadFailed(attempt, .profile, failure))
+		if stopped || Task.isCancelled { throw CancellationError() }
+		if case .failure(let error)? = profile {
+			diagnostics.record(.snapshotReadFailed(attempt, .profile, TrainingFailure(error)))
 		}
-		if case .failed(let failure)? = race.wellness {
-			diagnostics.record(.snapshotReadFailed(attempt, .wellness, failure))
+		if case .failure(let error)? = wellness {
+			diagnostics.record(.snapshotReadFailed(attempt, .wellness, TrainingFailure(error)))
 		}
-		guard let profile = race.profile, let wellness = race.wellness else {
+		guard let profile, let wellness else {
 			diagnostics.record(.snapshotDeadlineMissed(attempt))
 			return .unavailable(.deadlineMissed)
 		}
-		return TrainingSnapshot(profile: profile, wellness: wellness, lookback: lookback)
+		return TrainingSnapshot(
+			profile: profile.success, wellness: wellness.success, lookback: lookback)
 	}
 
-	private static func outcome<Value: Sendable>(
-		of read: @Sendable () async throws -> Value
-	) async -> SnapshotOutcome<Value> {
+	private static func arrival<Value: Sendable>(
+		_ arrived: (Result<Value, any Error>) -> Arrival,
+		reading read: () async throws -> Value
+	) async -> Arrival {
 		do {
-			return .finished(.read(try await read()))
+			return arrived(.success(try await read()))
 		} catch is CancellationError {
 			return .stopped
 		} catch {
-			return Task.isCancelled ? .stopped : .finished(.failed(TrainingFailure(error)))
+			return arrived(.failure(error))
 		}
 	}
 }
 
-private enum SnapshotOutcome<Value: Sendable>: Sendable {
-	case finished(SnapshotRead<Value>)
+private enum Arrival: Sendable {
+	case profile(Result<AthleteProfile, any Error>)
+	case wellness(Result<[WellnessDay], any Error>)
+	case deadline
 	case stopped
 }
 
-private enum SnapshotArrival: Sendable {
-	case profile(SnapshotOutcome<AthleteProfile>)
-	case wellness(SnapshotOutcome<[WellnessDay]>)
-	case deadlinePassed
-	case deadlineAbandoned
-}
-
-private struct SnapshotRace: Sendable {
-	var profile: SnapshotRead<AthleteProfile>?
-	var wellness: SnapshotRead<[WellnessDay]>?
-	var stopped = false
-	var deadlinePassed = false
-
-	var isDecided: Bool {
-		stopped || deadlinePassed || (profile != nil && wellness != nil)
-	}
-
-	mutating func take(_ arrival: SnapshotArrival) {
-		switch arrival {
-		case .profile(.finished(let read)): profile = read
-		case .wellness(.finished(let read)): wellness = read
-		case .profile(.stopped), .wellness(.stopped), .deadlineAbandoned: stopped = true
-		case .deadlinePassed: deadlinePassed = true
-		}
+extension Result {
+	fileprivate var success: Success? {
+		if case .success(let value) = self { value } else { nil }
 	}
 }
 

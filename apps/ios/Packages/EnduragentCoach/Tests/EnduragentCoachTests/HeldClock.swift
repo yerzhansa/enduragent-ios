@@ -1,6 +1,7 @@
 import EnduragentCoachFixtures
 import Foundation
 import Synchronization
+import Testing
 
 @testable import EnduragentCoach
 
@@ -40,7 +41,18 @@ final class HeldClock: Clock {
 	var held: [Duration] { state.withLock { $0.sleepers.map(\.duration) } }
 	var slept: [Duration] { state.withLock { $0.slept } }
 
-	func sleep(for duration: Duration) async throws {
+	func sleep(for duration: Duration) async throws(CancellationError) {
+		do {
+			try await hold(duration)
+		} catch let cancelled as CancellationError {
+			throw cancelled
+		} catch {
+			Issue.record(error, "A held sleep failed with something other than cancellation")
+			throw CancellationError()
+		}
+	}
+
+	private func hold(_ duration: Duration) async throws {
 		let id = UUID()
 		let gate = Gate()
 		try await withTaskCancellationHandler {
