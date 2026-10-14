@@ -14,13 +14,21 @@ extension IntervalsRESTClientTests.ActivityReadoutTests {
 		}
 	}
 
-	@Test func everyKeyNpmPassesIsAccountedFor() throws {
-		let passed = try ActivityDetailReadoutCase.all().compactMap { sample in
-			sample.phone.objectFields["activity"].flatMap { _ in sample.npm.objectFields["passes"] }
+	@Test func everyKeyNpmPassesIsAccountedFor() async throws {
+		var compared = 0
+		for sample in try ActivityDetailReadoutCase.all() {
+			let shown = try await detailReadout(of: sample).objectFields
+			guard var activity = shown["activity"]?.objectFields,
+				let passed = sample.npm.objectFields["passes"]
+			else { continue }
+			compared += 1
+			activity["laps"] = shown["laps"]
+			let problems = NpmProjectionAudit.problems(
+				in: [(ActivityDetailReadoutCase.npmProjection, passed.objectFields)],
+				shown: activity)
+			#expect(problems == [], "\(sample.name)")
 		}
-		#expect(passed.count == 8)
-		let keys = passed.flatMap { npmKeys(of: $0) }
-		#expect(Set(keys).subtracting(ActivityDetailReadoutCase.accountedNpmKeys) == [])
+		#expect(compared == 8)
 	}
 
 	private func detailReadout(of sample: ActivityDetailReadoutCase) async throws -> JSONValue {
@@ -54,13 +62,40 @@ struct ActivityDetailReadoutCase: Sendable {
 	let npm: JSONValue
 	let phone: JSONValue
 
-	static let accountedNpmKeys: Set<String> = ActivityReadoutCase.accountedNpmKeys.union([
-		"description", "trainer", "icuAverageWatts", "icuRpe", "feel", "averageCadence",
-		"averageSpeed", "maxSpeed", "calories", "icuJoules", "icuVariabilityIndex",
-		"icuEfficiencyFactor", "decoupling", "icuZoneTimes", "icuHrZoneTimes", "icuIntervals",
-		"elapsedTime", "pairedEventId", "icuAthleteId", "externalId", "deviceName", "icuWeight",
-		"timezone", "streamTypes", "gear", "icuGroups",
-	])
+	static let npmProjection = NpmProjectionAudit(
+		ActivityReadoutCase.npmKeys.merging(detailKeys) { $1 })
+
+	private static let outsideTheDetail = NpmKey.leftOut("it is outside the detail-only fields")
+
+	private static let detailKeys: [String: NpmKey] = [
+		"description": .shown(as: "notes", .text),
+		"trainer": .shown(as: "indoor", .flag),
+		"icuAverageWatts": .measured(ActivityField.averagePower),
+		"icuRpe": .measured(ActivityDetailField.perceivedExertion),
+		"feel": .measured(ActivityDetailField.feel),
+		"averageCadence": .measured(ActivityDetailField.averageCadence),
+		"averageSpeed": .measured(ActivityDetailField.averageSpeed),
+		"maxSpeed": .measured(ActivityDetailField.maxSpeed),
+		"calories": .measured(ActivityDetailField.calories),
+		"icuJoules": .measured(ActivityDetailField.work),
+		"icuVariabilityIndex": .measured(ActivityDetailField.variabilityIndex),
+		"icuEfficiencyFactor": .measured(ActivityDetailField.efficiencyFactor),
+		"decoupling": .measured(ActivityDetailField.decoupling),
+		"icuZoneTimes": .shown(
+			as: "powerZoneSeconds", .list(renaming: ["id": "zone", "secs": "seconds"])),
+		"icuHrZoneTimes": .shown(as: "heartRateZoneSeconds", .list(renaming: [:])),
+		"icuIntervals": .shown(as: "laps", .count),
+		"elapsedTime": .leftOut("only the Strava rule reads it"),
+		"pairedEventId": outsideTheDetail,
+		"icuAthleteId": outsideTheDetail,
+		"externalId": outsideTheDetail,
+		"deviceName": outsideTheDetail,
+		"icuWeight": outsideTheDetail,
+		"timezone": outsideTheDetail,
+		"streamTypes": outsideTheDetail,
+		"gear": outsideTheDetail,
+		"icuGroups": outsideTheDetail,
+	]
 
 	static func all() throws -> [ActivityDetailReadoutCase] {
 		let text = try #require(

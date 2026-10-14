@@ -15,9 +15,17 @@ extension IntervalsRESTClientTests {
 			}
 		}
 
-		@Test func everyKeyOfNpmsProjectionIsAccountedFor() throws {
-			let projected = try WellnessReadoutCase.all().flatMap { npmKeys(of: $0.npm) }
-			#expect(Set(projected).subtracting(WellnessReadoutCase.accountedNpmKeys) == [])
+		@Test func everyKeyOfNpmsProjectionIsAccountedFor() async throws {
+			for sample in try WellnessReadoutCase.all() {
+				let shown = try await readout(of: sample)
+				let audit = WellnessReadoutCase.npmProjection.rows(
+					sample.npm, shown: shown.objectFields["days"]?.arrayValue ?? [])
+				#expect(audit.problems == [], "\(sample.name)")
+				let dated = audit.unmatched.compactMap {
+					$0["id"]?.stringValue.flatMap(CivilDate.init(rawValue:))
+				}
+				#expect(dated == [], "\(sample.name)")
+			}
 		}
 
 		private func readout(of sample: WellnessReadoutCase) async throws -> JSONValue {
@@ -50,11 +58,27 @@ struct WellnessReadoutCase: Sendable {
 	let npm: JSONValue
 	let phone: JSONValue
 
-	static let accountedNpmKeys: Set<String> = [
-		"id", "ctl", "atl", "fatigue", "rampRate", "weight", "restingHR", "hrv", "sleepSecs",
-		"sleepScore", "sleepQuality", "readiness", "soreness", "stress", "mood", "motivation",
-		"injury", "sportInfo",
-	]
+	static let npmProjection = NpmProjectionAudit(
+		[
+			"id": .shown(as: "date", .text),
+			"ctl": .measured(WellnessField.fitness),
+			"atl": .measured(WellnessField.fatigue),
+			"fatigue": .measured(WellnessField.reportedFatigue),
+			"rampRate": .measured(WellnessField.rampRate),
+			"weight": .measured(WellnessField.weight),
+			"restingHR": .measured(WellnessField.restingHeartRate),
+			"hrv": .measured(WellnessField.hrv),
+			"sleepSecs": .measured(WellnessField.sleepSeconds),
+			"sleepScore": .measured(WellnessField.sleepScore),
+			"sleepQuality": .measured(WellnessField.sleepQuality),
+			"readiness": .measured(WellnessField.readiness),
+			"soreness": .measured(WellnessField.soreness),
+			"stress": .measured(WellnessField.stress),
+			"mood": .measured(WellnessField.mood),
+			"motivation": .measured(WellnessField.motivation),
+			"injury": .measured(WellnessField.injury),
+			"sportInfo": .leftOut("the phone coaches cycling only"),
+		], phoneOnly: ["form"])
 
 	static func all() throws -> [WellnessReadoutCase] {
 		let text = try #require(String(data: try fixtureData("readout-wellness"), encoding: .utf8))

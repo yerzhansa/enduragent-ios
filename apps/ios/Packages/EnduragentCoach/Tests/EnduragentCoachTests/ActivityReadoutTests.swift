@@ -26,9 +26,15 @@ extension IntervalsRESTClientTests {
 			#expect(shown == npm.filter(shown.contains))
 		}
 
-		@Test func everyKeyOfNpmsProjectionIsAccountedFor() throws {
-			let projected = try ActivityReadoutCase.all().flatMap { npmKeys(of: $0.npm) }
-			#expect(Set(projected).subtracting(ActivityReadoutCase.accountedNpmKeys) == [])
+		@Test func everyKeyOfNpmsProjectionIsAccountedFor() async throws {
+			for sample in try ActivityReadoutCase.all() {
+				let shown = try await readout(of: sample).objectFields
+				let audit = ActivityReadoutCase.npmProjection.rows(
+					sample.npm, shown: shown["activities"]?.arrayValue ?? [])
+				#expect(audit.problems == [], "\(sample.name)")
+				let counted = ["hiddenByStrava", "unreadable"].compactMap { shown[$0]?.intValue() }
+				#expect(audit.unmatched.count == counted.reduce(0, +), "\(sample.name)")
+			}
 		}
 
 		private func readout(of sample: ActivityReadoutCase) async throws -> JSONValue {
@@ -61,11 +67,26 @@ struct ActivityReadoutCase: Sendable {
 	let npm: JSONValue
 	let phone: JSONValue
 
-	static let accountedNpmKeys: Set<String> = [
-		"id", "startDateLocal", "type", "name", "movingTime", "distance", "icuTrainingLoad",
-		"icuIntensity", "icuWeightedAvgWatts", "averageHeartrate", "maxHeartrate", "icuFtp",
-		"totalElevationGain", "averageWatts", "source",
+	static let npmKeys: [String: NpmKey] = [
+		"id": .shown(as: "id", .identifier),
+		"startDateLocal": .shown(as: "start", .text),
+		"type": .shown(as: "sport", .text),
+		"name": .shown(as: "name", .text),
+		"movingTime": .measured(ActivityField.duration),
+		"distance": .measured(ActivityField.distance),
+		"icuTrainingLoad": .measured(ActivityField.load),
+		"icuIntensity": .measured(ActivityField.intensity),
+		"icuWeightedAvgWatts": .measured(ActivityField.weightedPower),
+		"averageHeartrate": .measured(ActivityField.averageHeartRate),
+		"maxHeartrate": .measured(ActivityField.maxHeartRate),
+		"icuFtp": .measured(ActivityField.ftp),
+		"totalElevationGain": .measured(ActivityField.elevationGain),
+		"averageWatts": .leftOut("the phone shows icu_average_watts as the average power"),
+		"source": .leftOut("only the Strava rule reads it"),
 	]
+
+	static let npmProjection = NpmProjectionAudit(
+		npmKeys, phoneOnly: [ActivityField.averagePower.rawValue])
 
 	static func all() throws -> [ActivityReadoutCase] {
 		let text = try #require(
@@ -79,13 +100,5 @@ struct ActivityReadoutCase: Sendable {
 				npm: try #require(fields["npm"]),
 				phone: try #require(fields["phone"]))
 		}
-	}
-}
-
-func npmKeys(of projection: JSONValue?) -> Set<String> {
-	switch projection {
-	case .array(let rows)?: rows.reduce(into: []) { $0.formUnion($1.objectFields.keys) }
-	case let object?: Set(object.objectFields.keys)
-	case nil: []
 	}
 }

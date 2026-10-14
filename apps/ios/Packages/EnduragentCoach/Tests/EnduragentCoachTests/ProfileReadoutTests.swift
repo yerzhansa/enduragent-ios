@@ -15,12 +15,28 @@ extension IntervalsRESTClientTests {
 			}
 		}
 
-		@Test func everyKeyOfNpmsProjectionIsAccountedFor() throws {
-			let cases = try ProfileReadoutCase.all()
-			let athlete = cases.flatMap { npmKeys(of: $0.npm) }
-			let rows = cases.flatMap { npmKeys(of: $0.npm.objectFields["sportSettings"]) }
-			#expect(Set(athlete).subtracting(ProfileReadoutCase.accountedAthleteKeys) == [])
-			#expect(Set(rows).subtracting(ProfileReadoutCase.accountedSettingsKeys) == [])
+		@Test func everyKeyOfNpmsProjectionIsAccountedFor() async throws {
+			for sample in try ProfileReadoutCase.all() {
+				let shown = try await readout(of: sample.response, now: sample.noon).objectFields
+				var athlete = sample.npm.objectFields
+				let rows = (athlete.removeValue(forKey: "sportSettings")?.arrayValue ?? [])
+					.map(\.objectFields)
+				let cycling = rows.first { row in
+					(row["types"]?.arrayValue ?? []).contains {
+						$0.stringValue.map(IntervalsPolicy.cyclingSports.contains) ?? false
+					}
+				}
+				let read = cycling ?? rows.first ?? [:]
+				let problems = NpmProjectionAudit.problems(
+					in: [
+						(ProfileReadoutCase.athleteProjection, athlete),
+						(ProfileReadoutCase.settingsProjection, read),
+					], shown: shown)
+				let unread = rows.filter { $0 != read }.flatMap {
+					ProfileReadoutCase.settingsProjection.unaccounted(in: $0)
+				}
+				#expect(problems + unread == [], "\(sample.name)")
+			}
 		}
 
 		@Test(arguments: [("1998-06-13T23:30:00+02:00", 27.0), ("1998-06-14T00:30:00+02:00", 28.0)])
@@ -88,16 +104,40 @@ struct ProfileReadoutCase: Sendable {
 	let npm: JSONValue
 	let phone: JSONValue
 
-	static let accountedAthleteKeys: Set<String> = [
-		"id", "name", "sex", "icuFtp", "icuLthr", "icuMaxHr", "icuRestingHr", "icuWeight", "weight",
-		"icuDateOfBirth", "sportSettings",
-	]
+	static let athleteProjection = NpmProjectionAudit(
+		[
+			"id": .shown(as: "id", .text),
+			"name": .shown(as: "name", .text),
+			"sex": .shown(as: "sex", .text),
+			"icuFtp": .resolved(as: "ftp", precedence: 1),
+			"icuLthr": .resolved(as: ProfileField.lthr.rawValue, precedence: 1),
+			"icuMaxHr": .resolved(as: ProfileField.maxHeartRate.rawValue, precedence: 1),
+			"icuRestingHr": .resolved(as: ProfileField.restingHeartRate.rawValue, precedence: 1),
+			"icuWeight": .resolved(as: ProfileField.weight.rawValue, precedence: 0),
+			"weight": .resolved(as: ProfileField.weight.rawValue, precedence: 1),
+			"icuDateOfBirth": .leftOut(
+				"the coach is shown the age and the date stays on the phone"),
+		], phoneOnly: ["ageYears", "ftpUsable", "ftpNotice", "units"])
 
-	static let accountedSettingsKeys: Set<String> = [
-		"types", "ftp", "lthr", "maxHr", "restingHr", "weight", "indoorFtp", "wPrime", "pMax",
-		"sweetSpotMin", "sweetSpotMax", "powerZones", "powerZoneNames", "hrZones", "hrZoneNames",
-		"thresholdPace", "paceUnits",
-	]
+	static let settingsProjection = NpmProjectionAudit([
+		"types": .shown(as: "sports", .list(renaming: [:])),
+		"ftp": .resolved(as: "ftp", precedence: 0),
+		"lthr": .resolved(as: ProfileField.lthr.rawValue, precedence: 0),
+		"maxHr": .resolved(as: ProfileField.maxHeartRate.rawValue, precedence: 0),
+		"restingHr": .resolved(as: ProfileField.restingHeartRate.rawValue, precedence: 0),
+		"weight": .resolved(as: ProfileField.weight.rawValue, precedence: 2),
+		"indoorFtp": .measured(ProfileField.indoorFTP),
+		"wPrime": .measured(ProfileField.wPrime),
+		"pMax": .measured(ProfileField.maxPower),
+		"sweetSpotMin": .measured(ProfileField.sweetSpotMin),
+		"sweetSpotMax": .measured(ProfileField.sweetSpotMax),
+		"powerZones": .shown(as: "powerZones", .ladderBounds),
+		"powerZoneNames": .shown(as: "powerZones", .ladderNames),
+		"hrZones": .shown(as: "heartRateZones", .ladderBounds),
+		"hrZoneNames": .shown(as: "heartRateZones", .ladderNames),
+		"thresholdPace": .leftOut("the phone coaches cycling only"),
+		"paceUnits": .leftOut("the phone coaches cycling only"),
+	])
 
 	static func all() throws -> [ProfileReadoutCase] {
 		let text = try #require(String(data: try fixtureData("readout-profile"), encoding: .utf8))
