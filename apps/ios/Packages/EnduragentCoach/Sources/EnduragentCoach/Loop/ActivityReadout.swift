@@ -60,8 +60,11 @@ extension CoachReadout {
 					])
 				}),
 		]
-		if !summary.unanswered.isEmpty {
-			result["unanswered"] = .array(summary.unanswered.map(JSONValue.string))
+		for (key, names) in [
+			("unanswered", summary.unanswered), ("unknown", summary.unknown),
+			("unread", summary.unread),
+		] where !names.isEmpty {
+			result[key] = .array(names.map(JSONValue.string))
 		}
 		return .object(result)
 	}

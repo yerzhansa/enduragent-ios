@@ -91,39 +91,6 @@ extension IntervalsRESTClient: TrainingReads {
 		}
 	}
 
-	package func streams(of id: ActivityID, channels: StreamChannels) async throws
-		-> StreamSummary
-	{
-		let json = try await getJSON(
-			path: ["activity", id.rawValue, "streams.json"],
-			query: [URLQueryItem(name: "types", value: channels.names.joined(separator: ","))])
-		return StreamSummary(summarizing: try Self.streamSamples(from: json), asked: channels)
-	}
-
-	private static func streamSamples(from wire: JSONValue) throws(IntervalsError)
-		-> [StreamSamples]
-	{
-		let sent: [(channel: String?, data: JSONValue?)]
-		switch wire {
-		case .array(let entries):
-			sent = entries.map { ($0.objectFields["type"]?.stringValue, $0.objectFields["data"]) }
-		case .object(let fields):
-			sent = fields.map { ($0.key, $0.value) }
-		default:
-			throw IntervalsError(
-				code: "invalid_json", details: "streams response was not a list or an object")
-		}
-		return sent.compactMap { channel, data in
-			guard let channel, let slots = data?.arrayValue else { return nil }
-			return StreamSamples(
-				channel: channel,
-				values: slots.map { slot in
-					guard case .number(let value) = slot, value.isFinite else { return nil }
-					return value
-				})
-		}
-	}
-
 	private static func cyclingSettings(of athlete: [String: JSONValue]) -> [String: JSONValue] {
 		let rows: [[String: JSONValue]] = (athlete["sportSettings"]?.arrayValue ?? []).compactMap {
 			guard case .object(let row) = $0 else { return nil }
