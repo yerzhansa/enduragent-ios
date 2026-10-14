@@ -129,7 +129,7 @@ import Testing
 		#expect(activities.contains(.runningTools([.intervalsFetchActivities])))
 		#expect(transport.requests.count == 2)
 		#expect(
-			intervals.calls == [
+			intervals.calls.filter { $0 != .profile } == [
 				.wellness(oldest: "1998-06-07", newest: "1998-06-13"),
 				.activities(oldest: "1998-06-07", newest: "1998-06-13"),
 			]

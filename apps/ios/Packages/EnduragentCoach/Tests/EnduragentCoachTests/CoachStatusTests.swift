@@ -29,36 +29,35 @@ import Testing
 			transport: FakeModelTransport(), intervals: intervals, store: InMemoryRecordLog(),
 			consent: false)
 		await coach.lifecycle(.becameActive)
-		#expect(intervals.calls.count == 1)
+		#expect(intervals.count(of: .profile) == 1)
+		#expect(intervals.count(of: .wellness) == 1)
 	}
 
 	@Test func languagePublishesWhileTrainingIsBlocked() async throws {
-		let gate = Gate()
-		let client = GatedProfileIntervals(
-			base: FakeIntervalsClient(athleteName: "Ada", ftp: 250), gate: gate)
+		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let coach = await makeCoach(
-			transport: FakeModelTransport(), intervals: client, store: InMemoryRecordLog())
+			transport: FakeModelTransport(), intervals: intervals, store: InMemoryRecordLog())
+		try #require(
+			try await coach.observeStatus().status {
+				guard case .connected(let summary, _) = $0.training else { return false }
+				return summary.wellness != .waiting
+			} != nil)
+		let settled = intervals.calls
+		let gate = intervals.hold(.profile)
 		let snapshots = await coach.observeStatus()
 		let refreshing = Task { await coach.lifecycle(.becameActive) }
-		defer { gate.release() }
 		defer { refreshing.cancel() }
 		try #require(
 			try await beforeDeadline(within: .hangGuard) {
-				await gate.waitUntilParked()
+				await gate.waitUntilEntered()
 			} != nil)
 		try await coach.setLanguage(.fixed(.es))
 		let chosen = try await snapshots.status { $0.language == .fixed(.es) }
 		#expect(chosen?.language == .fixed(.es))
-		#expect(client.base.calls.isEmpty)
-		gate.release()
+		#expect(intervals.calls == settled + [.profile])
+		await gate.release()
 		try #require(
-			try await beforeDeadline(
-				within: .hangGuard,
-				onTimeout: {
-					refreshing.cancel()
-					gate.release()
-				}
-			) {
+			try await beforeDeadline(within: .hangGuard, onTimeout: { refreshing.cancel() }) {
 				await refreshing.value
 			} != nil)
 		let refreshed = try await coach.observedStatus()
@@ -129,28 +128,20 @@ import Testing
 	}
 
 	@Test func aLateTrainingRefreshCannotRestoreADisconnectedAccount() async throws {
-		let gate = Gate()
-		let client = GatedProfileIntervals(
-			base: FakeIntervalsClient(athleteName: "Ada", ftp: 250), gate: gate)
+		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		let gate = intervals.hold(.profile)
 		let coach = await makeCoach(
-			transport: FakeModelTransport(), intervals: client, store: InMemoryRecordLog())
+			transport: FakeModelTransport(), intervals: intervals, store: InMemoryRecordLog())
 		let refreshing = Task { await coach.lifecycle(.becameActive) }
-		defer { gate.release() }
 		defer { refreshing.cancel() }
 		try #require(
 			try await beforeDeadline(within: .hangGuard) {
-				await gate.waitUntilParked()
+				await gate.waitUntilEntered()
 			} != nil)
 		#expect(await coach.changeTraining(.disconnect) == .disconnected)
-		gate.release()
+		await gate.release()
 		try #require(
-			try await beforeDeadline(
-				within: .hangGuard,
-				onTimeout: {
-					refreshing.cancel()
-					gate.release()
-				}
-			) {
+			try await beforeDeadline(within: .hangGuard, onTimeout: { refreshing.cancel() }) {
 				await refreshing.value
 			} != nil)
 		#expect(try await coach.observedStatus().training == .unconnected)

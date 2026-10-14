@@ -9,9 +9,9 @@ extension StopAndLeaseEdgeTests {
 		InterruptionCause.athleteStopped, .systemExpired, .appTerminating,
 	])
 	func interruptionCancelsInFlightRead(cause: InterruptionCause) async throws {
-		let readClock = HeldClock()
-		defer { readClock.release(.seconds(30)) }
-		let intervals = HeldReadIntervals(clock: readClock)
+		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		let read = intervals.hold(.activities)
+		intervals.fail(.activities, with: URLError(.cancelled))
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
 			[
@@ -26,7 +26,8 @@ extension StopAndLeaseEdgeTests {
 			transport: transport, intervals: intervals, store: store, clock: clock, host: host)
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
-		try await readClock.waitUntilHeld(.seconds(30))
+		try #require(
+			try await beforeDeadline(within: .hangGuard) { await read.waitUntilEntered() } != nil)
 		let snapshots = await coach.observe(.main)
 		let interruption = Task {
 			switch cause {
@@ -45,12 +46,12 @@ extension StopAndLeaseEdgeTests {
 		_ = try #require(
 			try await firstSnapshot(in: snapshots, within: .hangGuard) { $0.activity == .stopping })
 		_ = await coach.currentSnapshot(.main)
-		try await waitUntil { readClock.held.isEmpty }
-		#expect(readClock.held.isEmpty, "the training read did not receive cancellation")
-		readClock.release(.seconds(30))
-		let interruptedRead = try await beforeDeadline(
-			within: .hangGuard, onTimeout: { readClock.release(.seconds(30)) }
-		) {
+		try #require(
+			try await beforeDeadline(
+				within: .hangGuard, onTimeout: { Task { await read.release() } }
+			) { await read.waitUntilEnded() } != nil,
+			"the training read did not receive cancellation")
+		let interruptedRead = try await beforeDeadline(within: .hangGuard) {
 			await interruption.value
 		}
 		try #require(interruptedRead == true)

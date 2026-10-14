@@ -7,7 +7,7 @@ import Testing
 
 @Suite struct ToolProgressTests {
 	let modelClock = HeldClock()
-	let readClock = HeldClock()
+	let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 	let store = InMemoryRecordLog()
 	let transport: FakeModelTransport
 	let question = "Read my recent rides and prepare an endurance ride for tomorrow."
@@ -27,8 +27,8 @@ import Testing
 	}
 
 	@Test func workingPersistsAcrossIndependentModelAndToolWaits() async throws {
-		let coach = await makeCoach(
-			transport: transport, intervals: HeldReadIntervals(clock: readClock), store: store)
+		let read = intervals.hold(.activities)
+		let coach = await makeCoach(transport: transport, intervals: intervals, store: store)
 		let turn = try #require(try await coach.send(draft(question), to: .main).acceptedTurn)
 		try await modelClock.waitUntilHeld(.seconds(10))
 		let waitingForModel = try await snapshot(coach)
@@ -37,10 +37,10 @@ import Testing
 		#expect(waitingForModel.activity == .working(label: Catalog.chatNoticeWorking))
 		#expect(waitingForModel.turns.first?.state.isSettled == false)
 		#expect(waitingForModel.liveReply?.text.isEmpty == true)
-		#expect(readClock.held.isEmpty)
+		#expect(intervals.count(of: .activities) == 0)
 
 		modelClock.release(.seconds(10))
-		try await readClock.waitUntilHeld(.seconds(30))
+		try await entered(read)
 		let reading = try await snapshot(coach)
 		#expect(reading.turns.map(\.id) == [turn])
 		#expect(reading.turns.map(\.athleteText) == [question])
@@ -54,11 +54,8 @@ import Testing
 		#expect(reading.liveReply?.text == introduction)
 		#expect(transport.requestCount == 1)
 		#expect(modelClock.held.isEmpty)
-		readClock.advance(by: .seconds(15))
-		#expect(try await snapshot(coach).activity == .working(label: Catalog.chatNoticeWorking))
-		#expect(readClock.held == [.seconds(30)])
 
-		readClock.release(.seconds(30))
+		await read.release()
 		try await modelClock.waitUntilHeld(.seconds(10))
 		modelClock.release(.seconds(10))
 		try await modelClock.waitUntilHeld(.seconds(10))
@@ -79,9 +76,9 @@ import Testing
 
 	@Test func closingTheObserverDoesNotCancelToolWork() async throws {
 		let host = ImmediateExecutionHost()
+		let read = intervals.hold(.activities)
 		let coach = await makeCoach(
-			transport: transport, intervals: HeldReadIntervals(clock: readClock), store: store,
-			host: host)
+			transport: transport, intervals: intervals, store: store, host: host)
 		let seen = Mutex<ChatSnapshot?>(nil)
 		let stream = await coach.observe(.main)
 		let observer = Task {
@@ -92,13 +89,13 @@ import Testing
 		let turn = try #require(try await coach.send(draft(question), to: .main).acceptedTurn)
 		try await modelClock.waitUntilHeld(.seconds(10))
 		modelClock.release(.seconds(10))
-		try await readClock.waitUntilHeld(.seconds(30))
+		try await entered(read)
 		try await waitUntil { seen.withLock { $0?.liveReply?.text == introduction } }
 		#expect(seen.withLock { $0?.activity } == .working(label: Catalog.chatNoticeWorking))
 		observer.cancel()
 		try #require(
 			try await beforeDeadline(within: .hangGuard) { await observer.value } == true)
-		readClock.release(.seconds(30))
+		await read.release()
 		for _ in 0..<2 {
 			try await modelClock.waitUntilHeld(.seconds(10))
 			modelClock.release(.seconds(10))
@@ -109,6 +106,11 @@ import Testing
 		try assertCompleted(reopened, turn: turn)
 		#expect(try await settlements(of: turn, in: store).count == 1)
 		#expect(transport.requestCount == 3)
+	}
+
+	private func entered(_ read: FakeIntervalsReadGate) async throws {
+		try #require(
+			try await beforeDeadline(within: .hangGuard) { await read.waitUntilEntered() } != nil)
 	}
 
 	private func snapshot(_ coach: Coach) async throws -> ChatSnapshot {

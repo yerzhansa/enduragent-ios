@@ -344,7 +344,7 @@ import Testing
 		intervals.calls.filter {
 			switch $0 {
 			case .activities, .activity, .streams: true
-			case .wellness, .events, .createEvent, .updateEvent, .deleteEvent: false
+			case .profile, .wellness, .events, .createEvent, .updateEvent, .deleteEvent: false
 			}
 		}
 	}

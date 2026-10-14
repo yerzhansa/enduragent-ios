@@ -70,7 +70,7 @@
 				if case .connected(_, let account) = model.status.training {
 					FixtureOwnershipDebugView(fixture: fixture, account: account)
 				}
-				Text("\(fixture.intervals.calls.count) calendar calls")
+				Text("\(fixture.intervals.calls.filter(\.isCalendarCall).count) calendar calls")
 					.accessibilityIdentifier("fixture.calendarCalls")
 				Text(
 					fixture.intervals.failCalendarReadOnce

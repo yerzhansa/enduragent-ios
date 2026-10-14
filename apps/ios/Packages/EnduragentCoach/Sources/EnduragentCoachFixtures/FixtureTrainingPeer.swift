@@ -96,12 +96,7 @@ public final class FixtureTrainingPeer: Sendable {
 	}
 
 	private func calendarCalls(_ client: FakeIntervalsClient) -> Int {
-		client.calls.filter {
-			switch $0 {
-			case .events, .createEvent, .updateEvent, .deleteEvent: true
-			default: false
-			}
-		}.count
+		client.calls.filter(\.isCalendarCall).count
 	}
 
 	private struct Receipt: Encodable {

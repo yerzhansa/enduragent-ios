@@ -3,6 +3,7 @@ import Foundation
 import Synchronization
 
 public enum FakeIntervalsCall: Sendable, Equatable {
+	case profile
 	case activities(oldest: CivilDate, newest: CivilDate)
 	case wellness(oldest: CivilDate, newest: CivilDate)
 	case activity(ActivityID)
@@ -11,6 +12,19 @@ public enum FakeIntervalsCall: Sendable, Equatable {
 	case createEvent(date: CivilDate, externalId: String)
 	case updateEvent(EventID)
 	case deleteEvent(EventID)
+
+	public var isCalendarCall: Bool { read == nil }
+
+	var read: FakeTrainingRead? {
+		switch self {
+		case .profile: .profile
+		case .wellness: .wellness
+		case .activities: .activities
+		case .activity: .activity
+		case .streams: .streams
+		case .events, .createEvent, .updateEvent, .deleteEvent: nil
+		}
+	}
 }
 
 public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @unchecked Sendable {
@@ -45,7 +59,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	}
 
 	public func count(of read: FakeTrainingRead) -> Int {
-		faults.withLock { $0.count(of: read) }
+		calls.filter { $0.read == read }.count
 	}
 	#if DEBUG
 		public var loseCalendarSaveAnswerOnce = false
@@ -66,6 +80,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	}
 
 	package func profile() async throws -> AthleteProfile {
+		recordedCalls.withLock { $0.append(.profile) }
 		try await begin(.profile)
 		return athlete
 	}
@@ -93,8 +108,12 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 
 	private func begin(_ read: FakeTrainingRead) async throws {
 		let (failure, gate, delay) = faults.withLock { $0.begin(read) }
-		try await gate?.enter()
-		if let delay { try await Task.sleep(for: delay) }
+		do {
+			try await gate?.enter()
+			if let delay { try await Task.sleep(for: delay) }
+		} catch let cancelled as CancellationError {
+			throw failure ?? cancelled
+		}
 		if let failure { throw failure }
 	}
 

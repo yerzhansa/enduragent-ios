@@ -327,12 +327,3 @@ struct ShortcutBench {
 		try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records.count
 	}
 }
-
-extension FakeIntervalsCall {
-	var isCalendarCall: Bool {
-		switch self {
-		case .events, .createEvent, .updateEvent, .deleteEvent: true
-		case .activities, .wellness, .activity, .streams: false
-		}
-	}
-}

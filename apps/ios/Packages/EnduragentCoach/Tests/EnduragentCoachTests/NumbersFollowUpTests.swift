@@ -284,7 +284,7 @@ struct NumbersFollowUpTurn {
 	private var activityReads: [FakeIntervalsCall] {
 		intervals.calls.filter {
 			if case .wellness = $0 { return false }
-			return true
+			return $0 != .profile
 		}
 	}
 

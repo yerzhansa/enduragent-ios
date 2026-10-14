@@ -316,13 +316,7 @@ struct AuthorizationBench {
 	func expectNoReviewAndAnUntouchedCalendar(_ coach: Coach) async throws {
 		#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
 		#expect(try await savedProposals() == 0)
-		let calendarCalls = intervals.calls.filter { call in
-			switch call {
-			case .events, .createEvent, .updateEvent, .deleteEvent: true
-			case .activities, .wellness, .activity, .streams: false
-			}
-		}
-		#expect(calendarCalls.isEmpty)
+		#expect(intervals.calls.filter(\.isCalendarCall).isEmpty)
 		#expect(intervals.events == [Self.planned])
 	}
 }

@@ -18,37 +18,26 @@ extension CredentialVaultTests {
 			selection: .keyOwner, resolvedAthlete: nil)
 		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
 		try secrets.storeIntervalsConnection(unresolved)
-		let gate = Gate()
-		let client = GatedProfileIntervals(base: ada, gate: gate)
+		let ada = self.ada
+		let gate = ada.hold(.profile)
 		let coach = await coach(
-			secrets, training: TrainingService { _, _, _ in client })
+			secrets, training: TrainingService { _, _, _ in ada })
 		let status = Task { try await coach.refreshedStatus() }
-		defer {
-			status.cancel()
-			gate.release()
-		}
+		defer { status.cancel() }
 		try #require(
-			try await beforeDeadline(
-				within: .hangGuard,
-				onTimeout: {
-					status.cancel()
-					gate.release()
-				}
-			) { await gate.waitUntilParked() } != nil)
+			try await beforeDeadline(within: .hangGuard, onTimeout: { status.cancel() }) {
+				await gate.waitUntilEntered()
+			} != nil)
 		if failingWrite {
 			memory.failWrites("intervalsCredential", with: statusCode)
 		} else {
 			memory.fail("intervalsCredential", with: statusCode)
 		}
-		gate.release()
+		await gate.release()
 		let resolved = try #require(
-			try await beforeDeadline(
-				within: .hangGuard,
-				onTimeout: {
-					status.cancel()
-					gate.release()
-				}
-			) { try await status.value })
+			try await beforeDeadline(within: .hangGuard, onTimeout: { status.cancel() }) {
+				try await status.value
+			})
 		let training = resolved.training
 		if failingWrite {
 			#expect(training == .connected(adaSummary, account: account(testConnection)))
@@ -93,14 +82,17 @@ extension CredentialVaultTests {
 			selection: .keyOwner, resolvedAthlete: nil)
 		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
 		try secrets.storeIntervalsConnection(unresolved)
-		let gate = Gate()
-		let client = GatedProfileIntervals(base: ada, gate: gate)
+		let ada = self.ada
+		let gate = ada.hold(.profile)
 		let coach = await coach(
-			secrets, training: TrainingService { _, _, _ in client })
+			secrets, training: TrainingService { _, _, _ in ada })
 		let status = Task { try await coach.refreshedStatus() }
-		await gate.waitUntilParked()
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { status.cancel() }) {
+				await gate.waitUntilEntered()
+			} != nil)
 		try memory.update(account: "intervalsCredential", data: Data([0xFF, 0xFE, 0xFD]))
-		gate.release()
+		await gate.release()
 		#expect(
 			try await status.value.training
 				== .unavailable(.malformedStoredCredential(.intervalsConnection)))
@@ -231,20 +223,24 @@ extension CredentialVaultTests {
 
 	@Test func concurrentReplacementThenDisconnectKeepsDisconnect() async throws {
 		let secrets = keyedSecrets()
-		let gate = Gate()
-		let client = GatedProfileIntervals(base: ada, gate: gate)
+		let delayed = FakeIntervalsClient(
+			athlete: .cyclist(id: "i1001", name: "Ada Kovač", ftp: 250))
+		let gate = delayed.hold(.profile)
 		let service = TrainingService { credential, _, _ in
-			if credential == .apiKey("test-delayed-key") { return client }
+			if credential == .apiKey("test-delayed-key") { return delayed }
 			return self.ada
 		}
 		let coach = await coach(secrets, training: service)
 		let replacement = Task {
 			await coach.changeTraining(.replace(apiKey: "test-delayed-key", athlete: .keyOwner))
 		}
-		await gate.waitUntilParked()
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { replacement.cancel() }) {
+				await gate.waitUntilEntered()
+			} != nil)
 		let disconnect = Task { await coach.changeTraining(.disconnect) }
 		try await Task.sleep(for: .milliseconds(150))
-		gate.release()
+		await gate.release()
 		_ = await replacement.value
 		#expect(await disconnect.value == .disconnected)
 		#expect(try secrets.intervalsConnection() == nil)
@@ -258,18 +254,21 @@ extension CredentialVaultTests {
 			IntervalsConnection(
 				id: testConnection.id, credential: .apiKey("test-unresolved"),
 				selection: .keyOwner, resolvedAthlete: nil))
-		let gate = Gate()
-		let old = GatedProfileIntervals(base: ada, gate: gate)
+		let ada = self.ada
+		let gate = ada.hold(.profile)
 		let service = TrainingService { credential, _, _ in
-			if credential == .apiKey("test-unresolved") { return old }
+			if credential == .apiKey("test-unresolved") { return ada }
 			return self.bo
 		}
 		let coach = await coach(secrets, training: service)
 		let status = Task { try await coach.refreshedStatus() }
-		await gate.waitUntilParked()
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { status.cancel() }) {
+				await gate.waitUntilEntered()
+			} != nil)
 		_ = await coach.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
 		let replacement = try #require(try secrets.intervalsConnection())
-		gate.release()
+		await gate.release()
 		_ = try await status.value
 		#expect(try secrets.intervalsConnection() == replacement)
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(replacement))
