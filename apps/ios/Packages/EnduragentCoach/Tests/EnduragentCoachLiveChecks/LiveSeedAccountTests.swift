@@ -40,7 +40,7 @@ struct LiveSeedAccountTests {
 		#expect(body.starts(with: Data("--\(boundary)\r\n".utf8)))
 		#expect(body.range(of: file) != nil)
 		#expect(body.suffix(boundary.utf8.count + 8) == Data("\r\n--\(boundary)--\r\n".utf8))
-		#expect(request.timeoutInterval == IntervalsSeedAccount.writeTimeout)
+		#expect(request.timeoutInterval == 120)
 	}
 
 	@Test func deleteTreatsAnActivityTheAccountNoLongerHasAsDone() async throws {
@@ -51,7 +51,7 @@ struct LiveSeedAccountTests {
 		let request = try #require(SeedAccountURLProtocolStub.lastRequest)
 		#expect(request.httpMethod == "DELETE")
 		#expect(request.url?.path == "/api/v1/activity/i9001")
-		#expect(request.timeoutInterval == IntervalsSeedAccount.writeTimeout)
+		#expect(request.timeoutInterval == 120)
 	}
 
 	@Test func deleteStopsOnAServerError() async throws {
