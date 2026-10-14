@@ -179,7 +179,7 @@ extension IntervalsRESTClientTests {
 				}
 				return (200, Data(canonicalJSON(.array(sent)).utf8))
 			}
-			let outcome = try await makeToolRuntime(
+			let outcome = try await makeOfferedTools(
 				intervals: client,
 				ledger: Ledger(
 					log: InMemoryRecordLog(), clock: clock,

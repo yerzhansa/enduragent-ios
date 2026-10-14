@@ -5,7 +5,7 @@ extension CoachTools {
 		"Activity `id` from intervals_fetch_activities. Pass exactly as listed."
 
 	static let fetchAthlete = CoachTool.training(
-		.intervalsFetchAthlete,
+		.read, .intervalsFetchAthlete,
 		"Fetch athlete profile from intervals.icu (FTP, weight, max HR, sport settings, zones)",
 		parameters: ToolParameters.none
 	) { _, reach in
@@ -13,7 +13,7 @@ extension CoachTools {
 	}
 
 	static let fetchWellness = CoachTool.training(
-		.intervalsFetchWellness,
+		.read, .intervalsFetchWellness,
 		"Fetch wellness data from intervals.icu (fitness, fatigue, weight, HRV, resting HR, sleep). Form = fitness - fatigue.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -28,7 +28,7 @@ extension CoachTools {
 	}
 
 	static let fetchActivity = CoachTool.training(
-		.intervalsFetchActivity,
+		.read, .intervalsFetchActivity,
 		"Fetch one recorded activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Returns the activity's summary measurements plus `laps` when intervals.icu supplies them; `lapsSupplied: false` means it supplied none. Use only fields actually returned. Use this for Tier B+ workout reviews; for summary-only Tier A, use `intervals_fetch_activities`.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -46,7 +46,7 @@ extension CoachTools {
 	}
 
 	static let fetchStreams = CoachTool.training(
-		.intervalsFetchStreams,
+		.read, .intervalsFetchStreams,
 		"Fetch time-series channels for an activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Channel names are intervals.icu's own, including provider-specific channels such as grade_smooth. Returns only per-channel min/max/mean over the full series plus the sample count; no per-second data; do not use it for pacing, duration-based best efforts, quartile trends, decoupling, HR recovery, fade patterns, or indoor/outdoor comparisons. Use only minimum, maximum, and mean as descriptive recorded observations. They alone cannot establish session quality, recovery, or readiness, or justify changing the next session. Expensive to fetch (~10,800 samples per type for a 3-hour ride): call it only for Tier C deep reviews the athlete explicitly requests. For Tier A/B use `intervals_fetch_activities` and `intervals_fetch_activity`. Default types: watts, heartrate, cadence, time, altitude. A requested channel with nothing to summarize is named in `unanswered`, and a name intervals.icu does not know is named in `unknown`. When too many requested names are unknown, the read stops early and names the channels it did not read in `unread`; that says nothing about their data, so ask again with only the names you need. A name in any of these lists has no numbers.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -69,7 +69,7 @@ extension CoachTools {
 	}
 
 	static let fetchActivities = CoachTool.training(
-		.intervalsFetchActivities,
+		.read, .intervalsFetchActivities,
 		"Fetch recorded activity summaries for a date range. Each activity has an `id`, a local `start`, and the measurements intervals.icu recorded for it. Pass an `id` exactly as listed to `intervals_fetch_activity` or `intervals_fetch_streams`. Use only fields actually returned.",
 		parameters: ToolParameters.object(
 			properties: [

@@ -27,7 +27,7 @@ extension IntervalsRESTClientTests {
 			tool: ToolName, arguments: String, answer: String
 		) async throws {
 			let client = try unreachableClient()
-			let outcome = try await makeToolRuntime(
+			let outcome = try await makeOfferedTools(
 				intervals: client,
 				ledger: Ledger(
 					log: InMemoryRecordLog(), clock: clock,

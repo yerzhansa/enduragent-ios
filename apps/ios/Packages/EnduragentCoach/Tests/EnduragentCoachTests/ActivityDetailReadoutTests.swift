@@ -50,7 +50,7 @@ extension IntervalsRESTClientTests.ActivityReadoutTests {
 		let status = sample.status
 		let body = Data(canonicalJSON(sample.response).utf8)
 		IntervalsURLProtocolStub.handler = { _ in (status, body) }
-		let outcome = try await makeToolRuntime(
+		let outcome = try await makeOfferedTools(
 			intervals: client,
 			ledger: Ledger(
 				log: InMemoryRecordLog(), clock: clock,

@@ -125,7 +125,7 @@ extension IntervalsRESTClientTests {
 			IntervalsURLProtocolStub.handler = { _ in (200, body) }
 			var arguments: [String: JSONValue] = ["activityId": .string("i1234567")]
 			if let types { arguments["types"] = .array(types.map(JSONValue.string)) }
-			let outcome = try await makeToolRuntime(
+			let outcome = try await makeOfferedTools(
 				intervals: client,
 				ledger: Ledger(
 					log: InMemoryRecordLog(), clock: clock,
