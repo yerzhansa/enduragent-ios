@@ -329,7 +329,7 @@ import Testing
 	}
 
 	private func detail(of id: String) async throws -> [String: JSONValue] {
-		let outcome = try await makeToolRuntime(
+		let outcome = try await makeOfferedTools(
 			intervals: intervals,
 			ledger: Ledger(
 				log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),

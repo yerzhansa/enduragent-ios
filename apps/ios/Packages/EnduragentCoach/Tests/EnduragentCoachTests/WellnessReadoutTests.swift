@@ -33,7 +33,7 @@ extension IntervalsRESTClientTests {
 			let client = try IntervalsRESTClientTests().makeClient(clock: clock)
 			let body = Data(canonicalJSON(sample.response).utf8)
 			IntervalsURLProtocolStub.handler = { _ in (200, body) }
-			let outcome = try await makeToolRuntime(
+			let outcome = try await makeOfferedTools(
 				intervals: client,
 				ledger: Ledger(
 					log: InMemoryRecordLog(), clock: clock,

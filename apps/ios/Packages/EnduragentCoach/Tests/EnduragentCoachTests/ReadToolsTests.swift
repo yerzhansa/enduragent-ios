@@ -370,13 +370,13 @@ struct ReadToolsTests {
 		shown.objectFields["days"]?.arrayValue?.map { $0.objectFields["date"]?.stringValue }
 	}
 
-	private func runtime() -> ToolRuntime {
+	private func runtime() -> OfferedTools {
 		runtime(clock: clock)
 	}
 
-	private func runtime(clock: FixedClock) -> ToolRuntime {
+	private func runtime(clock: FixedClock) -> OfferedTools {
 		let store = InMemoryRecordLog()
-		return makeToolRuntime(
+		return makeOfferedTools(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock

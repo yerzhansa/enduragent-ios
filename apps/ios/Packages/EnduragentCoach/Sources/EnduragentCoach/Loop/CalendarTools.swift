@@ -2,7 +2,7 @@ import Foundation
 
 extension CoachTools {
 	static let listEvents = CoachTool.training(
-		.intervalsListEvents,
+		.read, .intervalsListEvents,
 		"List scheduled calendar workouts on intervals.icu for a date range. Use this BEFORE deleting so you can show the athlete the list (id, date, name) and ask which one to delete. Filters to WORKOUT category only. Each row carries a coachCreated flag; only coach-created workouts can be deleted with intervals_delete_workout. Pass coachCreatedOnly: true to return only coach-created events.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -26,7 +26,7 @@ extension CoachTools {
 	}
 
 	static let createWorkout = CoachTool.training(
-		.intervalsCreateWorkout,
+		.proposal, .intervalsCreateWorkout,
 		"Call this only when the current message explicitly asks for it. Create a structured workout on the intervals.icu calendar. Past dates are refused — workouts can only be created for today or later.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -50,7 +50,7 @@ extension CoachTools {
 	}
 
 	static let createStrengthWorkout = CoachTool.training(
-		.intervalsCreateStrengthWorkout,
+		.proposal, .intervalsCreateStrengthWorkout,
 		"Create a strength/gym session on the intervals.icu calendar. Past dates are refused — sessions can only be created for today or later.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -73,7 +73,7 @@ extension CoachTools {
 	}
 
 	static let deleteWorkout = CoachTool.training(
-		.intervalsDeleteWorkout,
+		.proposal, .intervalsDeleteWorkout,
 		"List and confirm first. Delete a today-or-future coach-owned workout by event ID.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -88,7 +88,7 @@ extension CoachTools {
 	}
 
 	static let updateWorkout = CoachTool.training(
-		.intervalsUpdateWorkout,
+		.proposal, .intervalsUpdateWorkout,
 		"Update a today-or-future coach-owned workout by event ID.",
 		parameters: ToolParameters.object(
 			properties: [

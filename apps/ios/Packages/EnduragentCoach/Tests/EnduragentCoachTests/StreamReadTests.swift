@@ -88,7 +88,7 @@ import Testing
 	}
 
 	private func read(_ arguments: String) async throws -> JSONValue {
-		let outcome = try await makeToolRuntime(
+		let outcome = try await makeOfferedTools(
 			intervals: intervals,
 			ledger: Ledger(
 				log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),

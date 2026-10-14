@@ -231,7 +231,7 @@ import Testing
 	}
 
 	private func outcome(_ tool: ToolName, _ arguments: String) async throws -> ToolOutcome {
-		try await makeToolRuntime(
+		try await makeOfferedTools(
 			intervals: intervals,
 			ledger: Ledger(
 				log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
