@@ -14,7 +14,13 @@ public struct SystemClock: Clock {
 	public var timeZone: TimeZone { .current }
 	public var uptime: Duration { ContinuousClock().systemEpoch.duration(to: .now) }
 
-	public func sleep(for duration: Duration) async throws {
-		try await Task.sleep(for: duration)
+	public func sleep(for duration: Duration) async throws(CancellationError) {
+		do {
+			try await Task.sleep(for: duration)
+		} catch let cancelled as CancellationError {
+			throw cancelled
+		} catch {
+			fatalError("Task.sleep threw something other than cancellation: \(error)")
+		}
 	}
 }

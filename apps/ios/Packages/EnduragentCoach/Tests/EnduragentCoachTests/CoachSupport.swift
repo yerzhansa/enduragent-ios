@@ -246,7 +246,7 @@ func systemTokens(clock: any Clock) -> Int {
 	let volatile = PromptAssembly.volatile(
 		context: "",
 		snapshot: TrainingSnapshot(
-			profile: .read(.cyclist(name: "Ada", ftp: 250)), wellness: .read([]),
+			profile: .cyclist(name: "Ada", ftp: 250), wellness: [],
 			lookback: .snapshotLookback(
 				endingOn: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone))),
 		timeZoneName: clock.timeZone.identifier,
