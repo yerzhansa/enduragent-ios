@@ -77,6 +77,22 @@ import Testing
 		#expect(table.rowDescriptions.map(\.parts) == [["Lap", "1", "warm-up", "Power", "180 W"]])
 	}
 
+	@Test func aBodyRowWiderOrNarrowerThanTheHeaderIsDrawnAndReadAtTheHeaderWidth() throws {
+		let source = """
+			| Lap | Time | Power |
+			|---|---|---|
+			| 1 | 5:02 | 240 W | 148 bpm |
+			| 2 | 4:58 |
+			"""
+		let table = try table(source)
+		#expect(table.rows.map(\.count) == [3, 3])
+		#expect(
+			table.rowDescriptions.map(\.parts) == [
+				["Lap", "1", "Time", "5:02", "Power", "240 W"], ["Lap", "2", "Time", "4:58"],
+			])
+		#expect(!ReplyParser.foundation.document(source).accessibilityText.contains("148 bpm"))
+	}
+
 	@Test func theSpokenTableIsItsRowDescriptionsLineByLine() throws {
 		let document = ReplyParser.foundation.document(Self.laps)
 		let table = try table(Self.laps)
