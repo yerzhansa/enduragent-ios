@@ -11,7 +11,10 @@ struct SeedListing: Sendable, Equatable {
 	var feel: Int?
 	var rpe: Int?
 
-	var isOurs: Bool { externalID?.hasPrefix(LiveSeedPlan.externalIDPrefix) ?? false }
+	var isOurs: Bool {
+		externalID?.hasPrefix(LiveSeedPlan.externalIDPrefix) == true
+			&& name?.hasPrefix(LiveSeedPlan.namePrefix) == true
+	}
 
 	var label: String {
 		"\(id) \"\(name ?? "no name")\" \(start ?? "no start")"
@@ -46,6 +49,7 @@ struct SeedOutcome: Sendable {
 
 struct UnseedOutcome: Sendable {
 	var deleted: [String] = []
+	var skipped: [String] = []
 	var cleared: [CivilDate: [String]] = [:]
 	var changedSinceSeed: [String] = []
 }
@@ -147,7 +151,12 @@ struct LiveSeeder {
 			try ledger.record(athlete: athlete)
 		}
 		var outcome = UnseedOutcome()
+		let rows = Dictionary(listed.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
 		for id in ledger.activityIDs {
+			guard let row = rows[id], row.isOurs else {
+				outcome.skipped.append(rows[id]?.label ?? "\(id) not listed")
+				continue
+			}
 			try await account.delete(id)
 			outcome.deleted.append(id)
 		}

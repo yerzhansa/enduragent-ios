@@ -28,6 +28,10 @@ let package = Package(
 			dependencies: ["EnduragentCoach", "EnduragentCoachFixtures"],
 			resources: [.copy("Fixtures")]
 		),
+		.testTarget(
+			name: "EnduragentCoachLiveChecks",
+			dependencies: ["EnduragentCoach", "EnduragentCoachFixtures"]
+		),
 	],
 	swiftLanguageModes: [.v6]
 )

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Synchronization
 import Testing
 
