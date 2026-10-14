@@ -29,6 +29,8 @@ Run `make test-tools` when you change `tools/` or `.swiftlint.yml`. The Swift pa
 
 Swift live API tests are opt-in and skipped by `make test-swift`.
 
+`make live-reads` reads the intervals.icu account of the key in the Mac Keychain through the app's read code and saves every raw response and decoded value under `LIVE_LOGS`. `make live-coach` runs the coach scenario suite against the built-in model with billed calls, stops before its total in `LIVE_LOGS/spend.tsv` would pass $10, and prints that total. `make live-reads` needs the Keychain item `enduragent-m3-intervals-api-key`, and `make live-coach` needs it and `enduragent-m3-openrouter-key`; each check reads them at run time and stops at once when one is missing. `LIVE_LOGS` defaults to `~/Library/Logs/enduragent-m3/LIVE`. Neither check runs in CI or in `make test-swift`.
+
 `make lint-swift`, `make test-tools`, and `make test-swift` pass `ARGS` to their command, for example `make test-swift ARGS=--disable-sandbox`.
 
 ## Source ownership
