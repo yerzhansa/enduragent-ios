@@ -4,11 +4,7 @@ import Testing
 
 @Suite struct ReadRangeTests {
 	@Test func reversedBoundsAreRefused() {
-		#expect(
-			throws: IntervalsError(
-				code: "invalid_range",
-				details: "oldest (1998-06-14) is after newest (1998-06-13). Swap the bounds.")
-		) {
+		#expect(throws: ReadRangeRefusal.reversed(oldest: "1998-06-14", newest: "1998-06-13")) {
 			try ReadRange(oldest: "1998-06-14", newest: "1998-06-13", today: "1998-06-20")
 		}
 	}
@@ -20,7 +16,7 @@ import Testing
 	}
 
 	@Test func omittedNewestBeforeOldestIsReversed() {
-		#expect(throws: IntervalsError.self) {
+		#expect(throws: ReadRangeRefusal.reversed(oldest: "1998-06-14", newest: "1998-06-13")) {
 			try ReadRange(oldest: "1998-06-14", newest: nil, today: "1998-06-13")
 		}
 	}
@@ -33,13 +29,7 @@ import Testing
 
 	@Test func aRangeOf367InclusiveDaysIsRefused() {
 		let oldest: CivilDate = "1998-01-01"
-		#expect(
-			throws: IntervalsError(
-				code: "range_too_wide",
-				details:
-					"Range is 367 days; the maximum is 366. Fetch the range in chunks of at most 366 days."
-			)
-		) {
+		#expect(throws: ReadRangeRefusal.tooWide(days: 367)) {
 			try ReadRange(oldest: oldest, newest: oldest.adding(days: 366), today: oldest)
 		}
 	}

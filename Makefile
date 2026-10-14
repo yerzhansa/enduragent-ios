@@ -28,7 +28,7 @@ check-source:
 	$(AT_ROOT) $(TOOL) check-source
 
 check-coverage:
-	$(AT_ROOT) $(TOOL) check-coverage
+	$(AT_ROOT) $(TOOL) check-coverage coverage/*.json
 
 lint-swift:
 	$(AT_ROOT) swiftlint lint --strict --quiet $(ARGS)

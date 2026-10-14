@@ -10,29 +10,15 @@ package protocol TrainingReads: Sendable {
 
 package typealias TrainingClient = TrainingReads & IntervalsClient
 
-package func reachingIntervals<Answer>(_ read: () async throws -> Answer) async throws -> Answer {
-	do {
-		return try await read()
-	} catch let error as URLError where error.code != .cancelled {
-		throw IntervalsError(
-			code: "network",
-			details: "intervals.icu could not be reached (URLError \(error.code.rawValue)).")
-	}
-}
-
 package struct ReadRange: Sendable, Equatable {
 	package let oldest: CivilDate
 	package let newest: CivilDate
 
-	package init(oldest: CivilDate, newest: CivilDate?, today: CivilDate) throws(IntervalsError) {
+	package init(oldest: CivilDate, newest: CivilDate?, today: CivilDate) throws(ReadRangeRefusal) {
 		let newest = newest ?? today
-		if oldest > newest {
-			throw IntervalsError(
-				code: "invalid_range",
-				details: "oldest (\(oldest)) is after newest (\(newest)). Swap the bounds."
-			)
-		}
-		try Self.rejectTooWide(IntervalsPolicy.inclusiveDayCount(from: oldest, to: newest))
+		if oldest > newest { throw .reversed(oldest: oldest, newest: newest) }
+		let days = IntervalsPolicy.inclusiveDayCount(from: oldest, to: newest)
+		if days > IntervalsPolicy.listMaxRangeDays { throw .tooWide(days: days) }
 		self.oldest = oldest
 		self.newest = newest
 	}
@@ -53,17 +39,11 @@ package struct ReadRange: Sendable, Equatable {
 	package func contains(_ date: CivilDate) -> Bool {
 		date >= oldest && date <= newest
 	}
+}
 
-	private static func rejectTooWide(_ days: Int) throws(IntervalsError) {
-		let limit = IntervalsPolicy.listMaxRangeDays
-		if days > limit {
-			throw IntervalsError(
-				code: "range_too_wide",
-				details:
-					"Range is \(days) days; the maximum is \(limit). Fetch the range in chunks of at most \(limit) days."
-			)
-		}
-	}
+package enum ReadRangeRefusal: Error, Equatable {
+	case reversed(oldest: CivilDate, newest: CivilDate)
+	case tooWide(days: Int)
 }
 
 package struct StreamChannels: Sendable, Equatable {
@@ -72,13 +52,24 @@ package struct StreamChannels: Sendable, Equatable {
 
 	package let names: [String]
 
-	package init(requested: [String]?) {
-		self = requested.flatMap { $0.isEmpty ? nil : StreamChannels(names: $0) } ?? .standard
+	package init(requested: [String]?) throws(UnusableChannelName) {
+		guard let requested, !requested.isEmpty else {
+			self = .standard
+			return
+		}
+		if let unusable = requested.first(where: { $0.isEmpty || $0.contains(",") }) {
+			throw UnusableChannelName(name: unusable)
+		}
+		self.init(names: requested)
 	}
 
 	private init(names: [String]) {
 		self.names = names
 	}
+}
+
+package struct UnusableChannelName: Error, Equatable {
+	package let name: String
 }
 
 package struct Readings<Field: Hashable & Sendable>: Sendable, Equatable {

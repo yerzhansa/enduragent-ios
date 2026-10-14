@@ -24,15 +24,17 @@ struct CoverageChecker {
 	static let handCheck = "checkedByHand"
 
 	let root: String
-	let milestone: Milestone
+	let table: String
 	let problems: Problems
 
 	func run() throws -> Int {
-		let path = NodePath.resolve(root, milestone.table)
+		let path = NodePath.resolve(root, table)
 		guard let text = String(validating: try FileSystem.read(path), as: UTF8.self) else {
-			throw CoverageFailure(description: "\(milestone.table) is not UTF-8")
+			throw CoverageFailure(description: "\(table) is not UTF-8")
 		}
-		let rows = try JSONValue.parse(text).member("criteria").elements()
+		let document = try JSONValue.parse(text)
+		let milestone = try Milestone(declaredIn: document)
+		let rows = try document.member("criteria").elements()
 		let expected = Set(milestone.units.flatMap(\.identifiers))
 		var seen: Set<String> = []
 		var sources = SourceFiles(root: root)
@@ -113,7 +115,7 @@ struct CoverageChecker {
 		}
 		switch (function, proof, method) {
 		case (let function?, nil, nil):
-			if !declarations.functions.contains(function) {
+			if !declarations.testFunctions.contains(function) {
 				try problems.report(identifier, "missing-test-function", file, function)
 			}
 		case (nil, let proof?, let method?):
@@ -156,7 +158,7 @@ private struct SourceFiles {
 		guard let path = path(of: file),
 			let text = String(validating: try FileSystem.read(path), as: UTF8.self)
 		else { return nil }
-		return try SwiftDeclarations(code: try patterns.withoutStrings(text), patterns: patterns)
+		return try SwiftDeclarations(code: text, patterns: patterns)
 	}
 }
 

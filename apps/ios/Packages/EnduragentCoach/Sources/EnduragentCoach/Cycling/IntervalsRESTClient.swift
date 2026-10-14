@@ -192,7 +192,12 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 			request.setValue(body.contentType, forHTTPHeaderField: "Content-Type")
 			request.httpBody = body.data
 		}
-		let (data, response) = try await session.data(for: request)
+		let (data, response): (Data, URLResponse)
+		do {
+			(data, response) = try await session.data(for: request)
+		} catch let error as URLError where error.code != .cancelled {
+			throw IntervalsError.unreachable(error)
+		}
 		guard let http = response as? HTTPURLResponse else {
 			throw IntervalsError(code: "network", details: "missing http response")
 		}

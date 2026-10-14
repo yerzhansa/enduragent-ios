@@ -174,11 +174,11 @@ package struct ToolOffer: Sendable {
 	}
 
 	package func offers(_ name: ToolName) -> Bool {
-		handler(for: name) != nil
+		tool(for: name) != nil
 	}
 
-	func handler(for name: ToolName) -> BoundToolRun? {
-		bound.first { $0.schema.name == name }?.run
+	func tool(for name: ToolName) -> BoundTool? {
+		bound.first { $0.schema.name == name }
 	}
 }
 

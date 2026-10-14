@@ -105,8 +105,9 @@ import Testing
 
 		#expect(
 			try carried.tier("C", until: "Manual overrides:").says(
-				"explicit `deep` / `in depth` only. Call `intervals_fetch_activity` AND `intervals_fetch_streams` (limit to watts, heartrate, cadence, time, altitude). Follow the stream-evidence limits in the `intervals_fetch_streams` tool description."
+				"explicit `deep` / `in depth` only. Call `intervals_fetch_activity` AND `intervals_fetch_streams` (watts, heartrate, cadence, time, altitude by default, plus any other channel the review needs, such as one the athlete names). Follow the stream-evidence limits in the `intervals_fetch_streams` tool description."
 			))
+		#expect(!carried.rules.says("limit to watts"))
 		#expect(try !carried.tier("B", until: "- **Tier C").says("intervals_fetch_streams"))
 		#expect(carried.rules.components(separatedBy: "intervals_fetch_streams").count == 3)
 		#expect(

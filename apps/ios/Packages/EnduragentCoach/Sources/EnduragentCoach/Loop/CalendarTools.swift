@@ -39,7 +39,8 @@ extension CoachTools {
 			required: ["date", "workout"]
 		)
 	) { arguments, reach in
-		try await propose(.intervalsCreateWorkout, in: reach.local) { today in
+		try await propose(.intervalsCreateWorkout, in: reach.local) {
+			(today) throws(ToolInputError) in
 			let parsed = try CyclingTools.parseCreateWorkoutInput(arguments, today: today)
 			return (
 				.createWorkout(date: parsed.date, workout: parsed.workout),
@@ -60,7 +61,8 @@ extension CoachTools {
 			required: ["date", "name", "description"]
 		)
 	) { arguments, reach in
-		try await propose(.intervalsCreateStrengthWorkout, in: reach.local) { today in
+		try await propose(.intervalsCreateStrengthWorkout, in: reach.local) {
+			(today) throws(ToolInputError) in
 			let parsed = try CyclingTools.parseStrengthWorkout(arguments, today: today)
 			return (
 				.createStrengthWorkout(
@@ -80,7 +82,7 @@ extension CoachTools {
 			required: ["eventId"]
 		)
 	) { arguments, reach in
-		try await propose(.intervalsDeleteWorkout, in: reach.local) { _ in
+		try await propose(.intervalsDeleteWorkout, in: reach.local) { (_) throws(ToolInputError) in
 			(.deleteWorkout(eventId: try CyclingTools.parseDeleteWorkout(arguments)), "")
 		}
 	}
@@ -98,7 +100,8 @@ extension CoachTools {
 			required: ["eventId"]
 		)
 	) { arguments, reach in
-		try await propose(.intervalsUpdateWorkout, in: reach.local) { today in
+		try await propose(.intervalsUpdateWorkout, in: reach.local) {
+			(today) throws(ToolInputError) in
 			let update = try CyclingTools.parseUpdateWorkout(arguments, today: today)
 			return (.updateWorkout(update), update.description ?? "")
 		}
@@ -106,26 +109,18 @@ extension CoachTools {
 
 	private static func propose(
 		_ tool: GatedToolName, in reach: LocalReach,
-		parsed: (CivilDate) throws -> (input: GatedToolInput, description: String)
+		parsed: (CivilDate) throws(ToolInputError) -> (input: GatedToolInput, description: String)
 	) async throws -> ToolExecution {
-		do {
-			let (input, description) = try parsed(reach.today)
-			let proposal = try await reach.reviews.propose(
-				chatId: reach.chat,
-				tool: tool,
-				input: input,
-				summary: ProposalPolicy.summary(for: input),
-				description: description,
-				scope: reach.scope
-			)
-			return ToolExecution(outcome: .pending(proposal), commit: nil)
-		} catch let error as InvalidWorkout {
-			return .result(
-				.object([
-					"error": .string("invalid_workout"),
-					"details": .string(error.message),
-				]))
-		}
+		let (input, description) = try parsed(reach.today)
+		let proposal = try await reach.reviews.propose(
+			chatId: reach.chat,
+			tool: tool,
+			input: input,
+			summary: ProposalPolicy.summary(for: input),
+			description: description,
+			scope: reach.scope
+		)
+		return ToolExecution(outcome: .pending(proposal), commit: nil)
 	}
 
 	private static func encodeEvent(_ event: CalendarEvent) -> JSONValue {

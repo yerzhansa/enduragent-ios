@@ -100,15 +100,36 @@ extension CoachReadout {
 				extras.heartRateZoneSeconds.map { .number(Double($0)) })
 			units["heartRateZoneSeconds"] = .string("s")
 		}
-		var result: [String: JSONValue] = ["activity": .object(activity)]
 		switch detail.laps {
 		case .notSupplied:
-			result["lapsSupplied"] = .bool(false)
+			return detailResult(activity, ["lapsSupplied": .bool(false)], units: units)
 		case .recorded(let laps):
-			result["laps"] = .array(laps.map { row(of: $0, units: &units) })
+			var lapUnits = units
+			let rows = laps.map { row(of: $0, units: &lapUnits) }
+			let shown = detailResult(activity, ["laps": .array(rows)], units: lapUnits)
+			if ToolResultCap.admits(shown) { return shown }
+			let lapless = detailResult(
+				activity,
+				[
+					"lapCount": .number(Double(laps.count)),
+					"lapsOmitted": .string(lapsOmitted(laps.count)),
+				], units: units)
+			return ToolResultCap.admits(lapless) ? lapless : shown
 		}
-		if !units.isEmpty { result["units"] = .object(units) }
-		return .object(result)
+	}
+
+	private static func lapsOmitted(_ count: Int) -> String {
+		"intervals.icu supplied \(count) laps, more than one tool result can hold, so the laps are left out. The activity's own measurements are complete; lap data is unavailable for this read."
+	}
+
+	private static func detailResult(
+		_ activity: [String: JSONValue], _ laps: [String: JSONValue],
+		units: [String: JSONValue]
+	) -> JSONValue {
+		var fields = laps
+		fields["activity"] = .object(activity)
+		if !units.isEmpty { fields["units"] = .object(units) }
+		return .object(fields)
 	}
 
 	private static func row(of lap: ActivityLap, units: inout [String: JSONValue]) -> JSONValue {

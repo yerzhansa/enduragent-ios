@@ -50,7 +50,7 @@ import Testing
 				.hiddenByStrava, .activity(Self.ride), .unreadable, .hiddenByStrava,
 				.activity(.recorded("i1234568", nil, on: "1998-06-09")), .unreadable, .unreadable,
 			])
-		#expect(listing.activities.map(\.id.rawValue) == ["i1234567", "i1234568"])
+		#expect(listing.activities.map(\.id.rawValue) == ["i1234568", "i1234567"])
 		#expect(listing.hiddenByStrava == 2)
 		#expect(listing.unreadable == 3)
 		#expect(listing.total == 7)
@@ -60,7 +60,7 @@ import Testing
 		#expect(empty.total == 0)
 	}
 
-	@Test func activitiesAreOrderedByStartThenIdentifier() throws {
+	@Test func activitiesAreOrderedNewestStartFirstThenByIdentifier() throws {
 		let range = try ReadRange(oldest: "1998-06-01", newest: "1998-06-13", today: "1998-06-13")
 		let listing = ActivityListing(
 			range: range,
@@ -71,7 +71,7 @@ import Testing
 				.recorded("i2", "No time of day", on: "1998-06-10"),
 				.recorded("i9", "Day before", on: "1998-06-09", at: 23 * 3_600),
 			].map(ActivityRow.activity))
-		#expect(listing.activities.map(\.id.rawValue) == ["i9", "i2", "i3", "i4", "i5"])
+		#expect(listing.activities.map(\.id.rawValue) == ["i5", "i3", "i4", "i2", "i9"])
 	}
 
 	@Test(arguments: [-1, 86_400])

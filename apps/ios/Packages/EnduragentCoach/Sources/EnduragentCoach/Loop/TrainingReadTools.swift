@@ -218,20 +218,33 @@ extension WellnessField {
 }
 
 extension JSONValue {
-	func readRange(today: CivilDate) throws(IntervalsError) -> ReadRange {
+	func readRange(today: CivilDate) throws(ToolInputError) -> ReadRange {
 		let fields = objectFields
-		if let oldest = try Self.optionalDate(fields["oldest"], label: "oldest") {
-			return try ReadRange(
-				oldest: oldest, newest: try Self.optionalDate(fields["newest"], label: "newest"),
-				today: today)
+		guard let oldest = try Self.optionalDate(fields["oldest"], label: "oldest") else {
+			throw ToolInputError(
+				code: "invalid_input", details: "oldest is required. Use YYYY-MM-DD.")
 		}
-		throw IntervalsError(
-			code: "invalid_date",
-			details: "oldest is not a real calendar date. Use YYYY-MM-DD."
-		)
+		let newest = try Self.optionalDate(fields["newest"], label: "newest")
+		do throws(ReadRangeRefusal) {
+			return try ReadRange(oldest: oldest, newest: newest, today: today)
+		} catch {
+			switch error {
+			case .reversed(let oldest, let newest):
+				throw ToolInputError(
+					code: "invalid_range",
+					details: "oldest (\(oldest)) is after newest (\(newest)). Swap the bounds.")
+			case .tooWide(let days):
+				let limit = IntervalsPolicy.listMaxRangeDays
+				throw ToolInputError(
+					code: "range_too_wide",
+					details:
+						"Range is \(days) days; the maximum is \(limit). Fetch the range in chunks of at most \(limit) days."
+				)
+			}
+		}
 	}
 
-	func activityID() throws(IntervalsError) -> ActivityID {
+	func activityID() throws(ToolInputError) -> ActivityID {
 		let value = objectFields["activityId"]
 		if let raw = value?.stringValue, let id = ActivityID(rawValue: raw) {
 			return id
@@ -239,42 +252,51 @@ extension JSONValue {
 		if let number = value?.intValue(), let id = ActivityID(rawValue: String(number)) {
 			return id
 		}
-		throw IntervalsError(
+		throw ToolInputError(
 			code: "invalid_input",
 			details: "activityId must be a positive integer, i-prefixed id, or lowercase 64-hex id."
 		)
 	}
 
-	func streamChannels() throws(IntervalsError) -> StreamChannels {
+	func streamChannels() throws(ToolInputError) -> StreamChannels {
+		let requested: [String]?
 		switch objectFields["types"] {
 		case nil, .null?:
-			return .standard
-		case .array(let entries)?:
-			let names = entries.compactMap(\.stringValue)
-			if names.count == entries.count { return StreamChannels(requested: names) }
+			requested = nil
+		case .array(let entries)? where entries.allSatisfy({ $0.stringValue != nil }):
+			requested = entries.compactMap(\.stringValue)
 		default:
-			break
+			throw ToolInputError(
+				code: "invalid_input", details: "types must be a list of channel names.")
 		}
-		throw IntervalsError(
-			code: "invalid_input", details: "types must be a list of channel names.")
+		do throws(UnusableChannelName) {
+			return try StreamChannels(requested: requested)
+		} catch {
+			throw ToolInputError(
+				code: "invalid_input",
+				details:
+					"types entry \"\(error.name)\" is not one channel name. Give each channel as its own entry, never empty and with no comma."
+			)
+		}
 	}
 
-	private static func optionalDate(_ value: JSONValue?, label: String) throws(IntervalsError)
+	private static func optionalDate(_ value: JSONValue?, label: String) throws(ToolInputError)
 		-> CivilDate?
 	{
-		guard let value else { return nil }
-		guard let raw = value.stringValue else {
-			throw IntervalsError(
+		switch value {
+		case nil, .null?:
+			return nil
+		case .string(let raw)?:
+			guard let date = CivilDate(rawValue: raw) else {
+				throw ToolInputError(
+					code: "invalid_date",
+					details: "\(raw) is not a real calendar date. Use YYYY-MM-DD.")
+			}
+			return date
+		default:
+			throw ToolInputError(
 				code: "invalid_date",
-				details: "\(label) is not a real calendar date. Use YYYY-MM-DD."
-			)
+				details: "\(label) is not a real calendar date. Use YYYY-MM-DD.")
 		}
-		guard let date = CivilDate(rawValue: raw) else {
-			throw IntervalsError(
-				code: "invalid_date",
-				details: "\(raw) is not a real calendar date. Use YYYY-MM-DD."
-			)
-		}
-		return date
 	}
 }

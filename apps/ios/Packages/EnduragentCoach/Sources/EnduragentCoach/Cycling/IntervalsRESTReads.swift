@@ -61,11 +61,9 @@ extension IntervalsRESTClient: TrainingReads {
 	package func activity(_ id: ActivityID) async throws -> ActivityDetailRead {
 		let json: JSONValue
 		do {
-			json = try await reachingIntervals {
-				try await getJSON(
-					path: ["activity", id.rawValue],
-					query: [URLQueryItem(name: "intervals", value: "true")])
-			}
+			json = try await getJSON(
+				path: ["activity", id.rawValue],
+				query: [URLQueryItem(name: "intervals", value: "true")])
 		} catch let error as IntervalsError where error.status == 404 {
 			return .notFound
 		}

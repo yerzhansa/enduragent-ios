@@ -43,6 +43,8 @@ extension IntervalsRESTClientTests {
 				types: ["temp", "watts", "dfa_a1", "torque", "left_right_balance", "temp"],
 				answer: try wire())
 			var expected = try npm().objectFields
+			expected["channels"] = .object(
+				["watts": try #require(expected["channels"]?.objectFields["watts"])])
 			expected["unanswered"] = .array(
 				["temp", "dfa_a1", "torque", "left_right_balance"].map(JSONValue.string))
 			#expect(shown == .object(expected), "\(canonicalJSON(shown))")
@@ -64,7 +66,7 @@ extension IntervalsRESTClientTests {
 				keyed[type] = entry.objectFields["data"] ?? .null
 			}
 			#expect(keyed.count == 9)
-			let asked = StreamChannels(requested: Self.answering + ["temp", "torque"])
+			let asked = try StreamChannels(requested: Self.answering + ["temp", "torque"])
 			let fromList = try await summary(of: try wire(), asked: asked)
 			let fromKeyed = try await summary(of: .object(keyed), asked: asked)
 			#expect(fromKeyed == fromList)
@@ -73,13 +75,13 @@ extension IntervalsRESTClientTests {
 			#expect(fromKeyed.unanswered == ["temp", "torque"])
 		}
 
-		@Test func samplesThatAreNotFiniteNumbersAreLeftOutOfEveryStatistic() {
+		@Test func samplesThatAreNotFiniteNumbersAreLeftOutOfEveryStatistic() throws {
 			let summary = StreamSummary(
 				summarizing: [
 					StreamSamples(channel: "watts", values: [nil, 250, .infinity, 150, .nan]),
 					StreamSamples(channel: "cadence", values: [90]),
 					StreamSamples(channel: "temp", values: [nil, .nan, -.infinity, nil, nil, nil]),
-				], asked: StreamChannels(requested: ["watts", "temp", "cadence"]))
+				], asked: try StreamChannels(requested: ["watts", "temp", "cadence"]))
 			#expect(summary.sampleCount == 5)
 			#expect(Set(summary.channels.keys) == ["watts", "cadence"])
 			let watts = summary.channels["watts"]

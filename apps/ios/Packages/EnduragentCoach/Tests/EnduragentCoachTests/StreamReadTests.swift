@@ -46,6 +46,9 @@ import Testing
 		#"{"activityId":"i1234567","types":"watts"}"#,
 		#"{"activityId":"i1234567","types":["watts",7]}"#,
 		#"{"activityId":"i1234567","types":{"watts":true}}"#,
+		#"{"activityId":"i1234567","types":["watts,grade_smooth"]}"#,
+		#"{"activityId":"i1234567","types":["watts",""]}"#,
+		#"{"activityId":"i1234567","types":[","]}"#,
 	])
 	func identifierOrChannelListTheToolCannotAcceptIsRefusedBeforeAnyRead(arguments: String)
 		async throws
@@ -55,6 +58,20 @@ import Testing
 		#expect(shown["error"] == .string("invalid_input"))
 		#expect(shown["channels"] == nil)
 		#expect(intervals.count(of: .streams) == 0)
+		#expect(intervals.calls.isEmpty)
+	}
+
+	@Test func channelNameHoldingACommaIsNamedInTheRefusal() async throws {
+		let shown = try await read(
+			#"{"activityId":"i1234567","types":["heartrate","watts,grade_smooth"]}"#)
+		#expect(
+			shown
+				== .object([
+					"error": .string("invalid_input"),
+					"details": .string(
+						"types entry \"watts,grade_smooth\" is not one channel name. Give each channel as its own entry, never empty and with no comma."
+					),
+				]))
 		#expect(intervals.calls.isEmpty)
 	}
 

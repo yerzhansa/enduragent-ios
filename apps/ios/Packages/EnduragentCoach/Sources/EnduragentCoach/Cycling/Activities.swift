@@ -91,7 +91,7 @@ package struct ActivityListing: Sendable, Equatable {
 		}
 		self.range = range
 		self.activities = activities.sorted {
-			$0.start == $1.start ? $0.id.rawValue < $1.id.rawValue : $0.start < $1.start
+			$0.start == $1.start ? $0.id.rawValue < $1.id.rawValue : $0.start > $1.start
 		}
 		self.hiddenByStrava = hiddenByStrava
 		self.unreadable = unreadable
@@ -237,7 +237,7 @@ package struct StreamSummary: Sendable, Equatable {
 	) {
 		var channels: [String: ChannelSummary] = [:]
 		var sampleCount = 0
-		for stream in samples {
+		for stream in samples where asked.names.contains(stream.channel) {
 			guard let summary = ChannelSummary(of: stream.values) else { continue }
 			channels[stream.channel] = summary
 			sampleCount = Swift.max(sampleCount, stream.values.count)

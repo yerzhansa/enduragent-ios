@@ -88,12 +88,14 @@ extension IntervalsRESTClientTests {
 				throw URLError(.notConnectedToInternet)
 			}
 			let channels = afterAnUnknownChannel ? ["watts", Self.unknown] : ["watts"]
-			await #expect {
+			await #expect(
+				throws: IntervalsError(
+					code: "network", details: "intervals.icu could not be reached (URLError -1009)."
+				)
+			) {
 				_ = try await client.streams(
 					of: try #require(ActivityID(rawValue: "i1234567")),
 					channels: StreamChannels(requested: channels))
-			} throws: {
-				($0 as? URLError)?.code == .notConnectedToInternet
 			}
 			#expect(asked.all.last == "watts")
 		}
