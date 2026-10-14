@@ -19,6 +19,7 @@
 			let folder = try LiveRunFolder(kind: .coach, startedAt: started)
 			let ledger = try LiveSpendLedger(
 				file: folder.logs.appending(path: "spend.tsv"), limit: LiveSpendLedger.unitLimit)
+			defer { FileHandle.standardOutput.write(Data((ledger.statement + "\n").utf8)) }
 			let today = IntervalsPolicy.today(now: started, timeZone: .current)
 			let account = IntervalsRESTClient(credential: .apiKey(intervalsKey))
 			let profile = try await account.profile()
