@@ -18,21 +18,33 @@ enum CheckCoverage {
 		arguments: [String], directory: String,
 		output: (String) throws -> Void, errors: @escaping (String) throws -> Void
 	) throws -> Int32 {
-		guard arguments.isEmpty || (arguments.count == 2 && arguments[0] == "--root") else {
-			try errors("Usage: check-coverage [--root repository]")
+		let rooted = arguments.first == "--root"
+		let tables = Array(arguments.dropFirst(rooted ? 2 : 0))
+		guard !tables.isEmpty else {
+			try errors("Usage: check-coverage [--root repository] table...")
 			return 2
 		}
-		let problems = Problems(write: errors)
-		let count: Int
+		let root: String
 		do {
-			let root = try FileSystem.realPath(
-				NodePath.resolve(directory, arguments.count == 2 ? arguments[1] : ""))
-			count = try CoverageChecker(root: root, milestone: .three, problems: problems).run()
+			root = try FileSystem.realPath(NodePath.resolve(directory, rooted ? arguments[1] : ""))
 		} catch {
-			try errors("check-coverage: the coverage table could not be read: \(error)")
+			try errors("check-coverage: the repository could not be found: \(error)")
 			return 2
 		}
-		try output("check-coverage: \(count) criteria; \(problems.count) problems.")
-		return problems.count == 0 ? 0 : 1
+		var status: Int32 = 0
+		for table in tables {
+			let problems = Problems { try errors("\(table): \($0)") }
+			let count: Int
+			do {
+				count = try CoverageChecker(root: root, table: table, problems: problems).run()
+			} catch {
+				try errors("check-coverage: \(table) could not be read: \(error)")
+				status = 2
+				continue
+			}
+			try output("check-coverage: \(table): \(count) criteria; \(problems.count) problems.")
+			if problems.count > 0, status == 0 { status = 1 }
+		}
+		return status
 	}
 }

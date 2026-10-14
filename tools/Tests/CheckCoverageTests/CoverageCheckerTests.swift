@@ -13,25 +13,49 @@ struct CoverageCheckerTests {
 	}
 
 	@Test(.timeLimit(.minutes(1)))
-	func emptyTableFailsTheCommandAndNamesEveryCriterionOfTheMilestone() throws {
-		let result = try Scratch(files: ["coverage/milestone-3.json": #"{"criteria": []}"#])
-			.runCommand()
+	func commandChecksEveryTableItIsGivenAgainstTheUnitsThatTableDeclares() throws {
+		let result = try Scratch(files: [
+			"coverage/milestone-3.json": #"{"units": {"1.1": 2}, "criteria": []}"#,
+			"coverage/milestone-4.json": #"{"units": {"4.1": 1}, "criteria": []}"#,
+		]).runCommand(tables: ["coverage/milestone-3.json", "coverage/milestone-4.json"])
 		#expect(result.status == 1)
-		#expect(result.errors.count == 134)
-		#expect(result.errors.first == "1.1.1 [missing-criterion] unit 1.1")
-		#expect(result.errors.last == "8.4.6 [missing-criterion] unit 8.4")
-		#expect(result.output == ["check-coverage: 0 criteria; 134 problems."])
+		#expect(
+			result.errors == [
+				"coverage/milestone-3.json: 1.1.1 [missing-criterion] unit 1.1",
+				"coverage/milestone-3.json: 1.1.2 [missing-criterion] unit 1.1",
+				"coverage/milestone-4.json: 4.1.1 [missing-criterion] unit 4.1",
+			])
+		#expect(
+			result.output == [
+				"check-coverage: coverage/milestone-3.json: 0 criteria; 2 problems.",
+				"check-coverage: coverage/milestone-4.json: 0 criteria; 1 problems.",
+			])
+	}
+
+	@Test(
+		.timeLimit(.minutes(1)),
+		arguments: [
+			nil, #"{"criteria": ["#, #"{"criteria": []}"#, #"{"units": {}, "criteria": []}"#,
+			#"{"units": {"1.1": 0}, "criteria": []}"#, #"{"units": {"1.1": 1.5}, "criteria": []}"#,
+			#"{"units": {"1.1": "2"}, "criteria": []}"#,
+		])
+	func tableThatCannotBeReadStopsTheCommandWithItsOwnStatus(_ table: String?) throws {
+		let result = try Scratch(files: table.map { ["coverage/milestone-3.json": $0] } ?? [:])
+			.runCommand(tables: ["coverage/milestone-3.json"])
+		#expect(result.status == 2)
+		#expect(result.output.isEmpty)
+		#expect(result.errors.count == 1)
+		#expect(
+			result.errors.first?.hasPrefix(
+				"check-coverage: coverage/milestone-3.json could not be read")
+				== true)
 	}
 
 	@Test(.timeLimit(.minutes(1)))
-	func tableThatCannotBeReadStopsTheCommandWithItsOwnStatus() throws {
-		let missing = try Scratch(files: [:]).runCommand()
-		#expect(missing.status == 2)
-		#expect(missing.output.isEmpty)
-		let broken = try Scratch(files: ["coverage/milestone-3.json": #"{"criteria": ["#])
-			.runCommand()
-		#expect(broken.status == 2)
-		#expect(broken.errors.count == 1)
+	func commandWithoutATableShowsItsUsage() throws {
+		let result = try Scratch(files: [:]).runCommand(tables: [])
+		#expect(result.status == 2)
+		#expect(result.errors == ["Usage: check-coverage [--root repository] table..."])
 	}
 }
 
@@ -54,13 +78,21 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 				let text = "func onlyInText() { \\(run { "}" }) }"
 				#expect(text.isEmpty)
 			}
+
+			@Test(.timeLimit(.minutes(1)), arguments: [(1, (2, 3))])
+			@MainActor
+			func pairIsRead(_ pair: (Int, (Int, Int))) {}
+
+			private func range(of text: String) -> Range<Int> { 0..<1 }
 		}
 		""",
 		proofs: """
 		final class ShortcutProof: XCTestCase {
 			func testPick() {
-				XCTAssertTrue(app.buttons["{"].exists)
+				XCTAssertTrue(launch().buttons["{"].exists)
 			}
+
+			private func launch() -> XCUIApplication { XCUIApplication() }
 		}
 
 		final class LanguageProof: XCTestCase {
@@ -95,6 +127,17 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 			name: "listed test function was renamed",
 			rows: replacing(0, with: row("1.1.1", function("rangeIsRefuse"))),
 			problems: ["1.1.1 [missing-test-function] \(packageTests) rangeIsRefuse"]),
+		CoverageCase(
+			name: "listed test function takes arguments under further attributes",
+			rows: replacing(0, with: row("1.1.1", function("pairIsRead")))),
+		CoverageCase(
+			name: "listed test function is a helper of the test file",
+			rows: replacing(0, with: row("1.1.1", function("range"))),
+			problems: ["1.1.1 [missing-test-function] \(packageTests) range"]),
+		CoverageCase(
+			name: "listed proof method is a helper of the proof class",
+			rows: replacing(1, with: row("1.1.2", proof("ShortcutProof", "launch"))),
+			problems: ["1.1.2 [missing-proof-method] \(proofs) ShortcutProof.launch"]),
 		CoverageCase(
 			name: "listed test function is only named inside a string",
 			rows: replacing(0, with: row("1.1.1", function("onlyInText"))),
@@ -202,15 +245,14 @@ struct CoverageCase: Sendable, CustomTestStringConvertible {
 	}
 
 	func check() throws -> (problems: [String], rows: Int) {
-		let milestone = Milestone(
-			table: "coverage/sample.json",
-			units: [.init(name: "1.1", criteria: 2), .init(name: "1.2", criteria: 1)])
-		let table = #"{"criteria": [\#(rows.joined(separator: ","))]}"#
-		return try Scratch(files: files.merging([milestone.table: table]) { $1 }).inRoot { root in
+		let path = "coverage/sample.json"
+		let table = #"""
+			{"units": {"1.1": 2, "1.2": 1}, "criteria": [\#(rows.joined(separator: ","))]}
+			"""#
+		return try Scratch(files: files.merging([path: table]) { $1 }).inRoot { root in
 			let lines = Lines()
 			let problems = Problems { lines.lines.append($0) }
-			let count = try CoverageChecker(root: root, milestone: milestone, problems: problems)
-				.run()
+			let count = try CoverageChecker(root: root, table: path, problems: problems).run()
 			return (lines.lines, count)
 		}
 	}
@@ -237,12 +279,13 @@ struct Scratch {
 		return try outcome.get()
 	}
 
-	func runCommand() throws -> (status: Int32, output: [String], errors: [String]) {
+	func runCommand(tables: [String]) throws -> (status: Int32, output: [String], errors: [String])
+	{
 		try inRoot { root in
 			let output = Lines()
 			let errors = Lines()
 			let status = try CheckCoverage.run(
-				arguments: ["--root", root], directory: root,
+				arguments: ["--root", root] + tables, directory: root,
 				output: { output.lines.append($0) }, errors: { errors.lines.append($0) })
 			return (status, output.lines, errors.lines)
 		}
