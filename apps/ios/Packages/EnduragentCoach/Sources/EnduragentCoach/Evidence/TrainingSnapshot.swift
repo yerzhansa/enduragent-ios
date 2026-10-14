@@ -278,8 +278,8 @@ private enum SnapshotNumber {
 		guard quarters == quarters.rounded(.towardZero) else {
 			return String(format: "%.1f", value)
 		}
-		let tenths = (abs(value) * 10 + 0.5).rounded(.down)
-		return String(format: "%.1f", (value < 0 ? -tenths : tenths) / 10)
+		let tenths = OneDecimal.round(value.magnitude)
+		return String(format: "%.1f", value < 0 ? -tenths : tenths)
 	}
 
 	static func signed(_ value: Double) -> String {
