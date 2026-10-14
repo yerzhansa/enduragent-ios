@@ -12,15 +12,15 @@ extension IntervalsRESTClientTests {
 		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 		private let asked = AskedTypes()
 
-		@Test func unknownChannelIsUnansweredAndTheKnownOnesKeepTheirNumbers() async throws {
+		@Test func unknownChannelIsNamedUnknownAndTheKnownOnesKeepTheirNumbers() async throws {
 			let shown = try await readout(
-				types: ["watts", Self.unknown, "heartrate"], rejecting: [Self.unknown])
+				types: ["watts", Self.unknown, "heartrate", "temp"], rejecting: [Self.unknown])
 			#expect(
 				shown
 					== (try JSONValue.parse(
-						#"{"sampleCount":10,"channels":{"watts":{"min":0,"max":400,"mean":214.4},"heartrate":{"min":140,"max":160,"mean":151.3}},"unanswered":["enduragent_unknown_channel"]}"#
+						#"{"sampleCount":10,"channels":{"watts":{"min":0,"max":400,"mean":214.4},"heartrate":{"min":140,"max":160,"mean":151.3}},"unanswered":["temp"],"unknown":["enduragent_unknown_channel"]}"#
 					)), "\(canonicalJSON(shown))")
-			#expect(asked.all == ["watts,\(Self.unknown),heartrate", "watts,heartrate"])
+			#expect(asked.all == ["watts,\(Self.unknown),heartrate,temp", "watts,heartrate,temp"])
 		}
 
 		@Test func readWhereEveryChannelIsUnknownAnswersNothingAndIsNotAFailure() async throws {
@@ -30,7 +30,7 @@ extension IntervalsRESTClientTests {
 			#expect(
 				shown
 					== (try JSONValue.parse(
-						#"{"sampleCount":0,"channels":{},"unanswered":["enduragent_unknown_a","enduragent_unknown_b"]}"#
+						#"{"sampleCount":0,"channels":{},"unknown":["enduragent_unknown_a","enduragent_unknown_b"]}"#
 					)), "\(canonicalJSON(shown))")
 			#expect(
 				asked.all == [
@@ -48,6 +48,8 @@ extension IntervalsRESTClientTests {
 			(500, #"{"status":500,"error":"Invalid stream type [watts]"}"#),
 			(503, ""),
 			(422, #"{"status":422,"error":"Invalid activity"}"#),
+			(422, #"{"status":422,"error":"Invalid activity [watts]"}"#),
+			(422, #"{"status":422,"error":"Invalid stream kind [watts]"}"#),
 			(422, #"{"status":422,"error":"Invalid stream type [velocity]"}"#),
 			(422, #"{"status":422,"message":"Invalid stream type [watts]"}"#),
 			(422, "Invalid stream type [watts]"),
@@ -99,19 +101,23 @@ extension IntervalsRESTClientTests {
 		@Test func eachUnknownNameCostsOneRequestAndTheReadEndsWithTheKnownOnes() async throws {
 			let shown = try await readout(
 				types: ["u1", "watts", "u2", "u1", "u2"], rejecting: ["u1", "u2"])
-			#expect(shown.objectFields["unanswered"] == .array(["u1", "u2"].map(JSONValue.string)))
+			#expect(shown.objectFields["unknown"] == .array(["u1", "u2"].map(JSONValue.string)))
+			#expect(shown.objectFields["unanswered"] == nil)
 			#expect(shown.objectFields["channels"]?.objectFields.keys.sorted() == ["watts"])
 			#expect(asked.all == ["u1,watts,u2,u1,u2", "watts,u2,u2", "watts"])
 		}
 
-		@Test func readNamingManyUnknownChannelsStopsAfterThreeRequests() async throws {
+		@Test func cappedReadNamesTheChannelsItDidNotReadAsUnread() async throws {
 			let invented = (1...12).map { "u\($0)" }
-			let shown = try await readout(types: invented + ["watts"], rejecting: Set(invented))
+			let shown = try await readout(
+				types: invented + ["watts", "temp"], rejecting: Set(invented))
 			#expect(
 				shown
 					== .object([
 						"sampleCount": .number(0), "channels": .object([:]),
-						"unanswered": .array((invented + ["watts"]).map(JSONValue.string)),
+						"unknown": .array(invented.prefix(3).map(JSONValue.string)),
+						"unread": .array(
+							(invented.dropFirst(3) + ["watts", "temp"]).map(JSONValue.string)),
 					]), "\(canonicalJSON(shown))")
 			#expect(asked.all.count == 3)
 		}

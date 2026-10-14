@@ -5,18 +5,22 @@ extension IntervalsRESTClient {
 		-> StreamSummary
 	{
 		var asking = channels.names
+		var unknown: Set<String> = []
 		for _ in 0..<IntervalsPolicy.streamRequestLimit where !asking.isEmpty {
 			let answer = try await exchange(
 				method: "GET", path: ["activity", id.rawValue, "streams.json"],
 				query: [URLQueryItem(name: "types", value: asking.joined(separator: ","))])
 			if let rejected = Self.rejectedStreamType(in: answer), asking.contains(rejected) {
 				asking.removeAll { $0 == rejected }
+				unknown.insert(rejected)
 				continue
 			}
 			let json = try parseJSON(try Self.accepted(answer))
-			return StreamSummary(summarizing: try Self.streamSamples(from: json), asked: channels)
+			return StreamSummary(
+				summarizing: try Self.streamSamples(from: json), asked: channels, unknown: unknown)
 		}
-		return StreamSummary(summarizing: [], asked: channels)
+		return StreamSummary(
+			summarizing: [], asked: channels, unknown: unknown, unread: Set(asking))
 	}
 
 	private static func rejectedStreamType(in answer: IntervalsAnswer) -> String? {

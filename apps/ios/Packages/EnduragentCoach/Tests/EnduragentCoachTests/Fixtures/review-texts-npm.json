@@ -66,11 +66,11 @@
       "differences": [
         {
           "npm": "Fetch time-series channels for an activity by legacy or canonical ID. Store-backed reads accept up to 16 unique public channels; platform-backed reads also accept provider-specific channels such as smooth_grade.",
-          "phone": "Fetch time-series channels for an activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Channel names are intervals.icu's own, including provider-specific channels such as smooth_grade."
+          "phone": "Fetch time-series channels for an activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Channel names are intervals.icu's own, including provider-specific channels such as grade_smooth."
         },
         {
           "npm": "Default types: watts, heartrate, cadence, time, altitude.",
-          "phone": "Default types: watts, heartrate, cadence, time, altitude. A requested channel with nothing to summarize is named in `unanswered` and has no numbers."
+          "phone": "Default types: watts, heartrate, cadence, time, altitude. A requested channel with nothing to summarize is named in `unanswered`, and a name intervals.icu does not know is named in `unknown`. When too many requested names are unknown, the read stops early and names the channels it did not read in `unread`; that says nothing about their data, so ask again with only the names you need. A name in any of these lists has no numbers."
         }
       ]
     },
