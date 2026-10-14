@@ -38,10 +38,9 @@
 					}
 					let slowTool = request.text == toolProgressDirective && !request.retry
 					if request.step == 0 {
-						holdActivityRead(
-							on: intervals,
-							for: slowTool && request.tools.contains(.intervalsFetchActivities)
-								? slowToolReadDelay : .zero)
+						intervals.delay(
+							.activities,
+							by: slowTool && request.offersTrainingTools ? slowToolReadDelay : .zero)
 					}
 					if slowTool {
 						return toolProgressReply(request)
@@ -60,17 +59,20 @@
 							}
 						}
 					}
-					return reply(to: request.text, tools: request.tools, retry: request.retry).step(
+					return reply(
+						to: request.text, offersTrainingTools: request.offersTrainingTools,
+						retry: request.retry
+					).step(
 						request.step, repeatingHang: true)
 				}
 			}
 		}
 
-		private static func reply(to text: String, tools: [ToolName], retry: Bool)
+		private static func reply(to text: String, offersTrainingTools: Bool, retry: Bool)
 			-> ScriptedReply
 		{
 			if let shortcut = shortcutReply(to: text, retry: retry) { return shortcut }
-			let normal = script(for: text, tools: tools)
+			let normal = script(for: text, offersTrainingTools: offersTrainingTools)
 			guard !retry, text.hasPrefix("fixture:") else { return ScriptedReply(normal) }
 			let words = text.dropFirst("fixture:".count).split(separator: " ").map(String.init)
 			let arguments = Array(words.dropFirst())
