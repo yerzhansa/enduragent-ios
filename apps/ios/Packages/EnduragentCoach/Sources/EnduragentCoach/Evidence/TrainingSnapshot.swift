@@ -87,7 +87,8 @@ package struct ProfileLine: Sendable, Equatable {
 		}
 		for field in ProfileField.allCases {
 			guard let value = shown[field], let label = field.label else { continue }
-			parts.append("\(label) \(SnapshotNumber.text(value)) \(field.unit)")
+			parts.append(
+				[label, SnapshotNumber.text(value), field.unit].compactMap { $0 }.joined(separator: " "))
 		}
 		return "Profile: " + parts.joined(separator: SnapshotNumber.separator)
 	}

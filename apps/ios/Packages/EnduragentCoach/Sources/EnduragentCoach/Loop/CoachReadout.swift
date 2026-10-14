@@ -1,6 +1,57 @@
 import Foundation
 
-extension CoachReadout {
+enum CoachReadout {
+	static func profile(_ profile: AthleteProfile) -> JSONValue {
+		var fields: [String: JSONValue] = [
+			"id": .string(profile.id),
+			"name": .string(profile.name),
+		]
+		var units: [String: JSONValue] = [:]
+		switch profile.ftp {
+		case .absent:
+			break
+		case .usable(let watts):
+			fields["ftp"] = .number(watts.value)
+		case .implausible(let reported):
+			if let reported { fields["ftp"] = .number(reported) }
+			fields["ftpUsable"] = .bool(false)
+			fields["ftpNotice"] = .string(PromptStaticBlocks.snapshotQualitativeFTP)
+		}
+		if fields["ftp"] != nil { units["ftp"] = .string("W") }
+		write(profile.readings, to: &fields, units: &units)
+		if let sex = profile.sex { fields["sex"] = .string(sex) }
+		if let age = profile.ageYears { fields["ageYears"] = .number(Double(age)) }
+		if !profile.settingsSports.isEmpty {
+			fields["sports"] = .array(profile.settingsSports.map(JSONValue.string))
+		}
+		for (key, zones, unit) in [
+			("powerZones", profile.powerZones, "% of FTP"),
+			("heartRateZones", profile.heartRateZones, "bpm"),
+		] where !zones.isEmpty {
+			fields[key] = ladder(zones)
+			units[key] = .string(unit)
+		}
+		if !units.isEmpty { fields["units"] = .object(units) }
+		return .object(fields)
+	}
+
+	static func wellness(_ days: [WellnessDay], in range: ReadRange) -> JSONValue {
+		var units: [String: JSONValue] = [:]
+		let rows = days.sorted { $0.date < $1.date }.map { day in
+			var fields: [String: JSONValue] = ["date": .string(day.date.rawValue)]
+			write(day.readings, to: &fields, units: &units)
+			if let form = day.form { fields["form"] = .number(OneDecimal.round(form)) }
+			return JSONValue.object(fields)
+		}
+		var result: [String: JSONValue] = [
+			"oldest": .string(range.oldest.rawValue),
+			"newest": .string(range.newest.rawValue),
+			"days": .array(rows),
+		]
+		if !units.isEmpty { result["units"] = .object(units) }
+		return .object(result)
+	}
+
 	static func activities(_ listing: ActivityListing) -> JSONValue {
 		var units: [String: JSONValue] = [:]
 		var result: [String: JSONValue] = [
@@ -67,6 +118,15 @@ extension CoachReadout {
 			result[key] = .array(names.map(JSONValue.string))
 		}
 		return .object(result)
+	}
+
+	private static func ladder(_ zones: [TrainingZone]) -> JSONValue {
+		.array(
+			zones.map { zone in
+				var fields: [String: JSONValue] = ["upTo": .number(zone.upperBound)]
+				if let name = zone.name { fields["name"] = .string(name) }
+				return .object(fields)
+			})
 	}
 
 	private static func unread(
@@ -157,14 +217,13 @@ extension CoachReadout {
 	) {
 		for field in Field.allCases {
 			guard let value = readings[field] else { continue }
-			fields[field.readoutKey] = .number(value)
-			if let unit = field.unit { units[field.readoutKey] = .string(unit) }
+			fields[field.rawValue] = .number(value)
+			if let unit = field.unit { units[field.rawValue] = .string(unit) }
 		}
 	}
 }
 
-protocol ReadoutMeasurement: Hashable, Sendable, CaseIterable {
-	var readoutKey: String { get }
+protocol ReadoutMeasurement: RawRepresentable<String>, Hashable, Sendable, CaseIterable {
 	var unit: String? { get }
 }
 
@@ -179,21 +238,6 @@ extension LocalStart {
 }
 
 extension ActivityField: ReadoutMeasurement {
-	var readoutKey: String {
-		switch self {
-		case .duration: "durationSeconds"
-		case .distance: "distance"
-		case .load: "load"
-		case .intensity: "intensity"
-		case .averagePower: "averagePower"
-		case .weightedPower: "weightedPower"
-		case .averageHeartRate: "averageHeartRate"
-		case .maxHeartRate: "maxHeartRate"
-		case .ftp: "ftp"
-		case .elevationGain: "elevationGain"
-		}
-	}
-
 	var unit: String? {
 		switch self {
 		case .duration: "s"
@@ -207,21 +251,6 @@ extension ActivityField: ReadoutMeasurement {
 }
 
 extension ActivityDetailField: ReadoutMeasurement {
-	var readoutKey: String {
-		switch self {
-		case .perceivedExertion: "rpe"
-		case .feel: "feel"
-		case .averageCadence: "averageCadence"
-		case .averageSpeed: "averageSpeed"
-		case .maxSpeed: "maxSpeed"
-		case .calories: "calories"
-		case .work: "work"
-		case .variabilityIndex: "variabilityIndex"
-		case .efficiencyFactor: "efficiencyFactor"
-		case .decoupling: "decoupling"
-		}
-	}
-
 	var unit: String? {
 		switch self {
 		case .perceivedExertion, .feel, .variabilityIndex, .efficiencyFactor: nil
@@ -230,6 +259,33 @@ extension ActivityDetailField: ReadoutMeasurement {
 		case .calories: "kcal"
 		case .work: "J"
 		case .decoupling: "%"
+		}
+	}
+}
+
+extension ProfileField: ReadoutMeasurement {
+	var unit: String? {
+		switch self {
+		case .lthr, .maxHeartRate, .restingHeartRate: "bpm"
+		case .weight: "kg"
+		case .indoorFTP, .maxPower: "W"
+		case .wPrime: "J"
+		case .sweetSpotMin, .sweetSpotMax: "% of FTP"
+		}
+	}
+}
+
+extension WellnessField: ReadoutMeasurement {
+	var unit: String? {
+		switch self {
+		case .rampRate: "Fitness per week"
+		case .weight: "kg"
+		case .restingHeartRate: "bpm"
+		case .hrv: "ms"
+		case .sleepSeconds: "s"
+		case .fitness, .fatigue, .sleepScore, .sleepQuality, .readiness, .soreness, .stress,
+			.mood, .motivation, .injury, .reportedFatigue:
+			nil
 		}
 	}
 }

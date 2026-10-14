@@ -1,7 +1,7 @@
 import Foundation
 
-package enum ActivityField: Hashable, Sendable, CaseIterable {
-	case duration
+package enum ActivityField: String, Hashable, Sendable, CaseIterable {
+	case duration = "durationSeconds"
 	case distance
 	case load
 	case intensity
@@ -117,8 +117,8 @@ package enum Laps: Sendable, Equatable {
 	case recorded([ActivityLap])
 }
 
-package enum ActivityDetailField: Hashable, Sendable, CaseIterable {
-	case perceivedExertion
+package enum ActivityDetailField: String, Hashable, Sendable, CaseIterable {
+	case perceivedExertion = "rpe"
 	case feel
 	case averageCadence
 	case averageSpeed

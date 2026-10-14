@@ -126,13 +126,8 @@ extension IntervalsRESTClient: TrainingReads {
 		guard let date = fields["id"]?.stringValue.flatMap(CivilDate.init(rawValue:)) else {
 			return nil
 		}
-		var readings: [WellnessField: Double] = [:]
-		for field in WellnessField.allCases {
-			if case .number(let value) = ReportedNumber(wire: fields[field.wireKey]) {
-				readings[field] = value
-			}
-		}
-		return WellnessDay(date: date, readings: Readings(readings))
+		return WellnessDay(
+			date: date, readings: readings(in: fields, under: \WellnessField.wireKey))
 	}
 
 	private static func activityRow(from row: JSONValue) -> ActivityRow {
