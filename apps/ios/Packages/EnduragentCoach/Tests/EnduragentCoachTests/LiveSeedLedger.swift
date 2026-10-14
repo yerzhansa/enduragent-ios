@@ -6,6 +6,7 @@ struct LiveSeedLedger: Sendable {
 	static let header = "kind\tkey\tvalue"
 
 	let file: URL
+	private(set) var athlete: String?
 	private(set) var anchor: CivilDate?
 	private(set) var activities: [String: String] = [:]
 	private(set) var wellness: [CivilDate: [String]] = [:]
@@ -18,6 +19,8 @@ struct LiveSeedLedger: Sendable {
 			let cells = row.split(separator: "\t", omittingEmptySubsequences: false).map(
 				String.init)
 			switch (cells.first, cells.count) {
+			case ("athlete", 3):
+				athlete = cells[1]
 			case ("anchor", 3):
 				anchor = try Self.date(cells[1], in: row)
 			case ("activity", 3):
@@ -38,7 +41,12 @@ struct LiveSeedLedger: Sendable {
 		let span =
 			dates.first.map { "\($0.rawValue) to \(dates.last?.rawValue ?? $0.rawValue)" } ?? "none"
 		return
-			"anchor \(anchor?.rawValue ?? "none"), \(activities.count) activities, \(wellness.count) wellness days (\(span))"
+			"athlete \(athlete ?? "none"), anchor \(anchor?.rawValue ?? "none"), \(activities.count) activities, \(wellness.count) wellness days (\(span))"
+	}
+
+	mutating func record(athlete id: String) throws {
+		try append(["athlete", id, ""])
+		athlete = id
 	}
 
 	mutating func record(anchor date: CivilDate) throws {

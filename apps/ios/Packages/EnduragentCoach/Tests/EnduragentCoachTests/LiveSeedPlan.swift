@@ -104,10 +104,12 @@ struct SeedWellnessDay: Sendable, Equatable {
 	let values: [String: Double]
 
 	func matches(_ current: [String: Double]) -> Bool {
-		Self.fields.allSatisfy { field in
-			guard let mine = values[field], let theirs = current[field] else { return false }
-			return abs(mine - theirs) < 0.05
-		}
+		Self.fields.allSatisfy { holds(current, at: $0) }
+	}
+
+	func holds(_ current: [String: Double], at field: String) -> Bool {
+		guard let mine = values[field], let theirs = current[field] else { return false }
+		return abs(mine - theirs) < 0.05
 	}
 }
 

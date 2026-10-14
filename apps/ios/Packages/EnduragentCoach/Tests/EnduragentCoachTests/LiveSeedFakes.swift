@@ -11,17 +11,24 @@ actor FakeSeedAccount: SeedAccount {
 	private(set) var ratings: [String] = []
 	private(set) var wellnessWrites: [[CivilDate: [String: Double?]]] = []
 	private var listedFromSecondRead: [SeedListing]
+	private let athlete: String
 	private let processes: Bool
+	private let nullClears: Bool
 
 	init(
-		listed: [SeedListing] = [], listedFromSecondRead: [SeedListing] = [],
-		days: [CivilDate: [String: Double]] = [:], processes: Bool = true
+		athlete: String = "i1001", listed: [SeedListing] = [],
+		listedFromSecondRead: [SeedListing] = [], days: [CivilDate: [String: Double]] = [:],
+		processes: Bool = true, nullClears: Bool = true
 	) {
+		self.athlete = athlete
 		self.listed = listed
 		self.listedFromSecondRead = listedFromSecondRead
 		self.days = days
 		self.processes = processes
+		self.nullClears = nullClears
 	}
+
+	func athleteID() -> String { athlete }
 
 	func activities(oldest: CivilDate, newest: CivilDate) -> [SeedListing] {
 		defer {
@@ -62,7 +69,7 @@ actor FakeSeedAccount: SeedAccount {
 	func writeWellness(_ written: [CivilDate: [String: Double?]]) {
 		wellnessWrites.append(written)
 		for (date, values) in written {
-			for (field, value) in values {
+			for (field, value) in values where value != nil || nullClears {
 				days[date, default: [:]][field] = value
 			}
 		}

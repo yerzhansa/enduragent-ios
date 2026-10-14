@@ -53,10 +53,9 @@
 					}
 					report = Self.report(outcome, ledger: seeder.ledger, athlete: athlete)
 				case .unseed:
-					let deleted = try await seeder.unseed(
+					let outcome = try await seeder.unseed(
 						retiringLedgerAs: "ledger-unseeded-\(stamp).tsv")
-					report =
-						"# Unseed \(stamp)\n\nDeleted \(deleted.count) activities: \(deleted.joined(separator: ", "))\n\nThe account lists no seeded activity.\n"
+					report = Self.report(outcome, stamp: stamp)
 				}
 				try Data(report.utf8).write(
 					to: folder.appending(path: "\(stamp)-\(mode.rawValue).md"), options: .atomic)
@@ -77,6 +76,22 @@
 			let folder = URL(fileURLWithPath: logs, isDirectory: true).appending(path: "seed")
 			try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
 			return folder
+		}
+
+		private static func report(_ outcome: UnseedOutcome, stamp: String) -> String {
+			let cleared = outcome.cleared.sorted { $0.key < $1.key }.map { date, fields in
+				"\(date.rawValue) \(fields.joined(separator: ","))"
+			}
+			let changed =
+				outcome.changedSinceSeed.isEmpty
+				? "none" : outcome.changedSinceSeed.joined(separator: ", ")
+			return [
+				"# Unseed \(stamp)", "",
+				"- Deleted \(outcome.deleted.count) activities: \(outcome.deleted.joined(separator: ", "))",
+				"- Cleared wellness on \(cleared.count) days, read back as empty: \(cleared.joined(separator: "; "))",
+				"- Left because the value changed since the seed wrote it: \(changed)", "",
+				"The account lists no seeded activity.", "",
+			].joined(separator: "\n")
 		}
 
 		private static func report(

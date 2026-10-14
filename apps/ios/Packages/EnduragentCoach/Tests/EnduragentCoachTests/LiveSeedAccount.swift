@@ -12,6 +12,10 @@ struct IntervalsSeedAccount: SeedAccount {
 		self.authorization = "Basic \(Data("API_KEY:\(key)".utf8).base64EncodedString())"
 	}
 
+	func athleteID() async throws -> String {
+		try await client.profile().id
+	}
+
 	func activities(oldest: CivilDate, newest: CivilDate) async throws -> [SeedListing] {
 		let rows = try await rows(of: "activities", oldest: oldest, newest: newest)
 		return rows.map { row in

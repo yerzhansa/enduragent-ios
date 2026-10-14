@@ -19,6 +19,7 @@ struct SeedListing: Sendable, Equatable {
 }
 
 protocol SeedAccount: Sendable {
+	func athleteID() async throws -> String
 	func activities(oldest: CivilDate, newest: CivilDate) async throws -> [SeedListing]
 	func wellness(oldest: CivilDate, newest: CivilDate) async throws -> [CivilDate: [String:
 		Double]]
@@ -43,6 +44,12 @@ struct SeedOutcome: Sendable {
 	var listed: [SeedListing] = []
 }
 
+struct UnseedOutcome: Sendable {
+	var deleted: [String] = []
+	var cleared: [CivilDate: [String]] = [:]
+	var changedSinceSeed: [String] = []
+}
+
 struct LiveSeeder {
 	static let guardDays = 365
 
@@ -54,6 +61,7 @@ struct LiveSeeder {
 	mutating func seed(render: (SeedActivity) throws -> Data) async throws -> SeedOutcome {
 		let listed = try await account.activities(
 			oldest: today.adding(days: -Self.guardDays), newest: today)
+		let athlete = try await confirmAccount(listing: listed)
 		let foreign = listed.filter { !$0.isOurs }
 		guard foreign.isEmpty else {
 			throw LiveCheckStop(
@@ -83,6 +91,9 @@ struct LiveSeeder {
 				description:
 					"Nothing was written: the account has wellness values the seed did not write on "
 					+ foreignDays.joined(separator: ", "))
+		}
+		if ledger.athlete == nil {
+			try ledger.record(athlete: athlete)
 		}
 		if ledger.anchor == nil {
 			try ledger.record(anchor: plan.anchor)
@@ -127,17 +138,20 @@ struct LiveSeeder {
 		return outcome
 	}
 
-	mutating func unseed(retiringLedgerAs retiredName: String) async throws -> [String] {
-		let ids = ledger.activityIDs
-		for id in ids {
+	mutating func unseed(retiringLedgerAs retiredName: String) async throws -> UnseedOutcome {
+		let listed = try await account.activities(
+			oldest: today.adding(days: -Self.guardDays), newest: today)
+		let athlete = try await confirmAccount(listing: listed)
+		let ledgerOnDisk = FileManager.default.fileExists(atPath: ledger.file.path)
+		if ledger.athlete == nil, ledgerOnDisk {
+			try ledger.record(athlete: athlete)
+		}
+		var outcome = UnseedOutcome()
+		for id in ledger.activityIDs {
 			try await account.delete(id)
+			outcome.deleted.append(id)
 		}
-		if !ledger.wellness.isEmpty {
-			try await account.writeWellness(
-				ledger.wellness.mapValues { fields in
-					Dictionary(uniqueKeysWithValues: fields.map { ($0, Double?.none) })
-				})
-		}
+		try await clearSeededWellness(into: &outcome)
 		let remaining = try await account.activities(
 			oldest: today.adding(days: -Self.guardDays), newest: today
 		).filter(\.isOurs)
@@ -147,10 +161,78 @@ struct LiveSeeder {
 					"The account still lists seeded activities after unseeding: "
 					+ remaining.map(\.label).joined(separator: "; "))
 		}
-		if FileManager.default.fileExists(atPath: ledger.file.path) {
+		if ledgerOnDisk {
 			try ledger.retire(as: retiredName)
 		}
-		return ids
+		return outcome
+	}
+
+	private func confirmAccount(listing: [SeedListing]) async throws -> String {
+		let athlete = try await account.athleteID()
+		if let recorded = ledger.athlete {
+			guard recorded == athlete else {
+				throw LiveCheckStop(
+					description:
+						"Nothing was changed: the seed ledger belongs to athlete \(recorded), but the key belongs to athlete \(athlete)."
+				)
+			}
+			return athlete
+		}
+		let listed = Set(listing.map(\.id))
+		let unlisted = ledger.activityIDs.filter { !listed.contains($0) }
+		guard unlisted.isEmpty else {
+			throw LiveCheckStop(
+				description:
+					"Nothing was changed: the seed ledger names no athlete, and athlete \(athlete) does not list its activities "
+					+ unlisted.joined(separator: ", "))
+		}
+		guard !ledger.activities.isEmpty || ledger.wellness.isEmpty else {
+			throw LiveCheckStop(
+				description:
+					"Nothing was changed: the seed ledger names no athlete and no activity, so its wellness days cannot be tied to athlete \(athlete)."
+			)
+		}
+		return athlete
+	}
+
+	private func clearSeededWellness(into outcome: inout UnseedOutcome) async throws {
+		guard let oldest = ledger.wellness.keys.min(), let newest = ledger.wellness.keys.max()
+		else { return }
+		guard let anchor = ledger.anchor else {
+			throw LiveCheckStop(
+				description:
+					"The seed ledger records wellness but no anchor, so the values the seed wrote are unknown and no wellness was cleared."
+			)
+		}
+		let planned = Dictionary(
+			LiveSeedPlan(anchor: anchor).wellness.map { ($0.date, $0) },
+			uniquingKeysWith: { first, _ in first })
+		let current = try await account.wellness(oldest: oldest, newest: newest)
+		for (date, fields) in ledger.wellness.sorted(by: { $0.key < $1.key }) {
+			let values = current[date] ?? [:]
+			for field in fields where values[field] != nil {
+				if planned[date]?.holds(values, at: field) == true {
+					outcome.cleared[date, default: []].append(field)
+				} else {
+					outcome.changedSinceSeed.append("\(date.rawValue) \(field)")
+				}
+			}
+		}
+		guard !outcome.cleared.isEmpty else { return }
+		try await account.writeWellness(
+			outcome.cleared.mapValues { fields in
+				Dictionary(uniqueKeysWithValues: fields.map { ($0, Double?.none) })
+			})
+		let after = try await account.wellness(oldest: oldest, newest: newest)
+		let stayed = outcome.cleared.sorted { $0.key < $1.key }.flatMap { date, fields in
+			fields.filter { after[date]?[$0] != nil }.map { "\(date.rawValue) \($0)" }
+		}
+		guard stayed.isEmpty else {
+			throw LiveCheckStop(
+				description:
+					"The account still holds seeded wellness after clearing it: "
+					+ stayed.joined(separator: ", "))
+		}
 	}
 
 	private func waitUntilProcessed(_ plan: LiveSeedPlan) async throws -> [String: SeedListing] {
