@@ -76,19 +76,25 @@ enum CoachReadout {
 	private static let stravaGuidance =
 		"Strava does not allow third-party AI tools to use data from its API. For future rides, connect your recording source directly to intervals.icu and keep Strava connected. For past rides, use Import All Strava Data in intervals.icu settings; it requires an intervals.icu supporter subscription."
 
-	static func activity(_ read: ActivityDetailRead, asked id: ActivityID) -> JSONValue {
+	static func activity(_ read: ActivityDetailRead, asked id: ActivityID)
+		-> (shown: JSONValue, lapless: JSONValue?)
+	{
 		switch read {
 		case .found(let detail):
 			found(detail)
 		case .notFound:
-			unread(
-				id, "activity_not_found",
-				"intervals.icu has no activity \(id.rawValue). Pass an id exactly as intervals_fetch_activities listed it."
+			(
+				unread(
+					id, "activity_not_found",
+					"intervals.icu has no activity \(id.rawValue). Pass an id exactly as intervals_fetch_activities listed it."
+				), nil
 			)
 		case .hiddenByStrava:
-			unread(
-				id, "activity_hidden_by_strava",
-				"Activity \(id.rawValue) is hidden by Strava, so it can’t be read. \(stravaGuidance)"
+			(
+				unread(
+					id, "activity_hidden_by_strava",
+					"Activity \(id.rawValue) is hidden by Strava, so it can’t be read. \(stravaGuidance)"
+				), nil
 			)
 		}
 	}
@@ -138,7 +144,7 @@ enum CoachReadout {
 		return .object(fields)
 	}
 
-	private static func found(_ detail: ActivityDetail) -> JSONValue {
+	private static func found(_ detail: ActivityDetail) -> (shown: JSONValue, lapless: JSONValue?) {
 		var units: [String: JSONValue] = [:]
 		var activity = row(of: detail.activity, units: &units).objectFields
 		let extras = detail.extras
@@ -159,19 +165,18 @@ enum CoachReadout {
 		}
 		switch detail.laps {
 		case .notSupplied:
-			return detailResult(activity, ["lapsSupplied": .bool(false)], units: units)
+			return (detailResult(activity, ["lapsSupplied": .bool(false)], units: units), nil)
 		case .recorded(let laps):
 			var lapUnits = units
 			let rows = laps.map { row(of: $0, units: &lapUnits) }
 			let shown = detailResult(activity, ["laps": .array(rows)], units: lapUnits)
-			if ToolResultCap.admits(shown) { return shown }
 			let lapless = detailResult(
 				activity,
 				[
 					"lapCount": .number(Double(laps.count)),
 					"lapsOmitted": .string(lapsOmitted(laps.count)),
 				], units: units)
-			return ToolResultCap.admits(lapless) ? lapless : shown
+			return (shown, lapless)
 		}
 	}
 

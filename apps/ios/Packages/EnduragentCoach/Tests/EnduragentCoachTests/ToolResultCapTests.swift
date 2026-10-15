@@ -72,6 +72,54 @@ import Testing
 			"memory_read", "{}", records: 0, advice: Self.noNarrowing)
 	}
 
+	@Test func oversizedMemoryQueryNamesTheArgumentsThatNarrowIt() async throws {
+		let offered = try #require(offeredTools().tool(named: "memory_query"))
+		let accepted = offered.schema.parameters.objectFields["properties"]?.objectFields ?? [:]
+		let oversized = BoundTool(
+			schema: offered.schema, effect: offered.effect, narrowing: offered.narrowing
+		) { _, _ in
+			.result(.string((0..<100).map(wide).joined(separator: "\n")))
+		}
+
+		let outcome = try await ToolRuntime.execute(
+			oversized,
+			arguments: .object(["from": .string("1998-06-01"), "to": .string("1998-06-13")]),
+			scope: TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero)
+		).outcome
+
+		#expect(["from", "to", "query"].allSatisfy { accepted[$0] != nil })
+		guard case .truncated(let notice, let tokens, let omitted) = outcome else {
+			Issue.record("memory_query was not omitted: \(outcome)")
+			return
+		}
+		#expect(omitted == 0)
+		#expect(
+			notice
+				== "Tool result too large (~\(tokens) tokens) and was omitted to protect context. "
+				+ "Rerun with a shorter from/to range or a query filter.")
+	}
+
+	@Test func everyOfferedToolDeclaresWhichArgumentsNarrowItsResult() throws {
+		let offer = offeredTools()
+		let dateRange = "a smaller date range"
+		let declared: [ToolName: String?] = try Dictionary(
+			uniqueKeysWithValues: offer.schemas.map { schema in
+				(schema.name, try #require(offer.tool(named: schema.name.rawValue)).narrowing)
+			})
+
+		#expect(
+			declared == [
+				.calculateZones: nil, .intervalsFetchAthlete: nil,
+				.intervalsFetchWellness: dateRange, .intervalsFetchActivity: nil,
+				.intervalsFetchStreams: "fewer stream types",
+				.intervalsFetchActivities: dateRange, .intervalsListEvents: dateRange,
+				.intervalsCreateWorkout: nil, .intervalsCreateStrengthWorkout: nil,
+				.intervalsDeleteWorkout: nil, .intervalsUpdateWorkout: nil, .memoryRead: nil,
+				.memoryQuery: "a shorter from/to range or a query filter", .memoryWrite: nil,
+				.ledgerAppend: nil,
+			])
+	}
+
 	@Test(arguments: [100, 23_999, 24_000])
 	func resultsAtOrBelowCapStayIntact(tokens: Int) async throws {
 		let payload = try seedDetail(estimatedTokens: tokens)
@@ -88,6 +136,17 @@ import Testing
 		let fields = try await expectOmitted(
 			Self.detailTool, Self.detailArguments, records: 1, advice: Self.noNarrowing)
 		#expect(fields["estimatedTokens"] == .number(24_001))
+	}
+
+	private func offeredTools() -> ToolOffer {
+		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+		return makeToolOffer(
+			training: connectedTraining(intervals),
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock,
+			memory: MemoryView(
+				sections: ["notes": "stamp\n- Prefers hill repeats"], todayNotes: nil,
+				planHeadline: nil, orphanNames: []))
 	}
 
 	private func wide(_ index: Int) -> String {
@@ -116,11 +175,12 @@ import Testing
 			ActivityLap(number: 1, label: nil, kind: nil, readings: Readings([:]))
 		])
 		let empty = CoachReadout.activity(try detail(notes: "", laps: lap), asked: Self.ride.id)
+			.shown
 		let overhead = UntrustedEnvelope.wrap(empty).canonicalDigestInput().utf16.count
 		let read = try detail(
 			notes: String(repeating: "x", count: estimatedTokens * 10 / 3 - overhead), laps: lap)
 		seed(read)
-		return CoachReadout.activity(read, asked: Self.ride.id)
+		return CoachReadout.activity(read, asked: Self.ride.id).shown
 	}
 
 	@discardableResult

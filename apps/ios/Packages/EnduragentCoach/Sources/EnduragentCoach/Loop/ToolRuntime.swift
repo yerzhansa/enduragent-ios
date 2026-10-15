@@ -50,20 +50,22 @@ enum ToolRuntime {
 		guard case .result(let data) = raw.outcome else {
 			return raw
 		}
-		let measured = ToolResultCap.measure(data)
-		if measured.estimatedTokens > TurnPolicy.toolResultTokenCap {
-			return ToolExecution(
-				outcome: .truncated(
-					notice: ToolResultCap.notice(
-						estimatedTokens: measured.estimatedTokens,
-						parameters: tool.schema.parameters),
-					estimatedTokens: measured.estimatedTokens,
-					omittedRecords: omittedRecordCount(in: data)
-				),
-				commit: raw.commit
-			)
+		let measured = MeasuredResult(data)
+		if measured.fits {
+			return ToolExecution(outcome: .result(measured.enveloped), commit: raw.commit)
 		}
-		return ToolExecution(outcome: .result(measured.enveloped), commit: raw.commit)
+		if let smaller = raw.overCap.map(MeasuredResult.init), smaller.fits {
+			return ToolExecution(outcome: .result(smaller.enveloped), commit: raw.commit)
+		}
+		return ToolExecution(
+			outcome: .truncated(
+				notice: ToolResultCap.notice(
+					estimatedTokens: measured.estimatedTokens, rerunWith: tool.narrowing),
+				estimatedTokens: measured.estimatedTokens,
+				omittedRecords: omittedRecordCount(in: data)
+			),
+			commit: raw.commit
+		)
 	}
 
 	private static func omittedRecordCount(in payload: JSONValue) -> Int {
@@ -87,30 +89,27 @@ package struct ToolInputError: Error, Sendable, Equatable {
 	}
 }
 
+private struct MeasuredResult {
+	let enveloped: JSONValue
+	let estimatedTokens: Int
+
+	init(_ data: JSONValue) {
+		enveloped = UntrustedEnvelope.wrap(data)
+		estimatedTokens = estimateTokens(enveloped.canonicalDigestInput())
+	}
+
+	var fits: Bool { estimatedTokens <= TurnPolicy.toolResultTokenCap }
+}
+
 enum ToolResultCap {
-	private static let narrowingArguments: [(parameter: String, advice: String)] = [
-		("oldest", "a smaller date range"), ("types", "fewer stream types"),
-	]
-
-	static func measure(_ data: JSONValue) -> (enveloped: JSONValue, estimatedTokens: Int) {
-		let enveloped = UntrustedEnvelope.wrap(data)
-		return (enveloped, estimateTokens(enveloped.canonicalDigestInput()))
-	}
-
-	static func admits(_ data: JSONValue) -> Bool {
-		measure(data).estimatedTokens <= TurnPolicy.toolResultTokenCap
-	}
-
-	static func notice(estimatedTokens: Int, parameters: JSONValue) -> String {
-		let accepted = parameters.objectFields["properties"]?.objectFields ?? [:]
-		let advice = narrowingArguments.filter { accepted[$0.parameter] != nil }.map(\.advice)
+	static func notice(estimatedTokens: Int, rerunWith narrowing: String?) -> String {
 		let omitted =
 			"Tool result too large (~\(estimatedTokens) tokens) and was omitted to protect context. "
-		guard !advice.isEmpty else {
+		guard let narrowing else {
 			return omitted
 				+ "No argument of this tool narrows its result, so calling it again gives the same answer."
 		}
-		return omitted + "Rerun with \(advice.joined(separator: " or "))."
+		return omitted + "Rerun with \(narrowing)."
 	}
 }
 

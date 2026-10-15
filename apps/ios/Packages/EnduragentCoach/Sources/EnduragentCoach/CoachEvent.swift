@@ -68,4 +68,50 @@ package enum ReplayUnsafeToolName: String, Sendable {
 	case memoryWrite = "memory_write"
 	case ledgerAppend = "ledger_append"
 	case planSave = "plan_save"
+
+	var toolName: ToolName {
+		switch self {
+		case .intervalsCreateWorkout: .intervalsCreateWorkout
+		case .intervalsCreateStrengthWorkout: .intervalsCreateStrengthWorkout
+		case .intervalsDeleteWorkout: .intervalsDeleteWorkout
+		case .intervalsUpdateWorkout: .intervalsUpdateWorkout
+		case .memoryWrite: .memoryWrite
+		case .ledgerAppend: .ledgerAppend
+		case .planSave: .planSave
+		}
+	}
+}
+
+enum ReadToolName: Sendable {
+	case calculateZones
+	case intervalsFetchAthlete
+	case intervalsFetchWellness
+	case intervalsFetchActivity
+	case intervalsFetchStreams
+	case intervalsFetchActivities
+	case intervalsListEvents
+
+	var toolName: ToolName {
+		switch self {
+		case .calculateZones: .calculateZones
+		case .intervalsFetchAthlete: .intervalsFetchAthlete
+		case .intervalsFetchWellness: .intervalsFetchWellness
+		case .intervalsFetchActivity: .intervalsFetchActivity
+		case .intervalsFetchStreams: .intervalsFetchStreams
+		case .intervalsFetchActivities: .intervalsFetchActivities
+		case .intervalsListEvents: .intervalsListEvents
+		}
+	}
+}
+
+enum MemoryReadToolName: Sendable {
+	case memoryRead
+	case memoryQuery
+
+	var toolName: ToolName {
+		switch self {
+		case .memoryRead: .memoryRead
+		case .memoryQuery: .memoryQuery
+		}
+	}
 }

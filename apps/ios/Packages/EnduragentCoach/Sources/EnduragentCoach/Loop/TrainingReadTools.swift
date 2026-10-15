@@ -5,15 +5,15 @@ extension CoachTools {
 		"Activity `id` from intervals_fetch_activities. Pass exactly as listed."
 
 	static let fetchAthlete = CoachTool.training(
-		.read, .intervalsFetchAthlete,
+		.read(.intervalsFetchAthlete),
 		"Fetch athlete profile from intervals.icu (FTP, weight, max HR, sport settings, zones)",
-		parameters: ToolParameters.none
+		parameters: ToolParameters.none, rerunWith: nil
 	) { _, reach in
 		.result(CoachReadout.profile(try await reach.reads.profile(), on: reach.local.today))
 	}
 
 	static let fetchWellness = CoachTool.training(
-		.read, .intervalsFetchWellness,
+		.read(.intervalsFetchWellness),
 		"Fetch wellness data from intervals.icu (fitness, fatigue, weight, HRV, resting HR, sleep). Form = fitness - fatigue.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -21,32 +21,35 @@ extension CoachTools {
 				"newest": ToolParameters.string("End date (YYYY-MM-DD)"),
 			],
 			required: ["oldest"]
-		)
+		),
+		rerunWith: "a smaller date range"
 	) { arguments, reach in
 		let range = try arguments.readRange(today: reach.local.today)
 		return .result(CoachReadout.wellness(try await reach.reads.wellness(in: range), in: range))
 	}
 
 	static let fetchActivity = CoachTool.training(
-		.read, .intervalsFetchActivity,
+		.read(.intervalsFetchActivity),
 		"Fetch one recorded activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Returns the activity's summary measurements plus `laps` when intervals.icu supplies them; `lapsSupplied: false` means it supplied none. Use only fields actually returned. Use this for Tier B+ workout reviews; for summary-only Tier A, use `intervals_fetch_activities`.",
 		parameters: ToolParameters.object(
 			properties: [
 				"activityId": ToolParameters.string(activityIDDescription)
 			],
 			required: ["activityId"]
-		)
+		),
+		rerunWith: nil
 	) { arguments, reach in
 		let id = try arguments.activityID()
 		do {
-			return .result(CoachReadout.activity(try await reach.reads.activity(id), asked: id))
+			let readout = CoachReadout.activity(try await reach.reads.activity(id), asked: id)
+			return .result(readout.shown, overCap: readout.lapless)
 		} catch let error as IntervalsError {
 			return .result(CoachReadout.activityUnread(id, error))
 		}
 	}
 
 	static let fetchStreams = CoachTool.training(
-		.read, .intervalsFetchStreams,
+		.read(.intervalsFetchStreams),
 		"Fetch time-series channels for an activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed. Channel names are intervals.icu's own, including provider-specific channels such as grade_smooth. Returns only per-channel min/max/mean over the full series plus the sample count; no per-second data; do not use it for pacing, duration-based best efforts, quartile trends, decoupling, HR recovery, fade patterns, or indoor/outdoor comparisons. Use only minimum, maximum, and mean as descriptive recorded observations. They alone cannot establish session quality, recovery, or readiness, or justify changing the next session. Expensive to fetch (~10,800 samples per type for a 3-hour ride): call it only for Tier C deep reviews the athlete explicitly requests. For Tier A/B use `intervals_fetch_activities` and `intervals_fetch_activity`. Default types: watts, heartrate, cadence, time, altitude. A requested channel with nothing to summarize is named in `unanswered`, and a name intervals.icu does not know is named in `unknown`. When too many requested names are unknown, the read stops early and names the channels it did not read in `unread`; that says nothing about their data, so ask again with only the names you need. A name in any of these lists has no numbers.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -60,7 +63,8 @@ extension CoachTools {
 				]),
 			],
 			required: ["activityId"]
-		)
+		),
+		rerunWith: "fewer stream types"
 	) { arguments, reach in
 		let id = try arguments.activityID()
 		let channels = try arguments.streamChannels()
@@ -69,7 +73,7 @@ extension CoachTools {
 	}
 
 	static let fetchActivities = CoachTool.training(
-		.read, .intervalsFetchActivities,
+		.read(.intervalsFetchActivities),
 		"Fetch recorded activity summaries for a date range. Each activity has an `id`, a local `start`, and the measurements intervals.icu recorded for it. Pass an `id` exactly as listed to `intervals_fetch_activity` or `intervals_fetch_streams`. Use only fields actually returned.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -77,7 +81,8 @@ extension CoachTools {
 				"newest": ToolParameters.string("Newest date (YYYY-MM-DD)"),
 			],
 			required: ["oldest"]
-		)
+		),
+		rerunWith: "a smaller date range"
 	) { arguments, reach in
 		let range = try arguments.readRange(today: reach.local.today)
 		return .result(CoachReadout.activities(try await reach.reads.activities(in: range)))
