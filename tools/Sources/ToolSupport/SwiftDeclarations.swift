@@ -30,18 +30,20 @@ public struct SwiftDeclarations {
 
 	private static let hidingModifiers: Set<String> = ["static", "class", "private", "fileprivate"]
 	private static let runnableTest =
-		#"((?:\w+[ \t]+)*)\bfunc\s+(test\w*)\s*\(\s*\)"#
+		#"\bfunc\s+(test\w*)\s*\(\s*\)"#
 		+ #"\s*(?:async\b\s*)?(?:throws\b\s*)?(?:->\s*(?:Void|\(\s*\))\s*)?\{"#
 
 	private static func runnableTests(in members: String, patterns: JavaScriptPatterns) throws
 		-> Set<String>
 	{
-		Set(
+		let units = Array(members.utf16)
+		return Set(
 			try patterns.matchAll(runnableTest, members)
 				.compactMap { method in
-					let modifiers = try patterns.matchAll(#"\w+"#, method.groups[1]).map(\.text)
-					return modifiers.contains(where: hidingModifiers.contains)
-						? nil : method.groups[2]
+					var declaration = AttributedDeclaration(units: units, position: method.index)
+					let modifiers = declaration.precedingModifiers()
+					let hidden = modifiers.contains(where: hidingModifiers.contains)
+					return hidden ? nil : method.groups[1]
 				})
 	}
 
@@ -76,6 +78,59 @@ private struct AttributedDeclaration {
 			skipArguments()
 		}
 		return nil
+	}
+
+	mutating func precedingModifiers() -> [String] {
+		var modifiers: [String] = []
+		while let word = previousWord() {
+			if !word.hasPrefix("@") {
+				modifiers.append(word)
+			}
+		}
+		return modifiers
+	}
+
+	private mutating func previousWord() -> String? {
+		skipWhitespaceBackward()
+		let hasArguments = position > 0 && units[position - 1] == Self.unit(")")
+		if hasArguments {
+			skipArgumentsBackward()
+		}
+		let end = position
+		while position > 0, Self.isIdentifier(units[position - 1]) {
+			position -= 1
+		}
+		guard position < end else { return nil }
+		let word = String(decoding: units[position..<end], as: UTF16.self)
+		let before = position > 0 ? units[position - 1] : nil
+		if before == Self.unit("@") {
+			position -= 1
+			return "@" + word
+		}
+		guard !hasArguments, before != Self.unit(".") else { return nil }
+		return word
+	}
+
+	private mutating func skipArgumentsBackward() {
+		var depth = 0
+		while position > 0 {
+			position -= 1
+			switch units[position] {
+			case Self.unit(")"):
+				depth += 1
+			case Self.unit("("):
+				depth -= 1
+			default:
+				break
+			}
+			if depth == 0 { return }
+		}
+	}
+
+	private mutating func skipWhitespaceBackward() {
+		while position > 0, Self.isWhitespace(units[position - 1]) {
+			position -= 1
+		}
 	}
 
 	private mutating func nextWord() -> String? {
