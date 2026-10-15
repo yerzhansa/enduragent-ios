@@ -4,6 +4,7 @@ import Foundation
 
 struct IntervalsSeedAccount: SeedAccount {
 	static let writeTimeout: TimeInterval = 120
+	static let clearedWellnessField = JSONValue.number(-1)
 
 	let client: IntervalsRESTClient
 
@@ -99,7 +100,7 @@ struct IntervalsSeedAccount: SeedAccount {
 		let rows = days.sorted { $0.key < $1.key }.map { date, values in
 			var fields: [String: JSONValue] = ["id": .string(date.rawValue)]
 			for (field, value) in values {
-				fields[field] = value.map(JSONValue.number) ?? .null
+				fields[field] = value.map(JSONValue.number) ?? Self.clearedWellnessField
 			}
 			return JSONValue.object(fields)
 		}

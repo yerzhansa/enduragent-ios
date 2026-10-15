@@ -235,10 +235,13 @@ import Testing
 	}
 
 	@Test func unseedFailsAndKeepsItsLedgerWhenTheClearedWellnessReadsBackSet() async throws {
-		let planned = try #require(
-			LiveSeedPlan(anchor: Self.today).wellness.first { $0.date == "2026-10-01" })
-		let ledger = try Self.ledger(
-			athlete: "i1001", activities: ["i100"], wellness: SeedWellnessDay.fields)
+		let plan = LiveSeedPlan(anchor: Self.today)
+		let planned = try #require(plan.wellness.first { $0.date == "2026-10-01" })
+		var ledger = try temporarySeedLedger()
+		try ledger.record(athlete: "i1001")
+		try ledger.record(anchor: Self.today)
+		try ledger.record(activity: "enduragent-seed-threshold", id: "i100")
+		try ledger.record(wellness: "2026-10-01", fields: SeedWellnessDay.fields)
 		let account = FakeSeedAccount(
 			listed: [
 				SeedListing(
@@ -260,6 +263,15 @@ import Testing
 		)
 		#expect(await account.wellnessWrites.count == 1)
 		#expect(FileManager.default.fileExists(atPath: ledger.file.path))
+
+		var reseed = LiveSeeder(
+			account: account, today: Self.today, polling: instantPolling(),
+			ledger: try LiveSeedLedger(file: ledger.file))
+		let again = try await reseed.seed(render: Self.render(_:))
+
+		#expect(again.uploaded.count == plan.activities.count)
+		#expect(again.uploaded.contains("enduragent-seed-threshold"))
+		#expect(reseed.ledger.activities["enduragent-seed-threshold"] != "i100")
 	}
 
 	@Test func theSeedRecordsItsAthleteAndAnotherAthletesKeyChangesNothing() async throws {
