@@ -69,7 +69,7 @@ final class ApprovalRequestCounter: Sendable {
 	}
 }
 
-final class HeldApprovalWrites: ForwardingIntervals, Sendable {
+final class HeldApprovalWrites: TrainingClient, Sendable {
 	let base: FakeIntervalsClient
 	let clock: HeldClock
 	private let holds = Mutex(1)
@@ -92,4 +92,36 @@ final class HeldApprovalWrites: ForwardingIntervals, Sendable {
 		}
 		return try await base.createChatEvent(draft)
 	}
+
+	func profile() async throws -> AthleteProfile { try await base.profile() }
+
+	func wellness(in range: ReadRange) async throws -> [WellnessDay] {
+		try await base.wellness(in: range)
+	}
+
+	func activities(in range: ReadRange) async throws -> ActivityListing {
+		try await base.activities(in: range)
+	}
+
+	func activity(_ id: ActivityID) async throws -> ActivityDetailRead {
+		try await base.activity(id)
+	}
+
+	func streams(of id: ActivityID, channels: StreamChannels) async throws -> StreamSummary {
+		try await base.streams(of: id, channels: channels)
+	}
+
+	func fetchEvent(id: EventID) async throws -> CalendarEvent { try await base.fetchEvent(id: id) }
+
+	func listEvents(in range: ReadRange) async throws -> [CalendarEvent] {
+		try await base.listEvents(in: range)
+	}
+
+	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
+		async throws -> CalendarEvent
+	{
+		try await base.updateEvent(id: id, name: name, description: description, date: date)
+	}
+
+	func deleteEvent(id: EventID) async throws { try await base.deleteEvent(id: id) }
 }

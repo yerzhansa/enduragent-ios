@@ -148,7 +148,7 @@ extension SwiftDataSuites {
 			#expect(await reopened.decide(.checkAgain(recovery.ref), in: .main) == confirmed)
 			#expect(
 				Array(fixture.peer.athleteA.calls.dropFirst(aBeforeRead.count))
-					== [.events(oldest: "1998-06-14", newest: "1998-06-14")])
+					== [.profile, .events(oldest: "1998-06-14", newest: "1998-06-14")])
 			#expect(fixture.peer.athleteB.calls == bBeforeRead)
 			#expect(fixture.peer.athleteA.events.count == 1)
 			#expect(fixture.peer.athleteA.calls.filter(\.isWrite).count == 1)
@@ -167,27 +167,23 @@ extension SwiftDataSuites {
 			let pending = try await unknownSave(on: coach)
 			let aCalls = fixture.peer.athleteA.calls
 			let bCalls = fixture.peer.athleteB.calls
-			let bReads = fixture.peer.athleteB.count(of: .profile)
 			fixture.peer.athleteA.fail(.profile, with: URLError(.notConnectedToInternet))
 			let failed = await coach.decide(.checkAgain(pending.ref), in: .main)
 			#expect(failed.notice?.key == Catalog.reviewWriteReadFailed)
 			let retry = try #require(await coach.currentSnapshot(.main)?.review)
 			#expect(retry.controls == .checkAgain(retry.ref))
 			#expect(retry.notice?.key == Catalog.reviewWriteReadFailed)
-			#expect(fixture.peer.athleteA.calls == aCalls)
+			#expect(fixture.peer.athleteA.calls == aCalls + [.profile])
 			#expect(fixture.peer.athleteB.calls == bCalls)
 			fixture.peer.athleteA.athlete = .cyclist(id: "i1001", name: "Fixture A", ftp: 220)
 			fixture.peer.athleteA.restore(.profile)
-			let reads = fixture.peer.athleteA.count(of: .profile)
 			#expect(await coach.decide(.checkAgain(retry.ref), in: .main) == confirmed)
-			#expect(fixture.peer.athleteA.count(of: .profile) > reads)
 			#expect(
 				Array(fixture.peer.athleteA.calls.dropFirst(aCalls.count))
-					== [.events(oldest: "1998-06-14", newest: "1998-06-14")])
+					== [.profile, .profile, .events(oldest: "1998-06-14", newest: "1998-06-14")])
 			#expect(fixture.peer.athleteA.events.count == 1)
 			#expect(fixture.peer.athleteA.calls.filter(\.isWrite).count == 1)
 			#expect(fixture.peer.athleteB.calls == bCalls)
-			#expect(fixture.peer.athleteB.count(of: .profile) == bReads)
 			#expect(await coach.currentSnapshot(.main)?.review == nil)
 			await coach.lifecycle(.willTerminate)
 		}

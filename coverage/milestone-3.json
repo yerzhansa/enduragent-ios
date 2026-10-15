@@ -167,8 +167,8 @@
 			"id": "1.3.2",
 			"statement": "With a connection the request carries the same tools in the same order as before the tool table, so the cached prefix is unchanged.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "connectedTurnCarriesTheToolListAsItWasBeforeTheToolTable"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "connectedOfferWithHiddenMemoryAndAnOrphanSectionIsUnchanged"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "connectedTurnIsOfferedEveryToolInOneOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "everyToolAConnectedTurnCanOfferTakesItsPinnedParameters"}
 			]
 		},
 		{

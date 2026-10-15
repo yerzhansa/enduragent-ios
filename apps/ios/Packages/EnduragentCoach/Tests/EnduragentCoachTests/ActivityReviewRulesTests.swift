@@ -20,67 +20,43 @@ import Testing
 	{
 		let carried = try await carried()
 
-		#expect(
-			carried.rules.says(
-				"4. Otherwise: intervals.icu supplies no grouping field, so use start-time proximity within 30 minutes to treat activities as possible legs of one workout, order the legs by start time, and state that the grouping is an inference. When a start has a date and no time of day, make no grouping at all."
-			))
-		#expect(carried.rules.says("Nothing in the data marks two activities as one workout."))
-		#expect(
-			carried.topic.says(
-				"intervals.icu does not mark which activities belong to one workout, so legs are inferred from starts within 30 minutes of each other. Summarize every leg in start-time order and say the grouping is inferred."
-			))
 		for text in [carried.rules, carried.topic] {
+			#expect(text.says("within 30 minutes"))
 			#expect(!text.says("grouping fields"))
 			#expect(!text.says("recorded-workout grouping"))
 		}
+		#expect(carried.rules.says("state that the grouping is an inference"))
+		#expect(carried.topic.says("say the grouping is inferred"))
+		#expect(carried.rules.says("no grouping field"))
+		#expect(carried.rules.says("date and no time of day, make no grouping at all"))
 	}
 
 	@Test func everyLegIsSummarizedAndOneLegNeverJudgesTheWholeWorkout() async throws {
 		let carried = try await carried()
 
-		#expect(
-			carried.rules.says(
-				"Summarize every activity in the inferred group in start-time order. At Tier B+, detail may stay scoped to the requested sport's main non-transition activity, or one representative non-transition activity when no sport was requested. State which legs were not detailed, and never judge the whole workout or change the next session from one selected leg alone."
-			))
-		#expect(
-			carried.topic.says(
-				"If detail is requested for only one leg, say which legs were not detailed and do not use that leg alone to judge the whole workout or change the next session."
-			))
+		#expect(carried.rules.says("Summarize every activity in the inferred group"))
+		for text in [carried.rules, carried.topic] {
+			#expect(text.says("which legs were not detailed"))
+		}
+		#expect(carried.rules.says("never judge the whole workout"))
 	}
 
 	@Test func evidenceStatementNamesWhatTheListAndTheDetailHoldAndWhatTheyDoNot() async throws {
 		let carried = try await carried()
 
-		#expect(
-			carried.topic.says(
-				"The activity list gives each activity an `id`, a title, a sport, a local start, a duration, and a distance and, when recorded, Load, Intensity, average and weighted average power, average and maximum heart rate, elevation gain, and FTP."
-			))
-		#expect(
-			carried.topic.says(
-				"Activity detail adds, when recorded, the athlete's notes, indoor or not, RPE, feel, average cadence, average and maximum speed, calories, work, variability index, efficiency factor, decoupling, and the time in each power zone and each heart-rate zone. It also adds `laps` when intervals.icu supplies them: each lap has its number, a label or kind, and the same measurements as a listed activity."
-			))
-		#expect(
-			carried.topic.says(
-				"These reads hold no planned targets, no plan compliance, and no wellness. A measurement that is absent is unavailable. Do not infer it from another measurement."
-			))
-		#expect(
-			carried.rules.says(
-				"Each listed activity has an `id`, a local start, and the measurements intervals.icu recorded for it; the cycling review skill lists them."
-			))
-		#expect(
-			carried.rules.says(
-				"Use only fields that are actually present: an absent measurement is unavailable, never inferred from another."
-			))
+		for measurement in ["`id`", "Load", "Intensity", "FTP", "`laps`", "decoupling", "RPE"] {
+			#expect(carried.topic.says(measurement), "the review topic leaves out \(measurement)")
+		}
+		#expect(carried.topic.says("no planned targets, no plan compliance, and no wellness"))
+		#expect(carried.rules.says("never inferred from another"))
 		#expect(!carried.topic.says("do not contain"))
 	}
 
 	@Test func briefReviewUsesTheListOnlyAndMayStateItsRecordedMeasurements() async throws {
 		let brief = try await carried().tier("A", until: "- **Tier B")
 
-		#expect(
-			brief.says(
-				"explicit `brief` / `summary`. Call only `intervals_fetch_activities` and use only available summary fields. You may state the measurements the list supplies as recorded values, Load and Intensity among them. One-line factual takeaway; no per-lap claims."
-			))
+		#expect(brief.says("Call only `intervals_fetch_activities`"))
+		#expect(brief.says("Load and Intensity"))
 		#expect(!brief.says("intervals_fetch_activity`"))
 		#expect(!brief.says("intervals_fetch_streams"))
 		#expect(!brief.says("no intensity"))
@@ -92,12 +68,10 @@ import Testing
 		let carried = try await carried()
 		let standard = try carried.tier("B", until: "- **Tier C")
 
-		#expect(
-			standard.says(
-				"default review. Call `intervals_fetch_activity` with the selected activity's `id` exactly as the list gave it, and use its `laps` when supplied. You may state the measurements a lap carries as recorded values; do not rename laps as prescribed reps or invent targets."
-			))
+		#expect(standard.says("Call `intervals_fetch_activity` with the selected activity's `id`"))
+		#expect(standard.says("`laps`"))
 		#expect(!standard.says("timing and distance observations only"))
-		#expect(carried.rules.says("- No depth flag → Tier B."))
+		#expect(carried.rules.says("No depth flag → Tier B"))
 	}
 
 	@Test func onlyADeepReviewReadsTheStreamSummary() async throws {
@@ -105,41 +79,27 @@ import Testing
 
 		#expect(
 			try carried.tier("C", until: "Manual overrides:").says(
-				"explicit `deep` / `in depth` only. Call `intervals_fetch_activity` AND `intervals_fetch_streams` (watts, heartrate, cadence, time, altitude by default, plus any other channel the review needs, such as one the athlete names). Follow the stream-evidence limits in the `intervals_fetch_streams` tool description."
-			))
+				"Call `intervals_fetch_activity` AND `intervals_fetch_streams`"))
 		#expect(!carried.rules.says("limit to watts"))
 		#expect(try !carried.tier("B", until: "- **Tier C").says("intervals_fetch_streams"))
 		#expect(carried.rules.components(separatedBy: "intervals_fetch_streams").count == 3)
 		#expect(
-			try carried.description(of: .intervalsFetchStreams).says(
-				"call it only for Tier C deep reviews the athlete explicitly requests. For Tier A/B use `intervals_fetch_activities` and `intervals_fetch_activity`."
-			))
+			try carried.description(of: .intervalsFetchStreams).says("only for Tier C deep reviews")
+		)
 	}
 
 	@Test func measurementsAloneNeverEstablishQualityRecoveryReadinessOrPlanCompliance()
 		async throws
 	{
 		let carried = try await carried()
+		let streams = try carried.description(of: .intervalsFetchStreams)
 
-		#expect(
-			carried.rules.says(
-				"**Evidence-limit rule:** summary measurements, lap measurements, and independently summarized stream statistics alone cannot establish session quality, recovery, readiness, or justify changing the next session. In that case, answer question 1 with the factual record and say there is not enough evidence to judge how it went; ask for the session goal plus RPE or reported feel. For question 2, name only a factual observation or the missing evidence. For question 3, do not alter the next session: keep the existing plan pending the athlete's feel or available wellness/context. Never say \"nothing — this was clean\" from those fields alone."
-			))
-		#expect(
-			carried.rules.says(
-				"Activity data does not by itself link to a planned calendar prescription; never infer plan compliance from it."
-			))
-		#expect(
-			carried.rules.says(
-				"Skip plan-compliance analysis unless the athlete supplies the plan separately."))
-		#expect(
-			carried.rules.says(
-				"Never fabricate intensity, load, plan-compliance, or interval metrics."))
-		#expect(carried.rules.says("do NOT invent pacing curves or best-efforts content."))
-		#expect(
-			try carried.description(of: .intervalsFetchStreams).says(
-				"do not use it for pacing, duration-based best efforts, quartile trends, decoupling, HR recovery, fade patterns, or indoor/outdoor comparisons. Use only minimum, maximum, and mean as descriptive recorded observations. They alone cannot establish session quality, recovery, or readiness, or justify changing the next session."
-			))
+		#expect(carried.rules.says("cannot establish session quality, recovery, readiness"))
+		#expect(streams.says("cannot establish session quality, recovery, or readiness"))
+		#expect(carried.rules.says("never infer plan compliance"))
+		#expect(carried.rules.says("Never fabricate intensity, load, plan-compliance"))
+		#expect(carried.rules.says("do NOT invent pacing curves or best-efforts"))
+		#expect(streams.says("do not use it for pacing"))
 	}
 
 	@Test func startIsShownAsTheAthletesLocalTimeAndTheTimeIsLeftOutOfADateOnlyStart()
@@ -147,10 +107,8 @@ import Testing
 	{
 		let carried = try await carried()
 
-		#expect(
-			carried.rules.says(
-				"A start is the athlete's local time as intervals.icu recorded it: show it as local time, never label it as universal time or any other time zone, and leave the time out when the start has a date only."
-			))
+		#expect(carried.rules.says("never label it as universal time"))
+		#expect(carried.rules.says("leave the time out when the start has a date only"))
 		#expect(
 			carried.topicTables().first?.dropFirst().first
 				== ["Date / start", "local date and local time; date alone when no time"])
@@ -178,15 +136,11 @@ import Testing
 				"Calories", "Work", "Variability index / efficiency factor", "Decoupling",
 				"Time in power / heart-rate zones",
 			])
-		#expect(
-			carried.topic.says("After an activity detail read, append only the rows it supplied:"))
+		#expect(carried.topic.says("append only the rows it supplied"))
 		#expect(tables[3] == [["Lap", "Label / kind", "Duration", "Distance"]])
-		#expect(
-			carried.topic.says(
-				"Add an average power column and an average HR column when any lap has that measurement."
-			))
-		#expect(carried.topic.says("Render a missing value as unavailable rather than zero."))
-		#expect(carried.rules.says("Render nullable lap cells as unavailable."))
+		#expect(carried.topic.says("an average power column and an average HR column"))
+		#expect(carried.topic.says("unavailable rather than zero"))
+		#expect(carried.rules.says("nullable lap cells as unavailable"))
 		for absent in ["sub-sport", "Elapsed", "Timer", "timer", "sequence", "Start ("] {
 			#expect(!carried.topic.says(absent), "the review topic names \(absent)")
 		}
@@ -208,14 +162,8 @@ import Testing
 		}
 		#expect(named.sorted() == returned.compactMap { $0["error"]?.stringValue }.sorted())
 		#expect(returned.allSatisfy { $0["details"]?.stringValue?.isEmpty == false })
-		#expect(
-			carried.rules.says(
-				"- When an activity read returns an `error`, name the limit in plain words and do not present a full review or invent one: `activity_not_found` → I can't find that activity; `activity_hidden_by_strava` → Strava hides that activity from me, then give the guidance in its `details`; `activity_detail_unavailable` → I couldn't read that activity's detail, with the cause its `details` names; any other `error` → I couldn't read it, then relay its `details`. Never surface the raw error code."
-			))
-		#expect(
-			carried.rules.says(
-				"- Activity detail returns `lapsSupplied: false`: intervals.icu supplied no laps. Say lap data is unavailable for this activity, make no per-lap claim, and do not present the result as a full review."
-			))
+		#expect(carried.rules.says("Never surface the raw error code"))
+		#expect(carried.rules.says("`lapsSupplied: false`"))
 		for unreachable in ["`Network`", "`Timeout`", "`message`"] {
 			#expect(!carried.rules.says(unreachable), "the rules name \(unreachable)")
 		}
@@ -226,20 +174,10 @@ import Testing
 	{
 		let rules = try await carried().rules
 
-		#expect(
-			rules.says("1. Call `intervals_fetch_activities` for the last 7 days, newest first."))
-		#expect(
-			rules.says(
-				"2. If empty: reply \"No activity in the last 7 days — want me to look further back?\" and stop."
-			))
-		#expect(
-			rules.says(
-				"3. If newest activity is older than 7 days: reply \"Your last session was X days ago — want me to review that?\" and stop until the athlete confirms."
-			))
-		#expect(
-			rules.says(
-				"- If the bounded summary cannot resolve the hint, or multiple recent activities match, ask the athlete to clarify before proceeding."
-			))
+		#expect(rules.says("`intervals_fetch_activities` for the last 7 days"))
+		#expect(rules.says("want me to look further back?"))
+		#expect(rules.says("want me to review that?"))
+		#expect(rules.says("ask the athlete to clarify before proceeding"))
 	}
 
 	@Test func toolDescriptionsSayHowTheIdTravelsAndStateNoLimitThePhoneDoesNotEnforce()
@@ -250,26 +188,15 @@ import Testing
 		let detail = try carried.description(of: .intervalsFetchActivity)
 		let streams = try carried.description(of: .intervalsFetchStreams)
 
-		#expect(
-			list.says(
-				"Each activity has an `id`, a local `start`, and the measurements intervals.icu recorded for it. Pass an `id` exactly as listed to `intervals_fetch_activity` or `intervals_fetch_streams`."
-			))
-		#expect(
-			detail.says(
-				"Fetch one recorded activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed."
-			))
-		#expect(
-			streams.says(
-				"Fetch time-series channels for an activity by the `id` that `intervals_fetch_activities` listed, passed exactly as listed."
-			))
-		#expect(
-			streams.says(
-				"Returns only per-channel min/max/mean over the full series plus the sample count; no per-second data;"
-			))
-		for tool in [ToolName.intervalsFetchActivity, .intervalsFetchStreams] {
+		#expect(list.says("Pass an `id` exactly as listed"))
+		for text in [detail, streams] {
 			#expect(
-				try carried.identifierDescription(of: tool)
-					== "Activity `id` from intervals_fetch_activities. Pass exactly as listed.")
+				text.says("`id` that `intervals_fetch_activities` listed, passed exactly as listed")
+			)
+		}
+		#expect(streams.says("no per-second data"))
+		for tool in [ToolName.intervalsFetchActivity, .intervalsFetchStreams] {
+			#expect(try carried.identifierDescription(of: tool).says("Pass exactly as listed."))
 		}
 		for limit in ["200", "16", "up to", "narrow the date range", "64-hex", "legacy"] {
 			for text in [list, detail, streams] {

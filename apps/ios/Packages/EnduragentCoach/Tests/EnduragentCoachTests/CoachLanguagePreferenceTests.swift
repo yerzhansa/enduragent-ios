@@ -78,7 +78,7 @@ import Testing
 					Task { await gate.release() }
 				}
 			) { await gate.waitUntilEntered() } != nil)
-		#expect(intervals.calls.isEmpty)
+		#expect(intervals.calls == [.profile])
 		await gate.release()
 		await reopened.lifecycle(.becameActive)
 		#expect(!intervals.calls.isEmpty)

@@ -38,12 +38,12 @@ import Testing
 	}
 
 	@Test func cancelledReadDoesNotEvictItsReplacement() async throws {
-		let readClock = HeldClock()
+		let held = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		let read = held.hold(.activities)
+		held.fail(.activities, with: URLError(.cancelled))
 		let ledger = Ledger(
 			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let heldTools = makeOfferedTools(
-			intervals: HeldReadIntervals(clock: readClock), ledger: ledger,
-			clock: clock)
+		let heldTools = makeOfferedTools(intervals: held, ledger: ledger, clock: clock)
 		let tools = makeOfferedTools(
 			intervals: intervals, ledger: ledger, clock: clock)
 		let turn = scope()
@@ -52,7 +52,10 @@ import Testing
 			try await heldTools.execute(
 				name: .intervalsFetchActivities, arguments: week, scope: turn)
 		}
-		try await readClock.waitUntilHeld(.seconds(30))
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { original.cancel() }) {
+				await read.waitUntilEntered()
+			} != nil)
 		await turn.evict([.intervalsFetchActivities])
 		let replacement = try await tools.execute(
 			name: .intervalsFetchActivities, arguments: week, scope: turn)

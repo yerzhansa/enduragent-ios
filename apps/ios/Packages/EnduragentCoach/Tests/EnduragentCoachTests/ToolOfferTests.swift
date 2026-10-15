@@ -34,7 +34,7 @@ import Testing
 			])
 	}
 
-	@Test func connectedTurnCarriesTheToolListAsItWasBeforeTheToolTable() async throws {
+	@Test func connectedTurnIsOfferedEveryToolInOneOrder() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(
@@ -42,21 +42,32 @@ import Testing
 
 		_ = try await coach.sendAndSettle("What should I ride?")
 
-		let request = try #require(transport.requests.first)
-		#expect(wire(request.tools) == (try pinned("connected")))
+		#expect(
+			try #require(transport.requests.first).tools.map(\.name) == [
+				.calculateZones, .intervalsFetchAthlete, .intervalsFetchWellness,
+				.intervalsFetchActivity, .intervalsFetchStreams, .intervalsFetchActivities,
+				.intervalsListEvents, .intervalsCreateWorkout, .intervalsCreateStrengthWorkout,
+				.intervalsDeleteWorkout, .intervalsUpdateWorkout, .memoryQuery, .memoryWrite,
+				.ledgerAppend,
+			])
 	}
 
-	@Test func connectedOfferWithHiddenMemoryAndAnOrphanSectionIsUnchanged() throws {
+	@Test func everyToolAConnectedTurnCanOfferTakesItsPinnedParameters() throws {
 		let offer = makeToolOffer(
 			training: connectedTraining(intervals),
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock,
 			memory: MemoryView(
 				sections: ["notes": "stamp\n- Prefers hill repeats"], todayNotes: nil,
-				planHeadline: nil, orphanNames: ["random-legacy"]))
+				planHeadline: nil, orphanNames: []))
+		let pinned = try JSONValue.parse(
+			String(decoding: try fixtureData("offered-tool-parameters"), as: UTF8.self))
 
 		#expect(
-			wire(offer.schemas) == (try pinned("connectedWithHiddenMemoryAndOrphanSection")))
+			JSONValue.object(
+				Dictionary(
+					uniqueKeysWithValues: offer.schemas.map { ($0.name.rawValue, $0.parameters) })
+			) == pinned)
 	}
 
 	@Test func unconnectedPromptSaysTrainingDataIsNotConnected() async throws {
@@ -69,16 +80,7 @@ import Testing
 		let system = try #require(transport.requests.first?.messages.first?.content)
 		#expect(
 			system.contains(
-				"""
-				# Athlete Profile & Latest Wellness
-
-				Training data is not connected. No intervals.icu account is linked, so you have \
-				no profile, wellness, activities or calendar for this athlete and no tools to \
-				read them. When the athlete asks for something that needs that data, say so, \
-				tell them they can connect intervals.icu in Settings, and do not invent numbers.
-
-				---
-				"""))
+				PromptAssembly.snapshotSection(.notConnected) + PromptAssembly.sectionSeparator))
 		#expect(!system.contains("fetch the profile and latest wellness before prescribing"))
 	}
 
@@ -203,23 +205,5 @@ import Testing
 		return await makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock,
 			secrets: secrets)
-	}
-
-	private func wire(_ schemas: [ToolSchema]) -> String {
-		JSONValue.array(
-			schemas.map {
-				.object([
-					"name": .string($0.name.rawValue),
-					"description": .string($0.description),
-					"parameters": $0.parameters,
-				])
-			}
-		).canonicalDigestInput()
-	}
-
-	private func pinned(_ list: String) throws -> String {
-		let fixture = try JSONValue.parse(
-			try #require(String(data: try fixtureData("tool-list-before-table"), encoding: .utf8)))
-		return try #require(fixture.objectFields[list]).canonicalDigestInput()
 	}
 }

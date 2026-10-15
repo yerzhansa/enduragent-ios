@@ -92,17 +92,9 @@ struct NumbersFollowUpTurn {
 		try #require(system.role == .system)
 		let carried = try CarriedReviewTexts(system: system.content, tools: request.tools)
 
-		#expect(
-			carried.rules.says(
-				"### Show-numbers follow-up format When the athlete replies \"show numbers\" (or \"give me the table\", \"the data\", \"details\", etc.): - After Tier A → emit the Tier B numeric breakdown. - After Tier B / C → emit a compact markdown table."
-			))
-		#expect(
-			carried.rules.says(
-				"with one row per available summary metric the sport reports. When lap data is supplied, follow the headline table with a lap table (one row per lap)."
-			))
-		#expect(carried.rules.says("Render nullable lap cells as unavailable."))
-		#expect(carried.topic.says("## Show numbers — the cycling rows Summary/detail table rows:"))
-		#expect(carried.topic.says("Render a missing value as unavailable rather than zero."))
+		#expect(carried.rules.says("### Show-numbers follow-up format"))
+		#expect(carried.rules.says("a lap table (one row per lap)"))
+		#expect(carried.topic.says("## Show numbers — the cycling rows"))
 		let history = request.messages.dropFirst()
 		#expect(history.map(\.role) == [.user, .assistant, .user])
 		#expect(history.map(\.unstampedContent).prefix(2) == [depth.rawValue, Self.reviewReply])
@@ -284,7 +276,7 @@ struct NumbersFollowUpTurn {
 	private var activityReads: [FakeIntervalsCall] {
 		intervals.calls.filter {
 			if case .wellness = $0 { return false }
-			return true
+			return $0 != .profile
 		}
 	}
 

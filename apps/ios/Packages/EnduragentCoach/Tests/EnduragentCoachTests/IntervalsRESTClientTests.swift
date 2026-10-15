@@ -62,6 +62,18 @@ struct IntervalsRESTClientTests {
 		#expect(!events[1].coachCreated)
 	}
 
+	@Test func listEventsAsksForTheRangeFromItsOldestToItsNewestDay() async throws {
+		_ = try await makeClient().listEvents(
+			in: ReadRange(oldest: "1998-06-14", newest: "1998-06-20", today: "1998-06-13"))
+
+		let request = try #require(IntervalsURLProtocolStub.lastRequest?.url)
+		let items =
+			URLComponents(url: request, resolvingAgainstBaseURL: false)?.queryItems ?? []
+		#expect(request.path == "/api/v1/athlete/0/events")
+		#expect(items.filter { $0.name == "oldest" }.map(\.value) == ["1998-06-14"])
+		#expect(items.filter { $0.name == "newest" }.map(\.value) == ["1998-06-20"])
+	}
+
 	@Test func createChatEventPostsSnakeCaseBodyWithoutForbiddenFields() async throws {
 		let client = try makeClient(
 			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")

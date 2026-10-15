@@ -12,7 +12,6 @@ struct FakeReadFaults {
 	private var failures: [FakeTrainingRead: (error: any Error, once: Bool)] = [:]
 	private var gates: [FakeTrainingRead: FakeIntervalsReadGate] = [:]
 	private var delays: [FakeTrainingRead: Duration] = [:]
-	private var counts: [FakeTrainingRead: Int] = [:]
 
 	mutating func fail(_ read: FakeTrainingRead, with error: any Error, once: Bool) {
 		failures[read] = (error, once)
@@ -32,14 +31,9 @@ struct FakeReadFaults {
 		delays[read] = duration > .zero ? duration : nil
 	}
 
-	func count(of read: FakeTrainingRead) -> Int {
-		counts[read] ?? 0
-	}
-
 	mutating func begin(_ read: FakeTrainingRead) -> (
 		failure: (any Error)?, gate: FakeIntervalsReadGate?, delay: Duration?
 	) {
-		counts[read, default: 0] += 1
 		let failure = failures[read]
 		if failure?.once == true { failures[read] = nil }
 		return (failure?.error, gates.removeValue(forKey: read), delays.removeValue(forKey: read))
@@ -49,19 +43,27 @@ struct FakeReadFaults {
 public actor FakeIntervalsReadGate {
 	private let arrivals: AsyncStream<Void>
 	private let arrived: AsyncStream<Void>.Continuation
+	private let endings: AsyncStream<Void>
+	private let ended: AsyncStream<Void>.Continuation
 	private var blocked: CheckedContinuation<Void, any Error>?
 	private var released = false
 
 	init() {
 		(arrivals, arrived) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(1))
+		(endings, ended) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(1))
 	}
 
 	public func waitUntilEntered() async {
 		await arrivals.first { _ in true }
 	}
 
+	public func waitUntilEnded() async {
+		await endings.first { _ in true }
+	}
+
 	func enter() async throws {
 		arrived.yield()
+		defer { ended.yield() }
 		guard !released else { return }
 		try await withTaskCancellationHandler {
 			try await withCheckedThrowingContinuation {
