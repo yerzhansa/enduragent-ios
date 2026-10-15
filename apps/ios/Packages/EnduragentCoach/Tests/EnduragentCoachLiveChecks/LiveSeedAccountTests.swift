@@ -71,6 +71,20 @@ struct LiveSeedAccountTests {
 		#expect(request.timeoutInterval == 120)
 	}
 
+	@Test func lookupCallsAnActivityGoneOnlyWhenTheAccountAnswersNotFound() async throws {
+		let gone = Self.account { _ in (404, Data()) }
+		#expect(try await gone.activityExists("i9001") == false)
+		let request = try #require(SeedAccountURLProtocolStub.lastRequest)
+		#expect(request.httpMethod == "GET")
+		#expect(request.url?.path == "/api/v1/activity/i9001")
+
+		let present = Self.account { _ in (200, Data(#"{"id":"i9001"}"#.utf8)) }
+		#expect(try await present.activityExists("i9001"))
+
+		let down = Self.account { _ in (500, Data("down".utf8)) }
+		await #expect(throws: LiveCheckStop.self) { try await down.activityExists("i9001") }
+	}
+
 	@Test func deleteStopsOnAServerError() async throws {
 		let account = Self.account { _ in (500, Data("down".utf8)) }
 
