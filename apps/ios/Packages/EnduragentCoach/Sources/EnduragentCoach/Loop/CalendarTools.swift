@@ -2,7 +2,7 @@ import Foundation
 
 extension CoachTools {
 	static let listEvents = CoachTool.training(
-		.read, .intervalsListEvents,
+		.read(.intervalsListEvents),
 		"List scheduled calendar workouts on intervals.icu for a date range. Use this BEFORE deleting so you can show the athlete the list (id, date, name) and ask which one to delete. Filters to WORKOUT category only. Each row carries a coachCreated flag; only coach-created workouts can be deleted with intervals_delete_workout. Pass coachCreatedOnly: true to return only coach-created events.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -14,7 +14,8 @@ extension CoachTools {
 				]),
 			],
 			required: ["oldest"]
-		)
+		),
+		rerunWith: "a smaller date range"
 	) { arguments, reach in
 		let range = try arguments.readRange(today: reach.local.today)
 		var events = try await reach.calendar.listEvents(in: range)
@@ -24,8 +25,8 @@ extension CoachTools {
 		return .result(.array(events.map(encodeEvent)))
 	}
 
-	static let createWorkout = CoachTool.training(
-		.proposal, .intervalsCreateWorkout,
+	static let createWorkout = CoachTool.proposal(
+		.intervalsCreateWorkout,
 		"Call this only when the current message explicitly asks for it. Create a structured workout on the intervals.icu calendar. Past dates are refused — workouts can only be created for today or later.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -37,19 +38,16 @@ extension CoachTools {
 			],
 			required: ["date", "workout"]
 		)
-	) { arguments, reach in
-		try await propose(.intervalsCreateWorkout, in: reach.local) {
-			(today) throws(ToolInputError) in
-			let parsed = try CyclingTools.parseCreateWorkoutInput(arguments, today: today)
-			return (
-				.createWorkout(date: parsed.date, workout: parsed.workout),
-				parsed.draft.description
-			)
-		}
+	) { (arguments, today) throws(ToolInputError) in
+		let parsed = try CyclingTools.parseCreateWorkoutInput(arguments, today: today)
+		return (
+			.createWorkout(date: parsed.date, workout: parsed.workout),
+			parsed.draft.description
+		)
 	}
 
-	static let createStrengthWorkout = CoachTool.training(
-		.proposal, .intervalsCreateStrengthWorkout,
+	static let createStrengthWorkout = CoachTool.proposal(
+		.intervalsCreateStrengthWorkout,
 		"Create a strength/gym session on the intervals.icu calendar. Past dates are refused — sessions can only be created for today or later.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -59,20 +57,17 @@ extension CoachTools {
 			],
 			required: ["date", "name", "description"]
 		)
-	) { arguments, reach in
-		try await propose(.intervalsCreateStrengthWorkout, in: reach.local) {
-			(today) throws(ToolInputError) in
-			let parsed = try CyclingTools.parseStrengthWorkout(arguments, today: today)
-			return (
-				.createStrengthWorkout(
-					date: parsed.date, name: parsed.name, description: parsed.description),
-				parsed.description
-			)
-		}
+	) { (arguments, today) throws(ToolInputError) in
+		let parsed = try CyclingTools.parseStrengthWorkout(arguments, today: today)
+		return (
+			.createStrengthWorkout(
+				date: parsed.date, name: parsed.name, description: parsed.description),
+			parsed.description
+		)
 	}
 
-	static let deleteWorkout = CoachTool.training(
-		.proposal, .intervalsDeleteWorkout,
+	static let deleteWorkout = CoachTool.proposal(
+		.intervalsDeleteWorkout,
 		"List and confirm first. Delete a today-or-future coach-owned workout by event ID.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -80,14 +75,12 @@ extension CoachTools {
 			],
 			required: ["eventId"]
 		)
-	) { arguments, reach in
-		try await propose(.intervalsDeleteWorkout, in: reach.local) { (_) throws(ToolInputError) in
-			(.deleteWorkout(eventId: try CyclingTools.parseDeleteWorkout(arguments)), "")
-		}
+	) { (arguments, _) throws(ToolInputError) in
+		(.deleteWorkout(eventId: try CyclingTools.parseDeleteWorkout(arguments)), "")
 	}
 
-	static let updateWorkout = CoachTool.training(
-		.proposal, .intervalsUpdateWorkout,
+	static let updateWorkout = CoachTool.proposal(
+		.intervalsUpdateWorkout,
 		"Update a today-or-future coach-owned workout by event ID.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -98,28 +91,9 @@ extension CoachTools {
 			],
 			required: ["eventId"]
 		)
-	) { arguments, reach in
-		try await propose(.intervalsUpdateWorkout, in: reach.local) {
-			(today) throws(ToolInputError) in
-			let update = try CyclingTools.parseUpdateWorkout(arguments, today: today)
-			return (.updateWorkout(update), update.description ?? "")
-		}
-	}
-
-	private static func propose(
-		_ tool: GatedToolName, in reach: LocalReach,
-		parsed: (CivilDate) throws(ToolInputError) -> (input: GatedToolInput, description: String)
-	) async throws -> ToolExecution {
-		let (input, description) = try parsed(reach.today)
-		let proposal = try await reach.reviews.propose(
-			chatId: reach.chat,
-			tool: tool,
-			input: input,
-			summary: ProposalPolicy.summary(for: input),
-			description: description,
-			scope: reach.scope
-		)
-		return ToolExecution(outcome: .pending(proposal), commit: nil)
+	) { (arguments, today) throws(ToolInputError) in
+		let update = try CyclingTools.parseUpdateWorkout(arguments, today: today)
+		return (.updateWorkout(update), update.description ?? "")
 	}
 
 	private static func encodeEvent(_ event: CalendarEvent) -> JSONValue {
@@ -138,5 +112,31 @@ extension CoachTools {
 			fields["uid"] = .string(uid)
 		}
 		return .object(fields)
+	}
+}
+
+extension CoachTool {
+	fileprivate typealias ParseProposal =
+		@Sendable (JSONValue, CivilDate) throws(ToolInputError)
+		-> (input: GatedToolInput, description: String)
+
+	fileprivate static func proposal(
+		_ tool: GatedToolName, _ description: String, parameters: JSONValue,
+		parse: @escaping ParseProposal
+	) -> CoachTool {
+		training(.proposal(tool), description, parameters: parameters, rerunWith: nil) {
+			arguments, reach in
+			let local = reach.local
+			let parsed = try parse(arguments, local.today)
+			let proposal = try await local.reviews.propose(
+				chatId: local.chat,
+				tool: tool,
+				input: parsed.input,
+				summary: ProposalPolicy.summary(for: parsed.input),
+				description: parsed.description,
+				scope: local.scope
+			)
+			return ToolExecution(outcome: .pending(proposal), commit: nil)
+		}
 	}
 }

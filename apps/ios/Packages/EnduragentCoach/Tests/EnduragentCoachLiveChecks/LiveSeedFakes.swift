@@ -7,6 +7,7 @@ actor FakeSeedAccount: SeedAccount {
 	private(set) var listed: [SeedListing]
 	private(set) var days: [CivilDate: [String: Double]]
 	private(set) var uploads: [String] = []
+	private(set) var lookups: [String] = []
 	private(set) var deleted: [String] = []
 	private(set) var ratings: [String] = []
 	private(set) var wellnessWrites: [[CivilDate: [String: Double?]]] = []
@@ -48,6 +49,11 @@ actor FakeSeedAccount: SeedAccount {
 				id: id, name: activity.name, externalID: activity.externalID,
 				start: activity.start.date.rawValue, load: processes ? 50 : nil))
 		return id
+	}
+
+	func activityExists(_ id: String) -> Bool {
+		lookups.append(id)
+		return (listed + listedFromSecondRead).contains { $0.id == id }
 	}
 
 	func rate(_ id: String, feel: Int, rpe: Int) {

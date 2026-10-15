@@ -130,7 +130,7 @@
 			if let json = await read(
 				name, audit: LiveReadAudit.activity,
 				{ [client] in
-					CoachReadout.activity(try await client.activity(id), asked: id)
+					CoachReadout.activity(try await client.activity(id), asked: id).shown
 				}
 			).answer?.json {
 				raw.details.append(json)

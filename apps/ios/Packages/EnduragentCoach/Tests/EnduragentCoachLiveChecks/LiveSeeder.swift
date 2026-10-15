@@ -27,6 +27,7 @@ protocol SeedAccount: Sendable {
 	func wellness(oldest: CivilDate, newest: CivilDate) async throws -> [CivilDate: [String:
 		Double]]
 	func upload(_ activity: SeedActivity, file: Data) async throws -> String
+	func activityExists(_ id: String) async throws -> Bool
 	func rate(_ id: String, feel: Int, rpe: Int) async throws
 	func delete(_ id: String) async throws
 	func writeWellness(_ days: [CivilDate: [String: Double?]]) async throws
@@ -105,8 +106,11 @@ struct LiveSeeder {
 		let onAccount = Dictionary(
 			listed.compactMap { row in row.externalID.map { ($0, row.id) } },
 			uniquingKeysWith: { first, _ in first })
+		let listedIDs = Set(listed.map(\.id))
 		for activity in plan.activities {
-			if ledger.activities[activity.externalID] != nil {
+			if let id = ledger.activities[activity.externalID],
+				try await stillOnAccount(id, listed: listedIDs)
+			{
 				outcome.kept.append(activity.externalID)
 			} else if let id = onAccount[activity.externalID] {
 				try ledger.record(activity: activity.externalID, id: id)
@@ -175,6 +179,11 @@ struct LiveSeeder {
 			try ledger.retire(as: retiredName)
 		}
 		return outcome
+	}
+
+	private func stillOnAccount(_ id: String, listed: Set<String>) async throws -> Bool {
+		if listed.contains(id) { return true }
+		return try await account.activityExists(id)
 	}
 
 	private func confirmAccount(listing: [SeedListing]) async throws -> String {

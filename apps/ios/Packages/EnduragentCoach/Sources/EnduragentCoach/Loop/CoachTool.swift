@@ -52,15 +52,25 @@ struct TrainingReach: Sendable {
 typealias BoundToolRun = @Sendable (JSONValue, TurnScope) async throws -> ToolExecution
 
 enum ToolEffect: Sendable, Equatable {
-	case read
-	case memoryRead
-	case write
-	case proposal
+	case read(ReadToolName)
+	case memoryRead(MemoryReadToolName)
+	case write(ReplayUnsafeToolName)
+	case proposal(GatedToolName)
+
+	var name: ToolName {
+		switch self {
+		case .read(let name): name.toolName
+		case .memoryRead(let name): name.toolName
+		case .write(let name): name.toolName
+		case .proposal(let name): name.toolName
+		}
+	}
 }
 
 struct BoundTool: Sendable {
 	let schema: ToolSchema
 	let effect: ToolEffect
+	let narrowing: String?
 	let run: BoundToolRun
 
 	var name: ToolName { schema.name }
@@ -74,15 +84,15 @@ struct CoachTool: Sendable {
 	private let bind: @Sendable (TurnReach) -> BoundTool?
 
 	static func local(
-		_ effect: ToolEffect, _ name: ToolName, describe: @escaping Describe,
+		_ effect: ToolEffect, rerunWith narrowing: String?, describe: @escaping Describe,
 		run: @escaping Run<LocalReach>
 	) -> CoachTool {
 		CoachTool(effect: effect) { turn in
 			let told = describe(turn.memory)
 			return BoundTool(
 				schema: ToolSchema(
-					name: name, description: told.description, parameters: told.parameters),
-				effect: effect
+					name: effect.name, description: told.description, parameters: told.parameters),
+				effect: effect, narrowing: narrowing
 			) { arguments, scope in
 				try await run(arguments, LocalReach(turn, scope: scope))
 			}
@@ -90,30 +100,33 @@ struct CoachTool: Sendable {
 	}
 
 	static func local(
-		_ effect: ToolEffect, _ name: ToolName, _ description: String, parameters: JSONValue,
-		run: @escaping Run<LocalReach>
+		_ effect: ToolEffect, _ description: String, parameters: JSONValue,
+		rerunWith narrowing: String?, run: @escaping Run<LocalReach>
 	) -> CoachTool {
-		local(effect, name, describe: { _ in (description, parameters) }, run: run)
+		local(effect, rerunWith: narrowing, describe: { _ in (description, parameters) }, run: run)
 	}
 
 	static func hiddenMemory(
-		_ name: ToolName, _ description: String, parameters: JSONValue,
-		run: @escaping Run<LocalReach>
+		_ name: MemoryReadToolName, _ description: String, parameters: JSONValue,
+		rerunWith narrowing: String?, run: @escaping Run<LocalReach>
 	) -> CoachTool {
-		let always = local(.memoryRead, name, description, parameters: parameters, run: run)
+		let always = local(
+			.memoryRead(name), description, parameters: parameters, rerunWith: narrowing, run: run)
 		return CoachTool(effect: always.effect) { turn in
 			turn.memory.hidesStoredContent ? always.bound(to: turn) : nil
 		}
 	}
 
 	static func training(
-		_ effect: ToolEffect, _ name: ToolName, _ description: String, parameters: JSONValue,
-		run: @escaping Run<TrainingReach>
+		_ effect: ToolEffect, _ description: String, parameters: JSONValue,
+		rerunWith narrowing: String?, run: @escaping Run<TrainingReach>
 	) -> CoachTool {
-		let schema = ToolSchema(name: name, description: description, parameters: parameters)
+		let schema = ToolSchema(
+			name: effect.name, description: description, parameters: parameters)
 		return CoachTool(effect: effect) { turn in
 			guard case .connected(let training) = turn.training else { return nil }
-			return BoundTool(schema: schema, effect: effect) { arguments, scope in
+			return BoundTool(schema: schema, effect: effect, narrowing: narrowing) {
+				arguments, scope in
 				try await run(
 					arguments,
 					TrainingReach(local: LocalReach(turn, scope: scope), training: training))
@@ -128,7 +141,10 @@ struct CoachTool: Sendable {
 
 enum CoachTools {
 	static let memoryReads = Set(
-		ToolName.allCases.filter { definition(of: $0)?.effect == .memoryRead })
+		ToolName.allCases.filter { name in
+			guard case .memoryRead? = definition(of: name)?.effect else { return false }
+			return true
+		})
 
 	static func definition(of name: ToolName) -> CoachTool? {
 		switch name {

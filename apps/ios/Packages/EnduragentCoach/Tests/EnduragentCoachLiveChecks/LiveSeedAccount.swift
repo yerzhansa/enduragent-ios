@@ -85,6 +85,16 @@ struct IntervalsSeedAccount: SeedAccount {
 		return id
 	}
 
+	func activityExists(_ id: String) async throws -> Bool {
+		let path = ["activity", id]
+		let answer = try await client.exchange(method: "GET", path: path)
+		switch answer.status {
+		case 404: return false
+		case 200..<300: return true
+		default: throw Self.unexpected("GET", path, answer)
+		}
+	}
+
 	func rate(_ id: String, feel: Int, rpe: Int) async throws {
 		let body = JSONValue.object([
 			"feel": .number(Double(feel)), "icu_rpe": .number(Double(rpe)),
@@ -133,7 +143,13 @@ struct IntervalsSeedAccount: SeedAccount {
 		if (200..<300).contains(answer.status) || (absentIsDone && answer.status == 404) {
 			return answer.body
 		}
-		throw LiveCheckStop(
+		throw Self.unexpected(method, path, answer)
+	}
+
+	private static func unexpected(_ method: String, _ path: [String], _ answer: IntervalsAnswer)
+		-> LiveCheckStop
+	{
+		LiveCheckStop(
 			description:
 				"\(method) /\(path.joined(separator: "/")) answered \(answer.status): \(String(decoding: answer.body.prefix(300), as: UTF8.self))"
 		)

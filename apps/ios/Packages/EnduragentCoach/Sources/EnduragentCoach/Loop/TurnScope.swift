@@ -26,9 +26,16 @@ extension CommittedWrite {
 package struct ToolExecution: Sendable, Equatable {
 	package let outcome: ToolOutcome
 	package let commit: CommittedWrite?
+	let overCap: JSONValue?
 
-	static func result(_ value: JSONValue) -> ToolExecution {
-		ToolExecution(outcome: .result(value), commit: nil)
+	init(outcome: ToolOutcome, commit: CommittedWrite?, overCap: JSONValue? = nil) {
+		self.outcome = outcome
+		self.commit = commit
+		self.overCap = overCap
+	}
+
+	static func result(_ value: JSONValue, overCap: JSONValue? = nil) -> ToolExecution {
+		ToolExecution(outcome: .result(value), commit: nil, overCap: overCap)
 	}
 }
 

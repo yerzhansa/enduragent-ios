@@ -2,14 +2,15 @@ import Foundation
 
 extension CoachTools {
 	static let calculateZones = CoachTool.local(
-		.read, .calculateZones,
+		.read(.calculateZones),
 		"Calculate power-zone watt ranges from FTP watts (7-zone numbering)",
 		parameters: ToolParameters.object(
 			properties: [
 				"ftpWatts": ToolParameters.integer("FTP in watts", minimum: 50, maximum: 600)
 			],
 			required: ["ftpWatts"]
-		)
+		),
+		rerunWith: nil
 	) { arguments, _ in
 		let rows = try DisplayZones.table(ftpWatts: try arguments.ftpWatts())
 		return .result(
@@ -29,7 +30,7 @@ extension CoachTools {
 	static let memoryRead = CoachTool.hiddenMemory(
 		.memoryRead,
 		"Read only stored sections that Athlete Context does not show, plus today's notes and plan state.",
-		parameters: ToolParameters.none
+		parameters: ToolParameters.none, rerunWith: nil
 	) { _, reach in
 		let text = try await reach.memory.complementContext(for: reach.account)
 		if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -39,7 +40,7 @@ extension CoachTools {
 	}
 
 	static let memoryQuery = CoachTool.local(
-		.memoryRead, .memoryQuery,
+		.memoryRead(.memoryQuery),
 		"Query dated athlete memory: daily notes, the event ledger, and section history over a date range. "
 			+ "Use this for any question about past notes, decisions, overrides, illness, or "
 			+ "experiments. Returns matching notes, events, and history grouped by date.",
@@ -52,7 +53,8 @@ extension CoachTools {
 				),
 			],
 			required: ["from", "to"]
-		)
+		),
+		rerunWith: "a shorter from/to range or a query filter"
 	) { arguments, reach in
 		let fields = arguments.objectFields
 		let fromRaw = fields["from"]?.stringValue ?? ""
@@ -75,7 +77,7 @@ extension CoachTools {
 	}
 
 	static let memoryWrite = CoachTool.local(
-		.write, .memoryWrite,
+		.write(.memoryWrite), rerunWith: nil,
 		describe: { memory in
 			let sections = memory.writableSections
 			let sectionList = sections.map { name in
@@ -112,7 +114,7 @@ extension CoachTools {
 	)
 
 	static let ledgerAppend = CoachTool.local(
-		.write, .ledgerAppend,
+		.write(.ledgerAppend),
 		"Record a dated event the athlete just stated: decision, override, illness, experiment, outcome. Skip routine training data and anything already in Athlete Context.",
 		parameters: ToolParameters.object(
 			properties: [
@@ -126,7 +128,8 @@ extension CoachTools {
 					"One or two sentences, with rationale or outcome when stated"),
 			],
 			required: ["date", "kind", "text"]
-		)
+		),
+		rerunWith: nil
 	) { arguments, reach in
 		try await reach.memory.executeLedgerAppend(
 			arguments, source: .chat, stamp: reach.scope.stamp)

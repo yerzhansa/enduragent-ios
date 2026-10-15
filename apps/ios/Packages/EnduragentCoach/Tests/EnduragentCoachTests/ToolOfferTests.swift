@@ -70,6 +70,19 @@ import Testing
 			) == pinned)
 	}
 
+	@Test func everyToolIsDefinedUnderTheNameItsEffectCarriesAndOnlyGatedToolsPropose() {
+		let defined = ToolName.allCases.compactMap { name in
+			CoachTools.definition(of: name).map { (name: name, effect: $0.effect) }
+		}
+
+		#expect(defined.map(\.name) == ToolName.allCases.filter { $0 != .planSave })
+		for (name, effect) in defined {
+			#expect(effect.name == name)
+			let proposes = if case .proposal = effect { true } else { false }
+			#expect(proposes == (GatedToolName(rawValue: name.rawValue) != nil), "\(name)")
+		}
+	}
+
 	@Test func unconnectedPromptSaysTrainingDataIsNotConnected() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], otherwise: transport.respond)
