@@ -72,13 +72,14 @@
 			let host: any ExecutionHost
 			let fixtureHost: ImmediateExecutionHost?
 			let leases: @Sendable () async -> [LeaseRecord]
-			if launch.host == .continuedProcessing {
-				let continued = ContinuedProcessingHost(
+			switch launch.host {
+			case .backgroundTime:
+				let background = BackgroundTimeHost(
 					bundleIdentifier: bundleIdentifier, system: backgroundSystem)
-				host = continued
+				host = background
 				fixtureHost = nil
-				leases = { await continued.leases }
-			} else {
+				leases = { await background.leases }
+			case .immediate, .expireAfter:
 				let immediate = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
 				host = immediate
 				fixtureHost = immediate

@@ -47,9 +47,7 @@ package actor ChatMailbox {
 		self.environment = environment
 		self.process = process
 		self.feed = feed
-		self.lifecycle = MailboxLifecycle(host: host, chat: chatId, lifetime: lifetime) {
-			await environment.appLanguage()
-		}
+		self.lifecycle = MailboxLifecycle(host: host, chat: chatId, lifetime: lifetime)
 		self.records = ChatRecords(chat: chatId, ledger: ledger, clock: clock, reviews: reviews)
 		try await records.refresh(recoveryRecords: recoveryRecords)
 		publish()
@@ -128,7 +126,7 @@ package actor ChatMailbox {
 		} catch {
 			throw AcceptFailure.storageUnavailable
 		}
-		lifecycle.hold(.athlete, on: self)?.add(turn)
+		_ = lifecycle.hold(.athlete, on: self)
 		work.schedule(turn, policy: coalescing, sleep: coalescingSleep, on: self)
 		publish()
 		return .accepted(turn)
@@ -145,7 +143,7 @@ package actor ChatMailbox {
 				of: conversation.turn(turn), overlay: overlay, device: ledger.deviceId,
 				process: process)
 			if let refusal { throw RetryRefusal(refusal) }
-			lifecycle.hold(.athlete, on: self)?.add(turn)
+			_ = lifecycle.hold(.athlete, on: self)
 			work.add(turn, origin: .retry, on: self)
 		}
 	}
@@ -161,10 +159,6 @@ package actor ChatMailbox {
 
 	package func recover(_ plan: RecoveryPlan) async {
 		await lifecycle.recover(plan, records: records, work: work, on: self)
-	}
-
-	package func refreshLeaseTitle() async {
-		await lifecycle.updateLanguage(await environment.appLanguage())
 	}
 
 	package var reviewReadUnavailable: Bool { records.review?.notice?.kind == .storageUnavailable }

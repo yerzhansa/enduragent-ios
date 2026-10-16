@@ -44,9 +44,7 @@ extension SwiftDataSuites {
 			#expect((turnNotice(of: settled)?.actions ?? []).isEmpty)
 			#expect(snapshot.liveReply == nil)
 			let lease = try #require(await host.ended(0, within: .hangGuard))
-			#expect(
-				lease.ending
-					== .finished(CompletionNotice(reply: expected, turn: turn, language: .fr)))
+			#expect(lease.ending == .finished)
 			try #require(transport.requests.count == 11)
 			#expect(
 				transport.requests.map(\.charge) == Array(repeating: .chatAttempt, count: 10) + [
