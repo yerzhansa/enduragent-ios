@@ -87,6 +87,14 @@ struct CalendarPayloadTests {
 		#expect(body["start_date_local"] == .string("1998-06-14T00:00:00"))
 	}
 
+	@Test(arguments: [(37.509, 2251), (37.508, 2250), (37.475, 2249), (0.01, 1)])
+	func strengthSecondsRoundHalfUpLikeMathRound(minutes: Double, seconds: Double) throws {
+		var change = try strength(load: nil).objectFields
+		change["durationMinutes"] = .number(minutes)
+		let payload = try CalendarPayload.strength(.object(change), today: today)
+		#expect(payload.requestBody(identity).objectFields["moving_time"] == .number(seconds))
+	}
+
 	@Test(arguments: [
 		#""name":"   ","durationMinutes":30,"effort":"Easy","description":"Core""#,
 		#""name":"Core","durationMinutes":30,"effort":" \n ","description":"Core""#,
