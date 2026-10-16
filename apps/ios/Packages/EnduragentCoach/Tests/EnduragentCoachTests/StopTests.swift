@@ -37,9 +37,7 @@ import Testing
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
 		).records
 		#expect(claims.count == 2)
-		#expect(
-			await host.ended(1)?.ending
-				== .finished(CompletionNotice(reply: "Still on.", turn: turn, language: .en)))
+		#expect(await host.ended(1)?.ending == .finished)
 	}
 
 	@Test func aStoppedReplyNeverShowsAsQueuedAfterItStops() async throws {
@@ -155,10 +153,7 @@ import Testing
 		#expect(replyText(answered) == "Three.")
 		#expect(transport.requestCount == 2)
 		#expect(await host.ended(0)?.ending == .interrupted(.athleteStopped))
-		#expect(
-			await host.ended(1)?.ending
-				== .finished(CompletionNotice(reply: "Three.", turn: third, language: .en))
-		)
+		#expect(await host.ended(1)?.ending == .finished)
 	}
 }
 

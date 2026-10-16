@@ -78,12 +78,10 @@
 						? "Calendar read fault armed" : "Calendar read fault consumed"
 				)
 				.accessibilityIdentifier("fixture.calendarReadFault")
-				if let host = fixture.host {
-					Button("Expire current lease") {
-						Task { await host.expire(.systemExpired) }
-					}
-					.accessibilityIdentifier("fixture.expire")
+				Button("Expire current lease") {
+					Task { await fixture.host.expire(.systemExpired) }
 				}
+				.accessibilityIdentifier("fixture.expire")
 			}
 			if let reviewHookFailure { Text(reviewHookFailure) }
 			Text("\(services.fixtureTransport?.requestCount ?? 0) model requests")

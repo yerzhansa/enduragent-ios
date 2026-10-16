@@ -92,14 +92,12 @@ final class AppTestFixture {
 func fixtureServices(
 	_ launch: FixtureLaunch, defaults: UserDefaults,
 	language: LanguageTag = Language.uiTag(systemLanguages: Locale.preferredLanguages),
-	backgroundSystem: any BackgroundSystem = StubBackgroundSystem(),
 	displayLocale: DisplayLocaleResolver? = nil
 ) throws -> AppServices {
 	AppTestFixture.active.own(
 		try AppServices.fixture(
 			launch, defaults: defaults,
-			displayLocale: displayLocale ?? testLocaleResolver(languages: [language.rawValue]),
-			backgroundSystem: backgroundSystem))
+			displayLocale: displayLocale ?? testLocaleResolver(languages: [language.rawValue])))
 }
 
 @MainActor

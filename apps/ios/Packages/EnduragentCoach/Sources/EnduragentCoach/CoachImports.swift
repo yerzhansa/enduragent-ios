@@ -33,7 +33,6 @@ extension Coach {
 		_ = await preferences.load(reload: true)
 		await publishStatus()
 		for mailbox in await openedMailboxes() {
-			await mailbox.refreshLeaseTitle()
 			do {
 				try await mailbox.refreshImports()
 			} catch {

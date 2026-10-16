@@ -8,7 +8,7 @@
 		let catalogSource: FakeModelCatalogSource
 		let transport: FakeModelTransport
 		let records: RecordFaults
-		let host: ImmediateExecutionHost?
+		let host: ImmediateExecutionHost
 		let secrets: ICloudKeychainStore
 		let secretBacking: FixtureSecretStoreBacking?
 		let nativeKeychain: NativeKeychainProof?
@@ -29,8 +29,7 @@
 		@MainActor
 		static func fixture(
 			_ launch: FixtureLaunch, defaults: UserDefaults,
-			displayLocale: @escaping DisplayLocaleResolver,
-			backgroundSystem: any BackgroundSystem
+			displayLocale: @escaping DisplayLocaleResolver
 		) throws -> AppServices {
 			guard launch.name == FixtureLaunch.firstWeekName else {
 				throw FixtureLaunchError.unknownFixture(launch.name)
@@ -69,21 +68,7 @@
 				}
 				return response(request)
 			}
-			let host: any ExecutionHost
-			let fixtureHost: ImmediateExecutionHost?
-			let leases: @Sendable () async -> [LeaseRecord]
-			if launch.host == .continuedProcessing {
-				let continued = ContinuedProcessingHost(
-					bundleIdentifier: bundleIdentifier, system: backgroundSystem)
-				host = continued
-				fixtureHost = nil
-				leases = { await continued.leases }
-			} else {
-				let immediate = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
-				host = immediate
-				fixtureHost = immediate
-				leases = { immediate.leases }
-			}
+			let host = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
 			let authorizer = FakeOpenRouterAuthorizer(response: launch.signInOutcome.response)
 			let catalogSource = FakeModelCatalogSource(response: launch.catalogResponse)
 			let coach = Coach(
@@ -112,11 +97,11 @@
 				coach: coach,
 				deviceCheck: FakeDeviceCheckTokenProvider(),
 				clock: clock,
-				leases: leases,
+				leases: { host.leases },
 				packPrices: { _ in [:] },
 				fixture: FixtureServices(
 					catalogSource: catalogSource, transport: transport, records: records,
-					host: fixtureHost, secrets: secrets,
+					host: host, secrets: secrets,
 					secretBacking: backing, nativeKeychain: native, trainingPeer: peer,
 					recordStore: fixture.store,
 					intervals: intervals, credits: credits, openRouterAuthorizer: authorizer,
