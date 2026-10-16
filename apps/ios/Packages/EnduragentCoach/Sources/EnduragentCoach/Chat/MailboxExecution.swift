@@ -153,7 +153,6 @@ final class MailboxExecution {
 		on mailbox: isolated ChatMailbox
 	) async {
 		guard let facts = records.conversation.turn(turn) else { return }
-		lease.add(turn)
 		var resolution = await environment.resolve()
 		do {
 			try await records.refreshInformationOwnership()
@@ -183,7 +182,6 @@ final class MailboxExecution {
 					await mailbox.apply(records)
 				}
 			) { progress in
-				lease.observe(progress)
 				await mailbox.apply(progress, turn: turn, stamp: stamp)
 			}
 			settlement = Settlement(result)

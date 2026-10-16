@@ -24,12 +24,10 @@ public final class ImmediateExecutionHost: ExecutionHost {
 	public func beginLease(
 		_ request: LeaseRequest, onExpiry: @escaping @Sendable (ExpiryCause) async -> Void
 	) async -> any ExecutionLease {
-		let kind: LeaseKind =
-			request.initiatedBy == .athlete ? .continuedProcessing : .gracePeriodOnly
 		let index = state.withLock { current in
 			let index = current.records.count
 			current.records.append(
-				LeaseRecord(id: "lease-\(index + 1)", request: request, kind: kind))
+				LeaseRecord(id: "lease-\(index + 1)", request: request, kind: .gracePeriodOnly))
 			current.expiries[index] = onExpiry
 			return index
 		}
@@ -45,7 +43,7 @@ public final class ImmediateExecutionHost: ExecutionHost {
 				await self.expire(index, .systemExpired)
 			}
 		}
-		return Lease(host: self, index: index, kind: kind)
+		return Lease(host: self, index: index)
 	}
 
 	public func expire(_ cause: ExpiryCause) async {
@@ -100,13 +98,7 @@ public final class ImmediateExecutionHost: ExecutionHost {
 private struct Lease: ExecutionLease {
 	let host: ImmediateExecutionHost
 	let index: Int
-	let kind: LeaseKind
-
-	func report(_ progress: LeaseProgress) async {
-		host.update(index) { $0.progress = progress }
-	}
-
-	func updateTitle(_ title: CatalogKey, language: LanguageTag) async {}
+	let kind = LeaseKind.gracePeriodOnly
 
 	func end(_ ending: LeaseEnding) async {
 		host.update(index) { $0.ending = ending }

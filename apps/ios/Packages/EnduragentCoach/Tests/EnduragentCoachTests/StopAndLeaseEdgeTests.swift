@@ -124,7 +124,7 @@ import Testing
 		#expect(try await claims(of: queued, in: store).isEmpty)
 	}
 
-	@Test func aFailedTurnEndsItsLeaseWithNoNotice() async throws {
+	@Test func aFailedTurnEndsItsLeaseFailed() async throws {
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
 			[.fail(.http(status: 401))], otherwise: transport.respond)
@@ -134,7 +134,7 @@ import Testing
 		let turn = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
 		let lease = await host.ended(0)
-		#expect(lease?.ending == .failed(nil))
+		#expect(lease?.ending == .failed)
 		#expect(host.leases.count == 1)
 	}
 
@@ -158,10 +158,7 @@ import Testing
 			[.text("Three."), .finish(reason: .stop)])
 		let third = try #require(try await coach.send(draft("three"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: third, in: .main))
-		#expect(
-			await host.ended(1)?.ending
-				== .finished(CompletionNotice(reply: "Three.", turn: third, language: .en))
-		)
+		#expect(await host.ended(1)?.ending == .finished)
 		#expect(host.leases.count == 2)
 	}
 

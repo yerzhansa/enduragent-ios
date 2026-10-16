@@ -9,9 +9,7 @@ import Testing
 	let transport = FakeModelTransport()
 	let store = InMemoryRecordLog()
 	let host = ImmediateExecutionHost()
-	let athleteLease = LeaseRequest(
-		chat: .main, initiatedBy: .athlete, title: Catalog.chatNoticeWorking,
-		language: .en)
+	let athleteLease = LeaseRequest(chat: .main, initiatedBy: .athlete)
 
 	func coach() async -> Coach {
 		await makeCoach(transport: transport, store: store, clock: clock, host: host)
@@ -47,8 +45,7 @@ import Testing
 		#expect(try await outcome(resetting) == .started(memory: .saved))
 		let athlete = try #require(await host.ended(1))
 		#expect(athlete.request == athleteLease)
-		#expect(athlete.kind == .continuedProcessing)
-		#expect(athlete.ending == .finished(nil))
+		#expect(athlete.ending == .finished)
 	}
 
 	@Test func theChatShowsWorkingWhileTheResetSavesMemory() async throws {
