@@ -98,6 +98,12 @@ struct WorkoutPatchTests {
 			#"{"structure":{"steps":[{"type":"ramp","duration":{"value":5,"unit":"minutes"}}]}}"#,
 			"invalid_workout"
 		),
+		(#"{"structure":{"steps":[{"repeat":3}]}}"#, "invalid_workout"),
+		(#"{"structure":{"steps":[{"interval":{}}]}}"#, "invalid_workout"),
+		(#"{"structure":{"steps":[{"recovery":{}}]}}"#, "invalid_workout"),
+		(#"{"structure":{"steps":[{"duration":{"value":5}}]}}"#, "invalid_workout"),
+		(#"{"structure":{"steps":[{"duration":{"unit":"minutes"}}]}}"#, "invalid_workout"),
+		(#"{"structure":{"steps":[{"power":{"kind":"zone"}}]}}"#, "invalid_workout"),
 	])
 	func anUnusablePatchIsRefused(patch: String, code: String) throws {
 		let json = try JSONValue.parse(patch)
