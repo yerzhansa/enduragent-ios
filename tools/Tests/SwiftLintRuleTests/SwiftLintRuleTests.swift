@@ -54,6 +54,29 @@ struct LintProbe: Sendable, CustomTestStringConvertible {
 
 	static let all =
 		starterPolicy + [swallowedError, optionalTryProbe] + sessionFactory + console + fixedColors
+		+ systemBanners
+
+	private static let systemBanners = [
+		("\(app)/App/Probe.swift", true),
+		("\(package)/Sources/EnduragentCoach/Probe.swift", true),
+		("apps/ios/EnduragentTests/Probe.swift", true),
+		("tools/Sources/Probe.swift", false),
+	].map { path, rejected in
+		LintProbe(
+			name: "no_system_banners rejects the banner and notification APIs in every app target",
+			rule: "no_system_banners", path: path,
+			lines: [
+				("let scheduler = BGTaskScheduler.shared", rejected),
+				(
+					#"let request = BGContinuedProcessingTaskRequest(identifier: id, title: "", subtitle: "")"#,
+					rejected
+				),
+				("func attach(_ task: BGContinuedProcessingTask) {}", rejected),
+				("let center = UNUserNotificationCenter.current()", rejected),
+				("let grace = UIApplication.shared.beginBackgroundTask(withName: name)", false),
+				(#"let name = "BGTaskScheduler""#, false),
+			], alwaysHoldsAViolation: false)
+	}
 
 	private static let fixedColors = [
 		("\(app)/Chat/Probe.swift", true),
@@ -160,7 +183,7 @@ struct LintProbe: Sendable, CustomTestStringConvertible {
 				("let client = Client(session: .shared)", rejected),
 				("let configuration = URLSessionConfiguration.ephemeral", rejected),
 				("let app = UIApplication.shared", false),
-				("let scheduler = BGTaskScheduler.shared", false),
+				("let cache = URLCache.shared", false),
 			], alwaysHoldsAViolation: false)
 	}
 
