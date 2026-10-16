@@ -90,9 +90,20 @@
 				"- Deleted \(outcome.deleted.count) activities: \(outcome.deleted.joined(separator: ", "))",
 				"- Skipped \(outcome.skipped.count) ledger activities the account no longer lists as seeded: \(outcome.skipped.isEmpty ? "none" : outcome.skipped.joined(separator: "; "))",
 				"- Cleared wellness on \(cleared.count) days, read back as empty: \(cleared.joined(separator: "; "))",
-				"- Left because the value changed since the seed wrote it: \(changed)", "",
-				"The account lists no seeded activity.", "",
+				"- Left because the value changed since the seed wrote it: \(changed)",
+				"- Removed \(outcome.calendarRemoved.count) calendar entries: \(outcome.calendarRemoved.keys.sorted().joined(separator: ", "))",
+				"",
+				"The account lists no seeded activity and no calendar entry of the ledger.", "",
 			].joined(separator: "\n")
+		}
+
+		private static func calendarRow(_ event: CalendarEvent) -> String {
+			let cells: [String] = [
+				String(event.startDateLocal.prefix(10)), String(event.id.rawValue),
+				event.externalId ?? "", event.category, event.name ?? "no name",
+				LiveCalendarRun.text(event.movingTime), LiveCalendarRun.text(event.trainingLoad),
+			]
+			return "| " + cells.joined(separator: " | ") + " |"
 		}
 
 		private static func report(
@@ -107,19 +118,29 @@
 				return
 					"| \(row.start ?? "") | \(row.id) | \(row.externalID ?? "") | \(row.name ?? "") | \(load) | \(feel) | \(rpe) |"
 			}
-			return
-				([
-					"# Seed", "",
-					"Scaled to FTP \(Int(athlete.ftp)) W, LTHR \(Int(athlete.lthr)) bpm, max HR \(Int(athlete.maxHeartRate)) bpm.",
-					"",
-					"- Ledger: \(ledger.summary)",
-					"- Uploaded: \(outcome.uploaded.count); already there: \(outcome.kept.count)",
-					"- Feel and RPE set: \(outcome.rated.count)",
-					"- Wellness days written: \(outcome.wellnessWritten.count); already there: \(outcome.wellnessKept)",
-					"",
-					"| Start | Id | External id | Name | Load | Feel | RPE |",
-					"| --- | --- | --- | --- | --- | --- | --- |",
-				] + rows).joined(separator: "\n") + "\n"
+			let calendar: [String] = outcome.calendarListed.sorted {
+				$0.startDateLocal < $1.startDateLocal
+			}.map(calendarRow)
+			let head: [String] = [
+				"# Seed", "",
+				"Scaled to FTP \(Int(athlete.ftp)) W, LTHR \(Int(athlete.lthr)) bpm, max HR \(Int(athlete.maxHeartRate)) bpm.",
+				"",
+				"- Ledger: \(ledger.summary)",
+				"- Uploaded: \(outcome.uploaded.count); already there: \(outcome.kept.count)",
+				"- Feel and RPE set: \(outcome.rated.count)",
+				"- Wellness days written: \(outcome.wellnessWritten.count); already there: \(outcome.wellnessKept)",
+				"",
+				"| Start | Id | External id | Name | Load | Feel | RPE |",
+				"| --- | --- | --- | --- | --- | --- | --- |",
+			]
+			let calendarHead: [String] = [
+				"",
+				"- Calendar entries added: \(outcome.calendarAdded.count); already there: \(outcome.calendarKept.count)",
+				"",
+				"| Date | Id | External id | Category | Name | Duration | Load |",
+				"| --- | --- | --- | --- | --- | --- | --- |",
+			]
+			return (head + rows + calendarHead + calendar).joined(separator: "\n") + "\n"
 		}
 	}
 #endif

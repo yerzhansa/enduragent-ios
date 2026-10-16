@@ -5,6 +5,7 @@ import Foundation
 enum LiveCheck: String, Sendable {
 	case reads
 	case coach
+	case calendar
 
 	static let selectorVariable = "ENDURAGENT_LIVE"
 	static let logsVariable = "ENDURAGENT_LIVE_LOGS"

@@ -164,7 +164,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		}
 	}
 
-	private static func calendarEvent(from json: JSONValue) throws -> CalendarEvent {
+	static func calendarEvent(from json: JSONValue) throws -> CalendarEvent {
 		let data = Data(json.canonicalDigestInput().utf8)
 		let payload = try JSONDecoder().decode(CalendarEventPayload.self, from: data)
 		guard CivilDate(rawValue: String(payload.start.prefix(10))) != nil else {

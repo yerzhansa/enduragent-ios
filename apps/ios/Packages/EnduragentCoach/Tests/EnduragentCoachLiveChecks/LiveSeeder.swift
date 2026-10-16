@@ -22,7 +22,9 @@ struct SeedListing: Sendable, Equatable {
 }
 
 protocol SeedAccount: Sendable {
+	var calendar: any IntervalsClient { get }
 	func athleteID() async throws -> String
+	func addCalendarEntries(_ bodies: [JSONValue]) async throws -> [CalendarEvent]
 	func activities(oldest: CivilDate, newest: CivilDate) async throws -> [SeedListing]
 	func wellness(oldest: CivilDate, newest: CivilDate) async throws -> [CivilDate: [String:
 		Double]]
@@ -46,10 +48,14 @@ struct SeedOutcome: Sendable {
 	var wellnessWritten: [CivilDate] = []
 	var wellnessKept = 0
 	var listed: [SeedListing] = []
+	var calendarAdded: [String] = []
+	var calendarKept: [String] = []
+	var calendarListed: [CalendarEvent] = []
 }
 
 struct UnseedOutcome: Sendable {
 	var deleted: [String] = []
+	var calendarRemoved: [String: [EventID]] = [:]
 	var skipped: [String] = []
 	var cleared: [CivilDate: [String]] = [:]
 	var changedSinceSeed: [String] = []
@@ -143,7 +149,47 @@ struct LiveSeeder {
 		}
 		outcome.listed = try await account.activities(oldest: plan.oldest, newest: today)
 			.filter(\.isOurs)
+		try await seedCalendar(into: &outcome)
 		return outcome
+	}
+
+	private mutating func seedCalendar(into outcome: inout SeedOutcome) async throws {
+		let window = try LiveSeedCalendar.window(around: today)
+		let seededIDs = Set(LiveSeedCalendar.entries.map(\.externalID))
+		let listed = try await account.calendar.listEvents(in: window).filter {
+			$0.externalId.map(seededIDs.contains) ?? false
+		}
+		var missing: [SeedCalendarEntry] = []
+		for entry in LiveSeedCalendar.entries {
+			guard let event = listed.first(where: { $0.externalId == entry.externalID }) else {
+				missing.append(entry)
+				continue
+			}
+			if ledger.calendar[entry.externalID]?.events.contains(event.id) != true {
+				try ledger.record(calendar: entry.externalID, on: try event.snapshot.date)
+				try ledger.record(calendar: entry.externalID, event: event.id)
+			}
+			outcome.calendarKept.append(entry.externalID)
+		}
+		if !missing.isEmpty {
+			for entry in missing {
+				try ledger.record(calendar: entry.externalID, on: entry.date(seededOn: today))
+			}
+			let added = try await account.addCalendarEntries(
+				missing.map { $0.requestBody(seededOn: today) })
+			for entry in missing {
+				guard let event = added.first(where: { $0.externalId == entry.externalID }) else {
+					throw LiveCheckStop(
+						description:
+							"The bulk calendar answer holds no event for \(entry.externalID).")
+				}
+				try ledger.record(calendar: entry.externalID, event: event.id)
+				outcome.calendarAdded.append(entry.externalID)
+			}
+		}
+		outcome.calendarListed = try await account.calendar.listEvents(in: window).filter {
+			$0.externalId.map(seededIDs.contains) ?? false
+		}
 	}
 
 	mutating func unseed(retiringLedgerAs retiredName: String) async throws -> UnseedOutcome {
@@ -166,6 +212,15 @@ struct LiveSeeder {
 			outcome.deleted.append(id)
 		}
 		try await clearSeededWellness(into: &outcome)
+		let sweep = await LiveCalendarSweep.remove(
+			Array(ledger.calendar.keys), ledger: &ledger, client: account.calendar)
+		outcome.calendarRemoved = sweep.removed
+		guard sweep.left.isEmpty else {
+			throw LiveCheckStop(
+				description:
+					"These calendar entries of the ledger were not removed: "
+					+ sweep.left.joined(separator: "; "))
+		}
 		let remaining = try await account.activities(
 			oldest: today.adding(days: -Self.guardDays), newest: today
 		).filter(\.isOurs)

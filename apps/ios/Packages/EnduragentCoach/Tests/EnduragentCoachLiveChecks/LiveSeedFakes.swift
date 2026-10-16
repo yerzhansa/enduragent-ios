@@ -1,9 +1,12 @@
 import EnduragentCoachFixtures
 import Foundation
+import Synchronization
 
 @testable import EnduragentCoach
 
 actor FakeSeedAccount: SeedAccount {
+	nonisolated let calendar: any IntervalsClient
+	nonisolated let seedCalendar: FakeSeedCalendar
 	private(set) var listed: [SeedListing]
 	private(set) var days: [CivilDate: [String: Double]]
 	private(set) var uploads: [String] = []
@@ -19,8 +22,11 @@ actor FakeSeedAccount: SeedAccount {
 	init(
 		athlete: String = "i1001", listed: [SeedListing] = [],
 		listedFromSecondRead: [SeedListing] = [], days: [CivilDate: [String: Double]] = [:],
-		processes: Bool = true, nullClears: Bool = true
+		processes: Bool = true, nullClears: Bool = true,
+		calendar: FakeSeedCalendar = FakeSeedCalendar()
 	) {
+		self.calendar = calendar
+		self.seedCalendar = calendar
 		self.athlete = athlete
 		self.listed = listed
 		self.listedFromSecondRead = listedFromSecondRead
@@ -30,6 +36,10 @@ actor FakeSeedAccount: SeedAccount {
 	}
 
 	func athleteID() -> String { athlete }
+
+	func addCalendarEntries(_ bodies: [JSONValue]) -> [CalendarEvent] {
+		seedCalendar.add(bodies)
+	}
 
 	func activities(oldest: CivilDate, newest: CivilDate) -> [SeedListing] {
 		defer {
@@ -171,5 +181,133 @@ actor SleepCount {
 
 	func add() {
 		count += 1
+	}
+}
+
+final class FakeSeedCalendar: IntervalsClient, @unchecked Sendable {
+	enum Call: Equatable {
+		case list(ReadRange)
+		case fetch(EventID)
+		case add([String])
+		case write(CalendarWrite)
+	}
+
+	private let state = Mutex(State())
+	private let stores: @Sendable (Set<String>, CalendarEvent) -> CalendarEvent
+
+	private struct State {
+		var events: [CalendarEvent] = []
+		var calls: [Call] = []
+		var nextID = 7_000
+	}
+
+	private let upsertsByExternalID: Bool
+
+	init(
+		events: [CalendarEvent] = [], upsertsByExternalID: Bool = true,
+		stores: @escaping @Sendable (Set<String>, CalendarEvent) -> CalendarEvent = { $1 }
+	) {
+		self.upsertsByExternalID = upsertsByExternalID
+		self.stores = stores
+		state.withLock { $0.events = events }
+	}
+
+	var events: [CalendarEvent] { state.withLock { $0.events } }
+	var calls: [Call] { state.withLock { $0.calls } }
+	var writes: [CalendarWrite] {
+		calls.compactMap { call in
+			guard case .write(let write) = call else { return nil }
+			return write
+		}
+	}
+
+	func fetchEvent(id: EventID) throws -> CalendarEvent {
+		try state.withLock { state in
+			state.calls.append(.fetch(id))
+			guard let event = state.events.first(where: { $0.id == id }) else {
+				throw IntervalsError(code: "http", details: "status 404", status: 404)
+			}
+			return event
+		}
+	}
+
+	func listEvents(in range: ReadRange) -> [CalendarEvent] {
+		state.withLock { state in
+			state.calls.append(.list(range))
+			return state.events.filter { event in
+				CivilDate(rawValue: String(event.startDateLocal.prefix(10))).map(range.contains)
+					?? false
+			}
+		}
+	}
+
+	func add(_ bodies: [JSONValue]) -> [CalendarEvent] {
+		state.withLock { state in
+			state.calls.append(
+				.add(bodies.map { $0.objectFields["external_id"]?.stringValue ?? "" }))
+			return bodies.map {
+				Self.upsert($0.objectFields, into: &state, matching: true, stores: stores)
+			}
+		}
+	}
+
+	func write(_ write: CalendarWrite) -> IntervalsWriteAnswer {
+		state.withLock { state in
+			state.calls.append(.write(write))
+			switch write {
+			case .create(let payload, let identity):
+				return .saved(
+					Self.upsert(
+						payload.requestBody(identity).objectFields, into: &state,
+						matching: upsertsByExternalID, stores: stores))
+			case .update(let id, let patch):
+				guard let index = state.events.firstIndex(where: { $0.id == id }) else {
+					return .httpStatus(404)
+				}
+				var event = state.events[index]
+				if let date = patch.date { event.startDateLocal = "\(date.rawValue)T00:00:00" }
+				if let name = patch.name { event.name = name }
+				if let seconds = patch.durationSeconds { event.movingTime = seconds }
+				if let description = patch.description { event.description = description }
+				if let load = patch.trainingLoad { event.trainingLoad = load }
+				if let document = patch.workoutDocument { event.workoutDocument = document }
+				event = stores(Set(patch.requestBody.objectFields.keys), event)
+				state.events[index] = event
+				return .saved(event)
+			case .delete(let id):
+				guard state.events.contains(where: { $0.id == id }) else { return .httpStatus(404) }
+				state.events.removeAll { $0.id == id }
+				return .saved(nil)
+			}
+		}
+	}
+
+	private static func upsert(
+		_ fields: [String: JSONValue], into state: inout State, matching: Bool,
+		stores: (Set<String>, CalendarEvent) -> CalendarEvent
+	) -> CalendarEvent {
+		let externalID = fields["external_id"]?.stringValue
+		let tags = (fields["tags"]?.arrayValue ?? []).compactMap(\.stringValue)
+		let previous =
+			matching
+			? state.events.firstIndex { $0.externalId != nil && $0.externalId == externalID } : nil
+		let id = previous.map { state.events[$0].id } ?? EventID(rawValue: state.nextID)
+		if previous == nil { state.nextID += 1 }
+		let event = stores(
+			Set(fields.keys),
+			CalendarEvent(
+				description: fields["description"]?.stringValue, type: fields["type"]?.stringValue,
+				id: id, startDateLocal: fields["start_date_local"]?.stringValue ?? "",
+				name: fields["name"]?.stringValue, category: fields["category"]?.stringValue ?? "",
+				externalId: externalID, uid: "server-\(id.rawValue)", tags: tags,
+				coachCreated: IntervalsPolicy.isCoachOwned(externalId: externalID, tags: tags),
+				movingTime: fields["moving_time"]?.numberValue.map { Int($0) },
+				trainingLoad: fields["icu_training_load"]?.numberValue.map { Int($0) }))
+		if let previous {
+			state.events[previous] = event
+		} else {
+			state.events.append(event)
+		}
+		return event
 	}
 }
