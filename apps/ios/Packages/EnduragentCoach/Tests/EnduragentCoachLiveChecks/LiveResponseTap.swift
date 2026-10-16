@@ -65,6 +65,7 @@ enum LiveRedaction {
 
 final class LiveResponseTap: URLProtocol, @unchecked Sendable {
 	private static let taken = Mutex<[TappedResponse]>([])
+	private static let nextBody = Mutex<(@Sendable (Data) -> Data)?>(nil)
 	private static let upstream = ephemeralSession(
 		requestTimeout: IntervalsPolicy.requestTimeout,
 		resourceTimeout: IntervalsPolicy.requestTimeout)
@@ -76,6 +77,10 @@ final class LiveResponseTap: URLProtocol, @unchecked Sendable {
 			requestTimeout: IntervalsPolicy.requestTimeout,
 			resourceTimeout: IntervalsPolicy.requestTimeout, protocolClasses: [LiveResponseTap.self]
 		)
+	}
+
+	static func rewriteNextBody(_ rewrite: @escaping @Sendable (Data) -> Data) {
+		nextBody.withLock { $0 = rewrite }
 	}
 
 	static func record(_ response: TappedResponse) {
@@ -93,7 +98,7 @@ final class LiveResponseTap: URLProtocol, @unchecked Sendable {
 	override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
 	override func startLoading() {
-		let request = self.request
+		let request = Self.outgoing(self.request)
 		let task = Self.upstream.dataTask(with: request) { [self] data, response, error in
 			guard let data, let response else {
 				client?.urlProtocol(self, didFailWithError: error ?? URLError(.badServerResponse))
@@ -114,6 +119,31 @@ final class LiveResponseTap: URLProtocol, @unchecked Sendable {
 		}
 		forwarding.withLock { $0 = task }
 		task.resume()
+	}
+
+	private static func outgoing(_ request: URLRequest) -> URLRequest {
+		let rewrite = nextBody.withLock { slot in
+			defer { slot = nil }
+			return slot
+		}
+		guard let rewrite else { return request }
+		var rewritten = request
+		rewritten.httpBodyStream = nil
+		rewritten.httpBody = rewrite(body(of: request))
+		return rewritten
+	}
+
+	private static func body(of request: URLRequest) -> Data {
+		if let body = request.httpBody { return body }
+		guard let stream = request.httpBodyStream else { return Data() }
+		stream.open()
+		defer { stream.close() }
+		var body = Data()
+		var buffer = [UInt8](repeating: 0, count: 16_384)
+		while case let count = stream.read(&buffer, maxLength: buffer.count), count > 0 {
+			body.append(buffer, count: count)
+		}
+		return body
 	}
 
 	override func stopLoading() {

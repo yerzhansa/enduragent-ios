@@ -6,6 +6,7 @@
 		"2.2": 6,
 		"2.3": 5,
 		"2.4": 4,
+		"2.5": 9,
 		"3.1": 11
 	},
 	"criteria": [
@@ -262,6 +263,81 @@
 			]
 		},
 		{
+			"id": "2.5.1",
+			"statement": "make live-seed adds the four entries that are never targets (an athlete-owned workout, a coach-tagged race, a note with an empty name, because intervals.icu refuses a note with no name, and a past workout) and the coach-created future targets T1, T2, K on T1's date, T3, T4 and T5, dated from the day it runs; a rerun adds only the missing entries and keeps an edited one; and make live-calendar lists each seeded entry once through the app's calendar decoding with its category, name, duration and Load.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveSeedCalendarTests.swift", "function": "theSeedAddsEachCalendarEntryOnceAndARerunAddsOnlyTheMissingOnes"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveSeedCalendarTests.swift", "function": "unseedRemovesOnlyTheCalendarEntriesTheLedgerNames"}
+			]
+		},
+		{
+			"id": "2.5.2",
+			"statement": "A 15-minute repeat ride and a strength session added through write(_:) with a CalendarWriteID read back with the sent date, category, type, name, description, duration, Load, coach tag and the external_id cycling-coach:<id> exactly as sent, intervals.icu parses the ride's steps into a workout that lasts its reviewed 900 seconds, so the step after the repeat is not folded into it, and any field intervals.icu stores differently fails the check unless intervals-rewrites.json lists that rewrite.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "thePlanAddsARepeatRideAStrengthSessionAndOneEditPerFieldAfterToday"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aSaveThatChangesAFieldFailsUnlessTheRewritesFileExplainsIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aListedRewriteFailsTheRunOnASaveItsRuleDoesNotName"}
+			]
+		},
+		{
+			"id": "2.5.3",
+			"statement": "The same add sent twice through write(_:) is saved twice as the same event with the add's external_id, and the add's 366-day window holds exactly that one event (gate M2-G1); a calendar that adds a second event fails the check.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aResendThatAddsASecondEventOrASavedRefusedAddFailsTheRun"}
+			]
+		},
+		{
+			"id": "2.5.4",
+			"statement": "Each field of a workout patch changed alone (date, name, Load, duration, description and authored steps) reads back as the patch applied to the snapshot before it, keeps the external_id, and applying the patch to the read-back snapshot changes nothing, apart from the rewrites intervals-rewrites.json lists.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aListedRewriteFailsTheRunOnASaveItsRuleDoesNotName"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aCalendarThatIgnoresAnEditOrSavesADeletedEventFailsTheRun"}
+			]
+		},
+		{
+			"id": "2.5.5",
+			"statement": "A DELETE answers saved, a second DELETE of the same id and a PUT to it each answer httpStatus(404), and a GET of it answers 404.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aCalendarThatIgnoresAnEditOrSavesADeletedEventFailsTheRun"}
+			]
+		},
+		{
+			"id": "2.5.6",
+			"statement": "With a key whose athlete differs from the seed ledger's, or a ledger that names no athlete, the check stops before any calendar request and adds no ledger row.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aKeyOfAnotherAthleteStopsTheCheckBeforeAnyRequestOrLedgerRow"}
+			]
+		},
+		{
+			"id": "2.5.7",
+			"statement": "The run fails when a file of its run folder holds the key, checked with LiveRunFolder.files(containing:), and passes when none does.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aRunFolderFileThatHoldsTheKeyFailsTheRun"}
+			]
+		},
+		{
+			"id": "2.5.8",
+			"statement": "An add moved by PUT 30 days later and another moved 200 days later, outside its 366-day window, are each sent again through write(_:) and each leaves one event with its first id; the window read finds the 30-day one on its new date before the resend, and the log records the date each resend left.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aResendThatAddsASecondEventOrASavedRefusedAddFailsTheRun"}
+			]
+		},
+		{
+			"id": "2.5.9",
+			"statement": "An add whose body carries an unknown category answers httpStatus or lost through write(_:), never saved, leaves no event, and the log records the status and body of the answer.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "theRefusedAddDiffersFromItsBodyOnlyInItsCategory"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aResendThatAddsASecondEventOrASavedRefusedAddFailsTheRun"}
+			]
+		},
+		{
 			"id": "3.1.1",
 			"statement": "Each transition maps every stage to the documented next stage or refuses with wrongStage, every (stage, DriveStart) pair gives the documented NextStep, and no settle leaves the stage running.",
 			"tests": [
@@ -388,6 +464,16 @@
 			"id": "B17.03",
 			"statement": "A strength session carries its date, trimmed name, rounded duration, trimmed effort, description and optional Load, refuses blank, out-of-range or unsafe values before any write, and keeps its own fields beside a ride in one list.",
 			"criteria": ["2.2.3", "2.2.4", "2.2.5"]
+		},
+		{
+			"id": "B17.06",
+			"statement": "An approved ride is parsed by intervals.icu as reviewed: its duration, steps and repeat block read back from the live calendar as sent.",
+			"criteria": ["2.5.2"]
+		},
+		{
+			"id": "B06",
+			"statement": "Each field of an add or an edit reaches the request as reviewed, and Load is sent as a whole-number estimate that intervals.icu may recalculate.",
+			"criteria": ["2.2.1", "2.2.2", "2.2.6", "2.3.1", "2.5.4"]
 		}
 	],
 	"plan": {
@@ -398,7 +484,7 @@
 			"2.2": 6,
 			"2.3": 5,
 			"2.4": 4,
-			"2.5": 7,
+			"2.5": 9,
 			"3.1": 11,
 			"3.2": 5,
 			"3.3": 7,
@@ -514,7 +600,6 @@
 		"B17.02",
 		"B17.04",
 		"B17.05",
-		"B17.06",
 		"B18.01",
 		"B18.02",
 		"B18.03",
@@ -557,7 +642,6 @@
 		"B03",
 		"B04",
 		"B05",
-		"B06",
 		"B07",
 		"B08",
 		"B09",
