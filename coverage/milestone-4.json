@@ -2,7 +2,8 @@
 	"units": {
 		"0.1": 7,
 		"1.1": 8,
-		"2.1": 3
+		"2.1": 3,
+		"2.2": 6
 	},
 	"criteria": [
 		{
@@ -137,6 +138,51 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SerializerBoundsTests.swift", "function": "eachBoundRefusesOnePastItsLimitWithNoWrite"}
 			]
+		},
+		{
+			"id": "2.2.1",
+			"statement": "Every case of serializer-cases.json, given as a ride add, builds a request body whose description and moving_time equal npm's description and movingTime byte for byte, and every case npm refuses is refused. A ride whose serialized duration is 0 seconds is refused as invalid_workout.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "rideBodyCarriesNpmSerializerOutputForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "rideRefusesAWorkoutThatSerializesToZeroSeconds"}
+			]
+		},
+		{
+			"id": "2.2.2",
+			"statement": "A Load of 41.6 is sent as icu_training_load 42 for a ride and a strength session, a Load of -1 is refused for both, and an add with no Load sends no icu_training_load.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "loadIsRoundedRefusedBelowZeroAndOmittedWhenAbsent"}
+			]
+		},
+		{
+			"id": "2.2.3",
+			"statement": "A strength session of 37.5 minutes is sent with moving_time 2250, its trimmed effort and its description joined by one blank line, its trimmed name, and its own Load, and fractional minutes round to whole seconds as Math.round does.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "strengthSendsRoundedSecondsJoinedTextAndItsOwnLoad"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "strengthSecondsRoundHalfUpLikeMathRound"}
+			]
+		},
+		{
+			"id": "2.2.4",
+			"statement": "A whitespace-only name, a 121-character name, a whitespace-only effort, a past date, a missing or empty field, a 4001-character description, and durations of 0, -5, infinity, 10^16 and 0.001 minutes are each refused before any write, and a whitespace-only description is accepted.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "strengthRefusesUnusableFieldsBeforeAnyWrite"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "strengthRefusesPastDateAndInfiniteDurationAndAcceptsBlankDescription"}
+			]
+		},
+		{
+			"id": "2.2.5",
+			"statement": "A ride and a strength session parsed from one input list keep their own type, name, date, duration, Load and description.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "rideAndStrengthFromOneListKeepTheirOwnFields"}
+			]
+		},
+		{
+			"id": "2.2.6",
+			"statement": "A body built with a CalendarWriteID carries category WORKOUT, that uid, external_id cycling-coach:<uid>, the coach tag, and no other field than the payload's.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "bodyCarriesTheWriteIdentityAndNothingElse"}
+			]
 		}
 	],
 	"requirements": [
@@ -169,6 +215,11 @@
 			"id": "G06/midnight",
 			"statement": "An approval across the athlete's midnight is judged at the phone's midnight.",
 			"agreedDifference": "ADR-0083 makes the phone's time zone decide today, so G06's athlete-midnight journey is an agreed difference."
+		},
+		{
+			"id": "B17.03",
+			"statement": "A strength session carries its date, trimmed name, rounded duration, trimmed effort, description and optional Load, refuses blank, out-of-range or unsafe values before any write, and keeps its own fields beside a ride in one list.",
+			"criteria": ["2.2.3", "2.2.4", "2.2.5"]
 		}
 	],
 	"plan": {
@@ -293,7 +344,6 @@
 	"open": [
 		"B17.01",
 		"B17.02",
-		"B17.03",
 		"B17.04",
 		"B17.05",
 		"B17.06",
