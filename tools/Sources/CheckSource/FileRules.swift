@@ -49,10 +49,16 @@ extension SourceChecker {
 	static let coachSource =
 		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$"#
 	static let reviewChainType = #"(?:WorkoutReviewBody|ReviewPreparingBody)"#
+	static let bracketed = #"(?:[^()\[\]{}]|\([^()\[\]{}]*\)|\[[^()\[\]{}]*\]|\{[^()\[\]{}]*\})*"#
+	static let argumentText =
+		#"(?:[^()\[\]{}]|\(\#(bracketed)\)|\[\#(bracketed)\]|\{\#(bracketed)\})"#
+	static let lastArgumentText =
+		#"(?:[^()\[\]{},]|\(\#(bracketed)\)|\[\#(bracketed)\]|\{\#(bracketed)\})"#
 	static let reviewChainBuilt = [
 		#"\b\#(reviewChainType)\s*(?:\(|\.\s*init\b)"#,
-		#":\s*\#(reviewChainType)\s*=\s*\.\s*init\b"#,
-		#"\.(?:workoutReview|reviewPreparing)\s*\(\s*\.\s*init\s*\(\s*(?:review|chatId)\s*:"#,
+		#"\b(?:init|[A-Z]\w*)\s*\(\s*review\s*:"#,
+		#"\b(?:init|Self)\s*\(\s*chatId\s*:\#(argumentText)*?\bturn\s*:\#(argumentText)*?"#
+			+ #"\battempt\s*:\#(lastArgumentText)*,?\s*\)"#,
 	]
 	static let reviewChainRenamed = [
 		#"\btypealias\s+\w+(?:<[^>]*>)?\s*=\s*(?:\w+\s*\.\s*)?\#(reviewChainType)\b"#,
