@@ -35,7 +35,7 @@ extension FixtureLaunchTests {
 			let backing = try #require(services.fixture?.secretBacking)
 			backing.locked = true
 			defer { backing.locked = false }
-			await model.decide(.checkAgain(review.ref))
+			await model.decide(.checkAgainWithoutToken(review.ref))
 			try await until { model.chat?.review?.notice?.key == Catalog.reviewWriteReadFailed }
 		}
 		let notice = try #require(model.chat?.review?.notice)
@@ -118,7 +118,7 @@ extension FixtureLaunchTests {
 		#expect(ConfirmedPreviewCard(model: model, review: failed).disabledButtons == [.checkAgain])
 		#expect(failed.controls == .none)
 		faults.failFetches = false
-		await model.decide(.checkAgain(failed.ref))
+		await model.decide(.checkAgainWithoutToken(failed.ref))
 		try await until {
 			guard case .checkAgain? = model.chat?.review?.controls else { return false }
 			return true
@@ -259,7 +259,7 @@ extension FixtureLaunchTests {
 			return true
 		}
 		if absent {
-			await model.decide(.checkAgain(token.ref))
+			await model.decide(.checkAgainWithoutToken(token.ref))
 			try await until {
 				guard case .retryRemainingOrCancel? = model.chat?.review?.controls else {
 					return false
@@ -277,7 +277,7 @@ extension FixtureLaunchTests {
 		let backing = try #require(fixture.secretBacking)
 		backing.locked = true
 		defer { backing.locked = false }
-		await model.decide(.checkAgain(pending.ref))
+		await model.decide(.checkAgainWithoutToken(pending.ref))
 		try await until { model.chat?.review?.notice?.key == Catalog.reviewWriteReadFailed }
 		let failed = try #require(model.chat?.review)
 		let actions = ConfirmedPreviewCard(model: model, review: failed).actions

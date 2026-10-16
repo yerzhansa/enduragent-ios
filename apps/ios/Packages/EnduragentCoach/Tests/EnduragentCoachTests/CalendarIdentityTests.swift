@@ -77,11 +77,11 @@ extension DurableCalendarWriteTests {
 		#expect(review.authority == .otherDevice)
 		#expect(review.controls == .none)
 		#expect(
-			await second.decide(.checkAgain(review.ref), in: .main).notice?.key
+			await second.decide(.checkAgainWithoutToken(review.ref), in: .main).notice?.key
 				== Catalog.reviewWriteReadFailed)
 		await #expect(throws: RetryRefusal.self) { try await second.retry(turn, in: .main) }
 		let own = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		_ = await fixture.coach.decide(.checkAgain(own.ref), in: .main)
+		_ = await fixture.coach.decide(.checkAgainWithoutToken(own.ref), in: .main)
 		imported.notifyImport()
 		try await waitUntil { snapshots.latest?.review == nil }
 		#expect(server.posts.count == 1)

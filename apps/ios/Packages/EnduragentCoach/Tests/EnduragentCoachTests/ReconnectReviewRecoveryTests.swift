@@ -9,8 +9,8 @@ extension SwiftDataSuites {
 		let directory: URL
 		let fixture: AthleteScopedCoachingFixture
 		let proposals = DurableCalendarWriteTests()
-		let confirmed = ReviewOutcome.applied([
-			ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))
+		let confirmed = ReviewOutcome.completed([
+			ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))
 		])
 
 		init() throws {
@@ -27,7 +27,7 @@ extension SwiftDataSuites {
 			try fixture.peer.replace(.athleteB)
 			#expect(await coach.decide(.approve(old), in: .main) == .blocked(.accountChanged))
 			let blocked = try #require(await coach.currentSnapshot(.main)?.review)
-			#expect(blocked.ref.set == old.ref.set)
+			#expect(blocked.ref.review == old.ref.review)
 			#expect(blocked.controls == .none)
 			#expect(blocked.notice?.key == Catalog.reviewAccountChanged)
 			let notice = try #require(blocked.notice)
@@ -39,8 +39,8 @@ extension SwiftDataSuites {
 			#expect(fixture.peer.athleteB.calls.allSatisfy { !$0.isWrite })
 			let (_, fresh) = try await proposals.proposal(
 				on: coach, model: fixture.transport, name: "B's fresh workout")
-			#expect(fresh.ref.set != old.ref.set)
-			#expect(await coach.decide(.approve(old), in: .main) == .staleControl)
+			#expect(fresh.ref.review != old.ref.review)
+			#expect(await coach.decide(.approve(old), in: .main) == .staleControl(newer: nil))
 			#expect(fixture.peer.athleteB.events.isEmpty)
 			#expect(await coach.decide(.approve(fresh), in: .main) == confirmed)
 			#expect(fixture.peer.athleteA.events.isEmpty)
@@ -64,7 +64,7 @@ extension SwiftDataSuites {
 			let reopened = try await reopen()
 			await reopened.lifecycle(.becameActive)
 			let retained = try #require(await reopened.currentSnapshot(.main)?.review)
-			#expect(retained.ref.set == token.ref.set)
+			#expect(retained.ref.review == token.ref.review)
 			#expect(
 				retained.attribution.ownership
 					== .verified(try #require(testConnection.resolvedAthlete)))
@@ -110,7 +110,7 @@ extension SwiftDataSuites {
 			let reopened = try await reopen()
 			await reopened.lifecycle(.becameActive)
 			let blocked = try #require(await reopened.currentSnapshot(.main)?.review)
-			#expect(blocked.ref.set == pending.ref.set)
+			#expect(blocked.ref.review == pending.ref.review)
 			#expect(
 				blocked.attribution.ownership
 					== .verified(try #require(testConnection.resolvedAthlete)))
@@ -123,7 +123,7 @@ extension SwiftDataSuites {
 			let aReads = fixture.peer.athleteA.count(of: .profile)
 			let bReads = fixture.peer.athleteB.count(of: .profile)
 			#expect(
-				await reopened.decide(.checkAgain(blocked.ref), in: .main)
+				await reopened.decide(.checkAgainWithoutToken(blocked.ref), in: .main)
 					== .blocked(.accountChanged))
 			#expect(fixture.peer.athleteA.calls == aCalls)
 			#expect(fixture.peer.athleteB.calls == bCalls)
@@ -145,7 +145,9 @@ extension SwiftDataSuites {
 			#expect(recovery.controls == .checkAgain(recovery.ref))
 			let aBeforeRead = fixture.peer.athleteA.calls
 			let bBeforeRead = fixture.peer.athleteB.calls
-			#expect(await reopened.decide(.checkAgain(recovery.ref), in: .main) == confirmed)
+			#expect(
+				await reopened.decide(.checkAgainWithoutToken(recovery.ref), in: .main) == confirmed
+			)
 			#expect(
 				Array(fixture.peer.athleteA.calls.dropFirst(aBeforeRead.count))
 					== [.profile, .events(oldest: "1998-06-14", newest: "1998-06-14")])
@@ -168,7 +170,7 @@ extension SwiftDataSuites {
 			let aCalls = fixture.peer.athleteA.calls
 			let bCalls = fixture.peer.athleteB.calls
 			fixture.peer.athleteA.fail(.profile, with: URLError(.notConnectedToInternet))
-			let failed = await coach.decide(.checkAgain(pending.ref), in: .main)
+			let failed = await coach.decide(.checkAgainWithoutToken(pending.ref), in: .main)
 			#expect(failed.notice?.key == Catalog.reviewWriteReadFailed)
 			let retry = try #require(await coach.currentSnapshot(.main)?.review)
 			#expect(retry.controls == .checkAgain(retry.ref))
@@ -177,7 +179,7 @@ extension SwiftDataSuites {
 			#expect(fixture.peer.athleteB.calls == bCalls)
 			fixture.peer.athleteA.athlete = .cyclist(id: "i1001", name: "Fixture A", ftp: 220)
 			fixture.peer.athleteA.restore(.profile)
-			#expect(await coach.decide(.checkAgain(retry.ref), in: .main) == confirmed)
+			#expect(await coach.decide(.checkAgainWithoutToken(retry.ref), in: .main) == confirmed)
 			#expect(
 				Array(fixture.peer.athleteA.calls.dropFirst(aCalls.count))
 					== [.profile, .profile, .events(oldest: "1998-06-14", newest: "1998-06-14")])
@@ -212,15 +214,19 @@ extension SwiftDataSuites {
 			let bCalls = fixture.peer.athleteB.calls
 			let aReads = fixture.peer.athleteA.count(of: .profile)
 			let bReads = fixture.peer.athleteB.count(of: .profile)
-			#expect(await reopened.decide(.cancel(token), in: .main) == .canceled(kept: []))
+			#expect(await reopened.decide(.cancel(token), in: .main) == .canceled([]))
 			#expect(fixture.peer.athleteA.calls == aCalls)
 			#expect(fixture.peer.athleteB.calls == bCalls)
 			#expect(fixture.peer.athleteA.count(of: .profile) == aReads)
 			#expect(fixture.peer.athleteB.count(of: .profile) == bReads)
 			try await assertClosedNote(on: reopened)
-			#expect(await reopened.decide(.checkAgain(token.ref), in: .main) == .staleControl)
-			#expect(await reopened.decide(.approve(token), in: .main) == .staleControl)
-			#expect(await reopened.decide(.retryRemaining(token), in: .main) == .staleControl)
+			#expect(
+				await reopened.decide(.checkAgainWithoutToken(token.ref), in: .main)
+					== .staleControl(newer: nil))
+			#expect(await reopened.decide(.approve(token), in: .main) == .staleControl(newer: nil))
+			#expect(
+				await reopened.decide(.retryRemaining(token), in: .main)
+					== .staleControl(newer: nil))
 			let cancellation = try await fixture.store.fetch(
 				RecordQuery(scope: .synced([.reviewCancelledUnknown]))
 			).records
@@ -230,8 +236,8 @@ extension SwiftDataSuites {
 			fixture.peer.athleteB.restore(.profile)
 			let (_, fresh) = try await proposals.proposal(
 				on: reopened, model: fixture.transport, name: "B after Cancel")
-			#expect(fresh.ref.set != token.ref.set)
-			#expect(await reopened.decide(.cancel(fresh), in: .main) == .canceled(kept: []))
+			#expect(fresh.ref.review != token.ref.review)
+			#expect(await reopened.decide(.cancel(fresh), in: .main) == .canceled([]))
 			await reopened.lifecycle(.willTerminate)
 			let after = try await reopen()
 			await after.lifecycle(.becameActive)

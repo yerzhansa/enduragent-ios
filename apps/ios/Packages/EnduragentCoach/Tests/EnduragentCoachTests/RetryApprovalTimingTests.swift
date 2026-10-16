@@ -141,7 +141,8 @@ extension RetryLadderTests {
 		let proposals = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.pendingProposal]))
 		).records.count
-		#expect(first == .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+		#expect(
+			first == .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(proposals == 1)
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		#expect(intervals.calls.filter(\.isWrite).count == 1)

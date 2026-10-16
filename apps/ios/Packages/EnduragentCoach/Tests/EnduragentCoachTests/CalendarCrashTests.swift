@@ -47,7 +47,7 @@ extension DurableCalendarWriteTests {
 			(turnNotice(of: try #require(await reopened.state(of: turn)))?.actions ?? []).isEmpty)
 		let pending = try #require(await reopened.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
-		_ = await reopened.decide(.checkAgain(pending.ref), in: .main)
+		_ = await reopened.decide(.checkAgainWithoutToken(pending.ref), in: .main)
 		let checked = try #require(await reopened.currentSnapshot(.main)?.review)
 		guard case .retryRemainingOrCancel(let retry) = checked.controls else {
 			Issue.record("expected the captured approval to remain recoverable")
@@ -115,8 +115,8 @@ extension DurableCalendarWriteTests {
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(
-			await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+			await fixture.coach.decide(.checkAgainWithoutToken(pending.ref), in: .main)
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(await fixture.coach.currentSnapshot(.main)?.review == nil)
 		#expect(server.posts.count == 1)
 		#expect(server.events.first?["name"]?.stringValue == "Revised strength")

@@ -34,8 +34,8 @@ extension DurableCalendarWriteTests {
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(
-			await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+			await fixture.coach.decide(.checkAgainWithoutToken(pending.ref), in: .main)
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(server.writes.count == 2)
 		#expect(server.writes.last?.method == (deleting ? "DELETE" : "PUT"))
 		#expect(server.events.count == (deleting ? 0 : 1))

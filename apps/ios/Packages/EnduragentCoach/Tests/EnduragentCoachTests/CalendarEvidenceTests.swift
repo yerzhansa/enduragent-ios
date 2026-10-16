@@ -57,7 +57,7 @@ extension DurableCalendarWriteTests {
 			}
 		}
 		let review = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		_ = await fixture.coach.decide(.checkAgain(review.ref), in: .main)
+		_ = await fixture.coach.decide(.checkAgainWithoutToken(review.ref), in: .main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(
@@ -80,7 +80,7 @@ extension DurableCalendarWriteTests {
 		let old = try #require(
 			try await store.fetch(RecordQuery(scope: .synced([.reviewWrite]))).records.last)
 		let review = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		_ = await fixture.coach.decide(.checkAgain(review.ref), in: .main)
+		_ = await fixture.coach.decide(.checkAgainWithoutToken(review.ref), in: .main)
 		let confirmed = await fixture.coach.currentSnapshot(.main)
 		let snapshots = ImportSnapshots(await fixture.coach.observe(.main))
 		try await waitUntil { snapshots.latest != nil }
@@ -126,7 +126,8 @@ extension DurableCalendarWriteTests {
 				.finish(reason: .stop),
 			], for: .chat, otherwise: fixture.model.respond)
 		_ = try await fixture.coach.sendAndSettle("Replace that workout")
-		#expect(await fixture.coach.currentSnapshot(.main)?.review?.ref.set == pending.ref.set)
+		#expect(
+			await fixture.coach.currentSnapshot(.main)?.review?.ref.review == pending.ref.review)
 		#expect(
 			try await fixture.store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal])))
 				.records.count == 1)
@@ -146,7 +147,7 @@ extension DurableCalendarWriteTests {
 		await fixture.coach.stop(.main)
 		server.state.withLock { $0.readResponse = .body("[]") }
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		_ = await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
+		_ = await fixture.coach.decide(.checkAgainWithoutToken(pending.ref), in: .main)
 		let checked = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		guard case .retryRemainingOrCancel(let repeatToken) = checked.controls else {
 			Issue.record("expected repetition after an empty read")

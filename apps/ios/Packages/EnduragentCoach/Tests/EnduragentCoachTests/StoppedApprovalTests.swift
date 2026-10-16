@@ -32,8 +32,8 @@ extension RetryLadderTests {
 			if let shownBeforeStop { shownBeforeStop } else { try await presentReview(on: coach) }
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
-		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
+		#expect(await coach.decide(.approve(token), in: .main) == .staleControl(newer: nil))
 		let settled = try #require(await settledTurn(turn, on: coach))
 		guard case .interrupted(let interrupted) = settled else {
 			Issue.record("expected interrupted turn, got \(settled)")
@@ -89,7 +89,7 @@ extension RetryLadderTests {
 		let actionable = try #require(await coach.currentSnapshot(.main)?.review?.token)
 		#expect(
 			await coach.decide(.approve(actionable), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(intervals.calls.filter(\.isWrite).count == 1)
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 	}
@@ -106,7 +106,7 @@ extension RetryLadderTests {
 		let token = try await presentReview(on: coach)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		await coach.stop(.main)
 		let settled = try #require(await settledTurn(turn, on: coach))
 		guard case .interrupted(let interrupted) = settled else {

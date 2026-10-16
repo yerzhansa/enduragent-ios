@@ -22,14 +22,15 @@ import Testing
 		let reopened = await makeCoach(
 			transport: FakeModelTransport(), intervals: fixture.client, store: faults)
 		faults.failFetches = true
-		let decision: ReviewDecision = approving ? .approve(token) : .checkAgain(pending.ref)
+		let decision: ReviewDecision =
+			approving ? .approve(token) : .checkAgainWithoutToken(pending.ref)
 		let outcome = await reopened.decide(decision, in: .main)
 		#expect(outcome.notice?.key == Catalog.reviewWriteReadFailed)
 		faults.failFetches = false
 		let restored = try #require(await reopened.currentSnapshot(.main)?.review)
 		#expect(
-			await reopened.decide(.checkAgain(restored.ref), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+			await reopened.decide(.checkAgainWithoutToken(restored.ref), in: .main)
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(server.posts.count == 1)
 		#expect(server.events.count == 1)
 	}
@@ -50,7 +51,7 @@ import Testing
 		await coach.stop(.main)
 		let pending = try #require(await coach.currentSnapshot(.main)?.review)
 		memory.fail("intervalsCredential", with: errSecInteractionNotAllowed)
-		let outcome = await coach.decide(.checkAgain(pending.ref), in: .main)
+		let outcome = await coach.decide(.checkAgainWithoutToken(pending.ref), in: .main)
 		let notice = try #require(outcome.notice)
 		#expect(notice.key == Catalog.reviewWriteReadFailed)
 		#expect(!notice.sentence(in: displayLocale()).contains("nothing was changed"))
@@ -130,7 +131,7 @@ import Testing
 			"Calendar approval did not finish within five seconds")
 		await fixture.coach.stop(.main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		_ = await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
+		_ = await fixture.coach.decide(.checkAgainWithoutToken(pending.ref), in: .main)
 		let absent = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		guard case .retryRemainingOrCancel(let token) = absent.controls else {
 			Issue.record("expected approved-write recovery controls")

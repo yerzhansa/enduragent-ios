@@ -28,18 +28,19 @@ extension SingleProposalReviews {
 			}
 			return ReviewSnapshot(
 				ref: ReviewRef(
-					chat: chat, set: body.review, revision: ReviewRevision(rawValue: 1),
+					chat: chat, review: body.review, revision: ReviewRevision(rawValue: 1),
 					delivery: UUID()),
 				state: .cancelledUnknown(CancelledUnknownReview(body)),
+				placement: .endOfConversation,
 				attribution: try await attribution(for: intent.record.account))
 		}
 		let attribution = try await attribution(for: live.account)
 		let block = await accountBlock(live.account)
 		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
 		let delivery = delivery(
-			set: WorkoutReviewID(ulid: live.ulid), chat: chat,
+			review: WorkoutReviewID(ulid: live.ulid), chat: chat,
 			authority: live.cause == .legacy ? .readOnly : .thisDevice)
-		let card = ReviewCard(live.body)
+		let card = ReviewCard(live.body, progress: .remaining)
 		let notice: ReviewNotice? =
 			block == .cannotVerify
 			? ReviewNotice(
@@ -55,7 +56,8 @@ extension SingleProposalReviews {
 						? AthleteNotices.earlierVersion
 						: notice,
 					authority: delivery.authority),
-				block == nil ? delivery.controls : .none), attribution: attribution)
+				block == nil ? delivery.controls : .none), placement: .endOfConversation,
+			attribution: attribution)
 	}
 
 	func attribution(for account: TrainingAccount) async throws(LedgerFailure) -> AthleteAttribution

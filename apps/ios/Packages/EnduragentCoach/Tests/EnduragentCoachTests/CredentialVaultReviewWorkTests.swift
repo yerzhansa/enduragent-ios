@@ -28,13 +28,14 @@ extension CredentialVaultTests {
 		#expect(
 			UnionMerge.pendingProposalRecord(rows.records, chatId: .main, now: clock.now) == nil)
 		if redisplay {
-			#expect(await coach.decide(.showAgain(review.ref), in: .main) == .staleControl)
+			#expect(
+				await coach.decide(.showAgain(review.ref), in: .main) == .staleControl(newer: nil))
 		}
 		try await expectAthleteSwitchRefused(on: coach, secrets: secrets)
 		try await expectAthleteSwitchRefused(on: coach, secrets: secrets)
 		await gate.release()
 		let applied = await approval.value
-		guard case .applied = applied else {
+		guard case .completed = applied else {
 			Issue.record("expected the approved workout to finish, got \(applied)")
 			return
 		}
@@ -88,7 +89,7 @@ extension CredentialVaultTests {
 		#expect(await original.decide(.presented(review.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await original.currentSnapshot(.main)?.review?.token)
 		ada.writeFailure = .httpStatus(502)
-		guard case .uncertain = await original.decide(.approve(token), in: .main) else {
+		guard case .unconfirmed = await original.decide(.approve(token), in: .main) else {
 			Issue.record("expected unresolved approval")
 			return
 		}

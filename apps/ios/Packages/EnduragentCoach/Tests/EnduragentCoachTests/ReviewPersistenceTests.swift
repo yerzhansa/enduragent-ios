@@ -20,7 +20,7 @@ extension TurnRunnerTests {
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		let done = "Done — Create workout \"Endurance\" on 6/14/1998."
 		let phrasebook = displayLocale()
 		let shown = try #require(await coach.currentSnapshot(.main))
@@ -136,7 +136,7 @@ extension SingleProposalReviewsTests {
 		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		let shown = try #require(await coach.currentSnapshot(.main))
 		#expect(shown.turns.isEmpty)
 		#expect(shown.notes[nil]?.count == 1)

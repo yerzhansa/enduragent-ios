@@ -31,20 +31,22 @@ package actor SingleProposalReviews: WorkoutReviews {
 	{
 		guard decision.ref.chat == chat, var delivery = deliveries[chat],
 			delivery.ref == decision.ref
-		else { return .staleControl }
+		else { return .staleControl(newer: nil) }
 		switch decision {
 		case .presented:
 			if delivery.authority == .thisDevice { delivery.secret = delivery.secret ?? UUID() }
 		case .presentationFailed:
 			delivery.secret = nil
 		case .showAgain:
-			guard !delivery.busy else { return .staleControl }
+			guard !delivery.busy else { return .staleControl(newer: nil) }
 			delivery.ref = ReviewRef(
-				chat: chat, set: delivery.ref.set, revision: delivery.ref.revision, delivery: UUID()
-			)
+				chat: chat, review: delivery.ref.review, revision: delivery.ref.revision,
+				delivery: UUID())
 			delivery.secret = nil
 		case .approve(let token), .cancel(let token), .retryRemaining(let token):
-			guard !delivery.busy, delivery.secret == token.secret else { return .staleControl }
+			guard !delivery.busy, delivery.secret == token.secret else {
+				return .staleControl(newer: nil)
+			}
 			delivery.busy = true
 			deliveries[chat] = delivery
 			defer { finish(token.ref, outcome: .presentationRecorded) }
@@ -61,8 +63,10 @@ package actor SingleProposalReviews: WorkoutReviews {
 			}
 			finish(token.ref, outcome: outcome)
 			return outcome
-		case .checkAgain(let ref):
-			guard !delivery.busy else { return .staleControl }
+		case .tryAgain, .checkAgain:
+			return .wrongAction
+		case .checkAgainWithoutToken(let ref):
+			guard !delivery.busy else { return .staleControl(newer: nil) }
 			delivery.busy = true
 			deliveries[chat] = delivery
 			defer { finish(ref, outcome: .presentationRecorded) }
@@ -112,15 +116,15 @@ package actor SingleProposalReviews: WorkoutReviews {
 			guard
 				let live = try await ProposalPolicy.live(
 					chatId: token.ref.chat, ledger: ledger, now: clock.now),
-				live.ulid == token.ref.set.ulid, live.cause != .legacy,
+				live.ulid == token.ref.review.ulid, live.cause != .legacy,
 				live.body.writeID != nil
-			else { return .refused(.staleControl) }
+			else { return .refused(.staleControl(newer: nil)) }
 			let intents = try await ledger.calendarWrites(token.ref.chat)
 			guard
 				!intents.contains(where: {
-					$0.body.review == token.ref.set && $0.body.evidence.dispatched
+					$0.body.review == token.ref.review && $0.body.evidence.dispatched
 				})
-			else { return .refused(.staleControl) }
+			else { return .refused(.staleControl(newer: nil)) }
 			let connection = try await training(true)
 			guard Self.permits(live.account.authority(under: connection.account)) else {
 				return .refused(.blocked(.accountChanged))
@@ -135,14 +139,14 @@ package actor SingleProposalReviews: WorkoutReviews {
 				return .refused(.blocked(.turnStopping))
 			}
 			guard case .operation(let origin, let attempt) = live.cause else {
-				return .refused(.staleControl)
+				return .refused(.staleControl(newer: nil))
 			}
 			let stamp = OperationStamp(
 				operation: origin, attempt: attempt,
 				binding: ActionBinding(
 					account: live.account, zone: AthleteCalendar(clock: clock).deviceZone))
 			var body = ReviewWriteBody(
-				chatId: live.body.chatId, review: token.ref.set, writeID: live.body.writeID,
+				chatId: live.body.chatId, review: token.ref.review, writeID: live.body.writeID,
 				target: operation.target, evidence: .notSent)
 			let records = try await ledger.commit(synced: [.reviewWrite(body)], stamp: stamp)
 			guard let record = records.first else { return .refused(.storageUnavailable) }
@@ -200,7 +204,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 			await scope?.recordReview(proposal, evidence: body.evidence)
 		}
 		if case .applied(let id?) = body.evidence {
-			return .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: String(id)))])
+			return .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: id)))])
 		}
 		return unresolved(body.evidence)
 	}
@@ -209,29 +213,29 @@ package actor SingleProposalReviews: WorkoutReviews {
 		try await registration.pass { () throws(LedgerFailure) in
 			do throws(LedgerFailure) {
 				let writes = try await ledger.calendarWrites(token.ref.chat)
-				if let intent = writes.first(where: { $0.body.review == token.ref.set }) {
+				if let intent = writes.first(where: { $0.body.review == token.ref.review }) {
 					guard intent.blocksNewWork, let stamp = intent.stamp else {
-						return .staleControl
+						return .staleControl(newer: nil)
 					}
 					let body = try ReviewCancelledUnknownBody.cancelling(
 						intent, on: ledger.deviceId)
 					_ = try await ledger.commit(
 						synced: [.reviewCancelledUnknown(body)], stamp: stamp)
-					return .canceled(kept: [])
+					return .canceled([])
 				}
 				guard
 					let live = try await ProposalPolicy.live(
 						chatId: token.ref.chat, ledger: ledger, now: clock.now),
-					live.ulid == token.ref.set.ulid
-				else { return .staleControl }
+					live.ulid == token.ref.review.ulid
+				else { return .staleControl(newer: nil) }
 				let stamp = OperationStamp(
-					operation: .workoutReview(token.ref.set, token.ref.revision),
+					operation: .workoutReview(token.ref.review, token.ref.revision),
 					attempt: AttemptID(ulid: await ledger.nextULID()),
 					binding: ActionBinding(
 						account: live.account, zone: AthleteCalendar(clock: clock).deviceZone))
 				try await ProposalPolicy.clear(
 					live, reason: .canceled, ledger: ledger, stamp: stamp)
-				return .canceled(kept: [])
+				return .canceled([])
 			} catch {
 				if error == .unavailable { throw error }
 				diagnostics.record(.reviewOutcomeUnsaved(error))
@@ -241,20 +245,23 @@ package actor SingleProposalReviews: WorkoutReviews {
 	}
 
 	func finish(_ ref: ReviewRef, outcome: ReviewOutcome) {
-		if case .applied = outcome { closed.insert(ref.set) }
-		if case .canceled = outcome { closed.insert(ref.set) }
-		if closed.contains(ref.set), deliveries[ref.chat]?.ref == ref { deliveries[ref.chat] = nil }
+		if case .completed = outcome { closed.insert(ref.review) }
+		if case .canceled = outcome { closed.insert(ref.review) }
+		if closed.contains(ref.review), deliveries[ref.chat]?.ref == ref {
+			deliveries[ref.chat] = nil
+		}
 		if deliveries[ref.chat]?.ref == ref { deliveries[ref.chat]?.busy = false }
 	}
 
 	func delivery(
-		set: WorkoutReviewID, chat: ChatID, authority: ReviewAuthority
+		review: WorkoutReviewID, chat: ChatID, authority: ReviewAuthority
 	) -> ReviewDelivery {
-		if let existing = deliveries[chat], existing.ref.set == set { return existing }
+		if let existing = deliveries[chat], existing.ref.review == review { return existing }
 		let minted = ReviewDelivery(
 			authority: authority,
 			ref: ReviewRef(
-				chat: chat, set: set, revision: ReviewRevision(rawValue: 1), delivery: UUID()))
+				chat: chat, review: review, revision: ReviewRevision(rawValue: 1), delivery: UUID())
+		)
 		deliveries[chat] = minted
 		return minted
 	}
@@ -279,7 +286,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 	}
 
 	func unresolved(_ evidence: CalendarWriteEvidence) -> ReviewOutcome {
-		.uncertain(pendingNotice(evidence))
+		.unconfirmed([], pendingNotice(evidence))
 	}
 
 	func pendingNotice(_ evidence: CalendarWriteEvidence) -> ReviewNotice {

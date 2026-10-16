@@ -34,10 +34,12 @@ extension DurableCalendarWriteTests {
 		#expect(review.controls == .checkAgain(review.ref))
 		#expect(
 			(turnNotice(of: try #require(await reopened.state(of: turn)))?.actions ?? []).isEmpty)
-		let outcome = await reopened.decide(.checkAgain(review.ref), in: .main)
+		let outcome = await reopened.decide(.checkAgainWithoutToken(review.ref), in: .main)
 		if found {
 			#expect(
-				outcome == .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "7"))]))
+				outcome
+					== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 7)))])
+			)
 			#expect(await reopened.currentSnapshot(.main)?.review == nil)
 		} else {
 			let pending = try #require(await reopened.currentSnapshot(.main)?.review)

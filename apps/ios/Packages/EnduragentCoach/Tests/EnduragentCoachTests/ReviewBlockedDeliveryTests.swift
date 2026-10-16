@@ -18,13 +18,13 @@ extension SingleProposalReviewsTests {
 		#expect(await first.value == .blocked(.cannotVerify))
 		secretBacking.locked = false
 		let later = try await propose(on: coach)
-		#expect(later.ref.set != firstToken.ref.set)
+		#expect(later.ref.review != firstToken.ref.review)
 		let laterToken = try await presentedToken(on: coach)
 		await laterClaim.arm()
 		let laterApproval = Task { await coach.decide(.approve(laterToken), in: .main) }
 		try #require(try await laterClaim.waitUntilEntered())
-		#expect(await coach.decide(.approve(firstToken), in: .main) == .staleControl)
-		#expect(await coach.decide(.approve(laterToken), in: .main) == .staleControl)
+		#expect(await coach.decide(.approve(firstToken), in: .main) == .staleControl(newer: nil))
+		#expect(await coach.decide(.approve(laterToken), in: .main) == .staleControl(newer: nil))
 		await laterClaim.release()
 		_ = await laterApproval.value
 		#expect(ada.calls.filter(\.isWrite).count == 1)

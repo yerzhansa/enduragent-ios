@@ -159,16 +159,20 @@ extension FirstTurnTests {
 				$0.event == .reviewUnavailable(.main, .unavailable)
 			})
 		for _ in 0..<2 {
-			#expect(await coach.decide(.checkAgain(failed.ref), in: .main) == .storageUnavailable)
+			#expect(
+				await coach.decide(.checkAgainWithoutToken(failed.ref), in: .main)
+					== .storageUnavailable)
 			#expect(await coach.currentSnapshot(.main)?.review == failed)
 		}
 		faults.failFetches = false
-		#expect(await coach.decide(.checkAgain(failed.ref), in: .main) == .presentationRecorded)
+		#expect(
+			await coach.decide(.checkAgainWithoutToken(failed.ref), in: .main)
+				== .presentationRecorded)
 		#expect(await coach.currentSnapshot(.main)?.review == ready)
 		#expect(intervals.calls == calls)
 		#expect(transport.requestCount == requests)
 		guard case .approveOrCancel(let token) = ready.controls else { return }
-		#expect(await coach.decide(.cancel(token), in: .main) == .canceled(kept: []))
+		#expect(await coach.decide(.cancel(token), in: .main) == .canceled([]))
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 	}
 }

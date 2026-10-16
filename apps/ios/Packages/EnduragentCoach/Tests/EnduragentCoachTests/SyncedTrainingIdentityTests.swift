@@ -101,7 +101,7 @@ import Testing
 		let block: ReviewBlock = state == .deleted ? .accountChanged : .cannotVerify
 		#expect(await coach.decide(.approve(token), in: .main) == .blocked(block))
 		let retained = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(retained.ref.set == review.ref.set)
+		#expect(retained.ref.review == review.ref.review)
 		#expect(retained.cards == review.cards)
 		#expect(retained.controls == .none)
 		#expect(
@@ -140,7 +140,7 @@ import Testing
 		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(fixture.ada.events.count == 1)
 		#expect(peer.athleteB.events.isEmpty)
 		let retained = try await fixture.records.fetch(
@@ -163,7 +163,7 @@ import Testing
 		try backing.store().storeIntervalsConnection(replacement)
 		backing.failWrites(CredentialSlot.intervalsConnection.rawValue, with: errSecNotAvailable)
 		#expect(await coach.decide(.approve(token), in: .main) == .blocked(.accountChanged))
-		#expect(await coach.currentSnapshot(.main)?.review?.ref.set == review.ref.set)
+		#expect(await coach.currentSnapshot(.main)?.review?.ref.review == review.ref.review)
 		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
 		try await assertTurnUsesBo(coach)
 		let status = try await coach.observedStatus()

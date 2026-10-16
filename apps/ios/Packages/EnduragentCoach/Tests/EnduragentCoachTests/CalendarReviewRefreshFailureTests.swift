@@ -57,7 +57,7 @@ extension DurableCalendarWriteTests {
 		await fixture.coach.stop(.main)
 		if repeatAvailable {
 			server.state.withLock { $0.readResponse = .body("[]") }
-			_ = await fixture.coach.decide(.checkAgain(token.ref), in: .main)
+			_ = await fixture.coach.decide(.checkAgainWithoutToken(token.ref), in: .main)
 		}
 		let ready = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		faults.failFetches = true
@@ -76,12 +76,14 @@ extension DurableCalendarWriteTests {
 			failed.notice.map { LanguageTag.en.phrasebook.say($0.key, $0.vars) }
 				== "Couldn't read the saved workout review. Its buttons are temporarily disabled.")
 		#expect(
-			await fixture.coach.decide(.checkAgain(failed.ref), in: .main) == .storageUnavailable)
+			await fixture.coach.decide(.checkAgainWithoutToken(failed.ref), in: .main)
+				== .storageUnavailable)
 		#expect(await fixture.coach.currentSnapshot(.main)?.review == failed)
 		#expect(server.posts.count == 1)
 		faults.failFetches = false
 		#expect(
-			await fixture.coach.decide(.checkAgain(failed.ref), in: .main) == .presentationRecorded)
+			await fixture.coach.decide(.checkAgainWithoutToken(failed.ref), in: .main)
+				== .presentationRecorded)
 		#expect(await fixture.coach.currentSnapshot(.main)?.review == ready)
 		#expect(server.posts.count == 1)
 		#expect(
@@ -90,8 +92,8 @@ extension DurableCalendarWriteTests {
 		)
 		server.state.withLock { $0.readResponse = .success }
 		#expect(
-			await fixture.coach.decide(.checkAgain(ready.ref), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+			await fixture.coach.decide(.checkAgainWithoutToken(ready.ref), in: .main)
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(await fixture.coach.currentSnapshot(.main)?.review == nil)
 		#expect(server.posts.count == 1)
 		#expect(server.events.count == 1)
@@ -127,7 +129,9 @@ extension DurableCalendarWriteTests {
 		#expect(failed.controls == .none)
 		let calls = server.state.withLock { $0.requests.count }
 		faults.failFetches = false
-		#expect(await coach.decide(.checkAgain(failed.ref), in: .main) == .presentationRecorded)
+		#expect(
+			await coach.decide(.checkAgainWithoutToken(failed.ref), in: .main)
+				== .presentationRecorded)
 		#expect(await coach.currentSnapshot(.main)?.review == ready)
 		#expect(server.state.withLock { $0.requests.count } == calls)
 	}

@@ -85,7 +85,7 @@ struct SyncedTrainingIdentityAppTests {
 			let rechecked = try #require(await harness.firstSnapshot(services, chat: .main))
 			#expect(rechecked.turns == finished.turns)
 			#expect(rechecked.liveReply == finished.liveReply)
-			#expect(rechecked.review?.ref.set == review.ref.set)
+			#expect(rechecked.review?.ref.review == review.ref.review)
 			#expect(rechecked.review?.controls == ReviewControls.none)
 			#expect(rechecked != finished)
 			#expect(rechecked.revision == finished.revision)
@@ -117,13 +117,13 @@ struct SyncedTrainingIdentityAppTests {
 		try await model.waitForStatus { $0.training.athleteName == "Bo Lind" }
 		try await until { model.chat?.review?.notice?.key == Catalog.reviewAccountChanged }
 		#expect(model.connected?.athleteName == "Bo Lind")
-		#expect(model.chat?.review?.ref.set == original.ref.set)
+		#expect(model.chat?.review?.ref.review == original.ref.review)
 		#expect(model.chat?.review?.controls == ReviewControls.none)
 		try fixture.trainingPeer.delete()
 		await model.sceneChanged(.becameActive)
 		try await model.waitForStatus { $0.training == .unconnected }
 		#expect(model.connected == nil)
-		#expect(model.chat?.review?.ref.set == original.ref.set)
+		#expect(model.chat?.review?.ref.review == original.ref.review)
 		#expect(fixture.trainingPeer.athleteA.events.isEmpty)
 		#expect(fixture.trainingPeer.athleteB.events.isEmpty)
 	}

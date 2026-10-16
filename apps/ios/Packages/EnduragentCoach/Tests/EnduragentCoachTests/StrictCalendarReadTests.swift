@@ -30,7 +30,7 @@ extension DurableCalendarWriteTests {
 			_ = try await fixture.client.listEvents(in: .day("1998-06-14"))
 		}
 		let review = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		_ = await fixture.coach.decide(.checkAgain(review.ref), in: .main)
+		_ = await fixture.coach.decide(.checkAgainWithoutToken(review.ref), in: .main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(pending.notice?.key.rawValue == "review.writeReadFailed")

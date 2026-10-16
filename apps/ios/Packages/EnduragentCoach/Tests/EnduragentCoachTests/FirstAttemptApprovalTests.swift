@@ -22,7 +22,7 @@ extension RetryLadderTests {
 		let token = try await presentReview(on: coach)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		held.release(.seconds(23))
 		#expect(replyText(try #require(await settledTurn(turn, on: coach))) == reply)
 		#expect(await coach.transcript(.main) == ["Add a ride", reply])
@@ -52,7 +52,7 @@ extension RetryLadderTests {
 		let token = try await presentReview(on: coach)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		held.release(.seconds(29))
 		#expect(replyText(try #require(await settledTurn(turn, on: coach))) == "Tuesday is next.")
 		let review = try #require(await coach.currentSnapshot(.main)?.review)
@@ -60,7 +60,7 @@ extension RetryLadderTests {
 		let second = try await presentReview(on: coach)
 		#expect(
 			await coach.decide(.approve(second), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "2"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 2)))]))
 		#expect(intervals.calls.filter(\.isWrite).count == 2)
 		#expect(intervals.events.count == 2)
 		#expect(Set(intervals.events.compactMap(\.uid)).count == 2)

@@ -270,11 +270,11 @@ import Testing
 		#expect(summary.athleteName == "Bo Lind")
 		#expect(switched == account(active))
 		let switchedReview = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(switchedReview.ref.set == pending.ref.set)
+		#expect(switchedReview.ref.review == pending.ref.review)
 		#expect(switchedReview.notice?.kind == .accountChanged)
 		#expect(switchedReview.controls == .none)
 		let reopened = try #require(await self.coach(secrets).currentSnapshot(.main)?.review)
-		#expect(reopened.ref.set == pending.ref.set)
+		#expect(reopened.ref.review == pending.ref.review)
 		#expect(reopened.notice?.kind == .accountChanged)
 		let proposals = try await records.fetch(
 			RecordQuery(scope: .deviceLocal([.pendingProposal]), chatId: "main")

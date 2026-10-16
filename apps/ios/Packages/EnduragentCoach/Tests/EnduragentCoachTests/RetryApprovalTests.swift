@@ -31,8 +31,8 @@ extension RetryLadderTests {
 		let token = try await presentReview(on: coach)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
-		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
+		#expect(await coach.decide(.approve(token), in: .main) == .staleControl(newer: nil))
 		held.release(.seconds(7))
 		let snapshots = await coach.observe(.main)
 		for await snapshot in snapshots {
@@ -97,7 +97,7 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(7))
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		held.release(.seconds(7))
 		#expect(replyText(try #require(await settledTurn(waiting, on: coach))) == "Rest today.")
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 4)
@@ -116,7 +116,7 @@ extension RetryLadderTests {
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
-		#expect(await coach.decide(.cancel(token), in: .main) == .canceled(kept: []))
+		#expect(await coach.decide(.cancel(token), in: .main) == .canceled([]))
 		held.release(.seconds(7))
 		#expect(replyText(try #require(await settledTurn(turn, on: coach))) == "Rest today.")
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 3)
