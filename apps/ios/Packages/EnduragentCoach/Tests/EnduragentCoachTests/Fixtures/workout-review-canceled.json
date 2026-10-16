@@ -1,0 +1,52 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000306",
+  "chat": "main",
+  "finished": [],
+  "id": "00T47DW5000000000000000106",
+  "kept": [],
+  "remaining": [],
+  "revision": 3,
+  "stage": {
+    "canceled": {
+      "givenUp": [
+        {
+          "action": {
+            "delete": {
+              "target": {
+                "upgradedWithoutSnapshot": {
+                  "date": "1998-06-30",
+                  "event": 108
+                }
+              }
+            }
+          },
+          "id": "00T47DW5000000000000000411",
+          "position": 1
+        }
+      ],
+      "unconfirmed": {
+        "change": {
+          "action": {
+            "edit": {
+              "patch": {
+                "name": "Hill repeats"
+              },
+              "target": {
+                "upgradedWithoutSnapshot": {
+                  "date": "1998-06-29",
+                  "event": 107
+                }
+              }
+            }
+          },
+          "id": "00T47DW5000000000000000410",
+          "position": 0
+        },
+        "claim": "00T47DW5000000000000000502",
+        "sentAt": 897984180
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000206"
+}

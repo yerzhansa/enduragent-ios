@@ -12,6 +12,18 @@ struct WorkoutReviewPayloadTests {
 		#expect(try WorkoutReviewPayload.encode(try WorkoutReviewPayload.decode(stored)) == stored)
 	}
 
+	@Test(arguments: [
+		"workout-review-approval", "workout-review-unconfirmed", "workout-review-try-again",
+		"workout-review-blocked", "workout-review-sending", "workout-review-completed",
+		"workout-review-canceled",
+	])
+	func everyStoredFixtureEncodesBackToItsOwnJSON(_ name: String) throws {
+		let stored = try fixtureText(name)
+		let decoded = try WorkoutReviewPayload.decode(Data(stored.utf8))
+		let reencoded = String(decoding: try WorkoutReviewPayload.encode(decoded), as: UTF8.self)
+		#expect(try JSONValue.parse(reencoded) == JSONValue.parse(stored))
+	}
+
 	@Test func theFixturesDecodeToTheValuesTheyDescribe() throws {
 		let review = try reviewFixture("workout-review-unconfirmed")
 		#expect(review.revision == ReviewRevision(rawValue: 2))

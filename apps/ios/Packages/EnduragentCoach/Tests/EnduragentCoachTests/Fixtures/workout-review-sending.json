@@ -1,0 +1,40 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000304",
+  "chat": "main",
+  "finished": [],
+  "id": "00T47DW5000000000000000104",
+  "kept": [],
+  "remaining": [],
+  "revision": 1,
+  "stage": {
+    "running": {
+      "claim": {
+        "action": "approve",
+        "id": "00T47DW5000000000000000501"
+      },
+      "sending": {
+        "change": {
+          "action": {
+            "add": {
+              "identity": "7C9E6679-7425-40DE-944B-E07FC1F90AE7",
+              "payload": {
+                "date": "1998-06-26",
+                "description": "Easy\n- 40m Z2",
+                "movingTime": 2400,
+                "name": "Easy spin",
+                "trainingLoad": 35,
+                "type": "Ride"
+              }
+            }
+          },
+          "id": "00T47DW5000000000000000408",
+          "position": 0
+        },
+        "claim": "00T47DW5000000000000000501",
+        "sentAt": 897984120
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000204"
+}

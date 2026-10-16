@@ -313,6 +313,7 @@
 			"statement": "The stored value round-trips, and a value with a change in two places or two changes at one position fails to decode.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "everyStageRoundTripsThroughTheStoredValue"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "everyStoredFixtureEncodesBackToItsOwnJSON"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "theFixturesDecodeToTheValuesTheyDescribe"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "anAddWithNoDurationRoundTripsWithoutOne"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "aChangeInTwoPlacesFailsToDecode"},

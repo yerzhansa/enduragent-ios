@@ -1,0 +1,35 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000303",
+  "chat": "main",
+  "finished": [],
+  "id": "00T47DW5000000000000000103",
+  "kept": [],
+  "remaining": [
+    {
+      "action": {
+        "delete": {
+          "target": {
+            "upgradedWithoutSnapshot": {
+              "date": "1998-06-25",
+              "event": 105
+            }
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000407",
+      "position": 0
+    }
+  ],
+  "revision": 1,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "blocked": {
+          "_0": "accountChanged"
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000203"
+}

@@ -116,7 +116,7 @@
                 "edit": {
                   "patch": {
                     "name": "Long ride",
-                    "workoutDocument": "{\"steps\":[{\"duration\":5400}]}"
+                    "workoutDocument": "{\n  \"steps\": [\n    {\n      \"duration\": 5400\n    }\n  ]\n}"
                   },
                   "target": {
                     "upgradedWithoutSnapshot": {
