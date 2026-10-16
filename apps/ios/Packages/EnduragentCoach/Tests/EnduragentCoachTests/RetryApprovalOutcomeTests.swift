@@ -1,0 +1,123 @@
+import EnduragentCoachFixtures
+import Foundation
+import Testing
+
+@testable import EnduragentCoach
+
+extension RetryLadderTests {
+	@Test(arguments: ApprovalCheckpoint.allCases)
+	func uncertainApprovalDuringBackoffSettlesUnverifiedWork(checkpoint: ApprovalCheckpoint)
+		async throws
+	{
+		let held = HeldClock()
+		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		let intervals = HeldApprovalWrites(base: base, clock: held, failure: URLError(.timedOut))
+		transport.respond = ScriptedReply.sequence(
+			workoutProposal
+				+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)],
+			otherwise: transport.respond)
+		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
+			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
+		}
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
+		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
+		try await held.waitUntilHeld(.seconds(7))
+		let token = try await presentReview(on: coach)
+		try await checkpoint.reach(using: held)
+		let approving = Task { await coach.decide(.approve(token), in: .main) }
+		defer { approving.cancel() }
+		try await held.waitUntilHeld(.seconds(13))
+		try await expectApprovalBlocked(
+			at: checkpoint, turn: turn, coach: coach, model: model, clock: held)
+		held.advance(by: checkpoint == .backoff ? .seconds(6) : .seconds(2))
+		guard case .uncertain = await approving.value else {
+			Issue.record("expected an uncertain calendar write")
+			return
+		}
+		let settled = try #require(await settledTurn(turn, on: coach))
+		guard case .savedWork(let saved) = settled else {
+			Issue.record("expected saved work, got \(settled)")
+			return
+		}
+		#expect(saved.outcome == .savedUnverified)
+		#expect(saved.saved.calendarWrites == 1)
+		#expect(saved.saved.unverifiedCalendarWrites == 1)
+		#expect(saved.notice.actions.isEmpty)
+		#expect(
+			saved.notice.sentence(in: displayLocale())
+				== "The calendar change may have been saved. Check your calendar before asking again."
+		)
+		#expect(
+			await coach.currentSnapshot(.main)?.review?.notice?.key == Catalog.reviewWritePending)
+		#expect(
+			transport.requests.filter { $0.charge == .chatAttempt }.count == checkpoint.requests)
+		#expect(
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
+				.count == 1)
+	}
+
+	@Test func stopDuringPendingApprovalPreservesSavedWrite() async throws {
+		let held = HeldClock()
+		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		let intervals = HeldApprovalWrites(base: base, clock: held)
+		transport.respond = ScriptedReply.sequence(
+			workoutProposal
+				+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))], for: .chat,
+			otherwise: transport.respond)
+		let coach = await heldApprovalCoach(held, model: transport, intervals: intervals)
+		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
+		try await held.waitUntilHeld(.seconds(7))
+		let token = try await presentReview(on: coach)
+		let approving = Task { await coach.decide(.approve(token), in: .main) }
+		try await held.waitUntilHeld(.seconds(13))
+		defer { held.advance(by: .seconds(13)) }
+		let stopping = Task { await coach.stop(.main) }
+		let settled = try #require(await settledTurn(turn, on: coach))
+		held.advance(by: .seconds(13))
+		#expect(
+			await approving.value
+				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+		await stopping.value
+		guard case .interrupted(let interrupted) = settled else {
+			Issue.record("expected interruption, got \(settled)")
+			return
+		}
+		#expect(interrupted.saved.calendarWrites == 1)
+		#expect((turnNotice(of: settled)?.actions ?? []).isEmpty)
+		#expect(base.calls.filter(\.isWrite).count == 1)
+	}
+
+	@Test func dispatchedRejectionDuringBackoffBlocksRegeneration() async throws {
+		let held = HeldClock()
+		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		let intervals = HeldApprovalWrites(
+			base: base, clock: held,
+			failure: IntervalsError(code: "http", details: "Rejected", status: 422))
+		transport.respond = ScriptedReply.sequence(
+			workoutProposal
+				+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
+		let coach = await heldApprovalCoach(held, model: transport, intervals: intervals)
+		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
+		try await held.waitUntilHeld(.seconds(7))
+		let token = try await presentReview(on: coach)
+		let approving = Task { await coach.decide(.approve(token), in: .main) }
+		try await held.waitUntilHeld(.seconds(13))
+		held.advance(by: .seconds(7))
+		held.advance(by: .seconds(6))
+		guard case .uncertain = await approving.value else {
+			Issue.record("a dispatched rejection stays unknown")
+			return
+		}
+		let settled = try #require(await settledTurn(turn, on: coach))
+		#expect((turnNotice(of: settled)?.actions ?? []).isEmpty)
+		#expect(
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
+				.count == 1)
+		#expect(base.calls.filter(\.isWrite).isEmpty)
+
+	}
+
+}

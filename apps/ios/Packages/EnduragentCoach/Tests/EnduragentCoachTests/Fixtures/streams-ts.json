@@ -1,1 +1,1 @@
-{"sampleCount":4,"channels":{"watts":{"min":100,"max":400,"mean":250},"heartrate":{"min":140,"max":160,"mean":150},"cadence":{"min":80,"max":90,"mean":86.3},"time":{"min":0,"max":3,"mean":1.5},"altitude":{"min":100,"max":103,"mean":101.5}}}
+{"sampleCount":10,"channels":{"time":{"min":0,"max":7,"mean":3.5},"watts":{"min":0,"max":400,"mean":214.4},"heartrate":{"min":140,"max":160,"mean":151.3},"cadence":{"min":80,"max":90,"mean":86.3},"altitude":{"min":-4,"max":-2.5,"mean":-3.2},"smooth_grade":{"min":-2.5,"max":1.5,"mean":-0.2}}}

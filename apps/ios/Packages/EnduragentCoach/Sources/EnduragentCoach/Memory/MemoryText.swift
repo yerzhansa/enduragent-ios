@@ -1,12 +1,12 @@
 import Foundation
 
-public enum MemoryQuery {
-	public static let maxRangeDays = 366
-	public static let maxResultChars = 20_000
-	public static let truncationNotice = "[truncated — narrow the date range or add a query term]"
-	public static let emptySuffix = ": no daily notes, events, or history found."
+package enum MemoryQuery {
+	package static let maxRangeDays = 366
+	package static let maxResultChars = 20_000
+	package static let truncationNotice = "[truncated — narrow the date range or add a query term]"
+	package static let emptySuffix = ": no daily notes, events, or history found."
 
-	public static func render(
+	package static func render(
 		_ hits: [MemoryHit], from: CivilDate, to: CivilDate, query: String? = nil
 	) -> String {
 		let header =
@@ -46,7 +46,7 @@ struct MemorySnapshot {
 
 	func dailyNotesOnly(on date: CivilDate) -> String {
 		daily.sorted { $0.hlc < $1.hlc }.compactMap { record -> String? in
-			guard record.civilDate == date, case .dailyNote(let body) = record.body else {
+			guard record.civilDate == date, case .synced(.dailyNote(let body)) = record.body else {
 				return nil
 			}
 			return body.note
@@ -59,7 +59,8 @@ struct MemorySnapshot {
 			return notes
 		}
 		let extras = compaction.sorted { $0.hlc < $1.hlc }.compactMap { record -> String? in
-			guard record.civilDate == date, case .compactionSummary(let body) = record.body else {
+			guard record.civilDate == date, case .synced(.compactionSummary(let body)) = record.body
+			else {
 				return nil
 			}
 			return formatCompactionNote(body.markdown)
@@ -150,11 +151,11 @@ package func injectableDailyLines(_ daily: String) -> [String] {
 	return lines
 }
 
-func isAtMostH3(_ line: String) -> Bool {
+private func isAtMostH3(_ line: String) -> Bool {
 	line.hasPrefix("# ") || line.hasPrefix("## ") || line.hasPrefix("### ")
 }
 
-func formatCompactionNote(_ summary: String) -> String {
+private func formatCompactionNote(_ summary: String) -> String {
 	let demoted = summary.split(separator: "\n", omittingEmptySubsequences: false).map {
 		line -> String in
 		let text = String(line)
@@ -190,7 +191,7 @@ func kindOrder(_ kind: MemoryHit.Kind) -> Int {
 	}
 }
 
-func renderLine(_ hit: MemoryHit) -> String {
+private func renderLine(_ hit: MemoryHit) -> String {
 	switch hit.kind {
 	case .dailyNote:
 		return hit.text
@@ -203,7 +204,7 @@ func renderLine(_ hit: MemoryHit) -> String {
 
 func serializeLedger(_ record: AthleteRecord, body: LedgerEventBody) -> String {
 	serializeLedgerLine(
-		date: record.civilDate,
+		date: body.date,
 		kind: body.kind,
 		text: body.text,
 		source: body.source,
@@ -227,7 +228,7 @@ func serializeLedgerLine(
 		+ "\"source\":\(JSONValue.string(source.rawValue).canonicalDigestInput())}"
 }
 
-func isoFromWallMs(_ wallMs: Int64) -> String {
+private func isoFromWallMs(_ wallMs: Int64) -> String {
 	let date = Date(timeIntervalSince1970: TimeInterval(wallMs) / 1000)
 	return GregorianStamp.isoMillis(date)
 }
@@ -272,16 +273,7 @@ func historyBodySummary(_ body: String?, query: String?) -> String {
 	return "\(leading)\(window)\(trailing)"
 }
 
-func memoryWireMessage(from message: ChatMessage) -> WireMessage {
-	WireMessage(
-		role: message.role == .user ? .user : .assistant,
-		content: message.text,
-		toolCalls: [],
-		toolCallId: nil
-	)
-}
-
-func memoryTruncateUtf16(_ text: String, maxChars: Int) -> String {
+private func memoryTruncateUtf16(_ text: String, maxChars: Int) -> String {
 	if maxChars <= 0 {
 		return ""
 	}

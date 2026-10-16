@@ -74,130 +74,31 @@ public enum CreditsFailure: Error, Sendable, Equatable {
 	case purchasesDisabled
 	case noPurchaseToRecover
 	case identityMismatch
+	case accountChanged
 	case rateLimited
 	case unavailable
 	case unexpectedResponse(status: Int)
 	case noAthleteKey
 }
 
-public enum IntervalsCredential: Sendable, Equatable {
-	case apiKey(String)
-	case oauth(access: String, refresh: String)
-}
+public struct CreditsService: Sendable {
+	package let makeClient: @Sendable (CredentialVault) -> any CreditsClient
 
-public protocol SecretStore: Sendable {
-	func appAccountToken() throws -> UUID
-	func storeAppAccountToken(_ token: UUID) throws
-	func openRouterKey() throws -> String?
-	func storeOpenRouterKey(_ key: String) throws
-	func intervalsCredential() throws -> IntervalsCredential?
-	func storeIntervalsCredential(_ credential: IntervalsCredential) throws
-}
-
-public struct KeychainStoreError: Error, Sendable, Equatable {
-	public var status: OSStatus
-
-	public init(status: OSStatus) {
-		self.status = status
-	}
-}
-
-package protocol SecretStoreBacking: Sendable {
-	func add(account: String, data: Data) throws
-	func copy(account: String) throws -> Data?
-	func update(account: String, data: Data) throws
-}
-
-public struct ICloudKeychainStore: SecretStore {
-	package static let serviceName = "icu.enduragent.ios"
-	package static let accessGroupName = "icu.enduragent.ios"
-
-	private let backing: any SecretStoreBacking
-
-	public init() {
-		self.backing = SecItemSecretStoreBacking(service: Self.serviceName, accessGroup: nil)
+	package init(makeClient: @escaping @Sendable (CredentialVault) -> any CreditsClient) {
+		self.makeClient = makeClient
 	}
 
-	package init(backing: any SecretStoreBacking) {
-		self.backing = backing
-	}
-
-	public func appAccountToken() throws -> UUID {
-		if let token = try readToken() {
-			return token
-		}
-		let token = UUID()
-		do {
-			try backing.add(
-				account: KeychainAccount.appAccountToken, data: Data(token.uuidString.utf8))
-			return token
-		} catch let error as KeychainStoreError where error.status == errSecDuplicateItem {
-			if let existing = try readToken() {
-				return existing
-			}
-			throw error
-		}
-	}
-
-	public func storeAppAccountToken(_ token: UUID) throws {
-		try write(account: KeychainAccount.appAccountToken, data: Data(token.uuidString.utf8))
-	}
-
-	public func openRouterKey() throws -> String? {
-		try readString(account: KeychainAccount.openRouterKey)
-	}
-
-	public func storeOpenRouterKey(_ key: String) throws {
-		try write(account: KeychainAccount.openRouterKey, data: Data(key.utf8))
-	}
-
-	public func intervalsCredential() throws -> IntervalsCredential? {
-		guard let data = try backing.copy(account: KeychainAccount.intervalsCredential) else {
-			return nil
-		}
-		return try JSONDecoder().decode(StoredIntervalsCredential.self, from: data).credential
-	}
-
-	public func storeIntervalsCredential(_ credential: IntervalsCredential) throws {
-		let encoded = try JSONEncoder().encode(StoredIntervalsCredential(credential))
-		try write(account: KeychainAccount.intervalsCredential, data: encoded)
-	}
-
-	private func readToken() throws -> UUID? {
-		guard let raw = try readString(account: KeychainAccount.appAccountToken) else {
-			return nil
-		}
-		guard let token = UUID(uuidString: raw) else {
-			throw KeychainStoreError(status: errSecDecode)
-		}
-		return token
-	}
-
-	private func readString(account: String) throws -> String? {
-		guard let data = try backing.copy(account: account) else {
-			return nil
-		}
-		guard let string = String(data: data, encoding: .utf8) else {
-			throw KeychainStoreError(status: errSecDecode)
-		}
-		return string
-	}
-
-	private func write(account: String, data: Data) throws {
-		if try backing.copy(account: account) == nil {
-			try backing.add(account: account, data: data)
-		} else {
-			try backing.update(account: account, data: data)
-		}
+	public static func worker(_ base: URL) -> CreditsService {
+		CreditsService { PhoneCreditsClient(vault: $0, workerBase: base) }
 	}
 }
 
 public protocol CreditsClient: Sendable {
 	func grant(deviceCheck: Data) async throws -> GrantOutcome
-	func claim(signedTransaction: String) async throws -> ClaimOutcome
+	func claim(signedTransaction: String, appAccountToken: UUID) async throws -> ClaimOutcome
 	func recover(signedTransaction: String) async throws -> Recovery
 	func catalog() async throws -> PackCatalog
-	func balance(scale: CreditScale) async throws -> CreditBalance
+	func balance() async throws -> CreditBalance
 }
 
 public enum ClaimSettlement: Sendable, Equatable {
@@ -212,7 +113,7 @@ public enum ClaimSettlement: Sendable, Equatable {
 	}
 }
 
-public struct PhoneCreditsClient: CreditsClient {
+package struct PhoneCreditsClient: CreditsClient {
 	private static let failures: [String: CreditsFailure] = [
 		"banned": .banned,
 		"not_our_bundle": .notOurBundle,
@@ -226,25 +127,25 @@ public struct PhoneCreditsClient: CreditsClient {
 	]
 	private static let timeout: TimeInterval = 20
 
-	private let secrets: any SecretStore
+	private let vault: CredentialVault
 	private let workerBase: URL
 	private let openRouterBase: URL
 	private let session: URLSession
 
-	public init(
-		secrets: any SecretStore,
+	package init(
+		vault: CredentialVault,
 		workerBase: URL,
-		openRouterBase: URL = OpenRouterTransport.apiBase,
-		session: URLSession = .shared
+		openRouterBase: URL = ModelService.openRouterAPI,
+		session: URLSession? = nil
 	) {
-		self.secrets = secrets
+		self.vault = vault
 		self.workerBase = workerBase
 		self.openRouterBase = openRouterBase
-		self.session = session
+		self.session = session ?? ephemeralSession(requestTimeout: Self.timeout)
 	}
 
-	public func grant(deviceCheck: Data) async throws -> GrantOutcome {
-		let athleteId = try secrets.appAccountToken()
+	package func grant(deviceCheck: Data) async throws -> GrantOutcome {
+		let athleteId = try await vault.prepareCreditsAccount()
 		let (status, data) = try await worker(
 			path: "grant",
 			method: "POST",
@@ -256,7 +157,8 @@ public struct PhoneCreditsClient: CreditsClient {
 		switch try decode(KindWire.self, from: data, status: status).kind {
 		case "grantMinted":
 			let wire = try decode(GrantMintedWire.self, from: data, status: status)
-			try secrets.storeOpenRouterKey(wire.key)
+			try await vault.storeCreditsKey(
+				try mintedKey(wire.key, status: status), mintedFor: athleteId)
 			return .minted(Credits(units: wire.credits))
 		case "grantToppedUp":
 			let wire = try decode(GrantToppedUpWire.self, from: data, status: status)
@@ -268,7 +170,9 @@ public struct PhoneCreditsClient: CreditsClient {
 		}
 	}
 
-	public func claim(signedTransaction: String) async throws -> ClaimOutcome {
+	package func claim(signedTransaction: String, appAccountToken: UUID) async throws
+		-> ClaimOutcome
+	{
 		let (status, data) = try await worker(
 			path: "claim",
 			method: "POST",
@@ -277,7 +181,8 @@ public struct PhoneCreditsClient: CreditsClient {
 		switch try decode(KindWire.self, from: data, status: status).kind {
 		case "claimMinted":
 			let wire = try decode(ClaimMintedWire.self, from: data, status: status)
-			try secrets.storeOpenRouterKey(wire.key)
+			try await vault.storeCreditsKey(
+				try mintedKey(wire.key, status: status), mintedFor: appAccountToken)
 			return .minted(creditsAdded: Credits(units: wire.creditsAdded))
 		case "claimToppedUp":
 			let wire = try decode(ClaimToppedUpWire.self, from: data, status: status)
@@ -289,7 +194,7 @@ public struct PhoneCreditsClient: CreditsClient {
 		}
 	}
 
-	public func recover(signedTransaction: String) async throws -> Recovery {
+	package func recover(signedTransaction: String) async throws -> Recovery {
 		let (status, data) = try await worker(
 			path: "recover",
 			method: "POST",
@@ -299,12 +204,12 @@ public struct PhoneCreditsClient: CreditsClient {
 			throw CreditsFailure.unexpectedResponse(status: status)
 		}
 		let wire = try decode(RecoveredWire.self, from: data, status: status)
-		try secrets.storeOpenRouterKey(wire.key)
-		try secrets.storeAppAccountToken(wire.athleteId)
+		try await vault.storeRecovery(
+			key: try mintedKey(wire.key, status: status), appAccountToken: wire.athleteId)
 		return Recovery(athleteId: wire.athleteId, credits: Credits(units: wire.credits))
 	}
 
-	public func catalog() async throws -> PackCatalog {
+	package func catalog() async throws -> PackCatalog {
 		let (status, data) = try await send(
 			url: workerBase.appending(path: "catalog"),
 			method: "GET",
@@ -321,10 +226,11 @@ public struct PhoneCreditsClient: CreditsClient {
 		)
 	}
 
-	public func balance(scale: CreditScale) async throws -> CreditBalance {
-		guard let key = try secrets.openRouterKey() else {
+	package func balance() async throws -> CreditBalance {
+		guard let key = try await vault.creditsKey()?.value else {
 			throw CreditsFailure.noAthleteKey
 		}
+		let scale = try await catalog().scale
 		let (status, data) = try await send(
 			url: openRouterBase.appending(path: "key"),
 			method: "GET",
@@ -333,7 +239,9 @@ public struct PhoneCreditsClient: CreditsClient {
 		)
 		let remaining =
 			try decode(OpenRouterKeyWire.self, from: data, status: status).data.limit_remaining ?? 0
-		let units = Int(floor(remaining * Double(scale.creditsPerUsd)))
+		guard let units = wholeInt(floor(remaining * Double(scale.creditsPerUsd))) else {
+			throw CreditsFailure.unexpectedResponse(status: status)
+		}
 		return CreditBalance(credits: Credits(units: max(0, units)))
 	}
 
@@ -369,10 +277,19 @@ public struct PhoneCreditsClient: CreditsClient {
 				if let failure = Self.failures[wire.error] {
 					throw failure
 				}
-			} catch is DecodingError {}
+			} catch is DecodingError {
+				throw CreditsFailure.unexpectedResponse(status: http.statusCode)
+			}
 			throw CreditsFailure.unexpectedResponse(status: http.statusCode)
 		}
 		return (http.statusCode, data)
+	}
+
+	private func mintedKey(_ raw: String, status: Int) throws -> NonEmptySecret {
+		guard let key = NonEmptySecret(raw) else {
+			throw CreditsFailure.unexpectedResponse(status: status)
+		}
+		return key
 	}
 
 	private func decode<T: Decodable>(_ type: T.Type, from data: Data, status: Int) throws -> T {

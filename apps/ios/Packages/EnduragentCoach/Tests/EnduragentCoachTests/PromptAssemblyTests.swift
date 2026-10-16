@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -13,10 +14,8 @@ import Testing
 		}
 	}
 
-	@Test func prefixIsByteStableAcrossTwoCoaches() {
+	@Test func prefixCarriesTheCyclingSkillsUnderTheTokenCeilings() {
 		let first = PromptAssembly.cyclingPrefix(gated: false)
-		let second = PromptAssembly.cyclingPrefix(gated: false)
-		#expect(first == second)
 		#expect(first.contains(PromptAssembly.cacheBoundary))
 		#expect(first.hasPrefix("# Cycling Coach"))
 		#expect(first.contains("## Skill: cycling-intervals-icu"))
@@ -29,24 +28,78 @@ import Testing
 		#expect(estimateTokens(gated) < TurnPolicy.gatedPrefixTokenCeiling)
 	}
 
-	@Test func volatileOmitsCivilDateAndFencesContext() {
+	@Test(arguments: [
+		TrainingSnapshot(
+			profile: .cyclist(name: "Ada", ftp: 250),
+			wellness: [.on("1998-06-12", [.fitness: 55.2, .fatigue: 42.1])],
+			lookback: .snapshotLookback(endingOn: "1998-06-13")),
+		.unavailable, .notConnected,
+	])
+	func volatileCarriesTheSnapshotSectionBetweenContextAndTime(snapshot: TrainingSnapshot) {
 		let section = PromptAssembly.volatile(
 			context: "Ada rides on Saturdays.",
-			snapshot: AthleteSnapshot(fitness: 55.2, fatigue: 42.1, form: 13.1),
+			snapshot: snapshot,
 			timeZoneName: "Europe/Amsterdam",
-			replyLanguage: PromptAssembly.replyLanguageSection(
-				resolution: LanguageResolution(language: .en, source: .surface, locale: "en-GB")
-			)
+			displayLocale: testDisplayLocale(.automatic)
 		)
-		#expect(section.contains(PromptAssembly.athleteDataOpen))
-		#expect(section.contains("Ada rides on Saturdays."))
-		#expect(section.contains("Fitness"))
-		#expect(section.contains("Fatigue"))
-		#expect(section.contains("Form"))
-		#expect(section.contains("Time zone: Europe/Amsterdam"))
-		#expect(section.contains("# Reply language"))
+		#expect(
+			section.hasPrefix(
+				"""
+				# Athlete Context
+
+				\(PromptAssembly.athleteDataOpen)
+				Ada rides on Saturdays.
+				\(PromptAssembly.athleteDataClose)
+
+				---
+
+				\(PromptAssembly.snapshotSection(snapshot))
+
+				---
+
+				# Current Date & Time
+
+				Time zone: Europe/Amsterdam
+
+				---
+
+				# Reply language
+				"""))
 		#expect(section.contains("1998-06-13") == false)
 		#expect(section.contains("CTL") == false)
+	}
+
+	@Test func snapshotSectionTextForEachState() {
+		let available = TrainingSnapshot(
+			profile: .cyclist(name: "Ada", ftp: 250),
+			wellness: [.on("1998-06-12", [.fitness: 55.2, .fatigue: 42.1])],
+			lookback: .snapshotLookback(endingOn: "1998-06-13"))
+		#expect(
+			PromptAssembly.snapshotSection(available) == """
+				# Athlete Profile & Latest Wellness
+
+				Profile: FTP 250 W
+				Wellness 1998-06-12: Fitness 55.2 · Fatigue 42.1 · Form +13.1
+				Fetch wellness or activities only for a date range or history not shown here. \
+				Treat a single HRV or resting-HR value as one signal, not a verdict; \
+				weigh the athlete's reported feel at least as much.
+				""")
+		let fallback = """
+			# Athlete Profile & Latest Wellness
+
+			Athlete snapshot: unavailable this turn; fetch the profile and latest wellness \
+			before prescribing intensity.
+			"""
+		#expect(PromptAssembly.snapshotSection(.unavailable) == fallback)
+		#expect(
+			PromptAssembly.snapshotSection(.notConnected) == """
+				# Athlete Profile & Latest Wellness
+
+				Training data is not connected. No intervals.icu account is linked, so you have \
+				no profile, wellness, activities or calendar for this athlete and no tools to \
+				read them. When the athlete asks for something that needs that data, say so, \
+				tell them they can connect intervals.icu in Settings, and do not invent numbers.
+				""")
 	}
 
 	@Test func wrapAthleteContextTruncatesAndNeutralizesFence() {
@@ -73,61 +126,35 @@ import Testing
 		#expect(once == twice)
 	}
 
-	@Test func dumpPrefixAndTrimForOracle() throws {
-		let prefix = PromptAssembly.cyclingPrefix(gated: true)
-		let dir = URL(fileURLWithPath: "/tmp/ios-c3", isDirectory: true)
-		try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-		try prefix.write(
-			to: dir.appendingPathComponent("prefix-swift.txt"),
-			atomically: true,
-			encoding: .utf8
-		)
-		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-		let timed = PromptAssembly.appendCurrentTime(
-			athleteText: "What did my week look like?",
-			now: clock.now,
-			timeZone: clock.timeZone
-		)
-		try timed.write(
-			to: dir.appendingPathComponent("timed-swift.txt"),
-			atomically: true,
-			encoding: .utf8
-		)
-		let volatile = PromptAssembly.volatile(
-			context: "",
-			snapshot: nil,
-			timeZoneName: "Europe/Amsterdam",
-			replyLanguage: PromptAssembly.replyLanguageSection(
-				resolution: LanguageResolution(language: .en, source: .surface, locale: "en-GB")
-			)
-		)
-		let system = prefix + "\n\n" + volatile
-		try system.write(
-			to: dir.appendingPathComponent("system-swift.txt"),
-			atomically: true,
-			encoding: .utf8
-		)
-		let messages = (0..<20).map { index in
+	@Test func summaryRequestsCarryThePreviousSummaryAndTheTranscript() throws {
+		let dropped = [
 			ChatMessage(
-				role: index.isMultiple(of: 2) ? .user : .assistant,
-				text: "1998-06-13 msg \(index) " + String(repeating: "x", count: 8_000)
-			)
-		}
-		let systemTokens = estimateTokens(system)
-		let trim = HistoryWindow.trim(messages: messages, systemTokens: systemTokens)
-		let historyTokens = messages.reduce(0) { $0 + estimateTokens($1.text) }
-		let payload: [String: Int] = [
-			"kept": trim.kept.count,
-			"dropped": trim.dropped.count,
-			"budget": trim.budget,
-			"systemTokens": systemTokens,
-			"shouldSoftFlush": HistoryWindow.shouldSoftFlush(
-				historyTokens: historyTokens,
-				budget: trim.budget,
-				messagesSinceFlush: messages.count
-			) ? 1 : 0,
-		]
-		let data = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
-		try data.write(to: dir.appendingPathComponent("trim-swift.json"))
+				author: .athlete(
+					sent: Date(timeIntervalSince1970: 897_717_600), timeZone: amsterdamZone),
+				text: "FTP 262W now"),
+			ChatMessage(author: .coach, text: "Noted, 262W."),
+		].map { PromptAssembly.wireMessage(from: $0) }
+		#expect(
+			PromptAssembly.droppedSummaryRequest(
+				previous: "## Athlete Profile\n- FTP 255W",
+				transcript: PromptAssembly.transcript(dropped))
+					== """
+					Incorporate the older conversation messages below into the existing summary, producing one updated summary with the five required sections.
+
+					Existing summary of earlier context:
+					## Athlete Profile
+					- FTP 255W
+
+					Messages to incorporate:
+					user: [Sat 1998-06-13 08:00 Europe/Amsterdam] FTP 262W now
+					assistant: Noted, 262W.
+					""")
+		#expect(
+			PromptAssembly.compactionRequest(previous: nil, transcript: "user: hi")
+				== "Summarize the conversation below into the five required sections.\n\nMessages to summarize:\nuser: hi"
+		)
+		#expect(
+			PromptAssembly.summaryMessage("- FTP 262W")
+				== "[Previous conversation summary]\n- FTP 262W")
 	}
 }

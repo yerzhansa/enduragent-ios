@@ -4,6 +4,9 @@
 	import SwiftUI
 
 	struct CreditsDebugView: View {
+		let coach: Coach
+		let deviceCheck: any DeviceCheckTokenProviding
+		let displayLocale: DisplayLocale
 		@State private var session: CreditsDebugSession?
 		@State private var balanceText = "—"
 		@State private var starterMessage = ""
@@ -14,98 +17,96 @@
 		@State private var hasKey = false
 
 		var body: some View {
-			NavigationStack {
-				List {
-					Section("Balance") {
-						Text(balanceText)
+			List {
+				Section("Balance") {
+					Text(balanceText)
+				}
+				Section("Starter") {
+					Button("Get starter credits") {
+						Task { await grantStarter() }
 					}
-					Section("Starter") {
-						Button("Get starter credits") {
-							Task { await grantStarter() }
-						}
-						if !starterMessage.isEmpty {
-							Text(starterMessage)
-						}
-					}
-					Section {
-						if let catalog {
-							ForEach(catalog.packs) { pack in
-								HStack {
-									Text("\(pack.credits.units) credits")
-									Spacer()
-									let product = products[pack.id]
-									Button(product?.displayPrice ?? "Buy") {
-										if let product {
-											Task { await buy(product) }
-										}
-									}
-									.disabled(!catalog.purchasesEnabled || product == nil)
-								}
-							}
-						}
-					} header: {
-						Text("Packs")
-					} footer: {
-						if catalog?.purchasesEnabled == false {
-							Text("testers cannot buy packs yet")
-						}
-					}
-					if let errorText {
-						Section("Error") {
-							Text(errorText)
-						}
-					}
-					Section("Identity") {
-						Text(identityText)
-							.font(.footnote.monospaced())
-						Text(hasKey ? "Athlete key stored" : "No athlete key")
-						Button("New athlete identity", role: .destructive) {
-							newIdentity()
-						}
+					.accessibilityIdentifier("debug.credits.claimStarter")
+					if !starterMessage.isEmpty {
+						Text(starterMessage)
+							.accessibilityIdentifier("debug.credits.starterNotice")
 					}
 				}
-				.navigationTitle("Credits")
-				.task { await bootstrap() }
+				Section {
+					if let catalog {
+						ForEach(catalog.packs) { pack in
+							HStack {
+								Text("\(pack.credits.units) credits")
+								Spacer()
+								let product = products[pack.id]
+								Button(product?.displayPrice ?? "Buy") {
+									if let product {
+										Task { await buy(product) }
+									}
+								}
+								.disabled(!catalog.purchasesEnabled || product == nil)
+							}
+						}
+					}
+				} header: {
+					Text("Packs")
+				} footer: {
+					if catalog?.purchasesEnabled == false {
+						Text("testers cannot buy packs yet")
+					}
+				}
+				if let errorText {
+					Section("Error") {
+						Text(errorText)
+					}
+				}
+				Section("Identity") {
+					Text(identityText)
+						.font(.footnote.monospaced())
+					Text(hasKey ? "Athlete key stored" : "No athlete key")
+					Button("New athlete identity", role: .destructive) {
+						Task { await newIdentity() }
+					}
+				}
 			}
+			.navigationTitle("Credits")
+			.task { await bootstrap() }
 		}
 
 		@MainActor
 		private func bootstrap() async {
 			if session == nil {
-				session = CreditsDebugSession { errorText = $0 }
+				session = CreditsDebugSession(coach: coach, onSettlementFailure: present)
 			}
 			await reload()
 		}
 
 		@MainActor
-		private func refreshIdentity() {
-			guard let session else { return }
+		private func refreshIdentity() async {
 			do {
-				identityText = try session.secrets.appAccountToken().uuidString
-				hasKey = try session.secrets.openRouterKey() != nil
+				let identity = try await coach.creditsIdentity()
+				identityText = identity.appAccountToken?.uuidString ?? "—"
+				hasKey = identity.hasCreditsKey
 			} catch {
 				present(error)
 			}
 		}
 
 		@MainActor
-		private func newIdentity() {
-			guard let session else { return }
+		private func newIdentity() async {
 			do {
-				try session.secrets.storeAppAccountToken(UUID())
+				try await coach.replaceAppAccountToken()
 				errorText = nil
 			} catch {
 				present(error)
 			}
-			refreshIdentity()
+			await refreshIdentity()
 		}
 
 		@MainActor
 		private func reload() async {
-			guard let session else { return }
-			refreshIdentity()
+			await refreshIdentity()
 			do {
-				let loaded = try await session.credits.catalog()
+				let loaded = try await coach.credits.catalog()
 				catalog = loaded
 				let loadedProducts = try await Product.products(for: loaded.packs.map(\.id))
 				products = Dictionary(uniqueKeysWithValues: loadedProducts.map { ($0.id, $0) })
@@ -118,12 +119,8 @@
 
 		@MainActor
 		private func refreshBalance() async {
-			guard let session, let scale = catalog?.scale else {
-				balanceText = "—"
-				return
-			}
 			do {
-				let balance = try await session.credits.balance(scale: scale)
+				let balance = try await coach.credits.balance()
 				balanceText = "\(balance.credits.units) credits"
 			} catch CreditsFailure.noAthleteKey {
 				balanceText = "—"
@@ -135,22 +132,10 @@
 
 		@MainActor
 		private func grantStarter() async {
-			guard let session else { return }
 			do {
-				let token = try await session.deviceCheck.token()
-				let outcome = try await session.credits.grant(deviceCheck: token)
-				let hasKey = try session.secrets.openRouterKey() != nil
-				switch outcome {
-				case .minted:
-					starterMessage = "Start chatting"
-				case .alreadyGranted:
-					starterMessage =
-						hasKey
-						? "Start chatting"
-						: "This device already used its starter credits."
-				case .toppedUp(let added):
-					starterMessage = "Added \(added.units) credits"
-				}
+				let token = try await deviceCheck.token()
+				let notice = await coach.claimStarter(deviceCheck: token)
+				starterMessage = notice.sentence(in: displayLocale)
 				errorText = nil
 				await refreshBalance()
 			} catch {
@@ -174,8 +159,8 @@
 		private func present(_ error: Error) {
 			if let failure = error as? CreditsFailure {
 				errorText = creditsFailureName(failure)
-			} else if let keychain = error as? KeychainStoreError {
-				errorText = "keychain \(keychain.status)"
+			} else if let unavailable = error as? AccessUnavailable {
+				errorText = "keychain \(unavailable)"
 			} else {
 				errorText = error.localizedDescription
 			}
@@ -198,6 +183,8 @@
 			"noPurchaseToRecover"
 		case .identityMismatch:
 			"identityMismatch"
+		case .accountChanged:
+			"accountChanged"
 		case .rateLimited:
 			"rateLimited"
 		case .unavailable:
@@ -211,35 +198,11 @@
 
 	@MainActor
 	private final class CreditsDebugSession {
-		let secrets: ICloudKeychainStore
-		let credits: PhoneCreditsClient
 		let purchases: StoreKitPurchaseCoordinator
-		let deviceCheck = DeviceCheckTokenProvider()
 
-		private static let workerBase: URL = {
-			guard
-				let url = URL(
-					string: "https://enduragent-credits-testflight.yerzhan-st.workers.dev")
-			else {
-				fatalError(
-					"https://enduragent-credits-testflight.yerzhan-st.workers.dev is invalid")
-			}
-			return url
-		}()
-
-		init(onSettlementFailure: @escaping @MainActor (String) -> Void) {
-			let secrets = ICloudKeychainStore()
-			self.secrets = secrets
-			let credits = PhoneCreditsClient(
-				secrets: secrets,
-				workerBase: Self.workerBase
-			)
-			self.credits = credits
+		init(coach: Coach, onSettlementFailure: @escaping @MainActor (Error) -> Void) {
 			self.purchases = StoreKitPurchaseCoordinator(
-				credits: credits,
-				secrets: secrets,
-				onSettlementFailure: onSettlementFailure
-			)
+				coach: coach, onSettlementFailure: onSettlementFailure)
 		}
 	}
 #endif

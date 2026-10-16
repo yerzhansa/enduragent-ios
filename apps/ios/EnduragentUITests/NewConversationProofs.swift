@@ -1,0 +1,88 @@
+import XCTest
+
+final class SlashStartProof: XCTestCase {
+	func testSlashStart() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.send(app, "/start")
+		TutorialHarness.waitForWelcome(app)
+		let notice = TutorialHarness.named(app, "chat.newConversation.notice")
+		TutorialHarness.wait(notice)
+		XCTAssertEqual(notice.label, TutorialHarness.newConversationStarted)
+		XCTAssertFalse(app.staticTexts["/start"].exists)
+		TutorialHarness.attach(self, name: "slash-start", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "flushPending"), "flushPending 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "windowStart"), "windowStart 1")
+		TutorialHarness.attach(self, name: "slash-start-records", app: app)
+	}
+}
+
+final class ResetKeepsReviewProof: XCTestCase {
+	func testResetKeepsReview() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.exchange(app, TutorialHarness.workout)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"), until: .enabled)
+		TutorialHarness.waitForLabel(app, "Workout review")
+		TutorialHarness.startNewConversation(app)
+		TutorialHarness.waitForLabel(app, TutorialHarness.newConversationStarted)
+		XCTAssertTrue(TutorialHarness.named(app, "chat.preview.add").exists)
+		XCTAssertTrue(TutorialHarness.named(app, "chat.preview.cancel").exists)
+		TutorialHarness.waitForLabel(app, "Workout review")
+		TutorialHarness.attach(self, name: "reset-keeps-review", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "pendingProposal"), "pendingProposal 1")
+		XCTAssertNil(TutorialHarness.recordCount(app, "proposalCleared"))
+		XCTAssertEqual(TutorialHarness.recordCount(app, "windowStart"), "windowStart 1")
+		TutorialHarness.attach(self, name: "reset-keeps-review-records", app: app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "pendingProposal"), "pendingProposal 1")
+	}
+}
+
+final class PartialFlushResetProof: XCTestCase {
+	func testPartialFlushReset() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.exchange(app, "fixture:flush-partial")
+		TutorialHarness.startNewConversation(app)
+		let notice = TutorialHarness.named(app, "chat.newConversation.notice")
+		TutorialHarness.wait(notice)
+		XCTAssertEqual(notice.label, TutorialHarness.newConversationMemoryWarning)
+		TutorialHarness.attach(self, name: "partial-flush", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "flushPending"), "flushPending 1")
+		XCTAssertNil(TutorialHarness.recordCount(app, "flushSettled"))
+		XCTAssertEqual(TutorialHarness.recordCount(app, "memorySection"), "memorySection 1")
+		TutorialHarness.attach(self, name: "partial-flush-records", app: app)
+	}
+}
+
+final class PlanFreeTextProof: XCTestCase {
+	func testPlanIsFreeText() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.exchange(app, "/plan")
+		TutorialHarness.wait(app.staticTexts["/plan"])
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.welcome").exists)
+		TutorialHarness.attach(self, name: "plan-free-text", app: app)
+	}
+}
+
+final class WelcomeAfterSkipProof: XCTestCase {
+	func testWelcomeAfterSkip() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.startUnconnected(app)
+		TutorialHarness.waitForWelcome(app)
+		TutorialHarness.attach(self, name: "welcome-after-skip", app: app)
+	}
+}

@@ -1,36 +1,37 @@
 import Foundation
 
-public enum CyclingTools {
-	public static func parseCreateWorkout(_ arguments: JSONValue, today: CivilDate) throws
-		-> ChatCalendarCreate
-	{
-		let parsed = try parseCreateWorkoutInput(arguments, today: today)
-		return parsed.draft
-	}
-
+package enum CyclingTools {
 	package static func parseCreateWorkoutInput(
 		_ arguments: JSONValue,
 		today: CivilDate
-	) throws -> (date: CivilDate, workout: IntervalsWorkoutInput, draft: ChatCalendarCreate) {
+	) throws(ToolInputError)
+		-> (date: CivilDate, workout: IntervalsWorkoutInput, draft: ChatCalendarCreate)
+	{
 		let fields = arguments.objectFields
 		guard let dateRaw = fields["date"]?.stringValue else {
-			throw IntervalsError(
+			throw ToolInputError(
 				code: "invalid_date",
 				details: "date is not a real calendar date. Use YYYY-MM-DD."
 			)
 		}
 		guard let date = CivilDate(rawValue: dateRaw) else {
-			throw IntervalsError(
+			throw ToolInputError(
 				code: "invalid_date",
 				details: "\(dateRaw) is not a real calendar date. Use YYYY-MM-DD."
 			)
 		}
 		try IntervalsPolicy.rejectPastCreationDate(date, today: today)
-		guard let workoutJSON = fields["workout"] else {
-			throw InvalidWorkout(message: "workout: Required")
+		let workout: IntervalsWorkoutInput
+		let serialized: SerializedWorkout
+		do throws(InvalidWorkout) {
+			guard let workoutJSON = fields["workout"] else {
+				throw InvalidWorkout(message: "workout: Required")
+			}
+			workout = try IntervalsSerializer.parseWorkout(workoutJSON)
+			serialized = try IntervalsSerializer.serialize(workout)
+		} catch {
+			throw ToolInputError(code: "invalid_workout", details: error.message)
 		}
-		let workout = try IntervalsSerializer.parseWorkout(workoutJSON)
-		let serialized = try IntervalsSerializer.serialize(workout)
 		let draft = ChatCalendarCreate(
 			date: date,
 			name: workout.name,
@@ -45,12 +46,14 @@ public enum CyclingTools {
 	package static func parseStrengthWorkout(
 		_ arguments: JSONValue,
 		today: CivilDate
-	) throws -> (date: CivilDate, name: String, description: String, draft: ChatCalendarCreate) {
+	) throws(ToolInputError)
+		-> (date: CivilDate, name: String, description: String, draft: ChatCalendarCreate)
+	{
 		let fields = arguments.objectFields
 		guard let dateRaw = fields["date"]?.stringValue, let date = CivilDate(rawValue: dateRaw)
 		else {
 			let raw = fields["date"]?.stringValue ?? ""
-			throw IntervalsError(
+			throw ToolInputError(
 				code: "invalid_date",
 				details: raw.isEmpty
 					? "date is not a real calendar date. Use YYYY-MM-DD."
@@ -59,13 +62,13 @@ public enum CyclingTools {
 		}
 		try IntervalsPolicy.rejectPastCreationDate(date, today: today)
 		guard let name = fields["name"]?.stringValue, (1...120).contains(name.count) else {
-			throw IntervalsError(
+			throw ToolInputError(
 				code: "invalid_input", details: "name must be 1 to 120 characters.")
 		}
 		guard let description = fields["description"]?.stringValue,
 			(1...4000).contains(description.count)
 		else {
-			throw IntervalsError(
+			throw ToolInputError(
 				code: "invalid_input", details: "description must be 1 to 4000 characters.")
 		}
 		let draft = ChatCalendarCreate(
@@ -79,31 +82,33 @@ public enum CyclingTools {
 		return (date, name, description, draft)
 	}
 
-	package static func parseDeleteWorkout(_ arguments: JSONValue) throws -> EventID {
+	package static func parseDeleteWorkout(_ arguments: JSONValue) throws(ToolInputError)
+		-> EventID
+	{
 		guard let eventId = arguments.objectFields["eventId"]?.intValue() else {
-			throw IntervalsError(code: "invalid_event_id", details: "eventId must be an integer.")
+			throw ToolInputError(code: "invalid_event_id", details: "eventId must be an integer.")
 		}
 		return EventID(rawValue: eventId)
 	}
 
-	package static func parseUpdateWorkout(_ arguments: JSONValue, today: CivilDate) throws
-		-> UpdateWorkoutInput
+	package static func parseUpdateWorkout(_ arguments: JSONValue, today: CivilDate)
+		throws(ToolInputError) -> UpdateWorkoutInput
 	{
 		let fields = arguments.objectFields
 		guard let eventId = fields["eventId"]?.intValue() else {
-			throw IntervalsError(code: "invalid_event_id", details: "eventId must be an integer.")
+			throw ToolInputError(code: "invalid_event_id", details: "eventId must be an integer.")
 		}
 		let changes = fields["changes"]?.objectFields ?? fields
 		let date: CivilDate?
 		if let dateRaw = changes["date"]?.stringValue {
 			guard let parsed = CivilDate(rawValue: dateRaw) else {
-				throw IntervalsError(
+				throw ToolInputError(
 					code: "invalid_date",
 					details: "\(dateRaw) is not a real calendar date. Use YYYY-MM-DD."
 				)
 			}
 			if parsed < today {
-				throw IntervalsError(
+				throw ToolInputError(
 					code: "past_date_refused",
 					details:
 						"Cannot move a workout to \(parsed.rawValue) — it's before today (\(today.rawValue)). Use today's date or later."
@@ -116,7 +121,7 @@ public enum CyclingTools {
 		let name = changes["name"]?.stringValue
 		let description = changes["description"]?.stringValue
 		if date == nil && name == nil && description == nil {
-			throw IntervalsError(
+			throw ToolInputError(
 				code: "invalid_changes", details: "At least one workout field must change.")
 		}
 		return UpdateWorkoutInput(
@@ -156,8 +161,8 @@ extension JSONValue {
 
 	package func intValue() -> Int? {
 		switch self {
-		case .number(let value) where value.rounded(.towardZero) == value:
-			return Int(value)
+		case .number(let value):
+			return wholeInt(value)
 		case .string(let value):
 			return Int(value)
 		default:

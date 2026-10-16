@@ -53,7 +53,8 @@ package enum MemoryFlushPrompt {
 			- illness, injury, or pain mentions (acute ones count — they need no memory section)
 			- experiment outcomes (what was tried, what happened)
 			Date each event (YYYY-MM-DD) with the day it happened, which may be earlier
-			than today. Record only events from this conversation; never re-record
+			than today. Athlete messages start with a bracketed send time, such as
+			[Mon 2026-09-28 07:12 Europe/Amsterdam], added by the app; take the day from it. Record only events from this conversation; never re-record
 			events that earlier reviews already saved.
 
 			Only write sections that have new or changed information.
@@ -117,7 +118,7 @@ package enum MemoryFlushPrompt {
 }
 
 extension LedgerKind: CaseIterable {
-	public static var allCases: [LedgerKind] {
+	package static var allCases: [LedgerKind] {
 		[.decision, .override, .illness, .experiment, .outcome]
 	}
 }

@@ -1,0 +1,77 @@
+import EnduragentCoach
+import EnduragentCoachFixtures
+import Foundation
+import Testing
+
+@testable import Enduragent
+
+extension FixtureLaunchTests {
+	@Test func historyDuringTheToolReadKeepsTheQuestionReplyAndReview() async throws {
+		let services = try services()
+		let transport = try #require(services.fixtureTransport)
+		let intervals = try #require(services.fixture?.intervals)
+		let model = await model(services)
+		await model.agreeAndStartChatting()
+		model.trainingSettings.edit()
+		model.connectKey = "fixture"
+		await model.connect()
+		try #require(model.didConnect)
+		model.draft.text = FirstWeekFixture.toolProgressDirective
+		await model.send()
+		let accepted = try await firstTurn(model)
+		#expect(accepted.athleteText == "fixture:slow-tool")
+		#expect(model.draft.text.isEmpty)
+		#expect(model.isWorking)
+		#expect(model.chat?.liveReply?.text.isEmpty ?? true)
+		let weekRead = FakeIntervalsCall.activities(oldest: "1998-06-09", newest: "1998-06-15")
+		#expect(!intervals.calls.contains(weekRead))
+		try await until { intervals.calls.contains(weekRead) }
+		try await until { model.chat?.liveReply?.text == "Checking your recent rides. " }
+		#expect(model.chat?.turns.map(\.id) == [accepted.id])
+		#expect(model.isWorking)
+		#expect(model.chat?.turns.first?.state.isSettled == false)
+		#expect(transport.requestCount == 1)
+		model.open(.history)
+		await model.loadHistory()
+		#expect(model.navigation == [.history])
+		#expect(model.history == .loaded([]))
+		#expect(model.isWorking)
+		#expect(transport.requestCount == 1)
+		model.navigation.removeAll()
+		#expect(model.chat?.turns.map(\.id) == [accepted.id])
+		#expect(model.chat?.liveReply?.text == "Checking your recent rides. ")
+		#expect(model.isWorking)
+		let settled = try await settledTurn(model)
+		#expect(settled.id == accepted.id)
+		#expect(settled.athleteText == "fixture:slow-tool")
+		#expect(
+			replyText(settled.state)
+				== "I've prepared the ride. Confirm to add it.")
+		#expect(!model.isWorking)
+		let review = try #require(model.chat?.review)
+		#expect(review.ref.chat == .main)
+		#expect(
+			review.cards.map { $0.name.sentence(in: model.displayLocale) } == [
+				"Endurance with tempo"
+			])
+		#expect(review.cards.map(\.date) == ["1998-06-16"])
+		#expect(review.totals.additions == 1)
+		#expect(transport.requestCount == 3)
+		#expect(intervals.events.isEmpty)
+	}
+
+	@Test(arguments: [TutorialCopy.rideRequest, FirstWeekFixture.toolProgressDirective])
+	func unconnectedWorkoutRequestSaysTrainingDataIsNotConnected(text: String) async throws {
+		let services = try services()
+		let fixture = try #require(services.fixture)
+		let model = await model(services)
+		await model.agreeAndStartChatting()
+		model.draft.text = text
+		await model.send()
+		let settled = try await settledTurn(model)
+		#expect(replyText(settled.state) == FirstWeekFixture.trainingDataMissing)
+		#expect(model.chat?.review == nil)
+		#expect(fixture.transport.requestCount == 1)
+		#expect(fixture.intervals.calls.isEmpty)
+	}
+}

@@ -5,6 +5,7 @@ docs/
 node_modules/
 .build/
 DerivedData/
+apps/ios/Enduragent.xcodeproj/
 dist/
 .wrangler/
 .env*

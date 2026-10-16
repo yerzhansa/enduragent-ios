@@ -1,6 +1,6 @@
 import Foundation
 
-public enum LedgerKind: String, Sendable {
+package enum LedgerKind: String, Sendable {
 	case decision
 	case override
 	case illness
@@ -8,51 +8,42 @@ public enum LedgerKind: String, Sendable {
 	case outcome
 }
 
-public enum LedgerSource: String, Sendable {
+package enum LedgerSource: String, Sendable {
 	case flush
 	case chat
 }
 
-public enum JournalOp: String, Sendable {
+package enum JournalOp: String, Sendable {
 	case writeSection = "write-section"
 	case savePlan = "save-plan"
 	case renameSections = "rename-sections"
 }
 
-public enum FlushTrigger: String, Sendable {
-	case trim
-	case preCompaction
-	case overflow
-	case explicitReset
-	case staleReset
-	case softThreshold
-}
+package struct MemoryHit: Sendable, Equatable {
+	package var date: CivilDate
+	package var kind: Kind
+	package var text: String
 
-public struct MemoryHit: Sendable, Equatable {
-	public var date: CivilDate
-	public var kind: Kind
-	public var text: String
-
-	public init(date: CivilDate, kind: Kind, text: String) {
+	package init(date: CivilDate, kind: Kind, text: String) {
 		self.date = date
 		self.kind = kind
 		self.text = text
 	}
 
-	public enum Kind: Sendable, Equatable {
+	package enum Kind: Sendable, Equatable {
 		case dailyNote
 		case ledger(LedgerKind)
 		case journal
 	}
 }
 
-public struct MemoryView: Sendable, Equatable {
-	public var sections: [String: String]
-	public var todayNotes: String?
-	public var planHeadline: PlanHeadline?
-	public var orphanNames: [String]
+package struct MemoryView: Sendable, Equatable {
+	package var sections: [String: String]
+	package var todayNotes: String?
+	package var planHeadline: PlanHeadline?
+	package var orphanNames: [String]
 
-	public init(
+	package init(
 		sections: [String: String], todayNotes: String?, planHeadline: PlanHeadline?,
 		orphanNames: [String]
 	) {
@@ -63,13 +54,13 @@ public struct MemoryView: Sendable, Equatable {
 	}
 }
 
-public struct PlanHeadline: Sendable, Equatable {
-	public var name: String
-	public var primaryGoal: String?
-	public var totalWeeks: Int?
-	public var status: PlanStatus?
+package struct PlanHeadline: Sendable, Equatable {
+	package var name: String
+	package var primaryGoal: String?
+	package var totalWeeks: Int?
+	package var status: PlanStatus?
 
-	public init(name: String, primaryGoal: String?, totalWeeks: Int?, status: PlanStatus?) {
+	package init(name: String, primaryGoal: String?, totalWeeks: Int?, status: PlanStatus?) {
 		self.name = name
 		self.primaryGoal = primaryGoal
 		self.totalWeeks = totalWeeks
@@ -77,25 +68,22 @@ public struct PlanHeadline: Sendable, Equatable {
 	}
 }
 
-public struct MemoryQueryFailure: Error, Equatable, Sendable {
-	public var message: String
+package struct MemoryQueryFailure: Error, Equatable, Sendable {
+	package var message: String
 
-	public init(message: String) {
+	package init(message: String) {
 		self.message = message
 	}
 }
 
-public enum MemoryFlushPolicy {
-	public static let maxSteps = 5
-	public static let maxAttempts = 2
-	public static let sectionSoftWarnChars = 4000
-	public static let flushShrinkMinChars = 200
-	public static let flushShrinkRatio = 0.7
-	public static let flushZeroWriteMinMessages = 4
-	public static let memorySectionBudgetChars = 1500
-	public static let compactionStart = "### Compaction summary"
-	public static let compactionEnd = "### End of compaction summary"
-	public static let stampPrefix = "_updated: "
-	public static let consumedFlushKeyPrefix = "flush-consumed:"
-	public static let historyPreviewChars = 200
+package enum MemoryFlushPolicy {
+	package static let retryWaitAllowance: Duration = .seconds(10)
+	package static let maxSteps = 5
+	package static let sectionSoftWarnChars = 4000
+	package static let memorySectionBudgetChars = 1500
+	package static let compactionStart = "### Compaction summary"
+	package static let compactionEnd = "### End of compaction summary"
+	package static let stampPrefix = "_updated: "
+	package static let consumedFlushKeyPrefix = "flush-consumed:"
+	package static let historyPreviewChars = 200
 }

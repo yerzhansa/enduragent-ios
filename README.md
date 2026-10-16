@@ -4,26 +4,38 @@ This repository owns the iPhone app and local Swift coach package. The app is an
 
 ## Development
 
-Use Node `24.20.0`, pnpm `11.24.0`, Xcode `26.6`, XcodeGen `2.46.0`, and SwiftLint `0.65.1`.
+Use Xcode `26.6`, XcodeGen `2.46.0`, and SwiftLint `0.65.1`. Run `make` from the repository root.
 
 ```sh
-pnpm install --frozen-lockfile
-pnpm check:catalogs
-pnpm check:source
-pnpm lint:swift
-pnpm check:format
-pnpm test:swift
-xcodegen generate --spec apps/ios/project.yml
+make check-catalogs
+make check-source
+make check-coverage
+make lint-swift
+make check-format
+make test-swift
+swift build -c release --package-path apps/ios/Packages/EnduragentCoach
+make project
 xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
-CI runs these focused checks on every pull request and every push to main.
+CI runs the tool tests, source checks, package tests, app tests, and Release builds on every pull request and every push to main. `make test-app` runs the app tests on the first available iPhone simulator. Set `DERIVED_DATA` to choose the build folder and `ONLY=EnduragentTests/<Suite>` to run one suite.
 
-`pnpm lint:swift` enforces the rules in `.swiftlint.yml`.
+`make check-catalogs` runs `make generate-catalogs` and fails when a generated catalog file changes. `make check-source` runs the source checker. `make lint-swift` enforces the rules in `.swiftlint.yml`.
 
-`pnpm check:format` runs `swift format lint --strict` with `.swift-format` on tracked Swift sources. `pnpm format:swift` writes that layout. The generated catalog is left to its generator.
+Run `make test-tools` when you change `tools/` or `.swiftlint.yml`. The Swift package in `tools/` holds the checker, the catalog generator, the `verify-ios` helpers, the upgrade-store generator, and the tests of the custom SwiftLint rules. CI runs this gate before `make check-source` on every pull request.
 
-Swift live API tests are opt-in and skipped by `pnpm test:swift`. Optional REST test evidence is written only when `ENDURAGENT_TEST_EVIDENCE_DIRECTORY` names an existing test-owned directory.
+`make check-format` runs `swift format lint --strict` with `.swift-format` on tracked Swift sources. `make format-swift` writes that layout. The generated catalog is left to its generator.
+
+Swift live API tests are opt-in and skipped by `make test-swift`.
+
+The live checks live in their own test target, `EnduragentCoachLiveChecks`, and reach intervals.icu only through the app's `IntervalsRESTClient`. Each check runs only when its Make target sets `ENDURAGENT_LIVE`, so `make test-swift` runs the target's offline tests and skips every check that would reach the network.
+
+`make live-reads` reads the intervals.icu account of the key in the Mac Keychain through the app's read code and saves every raw response and decoded value under `LIVE_LOGS`. `make live-coach` runs the coach scenario suite against the built-in model with billed calls, stops before its total in `LIVE_LOGS/spend.tsv` would pass the cap the check sets, and prints that total against the cap. `make live-reads` needs the Keychain item `enduragent-m3-intervals-api-key`, and `make live-coach` needs it and `enduragent-m3-openrouter-key`; each check reads them at run time and stops at once when one is missing. `LIVE_LOGS` defaults to `~/Library/Logs/enduragent-m3/LIVE`. Neither check runs in CI or in `make test-swift`.
+
+`make live-seed` writes six weeks of synthetic training and wellness to the intervals.icu test account of the same Keychain item, after checking that the account holds no activity the seed did not write, and records the athlete id, every activity id and every wellness date in `LIVE_LOGS/seed/ledger.tsv`; a rerun adds only what is missing. Both targets stop without a change when the key belongs to another athlete than the ledger names. `make live-unseed` deletes only those activities that the account still lists with the `[synthetic]` name prefix and the seed's `external_id` prefix, names in its report each ledger activity it skipped because it no longer matches, clears only the wellness values that still equal what the seed wrote and reads them back empty, and confirms that no seeded activity is left. Neither touches the calendar, runs in CI, or runs in `make test-swift`.
+
+`make lint-swift`, `make test-tools`, and `make test-swift` pass `ARGS` to their command, for example `make test-swift ARGS=--disable-sandbox`.
 
 ## Source ownership
 
@@ -33,7 +45,7 @@ The app and local Swift coach package keep their original paths and protocol. Re
 
 The generated `Phrasebook.json` is the raw resource consumed by the Swift renderer. Native Apple String Catalog export and Xcode catalog-editor validation are not provided. App builds, bundled-resource equality, and Phrasebook runtime tests verify this representation.
 
-The standalone localization generator and all 17 locale catalogs are pinned source imports. Update translations through an explicit reviewed import from the source repository. This repository owns catalog generation and the generated Swift resources. There is no automatic synchronization.
+The 17 locale catalogs are pinned source imports. Update translations through an explicit reviewed import from the source repository. This repository owns the catalog generator, the Swift package in `tools`, and the generated Swift resources. There is no automatic synchronization.
 
 `migration-receipt.json` records original path digests and migration edits. It describes the imported snapshot and does not restrict future app changes. Historical fixture lineage has not been independently established by this import.
 

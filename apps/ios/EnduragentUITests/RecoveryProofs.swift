@@ -1,0 +1,198 @@
+import XCTest
+
+final class InterruptedAfterKillProof: XCTestCase {
+	func testInterruptedAfterKill() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:hang")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), within: .screen)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "turnClaim", "turnClaim 1")
+		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
+		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		let notice = TutorialHarness.notice(app, reading: TutorialHarness.interruptedNothingChanged)
+		TutorialHarness.wait(notice)
+		XCTAssertEqual(app.staticTexts.matching(identifier: "fixture:hang").count, 1)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.receivedBeforeClose").exists)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.working").exists)
+		XCTAssertFalse(TutorialHarness.text(app, containing: TutorialHarness.weekReply).exists)
+		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
+		TutorialHarness.wait(tryAgain)
+		TutorialHarness.attach(self, name: "interrupted-after-kill", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
+		TutorialHarness.attach(self, name: "interrupted-after-kill-records", app: app)
+		TutorialHarness.returnToChat(app)
+		tryAgain.tap()
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.wait(
+			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
+		XCTAssertEqual(app.staticTexts.matching(identifier: "fixture:hang").count, 1)
+		XCTAssertFalse(notice.exists)
+		TutorialHarness.attach(self, name: "interrupted-after-kill-try-again", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 2")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 2")
+		TutorialHarness.attach(self, name: "interrupted-after-kill-try-again-records", app: app)
+		let settled = TutorialHarness.settlementRows(app)
+		XCTAssertEqual(settled.count, 2, "rows: \(settled)")
+		XCTAssertTrue(settled.first?.contains("interrupted processEnded") == true, "\(settled)")
+		XCTAssertTrue(settled.last?.contains("replied") == true, "\(settled)")
+	}
+}
+
+final class SavedWorkInterruptedProof: XCTestCase {
+	func testSavedWorkInterrupted() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:memory-then-hang")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), within: .screen)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 1")
+		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
+		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.interruptedSomeSaved))
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.receivedBeforeClose").exists)
+		TutorialHarness.attach(self, name: "saved-work-interrupted", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "memorySection"), "memorySection 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
+		TutorialHarness.attach(self, name: "saved-work-interrupted-records", app: app)
+		let settled = TutorialHarness.settlementRows(app)
+		XCTAssertEqual(settled.count, 1, "rows: \(settled)")
+		XCTAssertTrue(settled.first?.contains("interrupted processEnded") == true, "\(settled)")
+	}
+}
+
+final class UnrecoveredClaimProof: XCTestCase {
+	func testUnrecoveredClaim() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:memory-then-hang")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), within: .screen)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 1")
+		TutorialHarness.relaunchKeepingStore(app, recovery: "unreadable")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.historyUnavailable))
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.receivedBeforeClose").exists)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.working").exists)
+		XCTAssertFalse(
+			TutorialHarness.notice(app, reading: TutorialHarness.interruptedNothingChanged).exists)
+		TutorialHarness.attach(self, name: "unrecovered-claim", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
+		TutorialHarness.returnToChat(app)
+		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.interruptedSomeSaved))
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		XCTAssertFalse(
+			TutorialHarness.notice(app, reading: TutorialHarness.historyUnavailable).exists)
+		TutorialHarness.attach(self, name: "unrecovered-claim-recovered", app: app)
+	}
+}
+
+final class QueuedTurnAfterKillProof: XCTestCase {
+	func testQueuedTurnAfterKill() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:hang")
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "turnClaim", "turnClaim 1")
+		TutorialHarness.returnToChat(app)
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "userMessage", "userMessage 2")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 1")
+		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.interruptedNothingChanged))
+		let received = TutorialHarness.named(app, "chat.turn.receivedBeforeClose")
+		TutorialHarness.wait(received)
+		XCTAssertEqual(received.label, TutorialHarness.receivedBeforeClose)
+		let tryAgain = app.buttons.matching(identifier: "chat.turn.tryAgain")
+		XCTAssertEqual(tryAgain.count, 2)
+		TutorialHarness.attach(self, name: "queued-turn-after-kill", app: app)
+		tryAgain.element(boundBy: 1).tap()
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.wait(
+			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
+		XCTAssertFalse(received.exists)
+		XCTAssertEqual(app.staticTexts.matching(identifier: TutorialHarness.weekQuestion).count, 1)
+		TutorialHarness.attach(self, name: "queued-turn-after-kill-try-again", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 2")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 2")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 2")
+		TutorialHarness.returnToChat(app)
+	}
+}
+
+final class ObservedReplyKillProof: XCTestCase {
+	func testObservedReplyKill() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:text-then-hang")
+		let partial = TutorialHarness.text(app, containing: "This week has Tuesday sweet spot")
+		TutorialHarness.wait(partial)
+		TutorialHarness.attach(self, name: "observed-reply-before-kill", app: app)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "replyObserved", "replyObserved 1")
+		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
+		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.interruptedNothingChanged))
+		XCTAssertFalse(partial.exists)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.working").exists)
+		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		TutorialHarness.attach(self, name: "observed-reply-after-kill", app: app)
+		TutorialHarness.openDebug(app)
+		let model = TutorialHarness.debugRow(app, "fixture.modelRequestCount")
+		XCTAssertEqual(model.label, "0 model requests")
+		TutorialHarness.debugRow(app, "debug.records", direction: .down).tap()
+		TutorialHarness.wait(TutorialHarness.named(app, "records.device"))
+		XCTAssertEqual(TutorialHarness.recordCount(app, "replyObserved"), "replyObserved 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
+		TutorialHarness.attach(self, name: "observed-reply-after-kill-records", app: app)
+		let settled = TutorialHarness.settlementRows(app)
+		XCTAssertEqual(settled.count, 1, "rows: \(settled)")
+		XCTAssertTrue(settled.first?.contains("interrupted processEnded") == true, "\(settled)")
+	}
+}
+
+final class BackgroundResumeProof: XCTestCase {
+	func testBackgroundResume() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:slow")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), within: .screen)
+		XCUIDevice.shared.press(.home)
+		Thread.sleep(forTimeInterval: 5)
+		app.activate()
+		TutorialHarness.wait(app, until: .foreground)
+		TutorialHarness.waitForLabel(app, "quieter stretch between them.", within: .turn)
+		TutorialHarness.wait(
+			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
+		TutorialHarness.attach(self, name: "background-resume", app: app)
+	}
+}

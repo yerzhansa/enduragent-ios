@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "Enduragent",
+    "greeting": "Hello {{ name }}, {{name}} rode {{distance}} km",
+    "progress": "100% of {{goal}}",
+    "braces": "{{{name}}} and {{ unfinished } and 50%"
+  },
+  "rides": {
+    "count_one": "{{count}} ride in {{place}}",
+    "count_other": "{{count}} rides",
+    "empty": "No rides\n\"yet\"",
+    "last_ride_title": "Last ride"
+  },
+  "days_one": "One day",
+  "days_other": "Days",
+  "orphan_few": "A few"
+}

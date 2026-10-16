@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -8,17 +9,22 @@ import Testing
 
 	@Test func journalRecordPrecedesSectionRecord() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(store: store, clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		try await memory.writeSection(
-			.person, content: "## Ada Kovač\nRides on Saturdays.", source: .chat)
-		let records = try await store.fetch(RecordQuery(kinds: [.journal, .memorySection]))
+			.person, content: "## Ada Kovač\nRides on Saturdays.", source: .chat, stamp: testStamp()
+		)
+		let records = try await store.fetch(
+			RecordQuery(scope: .synced([.journal, .memorySection]))
+		).records
 			.sorted { $0.hlc < $1.hlc }
 		#expect(records.count == 2)
-		guard case .journal(let journal) = records[0].body else {
+		guard case .synced(.journal(let journal)) = records[0].body else {
 			Issue.record("expected journal first")
 			return
 		}
-		guard case .memorySection(let section) = records[1].body else {
+		guard case .synced(.memorySection(let section)) = records[1].body else {
 			Issue.record("expected section second")
 			return
 		}
@@ -35,53 +41,68 @@ import Testing
 
 	@Test func appendDailyNoteSkipsWholeLineDuplicateWithoutJournal() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(store: store, clock: clock)
-		try await memory.appendDailyNote("Felt fresh on the morning spin.")
-		try await memory.appendDailyNote("Felt fresh on the morning spin.")
-		try await memory.appendDailyNote("Knee felt fine on the evening spin.")
-		let notes = try await store.fetch(RecordQuery(kinds: [.dailyNote, .journal]))
-		#expect(notes.filter { if case .dailyNote = $0.body { true } else { false } }.count == 2)
-		#expect(notes.filter { if case .journal = $0.body { true } else { false } }.isEmpty)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
+		try await memory.appendDailyNote("Felt fresh on the morning spin.", stamp: testStamp())
+		try await memory.appendDailyNote("Felt fresh on the morning spin.", stamp: testStamp())
+		try await memory.appendDailyNote("Knee felt fine on the evening spin.", stamp: testStamp())
+		let notes = try await store.fetch(RecordQuery(scope: .synced([.dailyNote, .journal])))
+			.records
+		#expect(
+			notes.filter { if case .synced(.dailyNote) = $0.body { true } else { false } }.count
+				== 2)
+		#expect(
+			notes.filter { if case .synced(.journal) = $0.body { true } else { false } }.isEmpty)
 	}
 
 	@Test func appendEventReturnsFalseOnTwoDeviceDuplicate() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(store: store, clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		let other = DeviceID(rawValue: "phone-b")
 		let now = clock.now
-		try await store.append(
-			AthleteRecord(
-				ulid: ULID.generate(at: now),
-				deviceId: other,
-				hlc: .tick(now: now, deviceId: other, last: nil),
-				timeZone: try #require(IANATimeZone(identifier: "Europe/Amsterdam")),
-				civilDate: "1998-06-13",
-				body: .ledgerEvent(
-					LedgerEventBody(kind: .decision, text: "Keep Saturdays free.", source: .chat))
-			)
+		try await seed(
+			store,
+			[
+				storedRecord(
+					device: other,
+					wall: Int64(now.timeIntervalSince1970 * 1000), account: testConnection.account,
+					body: .synced(
+						.ledgerEvent(
+							LedgerEventBody(
+								date: "1998-06-13", kind: .decision, text: "Keep Saturdays free.",
+								source: .chat)))
+				)
+			]
 		)
 		let recorded = try await memory.appendEvent(
 			date: "1998-06-13",
 			kind: .decision,
 			text: "  Keep Saturdays   free.  ",
-			source: .flush
-		)
+			source: .flush, stamp: testStamp(account: testConnection.account))
 		#expect(recorded == false)
-		let events = try await store.fetch(RecordQuery(kinds: [.ledgerEvent]))
+		let events = try await store.fetch(RecordQuery(scope: .synced([.ledgerEvent]))).records
 		#expect(events.count == 1)
 	}
 
 	@Test func contextInjectsOrphansAndStripsCompaction() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(store: store, clock: clock)
-		try await memory.writeSection(.person, content: "- Name: Ada Kovač", source: .chat)
-		try await memory.writeSection(.notes, content: "- Prefers hill repeats", source: .chat)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
+		try await memory.writeSection(
+			.person, content: "- Name: Ada Kovač", source: .chat, stamp: testStamp())
+		try await memory.writeSection(
+			.notes, content: "- Prefers hill repeats", source: .chat, stamp: testStamp())
 		try await memory.writeSection(
 			SectionName(rawValue: "random-legacy"),
 			content: "stale orphan body",
-			source: .chat
+			source: .chat,
+			stamp: testStamp()
 		)
-		try await memory.appendDailyNote("Felt fresh on the morning spin.")
+		try await memory.appendDailyNote("Felt fresh on the morning spin.", stamp: testStamp())
 		try await memory.appendDailyNote(
 			"""
 			### Compaction summary
@@ -89,10 +110,10 @@ import Testing
 			#### Athlete Profile
 			- FTP 240W
 			### End of compaction summary
-			"""
-		)
-		try await memory.appendDailyNote("Knee felt fine on the evening spin.")
-		let context = try await memory.context()
+			""", stamp: testStamp())
+		try await memory.appendDailyNote("Knee felt fine on the evening spin.", stamp: testStamp())
+		let prompt = try await memory.prompt(for: .unconnected)
+		let context = prompt.context
 		#expect(context.contains("## Athlete Memory"))
 		#expect(context.contains("## person"))
 		#expect(context.contains("Ada Kovač"))
@@ -105,7 +126,7 @@ import Testing
 		#expect(!context.contains("### Compaction summary"))
 		#expect(!context.contains("FTP 240W"))
 		#expect(!context.contains("## Current Plan"))
-		let view = try await memory.view()
+		let view = prompt.view
 		#expect(view.orphanNames == ["random-legacy"])
 		#expect(view.planHeadline == nil)
 	}
@@ -136,43 +157,32 @@ import Testing
 	}
 
 	@Test func writeSectionPropagatesJournalAppendFailure() async throws {
-		let store = JournalRejectingLog()
-		let memory = Memory(store: store, clock: clock)
-		await #expect(throws: JournalAppendRejected.self) {
-			try await memory.writeSection(.person, content: "- Name: Ada", source: .chat)
+		let store = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		try store.failAppends(ofKind: "journal")
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
+		await #expect(throws: LedgerFailure.rejectedBatch) {
+			try await memory.writeSection(
+				.person, content: "- Name: Ada", source: .chat, stamp: testStamp())
 		}
-		let sections = try await store.fetch(RecordQuery(kinds: [.memorySection]))
+		let sections = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
 		#expect(sections.isEmpty)
 	}
 
 	@Test func writeSectionReplacesLeadingStampRatherThanStacking() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(store: store, clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		try await memory.writeSection(
-			.person, content: "_updated: 1998-06-01\n- Name: Ada", source: .chat)
-		let records = try await store.fetch(RecordQuery(kinds: [.memorySection]))
-		guard case .memorySection(let body) = records.last?.body else {
+			.person, content: "_updated: 1998-06-01\n- Name: Ada", source: .chat, stamp: testStamp()
+		)
+		let records = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
+		guard case .synced(.memorySection(let body)) = records.last?.body else {
 			Issue.record("expected section")
 			return
 		}
 		#expect(body.content == "_updated: 1998-06-13\n- Name: Ada")
-	}
-}
-
-private struct JournalAppendRejected: Error, Equatable {}
-
-private final class JournalRejectingLog: RecordLog, @unchecked Sendable {
-	let inner = InMemoryRecordLog()
-	var deviceId: DeviceID { inner.deviceId }
-
-	func append(_ record: AthleteRecord) async throws {
-		if case .journal = record.body {
-			throw JournalAppendRejected()
-		}
-		try await inner.append(record)
-	}
-
-	func fetch(_ query: RecordQuery) async throws -> [AthleteRecord] {
-		try await inner.fetch(query)
 	}
 }

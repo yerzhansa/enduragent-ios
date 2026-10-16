@@ -1,67 +1,395 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
 @testable import EnduragentCoach
 
 @Suite struct ChatMailboxTests {
-	@Test func concurrentSendsOnOneChatCompleteInOrder() async throws {
+	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+
+	@Test func sendsInsideTheWindowJoinOneTurn() async throws {
 		let transport = FakeModelTransport()
-		transport.requestDelay = .milliseconds(40)
-		transport.script = [
-			.text("first"),
-			.finish(reason: .stop),
-			.text("second"),
-			.finish(reason: .stop),
-		]
-		let coach = Coach(
-			sport: .cycling,
-			transport: transport,
-			intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250),
-			store: InMemoryRecordLog(),
-			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
-			language: .init(ui: .en, coachReply: nil)
-		)
-
-		async let first = collectText(coach.send("one", chatId: "main"))
-		try await Task.sleep(for: .milliseconds(5))
-		async let second = collectText(coach.send("two", chatId: "main"))
-		let texts = try await [first, second]
-		#expect(texts == ["first", "second"])
-		let history = try await coach.history(chatId: "main")
-		#expect(history.map(\.text) == ["one", "first", "two", "second"])
+		transport.respond = ScriptedReply.sequence(
+			[.text("both"), .finish(reason: .stop)], otherwise: transport.respond)
+		let recording = BatchRecordingLog(inner: InMemoryRecordLog())
+		let coach = await makeCoach(
+			transport: transport, store: recording, clock: clock,
+			coalescing: CoalescingPolicy(window: .milliseconds(300)))
+		let first = try #require(
+			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
+		let second = try #require(
+			try await coach.send(draft("And Friday?"), to: .main).acceptedTurn)
+		#expect(first == second)
+		#expect(recording.batches == [["providerConsent"], ["userMessage"], ["userMessage"]])
+		let settled = try #require(await coach.settledState(of: first, in: .main))
+		#expect(replyText(settled) == "both")
+		let snapshot = try #require(await coach.currentSnapshot(.main))
+		#expect(snapshot.turns.map(\.athleteText) == ["Is Thursday on?\nAnd Friday?"])
+		#expect(transport.requests.count == 1)
+		#expect(transport.requests.first?.messages.last?.content.contains("And Friday?") == true)
 	}
 
-	@Test func confirmDoesNotEnterTheMailbox() async throws {
+	@Test func cancellationSettlesInterruptedWithLiveText() async throws {
 		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
-		let coach = Coach(
-			sport: .cycling,
-			transport: transport,
-			intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250),
-			store: InMemoryRecordLog(),
-			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
-			language: .init(ui: .en, coachReply: nil)
-		)
-		let stream = coach.send("hang", chatId: "main")
-		for _ in 0..<80 {
-			if try await coach.snapshot(chatId: "main").phase == .streaming {
-				break
-			}
-			try await Task.sleep(for: .milliseconds(10))
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is "), .hang], otherwise: transport.respond)
+		let recording = BatchRecordingLog(inner: InMemoryRecordLog())
+		let coach = await makeCoach(transport: transport, store: recording, clock: clock)
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				guard case .processing? = $0.turns.first?.state else { return false }
+				return $0.liveReply?.text.isEmpty == false
+			} != nil)
+		await coach.stop(.main)
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		guard case .interrupted(let interrupted) = settled else {
+			Issue.record("expected interrupted, got \(settled)")
+			return
 		}
-		let outcome = try await coach.confirm(chatId: "main", nonce: Nonce())
-		#expect(outcome == .none)
-		await coach.stop(chatId: "main")
-		for try await _ in stream {}
+		#expect(interrupted.partial == "Thursday is ")
+		#expect(interrupted.cause == .athleteStopped)
+		#expect(interrupted.notice.actions == [.tryAgain(turn)])
+		let saved = try await recording.fetch(
+			RecordQuery(scope: .synced([.turnSettled]), turn: turn)
+		).records
+		#expect(saved.count == 1)
+		guard case .synced(.turnSettled(let body)) = try #require(saved.first?.body) else {
+			Issue.record("Stop was not saved")
+			return
+		}
+		#expect(
+			body.settlement
+				== .interrupted(partial: "Thursday is ", cause: .athleteStopped, saved: .none))
+		let snapshot = try #require(await coach.currentSnapshot(.main))
+		#expect(snapshot.activity == .idle)
 	}
-}
 
-private func collectText(_ stream: AsyncThrowingStream<CoachEvent, Error>) async throws -> String {
-	var text = ""
-	for try await event in stream {
-		if case .textDelta(let delta) = event {
-			text += delta
+	@Test func stopSettlesQueuedTurnsBeforeTheyStart() async throws {
+		let transport = FakeModelTransport()
+		transport.respond = { _ in ScriptedReply([.hang]) }
+		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
+		let first = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(first)
+		let second = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
+		try #require(
+			try await coach.waitForState(of: second) {
+				guard case .accepted(.queued)? = $0 else { return false }
+				return true
+			} != nil)
+		await coach.stop(.main)
+		let firstState = try #require(await coach.settledState(of: first, in: .main))
+		let secondState = try #require(await coach.settledState(of: second, in: .main))
+		guard case .interrupted(let running) = firstState,
+			case .interrupted(let queued) = secondState
+		else {
+			Issue.record("expected both interrupted, got \(firstState) and \(secondState)")
+			return
+		}
+		#expect(running.cause == .athleteStopped)
+		#expect(queued.cause == .stoppedBeforeStart)
+		#expect(running.notice.key == Catalog.chatTurnInterruptedNothingChanged)
+		#expect(queued.notice.key == Catalog.chatTurnInterruptedNothingChanged)
+		#expect(queued.notice.actions == [.tryAgain(second)])
+		#expect(await coach.transcript(.main) == ["one", "two"])
+	}
+
+	@Test func stopInsideTheWindowSettlesTheTurnBeforeItStarts() async throws {
+		let transport = FakeModelTransport()
+		let recording = BatchRecordingLog(inner: InMemoryRecordLog())
+		let coach = await makeCoach(
+			transport: transport, store: recording, clock: clock,
+			coalescing: CoalescingPolicy(window: .seconds(60)))
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		await coach.stop(.main)
+		let snapshot = try #require(await coach.currentSnapshot(.main))
+		guard
+			case .interrupted(let stopped)? = snapshot.turns.first(where: { $0.id == turn })?.state
+		else {
+			Issue.record("expected an interrupted turn, got \(snapshot.turns)")
+			return
+		}
+		#expect(stopped.cause == .stoppedBeforeStart)
+		#expect(stopped.notice.key == Catalog.chatTurnInterruptedNothingChanged)
+		#expect(stopped.notice.actions == [.tryAgain(turn)])
+		#expect(snapshot.activity == .idle)
+		#expect(recording.batches == [["providerConsent"], ["userMessage"], ["turnSettled"]])
+		#expect(transport.requests.isEmpty)
+	}
+
+	@Test func aSlowFirstReadKeepsAMessageSavedWhileItRead() async throws {
+		let transport = FakeModelTransport()
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
+		let inner = InMemoryRecordLog()
+		let store = HeldConversationReadLog(inner: inner)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
+		async let observed = coach.currentSnapshot(.main)
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { store.gate.release() }) {
+				await store.reached.first { _ in true } != nil
+			} == true)
+		async let sending = coach.send(draft("Is Thursday on?"), to: .main)
+		store.gate.release()
+		let turn = try #require(try await sending.acceptedTurn)
+		_ = await observed
+		let settled = try #require(
+			await coach.settledState(of: turn, in: .main, within: .hangGuard))
+		#expect(replyText(settled) == "Still on.")
+		#expect(try #require(await coach.currentSnapshot(.main)).turns.map(\.id) == [turn])
+		let saved = try await inner.fetch(
+			RecordQuery(scope: .synced([.turnSettled]), chatId: .main))
+		#expect(saved.records.count == 1)
+		#expect(transport.requests.count == 1)
+	}
+
+	@Test func aFailedFirstReadWipesNothingSavedAfterIt() async throws {
+		let transport = FakeModelTransport()
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
+		let inner = InMemoryRecordLog()
+		let faulty = FaultInjectingRecordLog(wrapping: inner)
+		let store = HeldConversationReadLog(inner: faulty)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
+		faulty.failFetches = true
+		async let observed = coach.currentSnapshot(.main)
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { store.gate.release() }) {
+				await store.reached.first { _ in true } != nil
+			} == true)
+		store.gate.release()
+		let sent = draft("Is Thursday on?")
+		await #expect(throws: AcceptFailure.storageUnavailable) {
+			try await coach.send(sent, to: .main)
+		}
+		_ = await observed
+		faulty.failFetches = false
+		let outcome = try await coach.send(sent, to: .main)
+		let turn = try #require(outcome.acceptedTurn)
+		let settled = try #require(
+			await coach.settledState(of: turn, in: .main, within: .hangGuard))
+		#expect(replyText(settled) == "Still on.")
+		#expect(try #require(await coach.currentSnapshot(.main)).turns.map(\.id) == [turn])
+		let saved = try await inner.fetch(
+			RecordQuery(scope: .synced([.userMessage]), chatId: .main))
+		#expect(saved.records.count == 1)
+	}
+
+	@Test func stopCancelsTheRunningReplyWhileASendWaitsOnTheStore() async throws {
+		let transport = FakeModelTransport()
+		transport.respond = { _ in ScriptedReply([.hang]) }
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
+		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(running)
+		async let second = coach.send(draft("two"), to: .main)
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { store.release() }) {
+				await store.reached.first { _ in true } != nil
+			} == true)
+		async let stopped: Void = coach.stop(.main)
+		let interrupted = await coach.settledState(of: running, in: .main, within: .hangGuard)
+		store.release()
+		await stopped
+		let queued = try #require(try await second.acceptedTurn)
+		guard case .interrupted(let first)? = interrupted else {
+			Issue.record(
+				"the running reply did not stop while the send waited: \(String(describing: interrupted))"
+			)
+			return
+		}
+		#expect(first.cause == .athleteStopped)
+		guard case .interrupted(let later)? = await coach.settledState(of: queued, in: .main) else {
+			Issue.record("the waiting send was not stopped")
+			return
+		}
+		#expect(later.cause == .stoppedBeforeStart)
+	}
+
+	@Test func retryOfAwaitingRestartTurnClaimsUnderNewAttempt() async throws {
+		let transport = FakeModelTransport()
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
+		let store = InMemoryRecordLog()
+		let before = await makeCoach(
+			transport: transport, store: store, clock: clock,
+			coalescing: CoalescingPolicy(window: .seconds(60)))
+		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
+
+		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
+		#expect(
+			try #require(await reopened.currentSnapshot(.main)).turns.first?.state
+				== .accepted(.awaitingRestart))
+		try await reopened.retry(turn, in: .main)
+		let settled = try #require(await reopened.settledState(of: turn, in: .main))
+		#expect(replyText(settled) == "Still on.")
+
+		let claims = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
+		)
+		.records
+		let settlements = try await store.fetch(
+			RecordQuery(scope: .synced([.turnSettled]), turn: turn)
+		).records
+		#expect(claims.count == 1)
+		#expect(settlements.count == 1)
+		guard case .deviceLocal(.turnClaim(let claim))? = claims.first?.body,
+			case .synced(.turnSettled(let settledBody))? = settlements.first?.body
+		else {
+			Issue.record("expected a claim and a settlement")
+			return
+		}
+		#expect(claim.attempt == settledBody.attempt)
+		#expect(claims.first?.cause == .operation(.turn(turn), claim.attempt))
+		#expect(await reopened.transcript(.main) == ["Thursday?", "Still on."])
+		await #expect(throws: RetryRefusal.alreadyAnswered) {
+			try await reopened.retry(turn, in: .main)
 		}
 	}
-	return text
+
+	@Test func retryOfAFailedTurnMintsASecondAttempt() async throws {
+		let transport = FakeModelTransport()
+		transport.respond = ScriptedReply.sequence(
+			Array(repeating: .fail(.http(status: 500)), count: 3)
+				+ [.text("Recovered."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
+		let store = InMemoryRecordLog()
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		let failed = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(failure(failed) == .model(.providerDown(.outage)))
+		#expect(turnNotice(of: failed)?.actions == [.tryAgain(turn)])
+		try await coach.retry(turn, in: .main)
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(replyText(settled) == "Recovered.")
+		let claims = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
+		)
+		.records
+		#expect(claims.count == 2)
+		#expect(await coach.transcript(.main) == ["Thursday?", "Recovered."])
+	}
+
+	@Test func aSecondTryAgainWhileTheFirstStartsIsRefused() async throws {
+		let transport = FakeModelTransport()
+		transport.respond = ScriptedReply.sequence(
+			Array(repeating: .fail(.http(status: 500)), count: 3), for: .chat,
+			otherwise: transport.respond)
+		let store = InMemoryRecordLog()
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		_ = try #require(await coach.settledState(of: turn, in: .main))
+		transport.respond = ScriptedReply.sequence(
+			Array(repeating: .fail(.http(status: 500)), count: 6), for: .chat,
+			otherwise: transport.respond)
+		async let first = refusal { () async throws(RetryRefusal) in
+			try await coach.retry(turn, in: .main)
+		}
+		async let second = refusal { () async throws(RetryRefusal) in
+			try await coach.retry(turn, in: .main)
+		}
+		let refusals = await [first, second]
+		#expect(refusals.compactMap { $0 } == [.alreadyRunning])
+		try await waitForRecords(.synced([.turnSettled]), count: 2, in: store)
+		let claims = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
+		)
+		.records
+		#expect(claims.count == 2)
+	}
+
+	@Test func tryAgainAfterSavedWorkIsRefusedWithoutAModelRequest() async throws {
+		let store = InMemoryRecordLog()
+		let failedTurn = TurnID(ulid: fixedUlid(40))
+		let saved = WriteSummary(
+			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+		try await seed(
+			store,
+			[
+				storedRecord(
+					device: store.deviceId, wall: 1,
+					body: .synced(
+						sampleUser(chatId: .main, text: "Remember Saturdays", turn: failedTurn))),
+				storedRecord(
+					device: store.deviceId, wall: 2,
+					body: .synced(
+						.turnSettled(
+							TurnSettledBody(
+								chatId: .main, turn: failedTurn,
+								attempt: AttemptID(ulid: fixedUlid(41)),
+								settlement: .failed(
+									.model(.budgetExhausted(.generateCalls)), saved: saved)
+							)))),
+			])
+		let transport = FakeModelTransport()
+		transport.respond = ScriptedReply.sequence(
+			[.text("Saved again."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
+		await #expect(throws: RetryRefusal.alreadyAnswered) {
+			try await coach.retry(failedTurn, in: .main)
+		}
+		#expect(transport.requestCount == 0)
+		let failed = try #require(await coach.settledState(of: failedTurn, in: .main))
+		#expect((turnNotice(of: failed)?.actions ?? []).isEmpty)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+				),
+				.finish(reason: .toolCalls),
+				.hang,
+			], otherwise: transport.respond)
+		let stoppedTurn = try #require(
+			try await coach.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
+		try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				guard case .processing(let processing)? = $0.turns.last?.state else { return false }
+				return processing.activity == .generating(step: 2)
+			} != nil)
+		await coach.stop(.main)
+		let stopped = try #require(await coach.settledState(of: stoppedTurn, in: .main))
+		guard case .interrupted(let interrupted) = stopped else {
+			Issue.record("expected interrupted, got \(stopped)")
+			return
+		}
+		#expect(interrupted.saved.memorySections == 1)
+		#expect((turnNotice(of: stopped)?.actions ?? []).isEmpty)
+		let requests = transport.requestCount
+		transport.respond = ScriptedReply.sequence(
+			[.text("Saved again."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
+		await #expect(throws: RetryRefusal.alreadyAnswered) {
+			try await coach.retry(stoppedTurn, in: .main)
+		}
+		#expect(transport.requestCount == requests)
+	}
+
+	@Test func retryOfAnUnknownTurnIsRefused() async throws {
+		let coach = await makeCoach(
+			transport: FakeModelTransport(), store: InMemoryRecordLog(), clock: clock)
+		await #expect(throws: RetryRefusal.unknownTurn) {
+			try await coach.retry(TurnID(ulid: fixedUlid(7)), in: .main)
+		}
+	}
+
+	@Test func reviewDecisionDoesNotEnterTheMailbox() async throws {
+		let transport = FakeModelTransport()
+		transport.respond = { _ in ScriptedReply([.hang]) }
+		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
+		_ = try await coach.send(draft("hang"), to: .main)
+		try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				if case .processing? = $0.turns.first?.state { return true }
+				return false
+			} != nil)
+		let stale = ReviewRef(
+			chat: .main, set: ChangeSetID(ulid: fixedUlid(1)),
+			revision: ChangeSetRevision(rawValue: 1),
+			delivery: UUID())
+		#expect(await coach.decide(.presented(stale), in: .main) == .staleControl)
+		await coach.stop(.main)
+	}
 }
