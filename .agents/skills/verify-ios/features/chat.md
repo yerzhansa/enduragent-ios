@@ -13,7 +13,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-coalesce` joins free-text messages inside a trailing 1.5-second collection window. Each fragment extends the window. `/review`, `/start` and `/language` close buffered text in send order; `/language` opens its picker without waiting for the reply or making its own model request.
 - `chat-stop` stops the running and queued turns when the athlete taps `chat.stop`. A later message can still run. Saved work determines which interruption notice appears and whether Try again is offered.
 - `chat-expiry` settles interrupted work when its execution lease expires. The running turn keeps observed partial text; queued turns do not start.
-- `chat-finished-away` adds `Finished while the phone was locked.` under a reply completed in the background. It lasts until relaunch. Device notification behavior needs a device check beyond these fixture proofs.
+- `chat-finished-away` adds `Finished while the phone was locked.` under a reply completed in the background. It lasts until relaunch. The app posts no notification for it.
 - `chat-failed` displays `chat.turn.notice` and up to two recovery actions for that turn. Provider details, status codes, and Swift error names do not belong in these notices.
 - `chat-retry` keeps working visible while the coach retries a recoverable failure. Server and network failures allow two retries, timeouts one, rate limits three, and context overflow three. Once reply text or saved work prevents replay, the coach settles instead.
 - `chat-saved-unverified` shows the saved-work notice without Try again when information was saved before the response failed. The athlete must send a new message.
@@ -125,7 +125,7 @@ Preconditions:
 | `sim test <run id> ExpiryAfterSaveProof` | Saved work changes the expiry notice and removes Try again, `expiry-after-save`. |
 | `sim test <run id> FinishedWhileAwayProof` | A reply completed in the background has the finished-while-locked marker, `finished-while-away`. |
 | `sim test <run id> BackgroundResumeProof` | Background and resume preserve the reply with no interruption notice, `background-resume`. |
-| `sim test <run id> LeaseReportProof` | Debug, Leases shows the athlete lease and settled progress, `lease-report`. |
+| `sim test <run id> LeaseReportProof` | Debug, Leases shows the finished athlete lease, `lease-report`. |
 | `sim test <run id> RelaunchKeepsChatProof` | Completed message and reply reopen without onboarding, `relaunch-keeps-chat`. |
 | `sim test <run id> AcceptSurvivesKillProof` | Accepted but unclaimed work reopens as received before close; Try again starts it once, `accept-kill-reopen`, `accept-kill-try-again-records`. |
 | `sim test <run id> InterruptedAfterKillProof` | A claimed turn reopens interrupted and waits for Try again, `interrupted-after-kill`, `interrupted-after-kill-try-again`. |
@@ -182,7 +182,7 @@ Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks
 - Each queued request keeps its own script and delays. To queue behind work, wait for `turnClaim 1` in Records after `fixture:hang` before sending another message.
 - Try again on a fixture directive message replays the scripted reply, not the directive. A retried hang can therefore complete.
 - The Debug button `fixture.expire` expires current leases without sending a message. `-EnduragentFixtureHost "expire-after N"` expires every lease N seconds after it starts.
-- The fixture execution host does not exercise iOS background scheduling, system cancellation UI, or notifications. Record those device paths as unverified by the simulator.
+- The default fixture execution host, `ImmediateExecutionHost`, does not exercise iOS background time. `-EnduragentFixtureHost background-time` runs the live `BackgroundTimeHost` instead and removes `fixture.expire`. Record when iOS ends a real reply's background time as unverified by the simulator. The app shows no system banner and posts no notification. The phone check is in [No system banner or notification](../SKILL.md#no-system-banner-or-notification).
 - Killing within the collection window leaves an accepted message. Wait for a claim before testing interrupted work. A process kill loses uncommitted partial text; it differs from a delivered termination notification.
 - Use `sim launch <run id> --keep -EnduragentFixtureRecovery unreadable` only after a claimed turn was killed to reach unreadable recovery.
 - Transcript rows are virtualized. Check the newest content or record counts instead of counting every label in a long conversation.

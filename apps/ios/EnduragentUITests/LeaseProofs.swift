@@ -59,7 +59,7 @@ final class ExpiryProof: XCTestCase {
 		let settled = rows.filter { $0.hasPrefix("turnSettled") }
 		XCTAssertTrue(settled.first?.contains("interrupted systemExpired") == true, "\(settled)")
 		let claims = rows.filter { $0.hasPrefix("turnClaim") }
-		XCTAssertTrue(claims.first?.contains("continuedProcessing") == true, "\(claims)")
+		XCTAssertTrue(claims.first?.contains("gracePeriodOnly") == true, "\(claims)")
 		TutorialHarness.attach(self, name: "expiry-records", app: app)
 		TutorialHarness.returnToChat(app)
 	}
@@ -200,9 +200,7 @@ final class LeaseReportProof: XCTestCase {
 		TutorialHarness.debugRow(app, "debug.leases").tap()
 		let row = TutorialHarness.named(app, "leases.row.0")
 		TutorialHarness.wait(row)
-		XCTAssertEqual(
-			row.label,
-			"athlete continuedProcessing settledTurns 1 of 1 step 1 of 10 finished with notice")
+		XCTAssertEqual(row.label, "athlete gracePeriodOnly finished")
 		XCTAssertFalse(TutorialHarness.named(app, "leases.row.1").exists)
 		TutorialHarness.attach(self, name: "lease-report", app: app)
 	}

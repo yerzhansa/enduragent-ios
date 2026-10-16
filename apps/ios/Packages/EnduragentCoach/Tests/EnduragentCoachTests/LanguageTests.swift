@@ -227,58 +227,6 @@ import Testing
 		#expect(try await coach.observedStatus().language == .fixed(.de))
 	}
 
-	@Test func leaseTitlesFollowTheAppLanguage() async throws {
-		let host = ImmediateExecutionHost()
-		let transport = FakeModelTransport()
-		transport.respond = ScriptedReply.sequence(
-			[
-				.text("Dos salidas."), .finish(reason: .stop), .text("Two rides."),
-				.finish(reason: .stop),
-			], otherwise: transport.respond)
-		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), host: host)
-		try await coach.setLanguage(.fixed(.es))
-		_ = try await coach.sendAndSettle("How was my week?")
-		let spanish = try #require(await host.ended(0))
-		#expect(spanish.request.language == .es)
-		#expect(spanish.request.titleText == "El entrenador está trabajando…")
-		guard case .finished(let notice?) = spanish.ending else {
-			Issue.record("the lease ended without a notice: \(String(describing: spanish.ending))")
-			return
-		}
-		#expect(notice.titleText == "Entrenador")
-		#expect(notice.excerpt == "Dos salidas.")
-		try await coach.setLanguage(.automatic)
-		_ = try await coach.sendAndSettle("And this week?")
-		let automatic = try #require(await host.ended(1))
-		#expect(automatic.request.language == .en)
-		#expect(automatic.request.titleText == "Coach is working…")
-	}
-
-	@Test func completionTitleFollowsAChoiceMadeDuringTheReply() async throws {
-		let host = ImmediateExecutionHost()
-		let transport = FakeModelTransport()
-		transport.respond = ScriptedReply.sequence(
-			[.text("One more ride."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
-		let coach = await makeCoach(transport: transport, store: store, host: host)
-		let turn = try #require(
-			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
-		try await store.waitUntilReached()
-		try await coach.setLanguage(.fixed(.es))
-		#expect(try await coach.observedStatus().language == .fixed(.es))
-		store.release()
-		_ = try #require(await coach.settledState(of: turn, in: .main))
-		let ended = try #require(await host.ended(0))
-		#expect(ended.request.titleText == "Coach is working…")
-		guard case .finished(let notice?) = ended.ending else {
-			Issue.record("Missing completion notice")
-			return
-		}
-		#expect(notice.titleText == "Entrenador")
-		#expect(notice.excerpt == "One more ride.")
-	}
-
 	@Test func choosingTheCurrentLanguageWritesNothing() async throws {
 		let store = InMemoryRecordLog()
 		let coach = await makeCoach(transport: FakeModelTransport(), store: store)
