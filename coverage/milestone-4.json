@@ -155,9 +155,10 @@
 		},
 		{
 			"id": "2.2.3",
-			"statement": "A strength session of 37.5 minutes is sent with moving_time 2250, its trimmed effort and its description joined by one blank line, its trimmed name, and its own Load.",
+			"statement": "A strength session of 37.5 minutes is sent with moving_time 2250, its trimmed effort and its description joined by one blank line, its trimmed name, and its own Load, and fractional minutes round to whole seconds as Math.round does.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "strengthSendsRoundedSecondsJoinedTextAndItsOwnLoad"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "strengthSendsRoundedSecondsJoinedTextAndItsOwnLoad"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "strengthSecondsRoundHalfUpLikeMathRound"}
 			]
 		},
 		{
