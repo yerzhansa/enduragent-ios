@@ -457,7 +457,8 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aRunAgainstACalendarThatKeepsWhatItIsSentPassesAndRemovesEveryAdd"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aDroppedWriteThatNeverLandedOrAnExtraRequestFailsTheLostAnswerStep"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aDroppedWriteThatNeverLandedFailsItsLostAnswerStep"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aRequestBesideTheWriteAndItsSettleReadFailsTheLostAnswerStep"}
 			]
 		}
 	],

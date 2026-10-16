@@ -1,0 +1,50 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000302",
+  "chat": "main",
+  "finished": [],
+  "id": "00T47DW5000000000000000102",
+  "kept": [],
+  "remaining": [
+    {
+      "action": {
+        "edit": {
+          "patch": {
+            "trainingLoad": 75
+          },
+          "target": {
+            "reviewed": {
+              "event": 104,
+              "snapshot": {
+                "date": "1998-06-23",
+                "description": "Warmup\n- 10m 60%\nMain set\n- 2x20m 90%",
+                "durationSeconds": 3600,
+                "load": 70,
+                "name": "Sweet spot",
+                "structure": "{\"steps\":[{\"duration\":600},{\"duration\":3000}]}"
+              }
+            }
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000406",
+      "position": 0
+    }
+  ],
+  "revision": 1,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "tryAgain": {
+          "_0": {
+            "refused": {
+              "change": "00T47DW5000000000000000406",
+              "status": 429
+            }
+          }
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000202"
+}

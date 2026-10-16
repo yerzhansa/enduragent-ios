@@ -5,7 +5,7 @@ import Testing
 
 @Suite struct CalendarWriterTests {
 	enum Written: String, CaseIterable, Sendable {
-		case add, edit, delete, editWithSteps
+		case add, edit, delete, editWithSteps, loadOnlyWithSteps
 
 		var attempt: SendAttempt {
 			get throws {
@@ -21,6 +21,8 @@ import Testing
 						"workout-review-interrupted-before-writing", .approve, seen: [:])
 				case .editWithSteps:
 					try Self.running("workout-review-try-again", .tryAgain, seen: [:])
+				case .loadOnlyWithSteps:
+					try Self.running("workout-review-try-again-load-only", .tryAgain, seen: [:])
 				}
 			}
 		}
@@ -79,43 +81,6 @@ import Testing
 
 		var testDescription: String { "settle of \(written) reading \(note) is \(expected)" }
 	}
-
-	static let tempoRide: [String: JSONValue] = [
-		"id": .number(301), "start_date_local": .string("1998-06-16T00:00:00"),
-		"category": .string("WORKOUT"), "type": .string("Ride"), "name": .string("Tempo ride"),
-		"description": .string("Warmup\n- 10m 60%\nMain set\n- 3x10m 85%"),
-		"moving_time": .number(3000), "icu_training_load": .number(55),
-		"external_id": .string("cycling-coach:E621E1F8-C36C-495A-93FC-0C247A3E6E5F"),
-		"uid": .string("server-owned"), "tags": .array([.string(IntervalsPolicy.coachTag)]),
-	]
-	static let endurance: [String: JSONValue] = [
-		"id": .number(101), "start_date_local": .string("1998-06-17T00:00:00"),
-		"category": .string("WORKOUT"), "type": .string("Ride"), "name": .string("Endurance"),
-		"description": .string("Steady ride"), "moving_time": .number(4500),
-		"icu_training_load": .number(50), "external_id": .string("cycling-coach:endurance"),
-		"tags": .array([.string(IntervalsPolicy.coachTag)]),
-	]
-	static let sweetSpot: [String: JSONValue] = [
-		"id": .number(104), "start_date_local": .string("1998-06-24T00:00:00"),
-		"category": .string("WORKOUT"), "type": .string("Ride"), "name": .string("Sweet spot"),
-		"description": .string("Warmup\n- 10m 60%\nMain set\n- 3x15m 90%"),
-		"moving_time": .number(3600), "icu_training_load": .number(61),
-		"workout_doc": .object([
-			"duration": .number(3300),
-			"steps": .array([
-				.object(["duration": .number(600)]),
-				.object(["reps": .number(3), "duration": .number(900)]),
-			]),
-		]),
-		"external_id": .string("cycling-coach:sweet-spot"),
-		"tags": .array([.string(IntervalsPolicy.coachTag)]),
-	]
-	static let recoverySpin: [String: JSONValue] = [
-		"id": .number(112), "start_date_local": .string("1998-07-07T00:00:00"),
-		"category": .string("WORKOUT"), "type": .string("Ride"), "name": .string("Recovery spin"),
-		"moving_time": .number(3600), "icu_training_load": .number(40),
-		"tags": .array([.string(IntervalsPolicy.coachTag)]),
-	]
 
 	static func json(_ fields: [String: JSONValue], _ changes: [String: JSONValue] = [:])
 		-> JSONValue
@@ -275,6 +240,14 @@ import Testing
 			written: .editWithSteps,
 			answer: ok(json(sweetSpot, ["start_date_local": .string("1998-06-25T00:00:00")])),
 			expected: .notSaved, note: "another date beside intervals.icu's own Load"),
+		SettleRow(
+			written: .loadOnlyWithSteps, answer: ok(json(sweetSpot)), expected: .notSaved,
+			note: "its old Load beside steps, with no description sent"),
+		SettleRow(
+			written: .loadOnlyWithSteps,
+			answer: ok(json(sweetSpot, ["icu_training_load": .number(75)])),
+			expected: .seen(EventID(rawValue: 104)),
+			note: "the sent Load beside steps, with no description sent"),
 		SettleRow(written: .delete, answer: .status(404, "{}"), expected: .gone, note: "404"),
 		SettleRow(
 			written: .delete, answer: ok(json(recoverySpin)), expected: .notSaved,
@@ -320,6 +293,11 @@ import Testing
 					"icu_training_load": .number(75),
 				])
 			),
+			.loadOnlyWithSteps: (
+				SentRequest(
+					method: "PUT", path: "/api/v1/athlete/0/events/104", query: nil, body: nil),
+				.object(["icu_training_load": .number(75)])
+			),
 			.delete: (
 				SentRequest(
 					method: "DELETE", path: "/api/v1/athlete/0/events/112", query: nil, body: nil),
@@ -328,7 +306,8 @@ import Testing
 		]
 		let answers: [Written: StubAnswer] = [
 			.add: Self.echo(), .edit: Self.ok(Self.json(Self.endurance)),
-			.editWithSteps: Self.ok(Self.json(Self.sweetSpot)), .delete: .status(200, ""),
+			.editWithSteps: Self.ok(Self.json(Self.sweetSpot)),
+			.loadOnlyWithSteps: Self.ok(Self.json(Self.sweetSpot)), .delete: .status(200, ""),
 		]
 		for written in Written.allCases {
 			let attempt = try written.attempt
@@ -378,6 +357,8 @@ import Testing
 			.edit: SentRequest(
 				method: "GET", path: "/api/v1/athlete/0/events/101", query: nil, body: nil),
 			.editWithSteps: SentRequest(
+				method: "GET", path: "/api/v1/athlete/0/events/104", query: nil, body: nil),
+			.loadOnlyWithSteps: SentRequest(
 				method: "GET", path: "/api/v1/athlete/0/events/104", query: nil, body: nil),
 			.delete: SentRequest(
 				method: "GET", path: "/api/v1/athlete/0/events/112", query: nil, body: nil),

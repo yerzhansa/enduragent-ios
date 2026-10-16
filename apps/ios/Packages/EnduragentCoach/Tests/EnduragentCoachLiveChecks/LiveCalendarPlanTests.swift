@@ -97,16 +97,25 @@ import Testing
 		#expect(adds.count == 9)
 	}
 
-	@Test func aDroppedWriteThatNeverLandedOrAnExtraRequestFailsTheLostAnswerStep() async throws {
-		let calendar = FakeSeedCalendar(losesDroppedWrites: true)
+	@Test(arguments: [
+		(FakeSeedCalendar.WriteKind.create, "lost add: the settle read gave notSaved, not seen"),
+		(.update, "lost edit: the settle read gave notSaved, not seen as event 7015"),
+		(.delete, "lost delete: the settle read gave notSaved, not gone"),
+	])
+	func aDroppedWriteThatNeverLandedFailsItsLostAnswerStep(
+		kind: FakeSeedCalendar.WriteKind, failure: String
+	) async throws {
+		let calendar = FakeSeedCalendar(losesDroppedWrite: kind)
 		_ = calendar.add(LiveSeedCalendar.entries.map { $0.requestBody(seededOn: Self.today) })
 		var lost = try Self.run(calendar: calendar)
 
 		await lost.run()
 
-		#expect(lost.failures == ["lost add: the settle read gave notSaved, not seen"])
+		#expect(lost.failures == [failure])
 		#expect(calendar.events.count == LiveSeedCalendar.entries.count)
+	}
 
+	@Test func aRequestBesideTheWriteAndItsSettleReadFailsTheLostAnswerStep() async throws {
 		let seeded = Self.seeded()
 		let extra = ExtraRequestDrain(calendar: seeded)
 		var noisy = try Self.run(calendar: seeded, drain: { extra.next() })

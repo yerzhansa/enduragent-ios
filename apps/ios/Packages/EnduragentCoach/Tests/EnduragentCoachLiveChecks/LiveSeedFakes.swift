@@ -192,6 +192,18 @@ final class FakeSeedCalendar: IntervalsClient, @unchecked Sendable {
 		case write(CalendarWrite)
 	}
 
+	enum WriteKind: Sendable {
+		case create, update, delete
+
+		init(_ write: CalendarWrite) {
+			switch write {
+			case .create: self = .create
+			case .update: self = .update
+			case .delete: self = .delete
+			}
+		}
+	}
+
 	private let state = Mutex(State())
 	private let stores: @Sendable (Set<String>, CalendarEvent) -> CalendarEvent
 
@@ -206,18 +218,18 @@ final class FakeSeedCalendar: IntervalsClient, @unchecked Sendable {
 	private let upsertsByExternalID: Bool
 	private let ignoresNameEdits: Bool
 	private let savesMissingEvents: Bool
-	private let losesDroppedWrites: Bool
+	private let losesDroppedWrite: WriteKind?
 
 	init(
 		events: [CalendarEvent] = [], upsertsByExternalID: Bool = true,
 		ignoresNameEdits: Bool = false, savesMissingEvents: Bool = false,
-		losesDroppedWrites: Bool = false,
+		losesDroppedWrite: WriteKind? = nil,
 		stores: @escaping @Sendable (Set<String>, CalendarEvent) -> CalendarEvent = { $1 }
 	) {
 		self.upsertsByExternalID = upsertsByExternalID
 		self.ignoresNameEdits = ignoresNameEdits
 		self.savesMissingEvents = savesMissingEvents
-		self.losesDroppedWrites = losesDroppedWrites
+		self.losesDroppedWrite = losesDroppedWrite
 		self.stores = stores
 		state.withLock { $0.events = events }
 	}
@@ -277,7 +289,7 @@ final class FakeSeedCalendar: IntervalsClient, @unchecked Sendable {
 			state.calls.append(.write(write))
 			guard state.dropsNextAnswer else { return apply(write, to: &state) }
 			state.dropsNextAnswer = false
-			if !losesDroppedWrites {
+			if losesDroppedWrite != WriteKind(write) {
 				_ = apply(write, to: &state)
 			}
 			return .lost(.transport)
