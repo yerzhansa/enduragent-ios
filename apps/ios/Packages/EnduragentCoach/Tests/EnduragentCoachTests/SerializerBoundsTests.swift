@@ -69,7 +69,8 @@ import Testing
 		let next = try #require(transport.requests.last)
 		let result = try #require(next.messages.last { $0.role == .tool })
 		let json = try JSONValue.parse(result.content)
-		#expect((json.objectFields["data"] ?? json).objectFields["error"] == .string("invalid_workout"))
+		#expect(
+			(json.objectFields["data"] ?? json).objectFields["error"] == .string("invalid_workout"))
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
