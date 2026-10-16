@@ -33,10 +33,12 @@ struct CoverageChecker {
 			throw CoverageFailure(description: "\(table) is not UTF-8")
 		}
 		let document = try JSONValue.parse(text)
-		let milestone = try Milestone(declaredIn: document)
+		let milestone = try Milestone(units: document.member("units"), of: "the table")
+		let requirements = try Requirements(declaredIn: document)
 		let rows = try document.member("criteria").elements()
 		let expected = Set(milestone.units.flatMap(\.identifiers))
 		var seen: Set<String> = []
+		var tested: Set<String> = []
 		var sources = SourceFiles(root: root)
 		for (index, row) in rows.enumerated() {
 			guard let identifier = try row.member("id").text else {
@@ -52,19 +54,27 @@ struct CoverageChecker {
 			if try row.member("statement").text == nil {
 				try problems.report(identifier, "no-statement")
 			}
-			try checkProof(of: row, identifier, in: &sources)
+			if try checkProof(of: row, identifier, in: &sources) {
+				tested.insert(identifier)
+			}
 		}
 		for unit in milestone.units {
 			for identifier in unit.identifiers where !seen.contains(identifier) {
 				try problems.report(identifier, "missing-criterion", "unit \(unit.name)")
 			}
 		}
+		if let requirements {
+			try RequirementChecker(
+				requirements: requirements, scope: .milestoneFour, problems: problems,
+				criteria: seen, tested: tested
+			).run(units: milestone.units)
+		}
 		return rows.count
 	}
 
 	private func checkProof(
 		of row: JSONValue, _ identifier: String, in sources: inout SourceFiles
-	) throws {
+	) throws -> Bool {
 		let listed = try row.member("tests")
 		let tests = listed.isTruthy ? try listed.elements() : []
 		var given = tests.isEmpty ? 0 : 1
@@ -81,6 +91,7 @@ struct CoverageChecker {
 			try check(test, identifier, in: &sources)
 		}
 		try checkHandCheck(of: row, identifier, in: sources)
+		return !tests.isEmpty
 	}
 
 	private func checkHandCheck(
@@ -163,7 +174,7 @@ private struct SourceFiles {
 }
 
 extension JSONValue {
-	fileprivate var text: String? {
+	var text: String? {
 		guard case .string(let value) = self, !value.isEmpty else { return nil }
 		return value
 	}
