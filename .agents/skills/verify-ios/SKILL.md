@@ -315,19 +315,21 @@ The physical-device `EnduragentPhone` scheme includes this proof, which compiles
 
 Every reply runs on plain background time from `UIApplication.beginBackgroundTask`. iOS shows no banner or progress interface for it. The app posts no notification and never asks for notification permission. The `no_system_banners` SwiftLint rule rejects `BGContinuedProcessingTask`, `BGTaskScheduler`, and `UNUserNotificationCenter` in `apps/ios`. Either surface needs an operator decision before it returns.
 
-A simulator cannot prove that no banner appears. Run this check only with the operator present on a physical iPhone. Install a signed Debug build, then launch it without a test runner or debugger. Supply the connected phone identifier. Keep screenshots in a new local phone evidence folder. The scripted model spends no Credits.
+A simulator cannot prove that no banner appears. Run this check only with the operator present on a physical iPhone. Fixture mode otherwise uses `ImmediateExecutionHost`, which never asks iOS for background time. The launch argument `-EnduragentFixtureHost background-time` selects the live build's `BackgroundTimeHost` with `UIApplication` background time. It keeps the scripted model, fake Credits and intervals.icu, fixture secrets and records, so the scripted model spends no Credits.
+
+Install a signed Debug build, then launch it without a test runner or debugger. An attached XCUITest runner or debugger may keep iOS from suspending the app, so iOS may never end its background time. Supply the connected phone identifier. Keep screenshots in a new local phone evidence folder.
 
 ```sh
-xcrun devicectl device process launch --device "$DEVICE_ID" icu.enduragent.app -EnduragentFixture first-week -EnduragentFixtureStore fresh -AppleLanguages '(en)' -AppleLocale en_US
+xcrun devicectl device process launch --device "$DEVICE_ID" icu.enduragent.app -EnduragentFixture first-week -EnduragentFixtureStore fresh -EnduragentFixtureHost background-time -AppleLanguages '(en)' -AppleLocale en_US
 ```
 
-Complete fixture onboarding and consent. For every relaunch, use the same command with `-EnduragentFixtureStore keep`. Record the OS, build, and language.
+Complete fixture onboarding and consent. For every relaunch, use the same command with `-EnduragentFixtureStore keep`. Record the OS, build, and language. Settings > Debug shows no Expire current lease button with this host. If the button appears, the launch used `ImmediateExecutionHost` and proves nothing about background time.
 
 | One action | One observation |
 | --- | --- |
 | Send `fixture:slow`, then press Home. | No banner or progress interface over the Home Screen. |
-| Lock during `fixture:slow`, then unlock. | No notification in Notification Center. |
-| Send `fixture:memory-until-system-interruption`, then lock until iOS ends the background time. | Reopen shows the interrupted reply with saved memory retained. Records shows `interrupted graceEnded`. |
+| Lock during `fixture:slow`, then unlock. | No notification on the Lock Screen or in Notification Center. |
+| Send `fixture:memory-until-system-interruption`, check the saved memory in Settings > Debug > Records, then lock until iOS ends the background time. | Reopen shows the interrupted reply with saved memory retained. Records shows `interrupted graceEnded`. |
 
 `fixture:memory-until-system-interruption` saves fixture memory, then sends a model heartbeat every ten seconds so the reply watchdog does not settle it first. It does not extend background time or synthesize expiry. Record that iOS caused the expiry.
 

@@ -13,7 +13,8 @@ enum AppLaunch {
 					let defaults = try fixture.prepare()
 					return (
 						try AppServices.fixture(
-							fixture, defaults: defaults, displayLocale: displayLocale),
+							fixture, defaults: defaults, displayLocale: displayLocale,
+							backgroundSystem: LiveBackgroundSystem()),
 						defaults
 					)
 				}

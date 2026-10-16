@@ -128,7 +128,7 @@ extension FixtureLaunchTests {
 		async throws
 		-> Coach
 	{
-		let host = fixture.host
+		let host = try #require(fixture.host)
 		let clock = FixtureClock(
 			calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 		let coach = Coach(

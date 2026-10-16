@@ -47,7 +47,8 @@ extension FixtureLaunchTests {
 		#expect(host.leases.last?.id == system.graces.last)
 	}
 
-	@Test func fixtureHostArgumentParsesExpireAfter() throws {
+	@Test func fixtureHostArgumentParsesBackgroundTimeAndExpireAfter() throws {
+		#expect(try FixtureHostPolicy(argument: "background-time") == .backgroundTime)
 		#expect(try FixtureHostPolicy(argument: "expire-after 3") == .expireAfter(.seconds(3)))
 		#expect(throws: FixtureLaunchError.self) { try FixtureHostPolicy(argument: "expire 3") }
 		#expect(throws: FixtureLaunchError.self) {
@@ -70,7 +71,7 @@ extension FixtureLaunchTests {
 				$0.kind == "memorySection" && $0.count > 0
 			}
 		}
-		await services.fixture?.host.expire(.systemExpired)
+		await services.fixture?.host?.expire(.systemExpired)
 		try await until {
 			guard
 				case .interrupted? = model.chat?.turns.first(where: { $0.id == running.id })?.state

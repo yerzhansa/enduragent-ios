@@ -96,6 +96,48 @@ extension FixtureLaunchTests {
 		#expect(system.endedGraces.count == 1)
 		#expect(host.leases.first?.ending == .interrupted(.graceEnded))
 	}
+
+	@Test func backgroundTimeFixtureKeepsTheScriptedModelAndSavedMemory() async throws {
+		let system = StubBackgroundSystem()
+		var configured = launch
+		configured.host = try FixtureHostPolicy(argument: "background-time")
+		let services = try fixtureServices(
+			configured, defaults: defaults, backgroundSystem: system)
+		let model = await model(services)
+		await model.agreeAndStartChatting()
+		#expect(services.fixture?.host == nil)
+		model.draft.text = "fixture:memory-until-system-interruption"
+		await model.send()
+		try await until { system.graces.count == 1 }
+		let leases = await services.leases()
+		#expect(leases.map(\.id) == system.graces)
+		#expect(leases.map(\.kind) == [.gracePeriodOnly])
+		let probe = services.coach.recordSyncProbe()
+		try await until {
+			try await probe.snapshot().counts.contains {
+				$0.kind == "memorySection" && $0.count == 1
+			}
+		}
+		try await Task.sleep(for: .seconds(32))
+		#expect(model.chat?.turns.last?.state.isSettled == false)
+		#expect(system.endedGraces.isEmpty)
+		let graceEnds = try #require(system.graceExpirations.first)
+		graceEnds()
+		try await until { !system.endedGraces.isEmpty }
+		let settled = try await settledTurn(model)
+		guard case .interrupted(let interrupted) = settled.state else {
+			Issue.record("Expected background time to end the reply, got \(settled.state)")
+			return
+		}
+		#expect(interrupted.cause == .graceEnded)
+		#expect(interrupted.saved.memorySections == 1)
+		#expect(await services.leases().first?.ending == .interrupted(.graceEnded))
+		#expect(
+			try await probe.snapshot().counts.contains {
+				$0.kind == "memorySection" && $0.count == 1
+			})
+		#expect(services.fixtureTransport?.requestCount == 2)
+	}
 }
 
 enum LeaseCompletionScenario: CaseIterable, Sendable {

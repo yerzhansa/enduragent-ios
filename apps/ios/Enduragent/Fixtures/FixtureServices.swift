@@ -8,7 +8,7 @@
 		let catalogSource: FakeModelCatalogSource
 		let transport: FakeModelTransport
 		let records: RecordFaults
-		let host: ImmediateExecutionHost
+		let host: ImmediateExecutionHost?
 		let secrets: ICloudKeychainStore
 		let secretBacking: FixtureSecretStoreBacking?
 		let nativeKeychain: NativeKeychainProof?
@@ -29,7 +29,8 @@
 		@MainActor
 		static func fixture(
 			_ launch: FixtureLaunch, defaults: UserDefaults,
-			displayLocale: @escaping DisplayLocaleResolver
+			displayLocale: @escaping DisplayLocaleResolver,
+			backgroundSystem: any BackgroundSystem
 		) throws -> AppServices {
 			guard launch.name == FixtureLaunch.firstWeekName else {
 				throw FixtureLaunchError.unknownFixture(launch.name)
@@ -68,7 +69,22 @@
 				}
 				return response(request)
 			}
-			let host = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
+			let host: any ExecutionHost
+			let fixtureHost: ImmediateExecutionHost?
+			let leases: @Sendable () async -> [LeaseRecord]
+			switch launch.host {
+			case .backgroundTime:
+				let background = BackgroundTimeHost(
+					bundleIdentifier: bundleIdentifier, system: backgroundSystem)
+				host = background
+				fixtureHost = nil
+				leases = { await background.leases }
+			case .immediate, .expireAfter:
+				let immediate = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
+				host = immediate
+				fixtureHost = immediate
+				leases = { immediate.leases }
+			}
 			let authorizer = FakeOpenRouterAuthorizer(response: launch.signInOutcome.response)
 			let catalogSource = FakeModelCatalogSource(response: launch.catalogResponse)
 			let coach = Coach(
@@ -97,11 +113,11 @@
 				coach: coach,
 				deviceCheck: FakeDeviceCheckTokenProvider(),
 				clock: clock,
-				leases: { host.leases },
+				leases: leases,
 				packPrices: { _ in [:] },
 				fixture: FixtureServices(
 					catalogSource: catalogSource, transport: transport, records: records,
-					host: host, secrets: secrets,
+					host: fixtureHost, secrets: secrets,
 					secretBacking: backing, nativeKeychain: native, trainingPeer: peer,
 					recordStore: fixture.store,
 					intervals: intervals, credits: credits, openRouterAuthorizer: authorizer,
