@@ -74,6 +74,17 @@ extension SwiftDataSuites {
 			#expect(transport.requests.isEmpty)
 		}
 
+		@Test func build2bbe2eeClaimsKeepTheContinuedProcessingLeaseTheyRecorded() async throws {
+			let log = try open("build-2bbe2ee", folder: "Fixtures")
+			let claims = try await log.fetch(RecordQuery(scope: .deviceLocal([.turnClaim])))
+			#expect(claims.skipped.isEmpty)
+			let leases = claims.records.compactMap { record -> LeaseKind? in
+				guard case .deviceLocal(.turnClaim(let body)) = record.body else { return nil }
+				return body.lease
+			}
+			#expect(leases == [.continuedProcessing, .continuedProcessing])
+		}
+
 		@Test func testUpgradeHistory() async throws {
 			let log = try open("history")
 			let coach = await makeCoach(transport: FakeModelTransport(), store: log)

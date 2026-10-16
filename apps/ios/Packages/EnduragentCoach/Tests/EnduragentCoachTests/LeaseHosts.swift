@@ -22,33 +22,6 @@ final class KeepingHost: ExecutionHost {
 	}
 }
 
-final class GraceOnlyHost: ExecutionHost {
-	private let inner = ImmediateExecutionHost()
-
-	func beginLease(
-		_ request: LeaseRequest, onExpiry: @escaping @Sendable (ExpiryCause) async -> Void
-	) async -> any ExecutionLease {
-		GraceLease(inner: await inner.beginLease(request, onExpiry: onExpiry))
-	}
-}
-
-private struct GraceLease: ExecutionLease {
-	let inner: any ExecutionLease
-	let kind: LeaseKind = .gracePeriodOnly
-
-	func report(_ progress: LeaseProgress) async {
-		await inner.report(progress)
-	}
-
-	func updateTitle(_ title: CatalogKey, language: LanguageTag) async {
-		await inner.updateTitle(title, language: language)
-	}
-
-	func end(_ ending: LeaseEnding) async {
-		await inner.end(ending)
-	}
-}
-
 actor EndingHost: ExecutionHost {
 	private let inner = ImmediateExecutionHost()
 	private var next = 0
@@ -84,14 +57,6 @@ private struct EndingLease: ExecutionLease {
 	let inner: any ExecutionLease
 	let ended: Gate
 	var kind: LeaseKind { inner.kind }
-
-	func report(_ progress: LeaseProgress) async {
-		await inner.report(progress)
-	}
-
-	func updateTitle(_ title: CatalogKey, language: LanguageTag) async {
-		await inner.updateTitle(title, language: language)
-	}
 
 	func end(_ ending: LeaseEnding) async {
 		await inner.end(ending)

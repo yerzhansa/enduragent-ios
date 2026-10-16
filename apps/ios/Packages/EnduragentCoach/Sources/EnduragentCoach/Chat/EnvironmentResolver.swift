@@ -44,10 +44,6 @@ package struct EnvironmentResolver: Sendable {
 			return .failure(error)
 		}
 	}
-
-	package func appLanguage() async -> LanguageTag {
-		displayLocale(await preferences().language).language
-	}
 }
 
 package struct AttemptEnvironment: Sendable {

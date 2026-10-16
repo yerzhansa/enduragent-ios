@@ -7,12 +7,12 @@ import Testing
 
 @MainActor
 final class SettlementObservingHost: ExecutionHost {
-	let inner: ContinuedProcessingHost
+	let inner: BackgroundTimeHost
 	var coach: Coach?
 	var events: [String] = []
 	private(set) var settledCounts: [Int] = []
 
-	init(inner: ContinuedProcessingHost) {
+	init(inner: BackgroundTimeHost) {
 		self.inner = inner
 	}
 
@@ -42,14 +42,6 @@ private struct SettlementObservingLease: ExecutionLease {
 	let inner: any ExecutionLease
 	let host: SettlementObservingHost
 	var kind: LeaseKind { inner.kind }
-
-	func report(_ progress: LeaseProgress) async {
-		await inner.report(progress)
-	}
-
-	func updateTitle(_ title: CatalogKey, language: LanguageTag) async {
-		await inner.updateTitle(title, language: language)
-	}
 
 	func end(_ ending: LeaseEnding) async {
 		await host.recordSettlement()

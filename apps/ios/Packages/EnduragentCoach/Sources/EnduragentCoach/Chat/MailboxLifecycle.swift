@@ -5,12 +5,9 @@ final class MailboxLifecycle {
 	private var leases: LeaseSlot
 	private var completedAway: Set<TurnID> = []
 
-	init(
-		host: any ExecutionHost, chat: ChatID, lifetime: Coach.Lifetime,
-		language: @escaping @Sendable () async -> LanguageTag
-	) {
+	init(host: any ExecutionHost, chat: ChatID, lifetime: Coach.Lifetime) {
 		self.lifetime = lifetime
-		self.leases = LeaseSlot(host: host, chat: chat, language: language)
+		self.leases = LeaseSlot(host: host, chat: chat)
 	}
 
 	var terminating: Bool { lifetime.terminating }
@@ -72,12 +69,6 @@ final class MailboxLifecycle {
 		await mailbox.cancelInFlight(cause: InterruptionCause(cause))
 	}
 
-	func updateLanguage(
-		_ language: LanguageTag, isolation: isolated (any Actor)? = #isolation
-	) async {
-		await leases.current?.updateLanguage(language)
-	}
-
 	func finishDrain(window: OpenWindow?, cause: InterruptionCause?) {
 		if window == nil, cause == nil, !lifetime.terminating {
 			_ = leases.end { $0.finish() }
@@ -88,6 +79,6 @@ final class MailboxLifecycle {
 		if case .replied? = settlement, !lifetime.foreground {
 			completedAway.insert(turn)
 		}
-		lease.settle(turn, settlement: settlement)
+		lease.settle(settlement)
 	}
 }
