@@ -123,12 +123,12 @@ package struct CalendarPayload: Sendable, Equatable {
 		return seconds
 	}
 
-	private static func positiveSafeSeconds(_ seconds: Double) -> Int? {
+	static func positiveSafeSeconds(_ seconds: Double) -> Int? {
 		guard seconds > 0, seconds <= largestSafeSeconds else { return nil }
 		return Int(exactly: seconds)
 	}
 
-	private static func trainingLoad(_ value: JSONValue?) throws(ToolInputError) -> Int? {
+	static func trainingLoad(_ value: JSONValue?) throws(ToolInputError) -> Int? {
 		guard let value else { return nil }
 		guard let load = value.numberValue, load >= 0,
 			let whole = Int(exactly: load.rounded(.toNearestOrAwayFromZero))

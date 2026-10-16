@@ -3,7 +3,8 @@
 		"0.1": 7,
 		"1.1": 8,
 		"2.1": 3,
-		"2.2": 6
+		"2.2": 6,
+		"2.3": 5
 	},
 	"criteria": [
 		{
@@ -182,6 +183,45 @@
 			"statement": "A body built with a CalendarWriteID carries category WORKOUT, that uid, external_id cycling-coach:<uid>, the coach tag, and no other field than the payload's.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "bodyCarriesTheWriteIdentityAndNothingElse"}
+			]
+		},
+		{
+			"id": "2.3.1",
+			"statement": "An edit patch naming only the date, the name, durationSeconds, the description, trainingLoad or a native structure builds a request body with that one field: start_date_local at T00:00:00, the trimmed name, moving_time, description, icu_training_load rounded to a whole number, or workout_doc.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutPatchTests.swift", "function": "eachFieldAloneSendsOnlyThatField"}
+			]
+		},
+		{
+			"id": "2.3.2",
+			"statement": "Authored steps in a patch's structure send the serializer's description and moving_time for every case of serializer-cases.json npm accepts, and no workout_doc. A native workout_doc is sent unchanged and becomes the desired structure. A description alone sends only the description and sets the desired structure to none, unless the description equals the current one after line endings are normalized.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutPatchTests.swift", "function": "authoredStepsSendTheSerializersDescriptionAndDurationForEveryNpmCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutPatchTests.swift", "function": "aNativeWorkoutDocumentIsSentUnchangedAndBecomesTheDesiredStructure"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutPatchTests.swift", "function": "aDescriptionAloneDropsTheDesiredStructureUnlessItIsUnchanged"}
+			]
+		},
+		{
+			"id": "2.3.3",
+			"statement": "A patch with no field, an unknown field, a past destination, a name of 121 characters or blank after trimming, an unreal date, a duration that is not a positive whole number of seconds, a 4001-character description, a negative Load, a structure that is not an object, or authored steps the serializer refuses is refused. Today's date, a 120-character name, an empty description, one second and a Load of 0 are accepted.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutPatchTests.swift", "function": "anUnusablePatchIsRefused"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutPatchTests.swift", "function": "theLimitsThemselvesAreAccepted"}
+			]
+		},
+		{
+			"id": "2.3.4",
+			"statement": "applied(to:) changes exactly the fields a patch names, alone or together, normalizes a patched description's line endings, and leaves every other field of the snapshot as it was.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutPatchTests.swift", "function": "appliedChangesExactlyTheNamedFields"}
+			]
+		},
+		{
+			"id": "2.3.5",
+			"statement": "CalendarEvent.snapshot of a list row read through the REST client holds its date, name, moving_time, icu_training_load, description with normalized line endings and workout_doc as normalized JSON, an absent or null value stays absent, and an event without a calendar date has no snapshot.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutSnapshotTests.swift", "function": "aListRowsSnapshotReadsItsFieldsAndKeepsAnAbsentValueAbsent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutSnapshotTests.swift", "function": "anEventWithoutACalendarDateHasNoSnapshot"}
 			]
 		}
 	],
