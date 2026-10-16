@@ -12,16 +12,28 @@ struct WorkoutReviewPayloadTests {
 		#expect(try WorkoutReviewPayload.encode(try WorkoutReviewPayload.decode(stored)) == stored)
 	}
 
-	@Test(arguments: [
-		"workout-review-approval", "workout-review-unconfirmed", "workout-review-try-again",
-		"workout-review-blocked", "workout-review-sending", "workout-review-completed",
-		"workout-review-canceled",
-	])
-	func everyStoredFixtureEncodesBackToItsOwnJSON(_ name: String) throws {
-		let stored = try fixtureText(name)
+	@Test(arguments: StoredReviewFixture.all)
+	func everyStoredFixtureEncodesBackToItsOwnJSON(_ fixture: StoredReviewFixture) throws {
+		let stored = try fixtureText(fixture.name)
 		let decoded = try WorkoutReviewPayload.decode(Data(stored.utf8))
 		let reencoded = String(decoding: try WorkoutReviewPayload.encode(decoded), as: UTF8.self)
 		#expect(try JSONValue.parse(reencoded) == JSONValue.parse(stored))
+	}
+
+	@Test(arguments: StoredReviewFixture.all)
+	func everyStoredFixtureDecodesToTheCasesItNames(_ fixture: StoredReviewFixture) throws {
+		let decoded = try reviewFixture(fixture.name)
+		#expect(storedCases(in: decoded) == fixture.cases)
+		if let stage = fixture.stage {
+			#expect(decoded.stage == stage)
+		}
+	}
+
+	@Test func everyStoredCaseIsHeldByAStoredFixture() throws {
+		let held = try StoredReviewFixture.all.reduce(into: Set<StoredCase>()) { held, fixture in
+			held.formUnion(storedCases(in: try reviewFixture(fixture.name)))
+		}
+		#expect(Set(StoredCase.allCases).subtracting(held) == [])
 	}
 
 	@Test func theFixturesDecodeToTheValuesTheyDescribe() throws {
