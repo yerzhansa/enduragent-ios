@@ -8,6 +8,7 @@ struct LiveCalendarRun {
 	let rewrites: IntervalsRewrites
 	var ledger: LiveSeedLedger
 	let sendRefused: @Sendable (CalendarWrite) async -> IntervalsWriteAnswer
+	let dropNextAnswer: @Sendable () -> Void
 	let drain: @Sendable () -> [TappedResponse]
 	var failures: [String] = []
 	private(set) var log: [String] = []
@@ -18,6 +19,7 @@ struct LiveCalendarRun {
 		account: any SeedAccount, plan: LiveCalendarPlan, rewrites: IntervalsRewrites,
 		ledger: LiveSeedLedger,
 		sendRefused: @escaping @Sendable (CalendarWrite) async -> IntervalsWriteAnswer,
+		dropNextAnswer: @escaping @Sendable () -> Void,
 		drain: @escaping @Sendable () -> [TappedResponse]
 	) {
 		self.account = account
@@ -25,6 +27,7 @@ struct LiveCalendarRun {
 		self.rewrites = rewrites
 		self.ledger = ledger
 		self.sendRefused = sendRefused
+		self.dropNextAnswer = dropNextAnswer
 		self.drain = drain
 	}
 
@@ -51,6 +54,7 @@ struct LiveCalendarRun {
 		await moveAndResend(plan.movedFar)
 		await refuseUnknownCategory()
 		await deleteTwice(strength)
+		await loseEachAnswer()
 		await removeEverything()
 	}
 
@@ -296,7 +300,7 @@ struct LiveCalendarRun {
 		return event
 	}
 
-	private mutating func record(_ add: LiveCalendarAdd) -> Bool {
+	mutating func record(_ add: LiveCalendarAdd) -> Bool {
 		guard ledger.calendar[add.externalID] == nil else { return true }
 		do {
 			try ledger.record(calendar: add.externalID, on: add.payload.date)
@@ -358,7 +362,7 @@ struct LiveCalendarRun {
 		}
 	}
 
-	private mutating func begin(_ name: String) {
+	mutating func begin(_ name: String) {
 		collect()
 		step = name
 		log.append("")
@@ -374,7 +378,7 @@ struct LiveCalendarRun {
 		log.append("- FAILED: \(line)")
 	}
 
-	private mutating func drained() -> [TappedResponse] {
+	mutating func drained() -> [TappedResponse] {
 		let tapped = drain()
 		responses += tapped.map { (step, $0) }
 		return tapped

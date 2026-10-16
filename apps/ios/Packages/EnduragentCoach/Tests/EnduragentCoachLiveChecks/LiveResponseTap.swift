@@ -66,6 +66,7 @@ enum LiveRedaction {
 final class LiveResponseTap: URLProtocol, @unchecked Sendable {
 	private static let taken = Mutex<[TappedResponse]>([])
 	private static let nextBody = Mutex<(@Sendable (Data) -> Data)?>(nil)
+	private static let dropsNextAnswer = Mutex(false)
 	private static let upstream = ephemeralSession(
 		requestTimeout: IntervalsPolicy.requestTimeout,
 		resourceTimeout: IntervalsPolicy.requestTimeout)
@@ -81,6 +82,10 @@ final class LiveResponseTap: URLProtocol, @unchecked Sendable {
 
 	static func rewriteNextBody(_ rewrite: @escaping @Sendable (Data) -> Data) {
 		nextBody.withLock { $0 = rewrite }
+	}
+
+	static func dropNextAnswer() {
+		dropsNextAnswer.withLock { $0 = true }
 	}
 
 	static func record(_ response: TappedResponse) {
@@ -99,6 +104,10 @@ final class LiveResponseTap: URLProtocol, @unchecked Sendable {
 
 	override func startLoading() {
 		let request = Self.outgoing(self.request)
+		let drops = Self.dropsNextAnswer.withLock { drops in
+			defer { drops = false }
+			return drops
+		}
 		let task = Self.upstream.dataTask(with: request) { [self] data, response, error in
 			guard let data, let response else {
 				client?.urlProtocol(self, didFailWithError: error ?? URLError(.badServerResponse))
@@ -112,6 +121,10 @@ final class LiveResponseTap: URLProtocol, @unchecked Sendable {
 							method: request.httpMethod ?? "GET", path: url.path,
 							query: parts?.percentEncodedQuery, status: http.statusCode, body: data))
 				}
+			}
+			guard !drops else {
+				client?.urlProtocol(self, didFailWithError: URLError(.networkConnectionLost))
+				return
 			}
 			client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
 			client?.urlProtocol(self, didLoad: data)

@@ -7,7 +7,8 @@
 		"2.3": 5,
 		"2.4": 4,
 		"2.5": 9,
-		"3.1": 11
+		"3.1": 11,
+		"6.1": 4
 	},
 	"criteria": [
 		{
@@ -426,6 +427,38 @@
 			"statement": "The minted-in-one-file rule fails each of its five patterns in a package file outside the owner, passes them in the owner, and passes ReviewReceipt( and other names that only contain Receipt or SendAttempt.",
 			"tests": [
 				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.1",
+			"statement": "An add, an edit and a delete each send exactly one request through CalendarWriter.send with the reviewed body, and no other request: an add is one bulk upsert of a one-element array carrying external_id cycling-coach:<id>, an edit is a PUT of the patch's fields, and a delete is a DELETE, with no read first.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarWriterTests.swift", "function": "eachChangeSendsOneRequestWithItsReviewedBodyAndNoOther"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarWriterTests.swift", "function": "eachAnswerOfEachWriteKindIsClassifiedOnce"}
+			]
+		},
+		{
+			"id": "6.1.2",
+			"statement": "classify gives saved for a create whose answer event carries its external_id and the payload's date, name, type and description, with intervals.icu's own Load and derived workout_doc allowed, and lost for another external_id or other content, never reading the answer's uid; an update naming another event is lost; a DELETE with 2xx is saved and with 404 gone; 400, 401, 403, 404 and 429 to an add or edit are refused; a 500, a 502, a timeout, an unreadable body and a cancellation are lost.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarWriterTests.swift", "function": "eachAnswerOfEachWriteKindIsClassifiedOnce"}
+			]
+		},
+		{
+			"id": "6.1.3",
+			"statement": "settle of an add reads its 366-day window from 183 days before its date once and gives seen for one event carrying its external_id on its date or another day, notSaved for none and readFailed for two; of an edit, seen when the patch is applied after the rewrites intervals-rewrites.json lists, else notSaved; of a delete, gone for 404 and notSaved when present; any failed read gives readFailed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarWriterTests.swift", "function": "eachSettleReadsOnceAndGivesWhatTheCalendarShows"}
+			]
+		},
+		{
+			"id": "6.1.4",
+			"statement": "On the live test calendar, with the answer dropped by the check's session, an add settles as seen, an edit as seen through isApplied(on:), and a delete as gone from a GET of the deleted id, each with no request other than its one write and the settle read.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aRunAgainstACalendarThatKeepsWhatItIsSentPassesAndRemovesEveryAdd"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aDroppedWriteThatNeverLandedFailsItsLostAnswerStep"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aRequestBesideTheWriteAndItsSettleReadFailsTheLostAnswerStep"}
 			]
 		}
 	],
