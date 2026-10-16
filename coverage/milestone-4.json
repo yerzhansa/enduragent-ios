@@ -141,9 +141,10 @@
 		},
 		{
 			"id": "2.2.1",
-			"statement": "Every case of serializer-cases.json, given as a ride add, builds a request body whose description and moving_time equal npm's description and movingTime byte for byte, and every case npm refuses is refused.",
+			"statement": "Every case of serializer-cases.json, given as a ride add, builds a request body whose description and moving_time equal npm's description and movingTime byte for byte, and every case npm refuses is refused. A ride whose serialized duration is 0 seconds is refused as invalid_workout.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "rideBodyCarriesNpmSerializerOutputForEveryCase"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "rideBodyCarriesNpmSerializerOutputForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "rideRefusesAWorkoutThatSerializesToZeroSeconds"}
 			]
 		},
 		{

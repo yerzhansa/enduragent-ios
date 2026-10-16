@@ -46,6 +46,19 @@ struct CalendarPayloadTests {
 		#expect(mismatches.isEmpty, "\(mismatches.joined(separator: "; "))")
 	}
 
+	@Test func rideRefusesAWorkoutThatSerializesToZeroSeconds() throws {
+		let change = try JSONValue.parse(
+			#"{"kind":"add-cycling","date":"1998-06-14","workout":{"name":"Blip","steps":[{"type":"interval","duration":{"value":0.4,"unit":"seconds"},"power":{"kind":"percent_ftp","value":60}}]}}"#
+		)
+		#expect(
+			throws: ToolInputError(
+				code: "invalid_workout",
+				details: "Workout duration must be a finite number of seconds greater than zero.")
+		) {
+			_ = try CalendarPayload.ride(change, today: today)
+		}
+	}
+
 	@Test func loadIsRoundedRefusedBelowZeroAndOmittedWhenAbsent() throws {
 		let rounded = try CalendarPayload.ride(try ride(load: "41.6"), today: today)
 		#expect(rounded.requestBody(identity).objectFields["icu_training_load"] == .number(42))

@@ -28,12 +28,17 @@ package struct CalendarPayload: Sendable, Equatable {
 		} catch {
 			throw ToolInputError(code: "invalid_workout", details: error.message)
 		}
+		guard let movingTime = positiveSafeSeconds(Double(serialized.movingTime)) else {
+			throw ToolInputError(
+				code: "invalid_workout",
+				details: "Workout duration must be a finite number of seconds greater than zero.")
+		}
 		return CalendarPayload(
 			date: date,
 			type: .ride,
 			name: workout.name,
 			description: serialized.description,
-			movingTime: serialized.movingTime,
+			movingTime: movingTime,
 			trainingLoad: try trainingLoad(fields["trainingLoad"])
 		)
 	}
@@ -109,14 +114,18 @@ package struct CalendarPayload: Sendable, Equatable {
 
 	private static func strengthSeconds(_ value: JSONValue?) throws(ToolInputError) -> Int {
 		guard let minutes = value?.numberValue,
-			case let seconds = (minutes * 60).rounded(.toNearestOrAwayFromZero),
-			seconds > 0, seconds <= largestSafeSeconds, let whole = Int(exactly: seconds)
+			let seconds = positiveSafeSeconds((minutes * 60).rounded(.toNearestOrAwayFromZero))
 		else {
 			throw ToolInputError(
 				code: "invalid_input",
 				details: "Strength duration must be a finite number of seconds greater than zero.")
 		}
-		return whole
+		return seconds
+	}
+
+	private static func positiveSafeSeconds(_ seconds: Double) -> Int? {
+		guard seconds > 0, seconds <= largestSafeSeconds else { return nil }
+		return Int(exactly: seconds)
 	}
 
 	private static func trainingLoad(_ value: JSONValue?) throws(ToolInputError) -> Int? {
