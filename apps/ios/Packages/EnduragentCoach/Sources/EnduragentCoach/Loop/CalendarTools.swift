@@ -3,7 +3,7 @@ import Foundation
 extension CoachTools {
 	static let listEvents = CoachTool.training(
 		.read(.intervalsListEvents),
-		"List scheduled calendar workouts on intervals.icu for a date range. Use this BEFORE deleting so you can show the athlete the list (id, date, name) and ask which one to delete. Filters to WORKOUT category only. Each row carries a coachCreated flag; only coach-created workouts can be deleted with intervals_delete_workout. Pass coachCreatedOnly: true to return only coach-created events.",
+		"List the workouts and races (categories WORKOUT, RACE_A, RACE_B and RACE_C) on the intervals.icu calendar for a date range; notes, holidays and other entries are left out. Use this BEFORE deleting so you can show the athlete the list (id, date, name) and ask which one to delete. A row has name when the entry has one, durationSeconds when intervals.icu holds its moving time, and load when intervals.icu holds its training Load; a missing key means unknown, never zero. Races are listed to plan around and are never changeable. Each row carries a coachCreated flag; only coach-created workouts can be deleted with intervals_delete_workout. Pass coachCreatedOnly: true to list only coach-created rows; a coach-created race stays a race and is still never changeable.",
 		parameters: ToolParameters.object(
 			properties: [
 				"oldest": ToolParameters.string("Oldest date (YYYY-MM-DD)"),
@@ -18,7 +18,9 @@ extension CoachTools {
 		rerunWith: "a smaller date range"
 	) { arguments, reach in
 		let range = try arguments.readRange(today: reach.local.today)
-		var events = try await reach.calendar.listEvents(in: range)
+		var events = try await reach.calendar.listEvents(in: range).filter {
+			listedCategories.contains($0.category)
+		}
 		if arguments.objectFields["coachCreatedOnly"]?.boolValue == true {
 			events = events.filter(\.coachCreated)
 		}
@@ -96,15 +98,25 @@ extension CoachTools {
 		return (.updateWorkout(update), update.description ?? "")
 	}
 
+	private static let listedCategories: Set<String> = ["WORKOUT", "RACE_A", "RACE_B", "RACE_C"]
+
 	private static func encodeEvent(_ event: CalendarEvent) -> JSONValue {
 		var fields: [String: JSONValue] = [
 			"id": .number(Double(event.id.rawValue)),
 			"startDateLocal": .string(event.startDateLocal),
-			"name": .string(event.name),
 			"category": .string(event.category),
 			"tags": .array(event.tags.map { .string($0) }),
 			"coachCreated": .bool(event.coachCreated),
 		]
+		if let name = event.name {
+			fields["name"] = .string(name)
+		}
+		if let movingTime = event.movingTime {
+			fields["durationSeconds"] = .number(Double(movingTime))
+		}
+		if let trainingLoad = event.trainingLoad {
+			fields["load"] = .number(Double(trainingLoad))
+		}
 		if let externalId = event.externalId {
 			fields["externalId"] = .string(externalId)
 		}
