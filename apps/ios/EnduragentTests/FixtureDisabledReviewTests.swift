@@ -26,7 +26,7 @@ extension FixtureLaunchTests {
 			}
 			fixture.intervals.writeFailure = nil
 			if layout == .repeatApproval {
-				await model.decide(.checkAgain(token.ref))
+				await model.decide(.checkAgainWithoutToken(token.ref))
 			} else if layout == .cancelOnly {
 				try fixture.trainingPeer.replace(.athleteB)
 				await model.decide(.presented(token.ref))
@@ -52,7 +52,7 @@ extension FixtureLaunchTests {
 		let card = ConfirmedPreviewCard(model: model, review: failed)
 		#expect(card.actions.map(\.id) == ["chat.preview.retryRead"])
 		#expect(card.actions.map { model.phrasebook.say($0.button.title) } == ["Try again"])
-		#expect(card.actions.first?.decision == .checkAgain(failed.ref))
+		#expect(card.actions.first?.decision == .checkAgainWithoutToken(failed.ref))
 		#expect(card.disabledButtons == expected)
 		#expect(failed.cards == ready.cards)
 		#expect(model.reviewNotice == nil)

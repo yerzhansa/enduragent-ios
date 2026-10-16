@@ -63,7 +63,7 @@ import Testing
 		#expect(card.name.sentence(in: display) == "Copied ride 1.5")
 		#expect(card.lines(in: display).joined(separator: "\n").contains("Athlete label 1.5"))
 		let pending = try #require(reopened.review)
-		_ = await coach.decide(.checkAgain(pending.ref), in: .main)
+		_ = await coach.decide(.checkAgainWithoutToken(pending.ref), in: .main)
 		let checked = try #require(await coach.currentSnapshot(.main)?.review)
 		guard case .retryRemainingOrCancel(let repeatWrite) = checked.controls else {
 			Issue.record("An uncommitted write did not offer its approved operation")
@@ -72,7 +72,7 @@ import Testing
 		server.state.withLock { $0.response = .success }
 		#expect(
 			await coach.decide(.retryRemaining(repeatWrite), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		let after = try #require(server.posts.last)
 		try #require(server.posts.count == 2)
 		#expect(before.method == "POST")

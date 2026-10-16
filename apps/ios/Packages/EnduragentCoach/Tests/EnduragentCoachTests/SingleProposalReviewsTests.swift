@@ -39,7 +39,7 @@ import Testing
 		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 
-		#expect(await coach.decide(.cancel(token), in: .main) == .canceled(kept: []))
+		#expect(await coach.decide(.cancel(token), in: .main) == .canceled([]))
 
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		let cleared = try await records.fetch(
@@ -72,19 +72,36 @@ import Testing
 		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 		#expect(await coach.decide(.showAgain(token.ref), in: .main) == .presentationRecorded)
-		#expect(await coach.decide(.presented(token.ref), in: .main) == .staleControl)
+		#expect(await coach.decide(.presented(token.ref), in: .main) == .staleControl(newer: nil))
 		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
-		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
+		#expect(await coach.decide(.approve(token), in: .main) == .staleControl(newer: nil))
 
 		let fresh = try await presentedToken(on: coach)
-		#expect(fresh.ref.set == token.ref.set)
+		#expect(fresh.ref.review == token.ref.review)
 		#expect(fresh.ref.delivery != token.ref.delivery)
 		clock.advance(by: 11 * 60)
-		#expect(await coach.decide(.approve(fresh), in: .main) == .staleControl)
+		#expect(await coach.decide(.approve(fresh), in: .main) == .staleControl(newer: nil))
 		#expect(ada.calls.allSatisfy { !$0.isWrite })
 		#expect(
-			ReviewOutcome.staleControl.notice?.sentence(in: displayLocale(phrasebook.tag))
+			ReviewOutcome.staleControl(newer: nil).notice?.sentence(
+				in: displayLocale(phrasebook.tag))
 				== "That proposal expired — ask me again and I'll re-propose.")
+	}
+
+	@Test func aWorkoutReviewDecisionOnTheOldCardIsAWrongActionThatKeepsItsControls() async throws {
+		let coach = await coach()
+		let token = try await presentedToken(on: coach)
+
+		for decision in [ReviewDecision.tryAgain(token), .checkAgain(token)] {
+			let outcome = await coach.decide(decision, in: .main)
+			#expect(outcome == .wrongAction)
+			#expect(outcome.notice == nil)
+			#expect(await coach.currentSnapshot(.main)?.review?.token == token)
+		}
+		#expect(ada.calls.allSatisfy { !$0.isWrite })
+		#expect(
+			await coach.decide(.approve(token), in: .main)
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 	}
 
 	@Test func approveWritesOnceAndASecondTapIsStale() async throws {
@@ -93,10 +110,12 @@ import Testing
 
 		let outcome = await coach.decide(.approve(token), in: .main)
 
-		#expect(outcome == .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+		#expect(
+			outcome == .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))])
+		)
 		#expect(outcome.notice == nil)
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
-		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
+		#expect(await coach.decide(.approve(token), in: .main) == .staleControl(newer: nil))
 		#expect(ada.calls.filter(\.isWrite).count == 1)
 		let writes = try await records.fetch(
 			RecordQuery(scope: .synced([.reviewWrite]), chatId: .main)
@@ -123,8 +142,8 @@ import Testing
 			await coach.decide(.presentationFailed(token.ref), in: .main) == .presentationRecorded)
 
 		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
-		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
-		#expect(await coach.decide(.cancel(token), in: .main) == .staleControl)
+		#expect(await coach.decide(.approve(token), in: .main) == .staleControl(newer: nil))
+		#expect(await coach.decide(.cancel(token), in: .main) == .staleControl(newer: nil))
 		#expect(ada.calls.allSatisfy { !$0.isWrite })
 	}
 
@@ -136,13 +155,13 @@ import Testing
 
 		let first = Task { await coach.decide(.approve(token), in: .main) }
 		try #require(try await claim.waitUntilEntered())
-		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
-		#expect(await coach.decide(.cancel(token), in: .main) == .staleControl)
+		#expect(await coach.decide(.approve(token), in: .main) == .staleControl(newer: nil))
+		#expect(await coach.decide(.cancel(token), in: .main) == .staleControl(newer: nil))
 		await claim.release()
 
 		#expect(
 			await first.value
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(ada.calls.filter(\.isWrite).count == 1)
 	}
 
@@ -178,7 +197,7 @@ import Testing
 			blocked.notice?.sentence(in: displayLocale(phrasebook.tag))
 				== "Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 		)
-		#expect(await coach.currentSnapshot(.main)?.review?.ref.set == token.ref.set)
+		#expect(await coach.currentSnapshot(.main)?.review?.ref.review == token.ref.review)
 		#expect(
 			await coach.currentSnapshot(.main)?.review?.notice?.key == Catalog.reviewCannotVerify)
 		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
@@ -188,7 +207,7 @@ import Testing
 		secretBacking.locked = false
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 	}
 
 	@Test(arguments: [IntervalsWriteAnswer.httpStatus(422), .lost(.transport)])
@@ -205,7 +224,8 @@ import Testing
 
 		#expect(
 			outcome
-				== .uncertain(
+				== .unconfirmed(
+					[],
 					ReviewNotice(kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:]))
 		)
 		#expect(
@@ -243,24 +263,13 @@ import Testing
 	}
 
 	@Test func everyReviewOutcomeReadsACatalogSentenceWithNoSwiftType() {
-		let card = ReviewCard(
-			index: 0, action: .add, name: .supplied("Endurance"), date: "1998-06-14", chart: nil,
-			instructions: ReviewInstructions(content: .supplied("Warmup")), durationMinutes: nil,
-			estimatedLoad: nil)
 		let rows: [(ReviewOutcome, String?)] = [
-			(.applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]), nil),
-			(.canceled(kept: []), nil),
+			(.completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]), nil),
+			(.canceled([]), nil),
 			(.presentationRecorded, nil),
 			(
-				.partiallyApplied(done: [], stoppedAt: card, failure: .temporarilyUnavailable),
-				"Couldn't reach intervals.icu right now — try again shortly."
-			),
-			(
-				.partiallyApplied(done: [], stoppedAt: card, failure: .requestRejected),
-				"intervals.icu rejected the request — check your intervals.icu connection or API key."
-			),
-			(
-				.uncertain(
+				.unconfirmed(
+					[],
 					ReviewNotice(kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:])),
 				"This workout may have been saved. Check the calendar before continuing."
 			),
@@ -272,7 +281,10 @@ import Testing
 				.blocked(.cannotVerify),
 				"Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 			),
-			(.staleControl, "That proposal expired — ask me again and I'll re-propose."),
+			(
+				.staleControl(newer: nil),
+				"That proposal expired — ask me again and I'll re-propose."
+			),
 			(
 				.storageUnavailable,
 				"Couldn't save your choice on this iPhone, so nothing was changed. Try again."

@@ -50,7 +50,8 @@ import Testing
 		func decision(_ ready: ReviewSnapshot) throws -> ReviewDecision {
 			switch self {
 			case .approvalLiveProposal, .approvalWrites: return .approve(try #require(ready.token))
-			case .recoveryWrites, .recoveryRetainedProposal: return .checkAgain(ready.ref)
+			case .recoveryWrites, .recoveryRetainedProposal:
+				return .checkAgainWithoutToken(ready.ref)
 			case .cancelWrites, .cancelRetainedProposal:
 				guard case .retryRemainingOrCancel(let token) = ready.controls else {
 					throw ReviewReadFixtureFailure()
@@ -79,7 +80,7 @@ import Testing
 		await coach.stop(.main)
 		if read == .cancelWrites || read == .cancelRetainedProposal {
 			server.state.withLock { $0.readResponse = .body("[]") }
-			_ = await coach.decide(.checkAgain(token.ref), in: .main)
+			_ = await coach.decide(.checkAgainWithoutToken(token.ref), in: .main)
 		}
 		_ = await coach.decide(.presented(token.ref), in: .main)
 		let ready = try #require(await coach.currentSnapshot(.main)?.review)
@@ -139,7 +140,9 @@ import Testing
 			store.notifyImport()
 			try await waitUntil { observed.latest?.review == ready }
 		} else {
-			#expect(await coach.decide(.checkAgain(ready.ref), in: .main) == .presentationRecorded)
+			#expect(
+				await coach.decide(.checkAgainWithoutToken(ready.ref), in: .main)
+					== .presentationRecorded)
 		}
 		#expect(await coach.currentSnapshot(.main)?.review == ready)
 		try await waitUntil { observed.latest?.review == ready }

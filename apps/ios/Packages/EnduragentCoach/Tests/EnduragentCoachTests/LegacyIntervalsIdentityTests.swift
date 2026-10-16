@@ -18,12 +18,12 @@ extension CredentialVaultTests {
 		let pending = try await proposeRide(on: coach(phone))
 		let peer = await coach(pad)
 		let review = try #require(await peer.currentSnapshot(.main)?.review)
-		#expect(review.ref.set == pending.ref.set)
+		#expect(review.ref.review == pending.ref.review)
 		#expect(await peer.decide(.presented(review.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await peer.currentSnapshot(.main)?.review?.token)
 		#expect(
 			await peer.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(
 			ada.calls.contains {
 				if case .createEvent = $0 { return true }

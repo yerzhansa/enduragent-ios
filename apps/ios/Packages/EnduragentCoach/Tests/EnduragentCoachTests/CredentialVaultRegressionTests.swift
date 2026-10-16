@@ -166,7 +166,7 @@ extension CredentialVaultTests {
 		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(
 			ada.calls.contains {
 				if case .createEvent = $0 { return true }

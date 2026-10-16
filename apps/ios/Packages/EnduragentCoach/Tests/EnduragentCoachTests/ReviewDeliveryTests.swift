@@ -30,7 +30,7 @@ extension SingleProposalReviewsTests {
 		let refreshed = try #require(await coach.currentSnapshot(.main)?.review)
 		#expect(refreshed.controls == .none)
 		if let duplicate = refreshed.token {
-			#expect(await coach.decide(.approve(duplicate), in: .main) == .staleControl)
+			#expect(await coach.decide(.approve(duplicate), in: .main) == .staleControl(newer: nil))
 		}
 		await claim.release()
 		_ = await approval.value
@@ -47,11 +47,11 @@ extension SingleProposalReviewsTests {
 		let approval = Task { await coach.decide(.approve(token), in: .main) }
 		try #require(try await firstWrite.waitUntilEntered())
 		let later = try await propose(on: coach)
-		#expect(later.ref.set == token.ref.set)
+		#expect(later.ref.review == token.ref.review)
 		#expect(later.controls == .none)
 		#expect(
 			await coach.decide(cancel ? .cancel(token) : .approve(token), in: .main)
-				== .staleControl)
+				== .staleControl(newer: nil))
 		await firstWrite.release()
 		_ = await approval.value
 		#expect(await coach.currentSnapshot(.main)?.review == nil)

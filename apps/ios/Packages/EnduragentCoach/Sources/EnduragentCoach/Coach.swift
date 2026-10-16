@@ -153,7 +153,7 @@ public actor Coach {
 			diagnostics.record(.recoveryUnavailable(error))
 			return await reviews.unresolved(.unknown(.readFailed))
 		}
-		if case .checkAgain(let ref) = decision, await mailbox.reviewReadUnavailable {
+		if case .checkAgainWithoutToken(let ref) = decision, await mailbox.reviewReadUnavailable {
 			return await mailbox.reviewChanged(ref)
 		}
 		let outcome = await mailbox.decide(decision)

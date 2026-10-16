@@ -181,11 +181,9 @@ package enum AthleteNotices {
 
 	package static func notice(for outcome: ReviewOutcome) -> AthleteNotice? {
 		switch outcome {
-		case .applied, .canceled, .presentationRecorded:
+		case .completed, .canceled, .wrongAction, .presentationRecorded:
 			return nil
-		case .partiallyApplied(_, _, let failure):
-			return notice(for: failure)
-		case .uncertain(let notice), .changedSinceReview(let notice):
+		case .stopped(_, let notice), .unconfirmed(_, let notice), .refreshed(let notice):
 			return AthleteNotice(
 				key: notice.key, vars: notice.vars.mapValues(CatalogArgument.text), actions: [])
 		case .blocked(.accountChanged):

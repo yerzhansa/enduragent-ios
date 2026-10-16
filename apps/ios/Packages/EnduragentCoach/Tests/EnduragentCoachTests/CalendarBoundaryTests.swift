@@ -40,7 +40,7 @@ extension DurableCalendarWriteTests {
 			"Calendar Stop did not finish within five seconds")
 		#expect(
 			await fixture.coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(server.posts.count == 1)
 		#expect(server.events.count == 1)
 	}
@@ -86,8 +86,8 @@ extension DurableCalendarWriteTests {
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(
-			await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+			await fixture.coach.decide(.checkAgainWithoutToken(pending.ref), in: .main)
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(await fixture.coach.currentSnapshot(.main)?.review == nil)
 		#expect(server.posts.count == 1)
 		#expect(server.events.count == 1)

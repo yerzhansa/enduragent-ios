@@ -59,7 +59,7 @@ extension SingleProposalReviewsTests {
 				== "This workout review is from an earlier version of the app and can no longer be applied."
 		)
 		if let token = presented.token {
-			#expect(await coach.decide(.cancel(token), in: .main) != .canceled(kept: []))
+			#expect(await coach.decide(.cancel(token), in: .main) != .canceled([]))
 		}
 		_ = await coach.decide(.showAgain(presented.ref), in: .main)
 		let redisplayed = try #require(await coach.currentSnapshot(.main)?.review)

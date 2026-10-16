@@ -27,7 +27,7 @@ extension FixtureLaunchTests {
 		#expect(failed.ref == unpresented.ref)
 		#expect(failed.cards == unpresented.cards)
 		#expect(failed.controls == .none)
-		await model.decide(.checkAgain(failed.ref))
+		await model.decide(.checkAgainWithoutToken(failed.ref))
 		try await until {
 			if case .approveOrCancel? = model.chat?.review?.controls { return true }
 			return false

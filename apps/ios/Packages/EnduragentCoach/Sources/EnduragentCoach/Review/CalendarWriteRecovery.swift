@@ -11,8 +11,8 @@ extension SingleProposalReviews {
 		let block = await accountBlock(intent.record.account)
 		guard !closed.contains(intent.body.review) else { return nil }
 		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
-		var delivery = delivery(set: intent.body.review, chat: chat, authority: authority)
-		let cards = intent.proposal.map { [ReviewCard($0.body)] } ?? []
+		var delivery = delivery(review: intent.body.review, chat: chat, authority: authority)
+		let cards = intent.proposal.map { [ReviewCard($0.body, progress: .mayHaveBeenSaved)] } ?? []
 		let controls: ReviewControls
 		if authority != .thisDevice || delivery.busy
 			|| intent.proposal == nil
@@ -38,7 +38,8 @@ extension SingleProposalReviews {
 			state: .available(
 				ReviewContent(
 					cards: cards, kept: [], totals: ReviewTotals(cards), receipts: [],
-					notice: notice, authority: authority), controls), attribution: attribution)
+					notice: notice, authority: authority), controls), placement: .endOfConversation,
+			attribution: attribution)
 	}
 
 	func canRepeat(_ intent: CalendarWriteIntent) -> Bool {
@@ -55,13 +56,14 @@ extension SingleProposalReviews {
 		do {
 			guard
 				let intent = try await ledger.calendarWrites(ref.chat).first(where: {
-					$0.body.review == ref.set
+					$0.body.review == ref.review
 				}),
 				intent.record.deviceId == ledger.deviceId, let live = intent.proposal,
 				intent.body.evidence.dispatched, intent.cancellation == nil
 			else { return unresolved(.unknown(.readFailed)) }
 			if case .applied(let id?) = intent.body.evidence {
-				return .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: String(id)))])
+				let receipt = ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: id)))
+				return .completed([receipt])
 			}
 			if await accountBlock(intent.record.account) == .accountChanged {
 				return .blocked(.accountChanged)

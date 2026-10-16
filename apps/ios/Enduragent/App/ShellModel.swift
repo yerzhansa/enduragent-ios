@@ -312,7 +312,7 @@ final class ShellModel {
 			}
 		#endif
 		switch decision {
-		case .approve, .cancel, .retryRemaining, .checkAgain:
+		case .approve, .cancel, .retryRemaining, .tryAgain, .checkAgain, .checkAgainWithoutToken:
 			reviewOutcomeNotice = outcome.notice
 		case .presented, .presentationFailed, .showAgain:
 			break

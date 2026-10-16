@@ -53,7 +53,8 @@
 					Task {
 						guard let review = model.chat?.review
 						else { return }
-						_ = await services.coach.decide(.checkAgain(review.ref), in: .main)
+						_ = await services.coach.decide(
+							.checkAgainWithoutToken(review.ref), in: .main)
 					}
 				}
 				.accessibilityIdentifier("fixture.refreshReview")

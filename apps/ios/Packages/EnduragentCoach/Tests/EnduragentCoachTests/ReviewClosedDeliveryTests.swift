@@ -17,7 +17,7 @@ extension SingleProposalReviewsTests {
 		let token = try await presentedToken(on: coach)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		await staleRead.release()
 		_ = await refresh.value
 		#expect(await coach.currentSnapshot(.main)?.review == nil)

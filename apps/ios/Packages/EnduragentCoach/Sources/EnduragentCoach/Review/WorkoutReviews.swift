@@ -14,9 +14,10 @@ extension ReviewDecision {
 	package var ref: ReviewRef {
 		switch self {
 		case .presented(let ref), .presentationFailed(let ref), .showAgain(let ref),
-			.checkAgain(let ref):
+			.checkAgainWithoutToken(let ref):
 			ref
-		case .approve(let token), .retryRemaining(let token), .cancel(let token):
+		case .approve(let token), .retryRemaining(let token), .tryAgain(let token),
+			.checkAgain(let token), .cancel(let token):
 			token.ref
 		}
 	}

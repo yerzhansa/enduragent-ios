@@ -71,7 +71,7 @@ import Testing
 
 		#expect(
 			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		let writes = try await records.fetch(RecordQuery(scope: .synced([.reviewWrite]))).records
 		guard case .synced(.reviewWrite(let applied)) = writes.last?.body else {

@@ -49,8 +49,8 @@ import Testing
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(pending.notice?.key.rawValue == "review.writePending")
 		#expect(
-			await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+			await fixture.coach.decide(.checkAgainWithoutToken(pending.ref), in: .main)
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		let confirmed = try #require(await fixture.coach.state(of: turn))
 		guard case .interrupted(let stopped) = confirmed else {
 			Issue.record("expected stopped turn")
@@ -95,7 +95,7 @@ import Testing
 			"Calendar approval did not finish within five seconds")
 		await fixture.coach.stop(.main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		_ = await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
+		_ = await fixture.coach.decide(.checkAgainWithoutToken(pending.ref), in: .main)
 		let checked = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		guard case .retryRemainingOrCancel(let retry) = checked.controls else {
 			Issue.record("empty read must offer only repetition of the captured approval")
@@ -111,7 +111,7 @@ import Testing
 		server.state.withLock { $0.response = .success }
 		#expect(
 			await fixture.coach.decide(.retryRemaining(retry), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		server.release()
 		#expect(server.posts.count == 2)
 		#expect(server.posts.first?.body == server.posts.last?.body)
@@ -133,7 +133,7 @@ import Testing
 		_ = await fixture.coach.decide(.approve(token), in: .main)
 		await fixture.coach.stop(.main)
 		let review = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		_ = await fixture.coach.decide(.checkAgain(review.ref), in: .main)
+		_ = await fixture.coach.decide(.checkAgainWithoutToken(review.ref), in: .main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(pending.notice?.key.rawValue == "review.writeReadFailed")

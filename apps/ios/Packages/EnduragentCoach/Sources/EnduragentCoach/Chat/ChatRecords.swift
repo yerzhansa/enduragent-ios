@@ -90,7 +90,7 @@ final class ChatRecords {
 	func refreshReview(
 		_ ref: ReviewRef? = nil, isolation: isolated (any Actor)? = #isolation
 	) async -> ReviewOutcome {
-		if let ref, review?.ref != ref { return .staleControl }
+		if let ref, review?.ref != ref { return .staleControl(newer: nil) }
 		do {
 			try await updateReview()
 			return .presentationRecorded

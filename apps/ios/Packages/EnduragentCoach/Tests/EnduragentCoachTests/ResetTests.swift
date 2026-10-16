@@ -89,7 +89,7 @@ import Testing
 		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(await coach.currentSnapshot(.main)?.review?.ref == review.ref)
 		#expect(try await count(.deviceLocal([.proposalCleared])) == 0)
-		#expect(await self.coach().currentSnapshot(.main)?.review?.ref.set == review.ref.set)
+		#expect(await self.coach().currentSnapshot(.main)?.review?.ref.review == review.ref.review)
 	}
 
 	@Test func resetWithPartialFlushReportsPartiallySaved() async throws {

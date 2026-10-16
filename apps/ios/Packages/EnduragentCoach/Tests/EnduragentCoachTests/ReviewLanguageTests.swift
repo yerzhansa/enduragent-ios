@@ -75,7 +75,7 @@ extension FirstTurnTests {
 				$0.review != nil
 			})
 		let restored = try #require(observed.review)
-		#expect(restored.ref.set == review.ref.set)
+		#expect(restored.ref.review == review.ref.review)
 		#expect(restored.ref.revision == review.ref.revision)
 		#expect(await reopened.decide(.showAgain(restored.ref), in: .main) == .presentationRecorded)
 		let shown = try #require(await reopened.currentSnapshot(.main)?.review)
@@ -99,8 +99,8 @@ extension FirstTurnTests {
 		let token = try #require(await reopened.currentSnapshot(.main)?.review?.token)
 		#expect(
 			await reopened.decide(.approve(token), in: .main)
-				== .applied([
-					ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))
+				== .completed([
+					ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))
 				]))
 		try #require(server.writes.count == 1)
 		let request = try #require(server.posts.first)

@@ -31,7 +31,7 @@ extension RetryLadderTests {
 		try await expectApprovalBlocked(
 			at: checkpoint, turn: turn, coach: coach, model: model, clock: held)
 		held.advance(by: checkpoint == .backoff ? .seconds(6) : .seconds(2))
-		guard case .uncertain = await approving.value else {
+		guard case .unconfirmed = await approving.value else {
 			Issue.record("expected an uncertain calendar write")
 			return
 		}
@@ -77,7 +77,7 @@ extension RetryLadderTests {
 		held.advance(by: .seconds(13))
 		#expect(
 			await approving.value
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .completed([ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]))
 		await stopping.value
 		guard case .interrupted(let interrupted) = settled else {
 			Issue.record("expected interruption, got \(settled)")
@@ -107,7 +107,7 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(13))
 		held.advance(by: .seconds(7))
 		held.advance(by: .seconds(6))
-		guard case .uncertain = await approving.value else {
+		guard case .unconfirmed = await approving.value else {
 			Issue.record("a dispatched rejection stays unknown")
 			return
 		}

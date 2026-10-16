@@ -15,7 +15,7 @@ extension SingleProposalReviewsTests {
 		store.notifyImport()
 		var reached = held.reached.makeAsyncIterator()
 		await reached.next()
-		#expect(await coach.decide(.cancel(token), in: .main) == .canceled(kept: []))
+		#expect(await coach.decide(.cancel(token), in: .main) == .canceled([]))
 		try await waitUntil { observed.latest != nil && observed.latest?.review == nil }
 		let count = observed.count
 		held.release()

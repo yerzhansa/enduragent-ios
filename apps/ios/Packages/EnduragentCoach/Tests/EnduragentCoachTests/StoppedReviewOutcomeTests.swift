@@ -30,7 +30,7 @@ extension RetryLadderTests {
 		defer { approving.cancel() }
 		try await held.waitUntilHeld(.seconds(13))
 		held.advance(by: .seconds(13))
-		guard case .uncertain = await approving.value else {
+		guard case .unconfirmed = await approving.value else {
 			Issue.record("expected an uncertain write")
 			return
 		}
@@ -85,7 +85,7 @@ extension RetryLadderTests {
 			(turnNotice(of: try #require(await settledTurn(turn, on: coach)))?.actions ?? [])
 				.isEmpty)
 		held.advance(by: .seconds(13))
-		guard case .uncertain = await approving.value else {
+		guard case .unconfirmed = await approving.value else {
 			Issue.record("a dispatched rejection is not proof of absence")
 			return
 		}

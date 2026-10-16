@@ -2,7 +2,7 @@ import Foundation
 
 public struct ReviewRef: Hashable, Sendable {
 	public let chat: ChatID
-	public let set: WorkoutReviewID
+	public let review: WorkoutReviewID
 	public let revision: ReviewRevision
 	public let delivery: UUID
 }
@@ -12,9 +12,43 @@ public struct ReviewControlToken: Hashable, Sendable {
 	package let secret: UUID
 }
 
+struct Delivery: Equatable, Sendable {
+	enum Presence: Equatable, Sendable {
+		case shown
+		case armed(UUID)
+	}
+
+	let ref: ReviewRef
+	let head: ULID
+	let presence: Presence
+
+	static func fresh(for review: WorkoutReview, at head: ULID) -> Delivery {
+		Delivery(
+			ref: ReviewRef(
+				chat: review.chat, review: review.id, revision: review.revision, delivery: UUID()),
+			head: head, presence: .shown)
+	}
+
+	func acknowledge() -> Delivery {
+		guard case .shown = presence else { return self }
+		return Delivery(ref: ref, head: head, presence: .armed(UUID()))
+	}
+
+	func controls(_ allowed: ControlSet?) -> ReviewControls {
+		guard case .armed(let secret) = presence, let allowed else { return .none }
+		return .armed(allowed, ReviewControlToken(ref: ref, secret: secret))
+	}
+
+	func admits(_ token: ReviewControlToken) -> Bool {
+		guard case .armed(let secret) = presence else { return false }
+		return token.ref == ref && token.secret == secret
+	}
+}
+
 public struct ReviewSnapshot: Sendable, Equatable {
 	public let ref: ReviewRef
 	public let state: State
+	public let placement: ReviewPlacement
 	public let attribution: AthleteAttribution
 
 	public enum State: Sendable, Equatable {
@@ -54,7 +88,7 @@ public struct ReviewSnapshot: Sendable, Equatable {
 		case .available(let content, let controls):
 			Self(
 				ref: ref, state: .storageUnavailable(content, DisabledReviewButtons(controls)),
-				attribution: attribution)
+				placement: placement, attribution: attribution)
 		case .storageUnavailable, .cancelledUnknown: self
 		}
 	}
@@ -70,9 +104,9 @@ public struct ReviewContent: Sendable, Equatable {
 }
 
 public struct CancelledUnknownReview: Sendable, Equatable {
-	public let set: WorkoutReviewID
+	public let review: WorkoutReviewID
 
-	package init(_ body: ReviewCancelledUnknownBody) { set = body.review }
+	package init(_ body: ReviewCancelledUnknownBody) { review = body.review }
 }
 
 public enum DisabledReviewButtons: Sendable, Equatable {
@@ -85,7 +119,7 @@ public enum DisabledReviewButtons: Sendable, Equatable {
 	init(_ controls: ReviewControls) {
 		self =
 			switch controls {
-			case .none: .none
+			case .none, .armed: .none
 			case .approveOrCancel: .approveOrCancel
 			case .retryRemainingOrCancel: .retryRemainingOrCancel
 			case .checkAgain: .checkAgain
@@ -106,6 +140,7 @@ public enum ReviewControls: Sendable, Equatable {
 	case retryRemainingOrCancel(ReviewControlToken)
 	case checkAgain(ReviewRef)
 	case cancelOnly(ReviewControlToken)
+	case armed(ControlSet, ReviewControlToken)
 }
 
 public enum ReviewDecision: Sendable, Equatable {
@@ -114,18 +149,21 @@ public enum ReviewDecision: Sendable, Equatable {
 	case showAgain(ReviewRef)
 	case approve(ReviewControlToken)
 	case retryRemaining(ReviewControlToken)
+	case tryAgain(ReviewControlToken)
+	case checkAgain(ReviewControlToken)
 	case cancel(ReviewControlToken)
-	case checkAgain(ReviewRef)
+	case checkAgainWithoutToken(ReviewRef)
 }
 
 public enum ReviewOutcome: Sendable, Equatable {
-	case applied([ReviewReceipt])
-	case partiallyApplied(done: [ReviewReceipt], stoppedAt: ReviewCard, failure: TrainingFailure)
-	case uncertain(ReviewNotice)
-	case canceled(kept: [ReviewReceipt])
-	case changedSinceReview(ReviewNotice)
+	case completed([ReviewReceipt])
+	case stopped([ReviewReceipt], ReviewNotice)
+	case unconfirmed([ReviewReceipt], ReviewNotice)
+	case canceled([ReviewReceipt])
+	case refreshed(ReviewNotice)
 	case blocked(ReviewBlock)
-	case staleControl
+	case staleControl(newer: ReviewRef?)
+	case wrongAction
 	case presentationRecorded
 	case storageUnavailable
 }
@@ -167,6 +205,7 @@ public struct ReviewCard: Sendable, Equatable {
 	public let instructions: ReviewInstructions
 	public let durationMinutes: Int?
 	public let estimatedLoad: Int?
+	public let progress: CardProgress
 
 	public func lines(in display: DisplayLocale) -> [String] {
 		instructions.lines(in: display)
@@ -186,14 +225,25 @@ public struct ReviewTotals: Sendable, Equatable {
 	public let durationMinutes: Int?
 }
 
+public enum CardProgress: Sendable, Equatable {
+	case remaining
+	case sending
+	case saved(EventID)
+	case seenOnCalendar
+	case noLongerOnCalendar
+	case refused
+	case mayHaveBeenSaved
+}
+
+public enum ReviewPlacement: Sendable, Equatable {
+	case afterTurn(TurnID)
+	case preparedEarlier
+	case endOfConversation
+}
+
 public struct ReviewReceipt: Sendable, Equatable {
-	public enum Result: Sendable, Equatable {
-		case confirmed(eventId: String)
-		case rejected(reason: String)
-		case uncertain
-	}
 	public let index: Int
-	public let result: Result
+	public let progress: CardProgress
 }
 
 public struct ReviewNotice: Sendable, Equatable {

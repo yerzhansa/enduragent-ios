@@ -128,7 +128,7 @@ final class ShellLanguageTests {
 		await model.appear()
 		try await until { model.chat?.review != nil }
 		let restored = try #require(model.chat?.review)
-		#expect(restored.ref.set == review.ref.set)
+		#expect(restored.ref.review == review.ref.review)
 		#expect(
 			restored.cards.first?.lines(in: model.displayLocale).contains(
 				"- 10m progressif 60.5-80.5% 90rpm Warmup ramp 1.5") == true)

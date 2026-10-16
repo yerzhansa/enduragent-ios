@@ -42,7 +42,10 @@ struct ConfirmedPreviewCard: View {
 
 	var actions: [ConfirmedPreviewAction] {
 		if case .storageUnavailable = review.state {
-			return [ConfirmedPreviewAction(button: .retryRead, decision: .checkAgain(review.ref))]
+			return [
+				ConfirmedPreviewAction(
+					button: .retryRead, decision: .checkAgainWithoutToken(review.ref))
+			]
 		}
 		guard review.authority == .thisDevice else { return [] }
 		return switch review.controls {
@@ -52,16 +55,17 @@ struct ConfirmedPreviewCard: View {
 				ConfirmedPreviewAction(button: .add, decision: .approve(token)),
 			]
 		case .checkAgain(let ref):
-			[ConfirmedPreviewAction(button: .checkAgain, decision: .checkAgain(ref))]
+			[ConfirmedPreviewAction(button: .checkAgain, decision: .checkAgainWithoutToken(ref))]
 		case .retryRemainingOrCancel(let token):
 			[
-				ConfirmedPreviewAction(button: .checkAgain, decision: .checkAgain(token.ref)),
+				ConfirmedPreviewAction(
+					button: .checkAgain, decision: .checkAgainWithoutToken(token.ref)),
 				ConfirmedPreviewAction(button: .cancel, decision: .cancel(token)),
 				ConfirmedPreviewAction(button: .saveAgain, decision: .retryRemaining(token)),
 			]
 		case .cancelOnly(let token):
 			[ConfirmedPreviewAction(button: .cancel, decision: .cancel(token))]
-		case .none: []
+		case .none, .armed: []
 		}
 	}
 

@@ -39,7 +39,7 @@ import Testing
 			server.state.withLock { $0.athleteID = "i2002" }
 			_ = await coach.decide(.presented(approval.ref), in: .main)
 		} else {
-			_ = await coach.decide(.checkAgain(approval.ref), in: .main)
+			_ = await coach.decide(.checkAgainWithoutToken(approval.ref), in: .main)
 		}
 		let absent = try #require(await coach.currentSnapshot(.main)?.review)
 		let token: ReviewControlToken
@@ -58,14 +58,14 @@ import Testing
 		faults.failFetches = true
 		#expect(await coach.decide(.cancel(token), in: .main) == .storageUnavailable)
 		faults.failFetches = false
-		#expect(await coach.decide(.cancel(token), in: .main) == .canceled(kept: []))
+		#expect(await coach.decide(.cancel(token), in: .main) == .canceled([]))
 		#expect(server.state.withLock { $0.requests.count } == calls)
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		let notes = try #require(await coach.currentSnapshot(.main)?.notes.values.flatMap { $0 })
 		#expect(notes.map { $0.sentence(in: displayLocale()) } == [Self.sentence])
-		#expect(await coach.decide(.cancel(token), in: .main) == .staleControl)
-		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
-		#expect(await coach.decide(.retryRemaining(token), in: .main) == .staleControl)
+		#expect(await coach.decide(.cancel(token), in: .main) == .staleControl(newer: nil))
+		#expect(await coach.decide(.approve(token), in: .main) == .staleControl(newer: nil))
+		#expect(await coach.decide(.retryRemaining(token), in: .main) == .staleControl(newer: nil))
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await coach.retry(turn, in: .main)
 		}
@@ -74,7 +74,9 @@ import Testing
 			transport: fixture.model, intervals: fixture.client, store: fixture.store,
 			secrets: secrets)
 		#expect(await reopened.currentSnapshot(.main)?.review == nil)
-		#expect(await reopened.decide(.checkAgain(absent.ref), in: .main) == .staleControl)
+		#expect(
+			await reopened.decide(.checkAgainWithoutToken(absent.ref), in: .main)
+				== .staleControl(newer: nil))
 		#expect(
 			(turnNotice(of: try #require(await reopened.state(of: turn)))?.actions ?? []).isEmpty)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
@@ -86,7 +88,7 @@ import Testing
 		server.state.withLock { $0.readResponse = .success }
 		let (freshTurn, fresh) = try await helper.proposal(
 			on: reopened, model: fixture.model, name: "Fresh")
-		#expect(fresh.ref.set != token.ref.set)
+		#expect(fresh.ref.review != token.ref.review)
 		await reopened.stop(.main)
 		#expect(freshTurn != turn)
 		let savedProposals = try await fixture.store.fetch(
@@ -106,7 +108,7 @@ import Testing
 				await reopened.startNewConversation(in: .main)
 			})
 		let (_, next) = try await helper.proposal(on: reopened, model: fixture.model, name: "Next")
-		#expect(next.ref.set != token.ref.set && next.ref.set != fresh.ref.set)
+		#expect(next.ref.review != token.ref.review && next.ref.review != fresh.ref.review)
 		#expect(await reopened.currentSnapshot(.main)?.notes.isEmpty == true)
 		let history = try await reopened.history()
 		let archivedRef = try #require(history.first?.id)
@@ -136,7 +138,7 @@ import Testing
 		)
 		let reopened = await makeCoach(
 			transport: FakeModelTransport(), intervals: fixture.client, store: faults)
-		#expect(await reopened.currentSnapshot(.main)?.review?.ref.set == token.ref.set)
+		#expect(await reopened.currentSnapshot(.main)?.review?.ref.review == token.ref.review)
 		let writes = try await Ledger(
 			log: faults,
 			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
@@ -163,7 +165,7 @@ import Testing
 			transport: FakeModelTransport(), intervals: fixture.client, store: otherStore)
 		let snapshots = ImportSnapshots(await other.observe(.main))
 		try await waitUntil { snapshots.latest?.review != nil }
-		#expect(await fixture.coach.decide(.cancel(token), in: .main) == .canceled(kept: []))
+		#expect(await fixture.coach.decide(.cancel(token), in: .main) == .canceled([]))
 		otherStore.notifyImport()
 		try await waitUntil {
 			snapshots.latest?.review == nil && snapshots.latest?.notes.count == 1
@@ -222,7 +224,7 @@ import Testing
 		let (turn, approval) = try await helper.proposal(on: fixture.coach, model: fixture.model)
 		_ = await fixture.coach.decide(.approve(approval), in: .main)
 		await fixture.coach.stop(.main)
-		_ = await fixture.coach.decide(.checkAgain(approval.ref), in: .main)
+		_ = await fixture.coach.decide(.checkAgainWithoutToken(approval.ref), in: .main)
 		let review = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		guard case .retryRemainingOrCancel(let token) = review.controls else {
 			throw CancellationFixtureFailure()

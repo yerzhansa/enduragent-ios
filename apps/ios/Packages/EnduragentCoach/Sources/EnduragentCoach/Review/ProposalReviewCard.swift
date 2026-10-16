@@ -1,7 +1,7 @@
 import Foundation
 
 extension ReviewCard {
-	init(_ body: ProposalBody) {
+	init(_ body: ProposalBody, progress: CardProgress) {
 		let instructions: ReviewInstructions
 		if case .createWorkout(_, let workout) = body.toolInput {
 			instructions = ReviewInstructions(content: .cycling(workout))
@@ -30,7 +30,7 @@ extension ReviewCard {
 		self.init(
 			index: 0, action: action, name: name, date: date, chart: nil,
 			instructions: instructions,
-			durationMinutes: nil, estimatedLoad: nil)
+			durationMinutes: nil, estimatedLoad: nil, progress: progress)
 	}
 }
 

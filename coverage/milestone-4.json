@@ -8,7 +8,8 @@
 		"2.4": 4,
 		"2.5": 9,
 		"3.1": 11,
-		"6.1": 4
+		"6.1": 4,
+		"3.2": 5
 	},
 	"criteria": [
 		{
@@ -459,6 +460,61 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aRunAgainstACalendarThatKeepsWhatItIsSentPassesAndRemovesEveryAdd"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aDroppedWriteThatNeverLandedFailsItsLostAnswerStep"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aRequestBesideTheWriteAndItsSettleReadFailsTheLostAnswerStep"}
+			]
+		},
+		{
+			"id": "3.2.1",
+			"statement": "The old card shows the same buttons, labels, order and decisions in every state, the storage-unavailable card's retry-read button included, and every app test and UI proof of the old card passes with only names changed.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/FixtureReviewTests.swift", "function": "unknownWriteNoticeAppearsOnlyOnTheCard"},
+				{"file": "apps/ios/EnduragentTests/FixtureReviewTests.swift", "function": "unknownWriteCanBeRecoveredThroughTheCard"},
+				{"file": "apps/ios/EnduragentTests/FixtureReviewTests.swift", "function": "failedConnectionCheckKeepsTheCardsRecoveryActions"},
+				{"file": "apps/ios/EnduragentTests/FixtureDisabledReviewTests.swift", "function": "failedReadRetainsLabelsWithoutIntentsAndRestoresThem"},
+				{"file": "apps/ios/EnduragentTests/FixtureReviewStorageFailureTests.swift", "function": "failedChoiceSaveShowsOneLocalizedNoticeThroughShell"},
+				{"file": "apps/ios/EnduragentUITests/ReviewProofs.swift", "class": "ConfirmedPreviewProof", "method": "testConfirmedPreview"},
+				{"file": "apps/ios/EnduragentUITests/UnknownCalendarSaveProofs.swift", "class": "UnknownCalendarSaveProof", "method": "testAbsentReadOffersOnlyCheckCancelAndSaveAgain"},
+				{"file": "apps/ios/EnduragentUITests/CancelUnknownSaveProofs.swift", "class": "SavedReviewReadFailureProof", "method": "testCancelOnlyDisablesAndRestores"},
+				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testUncertainSaveControls"}
+			]
+		},
+		{
+			"id": "3.2.2",
+			"statement": "Each outcome the old path produces gives the same notice key and values as before.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNoticeMappingTests.swift", "function": "eachOutcomeTheOldPathGivesKeepsItsNotice"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleProposalReviewsTests.swift", "function": "everyReviewOutcomeReadsACatalogSentenceWithNoSwiftType"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleProposalReviewsTests.swift", "function": "anUnconfirmedWriteKeepsThePendingReviewWithACatalogSentence"}
+			]
+		},
+		{
+			"id": "3.2.3",
+			"statement": "blocked(.reviewedBeforeUpgrade) gives workouts.blocked.reviewedBeforeUpgrade, and wrongAction gives no notice and leaves the controls live.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNoticeMappingTests.swift", "function": "eachWorkoutReviewOutcomeGivesItsNotice"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNoticeMappingTests.swift", "function": "aReviewBlockedBeforeTheUpgradeAsksForTheCoachAgain"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleProposalReviewsTests.swift", "function": "aWorkoutReviewDecisionOnTheOldCardIsAWrongActionThatKeepsItsControls"}
+			]
+		},
+		{
+			"id": "3.2.4",
+			"statement": "Delivery gives no control before acknowledge(); after it the controls are armed with the stage's allowedControls, or none when the stage allows none, and a token from an earlier head or an earlier delivery is not admitted.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "noControlExistsBeforeTheAcknowledgement"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "aTokenFromAnEarlierHeadOrDeliveryIsNotAdmitted"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "aShownDeliveryAdmitsNoTokenAndAcknowledgingTwiceKeepsTheToken"}
+			]
+		},
+		{
+			"id": "3.2.5",
+			"statement": "ReviewProjection orders cards by position across finished changes, the send attempt and the remaining work, with each card's progress, and shows a completed or canceled head read-only with no control.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "cardsFollowPositionAcrossFinishedWorkTheUnconfirmedChangeAndTheRemainingWork"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "cardsAreOrderedByPositionNotByWhereEachChangeIsHeld"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aCanceledReviewKeepsItsUnconfirmedChangeInPositionOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aRefusedChangeShowsRefusedAndASentChangeShowsSending"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aFinishedReviewIsShownReadOnlyWithNoControl"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
 			]
 		}
 	],
