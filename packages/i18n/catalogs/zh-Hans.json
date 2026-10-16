@@ -2997,5 +2997,10 @@
       "waiting": "正在读取运动员资料…"
     },
     "missing": "尚未连接 intervals.icu。连接后可将训练添加到日历。"
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "此训练是在应用更新前审核的。请重新询问教练。"
+    }
   }
 }

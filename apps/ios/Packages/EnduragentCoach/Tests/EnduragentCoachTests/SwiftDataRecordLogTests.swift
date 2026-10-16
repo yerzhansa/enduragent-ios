@@ -79,8 +79,8 @@ extension SwiftDataSuites {
 			let connection = ConnectionID()
 			let athlete = try #require(IntervalsAthleteID(rawValue: "i12345"))
 			let stamp = testStamp(
-				operation: .workoutChangeSet(
-					ChangeSetID(ulid: ULID.generate(at: expires)), ChangeSetRevision(rawValue: 3)),
+				operation: .workoutReview(
+					WorkoutReviewID(ulid: ULID.generate(at: expires)), ReviewRevision(rawValue: 3)),
 				account: .intervals(connection: connection, athlete: athlete)
 			)
 			let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
@@ -294,7 +294,8 @@ extension SwiftDataSuites {
 				.compactionSummary(CompactionSummaryBody(chatId: .main, markdown: "sum")),
 				.reviewWrite(
 					ReviewWriteBody(
-						chatId: .main, review: ChangeSetID(ulid: ulid), writeID: nil, target: nil,
+						chatId: .main, review: WorkoutReviewID(ulid: ulid), writeID: nil,
+						target: nil,
 						evidence: .unknown(.dispatched))),
 				.reviewApplied(
 					ReviewAppliedBody(

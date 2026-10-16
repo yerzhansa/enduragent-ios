@@ -3037,5 +3037,10 @@
       "waiting": "Atletenprofiel lezen…"
     },
     "missing": "intervals.icu is niet verbonden. Maak verbinding om trainingen aan je kalender toe te voegen."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Deze training is beoordeeld voordat de app werd bijgewerkt. Vraag het de coach opnieuw."
+    }
   }
 }

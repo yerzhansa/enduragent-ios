@@ -2997,5 +2997,10 @@
       "waiting": "正在讀取運動員資料…"
     },
     "missing": "尚未連接 intervals.icu。連接後可將訓練加入行事曆。"
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "此訓練是在 App 更新前審核的。請重新詢問教練。"
+    }
   }
 }

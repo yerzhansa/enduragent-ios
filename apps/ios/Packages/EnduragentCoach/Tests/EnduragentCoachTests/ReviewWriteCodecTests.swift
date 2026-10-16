@@ -46,7 +46,7 @@ import Testing
 			.reviewWrite(
 				ReviewWriteBody(
 					chatId: .main,
-					review: ChangeSetID(ulid: fixedUlid(1)), writeID: nil, target: nil,
+					review: WorkoutReviewID(ulid: fixedUlid(1)), writeID: nil, target: nil,
 					evidence: .applied(eventID: nil))))
 		let bytes = Data(try fixture("calendar-write-legacy-applied", ext: "json").utf8)
 		#expect(try RecordCodec.encode(body).data == bytes)
@@ -77,7 +77,7 @@ import Testing
 			return
 		}
 		#expect(body.chatId == .main)
-		#expect(body.review == ChangeSetID(ulid: fixedUlid(1)))
+		#expect(body.review == WorkoutReviewID(ulid: fixedUlid(1)))
 		#expect(body.observation == .absent)
 		let encoded = try RecordCodec.encode(decoded)
 		#expect(encoded.version == 2)
@@ -96,7 +96,7 @@ import Testing
 		let body = RecordBody.synced(
 			.reviewWrite(
 				ReviewWriteBody(
-					chatId: .main, review: ChangeSetID(ulid: fixedUlid(1)),
+					chatId: .main, review: WorkoutReviewID(ulid: fixedUlid(1)),
 					writeID: CalendarWriteID(rawValue: id), target: target, evidence: evidence)))
 		let bytes = Data(try fixture(name, ext: "json").utf8)
 		#expect(try RecordCodec.encode(body).data == bytes)

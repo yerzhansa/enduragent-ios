@@ -3037,5 +3037,10 @@
       "waiting": "Leser utøverprofil…"
     },
     "missing": "intervals.icu er ikke tilkoblet. Koble til for å legge treningsøkter i kalenderen."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Denne økten ble gjennomgått før appen ble oppdatert. Spør treneren på nytt."
+    }
   }
 }

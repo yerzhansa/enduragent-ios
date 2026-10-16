@@ -3037,5 +3037,10 @@
       "waiting": "Luetaan urheilijaprofiilia…"
     },
     "missing": "intervals.icu ei ole yhdistetty. Yhdistä lisätäksesi harjoituksia kalenteriisi."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Tämä harjoitus tarkistettiin ennen sovelluksen päivitystä. Pyydä valmentajaa uudelleen."
+    }
   }
 }

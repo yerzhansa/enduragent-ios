@@ -7,7 +7,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 	let training: @Sendable (Bool) async throws(AccessUnavailable) -> TrainingConnection
 	let registration = Turnstile()
 	var deliveries: [ChatID: ReviewDelivery] = [:]
-	var closed: Set<ChangeSetID> = []
+	var closed: Set<WorkoutReviewID> = []
 
 	package init(
 		ledger: Ledger, clock: any Clock, diagnostics: DiagnosticsLog,
@@ -225,7 +225,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 					live.ulid == token.ref.set.ulid
 				else { return .staleControl }
 				let stamp = OperationStamp(
-					operation: .workoutChangeSet(token.ref.set, token.ref.revision),
+					operation: .workoutReview(token.ref.set, token.ref.revision),
 					attempt: AttemptID(ulid: await ledger.nextULID()),
 					binding: ActionBinding(
 						account: live.account, zone: AthleteCalendar(clock: clock).deviceZone))
@@ -247,12 +247,14 @@ package actor SingleProposalReviews: WorkoutReviews {
 		if deliveries[ref.chat]?.ref == ref { deliveries[ref.chat]?.busy = false }
 	}
 
-	func delivery(set: ChangeSetID, chat: ChatID, authority: ReviewAuthority) -> ReviewDelivery {
+	func delivery(
+		set: WorkoutReviewID, chat: ChatID, authority: ReviewAuthority
+	) -> ReviewDelivery {
 		if let existing = deliveries[chat], existing.ref.set == set { return existing }
 		let minted = ReviewDelivery(
 			authority: authority,
 			ref: ReviewRef(
-				chat: chat, set: set, revision: ChangeSetRevision(rawValue: 1), delivery: UUID()))
+				chat: chat, set: set, revision: ReviewRevision(rawValue: 1), delivery: UUID()))
 		deliveries[chat] = minted
 		return minted
 	}

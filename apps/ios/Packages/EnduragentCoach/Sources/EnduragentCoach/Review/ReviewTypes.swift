@@ -2,8 +2,8 @@ import Foundation
 
 public struct ReviewRef: Hashable, Sendable {
 	public let chat: ChatID
-	public let set: ChangeSetID
-	public let revision: ChangeSetRevision
+	public let set: WorkoutReviewID
+	public let revision: ReviewRevision
 	public let delivery: UUID
 }
 
@@ -70,7 +70,7 @@ public struct ReviewContent: Sendable, Equatable {
 }
 
 public struct CancelledUnknownReview: Sendable, Equatable {
-	public let set: ChangeSetID
+	public let set: WorkoutReviewID
 
 	package init(_ body: ReviewCancelledUnknownBody) { set = body.review }
 }
@@ -138,6 +138,7 @@ public enum ReviewBlock: Sendable, Equatable {
 	case pastProtected
 	case coachOnly
 	case workoutOnly
+	case reviewedBeforeUpgrade
 }
 
 public struct WorkoutChartModel: Sendable, Equatable {

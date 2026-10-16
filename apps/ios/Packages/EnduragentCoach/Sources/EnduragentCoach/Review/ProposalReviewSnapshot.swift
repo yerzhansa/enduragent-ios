@@ -14,7 +14,7 @@ extension SingleProposalReviews {
 		}
 		guard
 			let live = try await ProposalPolicy.live(chatId: chat, ledger: ledger, now: clock.now),
-			!closed.contains(ChangeSetID(ulid: live.ulid)),
+			!closed.contains(WorkoutReviewID(ulid: live.ulid)),
 			!intents.contains(where: {
 				$0.body.review.ulid == live.ulid
 					&& ($0.body.evidence.applied || $0.cancellation != nil)
@@ -28,7 +28,7 @@ extension SingleProposalReviews {
 			}
 			return ReviewSnapshot(
 				ref: ReviewRef(
-					chat: chat, set: body.review, revision: ChangeSetRevision(rawValue: 1),
+					chat: chat, set: body.review, revision: ReviewRevision(rawValue: 1),
 					delivery: UUID()),
 				state: .cancelledUnknown(CancelledUnknownReview(body)),
 				attribution: try await attribution(for: intent.record.account))
@@ -37,7 +37,7 @@ extension SingleProposalReviews {
 		let block = await accountBlock(live.account)
 		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
 		let delivery = delivery(
-			set: ChangeSetID(ulid: live.ulid), chat: chat,
+			set: WorkoutReviewID(ulid: live.ulid), chat: chat,
 			authority: live.cause == .legacy ? .readOnly : .thisDevice)
 		let card = ReviewCard(live.body)
 		let notice: ReviewNotice? =

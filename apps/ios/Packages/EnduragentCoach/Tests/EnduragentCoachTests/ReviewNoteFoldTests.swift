@@ -43,7 +43,7 @@ import Testing
 			body: .synced(
 				.reviewWrite(
 					ReviewWriteBody(
-						chatId: .main, review: ChangeSetID(ulid: fixedUlid(1)), writeID: nil,
+						chatId: .main, review: WorkoutReviewID(ulid: fixedUlid(1)), writeID: nil,
 						target: nil, evidence: .unknown(.dispatched)))))
 		let body = try ReviewCancelledUnknownBody.cancelling(
 			CalendarWriteIntent(record: write, body: try #require(writeBody(write)), proposal: nil),

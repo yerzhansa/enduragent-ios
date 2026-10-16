@@ -53,8 +53,8 @@ struct ProposalPolicyTests {
 		let current = try #require(try await live())
 		#expect(current.ulid == proposed.first?.ulid)
 		let clear = OperationStamp(
-			operation: .workoutChangeSet(
-				ChangeSetID(ulid: current.ulid), ChangeSetRevision(rawValue: 1)),
+			operation: .workoutReview(
+				WorkoutReviewID(ulid: current.ulid), ReviewRevision(rawValue: 1)),
 			attempt: AttemptID(ulid: fixedUlid(77)),
 			binding: ActionBinding(account: .unconnected, zone: amsterdamZone))
 		try await ProposalPolicy.clear(current, reason: .executed, ledger: ledger, stamp: clear)

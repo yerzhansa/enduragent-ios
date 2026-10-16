@@ -199,6 +199,8 @@ package enum AthleteNotices {
 				key: Catalog.reviewCannotVerify, vars: ["service": .text(intervals)], actions: [])
 		case .blocked(.turnStopping):
 			return AthleteNotice(key: Catalog.reviewTurnStopping, actions: [])
+		case .blocked(.reviewedBeforeUpgrade):
+			return AthleteNotice(key: Catalog.workoutsBlockedReviewedBeforeUpgrade, actions: [])
 		case .staleControl:
 			return AthleteNotice(key: Catalog.coachConfirmationExpired, actions: [])
 		case .storageUnavailable:

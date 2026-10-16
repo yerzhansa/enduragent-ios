@@ -2568,4 +2568,5 @@ public enum Catalog {
 	public static let trainingViewWeek = CatalogKey(rawValue: "training.view.week")
 	public static let trainingViewWeekRange = CatalogKey(rawValue: "training.view.weekRange")
 	public static let trainingViewWeeklySummary = CatalogKey(rawValue: "training.view.weeklySummary")
+	public static let workoutsBlockedReviewedBeforeUpgrade = CatalogKey(rawValue: "workouts.blocked.reviewedBeforeUpgrade")
 }

@@ -1,0 +1,140 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000301",
+  "chat": "main",
+  "finished": [
+    {
+      "change": {
+        "action": {
+          "add": {
+            "identity": "E621E1F8-C36C-495A-93FC-0C247A3E6E5F",
+            "payload": {
+              "date": "1998-06-16",
+              "description": "Warmup\n- 10m 60%\nMain set\n- 3x10m 85%",
+              "movingTime": 3000,
+              "name": "Tempo ride",
+              "trainingLoad": 55,
+              "type": "Ride"
+            }
+          }
+        },
+        "id": "00T47DW5000000000000000401",
+        "position": 0
+      },
+      "result": {
+        "saved": {
+          "receipt": {
+            "answeredAt": 897984030,
+            "event": 201
+          }
+        }
+      }
+    },
+    {
+      "change": {
+        "action": {
+          "edit": {
+            "patch": {
+              "durationSeconds": 4500
+            },
+            "target": {
+              "reviewed": {
+                "event": 101,
+                "snapshot": {
+                  "date": "1998-06-17",
+                  "description": "Steady ride",
+                  "durationSeconds": 3600,
+                  "load": 50,
+                  "name": "Endurance"
+                }
+              }
+            }
+          }
+        },
+        "id": "00T47DW5000000000000000402",
+        "position": 1
+      },
+      "result": {
+        "seenOnCalendar": {
+          "event": 101
+        }
+      }
+    },
+    {
+      "change": {
+        "action": {
+          "delete": {
+            "target": {
+              "reviewed": {
+                "event": 102,
+                "snapshot": {
+                  "date": "1998-06-18",
+                  "durationSeconds": 1800,
+                  "load": 20,
+                  "name": "Recovery spin"
+                }
+              }
+            }
+          }
+        },
+        "id": "00T47DW5000000000000000403",
+        "position": 2
+      },
+      "result": {
+        "noLongerOnCalendar": {}
+      }
+    }
+  ],
+  "id": "00T47DW5000000000000000101",
+  "kept": [],
+  "remaining": [
+    {
+      "action": {
+        "add": {
+          "identity": "0F8FAD5B-D9CB-469F-A165-70867728950E",
+          "payload": {
+            "date": "1998-06-21",
+            "description": "Easy\n\nPlanks and bridges",
+            "movingTime": 1800,
+            "name": "Core strength",
+            "type": "WeightTraining"
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000405",
+      "position": 4
+    }
+  ],
+  "revision": 2,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "unconfirmed": {
+          "_0": {
+            "change": {
+              "action": {
+                "edit": {
+                  "patch": {
+                    "name": "Long ride",
+                    "workoutDocument": "{\"steps\":[{\"duration\":5400}]}"
+                  },
+                  "target": {
+                    "upgradedWithoutSnapshot": {
+                      "date": "1998-06-19",
+                      "event": 103
+                    }
+                  }
+                }
+              },
+              "id": "00T47DW5000000000000000404",
+              "position": 3
+            },
+            "claim": "00T47DW5000000000000000500",
+            "sentAt": 897984060
+          }
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000201"
+}

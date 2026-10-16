@@ -2,12 +2,12 @@ import Foundation
 
 package struct ReviewCancelledUnknownBody: Sendable, Equatable {
 	package let chatId: ChatID
-	package let review: ChangeSetID
+	package let review: WorkoutReviewID
 	package let key: CalendarWriteKey
 	package let observation: CalendarObservation
 
 	fileprivate init(
-		chatId: ChatID, review: ChangeSetID, key: CalendarWriteKey,
+		chatId: ChatID, review: WorkoutReviewID, key: CalendarWriteKey,
 		observation: CalendarObservation
 	) {
 		self.chatId = chatId
@@ -73,7 +73,7 @@ struct ReviewCancelledUnknownPayload: Codable {
 	}
 
 	func body() throws -> ReviewCancelledUnknownBody {
-		let set = ChangeSetID(ulid: try decodeULID(review))
+		let set = WorkoutReviewID(ulid: try decodeULID(review))
 		return ReviewCancelledUnknownBody(
 			chatId: try decodeChatID(chatId), review: set,
 			key: writeID.map { .durable(CalendarWriteID(rawValue: $0)) } ?? .legacy(set),
