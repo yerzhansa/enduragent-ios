@@ -30,6 +30,20 @@ struct WorkoutReviewPayloadTests {
 		#expect(review.stage.changes.map(\.id) == [reviewChange(404)])
 	}
 
+	@Test func anAddWithNoDurationRoundTripsWithoutOne() throws {
+		let fixture = try fixtureText("workout-review-approval")
+		let withoutDuration = fixture.replacingOccurrences(of: "\"movingTime\": 3000,\n", with: "")
+		#expect(withoutDuration != fixture)
+		let review = try WorkoutReviewPayload.decode(Data(withoutDuration.utf8))
+		guard case .add(let added) = try #require(review.work.remaining.first).action else {
+			throw UnexpectedReview(detail: "the first remaining change is not an add")
+		}
+		#expect(added.payload.movingTime == nil)
+		#expect(added.payload.trainingLoad == 55)
+		let stored = try WorkoutReviewPayload.encode(review)
+		#expect(try WorkoutReviewPayload.decode(stored) == review)
+	}
+
 	@Test func aChangeInTwoPlacesFailsToDecode() throws {
 		let fixture = try fixtureText("workout-review-unconfirmed")
 		let inFinishedAndRemaining = fixture.replacingOccurrences(
