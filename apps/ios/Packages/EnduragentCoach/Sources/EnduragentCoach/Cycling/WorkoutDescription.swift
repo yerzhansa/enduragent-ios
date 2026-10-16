@@ -6,16 +6,24 @@ extension IntervalsSerializer {
 	) -> [String] {
 		var lines: [String] = []
 		var currentLabel: String?
+		var followsRepeat = false
 		for step in workout.steps {
 			let label = sectionLabel(step, phrasebook: display?.phrasebook)
-			if label != currentLabel {
-				if !lines.isEmpty { lines.append("") }
-				lines.append(label)
-				currentLabel = label
+			let startsSection = label != currentLabel
+			let repeatCount: Int? = if case .set(let set) = step { set.repeatCount } else { nil }
+			if (startsSection || repeatCount != nil || followsRepeat) && !lines.isEmpty {
+				lines.append("")
 			}
+			switch (startsSection, repeatCount) {
+			case (true, let count?): lines.append("\(label) \(count)x")
+			case (true, nil): lines.append(label)
+			case (false, let count?): lines.append("\(count)x")
+			case (false, nil): break
+			}
+			currentLabel = label
+			followsRepeat = repeatCount != nil
 			switch step {
 			case .set(let set):
-				lines.append("\(set.repeatCount)x")
 				lines.append(stepLine(set.interval, display: display))
 				lines.append(stepLine(set.recovery, display: display))
 			case .simple(let simple):

@@ -27,7 +27,7 @@ private enum ReviewLanguageProofScreen {
 			card.label,
 			[
 				"Échauffement", "- 10m 55-65%", "", "Bloc principal",
-				"- 10m progressif 60,5-80,5% 90rpm Warmup ramp 1.5", "2x",
+				"- 10m progressif 60,5-80,5% 90rpm Warmup ramp 1.5", "", "2x",
 				"- 10m 190,5-225,5w 85-95rpm", "- 5m Z1-Z2", "", "Retour au calme", "- 10m 55-65%",
 			].joined(separator: "\n"))
 		XCTAssertFalse(card.label.contains("{\""))
