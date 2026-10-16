@@ -36,7 +36,7 @@ func testVault(
 func makeCoach(
 	transport: FakeModelTransport,
 	intervals: any TrainingClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
-	store: any RecordLog,
+	store: any ReviewChainLog,
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 	coalescing: CoalescingPolicy = quickWindow,
 	secrets: any SecretStore = keyedSecrets(),

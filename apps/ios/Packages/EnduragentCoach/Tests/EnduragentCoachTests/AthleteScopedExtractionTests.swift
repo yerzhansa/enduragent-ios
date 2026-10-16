@@ -39,7 +39,7 @@ extension SwiftDataSuites {
 			try base.peer.replace(.athleteB)
 			await before.lifecycle(.becameActive)
 			let after: Coach
-			let active: any RecordLog
+			let active: any ReviewChainLog
 			if relaunch {
 				await before.lifecycle(.willTerminate)
 				active = try makeSwiftDataLog(deviceId: phone, directory: directory)

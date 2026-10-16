@@ -82,7 +82,9 @@ import Testing
 			AttemptID(ulid: fixedUlid(43)), .network, detail: "URLError -1009")
 		diagnostics.record(failure)
 		let rows = (0..<250).map { SkippedRow.malformed(kind: "userMessage", ulid: "row-\($0)") }
-		let ledger = Ledger(log: UnreadableLog(rows: rows), clock: clock, diagnostics: diagnostics)
+		let ledger = Ledger(
+			log: UnreadableLog(rows: rows), chain: InMemoryRecordLog(), clock: clock,
+			diagnostics: diagnostics)
 		_ = try await ledger.read(RecordQuery(scope: .everySynced))
 		_ = try await ledger.read(RecordQuery(scope: .everySynced))
 		let events = diagnostics.entries.map(\.event)

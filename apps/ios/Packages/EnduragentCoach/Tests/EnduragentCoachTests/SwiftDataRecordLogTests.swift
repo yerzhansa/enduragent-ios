@@ -236,7 +236,7 @@ extension SwiftDataSuites {
 				])
 		}
 
-		private func sampleBodies() throws -> [(kind: String, body: RecordBody)] {
+		func sampleBodies() throws -> [(kind: String, body: RecordBody)] {
 			let ulid = ULID.generate(at: Date(timeIntervalSince1970: 899_164_800))
 			let turn = TurnID(ulid: ulid)
 			let workout = IntervalsWorkoutInput(

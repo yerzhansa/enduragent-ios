@@ -9,7 +9,7 @@ import Testing
 	let transport = FakeModelTransport()
 	let store = InMemoryRecordLog()
 
-	func coach(over log: (any RecordLog)? = nil) async -> Coach {
+	func coach(over log: (any ReviewChainLog)? = nil) async -> Coach {
 		await makeCoach(transport: transport, store: log ?? store, clock: clock)
 	}
 

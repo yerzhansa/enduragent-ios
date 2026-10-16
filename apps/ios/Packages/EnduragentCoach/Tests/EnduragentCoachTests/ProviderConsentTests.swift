@@ -217,12 +217,12 @@ extension SwiftDataSuites {
 		let device = DeviceID(rawValue: "consent-test-device")
 		let fixture = try FixtureRecordStore(directory: directory, deviceId: device)
 		let coach = await makeCoach(
-			transport: FakeModelTransport(), store: fixture.store.log, consent: false)
+			transport: FakeModelTransport(), store: fixture.faults.log, consent: false)
 		try await coach.recordConsent()
 		let consent = try #require(try await coach.observedStatus().acceptedConsent)
 		let reopened = try FixtureRecordStore(directory: directory, deviceId: device)
 		let next = await makeCoach(
-			transport: FakeModelTransport(), store: reopened.store.log, consent: false)
+			transport: FakeModelTransport(), store: reopened.faults.log, consent: false)
 		#expect(try await next.observedStatus().acceptedConsent == consent)
 		#expect(try await next.observedStatus().needsProviderConsent == false)
 		#expect(
@@ -233,7 +233,8 @@ extension SwiftDataSuites {
 	}
 }
 
-private struct UnreadableConsentLog: RecordLog {
+private struct UnreadableConsentLog: ChainForwardingLog {
+	var chainStore: any ReviewChainLog { inner }
 	let inner: InMemoryRecordLog
 	var deviceId: DeviceID { inner.deviceId }
 	var imports: AsyncStream<Void> { inner.imports }

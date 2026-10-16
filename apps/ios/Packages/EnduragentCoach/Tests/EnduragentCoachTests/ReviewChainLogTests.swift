@@ -7,11 +7,12 @@ import Testing
 enum SharedChainStore: String, CaseIterable, CustomTestStringConvertible {
 	case oneSwiftDataLog
 	case twoSwiftDataLogsOnOneDirectory
+	case twoFixtureStoresOnOneDirectory
 	case oneInMemoryLog
 
 	var testDescription: String { rawValue }
 
-	func logs(deviceId: DeviceID) throws -> (any RecordLog, any RecordLog) {
+	func logs(deviceId: DeviceID) throws -> (any ReviewChainLog, any ReviewChainLog) {
 		switch self {
 		case .oneSwiftDataLog:
 			let log = try SwiftDataSuites.makeSwiftDataLog(deviceId: deviceId)
@@ -26,6 +27,12 @@ enum SharedChainStore: String, CaseIterable, CustomTestStringConvertible {
 					local: try ModelContainerHandle.deviceLocal(directory: directory))
 			}
 			return (try open(), try open())
+		case .twoFixtureStoresOnOneDirectory:
+			let directory = try TestTemporaryFolders.make()
+			let open = {
+				try FixtureRecordStore(directory: directory, deviceId: deviceId).faults.log
+			}
+			return (try open(), try open())
 		case .oneInMemoryLog:
 			let log = InMemoryRecordLog(deviceId: deviceId)
 			return (log, log)
@@ -38,7 +45,7 @@ extension SwiftDataSuites {
 		let phone = DeviceID(rawValue: "chain-phone")
 		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-		func ledger(_ log: any RecordLog, clock: FixedClock? = nil) -> Ledger {
+		func ledger(_ log: any ReviewChainLog, clock: FixedClock? = nil) -> Ledger {
 			let clock = clock ?? self.clock
 			return Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		}

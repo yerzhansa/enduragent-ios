@@ -4,17 +4,18 @@ import Synchronization
 
 @testable import EnduragentCoach
 
-final class ImportingRecordLog: RecordLog, Sendable {
+final class ImportingRecordLog: ChainForwardingLog, Sendable {
+	var chainStore: any ReviewChainLog { inner }
 	private struct State {
 		var subscriptions = 0
 		var listeners: [UUID: AsyncStream<Void>.Continuation] = [:]
 		var nextRead: (scope: RecordQuery.Scope, gate: Gate)?
 	}
 
-	let inner: any RecordLog
+	let inner: any ReviewChainLog
 	private let state = Mutex(State())
 
-	init(inner: any RecordLog = InMemoryRecordLog(), deviceId: DeviceID? = nil) {
+	init(inner: any ReviewChainLog = InMemoryRecordLog(), deviceId: DeviceID? = nil) {
 		self.inner = inner
 		self.deviceId = deviceId ?? inner.deviceId
 	}

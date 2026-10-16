@@ -5,7 +5,7 @@ import Testing
 @testable import EnduragentCoach
 
 extension SingleProposalReviewsTests {
-	func gatedCoach(log: any RecordLog, client: any TrainingClient) async -> Coach {
+	func gatedCoach(log: any ReviewChainLog, client: any TrainingClient) async -> Coach {
 		await consentingCoach(
 			Coach(
 				sport: .cycling,
@@ -49,7 +49,8 @@ actor ReviewGate {
 	}
 }
 
-struct GatedReviewLog: RecordLog {
+struct GatedReviewLog: ChainForwardingLog {
+	var chainStore: any ReviewChainLog { inner }
 	let inner: InMemoryRecordLog
 	let gate: ReviewGate
 	var readGate: ReviewGate?

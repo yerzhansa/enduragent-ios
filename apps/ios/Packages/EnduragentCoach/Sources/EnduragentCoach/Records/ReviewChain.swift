@@ -33,16 +33,10 @@ extension Ledger {
 		RecordQuery(scope: .deviceLocal([.workoutReview]), chatId: chat)
 	}
 
-	private func reviewChain() throws(LedgerFailure) -> any ReviewChainLog {
-		guard let chain else { throw LedgerFailure.unavailable }
-		return chain
-	}
-
 	package func reviewHead(chat: ChatID) async throws(LedgerFailure) -> (
 		RecordHead, WorkoutReview?
 	) {
 		try await openIfNeeded()
-		let chain = try reviewChain()
 		let newest: AthleteRecord?
 		do {
 			newest = try await chain.newest(Self.chain(of: chat))
@@ -60,10 +54,8 @@ extension Ledger {
 	package func commit(review: WorkoutReview, stamp: OperationStamp, after head: RecordHead)
 		async throws(TransitionFailure) -> AthleteRecord
 	{
-		let chain: any ReviewChainLog
 		do {
 			try await openIfNeeded()
-			chain = try reviewChain()
 		} catch {
 			throw TransitionFailure.storage(error)
 		}

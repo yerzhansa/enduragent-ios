@@ -9,7 +9,7 @@ package actor Ledger {
 	package static let reportedSkipLimit = DiagnosticsLog.capacity / 2
 
 	private let log: any RecordLog
-	let chain: (any ReviewChainLog)?
+	let chain: any ReviewChainLog
 	private let clock: any Clock
 	private let diagnostics: DiagnosticsLog
 	private var cursor: HybridLogicalClock?
@@ -18,13 +18,19 @@ package actor Ledger {
 	private var reportedSkips: Set<SkippedRow> = []
 	private let preparedCommits = Turnstile()
 
-	package init(log: any RecordLog, clock: any Clock, diagnostics: DiagnosticsLog) {
+	package init(
+		log: any RecordLog, chain: any ReviewChainLog, clock: any Clock, diagnostics: DiagnosticsLog
+	) {
 		self.log = log
-		self.chain = log as? any ReviewChainLog
+		self.chain = chain
 		self.clock = clock
 		self.diagnostics = diagnostics
 		self.cursor = nil
 		self.lastUlid = nil
+	}
+
+	package init(log: any ReviewChainLog, clock: any Clock, diagnostics: DiagnosticsLog) {
+		self.init(log: log, chain: log, clock: clock, diagnostics: diagnostics)
 	}
 
 	package nonisolated var deviceId: DeviceID {

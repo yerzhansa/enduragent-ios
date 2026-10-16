@@ -34,21 +34,22 @@ extension SwiftDataSuites {
 		@Test func aMilestone3BuildSkipsOnlyTheReviewRecordsAsNewerVersions() async throws {
 			let directory = try TestTemporaryFolders.make()
 			let log = try makeSwiftDataLog(deviceId: phone, directory: directory)
-			let earlier: [RecordBody] = [
-				.synced(sampleUser(chatId: .main, text: "hi")),
-				.synced(
-					sampleReply(chatId: .main, turn: TurnID(ulid: fixedUlid(3)), text: "hello")),
-				.deviceLocal(
-					.replyObserved(
-						ReplyObservedBody(
-							chatId: .main, turn: TurnID(ulid: fixedUlid(3)),
-							attempt: AttemptID(ulid: fixedUlid(4))))),
-				.deviceLocal(
-					.flushPending(
-						FlushPendingBody(
-							chatId: .main, messageUlids: [fixedUlid(5)],
-							process: ProcessID(ulid: fixedUlid(6))))),
-			]
+			let reviewKinds: Set<String> = ["reviewOutcome", "workoutReview", "reviewPreparing"]
+			let sourceBound = FlushPendingBody(
+				chatId: .main, messageUlids: [fixedUlid(5)], sourceBound: true,
+				process: ProcessID(ulid: fixedUlid(6)))
+			let earlier =
+				try SwiftDataRecordLogTests().sampleBodies().map(\.body)
+				.filter { !reviewKinds.contains($0.kind) } + [
+					.deviceLocal(.flushPending(sourceBound))
+				]
+			#expect(
+				Set(earlier.map(\.kind))
+					== Set(
+						SyncedKind.allCases.map(\.rawValue)
+							+ DeviceLocalKind.allCases.map(\.rawValue)
+					)
+					.subtracting(reviewKinds))
 			let bodies = try reviewBodies() + earlier
 			for (index, body) in bodies.enumerated() {
 				try await log.append(
@@ -67,8 +68,7 @@ extension SwiftDataSuites {
 			let skipped = rows.filter { $0.bodyVersion > Self.milestone3BodyVersion }
 
 			#expect(rows.count == bodies.count)
-			#expect(
-				Set(skipped.map(\.kind)) == ["reviewOutcome", "workoutReview", "reviewPreparing"])
+			#expect(Set(skipped.map(\.kind)) == reviewKinds)
 			#expect(skipped.count == bodies.count - earlier.count)
 			#expect(
 				RecordCodec.decode(
@@ -79,8 +79,8 @@ extension SwiftDataSuites {
 						kind: "aKindFromALaterBuild", version: RecordCodec.currentBodyVersion + 1,
 						ulid: "row"))
 			let read = rows.filter { $0.bodyVersion <= Self.milestone3BodyVersion }
-				.map { $0.decode() }
-			#expect(read.compactMap(\.success).map(\.body) == earlier)
+			#expect(read.count == earlier.count)
+			#expect(read.map { $0.decode() }.compactMap(\.success).map(\.body) == earlier)
 		}
 	}
 }

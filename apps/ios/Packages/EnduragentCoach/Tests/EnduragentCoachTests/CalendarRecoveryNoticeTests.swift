@@ -13,13 +13,12 @@ import Testing
 		defer { server.stop() }
 		server.state.withLock { $0.response = .status(502) }
 		let helpers = DurableCalendarWriteTests()
-		let store = InMemoryRecordLog()
-		let fixture = await helpers.fixture(url: url, store: store)
+		let fixture = await helpers.fixture(url: url)
 		let (_, token) = try await helpers.proposal(on: fixture.coach, model: fixture.model)
 		_ = await fixture.coach.decide(.approve(token), in: .main)
 		await fixture.coach.stop(.main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		let faults = FaultInjectingRecordLog(wrapping: store)
+		let faults = FaultInjectingRecordLog(wrapping: fixture.store)
 		let reopened = await makeCoach(
 			transport: FakeModelTransport(), intervals: fixture.client, store: faults)
 		faults.failFetches = true
@@ -146,7 +145,8 @@ import Testing
 	}
 }
 
-private struct HeldCalendarConfirmationLog: RecordLog {
+private struct HeldCalendarConfirmationLog: ChainForwardingLog {
+	var chainStore: any ReviewChainLog { inner }
 	let inner: FaultInjectingRecordLog
 	let gate: Gate
 	var deviceId: DeviceID { inner.deviceId }

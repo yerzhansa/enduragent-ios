@@ -3,13 +3,14 @@ import Synchronization
 
 @testable import EnduragentCoach
 
-final class HeldFirstReadLog: RecordLog, Sendable {
-	let inner: any RecordLog
+final class HeldFirstReadLog: ChainForwardingLog, Sendable {
+	var chainStore: any ReviewChainLog { inner }
+	let inner: any ReviewChainLog
 	private let gate = Gate()
 	var reached: AsyncStream<Void> { gate.reached }
 	private let claimed = Mutex(false)
 
-	init(inner: any RecordLog) {
+	init(inner: any ReviewChainLog) {
 		self.inner = inner
 	}
 

@@ -15,9 +15,7 @@ public final class RecordFaults: Sendable {
 					synced: try ModelContainerHandle.withoutCloudKit(
 						storeURL: directory.appending(
 							path: ModelContainerHandle.syncedStoreFileName)),
-					local: try ModelContainerHandle.withoutCloudKit(
-						storeURL: directory.appending(path: ModelContainerHandle.localStoreFileName)
-					)),
+					local: try ModelContainerHandle.deviceLocal(directory: directory)),
 				release: release)
 		}
 	}

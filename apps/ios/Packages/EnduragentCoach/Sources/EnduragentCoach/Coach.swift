@@ -53,7 +53,9 @@ public actor Coach {
 		let clock = ports.clock
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let transport = ports.models.makeTransport(diagnostics)
-		let ledger = Ledger(log: ports.records.log, clock: clock, diagnostics: diagnostics)
+		let ledger = Ledger(
+			log: ports.records.log, chain: ports.records.chain, clock: clock,
+			diagnostics: diagnostics)
 		let vault = CredentialVault(
 			store: ports.secrets, training: ports.training, clock: clock, ledger: ledger,
 			diagnostics: diagnostics,

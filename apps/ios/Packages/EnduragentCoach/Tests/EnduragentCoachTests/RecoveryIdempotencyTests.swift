@@ -298,11 +298,12 @@ import Testing
 	}
 }
 
-final class DeviceAliasLog: RecordLog, Sendable {
-	let inner: any RecordLog
+final class DeviceAliasLog: ChainForwardingLog, Sendable {
+	var chainStore: any ReviewChainLog { inner }
+	let inner: any ReviewChainLog
 	let deviceId: DeviceID
 
-	init(inner: any RecordLog, deviceId: DeviceID) {
+	init(inner: any ReviewChainLog, deviceId: DeviceID) {
 		self.inner = inner
 		self.deviceId = deviceId
 	}

@@ -66,7 +66,8 @@ import Testing
 	}
 
 	func coach(
-		_ secrets: any SecretStore, log: (any RecordLog)? = nil, training: TrainingService? = nil
+		_ secrets: any SecretStore, log: (any ReviewChainLog)? = nil,
+		training: TrainingService? = nil
 	) async -> Coach {
 		await consentingCoach(
 			Coach(

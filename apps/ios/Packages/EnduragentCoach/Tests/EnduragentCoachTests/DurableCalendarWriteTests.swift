@@ -161,7 +161,7 @@ import Testing
 
 	func fixture(
 		url: URL, resourceTimeout: TimeInterval = 30,
-		store: any RecordLog = InMemoryRecordLog()
+		store: any ReviewChainLog = InMemoryRecordLog()
 	) async -> CalendarFixture {
 		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 		let configuration = URLSessionConfiguration.ephemeral
@@ -207,5 +207,5 @@ struct CalendarFixture: Sendable {
 	let coach: Coach
 	let model: FakeModelTransport
 	let client: IntervalsRESTClient
-	let store: any RecordLog
+	let store: any ReviewChainLog
 }

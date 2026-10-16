@@ -48,12 +48,25 @@ extension SourceChecker {
 	]
 	static let coachSource =
 		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$"#
-	static let reviewChainBody =
-		#"\b(?:WorkoutReviewBody|ReviewPreparingBody)(?:\s*\.\s*init)?\s*\("#
+	static let reviewChainType = #"(?:WorkoutReviewBody|ReviewPreparingBody)"#
+	static let reviewChainBuilt = [
+		#"\b\#(reviewChainType)\s*(?:\(|\.\s*init\b)"#,
+		#":\s*\#(reviewChainType)\s*=\s*\.\s*init\b"#,
+		#"\.(?:workoutReview|reviewPreparing)\s*\(\s*\.\s*init\s*\(\s*(?:review|chatId)\s*:"#,
+	]
+	static let reviewChainRenamed = [
+		#"\btypealias\s+\w+(?:<[^>]*>)?\s*=\s*(?:\w+\s*\.\s*)?\#(reviewChainType)\b"#,
+		#"\bextension\s+(?:\w+\s*\.\s*)?\#(reviewChainType)\b"#,
+	]
+	static let reviewChainRecords =
+		"apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/"
 	static let reviewChainBuilders = [
 		"ReviewChain.swift", "RecordCodec.swift", "DeviceLocalCodec.swift",
 		"RecordEnvelopePayload.swift",
-	].map { "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/" + $0 }
+	].map { reviewChainRecords + $0 }
+	static let reviewChainBodyFiles = ["WorkoutReviewBody.swift", "ReviewPreparingBody.swift"].map {
+		reviewChainRecords + $0
+	}
 	static let swiftCopy =
 		#"\b(?:Text|Label|Button|Section|navigationTitle|alert|confirmationDialog"#
 		+ #"|String\(localized:)\s*\(?(?:\s*)"((?:\\.|[^"\\])*)""#
@@ -122,10 +135,7 @@ extension SourceChecker {
 		}
 		if file.hasSameUnits(as: Self.recordModel) { try checkLedgerIndexVersion(file, text) }
 		if try mintsOutsideItsFile(file, text) { try findings.report(file, "minted-in-one-file") }
-		if try patterns.test(Self.coachSource, file)
-			&& !Self.reviewChainBuilders.contains(where: file.hasSameUnits(as:))
-			&& patterns.test(Self.reviewChainBody, text)
-		{
+		if try buildsReviewChainBodyOutsideTheChain(file, text) {
 			try findings.report(file, "review-chain-only")
 		}
 		if try file.hasSameUnits(as: Self.mailbox) && hasExposedMailboxState(text) {
@@ -145,6 +155,18 @@ extension SourceChecker {
 				try findings.report(file, "public-language", key: sentence.key)
 			}
 		}
+	}
+
+	private func buildsReviewChainBodyOutsideTheChain(_ file: String, _ text: String) throws
+		-> Bool
+	{
+		guard try patterns.test(Self.coachSource, file) else { return false }
+		let forbidden =
+			(Self.reviewChainBuilders.contains(where: file.hasSameUnits(as:))
+				? [] : Self.reviewChainBuilt)
+			+ (Self.reviewChainBodyFiles.contains(where: file.hasSameUnits(as:))
+				? [] : Self.reviewChainRenamed)
+		return try forbidden.contains { try patterns.test($0, text) }
 	}
 
 	private func mintsOutsideItsFile(_ file: String, _ text: String) throws -> Bool {

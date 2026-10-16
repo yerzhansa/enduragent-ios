@@ -36,9 +36,15 @@ public struct CoachPorts: Sendable {
 
 public struct RecordStore: Sendable {
 	package let log: any RecordLog
+	package let chain: any ReviewChainLog
 
-	package init(log: any RecordLog) {
+	package init(log: any RecordLog, chain: any ReviewChainLog) {
 		self.log = log
+		self.chain = chain
+	}
+
+	package init(log: any ReviewChainLog) {
+		self.init(log: log, chain: log)
 	}
 
 	public static func onDevice(deviceId: DeviceID) throws -> RecordStore {

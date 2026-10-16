@@ -13,6 +13,19 @@ extension SourceCases {
 		"let body = WorkoutReviewBody.init(review: review)",
 		"let marker = ReviewPreparingBody(chatId: chat, turn: turn, attempt: attempt)",
 		"let marker = ReviewPreparingBody .init(chatId: chat, turn: turn, attempt: attempt)",
+		"let make = WorkoutReviewBody.init",
+		"let marker: ReviewPreparingBody = .init(chatId: chat, turn: turn, attempt: attempt)",
+		"let body: RecordBody = .deviceLocal(.workoutReview(.init(review: next)))",
+		"let marker = DeviceLocalRecordBody.reviewPreparing(.init(chatId: chat, turn: turn, attempt: id))",
+	]
+	static let reviewChainRenamings = [
+		"typealias Body = WorkoutReviewBody",
+		"typealias Marker = EnduragentCoach.ReviewPreparingBody",
+		"extension WorkoutReviewBody {\n\tstatic func of(_ review: WorkoutReview) -> Self { Self(review: review) }\n}",
+		"extension ReviewPreparingBody: CustomStringConvertible {}",
+	]
+	static let reviewChainBodyFiles = [
+		"\(records)/WorkoutReviewBody.swift", "\(records)/ReviewPreparingBody.swift",
 	]
 
 	static let reviewChainOnly: [SourceCase] =
@@ -21,6 +34,17 @@ extension SourceCases {
 				.rejects(
 					"rejects \(source) in \(file)", [file: source], finding: "[review-chain-only]")
 			}
+		}
+		+ reviewChainRenamings.flatMap { source in
+			[reviewChainOutside[0], reviewChainOutside[1], reviewChainBuilders[0]].map { file in
+				.rejects(
+					"rejects \(source) in \(file)", [file: source], finding: "[review-chain-only]")
+			}
+		}
+		+ reviewChainBodyFiles.map { file in
+			.accepts(
+				"accepts the body types renamed and extended in \(file)",
+				[file: reviewChainRenamings.joined(separator: "\n")])
 		}
 		+ reviewChainBuilders.map { file in
 			.accepts(
