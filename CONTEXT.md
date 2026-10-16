@@ -99,3 +99,19 @@ _Avoid_: Proposal, preview, change set
 **Kept workouts**:
 Workouts on the affected dates that the review leaves unchanged, shown for context.
 _Avoid_: Untouched workouts, context workouts
+
+**Receipt**:
+intervals.icu's answer that proves one change from a workout review was saved.
+_Avoid_: Confirmation, result, success
+
+**Unconfirmed change**:
+A change sent to intervals.icu whose answer never arrived, so it may or may not have been saved.
+_Avoid_: Unknown write, uncertain change, pending change
+
+**Check again**:
+The action that reads the calendar to settle an unconfirmed change.
+_Avoid_: Refresh, sync, reconcile
+
+**Refreshed review**:
+A workout review shown again because a workout in it changed on intervals.icu after it was first shown.
+_Avoid_: Updated review, stale review, new proposal
