@@ -317,11 +317,15 @@ Every reply runs on plain background time from `UIApplication.beginBackgroundTas
 
 A simulator cannot prove that no banner appears. Run this check only with the operator present on a physical iPhone. Fixture mode otherwise uses `ImmediateExecutionHost`, which never asks iOS for background time. The launch argument `-EnduragentFixtureHost background-time` selects the live build's `BackgroundTimeHost` with `UIApplication` background time. It keeps the scripted model, fake Credits and intervals.icu, fixture secrets and records, so the scripted model spends no Credits.
 
-Install a signed Debug build, then launch it without a test runner or debugger. An attached XCUITest runner or debugger may keep iOS from suspending the app, so iOS may never end its background time. Supply the connected phone identifier. Keep screenshots in a new local phone evidence folder.
+Install a signed Debug build, then launch it without a test runner or debugger. An attached XCUITest runner or debugger may keep iOS from suspending the app, so iOS may never end its background time. XCUITest also terminates an app it launched when the test ends, which settles the turn as `processEnded`. To script the lock, launch with the command below, then run a test that only calls `XCUIApplication(bundleIdentifier:).activate()`, sends, presses the lock button, and ends. Supply the connected phone identifier. Keep screenshots in a new local phone evidence folder.
+
+The `--` stops `devicectl` from reading the app's arguments as its own options.
 
 ```sh
-xcrun devicectl device process launch --device "$DEVICE_ID" icu.enduragent.app -EnduragentFixture first-week -EnduragentFixtureStore fresh -EnduragentFixtureHost background-time -AppleLanguages '(en)' -AppleLocale en_US
+xcrun devicectl device process launch --device "$DEVICE_ID" --terminate-existing -- icu.enduragent.app -EnduragentFixture first-week -EnduragentFixtureStore fresh -EnduragentFixtureHost background-time -AppleLanguages '(en)' -AppleLocale en_US
 ```
+
+While the phone is locked, `xcrun devicectl device copy from --device "$DEVICE_ID" --domain-type appDataContainer --domain-identifier icu.enduragent.app --source "Library/Application Support" --destination <folder>` copies the records. Keep only the `fixture/` stores. Delete any copied `EnduragentCoach/` store and `secrets.json` without reading them.
 
 Complete fixture onboarding and consent. For every relaunch, use the same command with `-EnduragentFixtureStore keep`. Record the OS, build, and language. Settings > Debug shows no Expire current lease button with this host. If the button appears, the launch used `ImmediateExecutionHost` and proves nothing about background time.
 
@@ -331,7 +335,7 @@ Complete fixture onboarding and consent. For every relaunch, use the same comman
 | Lock during `fixture:slow`, then unlock. | No notification on the Lock Screen or in Notification Center. |
 | Send `fixture:memory-until-system-interruption`, check the saved memory in Settings > Debug > Records, then lock until iOS ends the background time. | Reopen shows the interrupted reply with saved memory retained. Records shows `interrupted graceEnded`. |
 
-`fixture:memory-until-system-interruption` saves fixture memory, then sends a model heartbeat every ten seconds so the reply watchdog does not settle it first. It does not extend background time or synthesize expiry. Record that iOS caused the expiry.
+`fixture:memory-until-system-interruption` saves fixture memory, then sends a model heartbeat every ten seconds so the reply watchdog does not settle it first. It does not extend background time or synthesize expiry. Record that iOS caused the expiry. On 2026-10-16 on an iPhone 12 Pro Max with iOS 26.2.1, Home showed no banner for an ordinary reply or `fixture:slow`. A memory turn locked at 21:01:52 settled `interrupted graceEnded` with one saved memory section before 21:02:54, while the phone was still locked.
 
 ### ChoicesInConversationCheck
 
