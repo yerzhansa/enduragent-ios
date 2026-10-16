@@ -14,30 +14,27 @@ package enum SnapshotField: String, Hashable, Sendable, CaseIterable {
 
 extension WorkoutSnapshot {
 	package func differences(from current: WorkoutSnapshot) -> Set<SnapshotField> {
-		let reviewed = comparable
-		let now = current.comparable
 		let changed: [(field: SnapshotField, differs: Bool)] = [
-			(.date, reviewed.date != now.date),
-			(.name, reviewed.name != now.name),
-			(.duration, reviewed.durationSeconds != now.durationSeconds),
-			(.description, reviewed.description != now.description),
-			(.load, reviewed.load != now.load),
-			(.structure, reviewed.structure != now.structure),
+			(.date, date != current.date),
+			(
+				.name,
+				name.map(Self.withoutTrailingWhitespace)
+					!= current.name.map(Self.withoutTrailingWhitespace)
+			),
+			(.duration, durationSeconds != current.durationSeconds),
+			(.description, !Self.sameDescription(description, current.description)),
+			(.load, load != current.load),
+			(.structure, structure != current.structure),
 		]
 		return Set(changed.filter(\.differs).map(\.field))
 	}
 
-	private var comparable: WorkoutSnapshot {
-		WorkoutSnapshot(
-			date: date,
-			name: name.map(Self.withoutTrailingWhitespace),
-			durationSeconds: durationSeconds,
-			description: description.map {
-				Self.withoutTrailingWhitespace(Self.normalizedText($0))
-			},
-			load: load,
-			structure: structure
-		)
+	static func sameDescription(_ left: String?, _ right: String?) -> Bool {
+		left.map(comparableDescription) == right.map(comparableDescription)
+	}
+
+	private static func comparableDescription(_ text: String) -> String {
+		withoutTrailingWhitespace(normalizedText(text))
 	}
 
 	private static func withoutTrailingWhitespace(_ text: String) -> String {

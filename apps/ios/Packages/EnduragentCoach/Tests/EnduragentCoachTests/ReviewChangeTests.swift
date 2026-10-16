@@ -67,7 +67,13 @@ extension IntervalsRESTClientTests {
 				trainingLoad: nil, workoutDocument: nil)
 			#expect(described.isApplied(on: snapshot(description: "Easy spin", structure: nil)))
 			#expect(described.isApplied(on: snapshot(description: "Easy spin \n", structure: nil)))
+			#expect(described.isApplied(on: snapshot(description: "Easy spin")))
+			#expect(described.isApplied(on: snapshot(description: "Easy spin \n")))
 			#expect(!described.isApplied(on: Self.reviewed))
+			let trailing = WorkoutPatch(
+				date: nil, name: nil, durationSeconds: nil, description: "Warmup\n- 10m 55%\n",
+				trainingLoad: nil, workoutDocument: nil)
+			#expect(trailing.isApplied(on: Self.reviewed))
 		}
 
 		@Test func anUpgradedEditIsAppliedByTheSameRuleWithoutAReviewedSnapshot() throws {
