@@ -165,9 +165,6 @@ extension Coach {
 
 	public func refreshDisplayLocale() async {
 		await publishStatus()
-		for mailbox in await openedMailboxes() {
-			await mailbox.refreshLeaseTitle()
-		}
 	}
 
 	public func languagePreference() async -> LanguagePreference {
@@ -176,9 +173,6 @@ extension Coach {
 
 	public func setLanguage(_ preference: LanguagePreference) async throws(PreferenceWriteFailure) {
 		try await preferences.setLanguage(preference)
-		for mailbox in await openedMailboxes() {
-			await mailbox.refreshLeaseTitle()
-		}
 		await publishStatus()
 	}
 

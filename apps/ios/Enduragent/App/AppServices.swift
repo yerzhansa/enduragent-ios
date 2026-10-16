@@ -53,7 +53,7 @@ struct AppServices: Sendable {
 	static func live(displayLocale: @escaping DisplayLocaleResolver) throws -> AppServices {
 		let clock = SystemClock()
 		let store = try RecordStore.onDevice(deviceId: persistedDeviceID(in: .standard))
-		let host = ContinuedProcessingHost(
+		let host = BackgroundTimeHost(
 			bundleIdentifier: bundleIdentifier, system: LiveBackgroundSystem())
 		let coach = Coach(
 			sport: .cycling,

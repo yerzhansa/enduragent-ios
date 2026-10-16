@@ -178,8 +178,6 @@ LeaseRecord.expiry
 LeaseRecord.id
 LeaseRecord.init(id:request:kind:)
 LeaseRecord.kind
-LeaseRecord.notes
-LeaseRecord.progress
 LeaseRecord.request
 PackCatalog
 PackCatalog.init(purchasesEnabled:scale:packs:)

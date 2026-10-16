@@ -54,6 +54,12 @@ custom_rules:
     match_kinds: [identifier]
     message: 'Console output does not ship. Surface the state in the UI or in a test.'
     severity: error
+  no_system_banners:
+    included: 'apps/ios/'
+    regex: '\b(?:BGContinuedProcessingTask\w*|BGTaskScheduler|UNUserNotificationCenter)\b'
+    match_kinds: [identifier, typeidentifier]
+    message: 'System banners and notifications need an operator decision. Background work uses UIApplication.beginBackgroundTask through BackgroundTimeHost.'
+    severity: error
   view_owns_no_transport:
     included: 'apps/ios/Enduragent/(?!App/).*\.swift$'
     regex: '\b(?:URLSession|JSONDecoder|JSONEncoder)\b'
