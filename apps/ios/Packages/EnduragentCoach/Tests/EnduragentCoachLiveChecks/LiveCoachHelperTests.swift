@@ -227,20 +227,19 @@ import Testing
 		let account = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let writes = LiveCalendarWrites()
 		let training = LiveReadOnlyTraining(inner: account, writes: writes)
-		let refused = IntervalsError(
-			code: "live_check_read_only", details: "The live check never writes the calendar.")
-		let draft = ChatCalendarCreate(
-			date: "1998-06-14", name: "Z2 Endurance 60min", description: "- 60m 65%", type: .ride,
-			externalId: IntervalsSerializer.chatExternalId(
-				date: "1998-06-14", name: "Z2 Endurance 60min"),
-			tags: [IntervalsPolicy.coachTag])
+		let ride = CalendarPayload(
+			date: "1998-06-14", type: .ride, name: "Z2 Endurance 60min",
+			description: "- 60m 65%", movingTime: 3600, trainingLoad: nil)
+		let patch = WorkoutPatch(
+			date: nil, name: "Z2", durationSeconds: nil, description: nil, trainingLoad: nil,
+			workoutDocument: nil)
 
-		await #expect(throws: refused) { _ = try await training.createChatEvent(draft) }
-		await #expect(throws: refused) {
-			_ = try await training.updateEvent(
-				id: EventID(rawValue: 7), name: "Z2", description: nil, date: nil)
+		for write in [
+			CalendarWrite.create(ride, identity: CalendarWriteID()),
+			.update(EventID(rawValue: 7), patch), .delete(EventID(rawValue: 7)),
+		] {
+			#expect(await training.write(write) == .httpStatus(403))
 		}
-		await #expect(throws: refused) { try await training.deleteEvent(id: EventID(rawValue: 7)) }
 
 		#expect(writes.total == 3)
 		#expect(account.calls.isEmpty)
@@ -264,7 +263,7 @@ import Testing
 			ledger: try LiveSpendLedger(
 				file: try TestTemporaryFolders.make().appending(path: "spend.tsv"), limit: 10),
 			today: today, modelTransport: { _ in model },
-			accountReads: { _, _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) })
+			accountReads: { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) })
 		let plan = try Self.planForAnEmptyAccount()
 		let scenario = try #require(plan.scenarios.first { $0.setting == .readsFailing })
 

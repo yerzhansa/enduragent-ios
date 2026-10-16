@@ -48,7 +48,7 @@ func makeCoach(
 ) async -> Coach {
 	var ports = CoachPorts(
 		records: RecordStore(log: store), secrets: secrets, models: .scripted(transport),
-		training: TrainingService { _, _, _ in intervals }, credits: .fake(FakeCreditsClient()),
+		training: TrainingService { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
 		host: host, clock: clock)
 	ports.watchdogSleep = watchdogClock.sleep
 	if let coalescingClock { ports.coalescingSleep = coalescingClock.sleep }

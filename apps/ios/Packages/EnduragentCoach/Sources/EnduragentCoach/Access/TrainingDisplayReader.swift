@@ -5,7 +5,7 @@ struct TrainingDisplayReader: Sendable {
 	let clock: any Clock
 
 	func client(for connection: IntervalsConnection) -> any TrainingClient {
-		training.makeClient(connection.credential, connection.selection, clock)
+		training.makeClient(connection.credential, connection.selection)
 	}
 
 	func profile(for connection: IntervalsConnection) async -> IntervalsProfileState {

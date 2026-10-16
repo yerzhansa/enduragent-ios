@@ -18,7 +18,7 @@ extension FixtureLaunchTests {
 		let token = try await presentedReview(on: model)
 		_ = try await settledTurn(model)
 		if layout != .approval {
-			fixture.intervals.writeFailure = URLError(.timedOut)
+			fixture.intervals.writeFailure = .lost(.transport)
 			await model.decide(.approve(token))
 			try await until {
 				if case .checkAgain? = model.chat?.review?.controls { return true }

@@ -28,7 +28,7 @@ extension FixtureLaunchTests {
 		guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
 			throw ReviewNotPresented()
 		}
-		intervals.writeFailure = URLError(.timedOut)
+		intervals.writeFailure = .lost(.transport)
 		await model.decide(.approve(token))
 		try await until { model.chat?.review?.notice?.key == Catalog.reviewWritePending }
 		if failedRead {
@@ -55,7 +55,7 @@ extension FixtureLaunchTests {
 		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
-		intervals.writeFailure = IntervalsError(code: "http", details: "Lost response", status: 502)
+		intervals.writeFailure = .httpStatus(502)
 		await model.decide(.approve(token))
 		try await until {
 			guard case .checkAgain? = model.chat?.review?.controls else { return false }
@@ -103,7 +103,7 @@ extension FixtureLaunchTests {
 		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
-		intervals.writeFailure = IntervalsError(code: "http", details: "Lost response", status: 502)
+		intervals.writeFailure = .httpStatus(502)
 		await model.decide(.approve(token))
 		try await until {
 			guard case .checkAgain? = model.chat?.review?.controls else { return false }
@@ -252,7 +252,7 @@ extension FixtureLaunchTests {
 		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
-		fixture.intervals.writeFailure = URLError(.timedOut)
+		fixture.intervals.writeFailure = .lost(.transport)
 		await model.decide(.approve(token))
 		try await until {
 			guard case .checkAgain? = model.chat?.review?.controls else { return false }

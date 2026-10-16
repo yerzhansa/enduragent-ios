@@ -96,43 +96,54 @@ struct IntervalsRESTClientTests {
 		#expect(items.filter { $0.name == "newest" }.map(\.value) == ["1998-06-20"])
 	}
 
-	@Test func createChatEventPostsSnakeCaseBodyWithoutForbiddenFields() async throws {
-		let client = try makeClient(
-			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-		)
-		var draft = try CyclingTools.parseCreateWorkoutInput(
-			try JSONValue.parse(
-				#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}"#
-			),
-			today: "1998-06-13"
-		).draft
-		draft.writeID = CalendarWriteID()
-		let event = try await client.createChatEvent(draft)
-		let request = try #require(IntervalsURLProtocolStub.lastRequest)
-		#expect(request.httpMethod == "POST")
-		#expect(request.url?.path.hasSuffix("/athlete/0/events") == true)
-		#expect(request.url?.query == "upsertOnUid=true")
-		let data = try #require(IntervalsURLProtocolStub.lastBody)
-		let body = try #require(String(data: data, encoding: .utf8))
-		#expect(body.contains("\"start_date_local\""))
-		#expect(body.contains("\"external_id\""))
-		#expect(!body.contains("moving_time"))
-		#expect(!body.contains("icu_training_load"))
-		#expect(body.contains("\"uid\""))
-		#expect(!body.contains("workout_doc"))
-		#expect(event.name == "Endurance")
+	enum IneligibleTarget: Sendable {
+		case race, athleteOwned, past, movedIntoThePast
+
+		var event: CalendarEvent {
+			let owned = self == .past || self == .movedIntoThePast
+			return CalendarEvent(
+				id: EventID(rawValue: 43),
+				startDateLocal: self == .past ? "1998-06-12T00:00:00" : "1998-06-20T00:00:00",
+				name: "Endurance", category: self == .race ? "RACE_A" : "WORKOUT",
+				externalId: nil, uid: nil, tags: owned ? [IntervalsPolicy.coachTag] : [],
+				coachCreated: owned)
+		}
+
+		var code: String {
+			switch self {
+			case .race: "not_a_workout"
+			case .athleteOwned: "not_coach_created"
+			case .past: "past_workout_protected"
+			case .movedIntoThePast: "past_workout_destination"
+			}
+		}
 	}
 
-	@Test func deleteRefusesRaceCategory() async throws {
-		let client = try makeClient(
-			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-		)
+	@Test(arguments: [
+		(IneligibleTarget.race, false), (.race, true), (.athleteOwned, false),
+		(.athleteOwned, true), (.past, false), (.past, true), (.movedIntoThePast, false),
+	])
+	func theOldPathRefusesAnIneligibleTargetWithTodaysCodeBeforeItWrites(
+		target: IneligibleTarget, deleting: Bool
+	) async throws {
+		let client = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		client.events = [target.event]
+		let id = target.event.id
+		let input: GatedToolInput =
+			deleting
+			? .deleteWorkout(eventId: id)
+			: .updateWorkout(
+				UpdateWorkoutInput(
+					eventId: id, date: target == .movedIntoThePast ? "1998-06-12" : nil,
+					name: "Endurance", description: nil))
 		do {
-			try await client.deleteEvent(id: EventID(rawValue: 43))
-			Issue.record("expected not_a_workout")
+			_ = try await CalendarWriteOperation.prepare(
+				try oldPathProposal(input, writeID: nil), client: client, today: "1998-06-13")
+			Issue.record("expected \(target.code)")
 		} catch let error as IntervalsError {
-			#expect(error.code == "not_a_workout")
+			#expect(error.code == target.code)
 		}
+		#expect(client.calls.allSatisfy { !$0.isWrite })
 	}
 
 	@Test func selectedAthleteGoesIntoEveryAthletePath() async throws {
@@ -189,11 +200,9 @@ struct IntervalsRESTClientTests {
 
 	func makeClient(
 		credential: IntervalsCredential = .apiKey("test-key"),
-		athlete: AthleteSelection = .keyOwner,
-		clock: any Clock = SystemClock()
+		athlete: AthleteSelection = .keyOwner
 	) throws -> IntervalsRESTClient {
-		IntervalsRESTClient(
-			credential: credential, athlete: athlete, session: try stubSession(), clock: clock)
+		IntervalsRESTClient(credential: credential, athlete: athlete, session: try stubSession())
 	}
 
 	func stubSession() throws -> URLSession {
@@ -210,6 +219,17 @@ struct IntervalsRESTClientTests {
 			if path.contains("/activities") {
 				return (200, try fixtureData("intervals-activities"))
 			}
+			if method == "POST", path.hasSuffix("/events/bulk") {
+				let data = try #require(IntervalsURLProtocolStub.lastBody)
+				let sent =
+					try JSONValue.parse(String(decoding: data, as: UTF8.self)).arrayValue ?? []
+				let saved = sent.enumerated().map { index, event in
+					var fields = event.objectFields
+					fields["id"] = .number(Double(index + 1))
+					return JSONValue.object(fields)
+				}
+				return (200, Data(JSONValue.array(saved).canonicalDigestInput().utf8))
+			}
 			if path.contains("/events/") {
 				if path.hasSuffix("/43") {
 					let race = """
@@ -223,13 +243,6 @@ struct IntervalsRESTClientTests {
 				return (200, Data(owned.utf8))
 			}
 			if path.contains("/events") {
-				if method == "POST" {
-					let data = try #require(IntervalsURLProtocolStub.lastBody)
-					var fields = try JSONValue.parse(String(decoding: data, as: UTF8.self))
-						.objectFields
-					fields["id"] = .number(1)
-					return (200, Data(JSONValue.object(fields).canonicalDigestInput().utf8))
-				}
 				return (200, try fixtureData("intervals-events"))
 			}
 			if path.contains("/activity/") {

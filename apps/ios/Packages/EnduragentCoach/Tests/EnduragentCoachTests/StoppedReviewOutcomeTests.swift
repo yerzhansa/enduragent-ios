@@ -9,7 +9,7 @@ extension RetryLadderTests {
 	func uncertainStoppedCardApprovalRemovesTryAgain(reopenBeforeApproval: Bool) async throws {
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		let intervals = HeldApprovalWrites(base: base, clock: held, failure: URLError(.timedOut))
+		let intervals = HeldApprovalWrites(base: base, clock: held, failure: .lost(.transport))
 		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))],
 			otherwise: transport.respond)
@@ -62,7 +62,7 @@ extension RetryLadderTests {
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(
 			base: base, clock: held,
-			failure: IntervalsError(code: "http", details: "Rejected", status: 422))
+			failure: .httpStatus(422))
 		let memory: [ScriptedEvent] =
 			memorySaved
 			? [

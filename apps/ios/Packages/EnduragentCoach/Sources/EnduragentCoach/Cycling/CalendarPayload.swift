@@ -5,7 +5,7 @@ package struct CalendarPayload: Sendable, Equatable {
 	package let type: CalendarEventType
 	package let name: String
 	package let description: String
-	package let movingTime: Int
+	package let movingTime: Int?
 	package let trainingLoad: Int?
 
 	private static let nameLimit = 120
@@ -90,11 +90,13 @@ package struct CalendarPayload: Sendable, Equatable {
 			"type": .string(type.rawValue),
 			"name": .string(name),
 			"description": .string(description),
-			"moving_time": .number(Double(movingTime)),
 			"external_id": .string(identity.externalID),
 			"uid": .string(identity.uid),
 			"tags": .array([.string(IntervalsPolicy.coachTag)]),
 		]
+		if let movingTime {
+			fields["moving_time"] = .number(Double(movingTime))
+		}
 		if let trainingLoad {
 			fields["icu_training_load"] = .number(Double(trainingLoad))
 		}

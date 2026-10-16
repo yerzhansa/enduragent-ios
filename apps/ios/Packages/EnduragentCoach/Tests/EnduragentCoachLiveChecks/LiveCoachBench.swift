@@ -9,10 +9,9 @@ final class LiveCalendarWrites: Sendable {
 
 	var total: Int { count.withLock { $0 } }
 
-	func refuse() -> IntervalsError {
+	func refuse() -> IntervalsWriteAnswer {
 		count.withLock { $0 += 1 }
-		return IntervalsError(
-			code: "live_check_read_only", details: "The live check never writes the calendar.")
+		return .httpStatus(403)
 	}
 }
 
@@ -46,18 +45,8 @@ struct LiveReadOnlyTraining: TrainingReads, IntervalsClient {
 		try await inner.listEvents(in: range)
 	}
 
-	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
-		throw writes.refuse()
-	}
-
-	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
-		async throws -> CalendarEvent
-	{
-		throw writes.refuse()
-	}
-
-	func deleteEvent(id: EventID) async throws {
-		throw writes.refuse()
+	func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer {
+		writes.refuse()
 	}
 }
 
@@ -168,18 +157,18 @@ struct LiveCoachBench: Sendable {
 			reads = accountReads
 		case .notConnected:
 			let unused = FakeIntervalsClient(athleteName: "Unconnected athlete", ftp: 250)
-			reads = { _, _, _ in unused }
+			reads = { _, _ in unused }
 		case .readsFailing:
 			try secrets.storeIntervalsConnection(testConnection)
 			let failing = FakeIntervalsClient(athleteName: "Live check athlete", ftp: 250)
 			snapshotFailing = failing
-			reads = { _, _, _ in failing }
+			reads = { _, _ in failing }
 		case .implausibleFTP:
 			try secrets.storeIntervalsConnection(testConnection)
 			let athlete = FakeIntervalsClient(
 				athleteName: "Live check athlete", ftp: LiveCoachPlan.implausibleFTP)
 			athlete.wellness = [.on(today, [.fitness: 48, .fatigue: 52])]
-			reads = { _, _, _ in athlete }
+			reads = { _, _ in athlete }
 		}
 		let ledger = self.ledger
 		let coach = Coach(
@@ -190,8 +179,8 @@ struct LiveCoachBench: Sendable {
 					LiveMeteredTransport(
 						inner: modelTransport(diagnostics), ledger: ledger, log: log)
 				},
-				training: TrainingService { credential, selection, clock in
-					LiveReadOnlyTraining(inner: reads(credential, selection, clock), writes: writes)
+				training: TrainingService { credential, selection in
+					LiveReadOnlyTraining(inner: reads(credential, selection), writes: writes)
 				},
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
 				clock: SystemClock()),

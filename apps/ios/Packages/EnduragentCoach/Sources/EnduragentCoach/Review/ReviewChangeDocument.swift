@@ -136,7 +136,7 @@ struct PayloadDocument: Codable {
 	let type: String
 	let name: String
 	let description: String
-	let movingTime: Int
+	let movingTime: Int?
 	let trainingLoad: Int?
 
 	init(_ payload: CalendarPayload) {

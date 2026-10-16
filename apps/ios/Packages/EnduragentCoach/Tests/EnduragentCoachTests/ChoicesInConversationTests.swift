@@ -72,16 +72,17 @@ import Testing
 		#expect(
 			await coach.decide(.approve(token), in: .main)
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
-		#expect(
-			intervals.calls.filter(\.isWrite) == [
-				.createEvent(date: "1998-06-14", externalId: "cycling-coach:1998-06-14:endurance")
-			])
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		let writes = try await records.fetch(RecordQuery(scope: .synced([.reviewWrite]))).records
 		guard case .synced(.reviewWrite(let applied)) = writes.last?.body else {
 			Issue.record("Expected durable calendar approval evidence.")
 			return
 		}
+		#expect(
+			intervals.calls.filter(\.isWrite) == [
+				.createEvent(
+					date: "1998-06-14", externalId: try #require(applied.writeID).externalID)
+			])
 		#expect(applied.evidence == .applied(eventID: 1))
 		#expect(
 			try await records.fetch(

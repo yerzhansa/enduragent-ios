@@ -1,26 +1,35 @@
 import Foundation
 
 struct CalendarWriteOperation: Sendable {
-	let input: GatedToolInput
-	let draft: ChatCalendarCreate?
+	let write: CalendarWrite
 	let target: CalendarWriteTarget
 
 	static func prepare(_ live: LiveProposal, client: any IntervalsClient, today: CivilDate)
 		async throws -> Self
 	{
-		let input = live.body.toolInput
-		switch input {
+		switch live.body.toolInput {
 		case .createWorkout, .createStrengthWorkout:
-			let draft = try creation(live)
-			try IntervalsPolicy.rejectPastCreationDate(draft.date, today: today)
-			return Self(input: input, draft: draft, target: .create(date: draft.date.rawValue))
+			let payload = try creation(live.body.toolInput)
+			try IntervalsPolicy.rejectPastCreationDate(payload.date, today: today)
+			guard let identity = live.body.writeID else {
+				throw IntervalsError(
+					code: "missing_write_identity",
+					details: "Calendar approval needs a durable identity")
+			}
+			return Self(
+				write: .create(payload, identity: identity),
+				target: .create(date: payload.date.rawValue))
 		case .updateWorkout(let update):
 			let event = try await client.fetchEvent(id: update.eventId)
 			try IntervalsPolicy.refuseMutableEvent(
 				event, today: today, eventId: update.eventId, action: "update",
 				nextDate: update.date)
 			return Self(
-				input: input, draft: nil,
+				write: .update(
+					update.eventId,
+					WorkoutPatch(
+						date: update.date, name: update.name, durationSeconds: nil,
+						description: update.description, trainingLoad: nil, workoutDocument: nil)),
 				target: .update(
 					eventID: update.eventId.rawValue, date: String(event.startDateLocal.prefix(10)))
 			)
@@ -29,7 +38,7 @@ struct CalendarWriteOperation: Sendable {
 			try IntervalsPolicy.refuseMutableEvent(
 				event, today: today, eventId: id, action: "delete", nextDate: nil)
 			return Self(
-				input: input, draft: nil,
+				write: .delete(id),
 				target: .delete(eventID: id.rawValue, date: String(event.startDateLocal.prefix(10)))
 			)
 		case .planSave:
@@ -38,42 +47,62 @@ struct CalendarWriteOperation: Sendable {
 		}
 	}
 
-	private static func creation(_ live: LiveProposal) throws -> ChatCalendarCreate {
-		switch live.body.toolInput {
+	static func creation(_ input: GatedToolInput) throws -> CalendarPayload {
+		switch input {
 		case .createWorkout(let date, let workout):
-			let serialized = try IntervalsSerializer.serialize(workout)
-			return ChatCalendarCreate(
-				writeID: live.body.writeID, date: date, name: workout.name,
-				description: serialized.description, type: .ride,
-				externalId: IntervalsSerializer.chatExternalId(date: date, name: workout.name),
-				tags: [IntervalsPolicy.coachTag])
+			return CalendarPayload(
+				date: date, type: .ride, name: workout.name,
+				description: try IntervalsSerializer.serialize(workout).description,
+				movingTime: nil, trainingLoad: nil)
 		case .createStrengthWorkout(let date, let name, let description):
-			return ChatCalendarCreate(
-				writeID: live.body.writeID, date: date, name: name, description: description,
-				type: .weightTraining,
-				externalId: IntervalsSerializer.chatExternalId(
-					date: date, name: "strength \(name)"),
-				tags: [IntervalsPolicy.coachTag])
+			return CalendarPayload(
+				date: date, type: .weightTraining, name: name, description: description,
+				movingTime: nil, trainingLoad: nil)
 		case .updateWorkout, .deleteWorkout, .planSave:
 			throw IntervalsError(code: "invalid_operation", details: "Not a calendar creation")
 		}
 	}
 
+	private static func legacyExternalID(_ input: GatedToolInput) -> String? {
+		switch input {
+		case .createWorkout(let date, let workout):
+			IntervalsSerializer.chatExternalId(date: date, name: workout.name).rawValue
+		case .createStrengthWorkout(let date, let name, _):
+			IntervalsSerializer.chatExternalId(date: date, name: "strength \(name)").rawValue
+		case .updateWorkout, .deleteWorkout, .planSave:
+			nil
+		}
+	}
+
 	func dispatch(on client: any IntervalsClient) async throws -> Int {
 		try Task.checkCancellation()
-		if let draft { return try await client.createChatEvent(draft).id.rawValue }
-		switch input {
-		case .deleteWorkout(let id):
-			try await client.deleteEvent(id: id)
+		let event: CalendarEvent?
+		switch await client.write(write) {
+		case .saved(let saved):
+			event = saved
+		case .httpStatus(let status):
+			throw IntervalsError(code: "http", details: "status \(status)", status: status)
+		case .lost(let loss):
+			throw IntervalsError(code: "network", details: "The calendar save was lost (\(loss)).")
+		}
+		switch write {
+		case .create(let payload, let identity):
+			guard let event, event.uid == identity.uid, payload.matches(event) else {
+				throw IntervalsError(
+					code: "invalid_json", details: "Created event does not match the approval")
+			}
+			return event.id.rawValue
+		case .update(let id, let patch):
+			guard let event, event.id == id, patch.name.map({ $0 == event.name }) ?? true,
+				patch.description.map({ $0 == event.description }) ?? true,
+				patch.date.map({ "\($0.rawValue)T00:00:00" == event.startDateLocal }) ?? true
+			else {
+				throw IntervalsError(
+					code: "invalid_json", details: "Updated event does not match the approval")
+			}
+			return event.id.rawValue
+		case .delete(let id):
 			return id.rawValue
-		case .updateWorkout(let update):
-			return try await client.updateEvent(
-				id: update.eventId, name: update.name, description: update.description,
-				date: update.date
-			).id.rawValue
-		case .createWorkout, .createStrengthWorkout, .planSave:
-			throw IntervalsError(
-				code: "invalid_operation", details: "Calendar write has no approved payload")
 		}
 	}
 
@@ -86,16 +115,17 @@ struct CalendarWriteOperation: Sendable {
 		}
 		switch live.body.toolInput {
 		case .createWorkout, .createStrengthWorkout:
-			let draft = try creation(live)
-			let events = try await client.listEvents(in: .day(draft.date))
+			let payload = try creation(live.body.toolInput)
+			let legacy = legacyExternalID(live.body.toolInput)
+			let events = try await client.listEvents(in: .day(payload.date))
 			let matches = events.filter {
 				if let writeID = intent.body.writeID {
 					return $0.uid == writeID.uid || $0.externalId == writeID.externalID
 				}
-				return $0.externalId == draft.externalId.rawValue
+				return $0.externalId == legacy
 			}
 			guard !matches.isEmpty else { return .unknown(.absent) }
-			guard matches.count == 1, let event = matches.first, draft.matches(event)
+			guard matches.count == 1, let event = matches.first, payload.matches(event)
 			else { return .unknown(.found) }
 			return .applied(eventID: event.id.rawValue)
 		case .updateWorkout(let update):
@@ -125,8 +155,8 @@ struct CalendarWriteOperation: Sendable {
 	}
 }
 
-extension ChatCalendarCreate {
-	package func matches(_ event: CalendarEvent) -> Bool {
+extension CalendarPayload {
+	fileprivate func matches(_ event: CalendarEvent) -> Bool {
 		event.name == name && event.description == description && event.type == type.rawValue
 			&& event.category == "WORKOUT" && event.startDateLocal == "\(date.rawValue)T00:00:00"
 	}

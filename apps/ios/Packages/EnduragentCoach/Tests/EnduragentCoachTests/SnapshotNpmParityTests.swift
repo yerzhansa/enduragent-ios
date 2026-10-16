@@ -137,7 +137,7 @@ extension IntervalsRESTClientTests {
 		private func stubbedClient(
 			clock: FixedClock, answer: @escaping @Sendable (URL) throws -> (Int, Data)
 		) throws -> IntervalsRESTClient {
-			let client = try IntervalsRESTClientTests().makeClient(clock: clock)
+			let client = try IntervalsRESTClientTests().makeClient()
 			IntervalsURLProtocolStub.handler = { request in try answer(try #require(request.url)) }
 			return client
 		}
