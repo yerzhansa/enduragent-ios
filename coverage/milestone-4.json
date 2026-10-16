@@ -1,6 +1,7 @@
 {
 	"units": {
 		"0.1": 7,
+		"1.1": 8,
 		"2.1": 3
 	},
 	"criteria": [
@@ -53,6 +54,67 @@
 			"statement": "A requirement row whose criteria all carry phoneSession or noAutomatedProof fails with no-named-test, unless the row has phoneSessionOnly with a reason.",
 			"tests": [
 				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "requirementReachesANamedTestUnlessItIsForThePhoneSessionOnly"}
+			]
+		},
+		{
+			"id": "1.1.1",
+			"statement": "A range holding a WORKOUT, a RACE_A, a RACE_B, a RACE_C, a NOTE and a HOLIDAY lists the four planning rows and only those, each with id, date, name, category, coachCreated, durationSeconds and load equal to the fixture.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarListTests.swift", "function": "listHoldsTheWorkoutsAndRacesOfTheRangeWithTheirDurationAndLoad"}
+			]
+		},
+		{
+			"id": "1.1.2",
+			"statement": "With coachCreatedOnly true the same range lists only the coach-created rows, and a coach-tagged race is listed and still has coachCreated true.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarListTests.swift", "function": "coachCreatedOnlyListsTheCoachRowsAndACoachRaceStaysARace"}
+			]
+		},
+		{
+			"id": "1.1.3",
+			"statement": "A row with no moving_time has no durationSeconds key, a row with no icu_training_load has no load key, and a row with moving_time 0 lists durationSeconds 0.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarListTests.swift", "function": "anUnknownDurationOrLoadHasNoKeyAndAZeroDurationIsListed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTClientTests.swift", "function": "listEventsDecodesDurationLoadAndDocumentAndReadsAnUnnamedEntry"}
+			]
+		},
+		{
+			"id": "1.1.4",
+			"statement": "An entry with no name lists with no name key, and the rest of the range lists normally.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarListTests.swift", "function": "anUnnamedEntryListsWithoutANameBesideTheRestOfTheRange"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTClientTests.swift", "function": "listEventsDecodesDurationLoadAndDocumentAndReadsAnUnnamedEntry"}
+			]
+		},
+		{
+			"id": "1.1.5",
+			"statement": "A reversed range, a range of 367 days and a malformed date each answer with their refusal and make no read call, and a range of exactly 366 days is read.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RangeArgumentTests.swift", "function": "rangeRefusalTellsTheCoachHowToAskAgain"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarListTests.swift", "function": "aMalformedDateIsRefusedBeforeAnyRead"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarListTests.swift", "function": "aRangeOfExactly366DaysIsRead"}
+			]
+		},
+		{
+			"id": "1.1.6",
+			"statement": "An omitted newest reads up to the phone's day: with the phone clock at 00:30 on 1998-09-08 in Pacific/Auckland, newest is 1998-09-08.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarListTests.swift", "function": "anOmittedNewestReadsUpToThePhonesDay"}
+			]
+		},
+		{
+			"id": "1.1.7",
+			"statement": "The REST request still sends no category, and listEventsDoesNotFilterAwayMovedIdentities passes unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTClientTests.swift", "function": "listEventsDoesNotFilterAwayMovedIdentities"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StrictCalendarReadTests.swift", "function": "malformedCalendarListNeverBecomesAnEmptyObservation"}
+			]
+		},
+		{
+			"id": "1.1.8",
+			"statement": "The list tool's description no longer says Filters to WORKOUT category only, and names workouts and races, races never changeable and coachCreatedOnly.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarListTests.swift", "function": "theDescriptionNamesWorkoutsAndRacesAndNoWorkoutOnlyFilter"}
 			]
 		},
 		{

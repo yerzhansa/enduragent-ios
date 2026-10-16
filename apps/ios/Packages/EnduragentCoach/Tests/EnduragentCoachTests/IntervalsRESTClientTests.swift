@@ -62,6 +62,28 @@ struct IntervalsRESTClientTests {
 		#expect(!events[1].coachCreated)
 	}
 
+	@Test func listEventsDecodesDurationLoadAndDocumentAndReadsAnUnnamedEntry() async throws {
+		let client = try makeClient()
+		let body = """
+			[
+			{"id":1,"start_date_local":"1998-06-14T00:00:00","name":"Endurance","category":"WORKOUT","moving_time":3600,"icu_training_load":52,"workout_doc":{"steps":[{"duration":3600}]}},
+			{"id":2,"start_date_local":"1998-06-15T00:00:00","name":"Opener","category":"WORKOUT","moving_time":0,"icu_training_load":0,"workout_doc":null},
+			{"id":3,"start_date_local":"1998-06-16T00:00:00","name":"Spin","category":"WORKOUT","moving_time":null,"icu_training_load":null},
+			{"id":4,"start_date_local":"1998-06-17T00:00:00","category":"RACE_A"}
+			]
+			"""
+		IntervalsURLProtocolStub.handler = { _ in (200, Data(body.utf8)) }
+		let events = try await client.listEvents(
+			in: ReadRange(oldest: "1998-06-14", newest: "1998-06-20", today: "1998-06-13"))
+		#expect(events.map(\.movingTime) == [3600, 0, nil, nil])
+		#expect(events.map(\.trainingLoad) == [52, 0, nil, nil])
+		#expect(
+			events.map(\.workoutDocument)
+				== [try JSONValue.parse(#"{"steps":[{"duration":3600}]}"#), nil, nil, nil])
+		#expect(events.map(\.name) == ["Endurance", "Opener", "Spin", nil])
+		#expect(events[3].category == "RACE_A")
+	}
+
 	@Test func listEventsAsksForTheRangeFromItsOldestToItsNewestDay() async throws {
 		_ = try await makeClient().listEvents(
 			in: ReadRange(oldest: "1998-06-14", newest: "1998-06-20", today: "1998-06-13"))

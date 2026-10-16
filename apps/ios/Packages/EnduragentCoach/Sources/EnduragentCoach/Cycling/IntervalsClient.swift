@@ -63,9 +63,12 @@ public struct ChatExternalID: Hashable, Sendable {
 public struct CalendarEvent: Sendable, Equatable {
 	package var description: String? = nil
 	package var type: String? = nil
+	package var movingTime: Int?
+	package var trainingLoad: Int?
+	package var workoutDocument: JSONValue?
 	public var id: EventID
 	public var startDateLocal: String
-	public var name: String
+	public var name: String?
 	public var category: String
 	public var externalId: String?
 	public var uid: String?
@@ -74,11 +77,15 @@ public struct CalendarEvent: Sendable, Equatable {
 
 	package init(
 		description: String? = nil, type: String? = nil,
-		id: EventID, startDateLocal: String, name: String, category: String, externalId: String?,
-		uid: String?, tags: [String], coachCreated: Bool
+		id: EventID, startDateLocal: String, name: String?, category: String, externalId: String?,
+		uid: String?, tags: [String], coachCreated: Bool,
+		movingTime: Int? = nil, trainingLoad: Int? = nil, workoutDocument: JSONValue? = nil
 	) {
 		self.description = description
 		self.type = type
+		self.movingTime = movingTime
+		self.trainingLoad = trainingLoad
+		self.workoutDocument = workoutDocument
 		self.id = id
 		self.startDateLocal = startDateLocal
 		self.name = name

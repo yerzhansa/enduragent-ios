@@ -227,7 +227,9 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 			name: payload.name, category: payload.category,
 			externalId: payload.externalID, uid: payload.uid, tags: payload.tags ?? [],
 			coachCreated: IntervalsPolicy.isCoachOwned(
-				externalId: payload.externalID, tags: payload.tags ?? []))
+				externalId: payload.externalID, tags: payload.tags ?? []),
+			movingTime: payload.movingTime, trainingLoad: payload.trainingLoad,
+			workoutDocument: payload.workoutDocument?.value)
 	}
 
 }
