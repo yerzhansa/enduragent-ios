@@ -202,12 +202,17 @@ final class FakeSeedCalendar: IntervalsClient, @unchecked Sendable {
 	}
 
 	private let upsertsByExternalID: Bool
+	private let ignoresNameEdits: Bool
+	private let savesMissingEvents: Bool
 
 	init(
 		events: [CalendarEvent] = [], upsertsByExternalID: Bool = true,
+		ignoresNameEdits: Bool = false, savesMissingEvents: Bool = false,
 		stores: @escaping @Sendable (Set<String>, CalendarEvent) -> CalendarEvent = { $1 }
 	) {
 		self.upsertsByExternalID = upsertsByExternalID
+		self.ignoresNameEdits = ignoresNameEdits
+		self.savesMissingEvents = savesMissingEvents
 		self.stores = stores
 		state.withLock { $0.events = events }
 	}
@@ -262,11 +267,11 @@ final class FakeSeedCalendar: IntervalsClient, @unchecked Sendable {
 						matching: upsertsByExternalID, stores: stores))
 			case .update(let id, let patch):
 				guard let index = state.events.firstIndex(where: { $0.id == id }) else {
-					return .httpStatus(404)
+					return missing
 				}
 				var event = state.events[index]
 				if let date = patch.date { event.startDateLocal = "\(date.rawValue)T00:00:00" }
-				if let name = patch.name { event.name = name }
+				if let name = patch.name, !ignoresNameEdits { event.name = name }
 				if let seconds = patch.durationSeconds { event.movingTime = seconds }
 				if let description = patch.description { event.description = description }
 				if let load = patch.trainingLoad { event.trainingLoad = load }
@@ -275,11 +280,15 @@ final class FakeSeedCalendar: IntervalsClient, @unchecked Sendable {
 				state.events[index] = event
 				return .saved(event)
 			case .delete(let id):
-				guard state.events.contains(where: { $0.id == id }) else { return .httpStatus(404) }
+				guard state.events.contains(where: { $0.id == id }) else { return missing }
 				state.events.removeAll { $0.id == id }
 				return .saved(nil)
 			}
 		}
+	}
+
+	private var missing: IntervalsWriteAnswer {
+		savesMissingEvents ? .saved(nil) : .httpStatus(404)
 	}
 
 	private static func upsert(

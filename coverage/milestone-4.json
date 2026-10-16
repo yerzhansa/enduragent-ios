@@ -276,7 +276,8 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "thePlanAddsARepeatRideAStrengthSessionAndOneEditPerFieldAfterToday"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aSaveThatChangesAFieldFailsUnlessTheRewritesFileExplainsIt"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aSaveThatChangesAFieldFailsUnlessTheRewritesFileExplainsIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aListedRewriteFailsTheRunOnASaveItsRuleDoesNotName"}
 			]
 		},
 		{
@@ -292,8 +293,8 @@
 			"statement": "Each field of a workout patch changed alone (date, name, Load, duration, description and authored steps) reads back as the patch applied to the snapshot before it, keeps the external_id, and applying the patch to the read-back snapshot changes nothing, apart from the rewrites intervals-rewrites.json lists.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aRunAgainstACalendarThatKeepsWhatItIsSentPassesAndRemovesEveryAdd"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aSaveThatChangesAFieldFailsUnlessTheRewritesFileExplainsIt"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aListedRewriteFailsTheRunOnASaveItsRuleDoesNotName"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aCalendarThatIgnoresAnEditOrSavesADeletedEventFailsTheRun"}
 			]
 		},
 		{
@@ -301,7 +302,7 @@
 			"statement": "A DELETE answers saved, a second DELETE of the same id and a PUT to it each answer httpStatus(404), and a GET of it answers 404.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aRunAgainstACalendarThatKeepsWhatItIsSentPassesAndRemovesEveryAdd"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aCalendarThatIgnoresAnEditOrSavesADeletedEventFailsTheRun"}
 			]
 		},
 		{

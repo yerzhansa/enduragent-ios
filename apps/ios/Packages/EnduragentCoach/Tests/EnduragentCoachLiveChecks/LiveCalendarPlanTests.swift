@@ -211,6 +211,75 @@ import Testing
 			})
 	}
 
+	@Test func aListedRewriteFailsTheRunOnASaveItsRuleDoesNotName() async throws {
+		var loadOnlyEdit = try Self.run(
+			calendar: Self.seeded { _, event in
+				guard event.description?.contains("\n- ") == true else { return event }
+				var stored = event
+				stored.trainingLoad = 7
+				stored.workoutDocument = .object([
+					"steps": .array([.object([:])]), "duration": .number(900),
+				])
+				return stored
+			})
+		await loadOnlyEdit.run()
+		#expect(
+			loadOnlyEdit.failures == [
+				"edit trainingLoad: edit of trainingLoad: icu_training_load sent 33, stored 7, a rewrite intervals-rewrites.json does not list",
+				"edit trainingLoad: applying the edit of trainingLoad to its read back changes it",
+			])
+
+		var steplessStrength = try Self.run(
+			calendar: Self.seeded { sent, event in
+				guard sent.contains("description"),
+					event.type == CalendarEventType.weightTraining.rawValue
+				else { return event }
+				var stored = event
+				stored.trainingLoad = 7
+				stored.workoutDocument = .object(["steps": .array([]), "duration": .number(0)])
+				return stored
+			})
+		await steplessStrength.run()
+		#expect(
+			steplessStrength.failures == [
+				"add strength: strength: icu_training_load sent 24, stored 7, a rewrite intervals-rewrites.json does not list"
+			])
+
+		var nameEdit = try Self.run(
+			calendar: Self.seeded { sent, event in
+				guard sent == ["name"] else { return event }
+				var stored = event
+				stored.workoutDocument = .object(["steps": .array([]), "duration": .number(0)])
+				return stored
+			})
+		await nameEdit.run()
+		#expect(
+			nameEdit.failures == [
+				"edit name: edit of name: workout_doc sent null, stored \"{\\\"duration\\\":0,\\\"steps\\\":[]}\", a rewrite intervals-rewrites.json does not list"
+			])
+	}
+
+	@Test func aCalendarThatIgnoresAnEditOrSavesADeletedEventFailsTheRun() async throws {
+		let calendar = FakeSeedCalendar(ignoresNameEdits: true, savesMissingEvents: true)
+		_ = calendar.add(LiveSeedCalendar.entries.map { $0.requestBody(seededOn: Self.today) })
+		var run = try Self.run(calendar: calendar)
+
+		await run.run()
+
+		let failures = Set(run.failures)
+		#expect(
+			failures.contains {
+				$0.hasPrefix("edit name: edit of name: name sent")
+					&& $0.hasSuffix("a rewrite intervals-rewrites.json does not list")
+			})
+		#expect(
+			failures.contains("edit name: applying the edit of name to its read back changes it"))
+		#expect(failures.contains("delete: the second DELETE answered saved"))
+		#expect(failures.contains("delete: the PUT to a deleted event answered saved"))
+		#expect(failures.count == 4)
+		#expect(calendar.events.count == LiveSeedCalendar.entries.count)
+	}
+
 	private static func rows(of ledger: LiveSeedLedger) throws -> String {
 		guard FileManager.default.fileExists(atPath: ledger.file.path) else { return "" }
 		return try String(contentsOf: ledger.file, encoding: .utf8)
