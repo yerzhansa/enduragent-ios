@@ -198,21 +198,26 @@ final class FakeSeedCalendar: IntervalsClient, @unchecked Sendable {
 	private struct State {
 		var events: [CalendarEvent] = []
 		var calls: [Call] = []
+		var drained = 0
 		var nextID = 7_000
+		var dropsNextAnswer = false
 	}
 
 	private let upsertsByExternalID: Bool
 	private let ignoresNameEdits: Bool
 	private let savesMissingEvents: Bool
+	private let losesDroppedWrites: Bool
 
 	init(
 		events: [CalendarEvent] = [], upsertsByExternalID: Bool = true,
 		ignoresNameEdits: Bool = false, savesMissingEvents: Bool = false,
+		losesDroppedWrites: Bool = false,
 		stores: @escaping @Sendable (Set<String>, CalendarEvent) -> CalendarEvent = { $1 }
 	) {
 		self.upsertsByExternalID = upsertsByExternalID
 		self.ignoresNameEdits = ignoresNameEdits
 		self.savesMissingEvents = savesMissingEvents
+		self.losesDroppedWrites = losesDroppedWrites
 		self.stores = stores
 		state.withLock { $0.events = events }
 	}
@@ -256,35 +261,70 @@ final class FakeSeedCalendar: IntervalsClient, @unchecked Sendable {
 		}
 	}
 
+	func dropNextAnswer() {
+		state.withLock { $0.dropsNextAnswer = true }
+	}
+
+	func drainRequests() -> [TappedResponse] {
+		state.withLock { state in
+			defer { state.drained = state.calls.count }
+			return state.calls.dropFirst(state.drained).map(Self.request)
+		}
+	}
+
 	func write(_ write: CalendarWrite) -> IntervalsWriteAnswer {
 		state.withLock { state in
 			state.calls.append(.write(write))
-			switch write {
-			case .create(let payload, let identity):
-				return .saved(
-					Self.upsert(
-						payload.requestBody(identity).objectFields, into: &state,
-						matching: upsertsByExternalID, stores: stores))
-			case .update(let id, let patch):
-				guard let index = state.events.firstIndex(where: { $0.id == id }) else {
-					return missing
-				}
-				var event = state.events[index]
-				if let date = patch.date { event.startDateLocal = "\(date.rawValue)T00:00:00" }
-				if let name = patch.name, !ignoresNameEdits { event.name = name }
-				if let seconds = patch.durationSeconds { event.movingTime = seconds }
-				if let description = patch.description { event.description = description }
-				if let load = patch.trainingLoad { event.trainingLoad = load }
-				if let document = patch.workoutDocument { event.workoutDocument = document }
-				event = stores(Set(patch.requestBody.objectFields.keys), event)
-				state.events[index] = event
-				return .saved(event)
-			case .delete(let id):
-				guard state.events.contains(where: { $0.id == id }) else { return missing }
-				state.events.removeAll { $0.id == id }
-				return .saved(nil)
+			guard state.dropsNextAnswer else { return apply(write, to: &state) }
+			state.dropsNextAnswer = false
+			if !losesDroppedWrites {
+				_ = apply(write, to: &state)
 			}
+			return .lost(.transport)
 		}
+	}
+
+	private func apply(_ write: CalendarWrite, to state: inout State) -> IntervalsWriteAnswer {
+		switch write {
+		case .create(let payload, let identity):
+			return .saved(
+				Self.upsert(
+					payload.requestBody(identity).objectFields, into: &state,
+					matching: upsertsByExternalID, stores: stores))
+		case .update(let id, let patch):
+			guard let index = state.events.firstIndex(where: { $0.id == id }) else {
+				return missing
+			}
+			var event = state.events[index]
+			if let date = patch.date { event.startDateLocal = "\(date.rawValue)T00:00:00" }
+			if let name = patch.name, !ignoresNameEdits { event.name = name }
+			if let seconds = patch.durationSeconds { event.movingTime = seconds }
+			if let description = patch.description { event.description = description }
+			if let load = patch.trainingLoad { event.trainingLoad = load }
+			if let document = patch.workoutDocument { event.workoutDocument = document }
+			event = stores(Set(patch.requestBody.objectFields.keys), event)
+			state.events[index] = event
+			return .saved(event)
+		case .delete(let id):
+			guard state.events.contains(where: { $0.id == id }) else { return missing }
+			state.events.removeAll { $0.id == id }
+			return .saved(nil)
+		}
+	}
+
+	private static func request(_ call: Call) -> TappedResponse {
+		let events = "/api/v1/athlete/0/events"
+		let bulk = "upsert=true&upsertOnUid=false&updatePlanApplied=false"
+		let (method, path, query): (String, String, String?) =
+			switch call {
+			case .list(let range):
+				("GET", events, "oldest=\(range.oldest.rawValue)&newest=\(range.newest.rawValue)")
+			case .fetch(let id): ("GET", "\(events)/\(id.rawValue)", nil)
+			case .add, .write(.create): ("POST", "\(events)/bulk", bulk)
+			case .write(.update(let id, _)): ("PUT", "\(events)/\(id.rawValue)", nil)
+			case .write(.delete(let id)): ("DELETE", "\(events)/\(id.rawValue)", nil)
+			}
+		return TappedResponse(method: method, path: path, query: query, status: 200, body: Data())
 	}
 
 	private var missing: IntervalsWriteAnswer {

@@ -21,7 +21,7 @@ import Testing
 		athlete: String = "i1001", ledgerAthlete: String? = "i1001",
 		calendar: FakeSeedCalendar = seeded(), rewrites: IntervalsRewrites? = nil,
 		refused: IntervalsWriteAnswer = .httpStatus(400),
-		drain: @escaping @Sendable () -> [TappedResponse] = { [] }
+		drain: (@Sendable () -> [TappedResponse])? = nil
 	) throws -> LiveCalendarRun {
 		var ledger = try temporarySeedLedger()
 		if let ledgerAthlete {
@@ -33,7 +33,8 @@ import Testing
 			rewrites: try rewrites ?? IntervalsRewrites.load(),
 			ledger: ledger,
 			sendRefused: { _ in refused },
-			drain: drain)
+			dropNextAnswer: calendar.dropNextAnswer,
+			drain: drain ?? calendar.drainRequests)
 	}
 
 	@Test func thePlanAddsARepeatRideAStrengthSessionAndOneEditPerFieldAfterToday() throws {
@@ -93,7 +94,31 @@ import Testing
 			if case .create = $0 { return true }
 			return false
 		}
-		#expect(adds.count == 8)
+		#expect(adds.count == 9)
+	}
+
+	@Test func aDroppedWriteThatNeverLandedOrAnExtraRequestFailsTheLostAnswerStep() async throws {
+		let calendar = FakeSeedCalendar(losesDroppedWrites: true)
+		_ = calendar.add(LiveSeedCalendar.entries.map { $0.requestBody(seededOn: Self.today) })
+		var lost = try Self.run(calendar: calendar)
+
+		await lost.run()
+
+		#expect(lost.failures == ["lost add: the settle read gave notSaved, not seen"])
+		#expect(calendar.events.count == LiveSeedCalendar.entries.count)
+
+		let seeded = Self.seeded()
+		let extra = ExtraRequestDrain(calendar: seeded)
+		var noisy = try Self.run(calendar: seeded, drain: { extra.next() })
+
+		await noisy.run()
+
+		#expect(
+			noisy.failures.contains {
+				$0.hasPrefix(
+					"lost add: the write and its settle made [\"GET /api/v1/athlete/0/events/1\", \"POST "
+				)
+			})
 	}
 
 	@Test func aResendThatAddsASecondEventOrASavedRefusedAddFailsTheRun() async throws {
@@ -283,6 +308,25 @@ import Testing
 	private static func rows(of ledger: LiveSeedLedger) throws -> String {
 		guard FileManager.default.fileExists(atPath: ledger.file.path) else { return "" }
 		return try String(contentsOf: ledger.file, encoding: .utf8)
+	}
+}
+
+final class ExtraRequestDrain: Sendable {
+	private let calendar: FakeSeedCalendar
+
+	init(calendar: FakeSeedCalendar) {
+		self.calendar = calendar
+	}
+
+	func next() -> [TappedResponse] {
+		let requests = calendar.drainRequests()
+		guard requests.map(\.method) == ["POST", "GET"],
+			requests.last?.path == "/api/v1/athlete/0/events"
+		else { return requests }
+		let read = TappedResponse(
+			method: "GET", path: "/api/v1/athlete/0/events/1", query: nil, status: 404,
+			body: Data())
+		return [read] + requests
 	}
 }
 
