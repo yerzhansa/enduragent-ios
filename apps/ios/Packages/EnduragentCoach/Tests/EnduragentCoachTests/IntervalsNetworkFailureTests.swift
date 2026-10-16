@@ -45,7 +45,7 @@ extension IntervalsRESTClientTests {
 		}
 
 		@Test(arguments: CalendarCall.allCases)
-		func everyCalendarCallFailsTheSameWayWhenIntervalsCannotBeReached(call: CalendarCall)
+		func everyCalendarReadFailsTheSameWayWhenIntervalsCannotBeReached(call: CalendarCall)
 			async throws
 		{
 			let client = try unreachableClient()
@@ -55,7 +55,7 @@ extension IntervalsRESTClientTests {
 		}
 
 		private func unreachableClient() throws -> IntervalsRESTClient {
-			let client = try IntervalsRESTClientTests().makeClient(clock: clock)
+			let client = try IntervalsRESTClientTests().makeClient()
 			IntervalsURLProtocolStub.handler = { _ in throw URLError(.notConnectedToInternet) }
 			return client
 		}
@@ -65,31 +65,14 @@ extension IntervalsRESTClientTests {
 enum CalendarCall: CaseIterable, Sendable {
 	case list
 	case fetch
-	case create
-	case update
-	case delete
 
 	func run(on client: IntervalsRESTClient) async throws {
-		let event = EventID(rawValue: 42)
 		switch self {
 		case .list:
 			_ = try await client.listEvents(
 				in: ReadRange(oldest: "1998-06-14", newest: "1998-06-20", today: "1998-06-13"))
 		case .fetch:
-			_ = try await client.fetchEvent(id: event)
-		case .create:
-			var draft = try CyclingTools.parseStrengthWorkout(
-				try JSONValue.parse(
-					#"{"date":"1998-06-14","name":"Core","description":"Planks and bridges."}"#),
-				today: "1998-06-13"
-			).draft
-			draft.writeID = CalendarWriteID()
-			_ = try await client.createChatEvent(draft)
-		case .update:
-			_ = try await client.updateEvent(
-				id: event, name: "Endurance", description: nil, date: nil)
-		case .delete:
-			try await client.deleteEvent(id: event)
+			_ = try await client.fetchEvent(id: EventID(rawValue: 42))
 		}
 	}
 }

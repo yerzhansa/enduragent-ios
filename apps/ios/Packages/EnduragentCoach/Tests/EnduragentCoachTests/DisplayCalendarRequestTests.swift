@@ -14,7 +14,7 @@ import Testing
 		let client = IntervalsRESTClient(
 			credential: .apiKey("test-calendar-key"),
 			session: URLSession(configuration: .ephemeral),
-			clock: clock, baseURL: url)
+			baseURL: url)
 		let phone = DisplayPhone()
 		let transport = FakeModelTransport()
 		let arguments =
@@ -76,14 +76,16 @@ import Testing
 		let after = try #require(server.posts.last)
 		try #require(server.posts.count == 2)
 		#expect(before.method == "POST")
-		#expect(before.target.contains("upsertOnUid=true"))
+		#expect(
+			before.target.hasSuffix(
+				"/events/bulk?upsert=true&upsertOnUid=false&updatePlanApplied=false"))
 		#expect(before.method == after.method)
 		#expect(before.target == after.target)
 		#expect(before.bodyBytes == after.bodyBytes)
-		#expect(after.body.objectFields["name"]?.stringValue == "Copied ride 1.5")
-		#expect(after.body.objectFields["start_date_local"]?.stringValue == "2026-03-05T00:00:00")
+		#expect(after.added["name"]?.stringValue == "Copied ride 1.5")
+		#expect(after.added["start_date_local"]?.stringValue == "2026-03-05T00:00:00")
 		#expect(
-			after.body.objectFields["description"]?.stringValue?.contains(
+			after.added["description"]?.stringValue?.contains(
 				"60.5-75.5% Athlete label 1.5") == true)
 		#expect(sent(.chatAttempt, by: transport).count == calls)
 		let systems = sent(.chatAttempt, by: transport).flatMap(\.messages)

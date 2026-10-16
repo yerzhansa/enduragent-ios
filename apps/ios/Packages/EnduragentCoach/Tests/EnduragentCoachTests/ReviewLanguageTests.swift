@@ -41,7 +41,7 @@ extension FirstTurnTests {
 		defer { server.stop() }
 		let client = IntervalsRESTClient(
 			credential: .apiKey("test-calendar-key"),
-			session: URLSession(configuration: .ephemeral), clock: clock, baseURL: url)
+			session: URLSession(configuration: .ephemeral), baseURL: url)
 		let secrets = keyedSecrets()
 		let resolver: DisplayLocaleResolver = {
 			DisplayLocale(
@@ -105,8 +105,11 @@ extension FirstTurnTests {
 		try #require(server.writes.count == 1)
 		let request = try #require(server.posts.first)
 		#expect(request.method == "POST")
-		#expect(request.target == "/athlete/0/events?upsertOnUid=true")
-		let fields = request.body.objectFields
+		#expect(
+			request.target
+				== "/athlete/0/events/bulk?upsert=true&upsertOnUid=false&updatePlanApplied=false")
+		#expect(request.body.arrayValue?.count == 1)
+		let fields = request.added
 		#expect(fields["start_date_local"] == .string("1998-06-14T00:00:00"))
 		#expect(fields["name"] == .string("Endurance"))
 		#expect(fields["type"] == .string("Ride"))

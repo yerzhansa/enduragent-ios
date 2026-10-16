@@ -121,7 +121,7 @@ extension IntervalsRESTClientTests {
 
 		private func readout(types: [String]?, answer: JSONValue) async throws -> JSONValue {
 			let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
-			let client = try IntervalsRESTClientTests().makeClient(clock: clock)
+			let client = try IntervalsRESTClientTests().makeClient()
 			let body = Data(canonicalJSON(answer).utf8)
 			IntervalsURLProtocolStub.handler = { _ in (200, body) }
 			var arguments: [String: JSONValue] = ["activityId": .string("i1234567")]

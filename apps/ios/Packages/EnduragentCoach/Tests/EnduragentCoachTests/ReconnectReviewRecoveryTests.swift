@@ -204,7 +204,7 @@ extension SwiftDataSuites {
 			if offline {
 				for client in [fixture.peer.athleteA, fixture.peer.athleteB] {
 					client.failCalendarReadOnce = true
-					client.writeFailure = URLError(.notConnectedToInternet)
+					client.writeFailure = .lost(.transport)
 					client.fail(.profile, with: URLError(.notConnectedToInternet))
 				}
 			}

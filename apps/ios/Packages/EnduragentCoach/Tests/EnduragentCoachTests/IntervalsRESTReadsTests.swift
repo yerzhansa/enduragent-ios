@@ -17,8 +17,7 @@ extension IntervalsRESTClientTests {
 	}
 
 	@Test func profileKeepsTheAddedFieldsOfTheCyclingRowAndTheAthlete() async throws {
-		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-		let profile = try await makeClient(clock: clock).profile()
+		let profile = try await makeClient().profile()
 		#expect(
 			profile
 				== AthleteProfile.cyclist(id: "i1001", name: "Ada Kovač", ftp: 250).with(

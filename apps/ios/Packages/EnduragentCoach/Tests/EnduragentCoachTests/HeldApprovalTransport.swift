@@ -73,24 +73,25 @@ final class HeldApprovalWrites: TrainingClient, Sendable {
 	let base: FakeIntervalsClient
 	let clock: HeldClock
 	private let holds = Mutex(1)
-	let failure: (any Error)?
+	let failure: IntervalsWriteAnswer?
 
-	init(base: FakeIntervalsClient, clock: HeldClock, failure: (any Error)? = nil) {
+	init(base: FakeIntervalsClient, clock: HeldClock, failure: IntervalsWriteAnswer? = nil) {
 		self.base = base
 		self.clock = clock
 		self.failure = failure
 	}
 
-	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
+	func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer {
+		guard case .create = write else { return await base.write(write) }
 		let hold = holds.withLock { remaining in
 			defer { remaining -= 1 }
 			return remaining > 0
 		}
 		if hold {
-			try await clock.sleep(for: .seconds(13))
-			if let failure { throw failure }
+			do { try await clock.sleep(for: .seconds(13)) } catch { return .lost(.canceled) }
+			if let failure { return failure }
 		}
-		return try await base.createChatEvent(draft)
+		return await base.write(write)
 	}
 
 	func profile() async throws -> AthleteProfile { try await base.profile() }
@@ -116,12 +117,4 @@ final class HeldApprovalWrites: TrainingClient, Sendable {
 	func listEvents(in range: ReadRange) async throws -> [CalendarEvent] {
 		try await base.listEvents(in: range)
 	}
-
-	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
-		async throws -> CalendarEvent
-	{
-		try await base.updateEvent(id: id, name: name, description: description, date: date)
-	}
-
-	func deleteEvent(id: EventID) async throws { try await base.deleteEvent(id: id) }
 }

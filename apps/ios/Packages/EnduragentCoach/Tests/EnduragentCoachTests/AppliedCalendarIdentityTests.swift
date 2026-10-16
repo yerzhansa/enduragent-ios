@@ -35,7 +35,7 @@ extension DurableCalendarWriteTests {
 				ports: CoachPorts(
 					records: RecordStore(log: fixture.store), secrets: keyedSecrets(),
 					models: ModelService(catalog: .fixture) { _ in model },
-					training: TrainingService { _, _, _ in fixture.client },
+					training: TrainingService { _, _ in fixture.client },
 					credits: .fake(FakeCreditsClient()),
 					host: ImmediateExecutionHost(), clock: clock),
 				builtInModel: testModel, displayLocale: testDisplayLocale,
@@ -58,7 +58,7 @@ extension DurableCalendarWriteTests {
 		#expect(server.events.count == 2)
 		#expect(
 			Set(server.events.compactMap { $0["name"]?.stringValue }) == ["Morning", "Evening"])
-		let identifiers = server.posts.compactMap { $0.body.objectFields["uid"]?.stringValue }
+		let identifiers = server.posts.compactMap { $0.added["uid"]?.stringValue }
 		#expect(Set(identifiers).count == 2)
 		let state = try #require(await coach.settledState(of: turn, in: .main))
 		guard case .interrupted(let stopped) = state else {

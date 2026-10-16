@@ -15,7 +15,7 @@ import Testing
 			case .malformed: .malformed
 			case .mismatched:
 				.body(
-					#"{"id":99,"name":"Other","category":"WORKOUT","start_date_local":"1998-06-14T00:00:00"}"#
+					#"[{"id":99,"name":"Other","category":"WORKOUT","start_date_local":"1998-06-14T00:00:00"}]"#
 				)
 			case .timeout, .cancellation: .heldAfterCommit
 			}
@@ -65,8 +65,10 @@ import Testing
 		}
 		#expect(server.posts.count == 1)
 		#expect(server.events.count == 1)
-		#expect(server.posts.first?.target.contains("upsertOnUid=true") == true)
-		#expect(server.posts.first?.body.objectFields["uid"]?.stringValue != nil)
+		#expect(
+			server.posts.first?.target.hasSuffix(
+				"/events/bulk?upsert=true&upsertOnUid=false&updatePlanApplied=false") == true)
+		#expect(server.posts.first?.added["uid"]?.stringValue != nil)
 		let reopened = await makeCoach(
 			transport: FakeModelTransport(), intervals: fixture.client, store: fixture.store)
 		#expect(await reopened.currentSnapshot(.main) == fixture.coach.currentSnapshot(.main))
@@ -166,7 +168,7 @@ import Testing
 		configuration.timeoutIntervalForResource = resourceTimeout
 		let client = IntervalsRESTClient(
 			credential: .apiKey("test-calendar-key"),
-			session: URLSession(configuration: configuration), clock: clock, baseURL: url)
+			session: URLSession(configuration: configuration), baseURL: url)
 		let model = FakeModelTransport()
 		let coach = await makeCoach(transport: model, intervals: client, store: store, clock: clock)
 		return CalendarFixture(coach: coach, model: model, client: client, store: store)
