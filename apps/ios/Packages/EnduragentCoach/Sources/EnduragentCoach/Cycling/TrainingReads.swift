@@ -36,6 +36,12 @@ package struct ReadRange: Sendable, Equatable {
 		ReadRange(endingOn: date, lookback: 1)
 	}
 
+	package static func addWindow(around date: CivilDate) -> ReadRange {
+		ReadRange(
+			endingOn: date.adding(days: IntervalsPolicy.listMaxRangeDays / 2 - 1),
+			lookback: IntervalsPolicy.listMaxRangeDays)
+	}
+
 	package func contains(_ date: CivilDate) -> Bool {
 		date >= oldest && date <= newest
 	}

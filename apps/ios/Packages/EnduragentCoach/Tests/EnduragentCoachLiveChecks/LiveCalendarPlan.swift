@@ -63,10 +63,12 @@ struct LiveCalendarPlan: Sendable {
 	let movedNear: LiveCalendarMove
 	let movedFar: LiveCalendarMove
 	let refused: LiveCalendarAdd
+	let lost: LiveCalendarAdd
 	let edits: [(field: String, patch: WorkoutPatch)]
+	let lostEdit: WorkoutPatch
 
 	var adds: [LiveCalendarAdd] {
-		[ride, strength, edited, movedNear.add, movedFar.add, refused]
+		[ride, strength, edited, movedNear.add, movedFar.add, refused, lost]
 	}
 
 	init(today: CivilDate, identities: () -> CalendarWriteID = { CalendarWriteID() }) throws {
@@ -105,6 +107,9 @@ struct LiveCalendarPlan: Sendable {
 		self.movedNear = try move(ride("moved-30", on: first.adding(days: 3), load: 23), days: 30)
 		self.movedFar = try move(ride("moved-200", on: first.adding(days: 4), load: 24), days: 200)
 		self.refused = try ride("refused", on: first.adding(days: 5), load: 25)
+		self.lost = try ride("lost", on: first.adding(days: 6), load: 26)
+		self.lostEdit = try WorkoutPatch.parse(
+			.object(["structure": Self.editedSteps, "trainingLoad": .number(34)]), today: today)
 		let editDate = first.adding(days: 2)
 		let fields: [(String, JSONValue)] = [
 			("date", .string(editDate.adding(days: 1).rawValue)),
