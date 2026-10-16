@@ -59,13 +59,23 @@ package enum IntervalsSerializer {
 		guard let name = fields["name"]?.stringValue else {
 			throw InvalidWorkout(message: "name: Required")
 		}
-		guard let stepsJSON = fields["steps"]?.arrayValue else {
+		return IntervalsWorkoutInput(name: name, steps: try parseSteps(fields["steps"]))
+	}
+
+	package static func parseStructuredSteps(_ json: JSONValue) throws(InvalidWorkout)
+		-> IntervalsWorkoutInput
+	{
+		IntervalsWorkoutInput(
+			name: "Structured workout", steps: try parseSteps(json.objectFields["steps"]))
+	}
+
+	private static func parseSteps(_ json: JSONValue?) throws(InvalidWorkout) -> [WorkoutStep] {
+		guard let stepsJSON = json?.arrayValue else {
 			throw InvalidWorkout(message: "steps: Required")
 		}
-		let steps = try stepsJSON.enumerated().map { (index, value) throws(InvalidWorkout) in
+		return try stepsJSON.enumerated().map { (index, value) throws(InvalidWorkout) in
 			try parseStep(value, path: "steps[\(index)]")
 		}
-		return IntervalsWorkoutInput(name: name, steps: steps)
 	}
 
 	private static func validateSchema(_ workout: IntervalsWorkoutInput) throws(InvalidWorkout) {
