@@ -21,7 +21,7 @@ extension CredentialVaultTests {
 		let ada = self.ada
 		let gate = ada.hold(.profile)
 		let coach = await coach(
-			secrets, training: TrainingService { _, _, _ in ada })
+			secrets, training: TrainingService { _, _ in ada })
 		let status = Task { try await coach.refreshedStatus() }
 		defer { status.cancel() }
 		try #require(
@@ -85,7 +85,7 @@ extension CredentialVaultTests {
 		let ada = self.ada
 		let gate = ada.hold(.profile)
 		let coach = await coach(
-			secrets, training: TrainingService { _, _, _ in ada })
+			secrets, training: TrainingService { _, _ in ada })
 		let status = Task { try await coach.refreshedStatus() }
 		try #require(
 			try await beforeDeadline(within: .hangGuard, onTimeout: { status.cancel() }) {
@@ -226,7 +226,7 @@ extension CredentialVaultTests {
 		let delayed = FakeIntervalsClient(
 			athlete: .cyclist(id: "i1001", name: "Ada Kovač", ftp: 250))
 		let gate = delayed.hold(.profile)
-		let service = TrainingService { credential, _, _ in
+		let service = TrainingService { credential, _ in
 			if credential == .apiKey("test-delayed-key") { return delayed }
 			return self.ada
 		}
@@ -256,7 +256,7 @@ extension CredentialVaultTests {
 				selection: .keyOwner, resolvedAthlete: nil))
 		let ada = self.ada
 		let gate = ada.hold(.profile)
-		let service = TrainingService { credential, _, _ in
+		let service = TrainingService { credential, _ in
 			if credential == .apiKey("test-unresolved") { return ada }
 			return self.bo
 		}

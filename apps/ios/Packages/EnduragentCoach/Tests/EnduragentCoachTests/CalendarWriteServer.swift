@@ -11,6 +11,8 @@ final class CalendarWriteServer: Sendable {
 		let method: String
 		let body: JSONValue
 		let bodyBytes: Data
+
+		var added: [String: JSONValue] { body.arrayValue?.first?.objectFields ?? [:] }
 	}
 
 	enum Response: Sendable {
@@ -184,17 +186,28 @@ final class CalendarWriteServer: Sendable {
 			state.events[index].merge(request.body.objectFields) { _, approved in approved }
 			return .object(state.events[index])
 		}
-		var fields = request.body.objectFields
-		if request.target.contains("upsertOnUid=true"), let uid = fields["uid"],
-			let index = state.events.firstIndex(where: { $0["uid"] == uid })
-		{
-			fields["id"] = state.events[index]["id"]
-			state.events[index] = fields
-		} else {
-			fields["id"] = .number(Double(state.events.count + 1))
-			state.events.append(fields)
+		guard
+			request.target.hasSuffix(
+				"/events/bulk?upsert=true&upsertOnUid=false&updatePlanApplied=false"),
+			let added = request.body.arrayValue
+		else {
+			Issue.record("an add did not go through the bulk upsert")
+			return .null
 		}
-		return .object(fields)
+		return .array(
+			added.map { event in
+				var fields = event.objectFields
+				if let externalID = fields["external_id"],
+					let index = state.events.firstIndex(where: { $0["external_id"] == externalID })
+				{
+					fields["id"] = state.events[index]["id"]
+					state.events[index] = fields
+				} else {
+					fields["id"] = .number(Double(state.events.count + 1))
+					state.events.append(fields)
+				}
+				return .object(fields)
+			})
 	}
 
 	private func send(_ connection: NWConnection, status: Int, body: String) {

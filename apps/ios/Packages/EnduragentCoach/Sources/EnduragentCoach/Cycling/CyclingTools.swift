@@ -5,7 +5,7 @@ package enum CyclingTools {
 		_ arguments: JSONValue,
 		today: CivilDate
 	) throws(ToolInputError)
-		-> (date: CivilDate, workout: IntervalsWorkoutInput, draft: ChatCalendarCreate)
+		-> (date: CivilDate, workout: IntervalsWorkoutInput, description: String)
 	{
 		let fields = arguments.objectFields
 		guard let dateRaw = fields["date"]?.stringValue else {
@@ -32,22 +32,14 @@ package enum CyclingTools {
 		} catch {
 			throw ToolInputError(code: "invalid_workout", details: error.message)
 		}
-		let draft = ChatCalendarCreate(
-			date: date,
-			name: workout.name,
-			description: serialized.description,
-			type: .ride,
-			externalId: IntervalsSerializer.chatExternalId(date: date, name: workout.name),
-			tags: [IntervalsPolicy.coachTag]
-		)
-		return (date, workout, draft)
+		return (date, workout, serialized.description)
 	}
 
 	package static func parseStrengthWorkout(
 		_ arguments: JSONValue,
 		today: CivilDate
 	) throws(ToolInputError)
-		-> (date: CivilDate, name: String, description: String, draft: ChatCalendarCreate)
+		-> (date: CivilDate, name: String, description: String)
 	{
 		let fields = arguments.objectFields
 		guard let dateRaw = fields["date"]?.stringValue, let date = CivilDate(rawValue: dateRaw)
@@ -71,15 +63,7 @@ package enum CyclingTools {
 			throw ToolInputError(
 				code: "invalid_input", details: "description must be 1 to 4000 characters.")
 		}
-		let draft = ChatCalendarCreate(
-			date: date,
-			name: name,
-			description: description,
-			type: .weightTraining,
-			externalId: IntervalsSerializer.chatExternalId(date: date, name: "strength \(name)"),
-			tags: [IntervalsPolicy.coachTag]
-		)
-		return (date, name, description, draft)
+		return (date, name, description)
 	}
 
 	package static func parseDeleteWorkout(_ arguments: JSONValue) throws(ToolInputError)

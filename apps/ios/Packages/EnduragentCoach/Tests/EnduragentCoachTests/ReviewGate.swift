@@ -11,7 +11,7 @@ extension SingleProposalReviewsTests {
 				sport: .cycling,
 				ports: CoachPorts(
 					records: RecordStore(log: log), secrets: secrets, models: .scripted(transport),
-					training: TrainingService { _, _, _ in client },
+					training: TrainingService { _, _ in client },
 					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
 					clock: clock),
 				builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow))
@@ -99,12 +99,16 @@ struct GatedReviewIntervals: TrainingClient {
 	func listEvents(in range: ReadRange) async throws -> [CalendarEvent] {
 		try await base.listEvents(in: range)
 	}
-	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
-		try await gate.pass()
-		return try await base.createChatEvent(draft)
+	func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer {
+		guard case .create = write else { return await base.write(write) }
+		do {
+			try await gate.pass()
+		} catch is CancellationError {
+			return .lost(.canceled)
+		} catch {
+			Issue.record(error, "The review gate failed with something other than cancellation")
+			return .lost(.transport)
+		}
+		return await base.write(write)
 	}
-	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
-		async throws -> CalendarEvent
-	{ try await base.updateEvent(id: id, name: name, description: description, date: date) }
-	func deleteEvent(id: EventID) async throws { try await base.deleteEvent(id: id) }
 }

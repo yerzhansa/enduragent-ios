@@ -14,7 +14,7 @@ extension CredentialVaultTests {
 		let held = GatedReviewIntervals(base: ada, gate: gate)
 		let coach = await coach(
 			secrets,
-			training: TrainingService { credential, _, _ in
+			training: TrainingService { credential, _ in
 				if credential == .apiKey("other-athlete") { return bo }
 				return held
 			})
@@ -87,7 +87,7 @@ extension CredentialVaultTests {
 		let review = try await proposeRide(on: original)
 		#expect(await original.decide(.presented(review.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await original.currentSnapshot(.main)?.review?.token)
-		ada.writeFailure = IntervalsError(code: "http", details: "Lost response", status: 502)
+		ada.writeFailure = .httpStatus(502)
 		guard case .uncertain = await original.decide(.approve(token), in: .main) else {
 			Issue.record("expected unresolved approval")
 			return

@@ -46,7 +46,7 @@ extension IntervalsRESTClientTests {
 		}
 
 		private func stubbedClient(clock: FixedClock, athlete: Data) throws -> IntervalsRESTClient {
-			let client = try IntervalsRESTClientTests().makeClient(clock: clock)
+			let client = try IntervalsRESTClientTests().makeClient()
 			IntervalsURLProtocolStub.handler = { request in
 				let path = try #require(request.url).path
 				if path.contains("/wellness") {

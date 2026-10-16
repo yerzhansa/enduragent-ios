@@ -33,7 +33,7 @@ extension IntervalsRESTClientTests.ActivityReadoutTests {
 
 	private func detailReadout(of sample: ActivityDetailReadoutCase) async throws -> JSONValue {
 		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
-		let client = try IntervalsRESTClientTests().makeClient(clock: clock)
+		let client = try IntervalsRESTClientTests().makeClient()
 		let status = sample.status
 		let body = Data(canonicalJSON(sample.response).utf8)
 		IntervalsURLProtocolStub.handler = { _ in (status, body) }

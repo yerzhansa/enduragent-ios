@@ -39,7 +39,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	public var events: [CalendarEvent]
 	private let recordedCalls = Mutex<[FakeIntervalsCall]>([])
 	public var calls: [FakeIntervalsCall] { recordedCalls.withLock { $0 } }
-	public var writeFailure: (any Error)?
+	public var writeFailure: IntervalsWriteAnswer?
 	private let faults = Mutex(FakeReadFaults())
 
 	public func fail(_ read: FakeTrainingRead, with error: any Error, once: Bool = false) {
@@ -166,26 +166,52 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		}
 	}
 
-	public func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
+	package func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer {
 		if let writeFailure {
-			throw writeFailure
+			return writeFailure
 		}
+		switch write {
+		case .create(let payload, let identity):
+			return create(payload, identity: identity)
+		case .update(let id, let patch):
+			recordedCalls.withLock { $0.append(.updateEvent(id)) }
+			return .saved(
+				CalendarEvent(
+					description: patch.description,
+					id: id,
+					startDateLocal: "\(patch.date?.rawValue ?? "1998-06-14")T00:00:00",
+					name: patch.name ?? "",
+					category: "WORKOUT",
+					externalId: nil,
+					uid: nil,
+					tags: [IntervalsPolicy.coachTag],
+					coachCreated: true
+				))
+		case .delete(let id):
+			recordedCalls.withLock { $0.append(.deleteEvent(id)) }
+			return .saved(nil)
+		}
+	}
+
+	private func create(_ payload: CalendarPayload, identity: CalendarWriteID)
+		-> IntervalsWriteAnswer
+	{
 		recordedCalls.withLock {
-			$0.append(.createEvent(date: draft.date, externalId: draft.externalId.rawValue))
+			$0.append(.createEvent(date: payload.date, externalId: identity.externalID))
 		}
-		let previous = draft.writeID.flatMap { identity in
-			events.first { $0.uid == identity.uid }
-		}
+		let previous = events.first { $0.externalId == identity.externalID }
 		let event = CalendarEvent(
-			description: draft.description, type: draft.type.rawValue,
+			description: payload.description, type: payload.type.rawValue,
 			id: previous?.id ?? EventID(rawValue: (events.map(\.id.rawValue).max() ?? 0) + 1),
-			startDateLocal: "\(draft.date.rawValue)T00:00:00",
-			name: draft.name,
+			startDateLocal: "\(payload.date.rawValue)T00:00:00",
+			name: payload.name,
 			category: "WORKOUT",
-			externalId: draft.writeID?.externalID ?? draft.externalId.rawValue,
-			uid: draft.writeID?.uid,
-			tags: draft.tags,
-			coachCreated: true
+			externalId: identity.externalID,
+			uid: identity.uid,
+			tags: [IntervalsPolicy.coachTag],
+			coachCreated: true,
+			movingTime: payload.movingTime,
+			trainingLoad: payload.trainingLoad
 		)
 		if let index = events.firstIndex(where: { $0.id == event.id }) {
 			events[index] = event
@@ -195,10 +221,10 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		#if DEBUG
 			if loseCalendarSaveAnswerOnce {
 				loseCalendarSaveAnswerOnce = false
-				throw IntervalsError.unreachable(URLError(.timedOut))
+				return .lost(.transport)
 			}
 		#endif
-		return event
+		return .saved(event)
 	}
 
 	#if DEBUG
@@ -209,30 +235,4 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 			}
 		}
 	#endif
-
-	public func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
-		async throws -> CalendarEvent
-	{
-		if let writeFailure {
-			throw writeFailure
-		}
-		recordedCalls.withLock { $0.append(.updateEvent(id)) }
-		return CalendarEvent(
-			id: id,
-			startDateLocal: "\(date?.rawValue ?? "1998-06-14")T00:00:00",
-			name: name ?? "",
-			category: "WORKOUT",
-			externalId: nil,
-			uid: nil,
-			tags: [IntervalsPolicy.coachTag],
-			coachCreated: true
-		)
-	}
-
-	public func deleteEvent(id: EventID) async throws {
-		if let writeFailure {
-			throw writeFailure
-		}
-		recordedCalls.withLock { $0.append(.deleteEvent(id)) }
-	}
 }

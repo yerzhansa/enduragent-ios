@@ -4,7 +4,8 @@
 		"1.1": 8,
 		"2.1": 3,
 		"2.2": 6,
-		"2.3": 5
+		"2.3": 5,
+		"2.4": 4
 	},
 	"criteria": [
 		{
@@ -222,6 +223,41 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutSnapshotTests.swift", "function": "aListRowsSnapshotReadsItsFieldsAndKeepsAnAbsentValueAbsent"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutSnapshotTests.swift", "function": "anEventWithoutACalendarDateHasNoSnapshot"}
+			]
+		},
+		{
+			"id": "2.4.1",
+			"statement": "The calendar client writes only through write(_:), beside fetchEvent and listEvents, and chatCreateBody is gone. An add is one POST to events/bulk with upsert=true, upsertOnUid=false and updatePlanApplied=false whose body is a one-element array holding the add's CalendarPayload body; an edit is one PUT of its WorkoutPatch body and a delete is one DELETE, with no read of the target first.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsWriteTests.swift", "function": "anAddIsOneBulkUpsertWhoseArrayHoldsTheAddsBody"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsWriteTests.swift", "function": "anEditIsOnePutOfThePatchAndADeleteIsOneDelete"}
+			]
+		},
+		{
+			"id": "2.4.2",
+			"statement": "A 2xx edit answer is saved with its decoded event, a 2xx add answer is saved with its list's one event, an add answer whose list holds no event or more than one, or that is not a list, is lost as unreadable, a 2xx delete is saved with no event, a 404, 422 or 503 keeps its status, a timeout is lost in transport, a canceled request is lost as canceled, and an undecodable 2xx body is lost as unreadable. Each write sends its request once.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsWriteTests.swift", "function": "eachAnswerKeepsWhatIntervalsSaidAndIsAskedOnce"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsWriteTests.swift", "function": "aWriteWithNoAnswerIsLostAndAskedOnce"}
+			]
+		},
+		{
+			"id": "2.4.3",
+			"statement": "The old path's add of a ride or a strength session sends today's body, with its uid, its cycling-coach:<uid> external_id, the coach tag and no moving_time, Load or workout_doc, as the bulk array's one element, and its update and delete refuse a race, an athlete-owned workout, a past workout and a move into the past with today's codes from CalendarWriteOperation before any write.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatCreateBodyTests.swift", "function": "theOldPathSendsTodaysRideBodyAsTheBulkArraysOneElement"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatCreateBodyTests.swift", "function": "theOldPathSendsTodaysStrengthBodyAsTheBulkArraysOneElement"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTClientTests.swift", "function": "theOldPathRefusesAnIneligibleTargetWithTodaysCodeBeforeItWrites"}
+			]
+		},
+		{
+			"id": "2.4.4",
+			"statement": "The old path's approvals keep their outcomes on the new call: a saved add is applied once, a refused or lost add leaves the pending review with the unconfirmed notice, and a lost answer is confirmed by reading, for adds, edits and deletes.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleProposalReviewsTests.swift", "function": "approveWritesOnceAndASecondTapIsStale"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleProposalReviewsTests.swift", "function": "anUnconfirmedWriteKeepsThePendingReviewWithACatalogSentence"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DurableCalendarWriteTests.swift", "function": "committedWriteWithLostResponseIsConfirmedByReading"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarMutationTests.swift", "function": "updateAndDeleteReconcileTheirCapturedEventAfterLostResponse"}
 			]
 		}
 	],

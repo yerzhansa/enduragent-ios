@@ -95,12 +95,6 @@ import Testing
 
 		#expect(outcome == .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 		#expect(outcome.notice == nil)
-		#expect(
-			ada.calls.filter(\.isWrite)
-				== [
-					.createEvent(
-						date: "1998-06-14", externalId: "cycling-coach:1998-06-14:endurance")
-				])
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
 		#expect(ada.calls.filter(\.isWrite).count == 1)
@@ -112,6 +106,12 @@ import Testing
 			return
 		}
 		#expect(applied.evidence == .applied(eventID: 1))
+		#expect(
+			ada.calls.filter(\.isWrite)
+				== [
+					.createEvent(
+						date: "1998-06-14", externalId: try #require(applied.writeID).externalID)
+				])
 
 	}
 
@@ -191,11 +191,10 @@ import Testing
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 	}
 
-	@Test(arguments: [
-		IntervalsError(code: "http", details: "status 422", status: 422) as any Error,
-		URLError(.timedOut),
-	])
-	func anUnconfirmedWriteKeepsThePendingReviewWithACatalogSentence(writeFailure: any Error)
+	@Test(arguments: [IntervalsWriteAnswer.httpStatus(422), .lost(.transport)])
+	func anUnconfirmedWriteKeepsThePendingReviewWithACatalogSentence(
+		writeFailure: IntervalsWriteAnswer
+	)
 		async throws
 	{
 		let coach = await coach()

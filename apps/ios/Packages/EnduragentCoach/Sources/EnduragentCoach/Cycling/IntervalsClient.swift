@@ -97,16 +97,6 @@ public struct CalendarEvent: Sendable, Equatable {
 	}
 }
 
-public struct ChatCalendarCreate: Sendable, Equatable {
-	package var writeID: CalendarWriteID? = nil
-	public var date: CivilDate
-	public var name: String
-	public var description: String
-	public var type: CalendarEventType
-	public var externalId: ChatExternalID
-	public var tags: [String]
-}
-
 public enum CalendarEventType: String, Sendable {
 	case ride = "Ride"
 	case weightTraining = "WeightTraining"
@@ -115,10 +105,25 @@ public enum CalendarEventType: String, Sendable {
 package protocol IntervalsClient: Sendable {
 	func fetchEvent(id: EventID) async throws -> CalendarEvent
 	func listEvents(in range: ReadRange) async throws -> [CalendarEvent]
-	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent
-	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
-		async throws -> CalendarEvent
-	func deleteEvent(id: EventID) async throws
+	func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer
+}
+
+package enum CalendarWrite: Sendable, Equatable {
+	case create(CalendarPayload, identity: CalendarWriteID)
+	case update(EventID, WorkoutPatch)
+	case delete(EventID)
+}
+
+public enum IntervalsWriteAnswer: Sendable, Equatable {
+	case saved(CalendarEvent?)
+	case httpStatus(Int)
+	case lost(ClientLoss)
+}
+
+public enum ClientLoss: Sendable, Equatable {
+	case transport
+	case unreadableBody
+	case canceled
 }
 
 public struct IntervalsError: Error, Sendable, Equatable {
@@ -167,20 +172,6 @@ package enum IntervalsPolicy {
 	]
 	package static let requestTimeout: TimeInterval = 30
 	package static let streamRequestLimit = 3
-
-	package static func chatCreateBody(_ draft: ChatCalendarCreate) -> JSONValue {
-		var fields: [String: JSONValue] = [
-			"start_date_local": .string("\(draft.date.rawValue)T00:00:00"),
-			"category": .string("WORKOUT"),
-			"type": .string(draft.type.rawValue),
-			"name": .string(draft.name),
-			"description": .string(draft.description),
-			"external_id": .string(draft.writeID?.externalID ?? draft.externalId.rawValue),
-			"tags": .array(draft.tags.map { .string($0) }),
-		]
-		if let writeID = draft.writeID { fields["uid"] = .string(writeID.uid) }
-		return .object(fields)
-	}
 
 	package static func today(now: Date, timeZone: TimeZone) -> CivilDate {
 		CivilDate(date: now, timeZone: timeZone)

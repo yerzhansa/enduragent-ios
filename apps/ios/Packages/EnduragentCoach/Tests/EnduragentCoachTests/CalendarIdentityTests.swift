@@ -33,7 +33,7 @@ extension DurableCalendarWriteTests {
 		let token = try #require(await fixture.coach.currentSnapshot(.main)?.review?.token)
 		_ = await fixture.coach.decide(.approve(token), in: .main)
 		#expect(server.posts.count == 1)
-		#expect(server.posts.first?.body.objectFields["uid"]?.stringValue == writeID)
+		#expect(server.posts.first?.added["uid"]?.stringValue == writeID)
 		#expect(server.events.first?["name"]?.stringValue == "Renamed workout")
 	}
 
@@ -49,7 +49,7 @@ extension DurableCalendarWriteTests {
 		}
 		#expect(server.posts.count == 2)
 		#expect(server.events.count == 2)
-		let identifiers = server.posts.compactMap { $0.body.objectFields["uid"]?.stringValue }
+		let identifiers = server.posts.compactMap { $0.added["uid"]?.stringValue }
 		#expect(Set(identifiers).count == 2)
 	}
 

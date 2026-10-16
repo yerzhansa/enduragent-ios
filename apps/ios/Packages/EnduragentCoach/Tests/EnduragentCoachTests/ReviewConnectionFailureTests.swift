@@ -9,7 +9,7 @@ extension SingleProposalReviewsTests {
 	func failedConnectionCheckKeepsUnknownWriteRecoveryControls(absent: Bool) async throws {
 		let coach = await coach()
 		let token = try await presentedToken(on: coach)
-		ada.writeFailure = URLError(.timedOut)
+		ada.writeFailure = .lost(.transport)
 		guard case .uncertain = await coach.decide(.approve(token), in: .main) else {
 			Issue.record("expected unresolved approval")
 			return

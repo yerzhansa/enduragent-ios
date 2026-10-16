@@ -139,7 +139,7 @@ extension IntervalsRESTClientTests {
 		private func serving(_ answer: @escaping @Sendable (String) throws -> (Int, Data)) throws
 			-> IntervalsRESTClient
 		{
-			let client = try IntervalsRESTClientTests().makeClient(clock: clock)
+			let client = try IntervalsRESTClientTests().makeClient()
 			let asked = asked
 			IntervalsURLProtocolStub.handler = { request in
 				let url = try #require(request.url)

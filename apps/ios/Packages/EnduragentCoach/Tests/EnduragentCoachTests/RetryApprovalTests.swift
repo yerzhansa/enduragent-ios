@@ -39,10 +39,15 @@ extension RetryLadderTests {
 			guard let settled = snapshot.turns.first(where: { $0.id == turn })?.state,
 				settled.isSettled
 			else { continue }
+			let writes = try await store.fetch(RecordQuery(scope: .synced([.reviewWrite])))
+			guard case .synced(.reviewWrite(let applied)) = writes.records.last?.body else {
+				Issue.record("expected durable applied evidence")
+				return
+			}
 			#expect(
 				intervals.calls.filter(\.isWrite) == [
 					.createEvent(
-						date: "1998-06-14", externalId: "cycling-coach:1998-06-14:endurance")
+						date: "1998-06-14", externalId: try #require(applied.writeID).externalID)
 				])
 			#expect(snapshot.review == nil)
 			#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 2)

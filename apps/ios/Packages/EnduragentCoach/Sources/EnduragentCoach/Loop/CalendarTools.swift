@@ -44,7 +44,7 @@ extension CoachTools {
 		let parsed = try CyclingTools.parseCreateWorkoutInput(arguments, today: today)
 		return (
 			.createWorkout(date: parsed.date, workout: parsed.workout),
-			parsed.draft.description
+			parsed.description
 		)
 	}
 

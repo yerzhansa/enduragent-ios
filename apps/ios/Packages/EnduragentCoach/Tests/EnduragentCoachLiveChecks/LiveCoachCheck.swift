@@ -33,8 +33,8 @@
 					OpenRouterTransport(
 						baseURL: ModelService.openRouterAPI, diagnostics: diagnostics)
 				},
-				accountReads: { credential, selection, clock in
-					IntervalsRESTClient(credential: credential, athlete: selection, clock: clock)
+				accountReads: { credential, selection in
+					IntervalsRESTClient(credential: credential, athlete: selection)
 				})
 			let plan = LiveCoachPlan(listing: listing, today: today)
 			var report = LiveCoachReport(unavailable: plan.unavailable, spentBefore: ledger.total)
