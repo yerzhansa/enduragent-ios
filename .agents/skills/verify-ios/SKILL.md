@@ -63,8 +63,8 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Chat turn probe | Debug builds expose the invisible `chat.turnProgress` element with accessibility value `turns <count> settled <settled count>`. `TutorialHarness.exchange` reads it before sending and waits for one more turn with every turn settled. |
 | Language sheet | `language.choice.<automatic or tag>` with the selected trait on the current choice, `language.close`, `language.saveFailed` |
 | Settings language | `settings.language` opens the same sheet as `/language`, showing the saved preference in the row |
-| Records | `debug.records` in Debug, `records.list`, `records.device` at the top, `records.entries` after the counts, `records.count.<kind>`, `records.row.<id>` whose label names a `turnSettled` row's outcome such as `interrupted processEnded` or a `turnClaim` row's lease kind, `continuedProcessing` or `gracePeriodOnly`, and ends with the row's training account, `unconnected` or `intervals:<connection id>:<athlete id>`, and the toolbar `Refresh` button identified by `records.refresh` |
-| Leases | `debug.leases` in Debug, `leases.row.<n>` whose label reads like `athlete continuedProcessing settledTurns 1 of 1 step 1 of 10 finished with notice`, and the `Refresh` button with no identifier |
+| Records | `debug.records` in Debug, `records.list`, `records.device` at the top, `records.entries` after the counts, `records.count.<kind>`, `records.row.<id>` whose label names a `turnSettled` row's outcome such as `interrupted processEnded` or a `turnClaim` row's lease kind, `gracePeriodOnly` for every new claim or `continuedProcessing` for a claim saved before 2026-10-16, and ends with the row's training account, `unconnected` or `intervals:<connection id>:<athlete id>`, and the toolbar `Refresh` button identified by `records.refresh` |
+| Leases | `debug.leases` in Debug, `leases.row.<n>` whose label reads like `athlete gracePeriodOnly finished`, and the `Refresh` button with no identifier |
 | Workout preview | `chat.preview.cancel`, `chat.preview.add` inside the `Workout review` group, disabled until presentation is acknowledged; `chat.preview.notice` replaces both controls when the training account changes or Chat restores an unexpired v1 workout review, both connected to intervals.icu and disconnected |
 | Settings | `settings.credits` under Model access, `settings.training` under Training connection, `settings.debug` in Debug builds only; Back from Model access Credits returns here |
 | Credits | `credits.balance`, `credits.pack.<product id>`, `credits.note`, `credits.notice`; Back returns to the entry point, Settings or the conversation notice |
@@ -311,38 +311,25 @@ swift run --quiet --package-path tools phone-check language "$DEVICE_ID" "$LANGU
 
 The physical-device `EnduragentPhone` scheme includes this proof, which compiles out on simulators. Passing its capture test supplies the stored selection, relaunch and reply evidence. The operator's recorded prose verdict supplies the live-language judgment. Scripted fixture reply text cannot replace that verdict.
 
-### System banner check with a scripted model
+### No system banner or notification
 
-The launch argument `-EnduragentFixtureHost continued-processing` selects a Debug composition. It keeps the scripted model, fake Credits and intervals.icu, fixture secrets and records, and uses `ContinuedProcessingHost` with the real iOS scheduler and notifications. The live-message budget is zero. Run only with the operator present on a physical iPhone. A simulator cannot show the system banner.
+Every reply runs on plain background time from `UIApplication.beginBackgroundTask`. iOS shows no banner or progress interface for it. The app posts no notification and never asks for notification permission. The `no_system_banners` SwiftLint rule rejects `BGContinuedProcessingTask`, `BGTaskScheduler`, and `UNUserNotificationCenter` in `apps/ios`. Either surface needs an operator decision before it returns.
 
-Install a signed Debug build, then launch it without a test runner or debugger. Supply the connected phone identifier. Keep screenshots in a new local phone evidence folder.
+A simulator cannot prove that no banner appears. Run this check only with the operator present on a physical iPhone. Install a signed Debug build, then launch it without a test runner or debugger. Supply the connected phone identifier. Keep screenshots in a new local phone evidence folder. The scripted model spends no Credits.
 
 ```sh
-xcrun devicectl device process launch --device "$DEVICE_ID" icu.enduragent.app -EnduragentFixture first-week -EnduragentFixtureStore fresh -EnduragentFixtureHost continued-processing -AppleLanguages '(en)' -AppleLocale en_US
+xcrun devicectl device process launch --device "$DEVICE_ID" icu.enduragent.app -EnduragentFixture first-week -EnduragentFixtureStore fresh -AppleLanguages '(en)' -AppleLocale en_US
 ```
 
-Complete fixture onboarding and consent. For every relaunch, use the same command with `-EnduragentFixtureStore keep`. Record the OS, build, language and the lease kind in Settings > Debug > Leases. Require `continuedProcessing`; a scheduler refusal with `gracePeriodOnly` does not prove a system banner. Capture each observation. Start with the foreground probe, before judging banner changes. If iOS covers the toolbar, keep background finishing and record the covered toolbar as a known limit.
+Complete fixture onboarding and consent. For every relaunch, use the same command with `-EnduragentFixtureStore keep`. Record the OS, build, and language.
 
-Use `fixture:text-then-hang` for Stop and `fixture:slow` for completion. For system Cancel and natural expiry, use `fixture:memory-until-system-interruption`. That directive saves fixture memory, then sends a model heartbeat every ten seconds so the reply watchdog does not settle it first. It does not extend the system lease or synthesize expiry. Check the saved memory in Settings > Debug > Records before locking. The artificial Expire current lease button is absent with the real host. A natural expiry must come from iOS.
+| One action | One observation |
+| --- | --- |
+| Send `fixture:slow`, then press Home. | No banner or progress interface over the Home Screen. |
+| Lock during `fixture:slow`, then unlock. | No notification in Notification Center. |
+| Send `fixture:memory-until-system-interruption`, then lock until iOS ends the background time. | Reopen shows the interrupted reply with saved memory retained. Records shows `interrupted graceEnded`. |
 
-| Criterion | One action | One observation |
-| --- | --- | --- |
-| 1 | Tap Stop during partial text. | No "Task failed". |
-| 1 | Send again. | Stopped row does not return. |
-| 2 | Send immediately after success. | No previous terminal system row. |
-| 2 | Send immediately after `fixture:fail 400`. | No previous failed system row. The conversation offers Try again. |
-| 3 | Send with the app continuously in the foreground. | Toolbar coverage or absence. |
-| 3 | Return during a background reply. | Toolbar coverage or absence. |
-| 4 | Lock during `fixture:slow`. | Coach notification in Notification Center. |
-| 5 | Reopen after completion. | Full finished reply. |
-| 5 | Cancel a locked memory-until-system-interruption task in the system interface. | System progress stops. |
-| 5 | Reopen after Cancel. | Interrupted reply with saved memory retained and no false finish notification. |
-| 5 | Leave memory-until-system-interruption locked until natural expiry. | System progress stops. Record that iOS caused expiry. |
-| 5 | Reopen after expiry. | Interrupted reply with saved memory retained and no false finish notification. |
-| 6 | Choose another language mid-reply through Settings > Debug > Language. | App language changes. |
-| 6 | Background that reply. | System title uses the chosen language. |
-
-The app reports Stop, a finished reply and a failed reply as successful system completion. A failure stays visible in the conversation. System Cancel and expiry share the same argument-free expiration callback and remain unsuccessful. Do not infer which system event occurred from the stored `systemExpired` label. Record the operator's action alongside the screenshot. Criterion 2's dismissal timing, criterion 3's foreground behavior, background completion, lock, Cancel, natural expiry and title pixels remain phone gates until this procedure runs.
+`fixture:memory-until-system-interruption` saves fixture memory, then sends a model heartbeat every ten seconds so the reply watchdog does not settle it first. It does not extend background time or synthesize expiry. Record that iOS caused the expiry.
 
 ### ChoicesInConversationCheck
 
@@ -379,7 +366,7 @@ These gaps were checked against `FixtureArguments`, `FirstWeekFixture`, Debug co
 | A lost-response write is found on a later calendar read, or a calendar network read fails | The package tests `DurableCalendarWriteTests.committedWriteWithLostResponseIsConfirmedByReading(response:)` and `unreadableCalendarKeepsTheWriteUnknown(malformed:)` prove both. A Keychain lock follows a different branch and cannot prove a network read failure. |
 | A workout review's record refresh fails and later succeeds | `FirstTurnTests.failedReviewRefreshKeepsTheCardUntilASuccessfulRead` proves retention and recovery. `SavedReviewReadFailureProof` proves the disabled controls on screen. |
 | Stop while the fixture turn is still proposing its workout | `RetryLadderTests.approvalDuringBackoffSettlesSavedWork`, `RetryLadderTests.approvalBeforeTimeoutFailureSettlesSavedWork`, and `RetryLadderTests.hungApprovalDoesNotBlockStopOrNewSend` cover the package boundaries. The fixture proposing turn finishes at once; Stop during `fixture:slow` does not prove this state. |
-| Real continued-processing banners, OS suspension or expiry, lock and unlock, and a hard kill losing partial text | The real-phone procedure and its screenshots. Home proves backgrounding only. The operator performs an actual lock and unlock. Fixture host expiry proves the package's expiry response, not when iOS expires a real lease. A device run must capture an actual OS expiry before claiming that part. |
+| No system banner or notification on a real phone, OS suspension or expiry, lock and unlock, and a hard kill losing partial text | The real-phone procedure and its screenshots. Home proves backgrounding only. The operator performs an actual lock and unlock. Fixture host expiry proves the package's expiry response, not when iOS expires a real lease. A device run must capture an actual OS expiry before claiming that part. |
 | Live networking, real Keychain access or sync, CloudKit imports, and a second device's consent or conversation | The closing real-phone run plus an operator-assisted second-device check on the same Apple ID. The one-phone script does not cover the second device. Fixture stores have CloudKit off. |
 | Exactly one intervals.icu event, including UID upsert after an uncertain write | The operator reads the real calendar after the single Add. Repeated-write UID-upsert evidence belongs to the operator's authorized live calendar-save check; this phone script never repeats Add. |
 | StoreKit prices, purchases, and Restore | Operator-approved store-release testing. Purchases and Restore are outside Milestone 2, so neither this suite nor the phone script claims that proof. |
