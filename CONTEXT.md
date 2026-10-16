@@ -105,7 +105,7 @@ intervals.icu's answer that proves one change from a workout review was saved.
 _Avoid_: Confirmation, result, success
 
 **Unconfirmed change**:
-A change sent to intervals.icu whose answer never arrived, so it may or may not have been saved.
+A change sent to intervals.icu with no answer that says it was saved or refused, so it may or may not have been saved.
 _Avoid_: Unknown write, uncertain change, pending change
 
 **Check again**:
