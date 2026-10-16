@@ -19,7 +19,7 @@ package struct RecordStorageFault: Error, Sendable, Equatable {
 	}
 }
 
-package final class FaultInjectingRecordLog: RecordLog, Sendable {
+package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 	private struct Faults: Sendable {
 		var nextAppend = false
 		var syncedAppends = false
@@ -32,11 +32,11 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 	}
 
 	package let deviceId: DeviceID
-	private let storage: Mutex<(any RecordLog)?>
+	private let storage: Mutex<(any ReviewChainLog)?>
 	private let release: FixtureStoreRelease?
 	private let faults = Mutex(Faults())
 
-	package init(wrapping wrapped: any RecordLog, release: FixtureStoreRelease? = nil) {
+	package init(wrapping wrapped: any ReviewChainLog, release: FixtureStoreRelease? = nil) {
 		self.deviceId = wrapped.deviceId
 		self.storage = Mutex(wrapped)
 		self.release = release
@@ -47,7 +47,7 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 		release?.finish()
 	}
 
-	private var wrapped: any RecordLog {
+	private var wrapped: any ReviewChainLog {
 		storage.withLock {
 			guard let log = $0 else { preconditionFailure("The record log has been released") }
 			return log
@@ -96,6 +96,21 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 
 	package func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		let kinds = batch.map(\.body.kind)
+		try failIfAsked(appending: kinds, locality: locality)
+		try await wrapped.append(batch, locality: locality)
+		if locality == .synced, failSyncedAcknowledgments {
+			throw RecordStorageFault(operation: .append(kinds: kinds))
+		}
+	}
+
+	package func append(_ record: AthleteRecord, after head: RecordHead, in query: RecordQuery)
+		async throws
+	{
+		try failIfAsked(appending: [record.body.kind], locality: record.locality)
+		try await wrapped.append(record, after: head, in: query)
+	}
+
+	private func failIfAsked(appending kinds: [String], locality: RecordLocality) throws {
 		let fails = faults.withLock { current -> Bool in
 			if current.nextAppend {
 				current.nextAppend = false
@@ -105,10 +120,6 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 				|| kinds.contains { current.appendKinds.contains($0) }
 		}
 		if fails {
-			throw RecordStorageFault(operation: .append(kinds: kinds))
-		}
-		try await wrapped.append(batch, locality: locality)
-		if locality == .synced, failSyncedAcknowledgments {
 			throw RecordStorageFault(operation: .append(kinds: kinds))
 		}
 	}
@@ -122,6 +133,16 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 	}
 
 	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		try failIfAsked(reading: query)
+		return try await wrapped.fetch(query)
+	}
+
+	package func newest(_ query: RecordQuery) async throws -> AthleteRecord? {
+		try failIfAsked(reading: query)
+		return try await wrapped.newest(query)
+	}
+
+	private func failIfAsked(reading query: RecordQuery) throws {
 		let fails = faults.withLock { current -> Bool in
 			if let next = current.nextFetch, next.scope == query.scope {
 				if next.skipping == 0 {
@@ -137,7 +158,6 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 		if fails {
 			throw RecordStorageFault(operation: .fetch)
 		}
-		return try await wrapped.fetch(query)
 	}
 
 	package var imports: AsyncStream<Void> {

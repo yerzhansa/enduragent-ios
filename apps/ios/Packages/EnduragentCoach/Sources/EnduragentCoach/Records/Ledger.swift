@@ -9,6 +9,7 @@ package actor Ledger {
 	package static let reportedSkipLimit = DiagnosticsLog.capacity / 2
 
 	private let log: any RecordLog
+	let chain: (any ReviewChainLog)?
 	private let clock: any Clock
 	private let diagnostics: DiagnosticsLog
 	private var cursor: HybridLogicalClock?
@@ -19,6 +20,7 @@ package actor Ledger {
 
 	package init(log: any RecordLog, clock: any Clock, diagnostics: DiagnosticsLog) {
 		self.log = log
+		self.chain = log as? any ReviewChainLog
 		self.clock = clock
 		self.diagnostics = diagnostics
 		self.cursor = nil
@@ -33,7 +35,7 @@ package actor Ledger {
 		diagnostics.record(unsaved)
 	}
 
-	private func openIfNeeded() async throws(LedgerFailure) {
+	func openIfNeeded() async throws(LedgerFailure) {
 		if opened {
 			return
 		}
@@ -166,7 +168,7 @@ package actor Ledger {
 		return next
 	}
 
-	private func fold(_ seen: HybridLogicalClock) {
+	func fold(_ seen: HybridLogicalClock) {
 		guard let cursor else {
 			self.cursor = seen
 			return

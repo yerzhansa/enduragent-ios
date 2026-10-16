@@ -9,7 +9,8 @@
 		"2.5": 9,
 		"3.1": 11,
 		"6.1": 4,
-		"3.2": 5
+		"3.2": 5,
+		"3.3": 7
 	},
 	"criteria": [
 		{
@@ -515,6 +516,57 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aRefusedChangeShowsRefusedAndASentChangeShowsSending"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aFinishedReviewIsShownReadOnlyWithNoControl"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
+			]
+		},
+		{
+			"id": "3.3.1",
+			"statement": "Each new body (workoutReview, reviewPreparing, reviewOutcome) round-trips through the SwiftData store at body version 6, and a Milestone 3 build, whose body version is 5, skips each version-6 row as newerVersion before it reads the kind and reads every other row.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecordCodecTests.swift", "function": "eachReviewRecordRoundTripsThroughTheStore"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecordCodecTests.swift", "function": "aMilestone3BuildSkipsOnlyTheReviewRecordsAsNewerVersions"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SwiftDataRecordLogTests.swift", "function": "bodyRoundTripForEveryKind"}
+			]
+		},
+		{
+			"id": "3.3.2",
+			"statement": "When two ledgers append after the same head, exactly one append lands and the other gets headMoved with the new head; over 200 runs in parallel tasks no chain has two records after one head, over one SwiftDataRecordLog, over two logs opened separately on one store directory, and over the in-memory store.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "twoWritersAfterOneHeadLandExactlyOneRecord"}
+			]
+		},
+		{
+			"id": "3.3.3",
+			"statement": "Two ModelContainerHandle.deviceLocal(directory:) opens of one directory return the same handle, and another directory gets another handle.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelContainerHandleTests.swift", "function": "twoOpensOfOneStoreDirectoryShareOneHandle"}
+			]
+		},
+		{
+			"id": "3.3.4",
+			"statement": "An append whose save fails leaves the head unchanged and reports a storage failure, not headMoved.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "aFailedSaveLeavesTheHeadAndIsAStorageFailure"}
+			]
+		},
+		{
+			"id": "3.3.5",
+			"statement": "reviewHead returns the newest workoutReview of the chat and folds its clock, so the next record sorts after it.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "theHeadIsTheChatsNewestReviewAndTheNextRecordSortsAfterIt"}
+			]
+		},
+		{
+			"id": "3.3.6",
+			"statement": "A reviewOutcome written on one device is read on another, the first per review winning; a workoutReview and a reviewPreparing are not.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "onlyTheOutcomeOfAReviewReachesAnotherDevice"}
+			]
+		},
+		{
+			"id": "3.3.7",
+			"statement": "The review-chain-only rule fails WorkoutReviewBody( and ReviewPreparingBody( in a package file outside Records/ReviewChain.swift and the three codec files, and passes each of those four files.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
 			]
 		}
 	],

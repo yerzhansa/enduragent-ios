@@ -1,7 +1,7 @@
 import Foundation
 
 enum RecordCodec {
-	static let currentBodyVersion = 5
+	static let currentBodyVersion = 6
 
 	static func encode(_ body: RecordBody) throws -> (version: Int, data: Data) {
 		let encoder = JSONEncoder()
@@ -12,6 +12,8 @@ enum RecordCodec {
 		case .synced(let synced):
 			data = try encoder.encode(SyncedPayload(synced))
 			switch synced {
+			case .reviewOutcome:
+				version = 6
 			case .attemptQuestion:
 				version = 5
 			case .trainingIdentityObserved, .userMessage, .turnSettled, .windowStart,
@@ -22,9 +24,12 @@ enum RecordCodec {
 			}
 		case .deviceLocal(let local):
 			data = try encoder.encode(DeviceLocalPayload(local))
-			if case .flushPending(let body) = local, body.sourceBound {
+			switch local {
+			case .workoutReview, .reviewPreparing:
+				version = 6
+			case .flushPending(let body) where body.sourceBound:
 				version = 5
-			} else {
+			default:
 				version = 2
 			}
 		case .legacy(let legacy):
@@ -187,6 +192,10 @@ enum RecordCodec {
 					ReviewCancelledUnknownPayload.self, version: version, kind: name, data: data
 				)
 				.body())
+		case .reviewOutcome:
+			return .reviewOutcome(
+				try payload(ReviewOutcomePayload.self, version: version, kind: name, data: data)
+					.body())
 		case .reviewApplied:
 			let payload = try payload(
 				ReviewAppliedPayload.self, version: version, kind: name, data: data)
