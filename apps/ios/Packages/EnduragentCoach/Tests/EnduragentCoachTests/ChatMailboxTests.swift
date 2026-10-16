@@ -386,8 +386,8 @@ import Testing
 				return false
 			} != nil)
 		let stale = ReviewRef(
-			chat: .main, set: ChangeSetID(ulid: fixedUlid(1)),
-			revision: ChangeSetRevision(rawValue: 1),
+			chat: .main, set: WorkoutReviewID(ulid: fixedUlid(1)),
+			revision: ReviewRevision(rawValue: 1),
 			delivery: UUID())
 		#expect(await coach.decide(.presented(stale), in: .main) == .staleControl)
 		await coach.stop(.main)

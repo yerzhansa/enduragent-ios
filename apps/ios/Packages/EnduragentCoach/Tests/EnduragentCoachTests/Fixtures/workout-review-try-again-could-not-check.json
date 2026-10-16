@@ -1,0 +1,64 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000312",
+  "chat": "main",
+  "finished": [
+    {
+      "change": {
+        "action": {
+          "delete": {
+            "target": {
+              "reviewed": {
+                "event": 114,
+                "snapshot": {
+                  "date": "1998-07-10",
+                  "durationSeconds": 3600,
+                  "load": 40,
+                  "name": "Rest day"
+                }
+              }
+            }
+          }
+        },
+        "id": "00T47DW5000000000000000419",
+        "position": 0
+      },
+      "result": {
+        "noLongerOnCalendar": {}
+      }
+    }
+  ],
+  "id": "00T47DW5000000000000000112",
+  "kept": [],
+  "remaining": [
+    {
+      "action": {
+        "add": {
+          "identity": "6FA459EA-EE8A-3CA4-894E-DB77E160355E",
+          "payload": {
+            "date": "1998-07-11",
+            "description": "Planks and bridges",
+            "movingTime": 1800,
+            "name": "Core strength",
+            "type": "WeightTraining"
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000420",
+      "position": 1
+    }
+  ],
+  "revision": 1,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "tryAgain": {
+          "_0": {
+            "couldNotCheck": {}
+          }
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000212"
+}

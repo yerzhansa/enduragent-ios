@@ -54,7 +54,7 @@ extension CredentialVaultTests {
 	func unresolvedCalendarWriteBlocksOnlyItsOwningDevice(opened: Bool, owned: Bool) async throws {
 		let writer = owned ? records.deviceId : DeviceID(rawValue: "other-phone")
 		let body = ReviewWriteBody(
-			chatId: .main, review: ChangeSetID(ulid: fixedUlid(2)), writeID: CalendarWriteID(),
+			chatId: .main, review: WorkoutReviewID(ulid: fixedUlid(2)), writeID: CalendarWriteID(),
 			target: .create(date: "1998-06-14"), evidence: .unknown(.dispatched))
 		try await seed(
 			records,

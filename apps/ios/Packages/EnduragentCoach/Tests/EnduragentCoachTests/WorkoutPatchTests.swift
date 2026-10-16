@@ -80,6 +80,11 @@ struct WorkoutPatchTests {
 		let unchanged = try WorkoutPatch.parse(
 			try JSONValue.parse(#"{"description":"Main set\r\n- 20m 95%"}"#), today: today)
 		#expect(unchanged.applied(to: Self.reviewed) == Self.reviewed)
+
+		let trailing = try WorkoutPatch.parse(
+			try JSONValue.parse(#"{"description":"Main set\n- 20m 95%\n "}"#), today: today)
+		#expect(trailing.applied(to: Self.reviewed).structure == Self.document)
+		#expect(trailing.applied(to: Self.reviewed).description == "Main set\n- 20m 95%\n ")
 	}
 
 	@Test(arguments: [

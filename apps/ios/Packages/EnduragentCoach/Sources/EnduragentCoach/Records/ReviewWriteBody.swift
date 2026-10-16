@@ -11,7 +11,7 @@ package struct CalendarWriteID: Hashable, Sendable, Codable {
 
 package enum CalendarWriteKey: Hashable, Sendable {
 	case durable(CalendarWriteID)
-	case legacy(ChangeSetID)
+	case legacy(WorkoutReviewID)
 }
 
 package enum CalendarObservation: String, Sendable, Codable {
@@ -48,7 +48,7 @@ package enum CalendarWriteTarget: Sendable, Equatable, Codable {
 
 package struct ReviewWriteBody: Sendable, Equatable {
 	package let chatId: ChatID
-	package let review: ChangeSetID
+	package let review: WorkoutReviewID
 	package let writeID: CalendarWriteID?
 	package let target: CalendarWriteTarget?
 	package var evidence: CalendarWriteEvidence
@@ -108,7 +108,7 @@ struct ReviewWritePayload: Codable {
 			throw RecordDecodeFailure(reason: "reviewWrite target")
 		}
 		return ReviewWriteBody(
-			chatId: try decodeChatID(chatId), review: ChangeSetID(ulid: try decodeULID(review)),
+			chatId: try decodeChatID(chatId), review: WorkoutReviewID(ulid: try decodeULID(review)),
 			writeID: writeID.map(CalendarWriteID.init(rawValue:)), target: target,
 			evidence: evidence)
 	}

@@ -1,0 +1,40 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000323",
+  "chat": "main",
+  "finished": [],
+  "id": "00T47DW5000000000000000123",
+  "kept": [],
+  "remaining": [
+    {
+      "action": {
+        "delete": {
+          "target": {
+            "reviewed": {
+              "event": 126,
+              "snapshot": {
+                "date": "1998-07-24",
+                "durationSeconds": 3600,
+                "load": 40,
+                "name": "Recovery spin"
+              }
+            }
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000433",
+      "position": 0
+    }
+  ],
+  "revision": 1,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "blocked": {
+          "_0": "coachOnly"
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000223"
+}

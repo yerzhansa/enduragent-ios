@@ -3037,5 +3037,10 @@
       "waiting": "Lecture du profil d'athlète…"
     },
     "missing": "intervals.icu n’est pas connecté. Connectez-le pour ajouter des séances à votre calendrier."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Cette séance a été vérifiée avant la mise à jour de l’app. Redemande au coach."
+    }
   }
 }

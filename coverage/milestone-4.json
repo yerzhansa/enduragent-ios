@@ -6,7 +6,8 @@
 		"2.2": 6,
 		"2.3": 5,
 		"2.4": 4,
-		"2.5": 9
+		"2.5": 9,
+		"3.1": 11
 	},
 	"criteria": [
 		{
@@ -334,6 +335,97 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarCheck.swift", "function": "writesTheTestCalendarThroughTheAppsWriteCall"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "theRefusedAddDiffersFromItsBodyOnlyInItsCategory"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aResendThatAddsASecondEventOrASavedRefusedAddFailsTheRun"}
+			]
+		},
+		{
+			"id": "3.1.1",
+			"statement": "Each transition maps every stage to the documented next stage or refuses with wrongStage, every (stage, DriveStart) pair gives the documented NextStep, and no settle leaves the stage running.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewTransitionTests.swift", "function": "everyStageLandsWhereTheTransitionSays"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewTransitionTests.swift", "function": "everyStageAndDriveStartPlanTheDocumentedStep"}
+			]
+		},
+		{
+			"id": "3.1.2",
+			"statement": "Every change is in exactly one of finished, remaining and the stage's send attempt after every transition, and a finished change never returns to remaining.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewTransitionTests.swift", "function": "everyStageLandsWhereTheTransitionSays"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewRunTests.swift", "function": "cancelKeepsFinishedWorkAndTheUnconfirmedChangeAsANote"}
+			]
+		},
+		{
+			"id": "3.1.3",
+			"statement": "answered with a lost answer gives readFirst, and settled with seen while work remains gives waiting(tryAgain(.settled)), so the run stops even when the change is found.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewRunTests.swift", "function": "aLostAnswerReadsFirstAndASettleThatFindsTheChangeStillStops"}
+			]
+		},
+		{
+			"id": "3.1.4",
+			"statement": "A refused answer puts the change back at the head of remaining with tryAgain(.refused(id, status)) for 400, 401, 403, 404 and 429.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewRunTests.swift", "function": "aRefusedAnswerPutsTheChangeBackAtTheHeadOfTheRemainingWork"}
+			]
+		},
+		{
+			"id": "3.1.5",
+			"statement": "differences(from:) names each changed field alone and ignores a change in server metadata or an equivalent representation, trailing whitespace and a moving_time equal after rounding.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChangeTests.swift", "function": "eachChangedFieldIsNamedAlone"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChangeTests.swift", "function": "anEquivalentRepresentationIsNoDifference"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChangeTests.swift", "function": "serverMetadataAndAWholeSecondMovingTimeAreNoDifference"}
+			]
+		},
+		{
+			"id": "3.1.6",
+			"statement": "isApplied(on:) is true exactly when applying the patch to the current snapshot changes nothing, an upgraded edit included.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChangeTests.swift", "function": "aPatchIsAppliedExactlyWhenApplyingItChangesNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChangeTests.swift", "function": "anUpgradedEditIsAppliedByTheSameRuleWithoutAReviewedSnapshot"}
+			]
+		},
+		{
+			"id": "3.1.7",
+			"statement": "The stored value round-trips, and a value with a change in two places or two changes at one position fails to decode.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "everyStageRoundTripsThroughTheStoredValue"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "everyStoredFixtureEncodesBackToItsOwnJSON"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "everyStoredFixtureDecodesToTheCasesItNames"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "everyStoredCaseIsHeldByAStoredFixture"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "theFixturesDecodeToTheValuesTheyDescribe"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "anAddWithNoDurationRoundTripsWithoutOne"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "aChangeInTwoPlacesFailsToDecode"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "twoChangesAtOnePositionFailToDecode"}
+			]
+		},
+		{
+			"id": "3.1.8",
+			"statement": "sending(at:seen:) finishes each seen add as seen on the calendar, never with a Receipt, starts the send attempt of the first change not seen, and gives completed when every remaining change is seen.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewRunTests.swift", "function": "seenAddsFinishWithoutAReceiptAndTheFirstUnseenChangeIsSent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewRunTests.swift", "function": "aSavedAnswerKeepsItsReceiptAndStartsTheNextSendAttemptInTheSameValue"}
+			]
+		},
+		{
+			"id": "3.1.9",
+			"statement": "nextStep(_:summarySaved:) gives publish for a completed or canceled review whose summary is not saved, and idle once it is.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewTransitionTests.swift", "function": "everyStageAndDriveStartPlanTheDocumentedStep"}
+			]
+		},
+		{
+			"id": "3.1.10",
+			"statement": "OperationID.workoutReview encodes to the same workoutChangeSet:<ulid>:<rev> string as before, an old string decodes, and the build-2bbe2ee seed keeps its memory, review history and consent after the rename.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "aWorkoutReviewCauseKeepsTheChangeSetString"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build2bbe2eeKeepsMemoryReviewHistoryAndConsent"}
+			]
+		},
+		{
+			"id": "3.1.11",
+			"statement": "The minted-in-one-file rule fails each of its five patterns in a package file outside the owner, passes them in the owner, and passes ReviewReceipt( and other names that only contain Receipt or SendAttempt.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
 			]
 		}
 	],

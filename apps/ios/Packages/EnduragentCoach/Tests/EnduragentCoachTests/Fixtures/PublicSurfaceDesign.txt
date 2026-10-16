@@ -100,11 +100,6 @@ CatalogIssue.storageUnavailable
 CatalogOrigin
 CatalogOrigin.bundled
 CatalogOrigin.downloaded
-ChangeSetID
-ChangeSetID.ulid
-ChangeSetRevision
-ChangeSetRevision.<(_:_:)
-ChangeSetRevision.rawValue
 ChatActivity
 ChatActivity.idle
 ChatActivity.stopping
@@ -193,6 +188,11 @@ ConnectionID.rawValue
 ContextWindowOverride
 ContextWindowOverride.init(tokens:)
 ContextWindowOverride.tokens
+ControlSet
+ControlSet.approveOrCancel
+ControlSet.cancelOnly
+ControlSet.checkAgainOrCancel
+ControlSet.tryAgainOrCancel
 ConversationOpening
 ConversationOpening.afterNewConversation
 ConversationOpening.continuing
@@ -541,6 +541,7 @@ ReviewBlock.accountChanged
 ReviewBlock.cannotVerify
 ReviewBlock.coachOnly
 ReviewBlock.pastProtected
+ReviewBlock.reviewedBeforeUpgrade
 ReviewBlock.trainingNotConnected
 ReviewBlock.turnStopping
 ReviewBlock.workoutOnly
@@ -615,6 +616,9 @@ ReviewRef.chat
 ReviewRef.delivery
 ReviewRef.revision
 ReviewRef.set
+ReviewRevision
+ReviewRevision.<(_:_:)
+ReviewRevision.rawValue
 ReviewSnapshot
 ReviewSnapshot.State
 ReviewSnapshot.State.available
@@ -786,6 +790,8 @@ WorkoutChartModel.Unit.zone
 WorkoutChartModel.durationSeconds
 WorkoutChartModel.segments
 WorkoutChartModel.unit
+WorkoutReviewID
+WorkoutReviewID.ulid
 WriteSummary
 WriteSummary.calendarWrites
 WriteSummary.init(memorySections:ledgerEvents:planSaves:calendarWrites:unverifiedCalendarWrites:)

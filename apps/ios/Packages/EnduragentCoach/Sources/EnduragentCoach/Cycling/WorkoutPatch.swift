@@ -60,7 +60,7 @@ package struct WorkoutPatch: Sendable, Equatable {
 		let nextStructure: String? =
 			if let workoutDocument {
 				WorkoutSnapshot.normalizedStructure(workoutDocument)
-			} else if nextDescription == current.description {
+			} else if WorkoutSnapshot.sameDescription(nextDescription, current.description) {
 				current.structure
 			} else {
 				nil

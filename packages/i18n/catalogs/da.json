@@ -3037,5 +3037,10 @@
       "waiting": "Læser atletprofil…"
     },
     "missing": "intervals.icu er ikke tilsluttet. Opret forbindelse for at føje træningspas til din kalender."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Denne træning blev gennemgået, før appen blev opdateret. Spørg træneren igen."
+    }
   }
 }

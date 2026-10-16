@@ -3037,5 +3037,10 @@
       "waiting": "A ler o perfil de atleta…"
     },
     "missing": "intervals.icu não está ligado. Ligue para adicionar treinos ao calendário."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Este treino foi revisto antes da atualização da app. Pede novamente ao treinador."
+    }
   }
 }

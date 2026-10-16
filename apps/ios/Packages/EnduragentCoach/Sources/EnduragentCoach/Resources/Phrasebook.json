@@ -374738,6 +374738,112 @@
           }
         }
       }
+    },
+    "workouts.blocked.reviewedBeforeUpgrade": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This workout was reviewed before the app was updated. Ask the coach again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este entrenamiento se revisó antes de actualizar la app. Vuelve a pedírselo al entrenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette séance a été vérifiée avant la mise à jour de l’app. Redemande au coach."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo allenamento è stato rivisto prima dell’aggiornamento dell’app. Chiedi di nuovo al coach."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Training wurde vor dem Update der App geprüft. Frag den Coach noch einmal."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze training is beoordeeld voordat de app werd bijgewerkt. Vraag het de coach opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne træning blev gennemgået, før appen blev opdateret. Spørg træneren igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det här passet granskades innan appen uppdaterades. Fråga tränaren igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne økten ble gjennomgått før appen ble oppdatert. Spør treneren på nytt."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämä harjoitus tarkistettiin ennen sovelluksen päivitystä. Pyydä valmentajaa uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este treino foi revisto antes da atualização da app. Pede novamente ao treinador."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este treino foi revisado antes da atualização do app. Peça novamente ao treinador."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten trening został sprawdzony przed aktualizacją aplikacji. Poproś trenera ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 운동은 앱이 업데이트되기 전에 검토되었습니다. 코치에게 다시 요청하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このワークアウトはアプリのアップデート前に確認されたものです。もう一度コーチに依頼してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此训练是在应用更新前审核的。请重新询问教练。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此訓練是在 App 更新前審核的。請重新詢問教練。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -2997,5 +2997,10 @@
       "waiting": "선수 프로필 읽는 중…"
     },
     "missing": "intervals.icu가 연결되지 않았습니다. 운동을 캘린더에 추가하려면 연결하세요."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "이 운동은 앱이 업데이트되기 전에 검토되었습니다. 코치에게 다시 요청하세요."
+    }
   }
 }

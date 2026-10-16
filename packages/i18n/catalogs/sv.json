@@ -3037,5 +3037,10 @@
       "waiting": "Läser idrottsprofil…"
     },
     "missing": "intervals.icu är inte anslutet. Anslut för att lägga till träningspass i kalendern."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Det här passet granskades innan appen uppdaterades. Fråga tränaren igen."
+    }
   }
 }

@@ -106,7 +106,7 @@ extension OperationID {
 		case .preferenceChange(let id): "preferenceChange:\(id.ulid.rawValue)"
 		case .credentialChange(let id): "credentialChange:\(id.ulid.rawValue)"
 		case .launchRecovery(let id): "launchRecovery:\(id.ulid.rawValue)"
-		case .workoutChangeSet(let id, let revision):
+		case .workoutReview(let id, let revision):
 			"workoutChangeSet:\(id.ulid.rawValue):\(revision.rawValue)"
 		case .planningCommand(let id): "planningCommand:\(id.rawValue)"
 		case .debugSample(let id): "debugSample:\(id.ulid.rawValue)"
@@ -128,7 +128,7 @@ extension OperationID {
 			guard fields.count == 2, let ulid = ULID(rawValue: String(fields[0])),
 				let revision = Int(fields[1])
 			else { return nil }
-			self = .workoutChangeSet(ChangeSetID(ulid: ulid), ChangeSetRevision(rawValue: revision))
+			self = .workoutReview(WorkoutReviewID(ulid: ulid), ReviewRevision(rawValue: revision))
 			return
 		}
 		guard let ulid = ULID(rawValue: rest) else { return nil }

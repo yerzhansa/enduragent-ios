@@ -3117,5 +3117,10 @@
       "waiting": "Odczytywanie profilu sportowca…"
     },
     "missing": "intervals.icu nie jest połączone. Połącz je, aby dodawać treningi do kalendarza."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Ten trening został sprawdzony przed aktualizacją aplikacji. Poproś trenera ponownie."
+    }
   }
 }

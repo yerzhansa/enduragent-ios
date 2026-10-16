@@ -90,7 +90,7 @@ package struct LaunchID: Hashable, Sendable {
 	}
 }
 
-public struct ChangeSetID: Hashable, Sendable {
+public struct WorkoutReviewID: Hashable, Sendable {
 	public let ulid: ULID
 
 	package init(ulid: ULID) {
@@ -98,15 +98,37 @@ public struct ChangeSetID: Hashable, Sendable {
 	}
 }
 
-public struct ChangeSetRevision: Hashable, Sendable, Comparable {
+public struct ReviewRevision: Hashable, Sendable, Comparable {
 	public let rawValue: Int
 
 	package init(rawValue: Int) {
 		self.rawValue = rawValue
 	}
 
-	public static func < (lhs: ChangeSetRevision, rhs: ChangeSetRevision) -> Bool {
+	public static func < (lhs: ReviewRevision, rhs: ReviewRevision) -> Bool {
 		lhs.rawValue < rhs.rawValue
+	}
+
+	package var next: ReviewRevision {
+		ReviewRevision(rawValue: rawValue + 1)
+	}
+}
+
+package struct ClaimID: Hashable, Sendable {
+	package let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
+package struct DraftKey: Hashable, Sendable {
+	package let turn: TurnID
+	package let attempt: AttemptID
+
+	package init(turn: TurnID, attempt: AttemptID) {
+		self.turn = turn
+		self.attempt = attempt
 	}
 }
 

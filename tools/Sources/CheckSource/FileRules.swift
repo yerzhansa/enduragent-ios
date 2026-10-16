@@ -35,6 +35,17 @@ extension SourceChecker {
 	static let secretShape =
 		#"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:gh[pousr]_[A-Za-z0-9]{30,}"#
 		+ #"|github_pat_[A-Za-z0-9_]{30,}|sk-or-v1-[a-f0-9]{32,}|AKIA[A-Z0-9]{16})\b"#
+	static let coachPackageSource = #"^apps\/ios\/Packages\/EnduragentCoach\/.*\.swift$"#
+	static let reviewSource = "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Review/"
+	static let mintedValues = [
+		MintedValue(
+			name: "Receipt", owner: reviewSource + "CalendarWriter.swift",
+			anywhere: [#"\bdecode(?:IfPresent)?\s*\(\s*Receipt\s*\.\s*self\b"#],
+			elsewhere: [#"\bextension\s+Receipt\b"#, #"\bReceipt(?:\s*\.\s*init)?\s*\("#]),
+		MintedValue(
+			name: "SendAttempt", owner: reviewSource + "WorkoutReview.swift", anywhere: [],
+			elsewhere: [#"\bextension\s+SendAttempt\b"#, #"\bSendAttempt(?:\s*\.\s*init)?\s*\("#]),
+	]
 	static let swiftCopy =
 		#"\b(?:Text|Label|Button|Section|navigationTitle|alert|confirmationDialog"#
 		+ #"|String\(localized:)\s*\(?(?:\s*)"((?:\\.|[^"\\])*)""#
@@ -102,6 +113,7 @@ extension SourceChecker {
 			try findings.report(file, "records-package-only")
 		}
 		if file.hasSameUnits(as: Self.recordModel) { try checkLedgerIndexVersion(file, text) }
+		if try mintsOutsideItsFile(file, text) { try findings.report(file, "minted-in-one-file") }
 		if try file.hasSameUnits(as: Self.mailbox) && hasExposedMailboxState(text) {
 			try findings.report(file, "mailbox-private-state")
 		}
@@ -118,6 +130,18 @@ extension SourceChecker {
 				guard try patterns.test(Self.language, sentence.text) else { continue }
 				try findings.report(file, "public-language", key: sentence.key)
 			}
+		}
+	}
+
+	private func mintsOutsideItsFile(_ file: String, _ text: String) throws -> Bool {
+		guard try patterns.test(Self.coachPackageSource, file) else { return false }
+		return try Self.mintedValues.contains { value in
+			let owns = file.hasSameUnits(as: value.owner)
+			let shadows = try patterns.test(
+				#"\b(?:struct|enum|class|actor|typealias)\s+\#(value.name)\b"#, text)
+			if !owns && shadows { return false }
+			let forbidden = owns ? value.anywhere : value.anywhere + value.elsewhere
+			return try forbidden.contains { try patterns.test($0, text) }
 		}
 	}
 
@@ -168,4 +192,11 @@ extension SourceChecker {
 	private func inUnitOrder(_ values: [String]) -> [[UInt16]] {
 		values.map { Array($0.utf16) }.sorted { $0.lexicographicallyPrecedes($1) }
 	}
+}
+
+struct MintedValue {
+	let name: String
+	let owner: String
+	let anywhere: [String]
+	let elsewhere: [String]
 }

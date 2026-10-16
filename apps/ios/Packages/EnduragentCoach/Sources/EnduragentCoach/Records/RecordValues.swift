@@ -42,6 +42,13 @@ func decodeCivilDate(_ raw: String) throws -> CivilDate {
 	return value
 }
 
+func decodeAccount(_ raw: String) throws -> TrainingAccount {
+	guard let account = TrainingAccount(storedValue: raw) else {
+		throw RecordDecodeFailure(reason: "account")
+	}
+	return account
+}
+
 func decodeSlash(_ raw: String) throws -> SlashCommand {
 	guard let value = SlashCommand(rawValue: raw) else {
 		throw RecordDecodeFailure(reason: "slash")

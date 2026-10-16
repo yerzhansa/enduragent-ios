@@ -1,0 +1,66 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000313",
+  "chat": "main",
+  "finished": [
+    {
+      "change": {
+        "action": {
+          "add": {
+            "identity": "886313E1-3B8A-5372-9B90-0C9AEE199E5D",
+            "payload": {
+              "date": "1998-07-12",
+              "description": "Easy\n- 30m Z2",
+              "movingTime": 3600,
+              "name": "Sweet spot",
+              "trainingLoad": 70,
+              "type": "Ride"
+            }
+          }
+        },
+        "id": "00T47DW5000000000000000421",
+        "position": 0
+      },
+      "result": {
+        "seenOnCalendar": {
+          "event": 115
+        }
+      }
+    }
+  ],
+  "id": "00T47DW5000000000000000113",
+  "kept": [],
+  "remaining": [
+    {
+      "action": {
+        "delete": {
+          "target": {
+            "reviewed": {
+              "event": 116,
+              "snapshot": {
+                "date": "1998-07-13",
+                "durationSeconds": 2700,
+                "name": "Spin"
+              }
+            }
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000422",
+      "position": 1
+    }
+  ],
+  "revision": 1,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "tryAgain": {
+          "_0": {
+            "interrupted": {}
+          }
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000213"
+}
