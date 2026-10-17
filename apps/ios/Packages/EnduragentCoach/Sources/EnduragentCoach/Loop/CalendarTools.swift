@@ -154,9 +154,10 @@ extension CoachTools {
 		rerunWith: nil
 	) { arguments, reach in
 		let local = reach.local
-		let request = try PreparationRequest(arguments: arguments, today: local.today)
 		let reply = await local.desk.prepare(
-			request, for: local.attempt, chat: local.chat, binding: local.scope.stamp.binding,
+			Result { () throws(ToolInputError) in
+				try PreparationRequest(arguments: arguments, today: local.today)
+			}, for: local.attempt, chat: local.chat, binding: local.scope.stamp.binding,
 			reads: reach.calendar)
 		return .result(reply.json)
 	}

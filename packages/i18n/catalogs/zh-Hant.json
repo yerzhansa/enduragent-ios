@@ -3001,6 +3001,8 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "此訓練是在 App 更新前審核的。請重新詢問教練。"
-    }
+    },
+    "notPrepared": "無法準備訓練審核內容。",
+    "notPreparedInformationSaved": "你的資訊已儲存，但無法準備訓練審核內容。"
   }
 }

@@ -38,7 +38,7 @@ package struct TurnFacts: Sendable, Equatable {
 			ulid: settled.ulid, hlc: settled.hlc, attempt: settled.attempt,
 			settlement: settled.settlement.resolvingCalendarWrites(
 				evidence: Array(reviewWrites.values)), origin: settled.origin,
-			account: settled.account)
+			account: settled.account, reviewNotPrepared: settled.reviewNotPrepared)
 	}
 
 	package var reply: ReplyText? {
@@ -125,6 +125,7 @@ package struct SettledAttempt: Sendable, Equatable {
 	package let settlement: Settlement
 	package var origin: DeviceID = DeviceID(rawValue: "unverified")
 	package var account: TrainingAccount = .unconnected
+	package var reviewNotPrepared: ReviewNotPrepared?
 }
 
 extension Settlement {

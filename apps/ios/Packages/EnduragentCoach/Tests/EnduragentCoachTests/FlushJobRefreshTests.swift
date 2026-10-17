@@ -85,7 +85,8 @@ import Testing
 			chat: .main, ledger: ledger, clock: clock,
 			reviews: SingleProposalReviews(
 				ledger: ledger, clock: clock, diagnostics: diagnostics,
-				training: { _ in .unconnected }))
+				training: { _ in .unconnected }),
+			desk: WorkoutReviewDesk(ledger: ledger, clock: clock, diagnostics: diagnostics))
 		try await records.refresh()
 		try #require(records.jobs.map(\.id) == [job])
 		let empty = Ledger(

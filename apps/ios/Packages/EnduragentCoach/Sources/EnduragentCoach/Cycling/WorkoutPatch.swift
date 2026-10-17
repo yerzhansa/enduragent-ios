@@ -7,6 +7,7 @@ package struct WorkoutPatch: Sendable, Equatable {
 	package let description: String?
 	package let trainingLoad: Int?
 	package let workoutDocument: JSONValue?
+	package let authoredSteps: JSONValue?
 
 	private static let fieldNames: Set<String> = [
 		"date", "name", "durationSeconds", "description", "trainingLoad", "structure",
@@ -31,6 +32,7 @@ package struct WorkoutPatch: Sendable, Equatable {
 		var durationSeconds = try fields["durationSeconds"].map(parsedDuration)
 		var description = try fields["description"].map(parsedDescription)
 		var workoutDocument: JSONValue?
+		var steps: JSONValue?
 		if let structure = fields["structure"] {
 			guard case .object = structure else {
 				throw ToolInputError(code: "invalid_input", details: "structure must be an object.")
@@ -39,6 +41,7 @@ package struct WorkoutPatch: Sendable, Equatable {
 				let serialized = try authoredSteps(structure)
 				durationSeconds = serialized.movingTime
 				description = serialized.description
+				steps = structure
 			} else {
 				workoutDocument = structure
 			}
@@ -51,7 +54,8 @@ package struct WorkoutPatch: Sendable, Equatable {
 			durationSeconds: durationSeconds,
 			description: description,
 			trainingLoad: try CalendarPayload.trainingLoad(fields["trainingLoad"]),
-			workoutDocument: workoutDocument
+			workoutDocument: workoutDocument,
+			authoredSteps: steps
 		)
 	}
 

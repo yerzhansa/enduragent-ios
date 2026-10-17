@@ -3041,6 +3041,8 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "This workout was reviewed before the app was updated. Ask the coach again."
-    }
+    },
+    "notPrepared": "The workout review could not be prepared.",
+    "notPreparedInformationSaved": "Your information was saved, but the workout review could not be prepared."
   }
 }

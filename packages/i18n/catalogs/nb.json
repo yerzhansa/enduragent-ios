@@ -3041,6 +3041,8 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "Denne økten ble gjennomgått før appen ble oppdatert. Spør treneren på nytt."
-    }
+    },
+    "notPrepared": "Gjennomgangen av treningsøkten kunne ikke klargjøres.",
+    "notPreparedInformationSaved": "Informasjonen din ble lagret, men gjennomgangen av treningsøkten kunne ikke klargjøres."
   }
 }

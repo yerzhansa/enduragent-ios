@@ -3041,6 +3041,8 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "Det här passet granskades innan appen uppdaterades. Fråga tränaren igen."
-    }
+    },
+    "notPrepared": "Granskningen av träningspasset kunde inte förberedas.",
+    "notPreparedInformationSaved": "Din information sparades, men granskningen av träningspasset kunde inte förberedas."
   }
 }

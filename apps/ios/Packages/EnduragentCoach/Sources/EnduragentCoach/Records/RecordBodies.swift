@@ -26,12 +26,17 @@ package struct TurnSettledBody: Sendable, Equatable {
 	package var turn: TurnID
 	package var attempt: AttemptID
 	package var settlement: Settlement
+	package var reviewNotPrepared: ReviewNotPrepared?
 
-	package init(chatId: ChatID, turn: TurnID, attempt: AttemptID, settlement: Settlement) {
+	package init(
+		chatId: ChatID, turn: TurnID, attempt: AttemptID, settlement: Settlement,
+		reviewNotPrepared: ReviewNotPrepared? = nil
+	) {
 		self.chatId = chatId
 		self.turn = turn
 		self.attempt = attempt
 		self.settlement = settlement
+		self.reviewNotPrepared = reviewNotPrepared
 	}
 }
 

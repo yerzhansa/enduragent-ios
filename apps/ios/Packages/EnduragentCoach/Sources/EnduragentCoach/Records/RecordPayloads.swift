@@ -20,20 +20,28 @@ struct TurnSettledPayload: Codable {
 	var turn: String
 	var attempt: String
 	var settlement: SettlementPayload
+	var reviewNotPrepared: String?
 }
 
 extension TurnSettledPayload {
 	init(_ body: TurnSettledBody) {
 		self.init(
 			chatId: body.chatId.rawValue, turn: body.turn.ulid.rawValue,
-			attempt: body.attempt.ulid.rawValue, settlement: SettlementPayload(body.settlement))
+			attempt: body.attempt.ulid.rawValue, settlement: SettlementPayload(body.settlement),
+			reviewNotPrepared: body.reviewNotPrepared?.rawValue)
 	}
 
 	func body() throws -> TurnSettledBody {
 		TurnSettledBody(
 			chatId: try decodeChatID(chatId), turn: TurnID(ulid: try decodeULID(turn)),
 			attempt: AttemptID(ulid: try decodeULID(attempt)),
-			settlement: try settlement.settlement())
+			settlement: try settlement.settlement(),
+			reviewNotPrepared: try reviewNotPrepared.map { (raw) throws(RecordDecodeFailure) in
+				guard let cause = ReviewNotPrepared(rawValue: raw) else {
+					throw RecordDecodeFailure(reason: "reviewNotPrepared")
+				}
+				return cause
+			})
 	}
 }
 

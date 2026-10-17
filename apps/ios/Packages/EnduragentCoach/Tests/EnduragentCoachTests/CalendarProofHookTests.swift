@@ -79,7 +79,7 @@ import Testing
 			CalendarPayload(
 				date: "1998-06-16", type: .ride, name: "Endurance",
 				description: "- 10m 60%\n- 40m 70%\n- 10m 60%", movingTime: 3600,
-				trainingLoad: 52),
+				trainingLoad: 52, authoredSteps: nil),
 			CalendarWriteID()
 		)
 	}

@@ -3041,6 +3041,8 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "Cette séance a été vérifiée avant la mise à jour de l’app. Redemande au coach."
-    }
+    },
+    "notPrepared": "Impossible de préparer la vérification de séance.",
+    "notPreparedInformationSaved": "Tes informations ont été enregistrées, mais la vérification de séance n’a pas pu être préparée."
   }
 }

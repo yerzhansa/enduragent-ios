@@ -3001,6 +3001,8 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "このワークアウトはアプリのアップデート前に確認されたものです。もう一度コーチに依頼してください。"
-    }
+    },
+    "notPrepared": "ワークアウトの確認内容を準備できませんでした。",
+    "notPreparedInformationSaved": "情報は保存されましたが、ワークアウトの確認内容を準備できませんでした。"
   }
 }

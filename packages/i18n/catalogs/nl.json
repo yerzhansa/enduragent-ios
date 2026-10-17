@@ -3041,6 +3041,8 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "Deze training is beoordeeld voordat de app werd bijgewerkt. Vraag het de coach opnieuw."
-    }
+    },
+    "notPrepared": "De trainingsbeoordeling kon niet worden voorbereid.",
+    "notPreparedInformationSaved": "Je gegevens zijn opgeslagen, maar de trainingsbeoordeling kon niet worden voorbereid."
   }
 }

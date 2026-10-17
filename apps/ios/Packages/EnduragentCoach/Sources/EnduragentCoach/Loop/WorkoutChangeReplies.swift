@@ -39,6 +39,9 @@ extension PreparationRefusal {
 		case .pastDate: "past_date_refused"
 		case .targetUnreadable: "target_unreadable"
 		case .keptUnreadable: "calendar_unreadable"
+		case .actionChanged: "action_changed"
+		case .unchanged: "unchanged_item"
+		case .unreadableRequest(let error): error.code
 		case .storageUnavailable: "storage_unavailable"
 		}
 	}
@@ -71,6 +74,12 @@ extension PreparationRefusal {
 			"Event \(event.rawValue) could not be read from intervals.icu, so nothing was prepared."
 		case .keptUnreadable(let date):
 			"The workouts on \(date.rawValue) could not be read from intervals.icu, so nothing was prepared."
+		case .actionChanged(let id):
+			"Item \(id.ulid.rawValue) must keep its action and calendar workout. Use replace with the whole set to change them."
+		case .unchanged(let id):
+			"Item \(id.ulid.rawValue) has no actual change. Revise only the items that change."
+		case .unreadableRequest(let error):
+			error.details
 		case .storageUnavailable:
 			"The pending review could not be read on this phone, so nothing was prepared."
 		}

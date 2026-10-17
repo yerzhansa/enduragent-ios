@@ -29,7 +29,8 @@ struct CalendarWriteOperation: Sendable {
 					update.eventId,
 					WorkoutPatch(
 						date: update.date, name: update.name, durationSeconds: nil,
-						description: update.description, trainingLoad: nil, workoutDocument: nil)),
+						description: update.description, trainingLoad: nil, workoutDocument: nil,
+						authoredSteps: nil)),
 				target: .update(
 					eventID: update.eventId.rawValue, date: String(event.startDateLocal.prefix(10)))
 			)
@@ -53,11 +54,11 @@ struct CalendarWriteOperation: Sendable {
 			return CalendarPayload(
 				date: date, type: .ride, name: workout.name,
 				description: try IntervalsSerializer.serialize(workout).description,
-				movingTime: nil, trainingLoad: nil)
+				movingTime: nil, trainingLoad: nil, authoredSteps: nil)
 		case .createStrengthWorkout(let date, let name, let description):
 			return CalendarPayload(
 				date: date, type: .weightTraining, name: name, description: description,
-				movingTime: nil, trainingLoad: nil)
+				movingTime: nil, trainingLoad: nil, authoredSteps: nil)
 		case .updateWorkout, .deleteWorkout, .planSave:
 			throw IntervalsError(code: "invalid_operation", details: "Not a calendar creation")
 		}

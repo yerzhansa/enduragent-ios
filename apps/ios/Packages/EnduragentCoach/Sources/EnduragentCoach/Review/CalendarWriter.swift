@@ -167,6 +167,6 @@ extension WorkoutPatch {
 		guard description != nil, !steps.isEmpty else { return self }
 		return WorkoutPatch(
 			date: date, name: name, durationSeconds: durationSeconds, description: description,
-			trainingLoad: nil, workoutDocument: workoutDocument)
+			trainingLoad: nil, workoutDocument: workoutDocument, authoredSteps: authoredSteps)
 	}
 }

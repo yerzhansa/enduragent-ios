@@ -229,10 +229,11 @@ import Testing
 		let training = LiveReadOnlyTraining(inner: account, writes: writes)
 		let ride = CalendarPayload(
 			date: "1998-06-14", type: .ride, name: "Z2 Endurance 60min",
-			description: "- 60m 65%", movingTime: 3600, trainingLoad: nil)
+			description: "- 60m 65%", movingTime: 3600, trainingLoad: nil,
+			authoredSteps: nil)
 		let patch = WorkoutPatch(
 			date: nil, name: "Z2", durationSeconds: nil, description: nil, trainingLoad: nil,
-			workoutDocument: nil)
+			workoutDocument: nil, authoredSteps: nil)
 
 		for write in [
 			CalendarWrite.create(ride, identity: CalendarWriteID()),

@@ -7,6 +7,7 @@ package struct CalendarPayload: Sendable, Equatable {
 	package let description: String
 	package let movingTime: Int?
 	package let trainingLoad: Int?
+	package let authoredSteps: JSONValue?
 
 	private static let nameLimit = 120
 	private static let descriptionLimit = 4000
@@ -17,10 +18,11 @@ package struct CalendarPayload: Sendable, Equatable {
 	{
 		let fields = change.objectFields
 		let date = try creationDate(fields["date"], today: today)
+		let workoutJSON = fields["workout"]
 		let workout: IntervalsWorkoutInput
 		let serialized: SerializedWorkout
 		do throws(InvalidWorkout) {
-			guard let workoutJSON = fields["workout"] else {
+			guard let workoutJSON else {
 				throw InvalidWorkout(message: "workout: Required")
 			}
 			workout = try IntervalsSerializer.parseWorkout(workoutJSON)
@@ -39,7 +41,8 @@ package struct CalendarPayload: Sendable, Equatable {
 			name: workout.name,
 			description: serialized.description,
 			movingTime: movingTime,
-			trainingLoad: try trainingLoad(fields["trainingLoad"])
+			trainingLoad: try trainingLoad(fields["trainingLoad"]),
+			authoredSteps: workoutJSON
 		)
 	}
 
@@ -79,7 +82,8 @@ package struct CalendarPayload: Sendable, Equatable {
 			name: name,
 			description: "\(effort)\n\n\(description)",
 			movingTime: movingTime,
-			trainingLoad: try trainingLoad(fields["trainingLoad"])
+			trainingLoad: try trainingLoad(fields["trainingLoad"]),
+			authoredSteps: nil
 		)
 	}
 

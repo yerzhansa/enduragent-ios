@@ -3121,6 +3121,8 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "Ten trening został sprawdzony przed aktualizacją aplikacji. Poproś trenera ponownie."
-    }
+    },
+    "notPrepared": "Nie udało się przygotować przeglądu treningu.",
+    "notPreparedInformationSaved": "Twoje informacje zostały zapisane, ale nie udało się przygotować przeglądu treningu."
   }
 }

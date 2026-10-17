@@ -784,6 +784,7 @@ TurnView
 TurnView.athleteText
 TurnView.completedInBackground
 TurnView.id
+TurnView.reviewNotice
 TurnView.saveFailure
 TurnView.sentOn
 TurnView.state

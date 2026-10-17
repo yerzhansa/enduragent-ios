@@ -21,6 +21,7 @@ extension TurnRunner {
 		var steps = 0
 		var lastText = ""
 		var lastReason: FinishReason = .stop
+		var answered = false
 		stepLoop: while steps < scope.policy.maxStepsPerInvocation {
 			try Task.checkCancellation()
 			await progress(.activity(.generating(step: steps + 1)))
@@ -42,6 +43,7 @@ extension TurnRunner {
 			}
 			if step.toolCalls.isEmpty {
 				try step.checkFinish()
+				answered = true
 				break stepLoop
 			}
 			wire.append(
@@ -67,6 +69,9 @@ extension TurnRunner {
 					)
 				)
 			}
+		}
+		if !answered {
+			await desk.abandonDraft(DraftKey(turn: attempt.turn, attempt: attempt.attempt))
 		}
 
 		var assistantText = lastText

@@ -4,6 +4,7 @@ final class ChatRecords {
 	private let chat: ChatID
 	private let ledger: Ledger
 	private let reviews: any WorkoutReviews
+	private let desk: WorkoutReviewDesk
 	private let clock: any Clock
 	private(set) var conversation: Conversation
 	private(set) var review: ReviewSnapshot?
@@ -15,10 +16,14 @@ final class ChatRecords {
 		Set(pendingSettlements.values.compactMap { $0.body.turn })
 	}
 
-	init(chat: ChatID, ledger: Ledger, clock: any Clock, reviews: any WorkoutReviews) {
+	init(
+		chat: ChatID, ledger: Ledger, clock: any Clock, reviews: any WorkoutReviews,
+		desk: WorkoutReviewDesk
+	) {
 		self.chat = chat
 		self.ledger = ledger
 		self.reviews = reviews
+		self.desk = desk
 		self.clock = clock
 		self.conversation = Conversation(chat: chat, segments: [])
 	}
@@ -176,6 +181,18 @@ final class ChatRecords {
 	}
 
 	func settle(
+		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, stamp: OperationStamp,
+		isolation: isolated (any Actor)? = #isolation
+	) async {
+		let review = await desk.settle(
+			DraftKey(turn: turn, attempt: attempt), in: chat, ending: TurnEnding(settlement))
+		await save(
+			TurnLifecycle.settled(
+				attempt, settlement, on: conversation.turn(turn), chat: chat,
+				reviewNotPrepared: review.notPrepared), stamp: stamp)
+	}
+
+	private func save(
 		_ settled: TurnSettledBody?, stamp: OperationStamp,
 		isolation: isolated (any Actor)? = #isolation
 	) async {
@@ -200,7 +217,7 @@ final class ChatRecords {
 			let stopped = TurnLifecycle.stopBeforeStart(
 				stamp.attempt, on: conversation.turn(turn), chat: chat)
 			guard case .success(let settled) = stopped else { continue }
-			await settle(settled, stamp: stamp)
+			await save(settled, stamp: stamp)
 		}
 	}
 
@@ -212,10 +229,8 @@ final class ChatRecords {
 			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock).bound(
 				to: account)
 			await settle(
-				TurnLifecycle.settled(
-					dead.attempt,
-					.interrupted(partial: "", cause: .processEnded, saved: dead.saved),
-					on: conversation.turn(dead.turn), chat: chat), stamp: stamp)
+				dead.turn, attempt: dead.attempt,
+				.interrupted(partial: "", cause: .processEnded, saved: dead.saved), stamp: stamp)
 		}
 	}
 

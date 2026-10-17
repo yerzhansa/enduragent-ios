@@ -58,13 +58,13 @@ extension IntervalsRESTClientTests {
 		@Test func aPatchIsAppliedExactlyWhenApplyingItChangesNothing() throws {
 			let patch = WorkoutPatch(
 				date: "1998-06-18", name: nil, durationSeconds: 5400, description: nil,
-				trainingLoad: nil, workoutDocument: nil)
+				trainingLoad: nil, workoutDocument: nil, authoredSteps: nil)
 			#expect(patch.isApplied(on: patch.applied(to: Self.reviewed)))
 			#expect(!patch.isApplied(on: Self.reviewed))
 			#expect(!patch.isApplied(on: snapshot(date: "1998-06-18")))
 			let described = WorkoutPatch(
 				date: nil, name: nil, durationSeconds: nil, description: "Easy spin",
-				trainingLoad: nil, workoutDocument: nil)
+				trainingLoad: nil, workoutDocument: nil, authoredSteps: nil)
 			#expect(described.isApplied(on: snapshot(description: "Easy spin", structure: nil)))
 			#expect(described.isApplied(on: snapshot(description: "Easy spin \n", structure: nil)))
 			#expect(described.isApplied(on: snapshot(description: "Easy spin")))
@@ -72,7 +72,7 @@ extension IntervalsRESTClientTests {
 			#expect(!described.isApplied(on: Self.reviewed))
 			let trailing = WorkoutPatch(
 				date: nil, name: nil, durationSeconds: nil, description: "Warmup\n- 10m 55%\n",
-				trainingLoad: nil, workoutDocument: nil)
+				trainingLoad: nil, workoutDocument: nil, authoredSteps: nil)
 			#expect(trailing.isApplied(on: Self.reviewed))
 		}
 

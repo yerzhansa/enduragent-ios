@@ -3001,6 +3001,8 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "이 운동은 앱이 업데이트되기 전에 검토되었습니다. 코치에게 다시 요청하세요."
-    }
+    },
+    "notPrepared": "운동 검토 내용을 준비할 수 없습니다.",
+    "notPreparedInformationSaved": "정보는 저장되었지만 운동 검토 내용을 준비할 수 없습니다."
   }
 }

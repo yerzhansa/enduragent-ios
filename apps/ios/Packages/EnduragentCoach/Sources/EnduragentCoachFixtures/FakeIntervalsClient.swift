@@ -149,6 +149,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		#if DEBUG
 			try consumeCalendarReadFault()
 		#endif
+		try await begin(.event)
 		guard let event = events.first(where: { $0.id == id }) else {
 			throw IntervalsError(code: "http", details: "Missing event", status: 404)
 		}

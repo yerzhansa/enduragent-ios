@@ -3041,6 +3041,8 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "Denne træning blev gennemgået, før appen blev opdateret. Spørg træneren igen."
-    }
+    },
+    "notPrepared": "Træningsgennemgangen kunne ikke forberedes.",
+    "notPreparedInformationSaved": "Dine oplysninger blev gemt, men træningsgennemgangen kunne ikke forberedes."
   }
 }
