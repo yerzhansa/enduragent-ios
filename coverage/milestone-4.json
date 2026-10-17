@@ -16,7 +16,8 @@
 		"5.2": 4,
 		"4.2": 12,
 		"6.2": 12,
-		"7.2": 8
+		"7.2": 8,
+		"7.1": 5
 	},
 	"criteria": [
 		{
@@ -997,6 +998,44 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "boundWorkIsAPreparingAttemptOrAHeadThatIsNotTerminal"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "theChangesStreamNamesTheChatWhoseCardTheRecoverChanged"}
 			]
+		},
+		{
+			"id": "7.1.1",
+			"statement": "After two saved changes and a stopped run, Try again reads the remaining targets before any request and sends only the third and fourth changes; the first two are never sent again, on the same desk, after a relaunch, or after a replacement that keeps them finished.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "tryAgainReadsTheRemainingTargetsFirstAndSendsOnlyTheUnfinishedChanges"}
+			]
+		},
+		{
+			"id": "7.1.2",
+			"statement": "When a remaining target changed before Try again, nothing is sent; the notice names the change, keeps the two Receipts and says nothing else was changed, and a new approval of the refreshed review follows.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "aRemainingTargetChangedBeforeTryAgainSendsNothingAndAsksForANewApproval"}
+			]
+		},
+		{
+			"id": "7.1.3",
+			"statement": "After a refused add, Try again reads the add's window before any request; an event carrying the add's external_id finishes it as seen on the calendar with no request, and otherwise it is sent once through the bulk upsert with the same CalendarWriteID.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "aRefusedAddIsLookedForByItsExternalIDBeforeItIsSentAgain"}
+			]
+		},
+		{
+			"id": "7.1.4",
+			"statement": "The final calendar equals the reviewed outcome.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "tryAgainReadsTheRemainingTargetsFirstAndSendsOnlyTheUnfinishedChanges"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "aRemainingTargetChangedBeforeTryAgainSendsNothingAndAsksForANewApproval"}
+			]
+		},
+		{
+			"id": "7.1.5",
+			"statement": "A Try again token that is stale, consumed, canceled or from an earlier revision sends nothing, and a double tap or two desks with one barrier give one claim and one request per remaining change.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "aDeadTryAgainTokenSendsNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "aDoubleTapOfTryAgainClaimsOnceAndSendsEachRemainingChangeOnce"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "twoDesksWithTryAgainBehindOneBarrierClaimOnceAndSendEachRemainingChangeOnce"}
+			]
 		}
 	],
 	"requirements": [
@@ -1204,6 +1243,71 @@
 			"id": "D08",
 			"statement": "A partial failure is restored without replaying a finished change.",
 			"criteria": ["7.2.1", "7.2.2", "7.2.7"]
+		},
+		{
+			"id": "B20.03",
+			"statement": "Before the first write of an approval or a Try again, the account and every remaining target are checked again, and any failure blocks the whole unstarted set.",
+			"criteria": ["5.1.1", "5.1.2", "5.1.3", "5.1.4", "5.1.5", "5.1.8", "6.2.7", "7.1.1"]
+		},
+		{
+			"id": "B20.05",
+			"statement": "Every approve, Try again and cancel control is bound to one revision, chat, account, action and state and is claimed durably before any request, so a replaced, consumed, canceled, foreign or wrong-action control writes nothing.",
+			"criteria": ["3.3.2", "3.3.3", "6.2.4", "6.2.5", "6.2.10", "6.2.11", "7.1.5"]
+		},
+		{
+			"id": "B21.02",
+			"statement": "Try again runs only the remaining work, checked again first; a changed remaining target writes nothing more and gives a refreshed review, and a finished change is never sent again.",
+			"criteria": ["7.1.1", "7.1.2", "7.1.3", "7.1.4", "7.1.5"]
+		},
+		{
+			"id": "B07",
+			"statement": "Remove coach provenance or change eligibility after review but before approval → reject the stale set before its first write.",
+			"criteria": ["5.1.1", "5.1.2", "5.1.3", "5.1.4", "5.1.5", "5.1.8", "6.2.7", "7.1.1"]
+		},
+		{
+			"id": "B08",
+			"statement": "Advance the athlete-local date so a reviewed mutation becomes invalid → reject the invalid set before its first write.",
+			"criteria": ["5.1.1", "5.1.2", "5.1.3", "5.1.4", "5.1.5", "5.1.8", "6.2.7", "7.1.1"]
+		},
+		{
+			"id": "B09",
+			"statement": "Approve with a replaced, canceled, consumed, or unrelated-chat approval identifier → apply zero changes through that approval.",
+			"criteria": ["6.2.4", "6.2.5", "6.2.10", "6.2.11", "7.1.5"]
+		},
+		{
+			"id": "B10",
+			"statement": "Double-click approval or deliver the same approval concurrently → execute the approved set at most once.",
+			"criteria": ["6.2.4", "6.2.5", "6.2.10", "6.2.11", "7.1.5"]
+		},
+		{
+			"id": "C07",
+			"statement": "Delete a target or make its fresh state unreadable before approval → apply zero changes and explain that the target cannot be verified.",
+			"criteria": ["5.1.1", "5.1.2", "5.1.3", "5.1.4", "5.1.5", "5.1.8", "6.2.7", "7.1.1"]
+		},
+		{
+			"id": "C08",
+			"statement": "Attempt the old approval after a refreshed review appears → apply zero changes through the old approval.",
+			"criteria": ["6.2.4", "6.2.5", "6.2.10", "6.2.11", "7.1.5"]
+		},
+		{
+			"id": "D03",
+			"statement": "Retry the remaining work from D01 → revalidate the remaining changes before writing them.",
+			"criteria": ["7.1.1", "7.1.2", "7.1.3", "7.1.4", "7.1.5"]
+		},
+		{
+			"id": "D04",
+			"statement": "Complete the retry from D01 → preserve the first two successes without replaying their writes.",
+			"criteria": ["7.1.1", "7.1.2", "7.1.3", "7.1.4", "7.1.5"]
+		},
+		{
+			"id": "D05",
+			"statement": "Change a remaining target before retry → apply no additional changes and require a refreshed review of the remaining work.",
+			"criteria": ["7.1.1", "7.1.2", "7.1.3", "7.1.4", "7.1.5"]
+		},
+		{
+			"id": "D06",
+			"statement": "Inspect the stale-retry explanation → preserve the success report and say no additional changes were applied.",
+			"criteria": ["7.1.1", "7.1.2", "7.1.3", "7.1.4", "7.1.5"]
 		}
 	],
 	"plan": {
@@ -1334,9 +1438,6 @@
 		"B18.06",
 		"B18.07",
 		"B19.01",
-		"B20.03",
-		"B20.05",
-		"B21.02",
 		"B21.04",
 		"B21.05",
 		"A01",
@@ -1355,18 +1456,8 @@
 		"A16",
 		"A17",
 		"A18",
-		"B07",
-		"B08",
-		"B09",
-		"B10",
 		"B11",
-		"C07",
-		"C08",
 		"D02",
-		"D03",
-		"D04",
-		"D05",
-		"D06",
 		"D09",
 		"D10",
 		"D11",
