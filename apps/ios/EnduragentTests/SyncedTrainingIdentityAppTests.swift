@@ -128,11 +128,6 @@ struct SyncedTrainingIdentityAppTests {
 }
 
 extension ReviewControls {
-	fileprivate var approveToken: ReviewControlToken? {
-		guard case .armed(.approveOrCancel, let token) = self else { return nil }
-		return token
-	}
-
 	fileprivate var isApproveOrCancel: Bool { approveToken != nil }
 }
 

@@ -19,11 +19,13 @@ extension FixtureLaunchTests {
 		let review = try #require(model.chat?.review)
 		await model.decide(.presented(review.ref))
 		try await until { model.chat?.review?.controls != ReviewControls.none }
-		guard case .armed(.approveOrCancel, let token)? = model.chat?.review?.controls else {
-			throw ReviewNotPresented()
-		}
-		return token
+		return try #require(model.chat?.review?.controls.approveToken)
 	}
 }
 
-private struct ReviewNotPresented: Error {}
+extension ReviewControls {
+	var approveToken: ReviewControlToken? {
+		guard case .armed(.approveOrCancel, let token) = self else { return nil }
+		return token
+	}
+}

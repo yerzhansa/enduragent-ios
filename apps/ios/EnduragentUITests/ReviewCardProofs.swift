@@ -2,7 +2,8 @@ import XCTest
 
 @MainActor
 final class ReviewUpgradeProof: XCTestCase {
-	static let askAgain = "This review was prepared before the app was updated. Ask the coach again."
+	static let askAgain =
+		"This review was prepared before the app was updated. Ask the coach again."
 
 	func testAnOpenReviewAsksTheCoachAgainOfflineAndOnline() {
 		let app = XCUIApplication()
@@ -44,7 +45,8 @@ final class ReviewUpgradeProof: XCTestCase {
 	private func launchOffline(_ app: XCUIApplication, store: FixtureStorePolicy) {
 		TutorialHarness.launch(
 			app,
-			arguments: FixtureArguments(store: store, onboarded: true, calendarReadFault: .failOnce))
+			arguments: FixtureArguments(store: store, onboarded: true, calendarReadFault: .failOnce)
+		)
 		TutorialHarness.agreeToProviderConsent(app)
 	}
 
@@ -69,7 +71,8 @@ final class ReviewStorageNoticeProof: XCTestCase {
 		TutorialHarness.exchange(app, TutorialHarness.workout)
 		TutorialHarness.waitForIdentifier(
 			app, "chat.preview.notice",
-			reading: "Couldn't read the saved workout review. Its buttons are temporarily disabled.")
+			reading: "Couldn't read the saved workout review. Its buttons are temporarily disabled."
+		)
 		let enabled = app.buttons.matching(
 			NSPredicate(format: "identifier BEGINSWITH %@ AND enabled == YES", "chat.preview."))
 		XCTAssertEqual(enabled.count, 0, "a review that cannot be read offered a control")

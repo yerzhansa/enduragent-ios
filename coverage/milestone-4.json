@@ -20,7 +20,8 @@
 		"7.1": 5,
 		"7.3": 6,
 		"7.4": 6,
-		"9.1": 3
+		"9.1": 3,
+		"9.2": 9
 	},
 	"criteria": [
 		{
@@ -125,7 +126,8 @@
 			"statement": "The REST request still sends no category, and listEventsDoesNotFilterAwayMovedIdentities passes unchanged.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTClientTests.swift", "function": "listEventsDoesNotFilterAwayMovedIdentities"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StrictCalendarReadTests.swift", "function": "malformedCalendarListNeverBecomesAnEmptyObservation"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTClientTests.swift", "function": "aMalformedCalendarListIsAFailedReadAndNeverAnEmptyDay"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "oneUnreadableReadLeavesTheWholeVerdictUnchecked"}
 			]
 		},
 		{
@@ -153,7 +155,7 @@
 			"id": "2.1.3",
 			"statement": "A ride with 41 steps, 21 repeats, a 121-character name or label, 1501 W, 201 %FTP, or a ramp with one bound is refused as invalid_workout with no review and no calendar write.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SerializerBoundsTests.swift", "function": "eachBoundRefusesOnePastItsLimitWithNoWrite"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparedRideBoundsTests.swift", "function": "eachRideBoundRefusesOnePastItsLimitAndPreparesNothing"}
 			]
 		},
 		{
@@ -260,19 +262,27 @@
 			"id": "2.4.3",
 			"statement": "The old path's add of a ride or a strength session sends today's body, with its uid, its cycling-coach:<uid> external_id, the coach tag and no moving_time, Load or workout_doc, as the bulk array's one element, and its update and delete refuse a race, an athlete-owned workout, a past workout and a move into the past with today's codes from CalendarWriteOperation before any write.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatCreateBodyTests.swift", "function": "theOldPathSendsTodaysRideBodyAsTheBulkArraysOneElement"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatCreateBodyTests.swift", "function": "theOldPathSendsTodaysStrengthBodyAsTheBulkArraysOneElement"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleChangeRecordTests.swift", "function": "theOldPathRefusesAnIneligibleTargetWithTodaysCodeBeforeItWrites"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "rideBodyCarriesNpmSerializerOutputForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsWriteTests.swift", "function": "anAddIsOneBulkUpsertWhoseArrayHoldsTheAddsBody"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarPayloadTests.swift", "function": "strengthSendsRoundedSecondsJoinedTextAndItsOwnLoad"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationToolTests.swift", "function": "eligibilityFollowsTheAthletesDayNotUTC"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/EligibilityTests.swift", "function": "eachTargetIsJudgedByOneRule"}
 			]
 		},
 		{
 			"id": "2.4.4",
 			"statement": "The old path's approvals keep their outcomes on the new call: a saved add is applied once, a refused or lost add leaves the pending review with the unconfirmed notice, and a lost answer is confirmed by reading, for adds, edits and deletes.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleProposalReviewsTests.swift", "function": "approveWritesOnceAndASecondTapIsStale"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleProposalReviewsTests.swift", "function": "anUnconfirmedWriteKeepsThePendingReviewWithACatalogSentence"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DurableCalendarWriteTests.swift", "function": "committedWriteWithLostResponseIsConfirmedByReading"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarMutationTests.swift", "function": "updateAndDeleteReconcileTheirCapturedEventAfterLostResponse"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "aSecondTapAfterTheRunSendsNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarWriterTests.swift", "function": "eachChangeSendsOneRequestWithItsReviewedBodyAndNoOther"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "aLostAnswerStopsTheRunAndIsSettledByOneImmediateRead"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "aRefusedThirdChangeStopsTheRunAndKeepsFinishedApartFromRemaining"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNoticeMappingTests.swift", "function": "eachWorkoutReviewOutcomeGivesItsNotice"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewRunTests.swift", "function": "aLostAnswerReadsFirstAndASettleThatFindsTheChangeStillStops"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsWriteTests.swift", "function": "eachAnswerKeepsWhatIntervalsSaidAndIsAskedOnce"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsWriteTests.swift", "function": "aWriteWithNoAnswerIsLostAndAskedOnce"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarWriterTests.swift", "function": "eachSettleReadsOnceAndGivesWhatTheCalendarShows"}
 			]
 		},
 		{
@@ -428,11 +438,11 @@
 		},
 		{
 			"id": "3.1.10",
-			"statement": "OperationID.workoutReview encodes to the same workoutChangeSet:<ulid>:<rev> string as before, an old string decodes, and the build-2bbe2ee seed keeps its memory, review history and consent after the rename.",
+			"statement": "OperationID.workoutReview encodes to the same workoutChangeSet:<ulid>:<rev> string as before, an old string decodes, and the build-2bbe2ee seed keeps its memory, history and consent after the rename while its open proposal closes as ask the coach again.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "aWorkoutReviewCauseKeepsTheChangeSetString"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build2bbe2eeKeepsMemoryReviewHistoryAndConsent"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleChangeRecordTests.swift", "function": "build2bbe2eeOpenProposalLoadsAsThisDevicesReview"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build2bbe2eeKeepsMemoryHistoryAndConsent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build2bbe2eeOpenProposalClosesAtBecameActiveAsAskTheCoachAgain"}
 			]
 		},
 		{
@@ -478,24 +488,25 @@
 			"id": "3.2.1",
 			"statement": "The old card shows the same buttons, labels, order and decisions in every state, the storage-unavailable card's retry-read button included, and every app test and UI proof of the old card passes with only names changed.",
 			"tests": [
-				{"file": "apps/ios/EnduragentTests/FixtureReviewTests.swift", "function": "unknownWriteNoticeAppearsOnlyOnTheCard"},
-				{"file": "apps/ios/EnduragentTests/FixtureReviewTests.swift", "function": "unknownWriteCanBeRecoveredThroughTheCard"},
-				{"file": "apps/ios/EnduragentTests/FixtureReviewTests.swift", "function": "failedConnectionCheckKeepsTheCardsRecoveryActions"},
-				{"file": "apps/ios/EnduragentTests/FixtureDisabledReviewTests.swift", "function": "failedReadRetainsLabelsWithoutIntentsAndRestoresThem"},
-				{"file": "apps/ios/EnduragentTests/FixtureReviewStorageFailureTests.swift", "function": "failedChoiceSaveShowsOneLocalizedNoticeThroughShell"},
-				{"file": "apps/ios/EnduragentUITests/ReviewProofs.swift", "class": "ConfirmedPreviewProof", "method": "testConfirmedPreview"},
-				{"file": "apps/ios/EnduragentUITests/UnknownCalendarSaveProofs.swift", "class": "UnknownCalendarSaveProof", "method": "testAbsentReadOffersOnlyCheckCancelAndSaveAgain"},
-				{"file": "apps/ios/EnduragentUITests/CancelUnknownSaveProofs.swift", "class": "SavedReviewReadFailureProof", "method": "testCancelOnlyDisablesAndRestores"},
-				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testUncertainSaveControls"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNoticeMappingTests.swift", "function": "eachWorkoutReviewOutcomeGivesItsNotice"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewAccessTests.swift", "function": "checkAgainUnderAnAccountItCannotUseReadsNothingAndKeepsTheToken"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewAccessTests.swift", "function": "aReviewThatCannotBeReadRefusesEveryDecisionUntilReadsReturn"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewAccessTests.swift", "function": "aCancelWhoseSaveFailsKeepsTheReviewSendsNothingAndSaysSoInTheChosenLanguage"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "theMixedReviewSendsEachReviewedRequestInCardOrderAndPublishesItsOutcome"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewOutcomeNotesTests.swift", "function": "aCompletedReviewsNoteShowsEveryChangeAfterRefreshReopenNewConversationAndRelaunch"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "aRefusedAddIsLookedForByItsExternalIDBeforeItIsSentAgain"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "tryAgainReadsTheRemainingTargetsFirstAndSendsOnlyTheUnfinishedChanges"},
+				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testUnconfirmedChangeControls"}
 			]
 		},
 		{
 			"id": "3.2.2",
 			"statement": "Each outcome the old path produces gives the same notice key and values as before.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleChangeRecordTests.swift", "function": "eachOutcomeTheOldPathGivesKeepsItsNotice"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleProposalReviewsTests.swift", "function": "everyReviewOutcomeReadsACatalogSentenceWithNoSwiftType"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleProposalReviewsTests.swift", "function": "anUnconfirmedWriteKeepsThePendingReviewWithACatalogSentence"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNoticeMappingTests.swift", "function": "eachWorkoutReviewOutcomeGivesItsNotice"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "aLostAnswerStopsTheRunAndIsSettledByOneImmediateRead"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "aRefusedThirdChangeStopsTheRunAndKeepsFinishedApartFromRemaining"}
 			]
 		},
 		{
@@ -504,7 +515,8 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNoticeMappingTests.swift", "function": "eachWorkoutReviewOutcomeGivesItsNotice"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNoticeMappingTests.swift", "function": "aReviewBlockedBeforeTheUpgradeAsksForTheCoachAgain"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleProposalReviewsTests.swift", "function": "aWorkoutReviewDecisionOnTheOldCardIsAWrongActionThatKeepsItsControls"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "aWrongActionSendsNothingAndLeavesTheTokenUsable"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainInAnyOtherStageReadsNothingAndKeepsTheToken"}
 			]
 		},
 		{
@@ -633,7 +645,8 @@
 			"id": "4.1.7",
 			"statement": "The old path still refuses the same targets with the same codes at approval and in recovery.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleChangeRecordTests.swift", "function": "theOldPathRefusesAnIneligibleTargetWithTodaysCodeBeforeItWrites"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationToolTests.swift", "function": "eligibilityFollowsTheAthletesDayNotUTC"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/EligibilityTests.swift", "function": "eachTargetIsJudgedByOneRule"}
 			]
 		},
 		{
@@ -1174,6 +1187,88 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTClientTests.swift", "function": "aMalformedCalendarListIsAFailedReadAndNeverAnEmptyDay"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNoticeMappingTests.swift", "function": "eachWorkoutReviewOutcomeGivesItsNotice"}
 			]
+		},
+		{
+			"id": "9.2.1",
+			"statement": "For a connected athlete the tool offer holds the two review tools and none of the four old ones, the prompt has no one-mutation rule, and no prompt text or skill names intervals_create_workout.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "connectedTurnIsOfferedEveryToolInOneOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "everyToolIsDefinedUnderTheNameItsEffectCarries"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "thePromptAndSkillsTeachOneWholeReviewAndNoSingleChangeTool"}
+			]
+		},
+		{
+			"id": "9.2.2",
+			"statement": "The source holds none of the deleted single-change names, and check-source fails when one returns, through a constructor, an inferred .init or an old tool name.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
+			]
+		},
+		{
+			"id": "9.2.3",
+			"statement": "A build-6833d90f open review shows ask the coach again with no control, and an unknown write shows an unconfirmed change that is read again at becameActive; both open offline and recover once the calendar can be read.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachUpgradeTests.swift", "function": "anOpenReviewOpensOfflineAsAskTheCoachAgainWithNoControlAndStaysSoOnline"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachUpgradeTests.swift", "function": "anUnknownWriteOpensOfflineAsAnUnconfirmedChangeAndSettlesOnline"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fOpenReviewClosesOnceAtUpgrade"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownWriteBecomesOneUnconfirmedChange"},
+				{"file": "apps/ios/EnduragentUITests/ReviewCardProofs.swift", "class": "ReviewUpgradeProof", "method": "testAnOpenReviewAsksTheCoachAgainOfflineAndOnline"},
+				{"file": "apps/ios/EnduragentUITests/ReviewCardProofs.swift", "class": "ReviewUpgradeProof", "method": "testAnUnknownWriteOpensUnconfirmedOfflineAndSettlesOnline"}
+			]
+		},
+		{
+			"id": "9.2.4",
+			"statement": "In the completed scenario the note of the applied write and the note of the canceled unknown write read the same after the upgrade as before, with no control.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachUpgradeTests.swift", "function": "theCompletedScenarioKeepsItsNotesAfterTheUpgradeWithNoControl"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fCompletedReviewsPlanNothingAndKeepTheirRecords"},
+				{"file": "apps/ios/EnduragentUITests/ReviewCardProofs.swift", "class": "ReviewUpgradeProof", "method": "testTheCompletedScenarioKeepsItsNoteWithNoControl"}
+			]
+		},
+		{
+			"id": "9.2.5",
+			"statement": "An old turn with stored calendar-write counts still shows its notice.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachUpgradeTests.swift", "function": "anOldTurnWithStoredCalendarWriteCountsKeepsItsNotice"}
+			]
+		},
+		{
+			"id": "9.2.6",
+			"statement": "Every carried row stands on its replacements once the listed files are deleted, and no criterion row cites a deleted file.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CarriedCases.swift", "function": "aDeletedListedFileLeavesItsRowsStandingOnTheirReplacements"},
+				{"file": "tools/Tests/CheckCoverageTests/CarriedCases.swift", "function": "carriedReplacementIsATestThatExistsOutsideTheListedFiles"}
+			]
+		},
+		{
+			"id": "9.2.7",
+			"statement": "Two becameActive events in one process each read an unconfirmed change through Coach, and the second read finds it.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachLifecycleRecoveryTests.swift", "function": "eachBecameActiveReadsTheUnconfirmedChangeAgainUntilItIsFound"}
+			]
+		},
+		{
+			"id": "9.2.8",
+			"statement": "The athlete switch is refused while a review waits, runs or is unconfirmed, and allowed once it is completed or canceled.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewLocalWorkTests.swift", "function": "theAthleteSwitchWaitsForAReviewThatIsNotCompletedOrCanceled"}
+			]
+		},
+		{
+			"id": "9.2.9",
+			"statement": "The card shows each control set's buttons, each waiting for its token, the storage-unavailable card shows the notice with no usable control, and the card appears after the reply ends, never during it.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/ConfirmedPreviewLayoutTests.swift", "function": "eachControlSetShowsItsOwnButtonsInReadingOrder"},
+				{"file": "apps/ios/EnduragentTests/ConfirmedPreviewLayoutTests.swift", "function": "theArmedCardsButtonsEachCarryItsTokenAndAnUnarmedCardHasNone"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "noControlExistsBeforeTheAcknowledgement"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "aFailedAppendShowsTheStorageNoticeUntilTheNextRecoverResumesTheRun"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolProgressTests.swift", "function": "workingPersistsAcrossIndependentModelAndToolWaits"},
+				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testApprovalControls"},
+				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testUnconfirmedChangeControls"},
+				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testBlockedReviewControls"},
+				{"file": "apps/ios/EnduragentUITests/ReviewCardProofs.swift", "class": "ReviewStorageNoticeProof", "method": "testAReviewThatCannotBeReadShowsTheStorageNoticeWithItsButtonsDisabled"}
+			]
 		}
 	],
 	"requirements": [
@@ -1471,6 +1566,26 @@
 			"id": "G03",
 			"statement": "New conversation keeps a waiting workout review, shown once at the top as prepared earlier.",
 			"criteria": ["7.3.4"]
+		},
+		{
+			"id": "B17.02",
+			"statement": "Every step form and bound is checked before any write, and no single-workout tool is left as a bypass of the review.",
+			"criteria": ["2.1.1", "2.1.2", "2.1.3", "2.2.1", "2.5.2", "4.1.1", "9.2.1"]
+		},
+		{
+			"id": "X01",
+			"statement": "Recovery runs without the model, survives an interruption during writes, and runs at every return of the app to the front.",
+			"criteria": ["7.2.1", "7.2.2", "7.2.6", "9.2.7"]
+		},
+		{
+			"id": "X05",
+			"statement": "Storage is versioned, an upgrade keeps the meaning of what was saved, and synced visibility is not authority.",
+			"criteria": ["3.1.10", "3.3.1", "3.3.6", "7.4.1", "7.4.2", "7.4.3", "7.4.4", "7.4.5", "7.4.6", "9.2.3", "9.2.4"]
+		},
+		{
+			"id": "G10",
+			"statement": "An upgrade with pending and completed work keeps the completed outcomes and never runs stale work, offline and then online.",
+			"criteria": ["7.4.1", "7.4.2", "7.4.3", "7.4.4", "7.4.5", "7.4.6", "9.2.3", "9.2.4"]
 		}
 	],
 	"plan": {
@@ -2886,7 +3001,6 @@
 		]
 	},
 	"open": [
-		"B17.02",
 		"B17.04",
 		"B18.02",
 		"B18.03",
@@ -2914,10 +3028,7 @@
 		"B11",
 		"D02",
 		"D12",
-		"X01",
-		"X05",
 		"X06",
-		"G05",
-		"G10"
+		"G05"
 	]
 }
