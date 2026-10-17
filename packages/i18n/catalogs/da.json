@@ -3056,7 +3056,13 @@
     "notPreparedInformationSaved": "Dine oplysninger blev gemt, men træningsgennemgangen kunne ikke forberedes.",
     "stopped": "Træningsgennemgangen stoppede, før alle ændringer blev foretaget. Ændringer, der allerede er foretaget, bevares.",
     "outcome": {
-      "closedAtUpgrade": "Denne træningsgennemgang blev forberedt, før appen blev opdateret. Spørg træneren igen."
-    }
+      "closedAtUpgrade": "Denne træningsgennemgang blev forberedt, før appen blev opdateret. Spørg træneren igen.",
+      "saved": "{{workout}}, {{date}}: ændringen er gemt.",
+      "seenOnCalendar": "{{workout}}, {{date}}: ændringen ses i kalenderen.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: er ikke længere i kalenderen.",
+      "givenUp": "{{workout}}, {{date}}: ændringen blev ikke foretaget.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: ændringen er muligvis gemt. Tjek din kalender."
+    },
+    "preparedEarlier": "Forberedt tidligere"
   }
 }

@@ -375163,6 +375163,1492 @@
         }
       }
     },
+    "workouts.outcome.givenUp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: change not made."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: cambio no realizado."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@ : modification non effectuée."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: modifica non effettuata."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: Änderung nicht vorgenommen."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: wijziging niet doorgevoerd."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: ændringen blev ikke foretaget."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: ändringen gjordes inte."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: endringen ble ikke gjort."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: muutosta ei tehty."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: alteração não feita."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: alteração não feita."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: zmiana nie została wprowadzona."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: 변경이 적용되지 않았습니다."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：変更は行われませんでした。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：未进行此更改。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：未進行此變更。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.outcome.mayHaveBeenSaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: change may have been saved. Check your calendar."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: es posible que el cambio se haya guardado. Revisa tu calendario."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@ : la modification a peut-être été enregistrée. Vérifie ton calendrier."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: la modifica potrebbe essere stata salvata. Controlla il calendario."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: Änderung wurde möglicherweise gespeichert. Prüfe deinen Kalender."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: wijziging is mogelijk opgeslagen. Controleer je kalender."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: ændringen er muligvis gemt. Tjek din kalender."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: ändringen kan ha sparats. Kontrollera din kalender."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: endringen kan ha blitt lagret. Sjekk kalenderen din."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: muutos on ehkä tallennettu. Tarkista kalenterisi."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: a alteração pode ter sido guardada. Verifica o teu calendário."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: a alteração pode ter sido salva. Confira seu calendário."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: zmiana mogła zostać zapisana. Sprawdź swój kalendarz."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: 변경이 저장되었을 수 있습니다. 캘린더를 확인하세요."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：変更が保存された可能性があります。カレンダーを確認してください。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：此更改可能已保存。请检查你的日历。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：此變更可能已儲存。請檢查你的行事曆。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.outcome.noLongerOnCalendar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: no longer on the calendar."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: ya no está en el calendario."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@ : n’est plus dans le calendrier."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: non è più nel calendario."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: nicht mehr im Kalender."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: staat niet meer in de kalender."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: er ikke længere i kalenderen."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: finns inte längre i kalendern."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: er ikke lenger i kalenderen."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: ei enää kalenterissa."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: já não está no calendário."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: não está mais no calendário."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: nie ma go już w kalendarzu."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: 더 이상 캘린더에 없습니다."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：カレンダーにはもうありません。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：已不在日历中。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：已不在行事曆中。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.outcome.saved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: change saved."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: cambio guardado."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@ : modification enregistrée."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: modifica salvata."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: Änderung gespeichert."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: wijziging opgeslagen."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: ændringen er gemt."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: ändringen sparades."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: endringen er lagret."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: muutos tallennettu."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: alteração guardada."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: alteração salva."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: zmiana zapisana."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: 변경이 저장되었습니다."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：変更を保存しました。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：更改已保存。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：變更已儲存。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.outcome.seenOnCalendar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: change seen on the calendar."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: cambio visto en el calendario."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@ : modification visible dans le calendrier."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: modifica visibile nel calendario."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: Änderung im Kalender gefunden."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: wijziging gezien in de kalender."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: ændringen ses i kalenderen."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: ändringen syns i kalendern."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: endringen vises i kalenderen."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: muutos näkyy kalenterissa."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: alteração vista no calendário."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: alteração vista no calendário."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: zmiana widoczna w kalendarzu."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@, %#@date@: 변경이 캘린더에서 확인되었습니다."
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：変更がカレンダーで確認されました。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：已在日历中看到此更改。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@workout@（%#@date@）：已在行事曆中看到此變更。"
+          },
+          "substitutions": {
+            "workout": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "date": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.preparedEarlier": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepared earlier"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparado antes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparé plus tôt"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparato in precedenza"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Früher vorbereitet"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eerder voorbereid"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forberedt tidligere"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Förberett tidigare"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forberedt tidligere"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valmisteltu aiemmin"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparado anteriormente"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparado antes"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przygotowano wcześniej"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이전에 준비됨"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以前に準備済み"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "之前已准备"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先前已準備"
+          }
+        }
+      }
+    },
     "workouts.refreshed.date": {
       "localizations": {
         "en": {

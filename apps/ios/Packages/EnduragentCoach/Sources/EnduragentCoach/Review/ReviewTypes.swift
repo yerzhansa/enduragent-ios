@@ -257,6 +257,13 @@ public enum ReviewPlacement: Sendable, Equatable {
 	case afterTurn(TurnID)
 	case preparedEarlier
 	case endOfConversation
+
+	public var notice: CatalogKey? {
+		switch self {
+		case .preparedEarlier: Catalog.workoutsPreparedEarlier
+		case .afterTurn, .endOfConversation: nil
+		}
+	}
 }
 
 public struct ReviewReceipt: Sendable, Equatable {

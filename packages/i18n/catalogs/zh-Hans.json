@@ -3016,7 +3016,13 @@
     "notPreparedInformationSaved": "你的信息已保存，但无法准备训练审核内容。",
     "stopped": "训练审核在完成所有更改之前已停止。已完成的更改会保留。",
     "outcome": {
-      "closedAtUpgrade": "此训练审核是在应用更新前准备的。请重新询问教练。"
-    }
+      "closedAtUpgrade": "此训练审核是在应用更新前准备的。请重新询问教练。",
+      "saved": "{{workout}}（{{date}}）：更改已保存。",
+      "seenOnCalendar": "{{workout}}（{{date}}）：已在日历中看到此更改。",
+      "noLongerOnCalendar": "{{workout}}（{{date}}）：已不在日历中。",
+      "givenUp": "{{workout}}（{{date}}）：未进行此更改。",
+      "mayHaveBeenSaved": "{{workout}}（{{date}}）：此更改可能已保存。请检查你的日历。"
+    },
+    "preparedEarlier": "之前已准备"
   }
 }

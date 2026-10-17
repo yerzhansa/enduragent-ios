@@ -3056,7 +3056,13 @@
     "notPreparedInformationSaved": "Tu información se guardó, pero no se pudo preparar la revisión del entrenamiento.",
     "stopped": "La revisión del entrenamiento se detuvo antes de aplicar todos los cambios. Los cambios ya aplicados se conservan.",
     "outcome": {
-      "closedAtUpgrade": "Esta revisión del entrenamiento se preparó antes de actualizar la app. Vuelve a pedírselo al entrenador."
-    }
+      "closedAtUpgrade": "Esta revisión del entrenamiento se preparó antes de actualizar la app. Vuelve a pedírselo al entrenador.",
+      "saved": "{{workout}}, {{date}}: cambio guardado.",
+      "seenOnCalendar": "{{workout}}, {{date}}: cambio visto en el calendario.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: ya no está en el calendario.",
+      "givenUp": "{{workout}}, {{date}}: cambio no realizado.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: es posible que el cambio se haya guardado. Revisa tu calendario."
+    },
+    "preparedEarlier": "Preparado antes"
   }
 }

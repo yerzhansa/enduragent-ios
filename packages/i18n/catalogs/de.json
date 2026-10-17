@@ -3056,7 +3056,13 @@
     "notPreparedInformationSaved": "Deine Angaben wurden gespeichert, aber die Trainingsprüfung konnte nicht vorbereitet werden.",
     "stopped": "Die Trainingsprüfung wurde beendet, bevor alle Änderungen vorgenommen wurden. Bereits vorgenommene Änderungen bleiben erhalten.",
     "outcome": {
-      "closedAtUpgrade": "Diese Trainingsprüfung wurde vor dem Update der App vorbereitet. Frag den Coach noch einmal."
-    }
+      "closedAtUpgrade": "Diese Trainingsprüfung wurde vor dem Update der App vorbereitet. Frag den Coach noch einmal.",
+      "saved": "{{workout}}, {{date}}: Änderung gespeichert.",
+      "seenOnCalendar": "{{workout}}, {{date}}: Änderung im Kalender gefunden.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: nicht mehr im Kalender.",
+      "givenUp": "{{workout}}, {{date}}: Änderung nicht vorgenommen.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: Änderung wurde möglicherweise gespeichert. Prüfe deinen Kalender."
+    },
+    "preparedEarlier": "Früher vorbereitet"
   }
 }

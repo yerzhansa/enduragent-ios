@@ -3056,7 +3056,13 @@
     "notPreparedInformationSaved": "Din information sparades, men granskningen av träningspasset kunde inte förberedas.",
     "stopped": "Granskningen av träningspasset stoppades innan alla ändringar gjordes. Ändringar som redan gjorts behålls.",
     "outcome": {
-      "closedAtUpgrade": "Den här granskningen av träningspasset förbereddes innan appen uppdaterades. Fråga tränaren igen."
-    }
+      "closedAtUpgrade": "Den här granskningen av träningspasset förbereddes innan appen uppdaterades. Fråga tränaren igen.",
+      "saved": "{{workout}}, {{date}}: ändringen sparades.",
+      "seenOnCalendar": "{{workout}}, {{date}}: ändringen syns i kalendern.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: finns inte längre i kalendern.",
+      "givenUp": "{{workout}}, {{date}}: ändringen gjordes inte.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: ändringen kan ha sparats. Kontrollera din kalender."
+    },
+    "preparedEarlier": "Förberett tidigare"
   }
 }

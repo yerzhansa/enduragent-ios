@@ -617,9 +617,11 @@ ReviewOutcome.stopped
 ReviewOutcome.storageUnavailable
 ReviewOutcome.unconfirmed
 ReviewOutcome.wrongAction
+ReviewOutcomeNote
 ReviewPlacement
 ReviewPlacement.afterTurn
 ReviewPlacement.endOfConversation
+ReviewPlacement.notice
 ReviewPlacement.preparedEarlier
 ReviewReceipt
 ReviewReceipt.index
@@ -735,6 +737,7 @@ TrainingStatus.unconnected
 TranscriptNote.Content
 TranscriptNote.Content.applied
 TranscriptNote.Content.cancelledUnknown
+TranscriptNote.Content.outcome
 TranscriptNote.content
 TurnActivity
 TurnActivity.compacting

@@ -178,7 +178,9 @@ package actor WorkoutReviewDesk {
 			?? Delivery.fresh(for: review, at: ulid)
 		deliveries[chat] = delivery
 		let shown = ReviewProjection.snapshot(
-			of: review, delivery: delivery, placement: .afterTurn(review.origin.turn),
+			of: review, delivery: delivery,
+			placement: ReviewProjection.placement(
+				of: review, in: try await ledger.conversation(chat)),
 			attribution: AthleteAttribution(
 				accounts: [review.account], using: try await ledger.informationOwnership(),
 				device: ledger.deviceId))

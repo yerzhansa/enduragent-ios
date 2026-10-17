@@ -88,14 +88,16 @@ public struct AthleteNotice: Sendable, Equatable {
 	public let count: Int?
 	public let vars: [String: CatalogArgument]
 	public let actions: [RecoveryAction]
+	package let differences: [TargetDifference]
 
 	package init(
 		key: CatalogKey, count: Int? = nil, vars: [String: CatalogArgument] = [:],
-		actions: [RecoveryAction]
+		differences: [TargetDifference] = [], actions: [RecoveryAction]
 	) {
 		self.key = key
 		self.count = count
 		self.vars = vars
+		self.differences = differences
 		self.actions = actions
 	}
 
@@ -105,7 +107,9 @@ public struct AthleteNotice: Sendable, Equatable {
 	}
 
 	public func sentence(in display: DisplayLocale) -> String {
-		display.say(key, count: count, vars).trimmingCharacters(in: .whitespacesAndNewlines)
+		([display.say(key, count: count, vars)]
+			+ differences.flatMap { $0.sentences(in: display) })
+			.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
 	}
 }
 
@@ -185,7 +189,8 @@ package enum AthleteNotices {
 			return nil
 		case .stopped(_, let notice), .unconfirmed(_, let notice), .refreshed(let notice):
 			return AthleteNotice(
-				key: notice.key, vars: notice.vars.mapValues(CatalogArgument.text), actions: [])
+				key: notice.key, vars: notice.vars.mapValues(CatalogArgument.text),
+				differences: notice.differences, actions: [])
 		case .blocked(.accountChanged):
 			return AthleteNotice(
 				key: accountChanged.key, vars: accountChanged.vars.mapValues(CatalogArgument.text),

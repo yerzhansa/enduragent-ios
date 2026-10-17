@@ -258,6 +258,7 @@ public struct TranscriptNote: Sendable, Equatable, Identifiable {
 	public enum Content: Sendable, Equatable {
 		case applied(ReviewSummary)
 		case cancelledUnknown(CancelledUnknownReview)
+		case outcome(ReviewOutcomeNote)
 	}
 
 	public func sentence(in display: DisplayLocale) -> String {
@@ -268,6 +269,8 @@ public struct TranscriptNote: Sendable, Equatable, Identifiable {
 			)
 		case .cancelledUnknown:
 			display.say(Catalog.reviewCancelledUnknown)
+		case .outcome(let note):
+			note.sentence(in: display)
 		}
 	}
 }

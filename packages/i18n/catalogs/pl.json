@@ -3136,7 +3136,13 @@
     "notPreparedInformationSaved": "Twoje informacje zostały zapisane, ale nie udało się przygotować przeglądu treningu.",
     "stopped": "Przegląd treningu zatrzymał się przed wprowadzeniem wszystkich zmian. Wprowadzone już zmiany zostają zachowane.",
     "outcome": {
-      "closedAtUpgrade": "Ten przegląd treningu został przygotowany przed aktualizacją aplikacji. Poproś trenera ponownie."
-    }
+      "closedAtUpgrade": "Ten przegląd treningu został przygotowany przed aktualizacją aplikacji. Poproś trenera ponownie.",
+      "saved": "{{workout}}, {{date}}: zmiana zapisana.",
+      "seenOnCalendar": "{{workout}}, {{date}}: zmiana widoczna w kalendarzu.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: nie ma go już w kalendarzu.",
+      "givenUp": "{{workout}}, {{date}}: zmiana nie została wprowadzona.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: zmiana mogła zostać zapisana. Sprawdź swój kalendarz."
+    },
+    "preparedEarlier": "Przygotowano wcześniej"
   }
 }

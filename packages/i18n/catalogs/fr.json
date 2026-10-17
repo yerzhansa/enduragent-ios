@@ -3056,7 +3056,13 @@
     "notPreparedInformationSaved": "Tes informations ont été enregistrées, mais la vérification de séance n’a pas pu être préparée.",
     "stopped": "La vérification de séance s’est arrêtée avant que toutes les modifications soient faites. Les modifications déjà faites sont conservées.",
     "outcome": {
-      "closedAtUpgrade": "Cette vérification de séance a été préparée avant la mise à jour de l’app. Redemande au coach."
-    }
+      "closedAtUpgrade": "Cette vérification de séance a été préparée avant la mise à jour de l’app. Redemande au coach.",
+      "saved": "{{workout}}, {{date}} : modification enregistrée.",
+      "seenOnCalendar": "{{workout}}, {{date}} : modification visible dans le calendrier.",
+      "noLongerOnCalendar": "{{workout}}, {{date}} : n’est plus dans le calendrier.",
+      "givenUp": "{{workout}}, {{date}} : modification non effectuée.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}} : la modification a peut-être été enregistrée. Vérifie ton calendrier."
+    },
+    "preparedEarlier": "Préparé plus tôt"
   }
 }
