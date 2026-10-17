@@ -47,10 +47,7 @@ struct Recovered {
 		let rig = DeskRig()
 		let review = try PreflightFixture.review(try row.actions(on: rig))
 		let changes = review.work.remaining
-		switch row.point {
-		case .retriedClaimDuringPreflight: try await rig.save(try rig.retriedClaim(over: review))
-		default: try await rig.save(review)
-		}
+		try await rig.save(review)
 		switch row.point {
 		case .refreshedVerdictUnsaved: rig.base.events[0].movingTime = 50 * 60
 		case .blockedVerdictUnsaved:
@@ -122,10 +119,9 @@ struct Recovered {
 					reads: 0, appended: 0, published: [], requests: 0, reached: 0)
 			case .retriedClaimDuringPreflight:
 				return Recovered(
-					stage: .waiting(.tryAgain(.interrupted)),
-					finished: [FinishedTag(first, .seen(204))],
+					stage: .waiting(.tryAgain(.interrupted)), finished: [saved],
 					remaining: Array(changes.dropFirst()), reads: 0, appended: 1, published: [],
-					requests: 0, reached: 0)
+					requests: 2, reached: 1)
 			case .completedUnpublished, .published:
 				return Recovered(
 					stage: .completed, finished: [saved, FinishedTag(changes[1], .saved(205))],

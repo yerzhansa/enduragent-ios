@@ -131,19 +131,6 @@ extension DeskRig {
 		try await chain().count + outcomes().count
 	}
 
-	func retriedClaim(over review: WorkoutReview) throws -> WorkoutReview {
-		let first = try #require(review.work.remaining.first)
-		let sending = try review.claimed(
-			Claim(id: ClaimID(ulid: reviewULID(801)), action: .approve)
-		)
-		.sending(at: clock.now, seen: [first.id: EventID(rawValue: 204)])
-		guard case .next(let stopped) = try sending.answered(.refused(.badRequest), at: clock.now)
-		else {
-			throw UnexpectedReview(detail: "a refused answer did not stop the run")
-		}
-		return try stopped.claimed(Claim(id: ClaimID(ulid: reviewULID(802)), action: .tryAgain))
-	}
-
 	func leaveUnconfirmed(at index: Int) async throws {
 		let setup = ScriptedCalendar(base)
 		setup.answer { [self] position, write in
@@ -165,7 +152,15 @@ extension DeskRig {
 		let index = row.point == .firstAttemptSavedRequestHeld ? 0 : 1
 		switch row.point {
 		case .retriedClaimDuringPreflight:
-			break
+			old.answer { [self] position, write in
+				position == index ? .httpStatus(400) : await keep(write)
+			}
+			guard case .stopped = await desk.decide(.approve(try await token(on: desk))) else {
+				throw UnexpectedReview(detail: "the refused answer did not stop the run")
+			}
+			let retry = try await token(on: desk)
+			dying.refuseEveryAppend(after: 1)
+			#expect(await desk.decide(.tryAgain(retry)) == .storageUnavailable)
 		case .tap, .cancelUnsaved:
 			let token = try await token(on: desk)
 			dying.refuseEveryAppend(after: 0)

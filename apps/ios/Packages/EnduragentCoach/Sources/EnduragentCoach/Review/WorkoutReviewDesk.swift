@@ -118,12 +118,14 @@ package actor WorkoutReviewDesk {
 		case .showAgain(let ref):
 			return presenting(ref) { $0.renewed() }
 		case .approve(let token):
-			return await effects.pass { await approving(token) }
+			return await effects.pass { await claiming(token, as: .approve) }
+		case .tryAgain(let token):
+			return await effects.pass { await claiming(token, as: .tryAgain) }
 		case .cancel(let token):
 			return await canceling(token)
 		case .checkAgain(let token):
 			return await effects.pass { await checkingAgain(token) }
-		case .retryRemaining(let token), .tryAgain(let token):
+		case .retryRemaining(let token):
 			guard let delivery = deliveries[token.ref.chat], delivery.admits(token) else {
 				return .staleControl(newer: deliveries[token.ref.chat]?.ref)
 			}
