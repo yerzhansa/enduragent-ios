@@ -4,7 +4,8 @@ import Foundation
 
 enum LiveTranscript {
 	static func markdown(
-		_ scenario: LiveScenario, attempt: Int, turns: [LiveTurnRecord], violations: [String]
+		_ scenario: LiveScenario, attempt: Int, turns: [LiveTurnRecord], cancel: LiveCancelRecord?,
+		violations: [String]
 	) -> String {
 		var lines = [
 			"# \(scenario.name), run \(attempt)", "", "Setting: \(scenario.setting.rawValue)", "",
@@ -46,8 +47,26 @@ enum LiveTranscript {
 				if let failure = exchange.failure { lines += ["", "Failure: \(failure)"] }
 			}
 			lines += ["", "### Reply", "", turn.reply ?? "(no reply)"]
+			lines += ["", "### Workout review after the turn", "", review(turn.reviewAfter)]
+			if let notice = turn.notice { lines += ["", "Review notice: \(notice.rawValue)"] }
+		}
+		if let cancel {
+			lines += [
+				"", "## Cancel", "", "Outcome: \(cancel.outcome)", "",
+				"Calendar requests during Cancel: \(cancel.calendarRequests)",
+			]
 		}
 		return lines.joined(separator: "\n") + "\n"
+	}
+
+	private static func review(_ review: WorkoutReview?) -> String {
+		guard let review else { return "None." }
+		let changes = review.work.remaining.map {
+			"- \($0.id.ulid.rawValue): \(LiveChangeShape($0.action))"
+		}
+		return
+			(["Review \(review.id.ulid.rawValue), revision \(review.revision.rawValue):"]
+			+ changes).joined(separator: "\n")
 	}
 
 	private static func render(_ message: WireMessage) -> [String] {

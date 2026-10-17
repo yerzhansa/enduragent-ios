@@ -11,7 +11,7 @@ import Testing
 			listing: ActivityListing(
 				range: try ReadRange(oldest: today.adding(days: -29), newest: today, today: today),
 				rows: []),
-			today: today)
+			calendar: [], today: today)
 	}
 
 	@Test func theVerdictNamesMissedToolCallsCalendarCallsAndAUTCStart() throws {
@@ -51,6 +51,7 @@ import Testing
 			.listsActivitiesCovering(tenth, today: today),
 			.offersNoTrainingTools,
 			.promptHolds("Training data is not connected."),
+			.review(.preparesNothing), .review(.leavesNoReview),
 		]
 
 		let good = turn(
@@ -69,8 +70,6 @@ import Testing
 			LiveVerdict.violations(of: bad, against: expectations + unmet) == [
 				"the coach did not receive the athlete's message unchanged",
 				"the reply labels a time UTC",
-				"workout changes were prepared",
-				"a workout review is waiting",
 				"intervals_fetch_streams was called with arguments that are not JSON",
 				#"intervals_fetch_streams was not called with activityId "i5501""#,
 				"the reply does not mention Fitness",
@@ -78,6 +77,8 @@ import Testing
 				"no activity list covered 1998-06-10",
 				"training tools were offered: intervals_fetch_athlete",
 				"the prompt does not hold \"Training data is not connected.\"",
+				"workout changes were prepared",
+				"a workout review is waiting",
 			])
 	}
 
@@ -86,7 +87,7 @@ import Testing
 
 		let report = LiveCoachReport(unavailable: plan.unavailable, spentBefore: 0)
 
-		#expect(plan.unavailable.count == 3)
+		#expect(plan.unavailable.count == 4)
 		#expect(
 			report.failures(capReached: false)
 				== plan.unavailable.map { "not available, so not covered: \($0)" })
@@ -179,7 +180,7 @@ import Testing
 			listing: ActivityListing(
 				range: try ReadRange(oldest: today.adding(days: -29), newest: today, today: today),
 				rows: sample.activities.map(ActivityRow.activity)),
-			today: today)
+			calendar: [], today: today)
 
 		let scenario = plan.scenarios.first { $0.name == "review-ambiguous" }
 
@@ -225,8 +226,8 @@ import Testing
 
 	@Test func theReadOnlyTrainingRefusesEveryWriteWithoutReachingTheAccount() async throws {
 		let account = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		let writes = LiveCalendarWrites()
-		let training = LiveReadOnlyTraining(inner: account, writes: writes)
+		let requests = LiveCalendarRequests()
+		let training = LiveReadOnlyTraining(inner: account, requests: requests)
 		let ride = CalendarPayload(
 			date: "1998-06-14", type: .ride, name: "Z2 Endurance 60min",
 			description: "- 60m 65%", movingTime: 3600, trainingLoad: nil,
@@ -242,12 +243,12 @@ import Testing
 			#expect(await training.write(write) == .httpStatus(403))
 		}
 
-		#expect(writes.total == 3)
+		#expect(requests.writes == 3)
 		#expect(account.calls.isEmpty)
 		#expect(account.events.isEmpty)
 		let written = LiveTurnRecord(
 			message: "/status", exchanges: [], reply: "Done.", outcome: "completed",
-			reviewPending: false, calendarWrites: writes.total)
+			reviewPending: false, calendarWrites: requests.writes)
 		#expect(
 			LiveVerdict.violations(of: written, against: []).contains("the calendar was written"))
 	}
