@@ -42,6 +42,7 @@ extension PreparationRefusal {
 		case .actionChanged: "action_changed"
 		case .unchanged: "unchanged_item"
 		case .unreadableRequest(let error): error.code
+		case .concurrentPreparation: "concurrent_preparation"
 		case .storageUnavailable: "storage_unavailable"
 		}
 	}
@@ -80,6 +81,8 @@ extension PreparationRefusal {
 			"Item \(id.ulid.rawValue) has no actual change. Revise only the items that change."
 		case .unreadableRequest(let error):
 			error.details
+		case .concurrentPreparation:
+			"Another prepare_workout_changes call of this turn was still running, so this turn prepares no review. Submit the complete set once per turn, and tell the athlete the change could not be prepared."
 		case .storageUnavailable:
 			"The pending review could not be read on this phone, so nothing was prepared."
 		}

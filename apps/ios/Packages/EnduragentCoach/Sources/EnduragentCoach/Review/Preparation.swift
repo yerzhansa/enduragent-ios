@@ -67,6 +67,7 @@ package enum PreparationRefusal: Error, Equatable, Sendable {
 	case actionChanged(ChangeID)
 	case unchanged(ChangeID)
 	case unreadableRequest(ToolInputError)
+	case concurrentPreparation
 	case storageUnavailable
 }
 

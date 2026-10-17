@@ -254,6 +254,57 @@ import Testing
 		try await expectNothingApprovable(after: turn, on: after, turns: turns)
 	}
 
+	@Test func aKillAfterAnUnreadablePreparationStillFindsTheMarkerOfTheNextOne() async throws {
+		let turns = ReviewTurns()
+		let read = turns.intervals.hold(.event)
+		turns.script([
+			turns.prepare(#"{"kind":"bogus"}"#), .finish(reason: .toolCalls),
+			turns.prepare(
+				#"{"kind":"complete","changes":[{"kind":"edit","eventId":201,"patch":{"name":"Tempo"}}]}"#
+			), .finish(reason: .toolCalls), .hang,
+		])
+		let (before, dying) = await turns.dyingCoach()
+		let turn = try #require(
+			try await before.send(draft("Plan my week"), to: .main).acceptedTurn)
+		try #require(
+			try await beforeDeadline(within: .hangGuard) { await read.waitUntilEntered() } != nil)
+		try await before.dieWithoutWriting(to: dying)
+
+		let after = await turns.relaunched()
+
+		#expect(try await turns.markers(of: turn) == 1)
+		try await expectNothingApprovable(after: turn, on: after, turns: turns)
+	}
+
+	@Test func aKillDuringARevisionsReadsLeavesTheWaitingReviewAsItWas() async throws {
+		let turns = ReviewTurns()
+		let first = await turns.coach()
+		let waiting = try await turns.committed(
+			#"{"kind":"complete","changes":[{"kind":"edit","eventId":201,"patch":{"name":"Tempo"}}]}"#,
+			on: first)
+		let item = try #require(waiting.work.remaining.first)
+		let renamed = #"{"kind":"edit","eventId":201,"patch":{"name":"Threshold"}}"#
+		let read = turns.intervals.hold(.event)
+		turns.script([
+			turns.prepare(turns.revise(waiting, [(item.reference, renamed)])),
+			.finish(reason: .toolCalls), .hang,
+		])
+		let (before, dying) = await turns.dyingCoach()
+		let turn = try #require(
+			try await before.send(draft("Make Thursday harder"), to: .main).acceptedTurn)
+		try #require(
+			try await beforeDeadline(within: .hangGuard) { await read.waitUntilEntered() } != nil)
+		try await before.dieWithoutWriting(to: dying)
+
+		let after = await turns.relaunched()
+
+		#expect(await after.interruption(of: turn) == .processEnded)
+		#expect(try await turns.settled(turn).map(\.reviewNotPrepared) == [.processEnded])
+		#expect(try await turns.view(of: turn, on: after).reviewNotice == ReviewTurns.notPrepared)
+		#expect(try await turns.head(of: after).1 == waiting)
+		#expect(try await after.desk.snapshot(chat: .main)?.ref.revision == waiting.revision)
+	}
+
 	@Test func aKillAfterTheReplyAndBeforeTheCommitLeavesNothingApprovable() async throws {
 		let turns = ReviewTurns()
 		let (before, dying) = await turns.dyingCoach()

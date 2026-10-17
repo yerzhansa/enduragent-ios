@@ -5,6 +5,7 @@ package actor WorkoutReviewDesk {
 	private let clock: any Clock
 	private let diagnostics: DiagnosticsLog
 	private var preparations: [DraftKey: Preparing] = [:]
+	private var marked: Set<DraftKey> = []
 	private var deliveries: [ChatID: Delivery] = [:]
 
 	package init(ledger: Ledger, clock: any Clock, diagnostics: DiagnosticsLog) {
@@ -17,6 +18,13 @@ package actor WorkoutReviewDesk {
 		_ request: Result<PreparationRequest, ToolInputError>, for key: DraftKey, chat: ChatID,
 		binding: ActionBinding, reads: any CalendarReads
 	) async -> PreparationReply {
+		switch preparations[key] {
+		case .reading?, .refused(.concurrentPreparation)?:
+			preparations[key] = .refused(.concurrentPreparation)
+			return .refused(.concurrentPreparation)
+		case .drafted?, .refused?, .abandoned?, nil:
+			break
+		}
 		let parsed: PreparationRequest
 		switch request {
 		case .failure(let error):
@@ -25,14 +33,14 @@ package actor WorkoutReviewDesk {
 		case .success(let request):
 			parsed = request
 		}
-		let first = preparations[key] == nil
 		preparations[key] = .reading
-		if first {
+		if !marked.contains(key) {
 			do throws(LedgerFailure) {
 				try await ledger.markPreparing(
 					chat: chat, turn: key.turn, attempt: key.attempt,
 					stamp: OperationStamp(
 						operation: .turn(key.turn), attempt: key.attempt, binding: binding))
+				marked.insert(key)
 			} catch {
 				diagnostics.record(.reviewOutcomeUnsaved(error))
 				return refusing(.storageUnavailable, for: key)
@@ -49,13 +57,13 @@ package actor WorkoutReviewDesk {
 			let draft = try await Preparation.draft(
 				parsed, key: key, chat: chat, binding: binding, head: head.1, reads: reads,
 				today: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone))
-			if preparations[key] != nil {
-				preparations[key] = .drafted(draft, over: head.0)
-			}
-			return switch draft.content {
-			case .incomplete: .incomplete
-			case .changes(let remaining, _): .drafted(changes: remaining.count, base: draft.base)
-			}
+			let reply: PreparationReply =
+				switch draft.content {
+				case .incomplete: .incomplete
+				case .changes(let remaining, _):
+					.drafted(changes: remaining.count, base: draft.base)
+				}
+			return finishing(key, as: .drafted(draft, over: head.0), replying: reply)
 		} catch {
 			return refusing(error, for: key)
 		}
@@ -70,6 +78,7 @@ package actor WorkoutReviewDesk {
 		-> PreparationOutcome
 	{
 		let preparing = preparations.removeValue(forKey: key)
+		marked.remove(key)
 		switch (ending, preparing) {
 		case (.processEnded, _):
 			return await settleDeadClaim(key, in: chat)
@@ -130,10 +139,21 @@ package actor WorkoutReviewDesk {
 	}
 
 	private func refusing(_ refusal: PreparationRefusal, for key: DraftKey) -> PreparationReply {
-		if preparations[key] != nil {
-			preparations[key] = .refused(refusal)
+		finishing(key, as: .refused(refusal), replying: .refused(refusal))
+	}
+
+	private func finishing(_ key: DraftKey, as state: Preparing, replying reply: PreparationReply)
+		-> PreparationReply
+	{
+		switch preparations[key] {
+		case .reading?:
+			preparations[key] = state
+			return reply
+		case .refused(.concurrentPreparation)?:
+			return .refused(.concurrentPreparation)
+		case .drafted?, .refused?, .abandoned?, nil:
+			return reply
 		}
-		return .refused(refusal)
 	}
 
 	private func commit(_ draft: ReviewDraft, over head: RecordHead) async -> PreparationOutcome {

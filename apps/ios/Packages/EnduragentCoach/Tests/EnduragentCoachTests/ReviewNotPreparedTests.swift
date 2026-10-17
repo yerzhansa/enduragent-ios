@@ -49,6 +49,60 @@ import Testing
 		#expect(turnNotice(of: state) != ReviewTurns.notPrepared)
 	}
 
+	@Test func aProviderRetryDropsTheDraftOfTheGenerationItReplaced() async throws {
+		let coach = await turns.coach()
+		turns.script([
+			turns.prepare(ReviewTurns.oneRide), .finish(reason: .toolCalls),
+			.fail(.http(status: 503)), .text("Ride easy on Wednesday."), .finish(reason: .stop),
+		])
+
+		let state = try await coach.sendAndSettle("Plan my week")
+
+		let turn = try #require(await coach.currentSnapshot(.main)?.turns.first?.id)
+		#expect(replyText(state) == "Ride easy on Wednesday.")
+		#expect(turns.transport.requests.count == 3)
+		#expect(turns.transport.requests.last?.messages.contains { $0.role == .tool } == false)
+		#expect(try await turns.head(of: coach).1 == nil)
+		#expect(try await coach.desk.snapshot(chat: .main) == nil)
+		#expect(try await turns.settled(turn).map(\.reviewNotPrepared) == [.turnDidNotFinish])
+		#expect(try await turns.view(of: turn, on: coach).reviewNotice == ReviewTurns.notPrepared)
+	}
+
+	@Test func aSecondPreparationWhileTheFirstReadsRefusesTheAttemptAndCommitsNothing()
+		async throws
+	{
+		let coach = await turns.coach()
+		let desk = await coach.desk
+		let reads = turns.intervals
+		let binding = testStamp().binding
+		let key = PreparationFixture.key
+		let first = try PreparationFixture.request(
+			#"{"kind":"complete","changes":[{"kind":"edit","eventId":201,"patch":{"name":"Tempo"}}]}"#,
+			today: "1998-09-08")
+		let second = try PreparationFixture.request(
+			#"{"kind":"complete","changes":[{"kind":"edit","eventId":202,"patch":{"name":"Recovery"}}]}"#,
+			today: "1998-09-08")
+		let read = reads.hold(.event)
+		let reading = Task {
+			await desk.prepare(
+				.success(first), for: key, chat: .main, binding: binding, reads: reads)
+		}
+		try #require(
+			try await beforeDeadline(within: .hangGuard) { await read.waitUntilEntered() } != nil)
+
+		let overlapping = await desk.prepare(
+			.success(second), for: key, chat: .main, binding: binding, reads: reads)
+		await read.release()
+		let finished = await reading.value
+		let outcome = await desk.settle(key, in: .main, ending: .finished)
+
+		#expect(overlapping.json.objectFields["error"] == .string("concurrent_preparation"))
+		#expect(finished.json.objectFields["error"] == .string("concurrent_preparation"))
+		#expect(outcome == .notPrepared(.refused))
+		#expect(try await turns.head(of: coach).1 == nil)
+		#expect(try await desk.snapshot(chat: .main) == nil)
+	}
+
 	@Test func aSavedMemoryFactSurvivesAFailedPreparationAndBothAreReported() async throws {
 		let coach = await turns.coach()
 		turns.script([

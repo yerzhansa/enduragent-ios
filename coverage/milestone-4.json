@@ -636,9 +636,10 @@
 		},
 		{
 			"id": "4.2.2",
-			"statement": "A turn that prepares and then fails, is stopped, or runs out of tool rounds commits nothing, stores turnDidNotFinish on its settlement, and shows workouts.notPrepared under the turn apart from the turn's own notice.",
+			"statement": "A turn that prepares and then fails, is stopped, runs out of tool rounds, or loses that generation to a provider retry commits nothing, stores turnDidNotFinish on its settlement, and shows workouts.notPrepared under the turn apart from the turn's own notice.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNotPreparedTests.swift", "function": "aTurnThatPreparesButDoesNotFinishCommitsNothingAndSaysSo"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNotPreparedTests.swift", "function": "aTurnThatPreparesButDoesNotFinishCommitsNothingAndSaysSo"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNotPreparedTests.swift", "function": "aProviderRetryDropsTheDraftOfTheGenerationItReplaced"}
 			]
 		},
 		{
@@ -650,12 +651,14 @@
 		},
 		{
 			"id": "4.2.4",
-			"statement": "A kill after the claim and before the marker settles as processEnded with no review notice; a kill during the preparation reads or after the reply and before the commit leaves nothing approvable and shows workouts.notPrepared; a kill after the commit and before turnSettled finds the commit on relaunch, shows the card, and the turn has no review notice.",
+			"statement": "A kill after the claim and before the marker settles as processEnded with no review notice; a kill during the preparation reads, including reads that follow an unreadable request, or after the reply and before the commit leaves nothing approvable and shows workouts.notPrepared; a kill during a revision's reads leaves the waiting review unchanged and shows workouts.notPrepared; a kill after the commit and before turnSettled finds the commit on relaunch, shows the card, and the turn has no review notice.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillBeforeThePreparationMarkerSettlesWithoutAReviewNotice"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillDuringThePreparationReadsLeavesNothingApprovable"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillAfterTheReplyAndBeforeTheCommitLeavesNothingApprovable"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillAfterTheCommitFindsTheReviewOnRelaunch"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillAfterTheCommitFindsTheReviewOnRelaunch"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillAfterAnUnreadablePreparationStillFindsTheMarkerOfTheNextOne"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillDuringARevisionsReadsLeavesTheWaitingReviewAsItWas"}
 			]
 		},
 		{
@@ -698,9 +701,10 @@
 		},
 		{
 			"id": "4.2.10",
-			"statement": "A revise naming an event id as an item id, an edit naming an item id as its event, and a revise naming an item id of an earlier review each draft nothing, replace the attempt's earlier draft, and leave the waiting review unchanged.",
+			"statement": "A revise naming an event id as an item id, an edit naming an item id as its event, and a revise naming an item id of an earlier review each draft nothing, replace the attempt's earlier draft, and leave the waiting review unchanged; a second preparation that starts while another of the same attempt is reading is refused, and the attempt settles refused with nothing committed.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRevisionTests.swift", "function": "aMisnamedItemDraftsNothingAndTheReviewStays"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRevisionTests.swift", "function": "aMisnamedItemDraftsNothingAndTheReviewStays"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNotPreparedTests.swift", "function": "aSecondPreparationWhileTheFirstReadsRefusesTheAttemptAndCommitsNothing"}
 			]
 		},
 		{
