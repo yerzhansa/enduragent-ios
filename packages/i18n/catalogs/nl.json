@@ -3051,6 +3051,8 @@
       "description": "{{workout}}: beschrijving gewijzigd.",
       "load": "{{workout}}: trainingsbelasting gewijzigd van {{from}} naar {{to}}.",
       "structure": "{{workout}}: trainingsstappen gewijzigd."
-    }
+    },
+    "notPrepared": "De trainingsbeoordeling kon niet worden voorbereid.",
+    "notPreparedInformationSaved": "Je gegevens zijn opgeslagen, maar de trainingsbeoordeling kon niet worden voorbereid."
   }
 }

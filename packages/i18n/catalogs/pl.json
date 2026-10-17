@@ -3131,6 +3131,8 @@
       "description": "{{workout}}: opis zmieniony.",
       "load": "{{workout}}: obciążenie treningowe zmienione z {{from}} na {{to}}.",
       "structure": "{{workout}}: kroki treningu zmienione."
-    }
+    },
+    "notPrepared": "Nie udało się przygotować przeglądu treningu.",
+    "notPreparedInformationSaved": "Twoje informacje zostały zapisane, ale nie udało się przygotować przeglądu treningu."
   }
 }

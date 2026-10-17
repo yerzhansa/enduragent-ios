@@ -108,7 +108,8 @@ import Testing
 			chat: .main, ledger: ledger, clock: clock,
 			reviews: SingleProposalReviews(
 				ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock),
-				training: { _ in .unconnected }))
+				training: { _ in .unconnected }),
+			desk: WorkoutReviewDesk(ledger: ledger, clock: clock, diagnostics: diagnostics))
 		try await records.refresh()
 		_ = try await ledger.commit(
 			local: [

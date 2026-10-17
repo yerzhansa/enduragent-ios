@@ -82,7 +82,7 @@ extension IntervalsRESTClientTests {
 			let requests = answering(200, Self.saved)
 			let patch = WorkoutPatch(
 				date: "1998-06-15", name: "Endurance", durationSeconds: 3600, description: nil,
-				trainingLoad: 52, workoutDocument: nil)
+				trainingLoad: 52, workoutDocument: nil, authoredSteps: nil)
 			let target = EventID(rawValue: 42)
 
 			#expect(await client().write(.update(target, patch)) == .saved(Self.event))
@@ -165,7 +165,7 @@ extension IntervalsRESTClientTests {
 					EventID(rawValue: 42),
 					WorkoutPatch(
 						date: nil, name: "Endurance", durationSeconds: nil, description: nil,
-						trainingLoad: nil, workoutDocument: nil))
+						trainingLoad: nil, workoutDocument: nil, authoredSteps: nil))
 			case .delete:
 				return .delete(EventID(rawValue: 42))
 			}

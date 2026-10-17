@@ -13,7 +13,8 @@
 		"3.3": 7,
 		"4.1": 7,
 		"5.1": 10,
-		"5.2": 4
+		"5.2": 4,
+		"4.2": 12
 	},
 	"criteria": [
 		{
@@ -577,7 +578,8 @@
 			"statement": "A mixed request of two adds, one edit and one delete drafts four changes with zero calendar writes and zero review records, each payload equal to the one 2.2 or 2.3 builds for the same input, and two same-named workouts on one date are each identified by their event.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationTests.swift", "function": "aMixedRequestDraftsEachChangeExactlyAsItsBuilderMakesIt"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationToolTests.swift", "function": "aMixedRequestIsPreparedWithoutACalendarWriteOrAReviewRecord"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationToolTests.swift", "function": "aMixedRequestIsPreparedWithoutACalendarWriteOrAnOldProposal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aPreparedTurnCommitsRevisionOneOnlyWhenItsReplyEnds"}
 			]
 		},
 		{
@@ -625,6 +627,101 @@
 			"statement": "The old path still refuses the same targets with the same codes at approval and in recovery.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTClientTests.swift", "function": "theOldPathRefusesAnIneligibleTargetWithTodaysCodeBeforeItWrites"}
+			]
+		},
+		{
+			"id": "4.2.1",
+			"statement": "A test turn that prepares and then replies commits one review at revision 1; before the reply ends pending answers none and the desk's snapshot gives no card.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aPreparedTurnCommitsRevisionOneOnlyWhenItsReplyEnds"}
+			]
+		},
+		{
+			"id": "4.2.2",
+			"statement": "A turn that prepares and then fails, is stopped, runs out of tool rounds, or loses that generation to a provider retry commits nothing, stores turnDidNotFinish on its settlement, and shows workouts.notPrepared under the turn apart from the turn's own notice.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNotPreparedTests.swift", "function": "aTurnThatPreparesButDoesNotFinishCommitsNothingAndSaysSo"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNotPreparedTests.swift", "function": "aProviderRetryDropsTheDraftOfTheGenerationItReplaced"}
+			]
+		},
+		{
+			"id": "4.2.3",
+			"statement": "A turn that saves a memory fact and then fails after preparing keeps the fact, shows the saved-but-not-verified notice, and shows the review notice joined to the saved-information text.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNotPreparedTests.swift", "function": "aSavedMemoryFactSurvivesAFailedPreparationAndBothAreReported"}
+			]
+		},
+		{
+			"id": "4.2.4",
+			"statement": "A kill after the claim and before the marker settles as processEnded with no review notice; a kill during the preparation reads, including reads that follow an unreadable request, or after the reply and before the commit leaves nothing approvable and shows workouts.notPrepared; a kill during a revision's reads leaves the waiting review unchanged and shows workouts.notPrepared; a kill after the commit and before turnSettled finds the commit on relaunch, shows the card, and the turn has no review notice.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillBeforeThePreparationMarkerSettlesWithoutAReviewNotice"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillDuringThePreparationReadsLeavesNothingApprovable"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillAfterTheReplyAndBeforeTheCommitLeavesNothingApprovable"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillAfterTheCommitFindsTheReviewOnRelaunch"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillAfterAnUnreadablePreparationStillFindsTheMarkerOfTheNextOne"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillDuringARevisionsReadsLeavesTheWaitingReviewAsItWas"}
+			]
+		},
+		{
+			"id": "4.2.5",
+			"statement": "Revising one of four changes keeps the other three byte for byte with their ids and uids at revision 2, a revised rename keeps the earlier patch's duration, description and authored steps, and a revision that changes an item's action, workout or sport, or changes nothing, is refused.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRevisionTests.swift", "function": "revisingOneOfFourKeepsTheOtherThreeAndTheRenamedEditsContent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRevisionTests.swift", "function": "aRevisionMustChangeItsItemAndKeepItsActionAndWorkout"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRevisionTests.swift", "function": "authoredStepsAreStoredWithTheirChangesAndOldRowsHaveNone"}
+			]
+		},
+		{
+			"id": "4.2.6",
+			"statement": "A replacement after two finished changes keeps both as finished at the next revision.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRevisionTests.swift", "function": "aReplacementKeepsBothFinishedChanges"}
+			]
+		},
+		{
+			"id": "4.2.7",
+			"statement": "Once revision 2 commits, the chat's delivery admits no token minted for revision 1.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRevisionTests.swift", "function": "aCommittedRevisionRetiresTheControlOfTheEarlierOne"}
+			]
+		},
+		{
+			"id": "4.2.8",
+			"statement": "A revise against an old base or a complete set while a review waits is refused and the waiting review is unchanged; preparation against a running or unconfirmed head is refused.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRevisionTests.swift", "function": "anOldBaseOrACompleteSetWhileOneWaitsIsRefusedAndTheReviewStays"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRevisionTests.swift", "function": "aRunningOrUnconfirmedReviewRefusesPreparation"}
+			]
+		},
+		{
+			"id": "4.2.9",
+			"statement": "Eleven minutes and an unrelated turn after the commit, pending returns the waiting review unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn"}
+			]
+		},
+		{
+			"id": "4.2.10",
+			"statement": "A revise naming an event id as an item id, an edit naming an item id as its event, and a revise naming an item id of an earlier review each draft nothing, replace the attempt's earlier draft, and leave the waiting review unchanged; a model step with more than one preparation refuses all of them, and the attempt settles refused with nothing committed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRevisionTests.swift", "function": "aMisnamedItemDraftsNothingAndTheReviewStays"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNotPreparedTests.swift", "function": "aStepWithTwoPreparationsRefusesBothAndCommitsNothing"}
+			]
+		},
+		{
+			"id": "4.2.11",
+			"statement": "Before presented(ref) the snapshot has no control; after it the controls are armed(approveOrCancel, token).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewPresentationHandshakeTests.swift", "function": "theCardArmsOnlyAfterItsDeliveryIsPresented"}
+			]
+		},
+		{
+			"id": "4.2.12",
+			"statement": "presentationFailed(ref) leaves no control and a token minted before it is not admitted; showAgain(ref) makes a new delivery with no control until it is presented; a presented for an older head or delivery arms nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewPresentationHandshakeTests.swift", "function": "aFailedPresentationDisarmsAndShowAgainStartsANewDelivery"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewPresentationHandshakeTests.swift", "function": "aPresentationOfAnOlderHeadArmsNothing"}
 			]
 		},
 		{
@@ -801,6 +898,16 @@
 			"criteria": ["4.1.2", "4.1.3"]
 		},
 		{
+			"id": "B18.01",
+			"statement": "One saved set holds every addition, edit and deletion, with no calendar write during preparation, bound to the account, chat and reviewed targets, and nothing is approvable until the whole set is committed at the end of the reply.",
+			"criteria": ["4.1.1", "4.2.1", "4.2.2"]
+		},
+		{
+			"id": "B18.04",
+			"statement": "Revising chosen items or replacing the whole set gives a complete new review revision whose earlier approval is dead; untouched items, omitted edit fields and a renamed workout's steps are kept, and finished changes survive a replacement.",
+			"criteria": ["4.2.5", "4.2.6", "4.2.7", "4.2.8"]
+		},
+		{
 			"id": "G06",
 			"statement": "Reject a stale or foreign approval: an access change or an external edit after review stops the approval before any write.",
 			"criteria": ["5.1.5", "5.1.6"]
@@ -954,10 +1061,8 @@
 		"B17.02",
 		"B17.04",
 		"B17.05",
-		"B18.01",
 		"B18.02",
 		"B18.03",
-		"B18.04",
 		"B18.05",
 		"B18.06",
 		"B18.07",

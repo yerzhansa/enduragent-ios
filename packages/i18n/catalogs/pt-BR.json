@@ -3051,6 +3051,8 @@
       "description": "{{workout}}: descrição alterada.",
       "load": "{{workout}}: carga de treino alterada de {{from}} para {{to}}.",
       "structure": "{{workout}}: etapas do treino alteradas."
-    }
+    },
+    "notPrepared": "Não foi possível preparar a revisão do treino.",
+    "notPreparedInformationSaved": "Suas informações foram salvas, mas não foi possível preparar a revisão do treino."
   }
 }

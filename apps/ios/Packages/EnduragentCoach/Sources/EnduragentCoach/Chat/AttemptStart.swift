@@ -35,10 +35,7 @@ struct AttemptStart {
 		switch resolution {
 		case .failure(let error):
 			let unavailable = Settlement.failed(.model(.accessUnavailable(error)), saved: .none)
-			await records.settle(
-				TurnLifecycle.settled(
-					attempt, unavailable, on: records.conversation.turn(facts.turn), chat: chat),
-				stamp: stamp)
+			await records.settle(facts.turn, attempt: attempt, unavailable, stamp: stamp)
 			return nil
 		case .success(let resolved):
 			return environment.attempt(

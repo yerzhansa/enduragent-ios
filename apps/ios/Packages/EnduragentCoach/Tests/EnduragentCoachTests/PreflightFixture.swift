@@ -70,7 +70,7 @@ enum PreflightFixture {
 				payload: CalendarPayload(
 					date: date, type: .ride, name: "Tempo ride",
 					description: "Warmup\n- 10m 60%\nMain set\n- 3x10m 85%", movingTime: 3000,
-					trainingLoad: 55),
+					trainingLoad: 55, authoredSteps: nil),
 				identity: identity))
 	}
 
@@ -97,7 +97,7 @@ enum PreflightFixture {
 	) -> WorkoutPatch {
 		WorkoutPatch(
 			date: date, name: nil, durationSeconds: minutes.map { $0 * 60 },
-			description: description, trainingLoad: load, workoutDocument: nil)
+			description: description, trainingLoad: load, workoutDocument: nil, authoredSteps: nil)
 	}
 
 	static func review(

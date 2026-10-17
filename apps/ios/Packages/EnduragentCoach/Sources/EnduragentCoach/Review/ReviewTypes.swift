@@ -39,6 +39,17 @@ struct Delivery: Equatable, Sendable {
 		return .armed(allowed, ReviewControlToken(ref: ref, secret: secret))
 	}
 
+	func disarmed() -> Delivery {
+		Delivery(ref: ref, head: head, presence: .shown)
+	}
+
+	func renewed() -> Delivery {
+		Delivery(
+			ref: ReviewRef(
+				chat: ref.chat, review: ref.review, revision: ref.revision, delivery: UUID()),
+			head: head, presence: .shown)
+	}
+
 	func admits(_ token: ReviewControlToken) -> Bool {
 		guard case .armed(let secret) = presence else { return false }
 		return token.ref == ref && token.secret == secret

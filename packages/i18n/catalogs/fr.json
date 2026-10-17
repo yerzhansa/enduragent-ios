@@ -3051,6 +3051,8 @@
       "description": "{{workout}} : description modifiée.",
       "load": "{{workout}} : charge d’entraînement modifiée de {{from}} à {{to}}.",
       "structure": "{{workout}} : étapes de la séance modifiées."
-    }
+    },
+    "notPrepared": "Impossible de préparer la vérification de séance.",
+    "notPreparedInformationSaved": "Tes informations ont été enregistrées, mais la vérification de séance n’a pas pu être préparée."
   }
 }

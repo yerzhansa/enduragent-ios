@@ -84,7 +84,7 @@ import Testing
 		#expect(intervals.calls.allSatisfy { !$0.isWrite })
 	}
 
-	@Test func aMixedRequestIsPreparedWithoutACalendarWriteOrAReviewRecord() async throws {
+	@Test func aMixedRequestIsPreparedWithoutACalendarWriteOrAnOldProposal() async throws {
 		intervals.events = [
 			PreparationFixture.workout(201, on: "1998-09-10"),
 			PreparationFixture.workout(202, on: "1998-09-11"),
@@ -104,8 +104,7 @@ import Testing
 		#expect(intervals.calls.allSatisfy { !$0.isWrite })
 		#expect(
 			try await store.fetch(
-				RecordQuery(
-					scope: .deviceLocal([.workoutReview, .reviewPreparing, .pendingProposal]))
+				RecordQuery(scope: .deviceLocal([.pendingProposal]))
 			).records.isEmpty)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .synced([.reviewWrite, .reviewApplied])))

@@ -341,6 +341,13 @@ package enum AthleteNotices {
 		}
 	}
 
+	package static func notice(forUnpreparedReview saved: WriteSummary) -> AthleteNotice {
+		AthleteNotice(
+			key: saved.isEmpty
+				? Catalog.workoutsNotPrepared : Catalog.workoutsNotPreparedInformationSaved,
+			actions: [])
+	}
+
 	package static func notice(
 		for interruption: InterruptionCause, saved: WriteSummary, turn: TurnID?
 	) -> AthleteNotice {

@@ -48,8 +48,9 @@ package struct ReviewDraft: Equatable, Sendable {
 
 package enum Preparing: Equatable, Sendable {
 	case reading
-	case drafted(ReviewDraft)
+	case drafted(ReviewDraft, over: RecordHead)
 	case refused(PreparationRefusal)
+	case abandoned
 }
 
 package enum PreparationRefusal: Error, Equatable, Sendable {
@@ -63,6 +64,10 @@ package enum PreparationRefusal: Error, Equatable, Sendable {
 	case pastDate(CivilDate)
 	case targetUnreadable(EventID)
 	case keptUnreadable(CivilDate)
+	case actionChanged(ChangeID)
+	case unchanged(ChangeID)
+	case unreadableRequest(ToolInputError)
+	case concurrentPreparation
 	case storageUnavailable
 }
 
@@ -163,8 +168,32 @@ enum Preparation {
 		}) {
 			throw .unknownItem(unknown)
 		}
-		return waiting.work.remaining.map { change in
-			replacements[change.id].map { .replacing(change, with: $0) } ?? .carried(change)
+		var planned: [PlannedChange] = []
+		for change in waiting.work.remaining {
+			guard let next = replacements[change.id] else {
+				planned.append(.carried(change))
+				continue
+			}
+			planned.append(.replacing(change, with: try revision(of: change, to: next)))
+		}
+		return planned
+	}
+
+	private static func revision(of before: ReviewChange, to next: ProposedChange)
+		throws(PreparationRefusal) -> ProposedChange
+	{
+		switch (before.action, next) {
+		case (.add(let add), .add(let payload)) where add.payload.type == payload.type:
+			guard add.payload != payload else { throw .unchanged(before.id) }
+			return next
+		case (.edit(let edit), .edit(let event, let patch)) where edit.target.event == event:
+			let merged = edit.patch.revised(by: patch, on: edit.target)
+			guard merged != edit.patch else { throw .unchanged(before.id) }
+			return .edit(event, merged)
+		case (.delete(let delete), .delete(let event)) where delete.target.event == event:
+			throw .unchanged(before.id)
+		case (.add, _), (.edit, _), (.delete, _):
+			throw .actionChanged(before.id)
 		}
 	}
 
@@ -205,6 +234,9 @@ enum Preparation {
 					AddedWorkout(payload: payload, identity: identity ?? CalendarWriteID())))
 		case .edit(let event, let patch):
 			let snapshot = try await reviewed(event, destination: patch.date, reads, today)
+			if case .replacing(let before, _) = item, before.desires(patch, on: snapshot) {
+				throw .unchanged(before.id)
+			}
 			return ProposedTarget(
 				reuse: reuse,
 				action: .edit(EditedWorkout(target: .reviewed(event, snapshot), patch: patch)))
@@ -293,6 +325,48 @@ extension ChangeAction {
 		case .edit(let edit): edit.patch.date ?? edit.target.date
 		case .delete(let delete): delete.target.date
 		}
+	}
+}
+
+extension ReviewChange {
+	fileprivate func desires(_ patch: WorkoutPatch, on current: WorkoutSnapshot) -> Bool {
+		guard case .edit(let edit) = action, case .reviewed(_, let earlier) = edit.target else {
+			return false
+		}
+		return edit.patch.applied(to: earlier) == patch.applied(to: current)
+			&& edit.patch.authoredSteps == patch.authoredSteps
+	}
+}
+
+extension WorkoutPatch {
+	fileprivate func revised(by next: WorkoutPatch, on target: ReviewedTarget) -> WorkoutPatch {
+		let merged = WorkoutPatch(
+			date: next.date ?? date, name: next.name ?? name,
+			durationSeconds: next.durationSeconds ?? durationSeconds,
+			description: next.description ?? description,
+			trainingLoad: next.trainingLoad ?? trainingLoad,
+			workoutDocument: next.authoredSteps == nil
+				? next.workoutDocument ?? workoutDocument : nil,
+			authoredSteps: next.authoredSteps)
+		guard next.authoredSteps == nil, merged.keepsContent(of: self, on: target) else {
+			return merged
+		}
+		return WorkoutPatch(
+			date: merged.date, name: merged.name, durationSeconds: merged.durationSeconds,
+			description: merged.description, trainingLoad: merged.trainingLoad,
+			workoutDocument: merged.workoutDocument, authoredSteps: authoredSteps)
+	}
+
+	private func keepsContent(of before: WorkoutPatch, on target: ReviewedTarget) -> Bool {
+		guard case .reviewed(_, let reviewed) = target else {
+			return durationSeconds == before.durationSeconds && description == before.description
+				&& workoutDocument == before.workoutDocument
+		}
+		let candidate = applied(to: reviewed)
+		let earlier = before.applied(to: reviewed)
+		return candidate.durationSeconds == earlier.durationSeconds
+			&& candidate.description == earlier.description
+			&& candidate.structure == earlier.structure
 	}
 }
 

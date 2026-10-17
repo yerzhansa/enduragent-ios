@@ -3051,6 +3051,8 @@
       "description": "{{workout}}: description changed.",
       "load": "{{workout}}: training load changed from {{from}} to {{to}}.",
       "structure": "{{workout}}: workout steps changed."
-    }
+    },
+    "notPrepared": "The workout review could not be prepared.",
+    "notPreparedInformationSaved": "Your information was saved, but the workout review could not be prepared."
   }
 }

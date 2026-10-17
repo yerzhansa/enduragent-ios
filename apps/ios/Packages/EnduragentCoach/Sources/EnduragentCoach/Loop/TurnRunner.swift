@@ -158,6 +158,7 @@ package struct TurnRunner: Sendable {
 				case .retry(let next, let preparations):
 					counters = next
 					pending = RetryPlan(failure: failure, preparations: preparations)
+					await desk.abandonDraft(DraftKey(turn: attempt.turn, attempt: attempt.attempt))
 					await progress(.attemptRestarted)
 				}
 			}

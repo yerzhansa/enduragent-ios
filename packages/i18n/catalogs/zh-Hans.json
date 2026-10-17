@@ -3011,6 +3011,8 @@
       "description": "{{workout}}：描述已更改。",
       "load": "{{workout}}：训练负荷从 {{from}} 改为 {{to}}。",
       "structure": "{{workout}}：训练步骤已更改。"
-    }
+    },
+    "notPrepared": "无法准备训练审核内容。",
+    "notPreparedInformationSaved": "你的信息已保存，但无法准备训练审核内容。"
   }
 }

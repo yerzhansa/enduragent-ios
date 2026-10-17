@@ -151,6 +151,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		#if DEBUG
 			try consumeCalendarReadFault()
 		#endif
+		try await begin(.event)
 		if unreadableEvents.contains(id) {
 			throw IntervalsError.unreachable(URLError(.timedOut))
 		}

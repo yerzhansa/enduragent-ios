@@ -3051,6 +3051,8 @@
       "description": "{{workout}}: beskrivelsen blev ændret.",
       "load": "{{workout}}: træningsbelastningen blev ændret fra {{from}} til {{to}}.",
       "structure": "{{workout}}: træningstrinene blev ændret."
-    }
+    },
+    "notPrepared": "Træningsgennemgangen kunne ikke forberedes.",
+    "notPreparedInformationSaved": "Dine oplysninger blev gemt, men træningsgennemgangen kunne ikke forberedes."
   }
 }

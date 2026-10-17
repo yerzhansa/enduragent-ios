@@ -219,7 +219,7 @@ import Testing
 	@Test func aRevisionKeepsItemIdsAndTheReplacedAddsCalendarIdentity() async throws {
 		let head = try ReviewStages()[.approval]
 		let request = try PreparationFixture.request(
-			#"{"kind":"revise","base":{"setId":"00T47DW5000000000000000100","revision":1},"replacements":[{"id":"00T47DW5000000000000000401","change":\#(PreparationFixture.strength(on: "1998-06-16"))}]}"#,
+			#"{"kind":"revise","base":{"setId":"00T47DW5000000000000000100","revision":1},"replacements":[{"id":"00T47DW5000000000000000401","change":\#(PreparationFixture.ride(on: "1998-06-16"))}]}"#,
 			today: "1998-06-13")
 
 		let drafted = await PreparationFixture.draft(
@@ -237,7 +237,7 @@ import Testing
 			return
 		}
 		#expect(after.identity == before.identity)
-		#expect(after.payload.type == .weightTraining)
+		#expect(after.payload.name == "Threshold 2x2")
 		#expect(try #require(drafted.draft).base == ReviewBase(of: head))
 	}
 }

@@ -98,6 +98,17 @@ public enum ControlSet: Equatable, Sendable {
 }
 
 extension WorkoutReview {
+	static func committing(
+		_ draft: ReviewDraft, _ work: [ReviewChange], kept: [KeptWorkout],
+		over base: WorkoutReview?, id fresh: WorkoutReviewID
+	) -> WorkoutReview {
+		WorkoutReview(
+			id: base?.id ?? fresh, revision: base?.revision.next ?? ReviewRevision(rawValue: 1),
+			chat: draft.chat, account: draft.binding.account, origin: draft.key,
+			work: ReviewWork(finished: base?.work.finished ?? [], remaining: work), kept: kept,
+			stage: .waiting(.approval(base == nil ? .prepared : .revised)))
+	}
+
 	package func claimed(_ claim: Claim) throws(TransitionRefusal) -> WorkoutReview {
 		guard case .waiting(let waiting) = stage else { throw .wrongStage }
 		switch (waiting, claim.action) {
