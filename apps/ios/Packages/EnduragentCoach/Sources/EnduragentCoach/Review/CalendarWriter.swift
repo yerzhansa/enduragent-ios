@@ -1,5 +1,14 @@
 import Foundation
 
+package struct CalendarWriteID: Hashable, Sendable, Codable {
+	package let rawValue: UUID
+
+	package init(rawValue: UUID = UUID()) { self.rawValue = rawValue }
+
+	package var uid: String { rawValue.uuidString }
+	package var externalID: String { "cycling-coach:\(uid)" }
+}
+
 package struct Receipt: Hashable, Sendable, Codable {
 	package let event: EventID
 	package let answeredAt: Date

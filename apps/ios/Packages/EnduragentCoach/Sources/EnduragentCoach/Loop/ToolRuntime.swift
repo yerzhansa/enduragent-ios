@@ -2,7 +2,6 @@ import Foundation
 
 package enum ToolOutcome: Sendable, Equatable {
 	case result(JSONValue)
-	case pending(PendingProposal)
 	case truncated(notice: String, estimatedTokens: Int, omittedRecords: Int)
 }
 
@@ -18,7 +17,7 @@ enum ToolRuntime {
 		scope: TurnScope
 	) async throws -> ToolExecution {
 		switch tool.effect {
-		case .proposal, .preparation:
+		case .preparation:
 			return try await runPrepared(tool, arguments: arguments, scope: scope)
 		case .write:
 			let execution = try await runPrepared(tool, arguments: arguments, scope: scope)

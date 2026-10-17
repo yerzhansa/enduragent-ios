@@ -139,7 +139,7 @@ struct TrainingSettingsTests {
 		#expect(editor.key.isEmpty)
 		await editor.keep()
 		#expect(try fixture.secrets.intervalsConnection() == previous)
-		#expect(model.chat?.review?.controls == .approveOrCancel(token))
+		#expect(model.chat?.review?.controls == .armed(.approveOrCancel, token))
 		editor.edit()
 		editor.key = "other-athlete"
 		await editor.replace()
@@ -151,12 +151,10 @@ struct TrainingSettingsTests {
 			}
 			return false
 		}
-		try await until { model.chat?.review?.notice?.kind == .accountChanged }
 		#expect(
 			try fixture.secrets.intervalsConnection()?.resolvedAthlete
 				== IntervalsAthleteID(rawValue: "i2002"))
-		#expect(model.chat?.review?.controls == ReviewControls.none)
-		await model.decide(.approve(token))
+		try await harness.approvalIsBlockedForTheChangedAthlete(on: model, using: token)
 		#expect(
 			!fixture.intervals.calls.contains {
 				if case .createEvent = $0 { return true }

@@ -13,11 +13,9 @@ struct ReviewNoticeMappingTests {
 	}
 
 	static let pending = ReviewNotice(
-		kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:])
-	static let readFailed = ReviewNotice(
-		kind: .partialFailure, key: Catalog.reviewWriteReadFailed, vars: [:])
+		kind: .partialFailure, key: Catalog.reviewUncertain, vars: ["service": "intervals.icu"])
 	static let serviceNotice = ReviewNotice(
-		kind: .refreshedAfterStaleTarget, key: Catalog.reviewWriteReadFailed,
+		kind: .refreshedAfterStaleTarget, key: Catalog.reviewCannotVerify,
 		vars: ["service": "intervals.icu"])
 	static let saved = [ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]
 	static let intervals: [String: CatalogArgument] = ["service": .text("intervals.icu")]
@@ -25,13 +23,13 @@ struct ReviewNoticeMappingTests {
 	static let workoutReview: [Row] = [
 		Row(
 			name: "stopped", outcome: .stopped(saved, serviceNotice),
-			notice: AthleteNotice(key: Catalog.reviewWriteReadFailed, vars: intervals, actions: [])),
+			notice: AthleteNotice(key: Catalog.reviewCannotVerify, vars: intervals, actions: [])),
 		Row(
 			name: "unconfirmed with receipts", outcome: .unconfirmed(saved, pending),
-			notice: AthleteNotice(key: Catalog.reviewWritePending, actions: [])),
+			notice: AthleteNotice(key: Catalog.reviewUncertain, vars: intervals, actions: [])),
 		Row(
 			name: "refreshed", outcome: .refreshed(serviceNotice),
-			notice: AthleteNotice(key: Catalog.reviewWriteReadFailed, vars: intervals, actions: [])),
+			notice: AthleteNotice(key: Catalog.reviewCannotVerify, vars: intervals, actions: [])),
 		Row(name: "completed with receipts", outcome: .completed(saved), notice: nil),
 		Row(name: "canceled with receipts", outcome: .canceled(saved), notice: nil),
 		Row(name: "wrongAction", outcome: .wrongAction, notice: nil),

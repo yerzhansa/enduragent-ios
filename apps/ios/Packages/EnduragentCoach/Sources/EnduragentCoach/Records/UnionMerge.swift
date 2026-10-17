@@ -31,39 +31,6 @@ package enum UnionMerge {
 		]).canonicalDigestInput()
 		return sha256Hex(input)
 	}
-
-	package static func pendingProposal(
-		_ records: [AthleteRecord],
-		chatId: ChatID,
-		now: Date
-	) -> ProposalBody? {
-		pendingProposalRecord(records, chatId: chatId, now: now)?.body
-	}
-
-	package static func pendingProposalRecord(
-		_ records: [AthleteRecord],
-		chatId: ChatID,
-		now: Date
-	) -> LiveProposal? {
-		let ordered = inHLCOrder(records)
-		var clearedAt: [Nonce: HybridLogicalClock] = [:]
-		for record in ordered {
-			if case .deviceLocal(.proposalCleared(let body)) = record.body, body.chatId == chatId {
-				clearedAt[body.nonce] = record.hlc
-			}
-		}
-		for record in ordered.reversed() {
-			guard case .deviceLocal(.pendingProposal(let body)) = record.body, body.chatId == chatId
-			else {
-				continue
-			}
-			if body.expiresAt <= now { continue }
-			if let cleared = clearedAt[body.nonce], record.hlc < cleared { continue }
-			return LiveProposal(
-				cause: record.cause, body: body, account: record.account, ulid: record.ulid)
-		}
-		return nil
-	}
 }
 
 private func inHLCOrder(_ records: [AthleteRecord]) -> [AthleteRecord] {

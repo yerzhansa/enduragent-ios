@@ -182,13 +182,12 @@ enum TryAgainDocument: Codable {
 }
 
 enum BlockDocument: String, Codable {
-	case turnStopping, trainingNotConnected, cannotVerify, accountChanged, pastProtected
+	case trainingNotConnected, cannotVerify, accountChanged, pastProtected
 	case coachOnly, workoutOnly, reviewedBeforeUpgrade
 
 	init(_ block: ReviewBlock) {
 		self =
 			switch block {
-			case .turnStopping: .turnStopping
 			case .trainingNotConnected: .trainingNotConnected
 			case .cannotVerify: .cannotVerify
 			case .accountChanged: .accountChanged
@@ -201,7 +200,6 @@ enum BlockDocument: String, Codable {
 
 	var block: ReviewBlock {
 		switch self {
-		case .turnStopping: .turnStopping
 		case .trainingNotConnected: .trainingNotConnected
 		case .cannotVerify: .cannotVerify
 		case .accountChanged: .accountChanged

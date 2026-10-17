@@ -51,7 +51,7 @@ import Testing
 		#expect(system.content.contains("\n# Cycling Prescription Availability\n"))
 		#expect(plain.messages.first == system)
 		#expect(command.tools.contains { $0.name == .intervalsFetchWellness })
-		#expect(command.tools.contains { $0.name == .intervalsCreateWorkout })
+		#expect(command.tools.contains { $0.name == .prepareWorkoutChanges })
 		#expect(plain.tools == command.tools)
 		#expect(
 			command.messages.dropFirst().map(\.content) == [
@@ -155,7 +155,7 @@ import Testing
 		_ = try await bench.onlyRequest(after: text, to: coach)
 
 		#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
-		#expect(try await bench.savedProposals() == 0)
+		#expect(try await bench.savedReviews() == 0)
 		#expect(bench.intervals.calls.filter(\.isCalendarCall).isEmpty)
 		#expect(bench.intervals.events.isEmpty)
 	}
@@ -209,7 +209,7 @@ import Testing
 		#expect(snapshot.liveReply == nil)
 		#expect(snapshot.activity == .idle)
 		#expect(snapshot.review == nil)
-		#expect(try await bench.savedProposals() == 0)
+		#expect(try await bench.savedReviews() == 0)
 		#expect(bench.intervals.calls.filter(\.isCalendarCall).isEmpty)
 		#expect(bench.intervals.events.isEmpty)
 	}
@@ -287,7 +287,7 @@ struct ShortcutBench {
 		}
 	}
 
-	func savedProposals() async throws -> Int {
-		try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records.count
+	func savedReviews() async throws -> Int {
+		try await store.fetch(RecordQuery(scope: .deviceLocal([.workoutReview]))).records.count
 	}
 }

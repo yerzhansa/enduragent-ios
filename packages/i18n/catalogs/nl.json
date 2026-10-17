@@ -2936,8 +2936,6 @@
     "accountChanged": "Deze training is voorbereid voor een andere atleet op {{service}}. Vraag me opnieuw om deze voor de verbonden atleet voor te bereiden.",
     "add": "Toevoegen aan kalender",
     "cannotVerify": "Ik kon je verbinding met {{service}} niet controleren, dus er is niets gewijzigd. Probeer het zo opnieuw.",
-    "turnStopping": "Dit antwoord wordt gestopt. Daarna kun je de trainingsbeoordeling goedkeuren of annuleren.",
-    "earlierVersion": "Deze trainingsbeoordeling komt uit een eerdere versie van de app en kan niet meer worden toegepast.",
     "cancelledUnknown": "Geannuleerd. Deze training is mogelijk toch opgeslagen. Controleer je kalender.",
     "saveFailed": "Je keuze kon niet op deze iPhone worden opgeslagen, dus er is niets gewijzigd. Probeer het opnieuw.",
     "storageUnavailable": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. De knoppen zijn tijdelijk uitgeschakeld.",
@@ -2948,10 +2946,7 @@
       "mainSet": "Hoofdblok",
       "cooldown": "Cooling-down",
       "ramp": "oplopend"
-    },
-    "writePending": "Deze training is mogelijk opgeslagen. Controleer de kalender voordat je verdergaat.",
-    "writeReadFailed": "De kalender kon niet worden gecontroleerd. Je goedgekeurde training wacht nog op bevestiging.",
-    "saveApprovedAgain": "Goedgekeurde training opnieuw opslaan"
+    }
   },
   "credits": {
     "buy": "Kopen",

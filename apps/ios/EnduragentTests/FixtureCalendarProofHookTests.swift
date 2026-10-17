@@ -27,13 +27,11 @@ extension FixtureLaunchTests {
 		#expect(failed.ref == unpresented.ref)
 		#expect(failed.cards == unpresented.cards)
 		#expect(failed.controls == .none)
-		await model.decide(.checkAgainWithoutToken(failed.ref))
+		await model.decide(.presented(failed.ref))
 		try await until {
-			if case .approveOrCancel? = model.chat?.review?.controls { return true }
+			if case .armed(.approveOrCancel, _)? = model.chat?.review?.controls { return true }
 			return false
 		}
-		#expect(model.chat?.review?.notice == nil)
-		await model.decide(.presented(failed.ref))
 		#expect(model.chat?.review?.notice == nil)
 	}
 }

@@ -93,7 +93,6 @@ struct StoredReviewFixture: Sendable, CustomTestStringConvertible {
 	]
 
 	private static let blocks: [StoredReviewFixture] = [
-		block("workout-review-blocked-turn-stopping", .turnStopping, .blockedTurnStopping),
 		StoredReviewFixture(
 			"workout-review-blocked-training-not-connected",
 			[.blockedTrainingNotConnected, .delete, .reviewedTarget],

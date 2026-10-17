@@ -43,15 +43,6 @@ package enum IntervalsSerializer {
 		return seconds == 0 ? "\(minutes)m" : "\(minutes)m\(String(format: "%.0f", seconds))"
 	}
 
-	package static func slug(date: CivilDate, name: String) -> String {
-		_ = date
-		return ChatExternalID.slugify(name: name)
-	}
-
-	package static func chatExternalId(date: CivilDate, name: String) -> ChatExternalID {
-		ChatExternalID(date: date, slug: slug(date: date, name: name))
-	}
-
 	package static func parseWorkout(_ json: JSONValue) throws(InvalidWorkout)
 		-> IntervalsWorkoutInput
 	{

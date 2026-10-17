@@ -7,7 +7,7 @@ package struct CalendarPayload: Sendable, Equatable {
 	package let description: String
 	package let movingTime: Int?
 	package let trainingLoad: Int?
-	package let authoredSteps: JSONValue?
+	package let authoredSteps: AuthoredSteps?
 
 	private static let nameLimit = 120
 	private static let descriptionLimit = 4000
@@ -18,15 +18,14 @@ package struct CalendarPayload: Sendable, Equatable {
 	{
 		let fields = change.objectFields
 		let date = try creationDate(fields["date"], today: today)
-		let workoutJSON = fields["workout"]
-		let workout: IntervalsWorkoutInput
+		let authored: AuthoredSteps
 		let serialized: SerializedWorkout
 		do throws(InvalidWorkout) {
-			guard let workoutJSON else {
+			guard let workoutJSON = fields["workout"] else {
 				throw InvalidWorkout(message: "workout: Required")
 			}
-			workout = try IntervalsSerializer.parseWorkout(workoutJSON)
-			serialized = try IntervalsSerializer.serialize(workout)
+			authored = try AuthoredSteps.ride(workoutJSON)
+			serialized = try IntervalsSerializer.serialize(authored.workout)
 		} catch {
 			throw ToolInputError(code: "invalid_workout", details: error.message)
 		}
@@ -38,11 +37,11 @@ package struct CalendarPayload: Sendable, Equatable {
 		return CalendarPayload(
 			date: date,
 			type: .ride,
-			name: workout.name,
+			name: authored.workout.name,
 			description: serialized.description,
 			movingTime: movingTime,
 			trainingLoad: try trainingLoad(fields["trainingLoad"]),
-			authoredSteps: workoutJSON
+			authoredSteps: authored
 		)
 	}
 

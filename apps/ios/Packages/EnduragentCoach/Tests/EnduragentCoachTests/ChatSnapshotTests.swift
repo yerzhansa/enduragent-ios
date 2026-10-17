@@ -10,17 +10,18 @@ struct ChatSnapshotTests {
 		let second = TurnID(ulid: fixedUlid(5))
 		var records: [AthleteRecord] = []
 		for index in 1...6 {
-			let body: SyncedRecordBody
+			let body: RecordBody
 			switch index {
-			case 2: body = sampleUser(chatId: .main, text: "Thursday?", turn: first)
-			case 5: body = sampleUser(chatId: .main, text: "Friday?", turn: second)
+			case 2: body = .synced(sampleUser(chatId: .main, text: "Thursday?", turn: first))
+			case 5: body = .synced(sampleUser(chatId: .main, text: "Friday?", turn: second))
 			default:
-				body = .reviewApplied(ReviewAppliedBody(chatId: .main, summary: .deleteWorkout))
+				body = .legacy(
+					.reviewApplied(ReviewAppliedBody(chatId: .main, summary: .deleteWorkout)))
 			}
 			records.append(
 				storedRecord(
 					device: store.deviceId, wall: Int64(index), ulid: fixedUlid(index),
-					body: .synced(body)))
+					body: body))
 		}
 		try await seed(store, records)
 		let coach = await makeCoach(transport: FakeModelTransport(), store: store)

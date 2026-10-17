@@ -162,12 +162,12 @@ extension SwiftDataSuites {
 							sampleUser(chatId: mixedNote, text: "A question with B's note"))),
 					fixture.record(
 						61, account: fixture.accountB,
-						body: .synced(
+						body: .legacy(
 							.reviewApplied(
 								ReviewAppliedBody(chatId: mixedNote, summary: .deleteWorkout)))),
 					fixture.record(
 						70, account: fixture.accountA,
-						body: .synced(
+						body: .legacy(
 							.reviewApplied(
 								ReviewAppliedBody(chatId: noteOnly, summary: .deleteWorkout)))),
 				])

@@ -71,7 +71,7 @@ Peak power at standard durations reveals athlete strengths:
 
 ## Calendar / Events
 
-### Pushing Workouts — use `intervals_create_workout`
+### Pushing Workouts — prepare them with `prepare_workout_changes`
 
 - Ramps **require** `power.low` and `power.high` (the ramp bounds).
 - Prefer `percent_ftp` for every serialized target — the head unit resolves a percent

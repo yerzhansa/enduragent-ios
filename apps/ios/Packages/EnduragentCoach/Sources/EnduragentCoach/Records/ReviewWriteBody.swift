@@ -1,27 +1,18 @@
 import Foundation
 
-package struct CalendarWriteID: Hashable, Sendable, Codable {
-	package let rawValue: UUID
-
-	package init(rawValue: UUID = UUID()) { self.rawValue = rawValue }
-
-	package var uid: String { rawValue.uuidString }
-	package var externalID: String { "cycling-coach:\(uid)" }
-}
-
 package enum CalendarWriteKey: Hashable, Sendable {
 	case durable(CalendarWriteID)
 	case legacy(WorkoutReviewID)
 }
 
-package enum CalendarObservation: String, Sendable, Codable {
+package enum CalendarObservation: String, Sendable, Decodable {
 	case dispatched
 	case absent
 	case found
 	case readFailed
 }
 
-package enum CalendarWriteEvidence: Sendable, Equatable, Codable {
+package enum CalendarWriteEvidence: Sendable, Equatable, Decodable {
 	case notSent
 	case unknown(CalendarObservation)
 	case applied(eventID: Int?)
@@ -40,7 +31,7 @@ package enum CalendarWriteEvidence: Sendable, Equatable, Codable {
 	}
 }
 
-package enum CalendarWriteTarget: Sendable, Equatable, Codable {
+package enum CalendarWriteTarget: Sendable, Equatable, Decodable {
 	case create(date: String)
 	case update(eventID: Int, date: String)
 	case delete(eventID: Int, date: String)
@@ -58,20 +49,12 @@ package struct ReviewWriteBody: Sendable, Equatable {
 	}
 }
 
-struct ReviewWritePayload: Codable {
+struct ReviewWritePayload: Decodable {
 	let chatId: String
 	let review: String
 	let writeID: UUID?
 	let target: CalendarWriteTarget?
 	let evidence: CalendarWriteEvidence
-
-	init(_ body: ReviewWriteBody) {
-		chatId = body.chatId.rawValue
-		review = body.review.ulid.rawValue
-		writeID = body.writeID?.rawValue
-		target = body.target
-		evidence = body.evidence
-	}
 
 	private enum CodingKeys: String, CodingKey {
 		case chatId, review, writeID, target, evidence, status
@@ -92,15 +75,6 @@ struct ReviewWritePayload: Codable {
 			default: throw RecordDecodeFailure(reason: "reviewWrite status")
 			}
 		}
-	}
-
-	func encode(to encoder: Encoder) throws {
-		var values = encoder.container(keyedBy: CodingKeys.self)
-		try values.encode(chatId, forKey: .chatId)
-		try values.encode(review, forKey: .review)
-		try values.encodeIfPresent(writeID, forKey: .writeID)
-		try values.encodeIfPresent(target, forKey: .target)
-		try values.encode(evidence, forKey: .evidence)
 	}
 
 	func body() throws -> ReviewWriteBody {

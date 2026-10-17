@@ -36,7 +36,7 @@ extension SwiftDataSuites {
 			#expect(upgraded.records.map(\.account) == [.unconnected, account])
 		}
 
-		@Test func build2bbe2eeKeepsMemoryReviewHistoryAndConsent() async throws {
+		@Test func build2bbe2eeKeepsMemoryHistoryAndConsent() async throws {
 			let log = try open("build-2bbe2ee", folder: "Fixtures")
 			let clock = FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana")
 			let transport = FakeModelTransport()
@@ -67,6 +67,23 @@ extension SwiftDataSuites {
 			#expect(status.acceptedConsent == nil)
 			#expect(status.needsProviderConsent)
 			#expect(transport.requests.isEmpty)
+		}
+
+		@Test func build2bbe2eeOpenProposalClosesAtBecameActiveAsAskTheCoachAgain() async throws {
+			let log = try open("build-2bbe2ee", folder: "Fixtures")
+			let clock = FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana")
+			let coach = await makeCoach(transport: FakeModelTransport(), store: log, clock: clock)
+
+			await coach.lifecycle(.becameActive)
+
+			let snapshot = try #require(await coach.currentSnapshot(.main))
+			#expect(snapshot.review == nil)
+			#expect(
+				ReviewOutcomeNotesTests.sentences(snapshot.notes.values.flatMap { $0 }) == [
+					CoachUpgradeTests.askAgain
+				])
+			let outcomes = try await log.fetch(RecordQuery(scope: .synced([.reviewOutcome])))
+			#expect(outcomes.records.count == 1)
 		}
 
 		@Test func build2bbe2eeClaimsKeepTheContinuedProcessingLeaseTheyRecorded() async throws {
@@ -143,6 +160,27 @@ extension SwiftDataSuites {
 			#expect(added.payload.name == "Endurance with tempo")
 			#expect(try await seed.outcomes().isEmpty)
 			#expect(seed.calendar.writes.isEmpty)
+		}
+
+		@Test func build6833d90fUnknownWriteShowsItsStepsInTheDisplayLanguage() async throws {
+			let seed = try await M2Seed(
+				try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device))
+			seed.calendar.failReads()
+			await (try seed.desk()).recover()
+
+			let card = try #require(
+				try await (try seed.desk()).snapshot(chat: .main)?.content.cards.first)
+
+			#expect(
+				card.lines(in: displayLocale(.de, region: "de_DE")) == [
+					"Aufwärmen", "- 10m 55-65%", "", "Hauptteil 2x", "- 10m 190-225w",
+					"- 5m Z1-Z2", "", "Cooldown", "- 10m 55-65%",
+				])
+			#expect(
+				card.lines(in: displayLocale(.zhHant, region: "zh_TW")) == [
+					"暖身", "- 10m 55-65%", "", "主要訓練 2x", "- 10m 190-225w", "- 5m Z1-Z2", "",
+					"緩和", "- 10m 55-65%",
+				])
 		}
 
 		@Test(arguments: M2Seed.Landing.allCases)

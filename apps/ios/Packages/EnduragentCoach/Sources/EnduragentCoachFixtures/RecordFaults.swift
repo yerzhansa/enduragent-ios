@@ -46,7 +46,7 @@ public final class RecordFaults: Sendable {
 
 	#if DEBUG
 		public func failNextReviewRead() {
-			log.failNextFetch(in: .synced([.reviewWrite, .reviewCancelledUnknown]))
+			log.failNextFetch(in: .deviceLocal([.workoutReview]))
 		}
 	#endif
 }

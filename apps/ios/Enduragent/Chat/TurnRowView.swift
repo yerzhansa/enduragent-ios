@@ -50,6 +50,10 @@ struct TurnRowView: View {
 			case .unrecovered(let unrecovered):
 				notice(unrecovered.notice)
 			}
+			if let reviewNotice = turn.reviewNotice {
+				Text(reviewNotice.sentence(in: model.displayLocale))
+					.accessibilityIdentifier("chat.turn.reviewNotice")
+			}
 			if let failure = turn.saveFailure {
 				Text(say(failure))
 					.foregroundStyle(.secondary)

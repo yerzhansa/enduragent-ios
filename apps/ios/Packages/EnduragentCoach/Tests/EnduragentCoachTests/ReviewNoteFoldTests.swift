@@ -40,17 +40,16 @@ import Testing
 			body: .synced(sampleUser(chatId: .main, text: "Workout", turn: turn)))
 		let write = storedRecord(
 			device: device, wall: 2, ulid: fixedUlid(2), cause: cause,
-			body: .synced(
+			body: .legacy(
 				.reviewWrite(
 					ReviewWriteBody(
 						chatId: .main, review: WorkoutReviewID(ulid: fixedUlid(1)), writeID: nil,
 						target: nil, evidence: .unknown(.dispatched)))))
-		let body = try ReviewCancelledUnknownBody.cancelling(
-			CalendarWriteIntent(record: write, body: try #require(writeBody(write)), proposal: nil),
-			on: device)
 		let marker = storedRecord(
 			device: device, wall: 6, ulid: fixedUlid(6), cause: cause,
-			body: .synced(.reviewCancelledUnknown(body)))
+			body: .legacy(
+				.reviewCancelledUnknown(
+					try legacyCancellation(review: WorkoutReviewID(ulid: fixedUlid(1))))))
 		var conversation = ConversationFold.fold(
 			chat: .main, synced: [user, write], device: device)
 		conversation.apply([boundary, marker], device: device)
@@ -78,11 +77,6 @@ import Testing
 				.isEmpty)
 	}
 
-	private func writeBody(_ record: AthleteRecord) -> ReviewWriteBody? {
-		if case .synced(.reviewWrite(let body)) = record.body { return body }
-		return nil
-	}
-
 	private var boundary: AthleteRecord {
 		storedRecord(
 			device: device, wall: 5, ulid: fixedUlid(5),
@@ -96,7 +90,7 @@ import Testing
 	private func note(_ index: Int) -> AthleteRecord {
 		storedRecord(
 			device: device, wall: Int64(index), ulid: fixedUlid(index),
-			body: .synced(
+			body: .legacy(
 				.reviewApplied(
 					ReviewAppliedBody(chatId: .main, summary: .deleteWorkout))))
 	}

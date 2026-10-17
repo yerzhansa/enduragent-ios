@@ -1,10 +1,15 @@
 {
   "npmRevision": "d192cb974e715e1527645e0acf0d8353ed4d0edc",
-  "reason": "The phone has no plan tools (build_plan_skeleton, get_sample_week) until Milestone 5, so three knowledge topics leave out npm's passages that tell the coach to call them, and the race preparation topic loses its taper-length section with them. Agreed by the operator for Milestone 3. The baseline text returns with the plan tools. The review topic differs for another reason: npm's text describes npm's own activity store, and the phone reads intervals.icu live, which sends no workout id, no session sequence and no time-zone offset, and does send Load, Intensity, power and heart rate. Agreed by the operator for Milestone 3.",
+  "reason": "The phone has no plan tools (build_plan_skeleton, get_sample_week) until Milestone 5, so three knowledge topics leave out npm's passages that tell the coach to call them, and the race preparation topic loses its taper-length section with them. Agreed by the operator for Milestone 3. The baseline text returns with the plan tools. The review topic differs for another reason: npm's text describes npm's own activity store, and the phone reads intervals.icu live, which sends no workout id, no session sequence and no time-zone offset, and does send Load, Intensity, power and heart rate. Agreed by the operator for Milestone 3. The phone has no single-workout calendar tool from Milestone 4, so the intervals.icu and prescription topics name prepare_workout_changes, which prepares one workout review, where npm names intervals_create_workout (ADR-0083).",
   "topics": {
     "cycling-intervals-icu": {
       "npmSHA256": "12dc55e81cdce1509794be12e8c48fd80a29ad55952c9901df9b6d9262ee104e",
-      "differences": []
+      "differences": [
+        {
+          "npm": "### Pushing Workouts — use `intervals_create_workout`",
+          "phone": "### Pushing Workouts — prepare them with `prepare_workout_changes`"
+        }
+      ]
     },
     "cycling-periodization": {
       "npmSHA256": "89cf5982e01de04fce1112c6803f46ee814b7651bbed3c4e102815fab9195eb5",
@@ -29,6 +34,14 @@
         {
           "npm": "`build_plan_skeleton`, `get_sample_week`, or ",
           "phone": ""
+        },
+        {
+          "npm": "in prose or with `intervals_create_workout`.",
+          "phone": "in prose or with `prepare_workout_changes`."
+        },
+        {
+          "npm": "Use `intervals_create_workout` only when the current message asks for calendar creation, scheduling, pushing, or updating; a prose-only request never authorizes a calendar write.",
+          "phone": "Use `prepare_workout_changes` only when the current message asks for calendar creation, scheduling, pushing, or updating; a prose-only request never prepares a calendar change."
         }
       ]
     },

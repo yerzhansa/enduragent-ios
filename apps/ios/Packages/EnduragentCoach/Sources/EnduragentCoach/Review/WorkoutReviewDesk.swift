@@ -125,13 +125,6 @@ package actor WorkoutReviewDesk {
 			return await canceling(token)
 		case .checkAgain(let token):
 			return await effects.pass { await checkingAgain(token) }
-		case .retryRemaining(let token):
-			guard let delivery = deliveries[token.ref.chat], delivery.admits(token) else {
-				return .staleControl(newer: deliveries[token.ref.chat]?.ref)
-			}
-			return .wrongAction
-		case .checkAgainWithoutToken:
-			return .wrongAction
 		}
 	}
 
@@ -184,7 +177,7 @@ package actor WorkoutReviewDesk {
 			attribution: AthleteAttribution(
 				accounts: [review.account], using: try await ledger.informationOwnership(),
 				device: ledger.deviceId))
-		return stalled.contains(chat) ? shown.disablingButtons() : shown
+		return stalled.contains(chat) ? shown.withoutControls() : shown
 	}
 
 	package func holdsBoundWork() async throws(LedgerFailure) -> Bool {

@@ -25,11 +25,11 @@ struct M2Seed {
 	init(_ log: SwiftDataRecordLog) async throws {
 		self.log = log
 		let proposals = try await log.fetch(
-			RecordQuery(scope: .deviceLocal([.pendingProposal]))
+			RecordQuery(scope: .deviceLocal([], includeLegacy: [.pendingProposal]))
 		).records
 		let proposal = try #require(proposals.last)
 		guard case .operation(.turn(let turn), _) = proposal.cause,
-			case .deviceLocal(.pendingProposal(let body)) = proposal.body
+			case .legacy(.pendingProposal(let body)) = proposal.body
 		else {
 			throw UnexpectedReview(detail: "the seed proposal has no turn")
 		}
@@ -50,6 +50,32 @@ struct M2Seed {
 				.connected(
 					ConnectedTraining(connection: connection, athlete: athlete, client: calendar))
 			}, host: ImmediateExecutionHost())
+	}
+
+	func coach(transport: FakeModelTransport = FakeModelTransport()) async throws -> Coach {
+		guard case .intervals(let connection, let athlete?) = account else {
+			throw UnexpectedReview(detail: "the seed account is not an intervals.icu athlete")
+		}
+		let secrets = keyedSecrets()
+		try secrets.storeIntervalsConnection(
+			IntervalsConnection(
+				id: connection, credential: .apiKey("icu-test-key"), selection: .keyOwner,
+				resolvedAthlete: athlete))
+		return await makeCoach(
+			transport: transport, intervals: calendar, store: log, clock: clock, secrets: secrets)
+	}
+
+	func calendarReads() -> Int {
+		calendar.calls.filter { $0 == .read }.count
+	}
+
+	func landTheUnknownAdd() {
+		calendar.base.events.append(
+			CalendarEvent(
+				description: "- 10m 55-65%\n\n2x\n- 10m 190-225w\n- 5m Z1-Z2\n\n- 10m 55-65%",
+				type: "Ride", id: EventID(rawValue: 7001), startDateLocal: "1998-06-16T00:00:00",
+				name: "Endurance with tempo", category: "WORKOUT", externalId: identity.externalID,
+				uid: identity.uid, tags: [IntervalsPolicy.coachTag], coachCreated: true))
 	}
 
 	func ledger(over store: (any ReviewChainLog)? = nil) -> Ledger {

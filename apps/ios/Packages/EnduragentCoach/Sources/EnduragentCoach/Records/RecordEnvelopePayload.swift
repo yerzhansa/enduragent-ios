@@ -13,9 +13,6 @@ enum SyncedPayload: Encodable {
 	case provenance(ProvenancePayload)
 	case coachReplyLanguage(CoachReplyLanguagePayload)
 	case planningDevice(PlanningDevicePayload)
-	case reviewApplied(ReviewAppliedPayload)
-	case reviewWrite(ReviewWritePayload)
-	case reviewCancelledUnknown(ReviewCancelledUnknownPayload)
 	case reviewOutcome(ReviewOutcomePayload)
 	case sessionSettings(SessionSettingsPayload)
 	case languagePreference(LanguagePreferencePayload)
@@ -87,13 +84,6 @@ enum SyncedPayload: Encodable {
 					activatedAt: value.activatedAt.timeIntervalSince1970
 				)
 			)
-		case .reviewApplied(let value):
-			self = .reviewApplied(
-				ReviewAppliedPayload(value))
-		case .reviewWrite(let value):
-			self = .reviewWrite(ReviewWritePayload(value))
-		case .reviewCancelledUnknown(let value):
-			self = .reviewCancelledUnknown(ReviewCancelledUnknownPayload(value))
 		case .reviewOutcome(let value):
 			self = .reviewOutcome(ReviewOutcomePayload(value))
 		case .sessionSettings(let value):
@@ -119,9 +109,6 @@ enum SyncedPayload: Encodable {
 		case .provenance(let payload): try payload.encode(to: encoder)
 		case .coachReplyLanguage(let payload): try payload.encode(to: encoder)
 		case .planningDevice(let payload): try payload.encode(to: encoder)
-		case .reviewApplied(let payload): try payload.encode(to: encoder)
-		case .reviewWrite(let payload): try payload.encode(to: encoder)
-		case .reviewCancelledUnknown(let payload): try payload.encode(to: encoder)
 		case .reviewOutcome(let payload): try payload.encode(to: encoder)
 		case .sessionSettings(let payload): try payload.encode(to: encoder)
 		case .languagePreference(let payload): try payload.encode(to: encoder)
@@ -137,8 +124,6 @@ enum DeviceLocalPayload: Encodable {
 	case turnClaim(TurnClaimPayload)
 	case replyObserved(TurnAttemptPayload)
 	case pendingSettlement(TurnSettledPayload)
-	case pendingProposal(ProposalPayload)
-	case proposalCleared(ProposalClearedPayload)
 	case flushPending(FlushPendingPayload)
 	case flushSettled(FlushSettledPayload)
 	case planningCommand(PlanningCommandPayload)
@@ -174,27 +159,6 @@ enum DeviceLocalPayload: Encodable {
 			)
 		case .pendingSettlement(let value):
 			self = .pendingSettlement(TurnSettledPayload(value))
-		case .pendingProposal(let value):
-			self = .pendingProposal(
-				ProposalPayload(
-					writeID: value.writeID?.rawValue,
-					chatId: value.chatId.rawValue,
-					nonce: value.nonce.rawValue,
-					tool: value.tool.rawValue,
-					toolInput: GatedToolInputPayload(value.toolInput),
-					summary: value.summary,
-					description: value.description,
-					expiresAt: value.expiresAt.timeIntervalSince1970
-				)
-			)
-		case .proposalCleared(let value):
-			self = .proposalCleared(
-				ProposalClearedPayload(
-					chatId: value.chatId.rawValue,
-					nonce: value.nonce.rawValue,
-					reason: value.reason.rawValue
-				)
-			)
 		case .flushPending(let value):
 			self = .flushPending(
 				FlushPendingPayload(
@@ -269,8 +233,6 @@ enum DeviceLocalPayload: Encodable {
 		case .turnClaim(let payload): try payload.encode(to: encoder)
 		case .replyObserved(let payload): try payload.encode(to: encoder)
 		case .pendingSettlement(let payload): try payload.encode(to: encoder)
-		case .pendingProposal(let payload): try payload.encode(to: encoder)
-		case .proposalCleared(let payload): try payload.encode(to: encoder)
 		case .flushPending(let payload): try payload.encode(to: encoder)
 		case .flushSettled(let payload): try payload.encode(to: encoder)
 		case .planningCommand(let payload): try payload.encode(to: encoder)

@@ -221,7 +221,7 @@ final class MailboxExecution {
 		switch progress {
 		case .textDelta, .attemptRestarted:
 			mailbox.publish(liveText: true)
-		case .activity, .proposalPending:
+		case .activity:
 			mailbox.publish()
 		}
 	}

@@ -126,13 +126,15 @@ enum TrainingSettingsProofScreen {
 		TutorialHarness.waitForIdentifier(app, "training.saved", reading: "Saved")
 		capture(test, app, name: "different-athlete-saved")
 		TutorialHarness.returnToChat(app)
+		let add = TutorialHarness.named(app, "chat.preview.add")
+		TutorialHarness.wait(add, until: .hittable)
+		add.tap()
 		TutorialHarness.waitForIdentifier(
-			app, "chat.preview.notice",
+			app, "chat.review.notice",
 			reading:
 				"This workout was prepared for a different intervals.icu athlete. Ask me again to prepare it for the connected athlete."
 		)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.add").exists)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.cancel").exists)
+		ReviewCardScreen.assertButtons(app, .cancelOnly)
 		capture(test, app, name: "different-athlete-old-review")
 	}
 

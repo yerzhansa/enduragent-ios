@@ -60,7 +60,7 @@ import Testing
 
 		let bad = turn(
 			[
-				("intervals_create_workout", "{}"), ("intervals_fetch_streams", "not json"),
+				("prepare_workout_changes", "{}"), ("intervals_fetch_streams", "not json"),
 				("intervals_fetch_activities", #"{"oldest":"1998-06-11","newest":"1998-06-12"}"#),
 			],
 			reply: "The ride started at 08:00 UTC.", sent: "/review the ride",
@@ -69,7 +69,7 @@ import Testing
 			LiveVerdict.violations(of: bad, against: expectations + unmet) == [
 				"the coach did not receive the athlete's message unchanged",
 				"the reply labels a time UTC",
-				"calendar tools were called: intervals_create_workout",
+				"workout changes were prepared",
 				"a workout review is waiting",
 				"intervals_fetch_streams was called with arguments that are not JSON",
 				#"intervals_fetch_streams was not called with activityId "i5501""#,
@@ -107,7 +107,7 @@ import Testing
 			),
 			(
 				"workout",
-				[run(1, ["calendar tools were called: intervals_create_workout"]), run(2, [])]
+				[run(1, ["workout changes were prepared"]), run(2, [])]
 			),
 			("zones", [run(1, [])]),
 			("review-brief", [run(1, ["intervals_fetch_activity was not called"])]),

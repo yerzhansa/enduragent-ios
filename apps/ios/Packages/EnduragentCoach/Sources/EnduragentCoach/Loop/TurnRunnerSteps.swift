@@ -61,9 +61,6 @@ extension TurnRunner {
 			}
 			let outcomes = try await runTools(calls, scope: scope)
 			for (call, outcome) in outcomes {
-				if case .pending(let proposal) = outcome {
-					await progress(.proposalPending(proposal))
-				}
 				wire.append(
 					WireMessage(
 						role: .tool,
@@ -104,10 +101,6 @@ extension TurnRunner {
 			)
 			assistantText = recovery.text
 		}
-		if let outcome = try await scope.savedReviewWork() {
-			return .savedWork(outcome, saved: await scope.summary)
-		}
-
 		let reply: ReplyText =
 			assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 			? .catalog(Catalog.coachFallbackStepLimit) : .model(assistantText)
@@ -151,8 +144,6 @@ extension TurnRunner {
 						outcome = try await ToolRuntime.execute(
 							tool, arguments: arguments, scope: scope
 						).outcome
-					} catch let saved as SavedWorkReached {
-						throw saved
 					} catch is CancellationError {
 						throw CancellationError()
 					} catch  where Task.isCancelled {
@@ -207,11 +198,6 @@ func encodeToolOutcome(_ outcome: ToolOutcome) -> String {
 	switch outcome {
 	case .result(let json):
 		return json.canonicalDigestInput()
-	case .pending(let proposal):
-		return JSONValue.object([
-			"pendingConfirmation": .bool(true),
-			"summary": .string(proposal.summary),
-		]).canonicalDigestInput()
 	case .truncated(let notice, let tokens, let omittedRecords):
 		return JSONValue.object([
 			"truncated": .bool(true),

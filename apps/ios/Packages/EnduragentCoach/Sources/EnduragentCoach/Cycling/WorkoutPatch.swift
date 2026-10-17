@@ -7,7 +7,7 @@ package struct WorkoutPatch: Sendable, Equatable {
 	package let description: String?
 	package let trainingLoad: Int?
 	package let workoutDocument: JSONValue?
-	package let authoredSteps: JSONValue?
+	package let authoredSteps: AuthoredSteps?
 
 	private static let fieldNames: Set<String> = [
 		"date", "name", "durationSeconds", "description", "trainingLoad", "structure",
@@ -32,16 +32,16 @@ package struct WorkoutPatch: Sendable, Equatable {
 		var durationSeconds = try fields["durationSeconds"].map(parsedDuration)
 		var description = try fields["description"].map(parsedDescription)
 		var workoutDocument: JSONValue?
-		var steps: JSONValue?
+		var steps: AuthoredSteps?
 		if let structure = fields["structure"] {
 			guard case .object = structure else {
 				throw ToolInputError(code: "invalid_input", details: "structure must be an object.")
 			}
 			if isAuthored(structure) {
-				let serialized = try authoredSteps(structure)
+				let (authored, serialized) = try authoredSteps(structure)
 				durationSeconds = serialized.movingTime
 				description = serialized.description
-				steps = structure
+				steps = authored
 			} else {
 				workoutDocument = structure
 			}
@@ -103,12 +103,13 @@ package struct WorkoutPatch: Sendable, Equatable {
 	}
 
 	private static func authoredSteps(_ structure: JSONValue) throws(ToolInputError)
-		-> SerializedWorkout
+		-> (AuthoredSteps, SerializedWorkout)
 	{
+		let authored: AuthoredSteps
 		let serialized: SerializedWorkout
 		do throws(InvalidWorkout) {
-			serialized = try IntervalsSerializer.serialize(
-				try IntervalsSerializer.parseStructuredSteps(structure))
+			authored = try AuthoredSteps.structure(structure)
+			serialized = try IntervalsSerializer.serialize(authored.workout)
 		} catch {
 			throw ToolInputError(code: "invalid_workout", details: error.message)
 		}
@@ -118,7 +119,9 @@ package struct WorkoutPatch: Sendable, Equatable {
 				code: "invalid_workout",
 				details: "Workout duration must be a finite number of seconds greater than zero.")
 		}
-		return SerializedWorkout(description: serialized.description, movingTime: movingTime)
+		return (
+			authored, SerializedWorkout(description: serialized.description, movingTime: movingTime)
+		)
 	}
 
 	private static func destination(_ value: JSONValue, today: CivilDate) throws(ToolInputError)

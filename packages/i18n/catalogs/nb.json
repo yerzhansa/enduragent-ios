@@ -2936,8 +2936,6 @@
     "accountChanged": "Denne treningsøkten ble klargjort for en annen utøver på {{service}}. Be meg på nytt om å klargjøre den for den tilkoblede utøveren.",
     "add": "Legg til i kalender",
     "cannotVerify": "Jeg kunne ikke kontrollere tilkoblingen din til {{service}}, så ingenting ble endret. Prøv igjen om litt.",
-    "turnStopping": "Dette svaret er i ferd med å stoppe. Når det har stoppet, kan du godkjenne eller avbryte gjennomgangen av treningsøkten.",
-    "earlierVersion": "Denne treningsgjennomgangen er fra en tidligere versjon av appen og kan ikke lenger brukes.",
     "cancelledUnknown": "Avbrutt. Denne treningsøkten kan likevel ha blitt lagret. Sjekk kalenderen din.",
     "saveFailed": "Kunne ikke lagre valget ditt på denne iPhonen, så ingenting ble endret. Prøv igjen.",
     "storageUnavailable": "Kunne ikke lese den lagrede gjennomgangen av treningsøkten. Knappene er midlertidig deaktivert.",
@@ -2948,10 +2946,7 @@
       "mainSet": "Hoveddel",
       "cooldown": "Nedtrapping",
       "ramp": "gradvis økning"
-    },
-    "writePending": "Denne treningsøkten kan ha blitt lagret. Sjekk kalenderen før du fortsetter.",
-    "writeReadFailed": "Kalenderen kunne ikke kontrolleres. Den godkjente treningsøkten din venter fortsatt.",
-    "saveApprovedAgain": "Lagre den godkjente treningsøkten på nytt"
+    }
   },
   "credits": {
     "buy": "Kjøp",

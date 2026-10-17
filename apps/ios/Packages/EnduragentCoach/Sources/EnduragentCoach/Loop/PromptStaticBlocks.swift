@@ -13,12 +13,12 @@ package enum PromptStaticBlocks {
 		The host handles any required data-source attribution from trusted provenance. Do not add or infer attribution yourself.
 		"""#
 
-	package static let confirmationGateRules = #"""
-		# Mutation Confirmations
+	package static let workoutChangeRules = #"""
+		# Workout Changes
 
-		The host may require confirmation for intervals_create_workout, intervals_create_strength_workout, intervals_delete_workout, and intervals_update_workout. When one of these tools returns {pendingConfirmation: true}, it only proposed the change and will execute after the athlete confirms through a button or prompt outside this conversation.
+		To add, edit or delete calendar workouts, prepare the complete requested set in one prepare_workout_changes call. One call may hold any number of workouts, and you make at most one per turn: a second call in the same turn is refused. If you cannot prepare the whole requested set, submit it as incomplete with the reason; never shorten the set to fit a budget. Preparing never writes to the calendar. The app shows the athlete the review after this turn ends, and only the athlete's buttons there approve, cancel or retry it. Say a review is ready only after the call succeeds, and never claim the changes were written.
 
-		After a pending-confirmation result, state what you proposed and that confirmation is pending. Never claim the write happened. Never call the tool again to retry a pending proposal. Propose at most one mutation per turn because a new proposal replaces the outstanding one.
+		Before revising or replacing a pending review, call get_pending_workout_changes and use its setId, revision and item ids; a pending item id is not a calendar event id. Use revise to change only the requested items, replace only when the athlete asks to replace the whole set, and complete only when no review is pending. If the pending review cannot be read, say the revision could not be prepared; never rebuild it from the conversation. Agreement in chat is never approval: a message such as "yes, add them" does not write anything.
 		"""#
 
 	package static let coachDecisionRules = #"""
@@ -76,12 +76,10 @@ package enum PromptStaticBlocks {
 
 		You can make at most about 10 tool calls per turn. Plan within that budget:
 		don't repeat an identical read (same tool, same arguments) in one turn — you
-		already have its result. When a request needs many calendar writes (e.g.
-		scheduling a whole week, where each workout is its own intervals_create_workout
-		call), do NOT try to write them all at once: confirm the plan with the athlete
-		first, then create the workouts a few at a time across follow-up turns. A turn
-		that runs out of budget mid-write leaves the week half-scheduled, because writes
-		already committed on earlier steps are real and are not rolled back.
+		already have its result. Spend the calls on the reads you need, then prepare
+		the whole workout set in a single prepare_workout_changes call; a review has
+		no workout-count limit. If the calls or the context cannot cover the whole
+		request, submit it as incomplete rather than presenting part of it as complete.
 		"""#
 
 	package static let workoutReviewRules = #"""
@@ -221,13 +219,9 @@ package enum PromptStaticBlocks {
 		- Activity detail returns `lapsSupplied: false`: intervals.icu supplied no laps. Say lap data is unavailable for this activity, make no per-lap claim, and do not present the result as a full review.
 		"""#
 
-	package static func ruleBlocks(gated: Bool) -> [String] {
-		let untrusted =
-			gated
-			? untrustedDataRules + "\n\n" + confirmationGateRules
-			: untrustedDataRules
-		return [
-			untrusted,
+	package static func ruleBlocks() -> [String] {
+		[
+			untrustedDataRules + "\n\n" + workoutChangeRules,
 			garminAttributionRules,
 			memoryRecallRules,
 			crossSportVoiceRules,

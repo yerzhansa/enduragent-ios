@@ -114,30 +114,6 @@ package struct ProvenanceBody: Sendable, Equatable {
 	package var contentSha256: String
 }
 
-package struct ProposalBody: Sendable, Equatable {
-	package var writeID: CalendarWriteID? = nil
-	package var chatId: ChatID
-	package var nonce: Nonce
-	package var tool: GatedToolName
-	package var toolInput: GatedToolInput
-	package var summary: String
-	package var description: String
-	package var expiresAt: Date
-}
-
-package struct ProposalClearedBody: Sendable, Equatable {
-	package var chatId: ChatID
-	package var nonce: Nonce
-	package var reason: ProposalClearReason
-}
-
-package enum ProposalClearReason: String, Sendable {
-	case executed
-	case replaced
-	case expired
-	case canceled
-}
-
 package struct ReviewAppliedBody: Sendable, Equatable {
 	package var chatId: ChatID
 	package var summary: ReviewSummary

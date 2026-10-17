@@ -185,8 +185,6 @@ extension LiveAttempt {
 			text = ""
 		case .activity(let next):
 			activity = next
-		case .proposalPending:
-			return
 		}
 	}
 }

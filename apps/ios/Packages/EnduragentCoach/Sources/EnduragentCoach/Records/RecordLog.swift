@@ -6,15 +6,24 @@ import Synchronization
 package struct RecordQuery: Sendable, Equatable {
 	package enum Scope: Sendable, Equatable {
 		case synced(Set<SyncedKind>, includeLegacy: Set<LegacyKind>)
-		case deviceLocal(Set<DeviceLocalKind>)
+		case deviceLocal(Set<DeviceLocalKind>, includeLegacy: Set<LegacyKind>)
 
 		package static func synced(_ kinds: Set<SyncedKind>) -> Scope {
 			.synced(kinds, includeLegacy: [])
 		}
 
+		package static func deviceLocal(_ kinds: Set<DeviceLocalKind>) -> Scope {
+			.deviceLocal(kinds, includeLegacy: [])
+		}
+
 		package static let everySynced: Scope = .synced(
-			Set(SyncedKind.allCases), includeLegacy: Set(LegacyKind.allCases))
-		package static let everyDeviceLocal: Scope = .deviceLocal(Set(DeviceLocalKind.allCases))
+			Set(SyncedKind.allCases), includeLegacy: legacyKinds(.synced))
+		package static let everyDeviceLocal: Scope = .deviceLocal(
+			Set(DeviceLocalKind.allCases), includeLegacy: legacyKinds(.deviceLocal))
+
+		private static func legacyKinds(_ locality: RecordLocality) -> Set<LegacyKind> {
+			Set(LegacyKind.allCases.filter { $0.locality == locality })
+		}
 
 		var locality: RecordLocality {
 			switch self {
@@ -27,9 +36,10 @@ package struct RecordQuery: Sendable, Equatable {
 			switch self {
 			case .synced(let kinds, let legacy):
 				kinds.count == SyncedKind.allCases.count
-					&& legacy.count == LegacyKind.allCases.count
-			case .deviceLocal(let kinds):
+					&& legacy == Self.legacyKinds(.synced)
+			case .deviceLocal(let kinds, let legacy):
 				kinds.count == DeviceLocalKind.allCases.count
+					&& legacy == Self.legacyKinds(.deviceLocal)
 			}
 		}
 
@@ -37,8 +47,8 @@ package struct RecordQuery: Sendable, Equatable {
 			switch self {
 			case .synced(let kinds, let legacy):
 				Set(kinds.map(\.rawValue)).union(legacy.map(\.rawValue))
-			case .deviceLocal(let kinds):
-				Set(kinds.map(\.rawValue))
+			case .deviceLocal(let kinds, let legacy):
+				Set(kinds.map(\.rawValue)).union(legacy.map(\.rawValue))
 			}
 		}
 
@@ -46,10 +56,11 @@ package struct RecordQuery: Sendable, Equatable {
 			switch (self, body) {
 			case (.synced(let kinds, _), .synced(let synced)):
 				kinds.contains(synced.kind)
-			case (.synced(_, let legacy), .legacy(let body)):
-				legacy.contains(body.kind)
-			case (.deviceLocal(let kinds), .deviceLocal(let local)):
+			case (.deviceLocal(let kinds, _), .deviceLocal(let local)):
 				kinds.contains(local.kind)
+			case (.synced(_, let legacy), .legacy(let body)),
+				(.deviceLocal(_, let legacy), .legacy(let body)):
+				legacy.contains(body.kind) && body.kind.locality == locality
 			default:
 				false
 			}

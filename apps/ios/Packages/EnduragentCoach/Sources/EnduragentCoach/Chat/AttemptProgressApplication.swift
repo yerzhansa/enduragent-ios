@@ -6,9 +6,6 @@ extension ChatRecords {
 		if case .textDelta(let delta) = progress, !delta.isEmpty {
 			await observeReply(turn, stamp: stamp)
 		}
-		if case .proposalPending = progress {
-			_ = await refreshReview()
-		}
 	}
 }
 

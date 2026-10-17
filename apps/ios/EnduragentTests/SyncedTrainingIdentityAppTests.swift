@@ -49,7 +49,7 @@ struct SyncedTrainingIdentityAppTests {
 		}
 	}
 
-	@Test func sceneResumeKeepsScrollRevisionWhenReviewVerificationChanges() async throws {
+	@Test func sceneResumeKeepsAWaitingReviewArmedWhenTheProfileCannotBeRead() async throws {
 		let harness = FixtureLaunchTests()
 		let services = try harness.services()
 		let fixture = try #require(services.fixture)
@@ -64,10 +64,7 @@ struct SyncedTrainingIdentityAppTests {
 		try await until { model.chat?.review != nil }
 		let review = try #require(model.chat?.review)
 		await model.decide(.presented(review.ref))
-		try await until {
-			if case .approveOrCancel? = model.chat?.review?.controls { return true }
-			return false
-		}
+		try await until { model.chat?.review?.controls.isApproveOrCancel == true }
 		let finished = try #require(model.chat)
 		model.draft.text = "What about Friday?"
 		let draft = model.draft
@@ -79,15 +76,11 @@ struct SyncedTrainingIdentityAppTests {
 			try await model.waitForStatus {
 				$0.training.notice?.key == Catalog.connectErrorProfileUnavailable
 			}
-			try await until {
-				model.chat?.review?.notice?.key == Catalog.reviewCannotVerify
-			}
 			let rechecked = try #require(await harness.firstSnapshot(services, chat: .main))
 			#expect(rechecked.turns == finished.turns)
-			#expect(rechecked.liveReply == finished.liveReply)
-			#expect(rechecked.review?.ref.review == review.ref.review)
-			#expect(rechecked.review?.controls == ReviewControls.none)
-			#expect(rechecked != finished)
+			#expect(rechecked.review?.ref == review.ref)
+			#expect(rechecked.review?.controls.isApproveOrCancel == true)
+			#expect(rechecked.review?.notice == nil)
 			#expect(rechecked.revision == finished.revision)
 			#expect(model.chat?.revision == finished.revision)
 			#expect(model.draft == draft)
@@ -115,10 +108,10 @@ struct SyncedTrainingIdentityAppTests {
 		try fixture.trainingPeer.replace(.athleteB)
 		await model.sceneChanged(.becameActive)
 		try await model.waitForStatus { $0.training.athleteName == "Bo Lind" }
-		try await until { model.chat?.review?.notice?.key == Catalog.reviewAccountChanged }
 		#expect(model.connected?.athleteName == "Bo Lind")
 		#expect(model.chat?.review?.ref.review == original.ref.review)
-		#expect(model.chat?.review?.controls == ReviewControls.none)
+		let token = try #require(model.chat?.review?.controls.approveToken)
+		try await harness.approvalIsBlockedForTheChangedAthlete(on: model, using: token)
 		try fixture.trainingPeer.delete()
 		await model.sceneChanged(.becameActive)
 		try await model.waitForStatus { $0.training == .unconnected }
@@ -127,6 +120,10 @@ struct SyncedTrainingIdentityAppTests {
 		#expect(fixture.trainingPeer.athleteA.events.isEmpty)
 		#expect(fixture.trainingPeer.athleteB.events.isEmpty)
 	}
+}
+
+extension ReviewControls {
+	fileprivate var isApproveOrCancel: Bool { approveToken != nil }
 }
 
 extension TrainingStatus {

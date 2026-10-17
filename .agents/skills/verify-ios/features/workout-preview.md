@@ -1,58 +1,46 @@
 # Workout review
 
-The coach puts proposed calendar changes in a Workout review in the ongoing conversation. The athlete approves or cancels the review as one decision. A successful approval leaves a saved outcome in the transcript; an unavailable review explains why its controls cannot be used.
+The coach prepares calendar changes during a turn, and the app commits them as one Workout review when the reply ends. The card appears after the turn that committed it, or at the top of a new conversation marked Prepared earlier, and never during the reply. The athlete approves or cancels the review as one decision. A finished review leaves its outcome lines in the transcript as `chat.note`.
 
 ## Sub-features
 
-- `preview-show` displays the workout cards with Cancel to the left of Add to calendar. Both controls wait until the review has appeared before they enable.
-- `preview-add` applies the review and saves its Done line as `chat.note`. The line survives relaunch and is readable in History after New conversation.
-- `preview-cancel` clears the review without writing the workouts. It remains gone after another message and after relaunch.
-- `preview-account-changed` replaces approval controls with `chat.preview.notice` when the connected athlete differs from the one the review was prepared for.
-- `preview-earlier-version` shows `This workout review is from an earlier version of the app and can no longer be applied.` for an unexpired v1 review. Check create, update, and delete reviews, both connected to intervals.icu and disconnected. The notice uses `review.earlierVersion` in the chosen language, and neither approval nor cancel controls appear.
-- `preview-outcome` shows `chat.review.notice` when a decision encounters expiry, a stale review, changed account, unavailable connection, failed write, or uncertain write result. While the review is still shown, the sentence and its Connect button sit inside the card, above the decision buttons. Once the review is gone, the sentence is its own transcript row.
-- `preview-language` localizes the title, buttons, notices, and saved Done line.
+- `preview-show` displays the workout cards after the turn's reply. The card's buttons come from its control set and each one waits for the card's token, so none is enabled before the card has appeared.
+- `preview-control-sets` shows one layout per control set: Cancel and Add to calendar to approve; Try again and Cancel after a change that was not saved; Check again and Cancel for an unconfirmed change; Cancel alone for a blocked review. A finished review has no button.
+- `preview-add` runs the review and saves one outcome line per change as `chat.note`, such as `Endurance with tempo, 6/16/1998: change saved.` The lines survive relaunch and are readable in History after New conversation.
+- `preview-cancel` closes the review without writing the remaining changes. It stays closed after another message and after relaunch.
+- `preview-lost-answer` reads the calendar at once when a write loses its answer. A change found there gives `change seen on the calendar.` with no second write.
+- `preview-unconfirmed` keeps an unconfirmed change with Check again and Cancel while the calendar cannot be read. Each time the app comes to the front it reads the change again. A change read as absent goes back to the remaining work with the `workouts.stopped` notice, Cancel and Add to calendar.
+- `preview-account-changed` blocks a review prepared for another athlete when Add is tapped. The sentence shows as `chat.review.notice` inside the card and only Cancel remains.
+- `preview-upgrade` opens reviews saved by build 6833d90f. An open review closes with `This review was prepared before the app was updated. Ask the coach again.` and no control, offline and online. An unknown write opens as an unconfirmed change offline. Online, the read finds nothing and the card offers Cancel and Add to calendar again. A completed review keeps its notes.
+- `preview-storage-unavailable` shows `review.storageUnavailable` on the card when the saved review cannot be read, with no enabled control. The card is readable again the next time the app comes to the front.
+- `preview-language` localizes the title, buttons, notices, outcome lines and the workout step headings, such as Warmup, Main set and Cooldown.
 - `preview-composer` keeps review rows above the opaque composer when the keyboard opens for a plain message. Send stays hittable.
-- `preview-unknown-save` shows one pending-save sentence and only Check again. An absent observation adds Cancel and Save approved workout again. A failed calendar read keeps Check again in the same session. A never-approved card has neither approved-save sentence.
-- `preview-cancel-unknown` commits a lasting Cancel note without a calendar request, including offline and locked credentials. Fresh reviews work before and after New conversation; the note stays in History.
-- `preview-storage-unavailable` retains and disables the previous decision buttons, shows `review.storageUnavailable` once, and keeps Try again enabled. Try again rereads saved records and restores valid controls without a model request or calendar call.
-- `preview-choice-save-failed` keeps approval controls available and shows `review.saveFailed` once when Add or Cancel cannot save the choice. The sentence follows the chosen language and no calendar write runs.
-- `preview-largest-text` keeps the review readable and its controls tappable at the largest accessibility text size in all 17 languages. The accessibility order is the title, the workout, the notice, then the controls.
-- `preview-expired` omits an expired review after relaunch without writing a review outcome or clearing record.
+- `preview-largest-text` keeps the review readable and every control set tappable at the largest accessibility text size in all 17 languages. The accessibility order is the title, the workout, the notice, then the controls.
 
 ## How to get to it (user POV)
 
 - Send `Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks` from the conversation.
 - Choose Cancel or Add to calendar on the resulting review.
-- Change the connected athlete through Settings > intervals.icu, `settings.training`, while a review exists.
-- Launch the committed `.v1Review` fixture with `TutorialHarness.launchUpgrade`, then inspect the earlier-version notice while disconnected and connected.
+- Change the connected athlete through Settings > intervals.icu, `settings.training`, while a review exists, or through the peer controls in Settings > Debug.
+- Launch a build 6833d90f store with `FixtureArguments(store: .openReviewBeforeUpgrade, onboarded: true)`, `.unknownWriteBeforeUpgrade` or `.completedBeforeUpgrade`. Add `calendarReadFault: .failOnce` to open it offline.
 
 ## Driving it with sim and XCUITest
 
 Preconditions:
 
 - Follow the [index](./README.md) setup. Approval proofs connect the fixture athlete during onboarding.
-- Wait for `chat.preview.add` or `chat.preview.cancel` to become enabled before tapping.
+- Wait for the button you need to become enabled before tapping. `ReviewCardScreen.assertButtons` checks the exact identifiers, labels and enabled state of one control set.
 
 | Action and command | Observable result and attachment |
 | --- | --- |
-| `sim test <run id> UnknownCalendarSaveProof` | Light proofs assert exact sentence counts and review button identifiers and labels for unknown, absent, failed-read, and never-approved states. Attachments start with `calendar-`. |
-| `sim test <run id> CancelUnknownSaveProof` | Offline and locked Cancel leave one buttonless note after relaunch, allow fresh reviews in both conversations, and keep the original note in History. Screenshots start with `cancel-`. |
-| `sim test <run id> ReconnectReviewProof` | Peer B replacement removes A's approval controls and requires B's own approval. Rotated A restores the review after relaunch and Check again confirms its unknown save with one read and no second save. Under B, online and offline Cancel make no A/B request, allow an immediate fresh review, and retain the exact button-free note after relaunch. Attachments start with `U5-4-`. |
-| `sim test <run id> SavedReviewReadFailureProof` | Approval, Check again, repeat approval, Cancel only, and read-only layouts retain their labels while disabled. Try again remains enabled after another failed read and restores valid controls without model or calendar requests. Screenshots start with `review-unreadable-` and `review-restored-`. |
-| `sim test <run id> ReviewStorageFailureProof` | Failed Add shows the not-saved sentence in English; failed Cancel shows it in French. Each keeps the review, shows one notice, makes no calendar write or model request, and allows a later Cancel. Attachments start with `review-save-failed-`. Saved-review read recovery is owned by `SavedReviewReadFailureProof`. |
-| `sim test <run id> ConfirmedPreviewProof` | Workout review, Warmup, and the enabled controls in order, `07-confirmed-preview`. |
-| `sim test <run id> DoneLineSurvivesRelaunchProof` | Saved outcome before and after relaunch, `done-before-relaunch`, `done-after-relaunch`. |
-| `sim test <run id> PreviewCancelStaysGoneProof` | Cancel removes the review through another message and relaunch; Records contains `proposalCleared canceled`, `preview-before-cancel`, `preview-canceled-after-next-message`, `preview-canceled-records`. |
-| `sim test <run id> ReviewLanguageProof` | A saved pending cycling review reopens in French with French regional decimals, repetitions, cadence, and an unchanged copied label. Approval leaves a durable outcome that follows a later English choice in conversation and History. Attachments start `u9-4-review-reopened-fr-`, `u9-4-outcome-reopened-fr-`, and `u9-4-history-outcome-en-`, and end with `light`. |
+| `sim test <run id> ReviewUpgradeProof` | The three build 6833d90f stores. The open review shows the ask-again note once with no control, offline and after an online relaunch. The unknown write shows Check again and Cancel offline, Cancel and Add to calendar after an online relaunch reads nothing, then the saved line after Add to calendar. Each online relaunch passes `relaunchKeepingStore(app, clearingReadFaults: true)`, which drops `calendarReadFault` and `recordReadFault`. The completed review keeps its note. Attachments start with `u9-2-upgrade-`. |
+| `sim test <run id> ReviewLostAnswerProof` | A lost answer is read at once and the line reads `change seen on the calendar.` with no control left, `u9-2-review-lost-answer-seen`. |
+| `sim test <run id> ReviewStorageNoticeProof` | The record-read launch hook fails one read after the card is armed. The card shows the storage notice with no enabled control, and a relaunch without the fault restores Cancel and Add to calendar without the notice, `u9-2-review-storage-notice`, `u9-2-review-storage-notice-cleared`. |
 | `sim test <run id> ReviewCardComposerProof/testKeyboardKeepsReviewRowsAboveTheComposer` | The keyboard opens while a review is visible. Transcript rows and Add stay above the composer, and Send remains hittable, `review-card-composer-keyboard`. |
-| `sim test <run id> ExpiredReviewProof/testAReviewPastTenMinutesIsGoneAfterRelaunchWithNoWrite` | Relaunch eleven minutes after the proposal removes the card without a Done line or write, `review-before-expiry`, `review-expired-after-relaunch`, `review-expired-records`. |
-| `sim test <run id> LegacyReviewNoticeProof/testV1ReviewIsReadOnlyDisconnectedConnectedAndInGerman` | The committed v1 review has no approval or cancel controls, `v1-review-disconnected`, `v1-review-connected`, `v1-review-german`. Records retains `pendingProposal 1` without `proposalCleared` or `reviewApplied`, `v1-review-records`, `v1-review-german-records`. |
-| `sim test <run id> DifferentAthleteProof` | A refused replacement preserves the existing connection; confirmed Switch athlete hides review controls, `different-athlete-confirmation-light`, `different-athlete-saved-light`, `different-athlete-old-review-light`. |
-| `sim test <run id> SameAthleteRotationProof` | A replacement for the same athlete preserves review approval, `same-athlete-saved-light`, `same-athlete-added-light`. |
-| `sim test <run id> ResetKeepsReviewProof` | New conversation leaves the pending review available, `reset-keeps-review`, `reset-keeps-review-records`. |
+| `sim test <run id> DifferentAthleteProof` | A replacement for another athlete asks for confirmation while the review waits; Cancel keeps Ada. Switch athlete saves Bo, and Add on the old review shows the athlete-changed sentence with Cancel alone, `different-athlete-confirmation-light`, `different-athlete-saved-light`, `different-athlete-old-review-light`. |
+| `sim test <run id> SameAthleteRotationProof` | A replacement for the same athlete keeps the review approvable, `same-athlete-saved-light`, `same-athlete-added-light`. |
+| `sim test <run id> ResetKeepsReviewProof` | New conversation shows the waiting review at the top marked Prepared earlier with Cancel and Add to calendar. Records hold `workoutReview` rows and no `reviewOutcome`, `reset-keeps-review`, `reset-keeps-review-records`. |
 | `sim test <run id> NoCrossChatMemoProof` | After approval, a later turn retries its server failure and finishes; the earlier prepared-ride reply remains visible without a failure notice, `no-cross-chat-memo-done`, `no-cross-chat-memo`. |
-
-For the v1 notice, follow the Upgrade proofs paragraph of the [verify-ios skill](../SKILL.md). `LegacyReviewNoticeProof` copies the committed `.v1Review` stores before launch and must pass with zero skips. It checks the create review while disconnected, connected, and in German. Package migration tests cover v1 edit and deletion reviews. Keep the fixture clock within the review's lifetime. A missing committed store is a failure.
 
 ## Largest text size and VoiceOver order
 
@@ -61,18 +49,19 @@ The `ReviewAccessibility` classes prove the review card at the largest accessibi
 | Test method | States it checks, in order |
 | --- | --- |
 | `testApprovalControls` | A connected athlete. `approval` with Cancel and Add to calendar, `content` scrolled to the workout, `cancelled` after Cancel. Add is reached and not tapped. |
-| `testUncertainSaveControls` | A connected athlete whose save lost its answer. `save-uncertain` with the pending sentence and Check again, `save-again` with Check again, Cancel and Save approved workout again, `cancelled-unknown` with the cancellation note. |
+| `testUnconfirmedChangeControls` | The build 6833d90f unknown write, opened offline. `unconfirmed` with Check again and Cancel, `not-saved` with the `workouts.stopped` notice, Cancel and Add to calendar after Check again finds nothing, `cancelled-unsaved` after Cancel. Add to calendar is reached and not tapped. |
+| `testBlockedReviewControls` | A review whose athlete changed through the peer controls before Add. `cancel-only` with Cancel alone, `cancelled-blocked` after Cancel. |
 
-Each flow launches in English at the default text size, finishes onboarding, chooses the language in Settings > Language and asks for the workout. It then relaunches the same store with `FixtureArguments.textSize = .accessibilityXXXL`, which passes `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL`. Only the review is driven at the largest size, so typing and Settings stay at the size the harness is proven at.
+Each flow launches in English at the default text size, finishes onboarding or opens the upgrade store, chooses the language in Settings > Language and reaches its first state. It then relaunches the same store with `FixtureArguments.textSize = .accessibilityXXXL`, which passes `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL`. Only the review is driven at the largest size, so typing and Settings stay at the size the harness is proven at. The unconfirmed flow keeps `calendarReadFault: .failOnce` on the relaunch, so the change is still unconfirmed when it is read at the largest size.
 
-For each state the proof reads one accessibility snapshot of the transcript row that holds the review. It fails unless the elements are, in order, the localized title, the workout text, the notice lines, then each control with its catalog title. Each element must start below or to the right of the one before it and stay inside the row. Each control must be enabled and at least 44 points tall, which also fails if the text size did not apply. `performAccessibilityAudit` then checks clipped text, Dynamic Type and hit regions for the elements inside that row. XCUITest cannot drive VoiceOver itself; the snapshot order and the frames are what VoiceOver reads from. The proof taps Cancel and Check again and brings Add to calendar and Save approved workout again on screen. Screenshots are named `u9-6-<tag>-<state>`.
+For each state the proof reads one accessibility snapshot of the transcript row that holds the review. It fails unless the elements are, in order, the localized title, the workout text, the notice lines, then each control with its catalog title. Each element must start below or to the right of the one before it and stay inside the row. Each control must be enabled and at least 44 points tall, which also fails if the text size did not apply. `performAccessibilityAudit` then checks clipped text, Dynamic Type and hit regions for the elements inside that row. XCUITest cannot drive VoiceOver itself; the snapshot order and the frames are what VoiceOver reads from. Screenshots are named `u9-2-<tag>-<state>`.
 
 The proof does not open Settings > Debug at the largest text size, so it does not read the fixture request count.
 
 Run the 14 release sweeps on two simulators for a release pass. Add the three suite classes to the same command for all 17 languages:
 
 ```sh
-caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-6/simulator-proof" swift run --quiet --package-path tools sim suite --build-folder /tmp/enduragent-dd/U9-6-sim --shards 2 ReviewAccessibilityEnSweep ReviewAccessibilityEsSweep ReviewAccessibilityFrSweep ReviewAccessibilityItSweep ReviewAccessibilityNlSweep ReviewAccessibilityDaSweep ReviewAccessibilitySvSweep ReviewAccessibilityNbSweep ReviewAccessibilityFiSweep ReviewAccessibilityPtBRSweep ReviewAccessibilityPlSweep ReviewAccessibilityKoSweep ReviewAccessibilityJaSweep ReviewAccessibilityZhHansSweep
+caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m4/9.2/simulator-proof" swift run --quiet --package-path tools sim suite --build-folder /tmp/enduragent-dd/9.2-sim --shards 2 ReviewAccessibilityEnSweep ReviewAccessibilityEsSweep ReviewAccessibilityFrSweep ReviewAccessibilityItSweep ReviewAccessibilityNlSweep ReviewAccessibilityDaSweep ReviewAccessibilitySvSweep ReviewAccessibilityNbSweep ReviewAccessibilityFiSweep ReviewAccessibilityPtBRSweep ReviewAccessibilityPlSweep ReviewAccessibilityKoSweep ReviewAccessibilityJaSweep ReviewAccessibilityZhHansSweep
 ```
 
 To resume, read `summary.md` in the suite folder and run the same command with only the classes that are missing or failed. To repeat one flow of one language, run `sim test <run id> ReviewAccessibilityJaSweep/testApprovalControls`.
@@ -80,14 +69,12 @@ To resume, read `summary.md` in the suite folder and run the same command with o
 ## Gotchas
 
 - The fixture presents a review only for a message that contains `endurance ride` and does not start with `/workout` or `/status`. `/workout`, alone or with text after it, waits 8 seconds and replies in text with no workout review.
-- `fixture.failNextAppend` fails the next record append. Arm it through `TutorialHarness.fixtureControl` in Settings > Debug after the review is presented and the proposing turn has settled, then tap Add or Cancel. Reach every Debug row through `TutorialHarness.debugRow`, and use `TutorialHarness.returnToChat` to leave Settings or the language picker.
-- `FixtureArguments(calendarSaveFault: .loseAnswerOnce)` stores the full approval under its UID before losing the answer. `calendarReadFault: .failOnce` affects only the next event list or event fetch. Relaunch with `.keep` retains the unknown write records and opens an empty fake calendar for the absent-read proof. The record-read launch hook waits for a presented, settled card. Settings > Debug controls, reached with `fixtureControl`, arm the same read fault for other layouts. Try again restores controls without checking the calendar.
-- The fake intervals.icu client keeps calendar writes in memory. The Done line and Records are the visible evidence because the app has no calendar screen.
-- `ReconnectReviewProof` reuses the peer controls and unknown-save fixture. The peer receipt includes separate A/B calendar-call and profile-read counts. `fixture.failCalendarRead` arms both athletes; the fault stays armed through Cancel and a fresh review while connected to B. Same-athlete read-back runs before another relaunch because the fake calendar is held in memory.
-- A review expires after ten minutes. A later launch omits the expired review, while a decision on a stale on-screen review shows the expiry notice.
-- A review can survive New conversation. It is not a second ongoing conversation.
-- A restored v1 review must be unexpired to exercise the earlier-version notice. Connected and disconnected are distinct cases.
+- The card is committed when the reply ends. Wait for the turn to settle before you look for it.
+- `fixture.failNextAppend` fails the next record append. Arm it through `TutorialHarness.fixtureControl` in Settings > Debug after the review is presented and the proposing turn has settled, then tap a button. Reach every Debug row through `TutorialHarness.debugRow`, and use `TutorialHarness.returnToChat` to leave Settings or the language picker.
+- `FixtureArguments(calendarSaveFault: .loseAnswerOnce)` stores the change before losing the answer, so the immediate read finds it. `calendarReadFault: .failOnce` affects only the next event list or event fetch; at launch that is the read of an unconfirmed change. The fake calendar starts empty at every launch, so an upgraded unknown write is read as absent once reads work.
+- The build 6833d90f stores belong to athlete `i1001` under a fixed connection that the store policy installs. The fixture clock stays on 1998-06-15.
+- The fake intervals.icu client keeps calendar writes in memory. The outcome lines and Records are the visible evidence because the app has no calendar screen.
+- A waiting review has no timer. It survives New conversation and shows once at the top of the new one.
 - The compact phone can truncate a long workout description. Inspect the visible cards and controls, and preserve the screenshot rather than assuming every step fits.
 - Interactive captures must restore light appearance afterwards.
 - The keyboard proof requires the software keyboard. Also inspect the opaque composer after manually scrolling rows under it.
-- The fixture clock is fixed for each launch. `ExpiredReviewProof` verifies expiry on relaunch; `SingleProposalReviewsTests.approveWithStaleTokenIsStaleControl` covers a decision on an expired review without a write.

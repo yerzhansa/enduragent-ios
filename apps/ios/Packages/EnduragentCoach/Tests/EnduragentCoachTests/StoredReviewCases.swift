@@ -8,7 +8,7 @@ enum StoredCase: CaseIterable, Sendable {
 	case tryAgainRefused, tryAgainNotSaved, tryAgainCouldNotCheck, tryAgainInterrupted
 	case tryAgainSettled
 	case unconfirmed
-	case blockedTurnStopping, blockedTrainingNotConnected, blockedCannotVerify
+	case blockedTrainingNotConnected, blockedCannotVerify
 	case blockedAccountChanged, blockedPastProtected, blockedCoachOnly, blockedWorkoutOnly
 	case blockedReviewedBeforeUpgrade
 	case checking, sending, completed, canceledWithUnconfirmed, canceledWithNothingUnconfirmed
@@ -122,7 +122,6 @@ extension StoredCase {
 	fileprivate init(_ block: ReviewBlock) {
 		self =
 			switch block {
-			case .turnStopping: .blockedTurnStopping
 			case .trainingNotConnected: .blockedTrainingNotConnected
 			case .cannotVerify: .blockedCannotVerify
 			case .accountChanged: .blockedAccountChanged

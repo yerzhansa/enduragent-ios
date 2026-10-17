@@ -7,6 +7,5 @@ package enum TurnPolicy {
 	package static let historyBudgetFloor = 8_000
 	package static let contextWindowCap = 200_000
 	package static let reserveTokens = 20_000
-	package static let ungatedPrefixTokenCeiling = 13_200
-	package static let gatedPrefixTokenCeiling = 13_600
+	package static let prefixTokenCeiling = 13_600
 }

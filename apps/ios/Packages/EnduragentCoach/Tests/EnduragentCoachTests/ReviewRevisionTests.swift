@@ -47,7 +47,8 @@ import Testing
 		#expect(renamed.patch.name == "Tempo")
 		#expect(renamed.patch.durationSeconds == 2_400)
 		#expect(renamed.patch.description == earlier.patch.description)
-		#expect(renamed.patch.authoredSteps == (try JSONValue.parse(ReviewTurns.authoredSteps)))
+		#expect(
+			renamed.patch.authoredSteps?.json == (try JSONValue.parse(ReviewTurns.authoredSteps)))
 		#expect(try WorkoutReviewPayload.decode(WorkoutReviewPayload.encode(second)) == second)
 	}
 
@@ -246,9 +247,9 @@ import Testing
 		}
 		let workout = try JSONValue.parse(PreparationFixture.ride(on: "1998-09-09"))
 			.objectFields["workout"]
-		#expect(ride.payload.authoredSteps == workout)
+		#expect(ride.payload.authoredSteps?.json == workout)
 		#expect(strength.payload.authoredSteps == nil)
-		#expect(edit.patch.authoredSteps == (try JSONValue.parse(ReviewTurns.authoredSteps)))
+		#expect(edit.patch.authoredSteps?.json == (try JSONValue.parse(ReviewTurns.authoredSteps)))
 		guard
 			case .add(let old) = try reviewFixture("workout-review-approval").work.remaining.first?
 				.action

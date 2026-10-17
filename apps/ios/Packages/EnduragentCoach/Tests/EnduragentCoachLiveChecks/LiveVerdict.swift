@@ -14,9 +14,8 @@ enum LiveVerdict {
 		if reply.range(of: #"\bUTC\b"#, options: .regularExpression) != nil {
 			found.append("the reply labels a time UTC")
 		}
-		let gated = turn.toolCalls.filter { GatedToolName(rawValue: $0.name) != nil }
-		if !gated.isEmpty {
-			found.append("calendar tools were called: \(gated.map(\.name).joined(separator: ", "))")
+		if turn.toolCalls.contains(where: { $0.name == ToolName.prepareWorkoutChanges.rawValue }) {
+			found.append("workout changes were prepared")
 		}
 		if turn.reviewPending { found.append("a workout review is waiting") }
 		if turn.calendarWrites > 0 { found.append("the calendar was written") }

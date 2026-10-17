@@ -50,16 +50,6 @@ struct SerializerTests {
 		#expect(mismatches.isEmpty, "\(mismatches.joined(separator: "; "))")
 	}
 
-	@Test func slugifyMatchesDesktop() {
-		#expect(ChatExternalID.slugify(name: "Z2 Endurance 90min") == "z2-endurance-90min")
-		#expect(ChatExternalID.slugify(name: "Endurance") == "endurance")
-		#expect(ChatExternalID.slugify(name: "---") == "workout")
-		#expect(ChatExternalID.slugify(name: "") == "workout")
-		let long = String(repeating: "a", count: 50)
-		#expect(ChatExternalID.slugify(name: long).count == 40)
-		#expect(IntervalsSerializer.slug(date: "1998-06-14", name: "Endurance") == "endurance")
-	}
-
 	@Test func emptyNameThrows() {
 		#expect(throws: InvalidWorkout.self) {
 			_ = try IntervalsSerializer.serialize(

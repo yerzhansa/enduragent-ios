@@ -27,7 +27,7 @@ Preconditions:
 
 | Action and command | Observable result and attachment |
 | --- | --- |
-| `sim test <run id> AthleteOwnershipProof` | Before a peer replacement, after it and after relaunch, History shows the exact saved-athlete line only where appropriate. The retained review loses approval controls and asks for a fresh review. Attachments start with `u5-3-` and cover the conversation, review, History and unverified archive. |
+| `sim test <run id> AthleteOwnershipProof` | Before a peer replacement, after it and after relaunch, History shows the exact saved-athlete line only where appropriate. Add on the retained review shows the athlete-changed sentence and leaves Cancel alone, which stays after relaunch. Attachments start with `u5-3-` and cover the conversation, review, History and unverified archive. |
 | `sim test <run id> HistoryListProof` | History is empty after the first reply; `/start` creates one row, `history-empty`, `history-list`. |
 | `sim test <run id> ReplyFormattingProof ReplyTableProof ReplyStreamingStoppedProof ReplyFallbackProof` | A New conversation archive preserves formatted replies, table row labels, stopped prefixes and the literal fallback. The [conversation map](./chat.md) names the attachments and parity procedure. |
 | `sim test <run id> HistoryArchivedProof` | The toolbar reset creates a row; opening it shows the prior question, reply, and read-only notice, `history-row`, `history-archived`. |

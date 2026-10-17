@@ -2936,8 +2936,6 @@
     "accountChanged": "Det här träningspasset förbereddes för en annan idrottare på {{service}}. Be mig igen att förbereda det för den anslutna idrottaren.",
     "add": "Lägg till i kalendern",
     "cannotVerify": "Jag kunde inte kontrollera din anslutning till {{service}}, så inget ändrades. Försök igen om en liten stund.",
-    "turnStopping": "Det här svaret håller på att stoppas. När det har stoppats kan du godkänna eller avbryta granskningen av träningspasset.",
-    "earlierVersion": "Den här träningsgranskningen kommer från en tidigare version av appen och kan inte längre tillämpas.",
     "cancelledUnknown": "Avbrutet. Det här träningspasset kan ändå ha sparats. Kontrollera din kalender.",
     "saveFailed": "Det gick inte att spara ditt val på denna iPhone, så ingenting ändrades. Försök igen.",
     "storageUnavailable": "Kunde inte läsa den sparade granskningen av träningspasset. Knapparna är tillfälligt inaktiverade.",
@@ -2948,10 +2946,7 @@
       "mainSet": "Huvuddel",
       "cooldown": "Nedvarvning",
       "ramp": "gradvis ökning"
-    },
-    "writePending": "Det här träningspasset kan ha sparats. Kontrollera kalendern innan du fortsätter.",
-    "writeReadFailed": "Kalendern kunde inte kontrolleras. Ditt godkända träningspass väntar fortfarande på bekräftelse.",
-    "saveApprovedAgain": "Spara det godkända träningspasset igen"
+    }
   },
   "credits": {
     "buy": "Köp",

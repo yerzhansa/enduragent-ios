@@ -21,45 +21,6 @@ public struct EventID: Hashable, Sendable {
 	public init(rawValue: Int) { self.rawValue = rawValue }
 }
 
-public struct ChatExternalID: Hashable, Sendable {
-	public var date: CivilDate
-	public var slug: String
-
-	public var rawValue: String {
-		"cycling-coach:\(date):\(slug)"
-	}
-
-	public static func slugify(name: String) -> String {
-		var characters: [Character] = []
-		var pendingDash = false
-		for character in name.lowercased() {
-			guard let ascii = character.asciiValue else {
-				pendingDash = true
-				continue
-			}
-			let isDigit = ascii >= 48 && ascii <= 57
-			let isLetter = ascii >= 97 && ascii <= 122
-			if isDigit || isLetter {
-				if pendingDash, !characters.isEmpty {
-					characters.append("-")
-				}
-				characters.append(character)
-				pendingDash = false
-			} else {
-				pendingDash = true
-			}
-		}
-		var slug = String(characters)
-		if slug.count > 40 {
-			slug = String(slug.prefix(40))
-			while slug.hasSuffix("-") {
-				slug.removeLast()
-			}
-		}
-		return slug.isEmpty ? "workout" : slug
-	}
-}
-
 public struct CalendarEvent: Sendable, Equatable {
 	package var description: String? = nil
 	package var type: String? = nil

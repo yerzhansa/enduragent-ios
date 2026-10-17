@@ -38,6 +38,20 @@ extension SourceCases {
 			"current-era fixture date", fixture, #"{"start_date_local":"2026-06-07"}"#,
 			"fixture-date"),
 		rejectsWithoutData(
+			"current-era date in the npm topic record",
+			"\(coachTests)/Fixtures/knowledge-topics-npm.json",
+			#"{"reason":"copied on 2026-04-18"}"#, "fixture-date"),
+		rejectsWithoutData(
+			"current-era date beside the npm topic copies",
+			"\(coachTests)/Fixtures/knowledge-topics-npm/notes.json", #"{"date":"2026-04-18"}"#,
+			"fixture-date"),
+		.accepts(
+			"accepts a current-era date in a verbatim npm topic copy",
+			[
+				"\(coachTests)/Fixtures/knowledge-topics-npm/intervals-icu.md":
+					#""date": "2026-04-18","#
+			]),
+		rejectsWithoutData(
 			"environment file", ".env.production", "TOKEN=placeholder", "forbidden-path"),
 		rejectsWithoutData(
 			"local app credentials", "apps/ios/.dev.vars", "TOKEN=placeholder", "forbidden-path"),

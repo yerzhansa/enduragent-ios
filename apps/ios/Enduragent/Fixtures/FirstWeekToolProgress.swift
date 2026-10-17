@@ -20,12 +20,8 @@
 					.toolCall(
 						name: ToolName.intervalsFetchActivities.rawValue, arguments: weekArguments),
 					.finish(reason: .toolCalls),
-					.toolCall(
-						name: ToolName.intervalsCreateWorkout.rawValue, arguments: workoutArguments),
-					.finish(reason: .toolCalls),
-					.text(toolProgressCompletion),
-					.finish(reason: .stop),
-				], requestDelay: request.step == 0 ? slowToolModelDelay : nil
+				] + preparation + [.text(toolProgressCompletion), .finish(reason: .stop)],
+				requestDelay: request.step == 0 ? slowToolModelDelay : nil
 			).step(request.step)
 		}
 	}

@@ -113,8 +113,7 @@ import Testing
 				.intervalsFetchWellness: dateRange, .intervalsFetchActivity: nil,
 				.intervalsFetchStreams: "fewer stream types",
 				.intervalsFetchActivities: dateRange, .intervalsListEvents: dateRange,
-				.intervalsCreateWorkout: nil, .intervalsCreateStrengthWorkout: nil,
-				.intervalsDeleteWorkout: nil, .intervalsUpdateWorkout: nil, .memoryRead: nil,
+				.getPendingWorkoutChanges: nil, .prepareWorkoutChanges: nil, .memoryRead: nil,
 				.memoryQuery: "a shorter from/to range or a query filter", .memoryWrite: nil,
 				.ledgerAppend: nil,
 			])
