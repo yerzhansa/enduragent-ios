@@ -223,6 +223,22 @@ import Testing
 			verdict.differences == [TargetDifference(change: Fixture.change(0), fields: [field])])
 	}
 
+	@Test func aLoadTheAthleteTypedIsNamedWhenTheEditSendsTheSameSteps() throws {
+		let reviewed = Fixture.stepped(201, on: "1998-09-10", load: 61)
+		var typed = reviewed
+		typed.trainingLoad = 90
+		let patch = Fixture.patch(date: "1998-09-12", description: Fixture.stepsDescription)
+		let review = try Fixture.review([try Fixture.edit(reviewed, patch)])
+
+		let verdict = Self.judged(review, Calendar([typed]))
+
+		#expect(
+			verdict
+				== .changed(
+					targets: [Fixture.change(0): try typed.snapshot], kept: [],
+					differences: [TargetDifference(change: Fixture.change(0), fields: [.load])]))
+	}
+
 	@Test func eligibilityIsJudgedBeforeADifferenceOnTheSameTarget() throws {
 		var race = Self.edited
 		race.movingTime = 5400

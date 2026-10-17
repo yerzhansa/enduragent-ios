@@ -51,7 +51,7 @@ extension WorkoutPatch {
 		unrewritten(applied(to: current).differences(from: current), on: current).isEmpty
 	}
 
-	func unrewritten(_ fields: Set<SnapshotField>, on current: WorkoutSnapshot)
+	private func unrewritten(_ fields: Set<SnapshotField>, on current: WorkoutSnapshot)
 		-> Set<SnapshotField>
 	{
 		guard description != nil, applied(to: current).hasParsedSteps else { return fields }

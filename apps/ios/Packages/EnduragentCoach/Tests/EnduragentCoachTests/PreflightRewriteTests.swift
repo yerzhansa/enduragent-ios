@@ -23,6 +23,7 @@ extension PreflightJudgeTests {
 		let unexplained: CalendarEvent
 		let unexplainedPatch: WorkoutPatch
 		let unexplainedField: SnapshotField
+		var preflightNames: Set<SnapshotField> = []
 
 		var testDescription: String { label }
 	}
@@ -39,7 +40,8 @@ extension PreflightJudgeTests {
 					date: "1998-09-12", description: Fixture.stepsDescription, load: 33),
 				saved: Fixture.stepped(201, on: "1998-09-12", load: 22),
 				unexplained: Fixture.stepped(201, on: "1998-09-10", load: 22),
-				unexplainedPatch: Fixture.patch(load: 33), unexplainedField: .load)
+				unexplainedPatch: Fixture.patch(load: 33), unexplainedField: .load,
+				preflightNames: [.load])
 		],
 		"workout_doc derivedFromDescription": [
 			RewriteCase(
@@ -83,7 +85,7 @@ extension PreflightJudgeTests {
 		],
 	]
 
-	@Test func eachListedRewriteNeedsNoNewApprovalAndReadsAsAppliedAfterASave() throws {
+	@Test func eachListedRewriteReadsAsAppliedAfterASaveAndPreflightStillNamesLoad() throws {
 		let listed = try JSONDecoder().decode(
 			ListedRewrites.self, from: try fixtureData("intervals-rewrites"))
 		let names = listed.rewrites.map { "\($0.field) \($0.rule)" }
@@ -94,7 +96,17 @@ extension PreflightJudgeTests {
 			let review = try Fixture.review([try Fixture.edit(example.reviewed, example.patch)])
 			let saved = try example.saved.snapshot
 			let rewritten = Self.judged(review, Calendar([example.rewritten]))
-			#expect(rewritten.kind == .clear, "\(example.label): \(rewritten)")
+			if example.preflightNames.isEmpty {
+				#expect(rewritten.kind == .clear, "\(example.label): \(rewritten)")
+			} else {
+				#expect(
+					rewritten.differences
+						== [
+							TargetDifference(
+								change: Fixture.change(0), fields: example.preflightNames)
+						],
+					"\(example.label): \(rewritten)")
+			}
 			#expect(example.patch.isApplied(on: saved), "\(example.label)")
 
 			let unexplained = Self.judged(

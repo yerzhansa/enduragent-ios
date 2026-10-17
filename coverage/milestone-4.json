@@ -638,7 +638,8 @@
 			"id": "5.1.2",
 			"statement": "A deleted target gives blocked(cannotVerify), and the verdict carries no refreshed values, even beside a changed target.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "aDeletedTargetCannotBeVerifiedAndNoTargetIsRefreshed"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "aDeletedTargetCannotBeVerifiedAndNoTargetIsRefreshed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "aDeleteTargetGoneFromIntervalsCannotBeVerified"}
 			]
 		},
 		{
@@ -668,15 +669,16 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "aWorkoutThatWentFrom60To90MinutesIsNamedWithItsDuration"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "eachReviewedFieldChangedAloneIsNamedAlone"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "aLoadTheAthleteTypedIsNamedWhenTheEditSendsTheSameSteps"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "aChangeMadeOnIntervalsAfterPreflightAndBeforeTheWriteIsNotDetected"}
 			]
 		},
 		{
 			"id": "5.1.7",
-			"statement": "A change only in server metadata gives clear; each rewrite intervals-rewrites.json lists gives clear and isApplied(on:) reads the rewritten save as applied, while the same field changed in a way the rule does not explain is named.",
+			"statement": "A change only in server metadata gives clear; each rewrite intervals-rewrites.json lists gives clear, except that preflight names every Load difference, and isApplied(on:) reads the rewritten save as applied, while the same field changed in a way the rule does not explain is named.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "aChangeOnlyInServerMetadataNeedsNoNewApproval"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRewriteTests.swift", "function": "eachListedRewriteNeedsNoNewApprovalAndReadsAsAppliedAfterASave"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRewriteTests.swift", "function": "eachListedRewriteReadsAsAppliedAfterASaveAndPreflightStillNamesLoad"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarWriterTests.swift", "function": "eachSettleReadsOnceAndGivesWhatTheCalendarShows"}
 			]
 		},

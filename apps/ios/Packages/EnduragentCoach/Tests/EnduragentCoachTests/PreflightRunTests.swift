@@ -98,6 +98,13 @@ import Testing
 		#expect(writes.isEmpty)
 	}
 
+	@Test func aDeleteTargetGoneFromIntervalsCannotBeVerified() async throws {
+		intervals.events = [Self.edited, Self.kept]
+
+		#expect(await preflight(try Self.mixedSet()) == .blocked(.cannotVerify))
+		#expect(writes.isEmpty)
+	}
+
 	@Test func anotherAthletesKeyAfterReviewBlocksBeforeAnyRead() async throws {
 		intervals.events = [Self.edited, Self.deleted, Self.kept]
 
