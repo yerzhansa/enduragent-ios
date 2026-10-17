@@ -10,7 +10,7 @@ protocol ChainForwardingLog: ReviewChainLog {
 }
 
 extension ChainForwardingLog {
-	func newest(_ query: RecordQuery) async throws -> AthleteRecord? {
+	func newest(_ query: RecordQuery) async throws -> NewestRecord {
 		try await chainStore.newest(query)
 	}
 

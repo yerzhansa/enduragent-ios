@@ -3016,6 +3016,7 @@
     "notPreparedInformationSaved": "정보는 저장되었지만 운동 검토 내용을 준비할 수 없습니다.",
     "stopped": "모든 변경이 적용되기 전에 운동 검토가 중단되었습니다. 이미 적용된 변경은 유지됩니다.",
     "outcome": {
+      "closedAtUpgrade": "이 운동 검토는 앱이 업데이트되기 전에 준비되었습니다. 코치에게 다시 요청하세요.",
       "saved": "{{workout}}, {{date}}: 변경이 저장되었습니다.",
       "seenOnCalendar": "{{workout}}, {{date}}: 변경이 캘린더에서 확인되었습니다.",
       "noLongerOnCalendar": "{{workout}}, {{date}}: 더 이상 캘린더에 없습니다.",

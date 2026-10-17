@@ -3016,6 +3016,7 @@
     "notPreparedInformationSaved": "你的資訊已儲存，但無法準備訓練審核內容。",
     "stopped": "訓練審核在完成所有變更之前已停止。已完成的變更會保留。",
     "outcome": {
+      "closedAtUpgrade": "此訓練審核是在 App 更新前準備的。請重新詢問教練。",
       "saved": "{{workout}}（{{date}}）：變更已儲存。",
       "seenOnCalendar": "{{workout}}（{{date}}）：已在行事曆中看到此變更。",
       "noLongerOnCalendar": "{{workout}}（{{date}}）：已不在行事曆中。",

@@ -3056,6 +3056,7 @@
     "notPreparedInformationSaved": "Tietosi tallennettiin, mutta harjoituksen tarkistusta ei voitu valmistella.",
     "stopped": "Harjoituksen tarkistus pysähtyi ennen kuin kaikki muutokset tehtiin. Jo tehdyt muutokset säilyvät.",
     "outcome": {
+      "closedAtUpgrade": "Tämä harjoituksen tarkistus valmisteltiin ennen sovelluksen päivitystä. Pyydä valmentajaa uudelleen.",
       "saved": "{{workout}}, {{date}}: muutos tallennettu.",
       "seenOnCalendar": "{{workout}}, {{date}}: muutos näkyy kalenterissa.",
       "noLongerOnCalendar": "{{workout}}, {{date}}: ei enää kalenterissa.",

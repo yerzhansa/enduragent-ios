@@ -11,20 +11,25 @@ struct UpgradeStoreSeed {
 	let seed: String
 	let destinationVariable: String
 	let scenarios: [String]
+	let appFixtures: [String]
 
 	static let all = [
 		UpgradeStoreSeed(
 			fixture: "v1-upgrade", commit: "82254bbda75ba79b0156d7efd3deac223489b2b0",
 			seed: "V1UpgradeStoreSeed", destinationVariable: "V1_UPGRADE_DESTINATION",
-			scenarios: ["history", "review"]),
+			scenarios: ["history", "review"], appFixtures: [UpgradeStoresCommand.firstWeek]),
 		UpgradeStoreSeed(
 			fixture: "pre-vault-5de5c782", commit: "5de5c782689764543b6d12aa30690912b21f53ee",
 			seed: "PreVaultStoreSeed", destinationVariable: "UPGRADE_STORE_DESTINATION",
-			scenarios: [""]),
+			scenarios: [""], appFixtures: [UpgradeStoresCommand.firstWeek]),
 		UpgradeStoreSeed(
 			fixture: "build-2bbe2ee", commit: "2bbe2ee52bb7e8e0df277ae978a89c39d780acf8",
 			seed: "Build2bbe2eeStoreSeed", destinationVariable: "UPGRADE_STORE_DESTINATION",
-			scenarios: [""]),
+			scenarios: [""], appFixtures: [UpgradeStoresCommand.firstWeek]),
+		UpgradeStoreSeed(
+			fixture: "build-6833d90f", commit: "6833d90fcc1f98cc34feb4a6a7c7d30eff92d830",
+			seed: "Build6833d90fStoreSeed", destinationVariable: "UPGRADE_STORE_DESTINATION",
+			scenarios: ["open-review", "unknown-write", "completed"], appFixtures: []),
 	]
 }
 
@@ -74,16 +79,19 @@ struct UpgradeStoresCommand {
 		let archive = NodePath.join(scratch, "frozen.tar")
 		try require(
 			"git",
-			["-C", root, "archive", "--output", archive, seed.commit, Self.package, Self.firstWeek])
+			["-C", root, "archive", "--output", archive, seed.commit, Self.package]
+				+ seed.appFixtures)
 		try require("tar", ["-x", "-C", scratch, "-f", archive])
 		let package = NodePath.join(scratch, Self.package)
 		let tests = NodePath.join(package, "Tests/EnduragentCoachTests")
 		try files.copyItem(
 			atPath: NodePath.join(root, "tools/fixtures/\(seed.seed).swift"),
 			toPath: NodePath.join(tests, "\(seed.seed).swift"))
-		try files.copyItem(
-			atPath: NodePath.join(scratch, Self.firstWeek),
-			toPath: NodePath.join(tests, "FirstWeekFixture.swift"))
+		for fixture in seed.appFixtures {
+			try files.copyItem(
+				atPath: NodePath.join(scratch, fixture),
+				toPath: NodePath.join(tests, NodePath.basename(fixture)))
+		}
 		let generated = NodePath.join(scratch, "stores")
 		var environment = ProcessInfo.processInfo.environment
 		environment["OPENROUTER_API_KEY"] = ""

@@ -2571,6 +2571,7 @@ public enum Catalog {
 	public static let workoutsBlockedReviewedBeforeUpgrade = CatalogKey(rawValue: "workouts.blocked.reviewedBeforeUpgrade")
 	public static let workoutsNotPrepared = CatalogKey(rawValue: "workouts.notPrepared")
 	public static let workoutsNotPreparedInformationSaved = CatalogKey(rawValue: "workouts.notPreparedInformationSaved")
+	public static let workoutsOutcomeClosedAtUpgrade = CatalogKey(rawValue: "workouts.outcome.closedAtUpgrade")
 	public static let workoutsOutcomeGivenUp = CatalogKey(rawValue: "workouts.outcome.givenUp")
 	public static let workoutsOutcomeMayHaveBeenSaved = CatalogKey(rawValue: "workouts.outcome.mayHaveBeenSaved")
 	public static let workoutsOutcomeNoLongerOnCalendar = CatalogKey(rawValue: "workouts.outcome.noLongerOnCalendar")

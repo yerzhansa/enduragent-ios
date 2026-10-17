@@ -111,7 +111,7 @@ package actor Ledger {
 		return page
 	}
 
-	private func report(_ rows: [SkippedRow]) {
+	func report(_ rows: [SkippedRow]) {
 		for skipped in rows where reportedSkips.count < Self.reportedSkipLimit {
 			if reportedSkips.insert(skipped).inserted {
 				diagnostics.record(.skippedRecord(skipped))

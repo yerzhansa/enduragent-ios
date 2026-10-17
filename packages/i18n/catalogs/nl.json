@@ -3056,6 +3056,7 @@
     "notPreparedInformationSaved": "Je gegevens zijn opgeslagen, maar de trainingsbeoordeling kon niet worden voorbereid.",
     "stopped": "De trainingsbeoordeling is gestopt voordat alle wijzigingen waren doorgevoerd. Wijzigingen die al zijn doorgevoerd, blijven behouden.",
     "outcome": {
+      "closedAtUpgrade": "Deze trainingsbeoordeling is voorbereid voordat de app werd bijgewerkt. Vraag het de coach opnieuw.",
       "saved": "{{workout}}, {{date}}: wijziging opgeslagen.",
       "seenOnCalendar": "{{workout}}, {{date}}: wijziging gezien in de kalender.",
       "noLongerOnCalendar": "{{workout}}, {{date}}: staat niet meer in de kalender.",

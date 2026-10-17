@@ -1,11 +1,13 @@
 extension SourceCases {
 	static let reviewOutcomeWriters = [
-		"\(review)/WorkoutReviewDesk.swift", "\(records)/RecordCodec.swift",
+		"\(review)/WorkoutReviewDesk.swift", "\(review)/ReviewUpgrade.swift",
+		"\(records)/RecordCodec.swift",
 		"\(records)/RecordEnvelopePayload.swift", "\(records)/ReviewOutcomeBody.swift",
 	]
 	static let reviewOutcomeOutside = [
 		"\(review)/WorkoutReviewDrive.swift", "\(review)/ReviewProjection.swift",
 		"\(records)/ReviewChain.swift", "\(records)/AthleteRecord.swift",
+		"\(records)/ReviewUpgrade.swift",
 		"apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Coach.swift",
 	]
 	static let reviewOutcomeWrites = [

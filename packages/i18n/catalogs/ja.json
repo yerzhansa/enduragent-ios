@@ -3016,6 +3016,7 @@
     "notPreparedInformationSaved": "情報は保存されましたが、ワークアウトの確認内容を準備できませんでした。",
     "stopped": "すべての変更が完了する前に、ワークアウトの確認が停止しました。すでに行われた変更はそのまま残ります。",
     "outcome": {
+      "closedAtUpgrade": "このワークアウトの確認はアプリのアップデート前に準備されたものです。もう一度コーチに依頼してください。",
       "saved": "{{workout}}（{{date}}）：変更を保存しました。",
       "seenOnCalendar": "{{workout}}（{{date}}）：変更がカレンダーで確認されました。",
       "noLongerOnCalendar": "{{workout}}（{{date}}）：カレンダーにはもうありません。",

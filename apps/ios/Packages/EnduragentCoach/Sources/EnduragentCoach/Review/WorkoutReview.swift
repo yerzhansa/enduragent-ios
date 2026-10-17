@@ -90,13 +90,6 @@ package enum NextStep: Equatable, Sendable {
 	case publish
 }
 
-public enum ControlSet: Equatable, Sendable {
-	case approveOrCancel
-	case tryAgainOrCancel
-	case checkAgainOrCancel
-	case cancelOnly
-}
-
 extension WorkoutReview {
 	static func committing(
 		_ draft: ReviewDraft, _ work: [ReviewChange], kept: [KeptWorkout],
@@ -107,6 +100,18 @@ extension WorkoutReview {
 			chat: draft.chat, account: draft.binding.account, origin: draft.key,
 			work: ReviewWork(finished: base?.work.finished ?? [], remaining: work), kept: kept,
 			stage: .waiting(.approval(base == nil ? .prepared : .revised)))
+	}
+
+	static func upgraded(_ legacy: LegacyUnknownWrite, change: ChangeID, claim: ClaimID)
+		-> WorkoutReview
+	{
+		let sent = ReviewChange(id: change, position: 0, action: legacy.change)
+		return WorkoutReview(
+			id: legacy.review, revision: ReviewRevision(rawValue: 1), chat: legacy.chat,
+			account: legacy.account, origin: legacy.origin,
+			work: ReviewWork(finished: [], remaining: []), kept: [],
+			stage: .waiting(
+				.unconfirmed(SendAttempt(change: sent, claim: claim, sentAt: legacy.sentAt))))
 	}
 
 	package func claimed(_ claim: Claim) throws(TransitionRefusal) -> WorkoutReview {

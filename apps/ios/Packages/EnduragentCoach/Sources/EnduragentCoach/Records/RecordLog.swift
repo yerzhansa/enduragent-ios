@@ -271,7 +271,7 @@ package struct SwiftDataRecordLog: RecordLog {
 }
 
 extension SwiftDataRecordLog: ReviewChainLog {
-	package func newest(_ query: RecordQuery) async throws -> AthleteRecord? {
+	package func newest(_ query: RecordQuery) async throws -> NewestRecord {
 		try newest(query, in: ModelContext(container(for: query.scope.locality)))
 	}
 
@@ -282,7 +282,7 @@ extension SwiftDataRecordLog: ReviewChainLog {
 		try handle.chain.withLock { _ in
 			let context = ModelContext(handle.container)
 			context.autosaveEnabled = false
-			let current = RecordHead(try newest(query, in: context))
+			let current = RecordHead(try newest(query, in: context).record)
 			guard current == head else { throw HeadMoved(current: current) }
 			context.insert(try StoredAthleteRecord(record: record))
 			try context.save()
@@ -298,8 +298,11 @@ extension SwiftDataRecordLog: ReviewChainLog {
 			})
 	}
 
-	private func newest(_ query: RecordQuery, in context: ModelContext) throws -> AthleteRecord? {
-		guard var descriptor = Self.rows(matching: query) else { return nil }
+	private func newest(_ query: RecordQuery, in context: ModelContext) throws -> NewestRecord {
+		var skipped: [SkippedRow] = []
+		guard var descriptor = Self.rows(matching: query) else {
+			return NewestRecord(record: nil, skipped: skipped)
+		}
 		descriptor.sortBy = [
 			SortDescriptor(\.hlcWallMs, order: .reverse),
 			SortDescriptor(\.hlcLogical, order: .reverse),
@@ -307,11 +310,17 @@ extension SwiftDataRecordLog: ReviewChainLog {
 		]
 		descriptor.fetchLimit = 1
 		while let row = try context.fetch(descriptor).first {
-			let record = try row.decode().get()
-			if recordMatches(record, query) { return record }
+			switch row.decode() {
+			case .success(let record):
+				if recordMatches(record, query) {
+					return NewestRecord(record: record, skipped: skipped)
+				}
+			case .failure(let reason):
+				skipped.append(reason)
+			}
 			descriptor.fetchOffset = (descriptor.fetchOffset ?? 0) + 1
 		}
-		return nil
+		return NewestRecord(record: nil, skipped: skipped)
 	}
 }
 

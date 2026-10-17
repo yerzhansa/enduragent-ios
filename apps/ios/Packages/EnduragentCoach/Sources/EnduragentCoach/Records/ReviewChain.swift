@@ -1,10 +1,20 @@
 import Foundation
 
 package protocol ReviewChainLog: RecordLog {
-	func newest(_ query: RecordQuery) async throws -> AthleteRecord?
+	func newest(_ query: RecordQuery) async throws -> NewestRecord
 	func append(_ record: AthleteRecord, after head: RecordHead, in query: RecordQuery)
 		async throws
 	func chats(holding scope: RecordQuery.Scope) async throws -> Set<ChatID>
+}
+
+package struct NewestRecord: Sendable, Equatable {
+	package let record: AthleteRecord?
+	package let skipped: [SkippedRow]
+
+	package init(record: AthleteRecord?, skipped: [SkippedRow]) {
+		self.record = record
+		self.skipped = skipped
+	}
 }
 
 package enum RecordHead: Hashable, Sendable {
@@ -40,7 +50,7 @@ extension Ledger {
 		try await openIfNeeded()
 		let newest: AthleteRecord?
 		do {
-			newest = try await chain.newest(Self.chain(of: chat))
+			newest = try await readable(chain.newest(Self.chain(of: chat)))
 		} catch {
 			throw LedgerFailure.unavailable
 		}
@@ -64,15 +74,46 @@ extension Ledger {
 	package func commit(review: WorkoutReview, stamp: OperationStamp, after head: RecordHead)
 		async throws(TransitionFailure) -> AthleteRecord
 	{
+		try await commit(
+			.deviceLocal(.workoutReview(WorkoutReviewBody(review: review))), stamp: stamp,
+			after: head, in: Self.chain(of: review.chat))
+	}
+
+	package func head(of query: RecordQuery) async throws(LedgerFailure) -> RecordHead {
+		try await openIfNeeded()
+		let newest: AthleteRecord?
+		do {
+			newest = try await readable(chain.newest(query))
+		} catch {
+			throw LedgerFailure.unavailable
+		}
+		if let newest { fold(newest.hlc) }
+		return RecordHead(newest)
+	}
+
+	private func readable(_ newest: NewestRecord) -> AthleteRecord? {
+		report(newest.skipped)
+		return newest.record
+	}
+
+	package func commit(
+		synced body: SyncedRecordBody, stamp: OperationStamp, after head: RecordHead,
+		in query: RecordQuery
+	) async throws(TransitionFailure) {
+		_ = try await commit(.synced(body), stamp: stamp, after: head, in: query)
+	}
+
+	private func commit(
+		_ body: RecordBody, stamp: OperationStamp, after head: RecordHead, in query: RecordQuery
+	) async throws(TransitionFailure) -> AthleteRecord {
 		do {
 			try await openIfNeeded()
 		} catch {
 			throw TransitionFailure.storage(error)
 		}
-		let record = prepare(
-			.deviceLocal(.workoutReview(WorkoutReviewBody(review: review))), stamp: stamp)
+		let record = prepare(body, stamp: stamp)
 		do {
-			try await chain.append(record, after: head, in: Self.chain(of: review.chat))
+			try await chain.append(record, after: head, in: query)
 		} catch let moved as HeadMoved {
 			throw TransitionFailure.headMoved(moved.current)
 		} catch {

@@ -306,4 +306,37 @@ extension ReviewRecoveryTests {
 		#expect(changed == .main)
 		#expect(try await rig.head().1?.stage == .completed)
 	}
+
+	@Test func aFinishedReviewWhoseSummaryFailedIsPublishedOnceBeforeANewReviewReplacesIt()
+		async throws
+	{
+		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let rig = DeskRig(store: faults)
+		let review = try rig.mixed()
+		try await rig.save(review)
+		rig.calendar.answer { [rig] _, write in await rig.keep(write) }
+		let desk = try rig.desk()
+		let token = try await rig.token(on: desk)
+		try faults.failAppend(ofKind: "reviewOutcome", skipping: 0)
+		#expect(await desk.decide(.approve(token)) == .storageUnavailable)
+		#expect(try await rig.head().1?.stage == .completed)
+
+		let request = try PreparationFixture.request(ReviewTurns.oneRide, today: DeskRig.today)
+		guard
+			case .drafted = await desk.prepare(
+				.success(request), for: PreparationFixture.key, chat: .main,
+				binding: testStamp(account: PreflightFixture.account).binding,
+				reads: rig.calendar),
+			case .committed = await desk.settle(
+				PreparationFixture.key, in: .main, ending: .finished)
+		else {
+			throw UnexpectedReview(detail: "the new review was not committed")
+		}
+		await desk.recover()
+
+		#expect(
+			try await rig.outcomes().filter { $0.review == review.id }.map(\.ending)
+				== [.completed])
+		#expect(try await rig.head().1?.stage == .waiting(.approval(.prepared)))
+	}
 }

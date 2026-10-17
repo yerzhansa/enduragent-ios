@@ -122,21 +122,248 @@ extension SwiftDataSuites {
 			#expect(kinds(page.records) == ["pendingProposal"])
 		}
 
-		private func open(_ scenario: String, folder: String = "Fixtures/v1-upgrade") throws
-			-> SwiftDataRecordLog
+		@Test func build6833d90fOpenReviewClosesOnceAtUpgrade() async throws {
+			let seed = try await M2Seed(
+				try open("open-review", folder: M2Seed.folder, device: M2Seed.device))
+
+			await (try seed.desk()).recover()
+			await (try seed.desk()).recover()
+
+			#expect(
+				try await seed.outcomes() == [
+					ReviewOutcomeBody(
+						chatId: .main, review: seed.review, revision: ReviewRevision(rawValue: 1),
+						after: seed.turn, ending: .closedAtUpgrade, lines: [])
+				])
+			#expect(try await seed.chain().isEmpty)
+			#expect(seed.calendar.calls.isEmpty)
+		}
+
+		@Test func build6833d90fUnknownWriteBecomesOneUnconfirmedChange() async throws {
+			let seed = try await M2Seed(
+				try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device))
+			seed.calendar.failReads()
+
+			await (try seed.desk()).recover()
+			await (try seed.desk()).recover()
+
+			let chain = try await seed.chain()
+			#expect(chain.count == 1)
+			let review = try #require(chain.first)
+			#expect(review.id == seed.review)
+			#expect(review.account == seed.account)
+			#expect(review.origin.turn == seed.turn)
+			guard case .waiting(.unconfirmed) = review.stage else {
+				Issue.record("the unknown write did not become an unconfirmed change")
+				return
+			}
+			let added = try seed.added(review)
+			#expect(added.identity == seed.identity)
+			#expect(added.identity.externalID == "cycling-coach:\(seed.identity.uid)")
+			#expect(added.payload.date == "1998-06-16")
+			#expect(added.payload.name == "Endurance with tempo")
+			#expect(try await seed.outcomes().isEmpty)
+			#expect(seed.calendar.writes.isEmpty)
+		}
+
+		@Test(arguments: M2Seed.Landing.allCases)
+		func build6833d90fUnknownAddFoundOnTheCalendarFinishesAsSeen(_ landing: M2Seed.Landing)
+			async throws
 		{
-			let source = try #require(
-				Bundle.module.url(
-					forResource: scenario, withExtension: nil, subdirectory: folder))
-			let root = try TestTemporaryFolders.make()
-			try FileManager.default.copyItem(at: source, to: root)
-			return SwiftDataRecordLog(
-				deviceId: DeviceID(
-					rawValue: folder == "Fixtures" ? scenario : "v1-upgrade-fixture"),
-				synced: try ModelContainerHandle.withoutCloudKit(
-					storeURL: root.appending(path: "synced-records.store")),
-				local: try ModelContainerHandle.withoutCloudKit(
-					storeURL: root.appending(path: "local-records.store")))
+			let seed = try await M2Seed(
+				try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device))
+			seed.calendar.failReads()
+			await (try seed.desk()).recover()
+			let added = try seed.added(try #require(try await seed.chain().first))
+			switch landing {
+			case .bulkUpsert:
+				_ = await seed.calendar.base.write(.create(added.payload, identity: seed.identity))
+			case .singleCreate:
+				seed.calendar.base.events.append(
+					CalendarEvent(
+						description:
+							"- 10m 55-65%\n\n2x\n- 10m 190-225w\n- 5m Z1-Z2\n\n- 10m 55-65%",
+						type: "Ride", id: EventID(rawValue: 7001),
+						startDateLocal: "1998-06-16T00:00:00", name: "Endurance with tempo",
+						category: "WORKOUT", externalId: seed.identity.externalID,
+						uid: seed.identity.uid, tags: [IntervalsPolicy.coachTag], coachCreated: true
+					))
+			}
+			seed.calendar.restoreReads()
+
+			await (try seed.desk()).recover()
+
+			#expect(try await seed.chain().last?.stage == .completed)
+			#expect(
+				try await seed.outcomes().map(\.lines) == [
+					[
+						OutcomeLine(
+							position: 0, action: .add, name: "Endurance with tempo",
+							date: "1998-06-16",
+							result: .seenOnCalendar)
+					]
+				])
+			#expect(seed.calendar.writes.isEmpty)
+		}
+
+		@Test func build6833d90fUnknownAddNotFoundIsApprovedAgainUnderTheSameExternalID()
+			async throws
+		{
+			let seed = try await M2Seed(
+				try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device))
+			let desk = try seed.desk()
+
+			await desk.recover()
+
+			let review = try #require(try await seed.chain().last)
+			#expect(review.stage == .waiting(.approval(.interruptedBeforeWriting)))
+			let added = try seed.added(review)
+			let shown = try #require(try await desk.snapshot(chat: .main))
+			#expect(await desk.decide(.presented(shown.ref)) == .presentationRecorded)
+			guard
+				case .armed(_, let token) = try #require(try await desk.snapshot(chat: .main))
+					.controls
+			else {
+				Issue.record("the interrupted upgraded add offered no Approve")
+				return
+			}
+
+			guard case .completed = await desk.decide(.approve(token)) else {
+				Issue.record("approving the upgraded add did not complete")
+				return
+			}
+
+			#expect(seed.calendar.writes == [.create(added.payload, identity: seed.identity)])
+			#expect(
+				seed.calendar.base.events.compactMap(\.externalId) == [seed.identity.externalID])
+		}
+
+		@Test func build6833d90fUnknownWriteFromAnotherDeviceGetsNoReview() async throws {
+			let seed = try await M2Seed(
+				try open("unknown-write", folder: M2Seed.folder, device: "another-phone"))
+
+			await (try seed.desk()).recover()
+			await (try seed.desk()).recover()
+
+			#expect(try await seed.chain().isEmpty)
+			#expect(try await seed.outcomes().isEmpty)
+			#expect(seed.calendar.calls.isEmpty)
+		}
+
+		@Test func build6833d90fCompletedReviewsPlanNothingAndKeepTheirRecords() async throws {
+			let log = try open("completed", folder: M2Seed.folder, device: M2Seed.device)
+			let synced = try await log.fetch(RecordQuery(scope: .everySynced))
+			let local = try await log.fetch(RecordQuery(scope: .everyDeviceLocal))
+			let seed = try await M2Seed(log)
+
+			await (try seed.desk()).recover()
+			await (try seed.desk()).recover()
+
+			#expect(synced.skipped.isEmpty)
+			#expect(local.skipped.isEmpty)
+			#expect(try await log.fetch(RecordQuery(scope: .everySynced)) == synced)
+			#expect(try await log.fetch(RecordQuery(scope: .everyDeviceLocal)) == local)
+			#expect(seed.calendar.calls.isEmpty)
+		}
+
+		@Test func build6833d90fOpenReviewClosesOnceWhenTwoDesksRecoverTogether() async throws {
+			let log = try open("open-review", folder: M2Seed.folder, device: M2Seed.device)
+			let seed = try await M2Seed(log)
+			let held = HeldReadLog(
+				inner: log,
+				holding: .fetch(RecordQuery(scope: .synced([.reviewOutcome]), chatId: .main)),
+				.afterReading)
+			let late = try seed.desk(over: held)
+			let lateRecover = Task { await late.recover() }
+			try await held.waitUntilReached()
+
+			await (try seed.desk()).recover()
+			held.release()
+			await lateRecover.value
+
+			#expect(try await seed.outcomes().map(\.review) == [seed.review])
+			#expect(try await seed.chain().isEmpty)
+		}
+
+		@Test func build6833d90fUnknownWriteSettledByOneDeskIsNotUpgradedAgainByAnother()
+			async throws
+		{
+			let log = try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device)
+			let seed = try await M2Seed(log)
+			let held = HeldReadLog(
+				inner: log, holding: .newest(Self.chain), .beforeReading)
+			let late = try seed.desk(over: held)
+			let lateRecover = Task { await late.recover() }
+			try await held.waitUntilReached()
+			let first = try seed.desk()
+			seed.calendar.failReads()
+			await first.recover()
+			let added = try seed.added(try #require(try await seed.chain().first))
+			_ = await seed.calendar.base.write(.create(added.payload, identity: seed.identity))
+			seed.calendar.restoreReads()
+			await first.recover()
+			#expect(try await seed.chain().last?.stage == .completed)
+
+			held.release()
+			await lateRecover.value
+
+			let chain = try await seed.chain()
+			#expect(chain.filter { if case .waiting = $0.stage { true } else { false } }.count == 1)
+			#expect(chain.last?.stage == .completed)
+			#expect(try await seed.outcomes().map(\.ending) == [.completed])
+			#expect(seed.calendar.writes.isEmpty)
+		}
+
+		@Test func build6833d90fUnknownWriteCanceledOnOneDeskIsNotRevivedByAnother() async throws {
+			let log = try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device)
+			let seed = try await M2Seed(log)
+			let held = HeldReadLog(
+				inner: log, holding: .newest(Self.chain), .beforeReading)
+			let late = try seed.desk(over: held)
+			let lateRecover = Task { await late.recover() }
+			try await held.waitUntilReached()
+			let first = try seed.desk()
+			seed.calendar.failReads()
+			await first.recover()
+			let shown = try #require(try await first.snapshot(chat: .main))
+			#expect(await first.decide(.presented(shown.ref)) == .presentationRecorded)
+			guard
+				case .armed(.checkAgainOrCancel, let token) = try #require(
+					try await first.snapshot(chat: .main)
+				).controls
+			else {
+				Issue.record("the upgraded unconfirmed change offered no Cancel")
+				return
+			}
+			guard case .canceled = await first.decide(.cancel(token)) else {
+				Issue.record("canceling the upgraded unconfirmed change did not cancel it")
+				return
+			}
+			seed.calendar.restoreReads()
+
+			held.release()
+			await lateRecover.value
+
+			let chain = try await seed.chain()
+			#expect(!chain.contains { $0.stage == .waiting(.approval(.interruptedBeforeWriting)) })
+			guard case .canceled = chain.last?.stage else {
+				Issue.record("another desk revived the canceled upgraded change")
+				return
+			}
+			#expect(try await seed.outcomes().map(\.ending) == [.canceled])
+			#expect(seed.calendar.writes.isEmpty)
+		}
+
+		private static let chain = RecordQuery(
+			scope: .deviceLocal([.workoutReview]), chatId: .main)
+
+		private func open(
+			_ scenario: String, folder: String = "Fixtures/v1-upgrade", device: String? = nil
+		) throws -> SwiftDataRecordLog {
+			try UpgradeStore(
+				scenario, folder: folder,
+				device: device ?? (folder == "Fixtures" ? scenario : "v1-upgrade-fixture")
+			).log
 		}
 	}
 }

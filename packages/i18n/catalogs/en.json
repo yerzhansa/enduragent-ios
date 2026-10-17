@@ -3056,6 +3056,7 @@
     "notPreparedInformationSaved": "Your information was saved, but the workout review could not be prepared.",
     "stopped": "This workout review stopped before every change was made. Changes already made are kept.",
     "outcome": {
+      "closedAtUpgrade": "This review was prepared before the app was updated. Ask the coach again.",
       "saved": "{{workout}}, {{date}}: change saved.",
       "seenOnCalendar": "{{workout}}, {{date}}: change seen on the calendar.",
       "noLongerOnCalendar": "{{workout}}, {{date}}: no longer on the calendar.",
