@@ -141,7 +141,7 @@ extension ProviderConsentTests {
 		try secrets.installOpenRouterChoice(
 			model: first.id, key: "synthetic-commit-key", catalog: .bundled)
 		let records = try FixtureRecordStore(directory: directory, deviceId: store.deviceId)
-		let coach = namedCoach(secrets: secrets, log: records.store.log)
+		let coach = namedCoach(secrets: secrets, log: records.faults.log)
 		try await coach.recordConsent(try await challenge(coach))
 		let previous = try await coach.observedStatus()
 		let saved = try secrets.accessSelection()
@@ -158,7 +158,7 @@ extension ProviderConsentTests {
 		await coach.lifecycle(.willTerminate)
 		let reopened = try ICloudKeychainStore.fixture(directory: directory).store
 		let reopenedRecords = try FixtureRecordStore(directory: directory, deviceId: store.deviceId)
-		let next = namedCoach(secrets: reopened, log: reopenedRecords.store.log)
+		let next = namedCoach(secrets: reopened, log: reopenedRecords.faults.log)
 		#expect(try await next.observedStatus().access.model == first.id)
 		#expect(try await next.observedStatus().acceptedConsent == previous.acceptedConsent)
 		transport.respond = { request in
@@ -175,7 +175,7 @@ extension ProviderConsentTests {
 		_ = await next.changeModelAccess(.selectOpenRouterModel(last.id))
 		#expect(try await next.observedStatus().acceptedConsent?.target?.entry == last)
 		await next.lifecycle(.willTerminate)
-		let committed = namedCoach(secrets: reopened, log: reopenedRecords.store.log)
+		let committed = namedCoach(secrets: reopened, log: reopenedRecords.faults.log)
 		#expect(try await committed.observedStatus().access.model == last.id)
 		#expect(try await committed.observedStatus().acceptedConsent?.target?.entry == last)
 	}
@@ -211,7 +211,7 @@ extension ProviderConsentTests {
 		#expect(transport.requestCount == 1)
 	}
 
-	private func namedCoach(secrets: any SecretStore, log: any RecordLog) -> Coach {
+	private func namedCoach(secrets: any SecretStore, log: any ReviewChainLog) -> Coach {
 		makeCoach(
 			records: RecordStore(log: log), secrets: secrets,
 			models: .scripted(transport, catalog: .bundled), clock: clock,

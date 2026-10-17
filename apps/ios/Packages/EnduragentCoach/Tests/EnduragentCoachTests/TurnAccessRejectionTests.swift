@@ -274,7 +274,7 @@ extension TurnAccessTests {
 	private func recoveryCoach(
 		_ secrets: ICloudKeychainStore,
 		authorizer: FakeOpenRouterAuthorizer = FakeOpenRouterAuthorizer(),
-		records: (any RecordLog)? = nil
+		records: (any ReviewChainLog)? = nil
 	) async -> Coach {
 		let coach = Coach(
 			sport: .cycling,

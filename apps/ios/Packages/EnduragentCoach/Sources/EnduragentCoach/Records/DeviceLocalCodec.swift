@@ -172,6 +172,18 @@ extension RecordCodec {
 					askedAt: Date(timeIntervalSince1970: payload.askedAt)
 				)
 			)
+		case .workoutReview:
+			return .workoutReview(WorkoutReviewBody(review: try WorkoutReviewPayload.decode(data)))
+		case .reviewPreparing:
+			let payload = try payload(
+				TurnAttemptPayload.self, version: version, kind: name, data: data)
+			return .reviewPreparing(
+				ReviewPreparingBody(
+					chatId: try decodeChatID(payload.chatId),
+					turn: TurnID(ulid: try decodeULID(payload.turn)),
+					attempt: AttemptID(ulid: try decodeULID(payload.attempt))
+				)
+			)
 		}
 	}
 }

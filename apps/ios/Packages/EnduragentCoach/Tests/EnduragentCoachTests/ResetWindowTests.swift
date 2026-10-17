@@ -10,7 +10,7 @@ import Testing
 	let store = InMemoryRecordLog()
 	let host = ImmediateExecutionHost()
 
-	func coach(over log: (any RecordLog)? = nil, window: Duration = .milliseconds(20)) async
+	func coach(over log: (any ReviewChainLog)? = nil, window: Duration = .milliseconds(20)) async
 		-> Coach
 	{
 		await makeCoach(

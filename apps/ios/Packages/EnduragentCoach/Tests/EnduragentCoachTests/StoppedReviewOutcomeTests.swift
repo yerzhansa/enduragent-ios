@@ -107,7 +107,7 @@ extension RetryLadderTests {
 	}
 
 	func reopenedApprovalCoaches(intervals: any TrainingClient) async -> [Coach] {
-		let logs: [any RecordLog] = [
+		let logs: [any ReviewChainLog] = [
 			store, DeviceAliasLog(inner: store, deviceId: DeviceID(rawValue: "second-phone")),
 		]
 		var coaches: [Coach] = []

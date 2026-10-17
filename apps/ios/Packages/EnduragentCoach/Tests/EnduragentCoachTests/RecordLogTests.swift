@@ -10,7 +10,9 @@ enum RecordLogKind: String, Sendable, CaseIterable {
 }
 
 @Suite(.serialized) enum SwiftDataSuites {
-	static func makeRecordLog(_ kind: RecordLogKind, deviceId: DeviceID) throws -> any RecordLog {
+	static func makeRecordLog(_ kind: RecordLogKind, deviceId: DeviceID) throws
+		-> any ReviewChainLog
+	{
 		switch kind {
 		case .inMemory:
 			return InMemoryRecordLog(deviceId: deviceId)

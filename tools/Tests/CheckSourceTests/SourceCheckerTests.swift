@@ -32,7 +32,7 @@ enum SourceCases {
 	static let all: [SourceCase] =
 		links + xcodeSettings + navigationStacks + fixtureFolders + hangGuards + waitDeadlines
 		+ proofHelpers + binaries + ledgerIndexes + contentRules + mailboxState + featureProofs
-		+ fixtureLaunch + recordAccess + secretStores + port + mintedInOneFile
+		+ fixtureLaunch + recordAccess + secretStores + port + mintedInOneFile + reviewChainOnly
 }
 
 enum Link: Sendable {

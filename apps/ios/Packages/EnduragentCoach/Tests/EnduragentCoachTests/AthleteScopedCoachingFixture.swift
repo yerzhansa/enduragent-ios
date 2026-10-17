@@ -11,9 +11,9 @@ struct AthleteScopedCoachingFixture {
 	let peer: FixtureTrainingPeer
 	let accountA: TrainingAccount
 	let accountB: TrainingAccount
-	let store: any RecordLog
+	let store: any ReviewChainLog
 
-	init(store: any RecordLog) throws {
+	init(store: any ReviewChainLog) throws {
 		self.store = store
 		let backing = FixtureSecretStoreBacking()
 		secrets = keyedSecrets(backing: backing)
@@ -26,7 +26,7 @@ struct AthleteScopedCoachingFixture {
 			connection: ConnectionID(), athlete: IntervalsAthleteID(rawValue: "i2002"))
 	}
 
-	func open(store: (any RecordLog)? = nil) async -> Coach {
+	func open(store: (any ReviewChainLog)? = nil) async -> Coach {
 		var ports = CoachPorts(
 			records: RecordStore(log: store ?? self.store), secrets: secrets,
 			models: .scripted(transport),

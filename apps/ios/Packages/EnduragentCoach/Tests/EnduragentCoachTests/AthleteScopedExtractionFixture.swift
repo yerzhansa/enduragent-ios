@@ -8,11 +8,12 @@ import Testing
 struct AthleteScopedExtractionFixture {
 	let base: AthleteScopedCoachingFixture
 
-	init(store: any RecordLog = InMemoryRecordLog()) throws {
+	init(store: any ReviewChainLog = InMemoryRecordLog()) throws {
 		base = try AthleteScopedCoachingFixture(store: store)
 	}
 
-	func open(store: (any RecordLog)? = nil, transport: (any ModelTransport)? = nil) async -> Coach
+	func open(store: (any ReviewChainLog)? = nil, transport: (any ModelTransport)? = nil) async
+		-> Coach
 	{
 		var ports = CoachPorts(
 			records: RecordStore(log: store ?? base.store), secrets: base.secrets,
@@ -77,7 +78,7 @@ struct AthleteScopedExtractionFixture {
 		#expect(context.contains("SHARED_EVENT"))
 	}
 
-	func jobs(in store: (any RecordLog)? = nil) async throws -> [FlushJob] {
+	func jobs(in store: (any ReviewChainLog)? = nil) async throws -> [FlushJob] {
 		let ledger = Ledger(
 			log: store ?? base.store, clock: base.clock,
 			diagnostics: DiagnosticsLog(clock: base.clock))

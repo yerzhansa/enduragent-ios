@@ -216,7 +216,7 @@ import Testing
 		#expect(server.posts.count == 1)
 	}
 
-	private func cancellable(url: URL, store: any RecordLog) async throws
+	private func cancellable(url: URL, store: any ReviewChainLog) async throws
 		-> (CalendarFixture, TurnID, ReviewControlToken)
 	{
 		let helper = DurableCalendarWriteTests()

@@ -2,7 +2,7 @@ import EnduragentCoach
 import Foundation
 import Synchronization
 
-package final class InMemoryRecordLog: RecordLog, @unchecked Sendable {
+package final class InMemoryRecordLog: ReviewChainLog, @unchecked Sendable {
 	package let deviceId: DeviceID
 	private let records = Mutex<[AthleteRecord]>([])
 
@@ -28,6 +28,25 @@ package final class InMemoryRecordLog: RecordLog, @unchecked Sendable {
 			guard let hlc = matching.map(\.hlc).max() else { return nil }
 			return RecordCursor(ulid: matching.map(\.ulid).max(), hlc: hlc)
 		}
+	}
+
+	package func newest(_ query: RecordQuery) async throws -> AthleteRecord? {
+		records.withLock { Self.newest(query, in: $0) }
+	}
+
+	package func append(_ record: AthleteRecord, after head: RecordHead, in query: RecordQuery)
+		async throws
+	{
+		try records.withLock { records in
+			let current = RecordHead(Self.newest(query, in: records))
+			guard current == head else { throw HeadMoved(current: current) }
+			records.append(record)
+		}
+	}
+
+	private static func newest(_ query: RecordQuery, in records: [AthleteRecord]) -> AthleteRecord?
+	{
+		records.filter { recordMatches($0, query) }.max { $0.hlc < $1.hlc }
 	}
 
 	package var imports: AsyncStream<Void> {

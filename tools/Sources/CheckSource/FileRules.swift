@@ -46,6 +46,33 @@ extension SourceChecker {
 			name: "SendAttempt", owner: reviewSource + "WorkoutReview.swift", anywhere: [],
 			elsewhere: [#"\bextension\s+SendAttempt\b"#, #"\bSendAttempt(?:\s*\.\s*init)?\s*\("#]),
 	]
+	static let coachSource =
+		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$"#
+	static let reviewChainType = #"(?:WorkoutReviewBody|ReviewPreparingBody)"#
+	static let bracketed = #"(?:[^()\[\]{}]|\([^()\[\]{}]*\)|\[[^()\[\]{}]*\]|\{[^()\[\]{}]*\})*"#
+	static let argumentText =
+		#"(?:[^()\[\]{}]|\(\#(bracketed)\)|\[\#(bracketed)\]|\{\#(bracketed)\})"#
+	static let lastArgumentText =
+		#"(?:[^()\[\]{},]|\(\#(bracketed)\)|\[\#(bracketed)\]|\{\#(bracketed)\})"#
+	static let reviewChainBuilt = [
+		#"\b\#(reviewChainType)\s*(?:\(|\.\s*init\b)"#,
+		#"\b(?:init|Self)\s*\(\s*review\s*:\#(lastArgumentText)*,?\s*\)"#,
+		#"\b(?:init|Self)\s*\(\s*chatId\s*:\#(argumentText)*?\bturn\s*:\#(argumentText)*?"#
+			+ #"\battempt\s*:\#(lastArgumentText)*,?\s*\)"#,
+	]
+	static let reviewChainRenamed = [
+		#"\btypealias\s+\w+(?:<[^>]*>)?\s*=\s*(?:\w+\s*\.\s*)?\#(reviewChainType)\b"#,
+		#"\bextension\s+(?:\w+\s*\.\s*)?\#(reviewChainType)\b"#,
+	]
+	static let reviewChainRecords =
+		"apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/"
+	static let reviewChainBuilders = [
+		"ReviewChain.swift", "RecordCodec.swift", "DeviceLocalCodec.swift",
+		"RecordEnvelopePayload.swift",
+	].map { reviewChainRecords + $0 }
+	static let reviewChainBodyFiles = ["WorkoutReviewBody.swift", "ReviewPreparingBody.swift"].map {
+		reviewChainRecords + $0
+	}
 	static let swiftCopy =
 		#"\b(?:Text|Label|Button|Section|navigationTitle|alert|confirmationDialog"#
 		+ #"|String\(localized:)\s*\(?(?:\s*)"((?:\\.|[^"\\])*)""#
@@ -114,6 +141,9 @@ extension SourceChecker {
 		}
 		if file.hasSameUnits(as: Self.recordModel) { try checkLedgerIndexVersion(file, text) }
 		if try mintsOutsideItsFile(file, text) { try findings.report(file, "minted-in-one-file") }
+		if try buildsReviewChainBodyOutsideTheChain(file, text) {
+			try findings.report(file, "review-chain-only")
+		}
 		if try file.hasSameUnits(as: Self.mailbox) && hasExposedMailboxState(text) {
 			try findings.report(file, "mailbox-private-state")
 		}
@@ -131,6 +161,18 @@ extension SourceChecker {
 				try findings.report(file, "public-language", key: sentence.key)
 			}
 		}
+	}
+
+	private func buildsReviewChainBodyOutsideTheChain(_ file: String, _ text: String) throws
+		-> Bool
+	{
+		guard try patterns.test(Self.coachSource, file) else { return false }
+		let forbidden =
+			(Self.reviewChainBuilders.contains(where: file.hasSameUnits(as:))
+				? [] : Self.reviewChainBuilt)
+			+ (Self.reviewChainBodyFiles.contains(where: file.hasSameUnits(as:))
+				? [] : Self.reviewChainRenamed)
+		return try forbidden.contains { try patterns.test($0, text) }
 	}
 
 	private func mintsOutsideItsFile(_ file: String, _ text: String) throws -> Bool {

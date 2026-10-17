@@ -236,7 +236,7 @@ extension SwiftDataSuites {
 				])
 		}
 
-		private func sampleBodies() throws -> [(kind: String, body: RecordBody)] {
+		func sampleBodies() throws -> [(kind: String, body: RecordBody)] {
 			let ulid = ULID.generate(at: Date(timeIntervalSince1970: 899_164_800))
 			let turn = TurnID(ulid: ulid)
 			let workout = IntervalsWorkoutInput(
@@ -392,7 +392,7 @@ extension SwiftDataSuites {
 				data: Data(try fixture("review-cancelled-unknown", ext: "json").utf8),
 				civilDate: "1998-06-14", ulid: fixedUlid(2).rawValue
 			).get()
-			return [(kind: cancelled.kind, body: cancelled)]
+			return try ([cancelled] + reviewRecordSamples([.completed])).map { ($0.kind, $0) }
 				+ synced.map { (kind: $0.kind.rawValue, body: RecordBody.synced($0)) }
 				+ local.map { (kind: $0.kind.rawValue, body: RecordBody.deviceLocal($0)) }
 		}

@@ -145,7 +145,8 @@ import Testing
 	}
 }
 
-private struct HeldCalendarConfirmationLog: RecordLog {
+private struct HeldCalendarConfirmationLog: ChainForwardingLog {
+	var chainStore: any ReviewChainLog { inner }
 	let inner: FaultInjectingRecordLog
 	let gate: Gate
 	var deviceId: DeviceID { inner.deviceId }

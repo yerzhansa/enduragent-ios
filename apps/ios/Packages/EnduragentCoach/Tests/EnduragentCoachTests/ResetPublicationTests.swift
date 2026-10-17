@@ -45,10 +45,11 @@ struct ResetPublicationTests {
 	}
 }
 
-private struct ResetPublicationLog: RecordLog {
+private struct ResetPublicationLog: ChainForwardingLog {
+	var chainStore: any ReviewChainLog { inner }
 	let inner: HeldFlushReadLog
 
-	init(inner: any RecordLog) { self.inner = HeldFlushReadLog(inner: inner) }
+	init(inner: any ReviewChainLog) { self.inner = HeldFlushReadLog(inner: inner) }
 	var deviceId: DeviceID { inner.deviceId }
 	var imports: AsyncStream<Void> { inner.imports }
 	var reached: AsyncStream<Void> { inner.reached }
