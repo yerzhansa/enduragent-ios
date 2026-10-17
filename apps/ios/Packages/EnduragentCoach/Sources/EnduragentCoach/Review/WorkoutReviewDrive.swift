@@ -2,10 +2,10 @@ import Foundation
 import Synchronization
 
 extension WorkoutReviewDesk {
-	func approving(_ token: ReviewControlToken) async -> ReviewOutcome {
+	func claiming(_ token: ReviewControlToken, as action: ClaimedAction) async -> ReviewOutcome {
 		let head: RecordHead
 		let review: WorkoutReview
-		switch await admit(token, allowing: { $0 == .approveOrCancel }) {
+		switch await admit(token, allowing: { $0 == action.controls }) {
 		case .refused(let outcome): return outcome
 		case .admitted(let admittedHead, let admitted):
 			head = admittedHead
@@ -14,7 +14,7 @@ extension WorkoutReviewDesk {
 		let claimed: WorkoutReview
 		do throws(TransitionRefusal) {
 			claimed = try review.claimed(
-				Claim(id: ClaimID(ulid: await ledger.nextULID()), action: .approve))
+				Claim(id: ClaimID(ulid: await ledger.nextULID()), action: action))
 		} catch {
 			return .wrongAction
 		}
@@ -271,6 +271,15 @@ extension WorkoutReviewDesk {
 			attempt: AttemptID(ulid: attempt),
 			binding: ActionBinding(
 				account: review.account, zone: AthleteCalendar(clock: clock).deviceZone))
+	}
+}
+
+extension ClaimedAction {
+	fileprivate var controls: ControlSet {
+		switch self {
+		case .approve: .approveOrCancel
+		case .tryAgain: .tryAgainOrCancel
+		}
 	}
 }
 
