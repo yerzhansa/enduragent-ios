@@ -12,7 +12,8 @@
 		"3.2": 5,
 		"3.3": 7,
 		"4.1": 7,
-		"5.1": 10
+		"5.1": 10,
+		"5.2": 4
 	},
 	"criteria": [
 		{
@@ -706,6 +707,36 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "eligibilityIsJudgedBeforeADifferenceOnTheSameTarget"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "anEarlierCheckDecidesTheVerdictWhenTwoTargetsFailDifferentChecks"}
 			]
+		},
+		{
+			"id": "5.2.1",
+			"statement": "After a target changed from 60 to 90 minutes, the refreshed review is one revision higher, the edited target's reviewed duration is 90 minutes, and its card still asks for 75.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RefreshedReviewTests.swift", "function": "aWorkoutChangedFrom60To90IsReviewedAt90AndStillAsksFor75"}
+			]
+		},
+		{
+			"id": "5.2.2",
+			"statement": "The refreshed review's notice names the workout, says it changed in intervals.icu, gives 60 to 90 minutes, and says nothing was changed; after finished work it says nothing else was changed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RefreshedReviewTests.swift", "function": "theNoticeNamesTheWorkoutItsDurationAndThatNothingWasChanged"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RefreshedReviewTests.swift", "function": "aRefreshAfterFinishedWorkSaysNothingElseWasChanged"}
+			]
+		},
+		{
+			"id": "5.2.3",
+			"statement": "Date, name, duration, description, training load and workout steps each changed alone give their own sentence, and two changed targets give two sentences.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RefreshedReviewTests.swift", "function": "eachFieldChangedAloneGivesItsOwnSentence"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RefreshedReviewTests.swift", "function": "twoChangedWorkoutsGiveTwoSentences"}
+			]
+		},
+		{
+			"id": "5.2.4",
+			"statement": "The kept workouts of the refreshed review are the ones read at preflight, not the ones read at preparation.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RefreshedReviewTests.swift", "function": "theKeptWorkoutsAreTheOnesReadAtPreflight"}
+			]
 		}
 	],
 	"requirements": [
@@ -773,6 +804,31 @@
 			"id": "G06",
 			"statement": "Reject a stale or foreign approval: an access change or an external edit after review stops the approval before any write.",
 			"criteria": ["5.1.5", "5.1.6"]
+		},
+		{
+			"id": "C01",
+			"statement": "Change a reviewed target's duration from 60 to 90 minutes before approval → apply zero changes from the set.",
+			"criteria": ["5.1.6", "5.1.7", "5.2.1", "5.2.2", "5.2.3"]
+		},
+		{
+			"id": "C02",
+			"statement": "Inspect the response to C01 → identify the workout, say it changed in intervals.icu, and explain the 60-to-90-minute difference.",
+			"criteria": ["5.1.6", "5.1.7", "5.2.1", "5.2.2", "5.2.3"]
+		},
+		{
+			"id": "C03",
+			"statement": "Inspect the response to C01 → state that no changes were applied and present a refreshed review requiring new approval.",
+			"criteria": ["5.1.6", "5.1.7", "5.2.1", "5.2.2", "5.2.3"]
+		},
+		{
+			"id": "C05",
+			"statement": "Separately change date, name, description, training load, and effort structure before approval → detect every review-relevant difference before the first write.",
+			"criteria": ["5.1.6", "5.1.7", "5.2.1", "5.2.2", "5.2.3"]
+		},
+		{
+			"id": "C06",
+			"statement": "Change only unrelated server metadata or an equivalent normalized representation → keep the reviewed workout valid without an unnecessary new approval.",
+			"criteria": ["5.1.6", "5.1.7", "5.2.1", "5.2.2", "5.2.3"]
 		}
 	],
 	"plan": {
@@ -790,7 +846,7 @@
 			"4.1": 7,
 			"4.2": 12,
 			"5.1": 10,
-			"5.2": 5,
+			"5.2": 4,
 			"6.1": 4,
 			"6.2": 12,
 			"7.1": 5,
@@ -945,12 +1001,7 @@
 		"B09",
 		"B10",
 		"B11",
-		"C01",
-		"C02",
-		"C03",
 		"C04",
-		"C05",
-		"C06",
 		"C07",
 		"C08",
 		"D01",

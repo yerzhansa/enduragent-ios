@@ -3041,6 +3041,16 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "Det här passet granskades innan appen uppdaterades. Fråga tränaren igen."
+    },
+    "refreshed": {
+      "nothingChanged": "Träningspass i den här granskningen ändrades i {{service}} efter att du granskade dem, så inget ändrades. Kontrollera dem igen innan du godkänner.",
+      "nothingElseChanged": "Träningspass i den här granskningen ändrades i {{service}} efter att du granskade dem, så inget annat ändrades. Kontrollera dem igen innan du godkänner.",
+      "date": "{{workout}}: datumet ändrades från {{from}} till {{to}}.",
+      "name": "{{workout}}: namnet ändrades till {{to}}.",
+      "duration": "{{workout}}: längden ändrades från {{from}} till {{to}} minuter.",
+      "description": "{{workout}}: beskrivningen ändrades.",
+      "load": "{{workout}}: träningsbelastningen ändrades från {{from}} till {{to}}.",
+      "structure": "{{workout}}: passets steg ändrades."
     }
   }
 }

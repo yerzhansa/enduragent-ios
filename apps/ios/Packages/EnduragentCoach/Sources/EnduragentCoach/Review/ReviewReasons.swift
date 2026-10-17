@@ -10,7 +10,10 @@ package struct Claim: Equatable, Sendable {
 
 package struct TargetDifference: Equatable, Sendable {
 	package let change: ChangeID
-	package let fields: Set<SnapshotField>
+	package let before: WorkoutSnapshot
+	package let after: WorkoutSnapshot
+
+	package var fields: Set<SnapshotField> { before.differences(from: after) }
 }
 
 package enum RefusalStatus: Int, Equatable, Sendable {

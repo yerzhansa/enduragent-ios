@@ -2569,4 +2569,12 @@ public enum Catalog {
 	public static let trainingViewWeekRange = CatalogKey(rawValue: "training.view.weekRange")
 	public static let trainingViewWeeklySummary = CatalogKey(rawValue: "training.view.weeklySummary")
 	public static let workoutsBlockedReviewedBeforeUpgrade = CatalogKey(rawValue: "workouts.blocked.reviewedBeforeUpgrade")
+	public static let workoutsRefreshedDate = CatalogKey(rawValue: "workouts.refreshed.date")
+	public static let workoutsRefreshedDescription = CatalogKey(rawValue: "workouts.refreshed.description")
+	public static let workoutsRefreshedDuration = CatalogKey(rawValue: "workouts.refreshed.duration")
+	public static let workoutsRefreshedLoad = CatalogKey(rawValue: "workouts.refreshed.load")
+	public static let workoutsRefreshedName = CatalogKey(rawValue: "workouts.refreshed.name")
+	public static let workoutsRefreshedNothingChanged = CatalogKey(rawValue: "workouts.refreshed.nothingChanged")
+	public static let workoutsRefreshedNothingElseChanged = CatalogKey(rawValue: "workouts.refreshed.nothingElseChanged")
+	public static let workoutsRefreshedStructure = CatalogKey(rawValue: "workouts.refreshed.structure")
 }

@@ -100,11 +100,7 @@ extension PreflightJudgeTests {
 				#expect(rewritten.kind == .clear, "\(example.label): \(rewritten)")
 			} else {
 				#expect(
-					rewritten.differences
-						== [
-							TargetDifference(
-								change: Fixture.change(0), fields: example.preflightNames)
-						],
+					rewritten.namedFields == [Fixture.change(0): example.preflightNames],
 					"\(example.label): \(rewritten)")
 			}
 			#expect(example.patch.isApplied(on: saved), "\(example.label)")
@@ -113,11 +109,7 @@ extension PreflightJudgeTests {
 				try Fixture.review([try Fixture.edit(example.reviewed, example.unexplainedPatch)]),
 				Calendar([example.unexplained]))
 			#expect(
-				unexplained.differences
-					== [
-						TargetDifference(
-							change: Fixture.change(0), fields: [example.unexplainedField])
-					],
+				unexplained.namedFields == [Fixture.change(0): [example.unexplainedField]],
 				"\(example.label): \(unexplained)")
 		}
 	}
