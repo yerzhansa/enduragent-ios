@@ -36,7 +36,7 @@ extension SwiftDataSuites {
 			#expect(upgraded.records.map(\.account) == [.unconnected, account])
 		}
 
-		@Test func build2bbe2eeKeepsMemoryReviewHistoryAndConsent() async throws {
+		@Test func build2bbe2eeKeepsMemoryHistoryAndConsent() async throws {
 			let log = try open("build-2bbe2ee", folder: "Fixtures")
 			let clock = FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana")
 			let transport = FakeModelTransport()
@@ -67,6 +67,23 @@ extension SwiftDataSuites {
 			#expect(status.acceptedConsent == nil)
 			#expect(status.needsProviderConsent)
 			#expect(transport.requests.isEmpty)
+		}
+
+		@Test func build2bbe2eeOpenProposalClosesAtBecameActiveAsAskTheCoachAgain() async throws {
+			let log = try open("build-2bbe2ee", folder: "Fixtures")
+			let clock = FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana")
+			let coach = await makeCoach(transport: FakeModelTransport(), store: log, clock: clock)
+
+			await coach.lifecycle(.becameActive)
+
+			let snapshot = try #require(await coach.currentSnapshot(.main))
+			#expect(snapshot.review == nil)
+			#expect(
+				ReviewOutcomeNotesTests.sentences(snapshot.notes.values.flatMap { $0 }) == [
+					CoachUpgradeTests.askAgain
+				])
+			let outcomes = try await log.fetch(RecordQuery(scope: .synced([.reviewOutcome])))
+			#expect(outcomes.records.count == 1)
 		}
 
 		@Test func build2bbe2eeClaimsKeepTheContinuedProcessingLeaseTheyRecorded() async throws {

@@ -20,10 +20,10 @@ import Testing
 				"FTP, availability, equipment, fatigue, goals, race dates, analysis, explanation, "
 					+ "review, and status are context only.",
 				"- Answer the question. Do not propose, recommend, outline, draft, schedule, or "
-					+ "create a workout in prose or with `intervals_create_workout`.",
-				"Use `intervals_create_workout` only when the current message asks for calendar "
+					+ "create a workout in prose or with `prepare_workout_changes`.",
+				"Use `prepare_workout_changes` only when the current message asks for calendar "
 					+ "creation, scheduling, pushing, or updating; a prose-only request never "
-					+ "authorizes a calendar write.",
+					+ "prepares a calendar change.",
 				"Judge each request anew. Earlier requests never carry forward. This covers prose "
 					+ "and tool calls.",
 			] {
@@ -172,56 +172,6 @@ enum ContextOnlyTurn: CaseIterable {
 	}
 }
 
-enum CalendarRequest: CaseIterable {
-	case create
-	case update
-	case delete
-	case strength
-
-	var tool: ToolName {
-		switch self {
-		case .create: .intervalsCreateWorkout
-		case .update: .intervalsUpdateWorkout
-		case .delete: .intervalsDeleteWorkout
-		case .strength: .intervalsCreateStrengthWorkout
-		}
-	}
-
-	var message: String {
-		switch self {
-		case .create: "Add it to my calendar for tomorrow"
-		case .update: "Rename tomorrow's ride on my calendar to Threshold"
-		case .delete: "Delete tomorrow's ride from my calendar"
-		case .strength: "Schedule a core session on my calendar for tomorrow"
-		}
-	}
-
-	var arguments: String {
-		switch self {
-		case .create:
-			#"{"date":"1998-06-14","workout":{"name":"Threshold","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}},{"type":"steady","duration":{"value":30,"unit":"minutes"},"power":{"kind":"percent_ftp","low":95,"high":100}},{"type":"cooldown","duration":{"value":5,"unit":"minutes"},"power":{"kind":"percent_ftp","value":50}}]}}"#
-		case .update: #"{"eventId":42,"name":"Threshold"}"#
-		case .delete: #"{"eventId":42}"#
-		case .strength: #"{"date":"1998-06-14","name":"Core","description":"20 min floor"}"#
-		}
-	}
-
-	var action: ReviewCard.Action {
-		switch self {
-		case .create, .strength: .add
-		case .update: .edit(previousName: nil)
-		case .delete: .delete
-		}
-	}
-
-	var date: CivilDate? {
-		switch self {
-		case .create, .strength: "1998-06-14"
-		case .update, .delete: nil
-		}
-	}
-}
-
 struct AuthorizationBench {
 	static let planned = CalendarEvent(
 		description: "- 60m 65%", type: "Ride", id: EventID(rawValue: 42),
@@ -244,13 +194,15 @@ struct AuthorizationBench {
 		let scheduling = try await connected.coach(replying: [
 			.text("Warm up, 2x15 minutes in Z4, cool down."), .finish(reason: .stop),
 			.toolCall(
-				name: CalendarRequest.create.tool.rawValue,
-				arguments: CalendarRequest.create.arguments),
+				name: ToolName.prepareWorkoutChanges.rawValue,
+				arguments:
+					#"{"preparation":{"kind":"complete","changes":[\#(PreparationFixture.ride(on: "1998-06-14"))]}}"#
+			),
 			.finish(reason: .toolCalls),
 			.text("Ready for your approval."), .finish(reason: .stop),
 		])
 		_ = try await scheduling.sendAndSettle("Give me a threshold workout")
-		_ = try await scheduling.sendAndSettle(CalendarRequest.create.message)
+		_ = try await scheduling.sendAndSettle("Add it to my calendar for tomorrow")
 		let unconnected = AuthorizationBench()
 		let prose = try await unconnected.coach(
 			connected: false, replying: [.text("Warm up, then ride."), .finish(reason: .stop)])
@@ -278,13 +230,13 @@ struct AuthorizationBench {
 			secrets: secrets)
 	}
 
-	func savedProposals() async throws -> Int {
-		try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records.count
+	func savedReviews() async throws -> Int {
+		try await store.fetch(RecordQuery(scope: .deviceLocal([.workoutReview]))).records.count
 	}
 
 	func expectNoReviewAndAnUntouchedCalendar(_ coach: Coach) async throws {
 		#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
-		#expect(try await savedProposals() == 0)
+		#expect(try await savedReviews() == 0)
 		#expect(intervals.calls.filter(\.isCalendarCall).isEmpty)
 		#expect(intervals.events == [Self.planned])
 	}

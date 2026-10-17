@@ -46,8 +46,7 @@ extension Conversation {
 			facts.fragments.first.map { (turn: facts.turn, origin: facts.origin, hlc: $0.hlc) }
 		}.sorted { $0.hlc < $1.hlc }
 		for record in ordered {
-			if RecordQuery.Scope.synced([.reviewWrite, .reviewCancelledUnknown]).admits(record.body)
-			{
+			if LegacyReviewRecords.syncedScope.admits(record.body) {
 				calendarRecords[record.ulid] = record
 			}
 			if case .synced(.reviewOutcome) = record.body {
@@ -91,11 +90,11 @@ extension Conversation {
 					ClaimedAttempt(hlc: record.hlc, body: body, account: record.account))
 			case .deviceLocal(.replyObserved(let body)):
 				turns[body.turn]?.replyObserved.append(body)
-			case .synced(.reviewWrite(let body)):
+			case .legacy(.reviewWrite(let body)):
 				guard case .operation(.turn(let turn), _) = record.cause else { continue }
 				let known = turns[turn]?.reviewWrites[body.key] ?? .notSent
 				turns[turn]?.reviewWrites[body.key] = known.merging(body.evidence)
-			case .synced(.reviewApplied(let body)):
+			case .legacy(.reviewApplied(let body)):
 				let index = segmentIndex(for: record.ulid, at: record.hlc)
 				segments[index].notes.append(
 					ReviewNote(
@@ -162,7 +161,7 @@ extension Conversation {
 			}
 		}
 		for marker in ReviewCancelledUnknownBody.validated(in: Array(calendarRecords.values)) {
-			guard case .synced(.reviewCancelledUnknown(let body)) = marker.body else { continue }
+			guard case .legacy(.reviewCancelledUnknown) = marker.body else { continue }
 			let turn: TurnID?
 			if case .operation(.turn(let original), _) = marker.cause {
 				turn = original
@@ -176,7 +175,7 @@ extension Conversation {
 				ReviewNote(
 					ulid: marker.ulid, hlc: marker.hlc, date: marker.civilDate,
 					account: marker.account,
-					content: .cancelledUnknown(CancelledUnknownReview(body)), after: turn))
+					content: .cancelledUnknown, after: turn))
 			segments[index].notes.sort { $0.hlc < $1.hlc }
 		}
 	}

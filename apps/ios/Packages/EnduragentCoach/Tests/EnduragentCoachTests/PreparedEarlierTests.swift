@@ -80,7 +80,6 @@ import Testing
 
 	private func coach() async -> Coach {
 		await makeCoach(
-			transport: turns.transport, intervals: calendar, store: turns.store, clock: turns.clock,
-			tools: .workoutReview)
+			transport: turns.transport, intervals: calendar, store: turns.store, clock: turns.clock)
 	}
 }

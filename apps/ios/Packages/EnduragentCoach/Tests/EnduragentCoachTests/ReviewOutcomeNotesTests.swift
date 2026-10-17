@@ -121,8 +121,7 @@ import Testing
 		)
 		let otherCalendar = ScriptedCalendar(turns.intervals)
 		let second = await makeCoach(
-			transport: turns.transport, intervals: otherCalendar, store: other, clock: turns.clock,
-			tools: .workoutReview)
+			transport: turns.transport, intervals: otherCalendar, store: other, clock: turns.clock)
 
 		let shown = try #require(await second.currentSnapshot(.main))
 
@@ -244,8 +243,7 @@ import Testing
 
 	private func coach() async -> Coach {
 		await makeCoach(
-			transport: turns.transport, intervals: calendar, store: turns.store, clock: turns.clock,
-			tools: .workoutReview)
+			transport: turns.transport, intervals: calendar, store: turns.store, clock: turns.clock)
 	}
 
 	private func token(on desk: WorkoutReviewDesk) async throws -> ReviewControlToken {

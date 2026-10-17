@@ -237,23 +237,6 @@ struct ProvenancePayload: Codable {
 	var contentSha256: String
 }
 
-struct ProposalPayload: Codable {
-	var writeID: UUID? = nil
-	var chatId: String
-	var nonce: UUID
-	var tool: String
-	var toolInput: GatedToolInputPayload
-	var summary: String
-	var description: String
-	var expiresAt: TimeInterval
-}
-
-struct ProposalClearedPayload: Codable {
-	var chatId: String
-	var nonce: UUID
-	var reason: String
-}
-
 struct FlushPendingPayload: Codable {
 	var chatId: String
 	var messageUlids: [String]

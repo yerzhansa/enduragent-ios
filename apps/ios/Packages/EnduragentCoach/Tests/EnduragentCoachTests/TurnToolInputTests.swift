@@ -7,7 +7,8 @@ import Testing
 extension TurnRunnerTests {
 	@Test(arguments: [
 		"build_plan_skeleton", "assess_feasibility", "get_sample_week", "plan_load",
-		"invented_tool", "memory_read", "plan_save",
+		"invented_tool", "memory_read", "plan_save", "intervals_create_workout",
+		"intervals_create_strength_workout", "intervals_delete_workout", "intervals_update_workout",
 	])
 	func unofferedToolCallsReturnUnknownTool(name: String) async throws {
 		transport.respond = ScriptedReply.sequence(
@@ -33,7 +34,7 @@ extension TurnRunnerTests {
 				RecordQuery(scope: .synced([.memorySection, .ledgerEvent]))
 			).records.isEmpty)
 		#expect(
-			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.workoutReview]))).records
 				.isEmpty)
 	}
 

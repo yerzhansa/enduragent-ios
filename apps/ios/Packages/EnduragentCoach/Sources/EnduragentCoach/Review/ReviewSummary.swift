@@ -8,22 +8,6 @@ public enum ReviewSummary: Sendable, Equatable {
 	case updateWorkout(date: CivilDate?, name: String?, descriptionChanged: Bool)
 	case planSave(name: String)
 
-	package init(_ input: GatedToolInput) {
-		switch input {
-		case .createWorkout(let date, let workout):
-			self = .createWorkout(name: workout.name, date: date)
-		case .createStrengthWorkout(let date, let name, _):
-			self = .createStrengthWorkout(name: name, date: date)
-		case .deleteWorkout:
-			self = .deleteWorkout
-		case .updateWorkout(let update):
-			self = .updateWorkout(
-				date: update.date, name: update.name, descriptionChanged: update.description != nil)
-		case .planSave(let headline):
-			self = .planSave(name: headline.name)
-		}
-	}
-
 	public func sentence(in display: DisplayLocale) -> String {
 		switch self {
 		case .supplied(let text):

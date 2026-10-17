@@ -35,8 +35,7 @@ package enum LadderCounter: Hashable, Sendable {
 
 package enum LadderGuard: Sendable, Equatable {
 	case budgetExceededIsTerminal
-	case committedWriteSettlesAsSavedWork(
-		calendar: Set<ReplayUnsafeToolName>, other: Set<ReplayUnsafeToolName>)
+	case committedWriteSettlesAsSavedWork(Set<ReplayUnsafeToolName>)
 	case observedTextIsTerminalUnlessWindowExceeded
 }
 
@@ -66,15 +65,7 @@ package struct RetryLadder: Sendable, Equatable {
 	package static let npm = RetryLadder(
 		guards: [
 			.budgetExceededIsTerminal,
-			.committedWriteSettlesAsSavedWork(
-				calendar: [
-					.intervalsCreateWorkout,
-					.intervalsCreateStrengthWorkout,
-					.intervalsDeleteWorkout,
-					.intervalsUpdateWorkout,
-				],
-				other: [.memoryWrite, .ledgerAppend, .planSave]
-			),
+			.committedWriteSettlesAsSavedWork([.memoryWrite, .ledgerAppend, .planSave]),
 			.observedTextIsTerminalUnlessWindowExceeded,
 		],
 		rungs: [
@@ -275,17 +266,10 @@ extension LadderGuard {
 	}
 
 	fileprivate func savedWork(committed: [CommittedWrite]) -> SavedWorkOutcome? {
-		guard case .committedWriteSettlesAsSavedWork(let calendar, let other) = self else {
-			return nil
-		}
-		let tools = Set(committed.map(\.tool))
-		if !tools.isDisjoint(with: calendar) {
-			return committed.allSatisfy(\.verified) ? .writesSaved : .savedUnverified
-		}
-		if !tools.isDisjoint(with: other) {
-			return .savedUnverified
-		}
-		return nil
+		guard case .committedWriteSettlesAsSavedWork(let writes) = self,
+			!Set(committed.map(\.tool)).isDisjoint(with: writes)
+		else { return nil }
+		return .savedUnverified
 	}
 }
 

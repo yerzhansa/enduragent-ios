@@ -46,9 +46,8 @@ import Testing
 			try #require(transport.requests.first).tools.map(\.name) == [
 				.calculateZones, .intervalsFetchAthlete, .intervalsFetchWellness,
 				.intervalsFetchActivity, .intervalsFetchStreams, .intervalsFetchActivities,
-				.intervalsListEvents, .intervalsCreateWorkout, .intervalsCreateStrengthWorkout,
-				.intervalsDeleteWorkout, .intervalsUpdateWorkout, .memoryQuery, .memoryWrite,
-				.ledgerAppend,
+				.intervalsListEvents, .getPendingWorkoutChanges, .prepareWorkoutChanges,
+				.memoryQuery, .memoryWrite, .ledgerAppend,
 			])
 	}
 
@@ -98,8 +97,7 @@ import Testing
 	@Test(arguments: [
 		ToolName.intervalsFetchAthlete, .intervalsFetchWellness, .intervalsFetchActivity,
 		.intervalsFetchStreams, .intervalsFetchActivities, .intervalsListEvents,
-		.intervalsCreateWorkout, .intervalsCreateStrengthWorkout, .intervalsDeleteWorkout,
-		.intervalsUpdateWorkout, .memoryRead, .planSave,
+		.getPendingWorkoutChanges, .prepareWorkoutChanges, .memoryRead, .planSave,
 	])
 	func unconnectedCallToAnUnofferedToolReturnsUnknownToolAndReachesNoClient(name: ToolName)
 		async throws
@@ -131,7 +129,7 @@ import Testing
 			#expect(intervals.count(of: read) == 0)
 		}
 		#expect(
-			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.workoutReview]))).records
 				.isEmpty)
 	}
 

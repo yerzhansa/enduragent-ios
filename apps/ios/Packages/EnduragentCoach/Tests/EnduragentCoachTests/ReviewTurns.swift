@@ -32,8 +32,7 @@ struct ReviewTurns {
 
 	func coach(over log: (any ReviewChainLog)? = nil) async -> Coach {
 		await makeCoach(
-			transport: transport, intervals: intervals, store: log ?? store, clock: clock,
-			tools: .workoutReview)
+			transport: transport, intervals: intervals, store: log ?? store, clock: clock)
 	}
 
 	func dyingCoach() async -> (Coach, FaultInjectingRecordLog) {

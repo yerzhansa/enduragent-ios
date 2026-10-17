@@ -131,7 +131,7 @@ enum PreflightFixture {
 extension PreflightVerdict {
 	enum Kind: String, Sendable, CustomTestStringConvertible {
 		case clear, changed, unchecked, accountChanged, trainingNotConnected, cannotVerify
-		case pastProtected, coachOnly, workoutOnly, reviewedBeforeUpgrade, turnStopping
+		case pastProtected, coachOnly, workoutOnly, reviewedBeforeUpgrade
 
 		var testDescription: String { rawValue }
 	}
@@ -150,7 +150,6 @@ extension PreflightVerdict {
 			case .coachOnly: .coachOnly
 			case .workoutOnly: .workoutOnly
 			case .reviewedBeforeUpgrade: .reviewedBeforeUpgrade
-			case .turnStopping: .turnStopping
 			}
 		}
 	}

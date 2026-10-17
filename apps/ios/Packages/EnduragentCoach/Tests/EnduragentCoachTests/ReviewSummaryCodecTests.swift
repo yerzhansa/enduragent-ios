@@ -7,7 +7,7 @@ import Testing
 @Suite struct ReviewSummaryCodecTests {
 	@Test func structuredReviewOutcomeDecodes() throws {
 		let decoded = decode(#"{"chatId":"main","change":{"deleteWorkout":{}}}"#)
-		guard case .success(.synced(.reviewApplied)) = decoded else {
+		guard case .success(.legacy(.reviewApplied)) = decoded else {
 			Issue.record("Structured review outcome was rejected: \(decoded)")
 			return
 		}
@@ -15,7 +15,7 @@ import Testing
 
 	@Test func legacyReviewOutcomeStillDecodes() throws {
 		let decoded = decode(#"{"chatId":"main","summary":"Create a workout"}"#)
-		guard case .success(.synced(.reviewApplied)) = decoded else {
+		guard case .success(.legacy(.reviewApplied)) = decoded else {
 			Issue.record("Legacy review outcome was rejected: \(decoded)")
 			return
 		}
@@ -34,37 +34,30 @@ import Testing
 	}
 
 	@Test(arguments: [
-		ReviewSummary.supplied("Legacy outcome"),
-		.createWorkout(name: "Endurance", date: "1998-06-14"),
-		.createStrengthWorkout(name: "Core", date: "1998-06-14"),
-		.deleteWorkout,
-		.updateWorkout(date: nil, name: nil, descriptionChanged: false),
-		.updateWorkout(date: "1998-06-14", name: "Endurance", descriptionChanged: true),
-		.planSave(name: "Base"),
+		(#"{"chatId":"main","summary":"Legacy outcome"}"#, ReviewSummary.supplied("Legacy outcome")),
+		(
+			#"{"chatId":"main","change":{"createWorkout":{"name":"Endurance","date":"1998-06-14"}}}"#,
+			.createWorkout(name: "Endurance", date: "1998-06-14")
+		),
+		(
+			#"{"chatId":"main","change":{"createStrengthWorkout":{"name":"Core","date":"1998-06-14"}}}"#,
+			.createStrengthWorkout(name: "Core", date: "1998-06-14")
+		),
+		(#"{"chatId":"main","change":{"deleteWorkout":{}}}"#, .deleteWorkout),
+		(
+			#"{"chatId":"main","change":{"updateWorkout":{"descriptionChanged":false}}}"#,
+			.updateWorkout(date: nil, name: nil, descriptionChanged: false)
+		),
+		(
+			#"{"chatId":"main","change":{"updateWorkout":{"date":"1998-06-14","name":"Endurance","descriptionChanged":true}}}"#,
+			.updateWorkout(date: "1998-06-14", name: "Endurance", descriptionChanged: true)
+		),
+		(#"{"chatId":"main","change":{"planSave":{"name":"Base"}}}"#, .planSave(name: "Base")),
 	])
-	func reviewSummaryRoundTrips(_ summary: ReviewSummary) throws {
-		let body = RecordBody.synced(
-			.reviewApplied(ReviewAppliedBody(chatId: .main, summary: summary)))
-		let encoded = try RecordCodec.encode(body)
-		let decoded = RecordCodec.decode(
-			kind: "reviewApplied", version: encoded.version, data: encoded.data,
-			civilDate: "1998-06-14", ulid: fixedUlid(1).rawValue)
-		#expect(try decoded.get() == body)
-	}
-
-	@Test func summaryDoesNotSyncTheWorkoutDescriptionOrEventID() throws {
-		let summary = ReviewSummary(
-			.updateWorkout(
-				UpdateWorkoutInput(
-					eventId: EventID(rawValue: 424242), date: nil, name: "Ride",
-					description: "private workout structure")))
-		let encoded = try RecordCodec.encode(
-			.synced(
-				.reviewApplied(
-					ReviewAppliedBody(chatId: .main, summary: summary))))
-		let json = String(decoding: encoded.data, as: UTF8.self)
-		#expect(!json.contains("private workout structure"))
-		#expect(!json.contains("424242"))
+	func everyStoredSummaryShapeDecodes(_ json: String, _ summary: ReviewSummary) throws {
+		#expect(
+			try decode(json).get()
+				== .legacy(.reviewApplied(ReviewAppliedBody(chatId: .main, summary: summary))))
 	}
 
 	@Test func generatedFallbacksUseTheChosenLanguage() {

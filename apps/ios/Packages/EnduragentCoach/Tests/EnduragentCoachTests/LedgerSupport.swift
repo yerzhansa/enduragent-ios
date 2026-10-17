@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -80,16 +81,8 @@ func legacyReply(chatId: ChatID, text: String) -> RecordBody {
 	)
 }
 
-func sampleProposal(chatId: ChatID, nonce: Nonce, expiresAt: Date) -> ProposalBody {
-	ProposalBody(
-		chatId: chatId,
-		nonce: nonce,
-		tool: .intervalsCreateStrengthWorkout,
-		toolInput: .createStrengthWorkout(date: "1998-06-13", name: "Core", description: "20 min"),
-		summary: "Core session",
-		description: "Core · 20 min",
-		expiresAt: expiresAt
-	)
+func sampleLocal(askedAt: Date) -> DeviceLocalRecordBody {
+	.workoutDrift(WorkoutDriftBody(planWorkoutId: fixedUlid(900), askedAt: askedAt))
 }
 
 func messageText(_ record: AthleteRecord) -> String {
@@ -115,4 +108,18 @@ func seed(_ log: any RecordLog, _ records: [AthleteRecord]) async throws {
 
 func kinds(_ records: [AthleteRecord]) -> [String] {
 	records.map(\.body.kind)
+}
+
+func legacyCancellation(review: WorkoutReviewID, chat: ChatID = .main) throws
+	-> ReviewCancelledUnknownBody
+{
+	let json = #"{"chatId":"\#(chat.rawValue)","observation":"absent","review":"\#(review.ulid.rawValue)"}"#
+	let decoded = try RecordCodec.decode(
+		kind: LegacyKind.reviewCancelledUnknown.rawValue, version: 2, data: Data(json.utf8),
+		civilDate: "1998-06-14", ulid: review.ulid.rawValue
+	).get()
+	guard case .legacy(.reviewCancelledUnknown(let body)) = decoded else {
+		throw UnexpectedReview(detail: "the stored cancellation did not decode as a legacy row")
+	}
+	return body
 }

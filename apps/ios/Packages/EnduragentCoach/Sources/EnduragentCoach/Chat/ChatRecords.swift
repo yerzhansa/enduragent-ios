@@ -3,7 +3,6 @@ import Foundation
 final class ChatRecords {
 	private let chat: ChatID
 	private let ledger: Ledger
-	private let reviews: any WorkoutReviews
 	private let desk: WorkoutReviewDesk
 	private let clock: any Clock
 	private(set) var conversation: Conversation
@@ -17,12 +16,10 @@ final class ChatRecords {
 	}
 
 	init(
-		chat: ChatID, ledger: Ledger, clock: any Clock, reviews: any WorkoutReviews,
-		desk: WorkoutReviewDesk
+		chat: ChatID, ledger: Ledger, clock: any Clock, desk: WorkoutReviewDesk
 	) {
 		self.chat = chat
 		self.ledger = ledger
-		self.reviews = reviews
 		self.desk = desk
 		self.clock = clock
 		self.conversation = Conversation(chat: chat, segments: [])
@@ -69,7 +66,7 @@ final class ChatRecords {
 			} else {
 				jobs = try await ledger.flushJobs(in: folded)
 			}
-			let snapshot = try await reviews.snapshot(chat: chat, records: imported)
+			let snapshot = try await desk.snapshot(chat: chat)
 			folded.apply(Array(applied.values), device: ledger.deviceId)
 			conversation = folded
 			self.jobs = jobs
@@ -87,15 +84,9 @@ final class ChatRecords {
 		)
 	}
 
-	func hasLocalWork(isolation: isolated (any Actor)? = #isolation) async -> Bool {
-		let reviewing = await reviews.isExecuting(in: chat)
-		return reviewing || conversation.hasLocalWork(on: ledger.deviceId)
-	}
+	var hasLocalWork: Bool { conversation.hasLocalWork(on: ledger.deviceId) }
 
-	func refreshReview(
-		_ ref: ReviewRef? = nil, isolation: isolated (any Actor)? = #isolation
-	) async -> ReviewOutcome {
-		if let ref, review?.ref != ref { return .staleControl(newer: nil) }
+	func refreshReview(isolation: isolated (any Actor)? = #isolation) async -> ReviewOutcome {
 		do {
 			try await updateReview()
 			return .presentationRecorded
@@ -105,19 +96,15 @@ final class ChatRecords {
 	}
 
 	func decide(
-		_ decision: ReviewDecision, scope: TurnScope?,
-		changed: @escaping @Sendable () async throws(LedgerFailure) -> Void,
-		isolation: isolated (any Actor)? = #isolation
+		_ decision: ReviewDecision, isolation: isolated (any Actor)? = #isolation
 	) async -> ReviewOutcome {
-		var outcome = ReviewOutcome.storageUnavailable
+		let outcome = await desk.decide(decision)
 		do {
-			try await readingReview { () throws(LedgerFailure) in
-				outcome = try await reviews.decide(
-					decision, chat: chat, scope: scope, changed: changed)
-				return (outcome, try await savedReview())
-			}
+			try await updateReview()
 		} catch {
-			return outcome
+			switch error {
+			case .unavailable, .rejectedBatch: return outcome
+			}
 		}
 		return outcome
 	}
@@ -132,7 +119,7 @@ final class ChatRecords {
 		async throws(LedgerFailure) -> ReviewSnapshot?
 	{
 		try await refreshNotes()
-		return try await reviews.snapshot(chat: chat, records: nil)
+		return try await desk.snapshot(chat: chat)
 	}
 
 	private func readingReview<Value>(
@@ -142,11 +129,7 @@ final class ChatRecords {
 		let retained = review
 		do {
 			let (value, snapshot) = try await read()
-			if case .cancelledUnknown? = snapshot?.state {
-				review = nil
-			} else {
-				review = snapshot
-			}
+			review = snapshot
 			return value
 		} catch {
 			review = (review?.ref == retained?.ref ? retained : review)?.disablingButtons()
@@ -175,7 +158,9 @@ final class ChatRecords {
 	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
 		let notes = try await ledger.read(
 			RecordQuery(
-				scope: .synced([.reviewApplied, .reviewWrite, .reviewCancelledUnknown]),
+				scope: .synced(
+					[.reviewOutcome],
+					includeLegacy: [.reviewApplied, .reviewWrite, .reviewCancelledUnknown]),
 				chatId: chat))
 		apply(notes.records)
 	}

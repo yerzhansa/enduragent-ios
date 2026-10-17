@@ -16,14 +16,15 @@ import Testing
 
 		var testDescription: String { rawValue }
 
-		var input: GatedToolInput {
+		var change: LegacyCalendarChange {
 			switch self {
 			case .edit:
-				.updateWorkout(
-					UpdateWorkoutInput(
-						eventId: EventID(rawValue: 201), date: nil, name: "Tempo",
-						description: nil))
-			case .delete: .deleteWorkout(eventId: EventID(rawValue: 202))
+				.edit(
+					EventID(rawValue: 201),
+					WorkoutPatch(
+						date: nil, name: "Tempo", durationSeconds: nil, description: nil,
+						trainingLoad: nil, workoutDocument: nil, authoredSteps: nil))
+			case .delete: .delete(EventID(rawValue: 202))
 			}
 		}
 
@@ -42,8 +43,11 @@ import Testing
 		}
 	}
 
-	static let strength = GatedToolInput.createStrengthWorkout(
-		date: "1998-09-12", name: "Strength", description: "Squats and core")
+	static let strength = LegacyCalendarChange.add(
+		CalendarPayload(
+			date: "1998-09-12", type: .weightTraining, name: "Strength",
+			description: "Squats and core", movingTime: nil, trainingLoad: nil,
+			authoredSteps: nil))
 
 	@Test func aFailedSecondUpgradeAppendLeavesTheRestForTheNextRecover() async throws {
 		let rig = DeskRig()
@@ -84,7 +88,7 @@ import Testing
 		switch missing {
 		case .payload:
 			try await legacy.sendUnknown(
-				LegacyProposal(
+				SeededProposal(
 					review: WorkoutReviewID(ulid: reviewULID(901)), nonce: Nonce(rawValue: UUID()),
 					stamp: legacy.stamp(), identity: CalendarWriteID()),
 				target: .create(date: "1998-09-12"), clearing: false)
@@ -108,7 +112,7 @@ import Testing
 		let rig = DeskRig()
 		let legacy = LegacyReviews(rig: rig)
 		let sent = try await legacy.sendUnknown(
-			try await legacy.propose(upgraded.input, identity: CalendarWriteID()),
+			try await legacy.propose(upgraded.change, identity: CalendarWriteID()),
 			target: upgraded.target)
 		let desk = try rig.desk()
 
@@ -136,7 +140,7 @@ import Testing
 	}
 }
 
-struct LegacyProposal {
+struct SeededProposal {
 	let review: WorkoutReviewID
 	let nonce: Nonce
 	let stamp: OperationStamp
@@ -147,20 +151,17 @@ struct LegacyReviews {
 	let rig: DeskRig
 
 	func propose(
-		_ input: GatedToolInput, identity: CalendarWriteID? = nil, in chat: ChatID = .main
-	) async throws -> LegacyProposal {
+		_ change: LegacyCalendarChange, identity: CalendarWriteID? = nil, in chat: ChatID = .main
+	) async throws -> SeededProposal {
 		let stamp = stamp()
 		let nonce = Nonce(rawValue: UUID())
-		let saved = try await rig.ledger().commit(
-			local: [
-				.pendingProposal(
-					ProposalBody(
-						writeID: identity, chatId: chat, nonce: nonce, tool: Self.tool(of: input),
-						toolInput: input, summary: "Legacy", description: "Legacy",
-						expiresAt: rig.clock.now.addingTimeInterval(ProposalPolicy.ttlSeconds)))
-			], stamp: stamp)
-		let record = try #require(saved.first)
-		return LegacyProposal(
+		let record = try await seed(
+			.pendingProposal(
+				LegacyProposalBody(
+					chatId: chat, nonce: nonce, writeID: identity, change: change,
+					expiresAt: rig.clock.now.addingTimeInterval(600))),
+			stamp: stamp)
+		return SeededProposal(
 			review: WorkoutReviewID(ulid: record.ulid), nonce: nonce, stamp: stamp,
 			identity: identity)
 	}
@@ -171,24 +172,28 @@ struct LegacyReviews {
 
 	@discardableResult
 	func sendUnknown(
-		_ proposal: LegacyProposal, target: CalendarWriteTarget?, clearing: Bool = true
-	) async throws -> LegacyProposal {
+		_ proposal: SeededProposal, target: CalendarWriteTarget?, clearing: Bool = true
+	) async throws -> SeededProposal {
 		var body = ReviewWriteBody(
 			chatId: .main, review: proposal.review, writeID: proposal.identity, target: target,
 			evidence: .notSent)
-		let ledger = rig.ledger()
-		_ = try await ledger.commit(synced: [.reviewWrite(body)], stamp: proposal.stamp)
+		try await seed(.reviewWrite(body), stamp: proposal.stamp)
 		body.evidence = .unknown(.dispatched)
-		_ = try await ledger.commit(synced: [.reviewWrite(body)], stamp: proposal.stamp)
+		try await seed(.reviewWrite(body), stamp: proposal.stamp)
 		if clearing {
-			_ = try await ledger.commit(
-				local: [
-					.proposalCleared(
-						ProposalClearedBody(chatId: .main, nonce: proposal.nonce, reason: .executed)
-					)
-				], stamp: proposal.stamp)
+			try await seed(
+				.proposalCleared(chatId: .main, nonce: proposal.nonce), stamp: proposal.stamp)
 		}
 		return proposal
+	}
+
+	@discardableResult
+	private func seed(_ body: LegacyRecordBody, stamp: OperationStamp) async throws
+		-> AthleteRecord
+	{
+		let record = await rig.ledger().prepare(.legacy(body), stamp: stamp)
+		try await rig.store.append([record], locality: record.locality)
+		return record
 	}
 
 	func closed() async throws -> [WorkoutReviewID] {
@@ -207,15 +212,5 @@ struct LegacyReviews {
 				guard case .deviceLocal(.workoutReview(let body)) = record.body else { return nil }
 				return body.review.id
 			}
-	}
-
-	private static func tool(of input: GatedToolInput) -> GatedToolName {
-		switch input {
-		case .createWorkout: .intervalsCreateWorkout
-		case .createStrengthWorkout: .intervalsCreateStrengthWorkout
-		case .updateWorkout: .intervalsUpdateWorkout
-		case .deleteWorkout: .intervalsDeleteWorkout
-		case .planSave: .planSave
-		}
 	}
 }

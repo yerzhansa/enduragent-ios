@@ -139,11 +139,7 @@ import Testing
 			_ = await desk.decide(.cancel(token))
 			used = token
 		case .otherChat:
-			used = ReviewControlToken(
-				ref: ReviewRef(
-					chat: "elsewhere", review: token.ref.review, revision: token.ref.revision,
-					delivery: token.ref.delivery),
-				secret: token.secret)
+			used = try token.movedToAnotherChat(at: reviewULID(999))
 		}
 		let calls = calendar.calls.count
 		let records = try await rig.records()

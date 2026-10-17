@@ -48,8 +48,7 @@ extension SwiftDataSuites {
 			let transport = FakeModelTransport()
 			let after = await makeCoach(
 				transport: transport, intervals: turns.intervals,
-				store: try makeSwiftDataLog(deviceId: phone, directory: directory), clock: clock,
-				tools: .workoutReview)
+				store: try makeSwiftDataLog(deviceId: phone, directory: directory), clock: clock)
 
 			await after.lifecycle(.becameActive)
 			await after.desk.recover()

@@ -35,7 +35,7 @@ import Testing
 		let calendar = ScriptedCalendar(turns.intervals)
 		let coach = await makeCoach(
 			transport: turns.transport, intervals: calendar, store: turns.store,
-			clock: turns.clock, tools: .workoutReview)
+			clock: turns.clock)
 		let review = try await turns.committed(ReviewTurns.fourChanges, on: coach)
 		let shown = try #require(try await coach.desk.snapshot(chat: .main))
 		#expect(await coach.desk.decide(.presented(shown.ref)) == .presentationRecorded)
@@ -79,7 +79,7 @@ import Testing
 		}
 		let coach = await makeCoach(
 			transport: turns.transport, intervals: calendar, store: turns.store,
-			clock: turns.clock, tools: .workoutReview)
+			clock: turns.clock)
 		_ = try await turns.committed(ReviewTurns.oneRide, on: coach)
 		let shown = try #require(try await coach.desk.snapshot(chat: .main))
 		#expect(await coach.desk.decide(.presented(shown.ref)) == .presentationRecorded)
@@ -197,11 +197,7 @@ import Testing
 			_ = await desk.decide(.cancel(token))
 			used = token
 		case .otherChat:
-			used = ReviewControlToken(
-				ref: ReviewRef(
-					chat: "elsewhere", review: token.ref.review, revision: token.ref.revision,
-					delivery: token.ref.delivery),
-				secret: token.secret)
+			used = try token.movedToAnotherChat(at: reviewULID(999))
 		}
 		let writes = rig.calendar.writes.count
 		let records = try await rig.chain().count

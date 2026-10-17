@@ -220,7 +220,12 @@ extension ChatSnapshot {
 		} else {
 			self.activity = .idle
 		}
-		self.review = review
+		self.review = review.flatMap { [turns] review in
+			guard case .afterTurn(let turn) = review.placement,
+				let view = turns.first(where: { $0.id == turn }), !view.state.isSettled
+			else { return review }
+			return nil
+		}
 		self.notes = Dictionary(grouping: current.transcriptNotes(among: turns), by: \.after)
 	}
 }
@@ -257,7 +262,7 @@ public struct TranscriptNote: Sendable, Equatable, Identifiable {
 
 	public enum Content: Sendable, Equatable {
 		case applied(ReviewSummary)
-		case cancelledUnknown(CancelledUnknownReview)
+		case cancelledUnknown
 		case outcome(ReviewOutcomeNote)
 	}
 

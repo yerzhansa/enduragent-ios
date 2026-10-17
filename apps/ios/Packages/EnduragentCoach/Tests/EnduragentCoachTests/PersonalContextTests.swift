@@ -135,7 +135,7 @@ import Testing
 		try await remember(bo.injected, using: coach)
 		let forBo = try MemoryProbe.systemText(in: try await ask(coach))
 
-		let knowledge = PromptAssembly.cyclingPrefix(gated: true)
+		let knowledge = PromptAssembly.cyclingPrefix()
 		#expect(knowledge.contains("# Domain Knowledge"))
 		#expect(knowledge.hasSuffix(PromptAssembly.cacheBoundary))
 		for (system, athlete) in [(forMira, mira), (forBo, bo)] {

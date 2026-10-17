@@ -6,18 +6,12 @@ enum ReviewProjection {
 		attribution: AthleteAttribution
 	) -> ReviewSnapshot {
 		let cards = cards(of: review)
-		let terminal: Bool =
-			switch review.stage {
-			case .completed, .canceled: true
-			case .waiting, .running: false
-			}
 		return ReviewSnapshot(
 			ref: delivery.ref,
 			state: .available(
 				ReviewContent(
 					cards: cards, kept: review.kept, totals: totals(of: cards),
-					receipts: receipts(of: cards), notice: notice(of: review),
-					authority: terminal ? .readOnly : .thisDevice),
+					receipts: receipts(of: cards), notice: notice(of: review)),
 				delivery.controls(review.allowedControls)),
 			placement: placement, attribution: attribution)
 	}
@@ -144,14 +138,24 @@ enum ReviewProjection {
 	}
 
 	private static func totals(of cards: [ReviewCard]) -> ReviewTotals {
-		let counted = ReviewTotals(cards)
-		let timed = cards.filter { card in
-			if case .delete = card.action { return false }
-			return true
+		var additions = 0
+		var edits = 0
+		var deletions = 0
+		var minutes: [Int?] = []
+		for card in cards {
+			switch card.action {
+			case .add:
+				additions += 1
+				minutes.append(card.durationMinutes)
+			case .edit:
+				edits += 1
+				minutes.append(card.durationMinutes)
+			case .delete:
+				deletions += 1
+			}
 		}
-		let minutes = timed.map(\.durationMinutes)
 		return ReviewTotals(
-			additions: counted.additions, edits: counted.edits, deletions: counted.deletions,
+			additions: additions, edits: edits, deletions: deletions,
 			durationMinutes: minutes.contains(nil) ? nil : minutes.compactMap { $0 }.reduce(0, +))
 	}
 }

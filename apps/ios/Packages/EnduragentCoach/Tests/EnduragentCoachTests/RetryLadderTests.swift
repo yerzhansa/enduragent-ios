@@ -102,7 +102,7 @@ import Testing
 		#expect(clock.slept == [.seconds(5)])
 
 		let committedAndObserved = AttemptSituation(
-			committed: [CommittedWrite(tool: .intervalsCreateWorkout)],
+			committed: [CommittedWrite(tool: .memoryWrite)],
 			observedText: true, promptTokens: 0, effectiveWindow: 200_000,
 			flushLatchFree: true, accessMethod: .credits, jitter: 0)
 		#expect(

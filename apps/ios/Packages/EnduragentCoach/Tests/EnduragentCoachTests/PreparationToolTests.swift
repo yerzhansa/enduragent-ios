@@ -74,8 +74,7 @@ import Testing
 			PreparationFixture.workout(205, on: "1998-09-08", category: "NOTE"),
 		]
 		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: auckland,
-			tools: .workoutReview)
+			transport: transport, intervals: intervals, store: store, clock: auckland)
 
 		let results = try await answers(
 			to: [prepare(#"{"kind":"complete","changes":[\#(example.change)]}"#)], from: coach)
@@ -90,8 +89,7 @@ import Testing
 			PreparationFixture.workout(202, on: "1998-09-11"),
 		]
 		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: auckland,
-			tools: .workoutReview)
+			transport: transport, intervals: intervals, store: store, clock: auckland)
 
 		let results = try await answers(
 			to: [
@@ -103,18 +101,16 @@ import Testing
 		#expect(results == [.prepared(4)])
 		#expect(intervals.calls.allSatisfy { !$0.isWrite })
 		#expect(
-			try await store.fetch(
-				RecordQuery(scope: .deviceLocal([.pendingProposal]))
-			).records.isEmpty)
+			try await store.fetch(RecordQuery(scope: LegacyReviewRecords.localScope)).records
+				.isEmpty)
 		#expect(
-			try await store.fetch(RecordQuery(scope: .synced([.reviewWrite, .reviewApplied])))
-				.records.isEmpty)
+			try await store.fetch(RecordQuery(scope: LegacyReviewRecords.syncedScope)).records
+				.isEmpty)
 	}
 
 	@Test func pendingAnswersNoneWhileOnlyADraftExists() async throws {
 		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: auckland,
-			tools: .workoutReview)
+			transport: transport, intervals: intervals, store: store, clock: auckland)
 
 		let data = try await toolData(
 			for: [
@@ -138,8 +134,7 @@ import Testing
 				stamp: testStamp(operation: .workoutReview(review.id, review.revision)),
 				after: .empty)
 		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: clock,
-			tools: .workoutReview)
+			transport: transport, intervals: intervals, store: store, clock: clock)
 
 		let pending = try #require(
 			try await toolData(
@@ -174,8 +169,7 @@ import Testing
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
 		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: failing, clock: auckland,
-			tools: .workoutReview)
+			transport: transport, intervals: intervals, store: failing, clock: auckland)
 
 		#expect(replyText(try await coach.sendAndSettle("Plan my week")) == "I could not read it.")
 
@@ -209,8 +203,7 @@ import Testing
 	func anUnknownFieldIsRefusedForEveryShape(_ arguments: String) async throws {
 		intervals.events = [PreparationFixture.workout(201, on: "1998-09-10")]
 		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: auckland,
-			tools: .workoutReview)
+			transport: transport, intervals: intervals, store: store, clock: auckland)
 
 		let data = try #require(
 			try await toolData(
@@ -226,8 +219,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: auckland,
-			tools: .workoutReview)
+			transport: transport, intervals: intervals, store: store, clock: auckland)
 
 		_ = try await coach.sendAndSettle("What should I ride?")
 
@@ -244,8 +236,7 @@ import Testing
 		intervals.fail(
 			.wellness, with: IntervalsError(code: "http", details: "status 503", status: 503))
 		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: auckland,
-			tools: .workoutReview)
+			transport: transport, intervals: intervals, store: store, clock: auckland)
 		transport.respond = ScriptedReply.sequence(
 			[
 				prepare(

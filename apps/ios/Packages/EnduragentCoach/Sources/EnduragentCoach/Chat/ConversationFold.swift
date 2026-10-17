@@ -4,10 +4,12 @@ package enum ConversationFold {
 	package static let syncedScope: RecordQuery.Scope = .synced(
 		[
 			.userMessage, .attemptQuestion, .turnSettled, .windowStart, .compactionSummary,
-			.reviewApplied,
-			.reviewWrite, .reviewCancelledUnknown, .reviewOutcome,
+			.reviewOutcome,
 		],
-		includeLegacy: [.userMessage, .assistantMessage, .windowStart]
+		includeLegacy: [
+			.userMessage, .assistantMessage, .windowStart, .reviewApplied, .reviewWrite,
+			.reviewCancelledUnknown,
+		]
 	)
 
 	package static let localScope: RecordQuery.Scope = .deviceLocal([

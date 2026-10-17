@@ -106,9 +106,6 @@ import Testing
 		let newer = FlushJobID(ulid: try #require(pending.last?.ulid))
 		let records = ChatRecords(
 			chat: .main, ledger: ledger, clock: clock,
-			reviews: SingleProposalReviews(
-				ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock),
-				training: { _ in .unconnected }),
 			desk: makeDesk(ledger: ledger, clock: clock, diagnostics: diagnostics))
 		try await records.refresh()
 		_ = try await ledger.commit(

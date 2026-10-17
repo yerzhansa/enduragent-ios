@@ -44,8 +44,7 @@ func makeCoach(
 	displayLocale: @escaping DisplayLocaleResolver = testDisplayLocale,
 	watchdogClock: HeldClock = HeldClock(),
 	coalescingClock: HeldClock? = nil,
-	consent: Bool = true,
-	tools: ToolSet = .app
+	consent: Bool = true
 ) async -> Coach {
 	var ports = CoachPorts(
 		records: RecordStore(log: store), secrets: secrets, models: .scripted(transport),
@@ -53,7 +52,6 @@ func makeCoach(
 		host: host, clock: clock)
 	ports.watchdogSleep = watchdogClock.sleep
 	if let coalescingClock { ports.coalescingSleep = coalescingClock.sleep }
-	ports.tools = tools
 	let coach = Coach(
 		sport: .cycling,
 		ports: ports,
@@ -225,7 +223,7 @@ func systemTokens(clock: any Clock) -> Int {
 		timeZoneName: clock.timeZone.identifier,
 		displayLocale: testDisplayLocale(.automatic)
 	)
-	return estimateTokens(PromptAssembly.cyclingPrefix(gated: true) + "\n\n" + volatile)
+	return estimateTokens(PromptAssembly.cyclingPrefix() + "\n\n" + volatile)
 }
 
 func historyBudget(clock: any Clock) -> Int {

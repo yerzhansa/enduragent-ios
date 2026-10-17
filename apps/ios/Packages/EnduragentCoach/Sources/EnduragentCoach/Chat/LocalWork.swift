@@ -12,17 +12,15 @@ extension Conversation {
 
 extension Ledger {
 	func hasLocalWork(
-		in chat: ChatID? = nil, excluding excluded: Set<ChatID> = [], now: Date
+		in chat: ChatID? = nil, excluding excluded: Set<ChatID> = []
 	) async throws(LedgerFailure) -> Bool {
 		let synced = try await read(
 			RecordQuery(scope: ConversationFold.syncedScope, chatId: chat)
 		).records
 		let local = try await read(
 			RecordQuery(
-				scope: .deviceLocal([
-					.turnClaim, .replyObserved, .flushPending, .flushSettled,
-					.pendingProposal, .proposalCleared,
-				]), chatId: chat)
+				scope: .deviceLocal([.turnClaim, .replyObserved, .flushPending, .flushSettled]),
+				chatId: chat)
 		).records
 		let chats = Set((synced + local).compactMap(\.chatId)).subtracting(excluded)
 		let conversations = Dictionary(
@@ -33,22 +31,8 @@ extension Ledger {
 						chat: chat, synced: synced, local: local, device: deviceId)
 				)
 			})
-		for (chat, conversation) in conversations {
-			let writes = try await calendarWrites(chat)
-			if writes.contains(where: {
-				$0.record.deviceId == deviceId
-					&& $0.blocksNewWork
-			}) {
-				return true
-			}
-			let proposal = UnionMerge.pendingProposalRecord(local, chatId: chat, now: now)
-			let pending =
-				proposal.map { live in
-					!writes.contains { $0.body.review.ulid == live.ulid && $0.cancellation != nil }
-				} ?? false
-			if conversation.hasLocalWork(on: deviceId) || pending {
-				return true
-			}
+		if conversations.values.contains(where: { $0.hasLocalWork(on: deviceId) }) {
+			return true
 		}
 		let jobs = try await flushJobsByChat(in: conversations, local: local)
 		return conversations.contains { chat, conversation in
@@ -58,13 +42,14 @@ extension Ledger {
 }
 
 extension Coach {
-	func holdsBoundWork(now: Date) async -> Bool {
+	func holdsBoundWork() async -> Bool {
 		do {
+			if try await desk.holdsBoundWork() { return true }
 			let opened = mailboxes
 			for mailbox in opened.values {
 				if try await mailbox.hasLocalWork() { return true }
 			}
-			return try await ledger.hasLocalWork(excluding: Set(opened.keys), now: now)
+			return try await ledger.hasLocalWork(excluding: Set(opened.keys))
 		} catch {
 			switch error {
 			case .unavailable, .rejectedBatch: return true

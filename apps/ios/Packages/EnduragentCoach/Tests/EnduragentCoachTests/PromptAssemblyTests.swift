@@ -15,17 +15,28 @@ import Testing
 	}
 
 	@Test func prefixCarriesTheCyclingSkillsUnderTheTokenCeilings() {
-		let first = PromptAssembly.cyclingPrefix(gated: false)
-		#expect(first.contains(PromptAssembly.cacheBoundary))
-		#expect(first.hasPrefix("# Cycling Coach"))
-		#expect(first.contains("## Skill: cycling-intervals-icu"))
-		#expect(first.contains("## Skill: cycling-zone-reference"))
-		#expect(first.contains("# Mutation Confirmations") == false)
-		#expect(first.contains(PromptAssembly.phonePreamble))
-		#expect(estimateTokens(first) < TurnPolicy.ungatedPrefixTokenCeiling)
-		let gated = PromptAssembly.cyclingPrefix(gated: true)
-		#expect(gated.contains("# Mutation Confirmations"))
-		#expect(estimateTokens(gated) < TurnPolicy.gatedPrefixTokenCeiling)
+		let prefix = PromptAssembly.cyclingPrefix()
+		#expect(prefix.contains(PromptAssembly.cacheBoundary))
+		#expect(prefix.hasPrefix("# Cycling Coach"))
+		#expect(prefix.contains("## Skill: cycling-intervals-icu"))
+		#expect(prefix.contains("## Skill: cycling-zone-reference"))
+		#expect(prefix.contains("# Workout Changes"))
+		#expect(prefix.contains(PromptAssembly.phonePreamble))
+		#expect(estimateTokens(prefix) < TurnPolicy.prefixTokenCeiling)
+	}
+
+	@Test func thePromptAndSkillsTeachOneWholeReviewAndNoSingleChangeTool() {
+		let prefix = PromptAssembly.cyclingPrefix()
+		for retired in [
+			"intervals_create_workout", "intervals_create_strength_workout",
+			"intervals_delete_workout", "intervals_update_workout", "pendingConfirmation",
+			"at most one mutation per turn",
+		] {
+			#expect(!prefix.contains(retired), "The prompt still names \(retired)")
+		}
+		#expect(prefix.contains("in one prepare_workout_changes call"))
+		#expect(prefix.contains("call get_pending_workout_changes"))
+		#expect(prefix.contains("Agreement in chat is never approval"))
 	}
 
 	@Test(arguments: [

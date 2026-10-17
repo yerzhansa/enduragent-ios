@@ -200,8 +200,6 @@ package enum AthleteNotices {
 		case .blocked(.cannotVerify):
 			return AthleteNotice(
 				key: Catalog.reviewCannotVerify, vars: ["service": .text(intervals)], actions: [])
-		case .blocked(.turnStopping):
-			return AthleteNotice(key: Catalog.reviewTurnStopping, actions: [])
 		case .blocked(.reviewedBeforeUpgrade):
 			return AthleteNotice(key: Catalog.workoutsBlockedReviewedBeforeUpgrade, actions: [])
 		case .staleControl:

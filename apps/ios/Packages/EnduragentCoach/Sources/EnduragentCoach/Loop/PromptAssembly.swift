@@ -27,9 +27,7 @@ package enum PromptAssembly {
 
 	package static let sectionSeparator = "\n\n---\n\n"
 
-	package static func prefix(soul: String, skills: [(key: String, body: String)], gated: Bool)
-		-> String
-	{
+	package static func prefix(soul: String, skills: [(key: String, body: String)]) -> String {
 		var parts: [String] = [soul]
 		if !skills.isEmpty {
 			let skillBlock =
@@ -38,7 +36,7 @@ package enum PromptAssembly {
 				.joined(separator: sectionSeparator)
 			parts.append("# Domain Knowledge\n\n" + skillBlock)
 		}
-		parts.append(contentsOf: PromptStaticBlocks.ruleBlocks(gated: gated))
+		parts.append(contentsOf: PromptStaticBlocks.ruleBlocks())
 		parts.append(phonePreamble)
 		return parts.joined(separator: sectionSeparator) + cacheBoundary
 	}
@@ -116,8 +114,8 @@ package enum PromptAssembly {
 		return "Current time: \(local) (\(timeZone.identifier)) / \(utcStamp(now))"
 	}
 
-	package static func cyclingPrefix(gated: Bool) -> String {
-		prefix(soul: PromptResources.soul(), skills: PromptResources.cyclingSkills(), gated: gated)
+	package static func cyclingPrefix() -> String {
+		prefix(soul: PromptResources.soul(), skills: PromptResources.cyclingSkills())
 	}
 
 	package static let summaryPrefix = "[Previous conversation summary]"

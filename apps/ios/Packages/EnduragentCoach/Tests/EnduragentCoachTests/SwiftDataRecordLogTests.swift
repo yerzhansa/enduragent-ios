@@ -21,15 +21,14 @@ extension SwiftDataSuites {
 					storedRecord(
 						device: phoneA, wall: 2,
 						body: .deviceLocal(
-							.pendingProposal(
-								sampleProposal(chatId: .main, nonce: Nonce(), expiresAt: expires)))),
+							sampleLocal(askedAt: expires))),
 				]
 			)
 			let synced = try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records
-			let local = try await log.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal])))
+			let local = try await log.fetch(RecordQuery(scope: .deviceLocal([.workoutDrift])))
 				.records
 			#expect(kinds(synced) == ["userMessage"])
-			#expect(kinds(local) == ["pendingProposal"])
+			#expect(kinds(local) == ["workoutDrift"])
 			let legacy = try await log.fetch(
 				RecordQuery(scope: .synced([], includeLegacy: [.assistantMessage]))
 			).records
@@ -63,13 +62,12 @@ extension SwiftDataSuites {
 					storedRecord(
 						device: phoneA, wall: 3,
 						body: .deviceLocal(
-							.pendingProposal(
-								sampleProposal(chatId: .main, nonce: Nonce(), expiresAt: expires)))),
+							sampleLocal(askedAt: expires))),
 				]
 			)
 			let synced = try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records
 			#expect(Set(synced.map(\.deviceId)) == [phoneA, phoneB])
-			let local = try await log.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal])))
+			let local = try await log.fetch(RecordQuery(scope: .deviceLocal([.workoutDrift])))
 				.records
 			#expect(local.map(\.deviceId) == [phoneA])
 		}
@@ -239,41 +237,6 @@ extension SwiftDataSuites {
 		func sampleBodies() throws -> [(kind: String, body: RecordBody)] {
 			let ulid = ULID.generate(at: Date(timeIntervalSince1970: 899_164_800))
 			let turn = TurnID(ulid: ulid)
-			let workout = IntervalsWorkoutInput(
-				name: "Z2",
-				steps: [
-					.simple(
-						SimpleStep(
-							type: .warmup,
-							duration: DurationInput(value: 10, unit: .minutes),
-							power: PowerTarget(kind: .percentFtp, value: 55, low: nil, high: nil),
-							cadence: CadenceTarget(value: 90, low: nil, high: nil),
-							label: "wu"
-						)
-					),
-					.set(
-						SetStep(
-							repeatCount: 3,
-							interval: SimpleStep(
-								type: .interval,
-								duration: DurationInput(value: 30, unit: .seconds),
-								power: PowerTarget(kind: .watts, value: 200, low: nil, high: nil),
-								cadence: nil,
-								label: nil
-							),
-							recovery: SimpleStep(
-								type: .rest,
-								duration: DurationInput(value: 15, unit: .seconds),
-								power: nil,
-								cadence: nil,
-								label: nil
-							)
-						)
-					),
-				]
-			)
-			let nonce = Nonce(
-				rawValue: try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000001")))
 			let synced: [SyncedRecordBody] = [
 				.trainingIdentityObserved,
 				.attemptQuestion(AttemptQuestionBody(chatId: .main, turn: turn, athleteText: "hi")),
@@ -292,15 +255,6 @@ extension SwiftDataSuites {
 						chatId: .main, firstIncludedUlid: ulid,
 						reason: .reset(ResetID(ulid: ulid)))),
 				.compactionSummary(CompactionSummaryBody(chatId: .main, markdown: "sum")),
-				.reviewWrite(
-					ReviewWriteBody(
-						chatId: .main, review: WorkoutReviewID(ulid: ulid), writeID: nil,
-						target: nil,
-						evidence: .unknown(.dispatched))),
-				.reviewApplied(
-					ReviewAppliedBody(
-						chatId: .main,
-						summary: .createWorkout(name: "Endurance", date: "1998-06-14"))),
 				.memorySection(MemorySectionBody(name: .person, content: "Ada")),
 				.dailyNote(DailyNoteBody(note: "note")),
 				.ledgerEvent(
@@ -338,18 +292,6 @@ extension SwiftDataSuites {
 					TurnSettledBody(
 						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
 						settlement: .replied(.model("Kept reply"), lineage: nil))),
-				.pendingProposal(
-					ProposalBody(
-						chatId: .main,
-						nonce: nonce,
-						tool: .intervalsCreateWorkout,
-						toolInput: .createWorkout(date: "1998-06-13", workout: workout),
-						summary: "Z2",
-						description: "Z2 ride",
-						expiresAt: expires
-					)),
-				.proposalCleared(
-					ProposalClearedBody(chatId: .main, nonce: nonce, reason: .canceled)),
 				.flushPending(
 					FlushPendingBody(chatId: .main, messageUlids: [ulid])),
 				.flushSettled(
@@ -387,12 +329,7 @@ extension SwiftDataSuites {
 						planWorkoutId: ulid, activityId: "123456", decision: .confirmed)),
 				.workoutDrift(WorkoutDriftBody(planWorkoutId: ulid, askedAt: expires)),
 			]
-			let cancelled = try RecordCodec.decode(
-				kind: "reviewCancelledUnknown", version: 2,
-				data: Data(try fixture("review-cancelled-unknown", ext: "json").utf8),
-				civilDate: "1998-06-14", ulid: fixedUlid(2).rawValue
-			).get()
-			return try ([cancelled] + reviewRecordSamples([.completed])).map { ($0.kind, $0) }
+			return try reviewRecordSamples([.completed]).map { ($0.kind, $0) }
 				+ synced.map { (kind: $0.kind.rawValue, body: RecordBody.synced($0)) }
 				+ local.map { (kind: $0.kind.rawValue, body: RecordBody.deviceLocal($0)) }
 		}

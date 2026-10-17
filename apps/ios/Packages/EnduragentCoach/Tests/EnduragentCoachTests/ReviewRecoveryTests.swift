@@ -68,7 +68,6 @@ struct Recovered {
 		case .completed?, .canceled?:
 			guard !expected.published.isEmpty else { break }
 			let shown = try #require(try await desk.snapshot(chat: .main))
-			#expect(shown.authority == .readOnly)
 			#expect(shown.controls == .none)
 		case .waiting?, .running?, nil:
 			break

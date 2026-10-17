@@ -79,7 +79,6 @@ struct ReviewProjectionTests {
 			of: review, delivery: delivery, placement: .preparedEarlier, attribution: attribution)
 
 		#expect(shown.controls == ReviewControls.none)
-		#expect(shown.authority == .readOnly)
 		#expect(!shown.cards.isEmpty)
 	}
 
@@ -102,7 +101,6 @@ struct ReviewProjectionTests {
 		#expect(armed.admits(token))
 		#expect(after.ref == armed.ref)
 		#expect(after.placement == .afterTurn(turn))
-		#expect(after.authority == .thisDevice)
 		#expect(after.kept == review.kept)
 		#expect(
 			after.totals
