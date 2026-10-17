@@ -213,7 +213,7 @@ public struct ReviewCard: Sendable, Equatable {
 }
 
 public struct KeptWorkout: Sendable, Equatable {
-	public let name: String
+	public let name: String?
 	public let date: CivilDate
 	public let durationMinutes: Int?
 }

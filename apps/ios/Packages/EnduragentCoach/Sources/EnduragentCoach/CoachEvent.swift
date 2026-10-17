@@ -27,6 +27,8 @@ public enum ToolName: String, Sendable, CaseIterable {
 	case intervalsCreateStrengthWorkout = "intervals_create_strength_workout"
 	case intervalsDeleteWorkout = "intervals_delete_workout"
 	case intervalsUpdateWorkout = "intervals_update_workout"
+	case getPendingWorkoutChanges = "get_pending_workout_changes"
+	case prepareWorkoutChanges = "prepare_workout_changes"
 	case memoryRead = "memory_read"
 	case memoryQuery = "memory_query"
 	case memoryWrite = "memory_write"
@@ -100,6 +102,18 @@ enum ReadToolName: Sendable {
 		case .intervalsFetchStreams: .intervalsFetchStreams
 		case .intervalsFetchActivities: .intervalsFetchActivities
 		case .intervalsListEvents: .intervalsListEvents
+		}
+	}
+}
+
+enum PreparationToolName: Sendable {
+	case getPendingWorkoutChanges
+	case prepareWorkoutChanges
+
+	var toolName: ToolName {
+		switch self {
+		case .getPendingWorkoutChanges: .getPendingWorkoutChanges
+		case .prepareWorkoutChanges: .prepareWorkoutChanges
 		}
 	}
 }

@@ -102,9 +102,12 @@ public enum CalendarEventType: String, Sendable {
 	case weightTraining = "WeightTraining"
 }
 
-package protocol IntervalsClient: Sendable {
+package protocol CalendarReads: Sendable {
 	func fetchEvent(id: EventID) async throws -> CalendarEvent
 	func listEvents(in range: ReadRange) async throws -> [CalendarEvent]
+}
+
+package protocol IntervalsClient: CalendarReads {
 	func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer
 }
 
@@ -203,7 +206,7 @@ package enum IntervalsPolicy {
 	package static func rejectPastCreationDate(_ date: CivilDate, today: CivilDate)
 		throws(ToolInputError)
 	{
-		if date < today {
+		if Eligibility.refusal(ofAddOn: date, today: today) != nil {
 			throw ToolInputError(
 				code: "past_date_refused",
 				details:
@@ -220,34 +223,33 @@ package enum IntervalsPolicy {
 		nextDate: CivilDate?
 	) throws {
 		let verb = action == "delete" ? "deleted" : "updated"
-		if event.category != "WORKOUT" {
+		switch Eligibility.refusal(of: event, destination: nextDate, today: today) {
+		case nil:
+			return
+		case .notAWorkout:
 			throw IntervalsError(
 				code: "not_a_workout",
 				details:
 					"Event \(eventId.rawValue) is category \(event.category.isEmpty ? "unknown" : event.category), not a scheduled workout. Races, notes, plans, and other calendar entries cannot be \(verb) by the coach."
 			)
-		}
-		if !isCoachOwned(externalId: event.externalId, tags: event.tags) {
+		case .notCoachCreated:
 			let athleteAction = action == "delete" ? "remove" : "change"
 			throw IntervalsError(
 				code: "not_coach_created",
 				details:
 					"This workout was not created by this coach (no provenance marker) — it may be athlete-added, from another app, or created before provenance markers shipped. It will not be \(verb); the athlete can \(athleteAction) it directly on intervals.icu."
 			)
-		}
-		let eventDate = String(event.startDateLocal.prefix(10))
-		if eventDate < today.rawValue {
+		case .pastWorkout:
 			throw IntervalsError(
 				code: "past_workout_protected",
 				details:
-					"Cannot \(action) workout dated \(eventDate) — it's before today (\(today.rawValue))."
+					"Cannot \(action) workout dated \(event.startDateLocal.prefix(10)) — it's before today (\(today.rawValue))."
 			)
-		}
-		if let nextDate, nextDate.rawValue < today.rawValue {
+		case .pastDate(let destination):
 			throw IntervalsError(
 				code: "past_workout_destination",
 				details:
-					"Cannot move workout to \(nextDate.rawValue) — it's before today (\(today.rawValue))."
+					"Cannot move workout to \(destination.rawValue) — it's before today (\(today.rawValue))."
 			)
 		}
 	}

@@ -91,7 +91,7 @@ package enum CyclingTools {
 					details: "\(dateRaw) is not a real calendar date. Use YYYY-MM-DD."
 				)
 			}
-			if parsed < today {
+			if Eligibility.refusal(ofAddOn: parsed, today: today) != nil {
 				throw ToolInputError(
 					code: "past_date_refused",
 					details:

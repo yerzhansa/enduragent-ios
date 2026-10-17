@@ -12,6 +12,7 @@ public struct CoachPorts: Sendable {
 	package var watchdogSleep: @Sendable (Duration) async throws(CancellationError) -> Void =
 		SystemClock().sleep
 	package var coalescingSleep: @Sendable (Duration) async throws -> Void = SystemClock().sleep
+	package var tools: ToolSet = .app
 
 	public init(
 		records: RecordStore,

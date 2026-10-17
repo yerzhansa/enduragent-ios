@@ -79,8 +79,12 @@ enum ReviewProjection {
 		return ReviewCard(
 			index: change.position, action: shown.action, name: shown.name, date: shown.date,
 			chart: nil, instructions: ReviewInstructions(content: .supplied(shown.description)),
-			durationMinutes: shown.durationSeconds.map { ($0 + 30) / 60 },
+			durationMinutes: shown.durationSeconds.map(minutes(ofSeconds:)),
 			estimatedLoad: shown.load, progress: progress)
+	}
+
+	static func minutes(ofSeconds seconds: Int) -> Int {
+		(seconds + 30) / 60
 	}
 
 	private static func totals(of cards: [ReviewCard]) -> ReviewTotals {

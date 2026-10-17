@@ -210,7 +210,7 @@ enum BlockDocument: String, Codable {
 }
 
 struct KeptDocument: Codable {
-	let name: String
+	let name: String?
 	let date: String
 	let durationMinutes: Int?
 
