@@ -1213,6 +1213,7 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachUpgradeTests.swift", "function": "anUnknownWriteOpensOfflineAsAnUnconfirmedChangeAndSettlesOnline"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fOpenReviewClosesOnceAtUpgrade"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownWriteBecomesOneUnconfirmedChange"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownWriteShowsItsStepsInTheDisplayLanguage"},
 				{"file": "apps/ios/EnduragentUITests/ReviewCardProofs.swift", "class": "ReviewUpgradeProof", "method": "testAnOpenReviewAsksTheCoachAgainOfflineAndOnline"},
 				{"file": "apps/ios/EnduragentUITests/ReviewCardProofs.swift", "class": "ReviewUpgradeProof", "method": "testAnUnknownWriteOpensUnconfirmedOfflineAndSettlesOnline"}
 			]

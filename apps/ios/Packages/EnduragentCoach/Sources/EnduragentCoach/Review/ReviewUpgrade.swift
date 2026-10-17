@@ -44,18 +44,17 @@ enum ReviewUpgrade {
 				case .unknown = write.body.evidence, let identity = write.body.writeID,
 				let proposal = write.proposal, let origin = proposal.origin
 			else { continue }
-			guard
-				let change = change(
-					proposal.body.change, at: write.body.target, as: identity)
-			else {
+			do throws(UnreadableWrite) {
+				unconfirmed.append(
+					LegacyUnknownWrite(
+						review: write.body.review, chat: write.body.chatId,
+						account: write.record.account, origin: origin,
+						change: try change(
+							proposal.body.change, at: write.body.target, as: identity),
+						sentAt: write.record.hlc.wallTime))
+			} catch {
 				unreadable.append(write.record.ulid)
-				continue
 			}
-			unconfirmed.append(
-				LegacyUnknownWrite(
-					review: write.body.review, chat: write.body.chatId,
-					account: write.record.account, origin: origin, change: change,
-					sentAt: write.record.hlc.wallTime))
 		}
 		return UpgradePlan(closed: closed, unconfirmed: unconfirmed, unreadable: unreadable)
 	}
@@ -63,19 +62,92 @@ enum ReviewUpgrade {
 	private static func change(
 		_ change: LegacyCalendarChange, at target: CalendarWriteTarget?,
 		as identity: CalendarWriteID
-	) -> ChangeAction? {
+	) throws(UnreadableWrite) -> ChangeAction {
 		switch (change, target) {
-		case (.add(let payload), .create?):
-			return .add(AddedWorkout(payload: payload, identity: identity))
+		case (.add(let payload, let ride), .create?):
+			return .add(
+				AddedWorkout(payload: try authored(payload, ride: ride), identity: identity))
 		case (.edit(let id, let patch), .update(let event, let date)?) where event == id.rawValue:
-			guard let day = CivilDate(rawValue: date) else { return nil }
+			guard let day = CivilDate(rawValue: date) else { throw .target }
 			return .edit(EditedWorkout(target: .upgradedWithoutSnapshot(id, day), patch: patch))
 		case (.delete(let id), .delete(let event, let date)?) where event == id.rawValue:
-			guard let day = CivilDate(rawValue: date) else { return nil }
+			guard let day = CivilDate(rawValue: date) else { throw .target }
 			return .delete(DeletedWorkout(target: .upgradedWithoutSnapshot(id, day)))
 		default:
-			return nil
+			throw .target
 		}
+	}
+
+	private static func authored(_ payload: CalendarPayload, ride: IntervalsWorkoutInput?)
+		throws(UnreadableWrite) -> CalendarPayload
+	{
+		guard let ride else { return payload }
+		let steps: AuthoredSteps
+		do throws(InvalidWorkout) {
+			steps = try AuthoredSteps.ride(ride.toolInput)
+		} catch {
+			throw .steps(error)
+		}
+		return CalendarPayload(
+			date: payload.date, type: payload.type, name: payload.name,
+			description: payload.description, movingTime: payload.movingTime,
+			trainingLoad: payload.trainingLoad, authoredSteps: steps)
+	}
+}
+
+private enum UnreadableWrite: Error {
+	case target
+	case steps(InvalidWorkout)
+}
+
+extension IntervalsWorkoutInput {
+	fileprivate var toolInput: JSONValue {
+		.object(["name": .string(name), "steps": .array(steps.map(\.toolInput))])
+	}
+}
+
+extension WorkoutStep {
+	fileprivate var toolInput: JSONValue {
+		switch self {
+		case .simple(let step):
+			step.toolInput
+		case .set(let set):
+			.object([
+				"type": .string(StepType.set.rawValue),
+				"repeat": .number(Double(set.repeatCount)),
+				"interval": set.interval.toolInput,
+				"recovery": set.recovery.toolInput,
+			])
+		}
+	}
+}
+
+extension SimpleStep {
+	fileprivate var toolInput: JSONValue {
+		var fields: [String: JSONValue] = [
+			"type": .string(type.rawValue),
+			"duration": .object([
+				"value": .number(duration.value), "unit": .string(duration.unit.rawValue),
+			]),
+		]
+		if let power {
+			var target: [String: JSONValue] = ["kind": .string(power.kind.rawValue)]
+			target["value"] = power.value.map(JSONValue.number)
+			target["low"] = power.low.map(JSONValue.number)
+			target["high"] = power.high.map(JSONValue.number)
+			fields["power"] = .object(target)
+		}
+		if let cadence {
+			var target: [String: JSONValue] = [:]
+			target["value"] = cadence.value.map { .number(Double($0)) }
+			target["low"] = cadence.low.map { .number(Double($0)) }
+			target["high"] = cadence.high.map { .number(Double($0)) }
+			fields["cadence"] = .object(target)
+		}
+		if let label {
+			fields["label"] = .string(label)
+		}
+		return .object(fields)
 	}
 }
 

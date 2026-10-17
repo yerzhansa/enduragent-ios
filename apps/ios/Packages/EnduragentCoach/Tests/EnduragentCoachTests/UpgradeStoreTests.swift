@@ -162,6 +162,27 @@ extension SwiftDataSuites {
 			#expect(seed.calendar.writes.isEmpty)
 		}
 
+		@Test func build6833d90fUnknownWriteShowsItsStepsInTheDisplayLanguage() async throws {
+			let seed = try await M2Seed(
+				try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device))
+			seed.calendar.failReads()
+			await (try seed.desk()).recover()
+
+			let card = try #require(
+				try await (try seed.desk()).snapshot(chat: .main)?.content.cards.first)
+
+			#expect(
+				card.lines(in: displayLocale(.de, region: "de_DE")) == [
+					"Aufwärmen", "- 10m 55-65%", "", "Hauptteil 2x", "- 10m 190-225w",
+					"- 5m Z1-Z2", "", "Cooldown", "- 10m 55-65%",
+				])
+			#expect(
+				card.lines(in: displayLocale(.zhHant, region: "zh_TW")) == [
+					"暖身", "- 10m 55-65%", "", "主要訓練 2x", "- 10m 190-225w", "- 5m Z1-Z2", "",
+					"緩和", "- 10m 55-65%",
+				])
+		}
+
 		@Test(arguments: M2Seed.Landing.allCases)
 		func build6833d90fUnknownAddFoundOnTheCalendarFinishesAsSeen(_ landing: M2Seed.Landing)
 			async throws

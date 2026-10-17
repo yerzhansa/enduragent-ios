@@ -20,7 +20,7 @@ package struct LegacyProposalBody: Sendable, Equatable {
 }
 
 package enum LegacyCalendarChange: Sendable, Equatable {
-	case add(CalendarPayload)
+	case add(CalendarPayload, ride: IntervalsWorkoutInput?)
 	case edit(EventID, WorkoutPatch)
 	case delete(EventID)
 }
@@ -59,13 +59,15 @@ enum ProposalInputPayload: Decodable {
 				CalendarPayload(
 					date: try decodeCivilDate(date), type: .ride, name: ride.name,
 					description: try IntervalsSerializer.serialize(ride).description,
-					movingTime: nil, trainingLoad: nil, authoredSteps: nil))
+					movingTime: nil, trainingLoad: nil, authoredSteps: nil),
+				ride: ride)
 		case .createStrengthWorkout(let date, let name, let description):
 			return .add(
 				CalendarPayload(
 					date: try decodeCivilDate(date), type: .weightTraining, name: name,
 					description: description, movingTime: nil, trainingLoad: nil,
-					authoredSteps: nil))
+					authoredSteps: nil),
+				ride: nil)
 		case .deleteWorkout(let eventId):
 			return .delete(EventID(rawValue: eventId))
 		case .updateWorkout(let eventId, let date, let name, let description):

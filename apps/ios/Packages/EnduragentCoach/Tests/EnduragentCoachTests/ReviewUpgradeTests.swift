@@ -6,7 +6,7 @@ import Testing
 
 @Suite struct ReviewUpgradeTests {
 	enum Missing: String, CaseIterable, CustomTestStringConvertible {
-		case payload, identity
+		case payload, identity, steps
 
 		var testDescription: String { rawValue }
 	}
@@ -47,7 +47,22 @@ import Testing
 		CalendarPayload(
 			date: "1998-09-12", type: .weightTraining, name: "Strength",
 			description: "Squats and core", movingTime: nil, trainingLoad: nil,
-			authoredSteps: nil))
+			authoredSteps: nil),
+		ride: nil)
+
+	static let rideWithUnreadableSteps = LegacyCalendarChange.add(
+		CalendarPayload(
+			date: "1998-09-12", type: .ride, name: "Tempo", description: "- 10m 55%",
+			movingTime: nil, trainingLoad: nil, authoredSteps: nil),
+		ride: IntervalsWorkoutInput(
+			name: "Tempo",
+			steps: [
+				.simple(
+					SimpleStep(
+						type: .set, duration: DurationInput(value: 10, unit: .minutes),
+						power: PowerTarget(kind: .percentFtp, value: 55, low: nil, high: nil),
+						cadence: nil, label: nil))
+			]))
 
 	@Test func aFailedSecondUpgradeAppendLeavesTheRestForTheNextRecover() async throws {
 		let rig = DeskRig()
@@ -95,6 +110,10 @@ import Testing
 		case .identity:
 			try await legacy.sendUnknown(
 				try await legacy.propose(Self.strength, identity: nil), target: nil)
+		case .steps:
+			try await legacy.sendUnknown(
+				try await legacy.propose(Self.rideWithUnreadableSteps, identity: CalendarWriteID()),
+				target: .create(date: "1998-09-12"))
 		}
 
 		await (try rig.desk()).recover()
