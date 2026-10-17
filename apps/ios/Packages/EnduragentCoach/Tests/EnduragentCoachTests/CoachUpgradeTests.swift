@@ -19,7 +19,10 @@ extension SwiftDataSuites {
 
 			await coach.lifecycle(.becameActive)
 
-			let offline = try #require(await coach.currentSnapshot(.main))
+			let offline = try #require(
+				try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+					sentences($0).contains(Self.askAgain)
+				})
 			#expect(offline.review == nil)
 			#expect(sentences(offline).filter { $0 == Self.askAgain }.count == 1)
 
@@ -43,7 +46,10 @@ extension SwiftDataSuites {
 
 			await coach.lifecycle(.becameActive)
 
-			let opened = try #require(await coach.currentSnapshot(.main))
+			let opened = try #require(
+				try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+					$0.review != nil
+				})
 			let shown = try #require(opened.review)
 			#expect(shown.controls == .none)
 			#expect(
@@ -60,7 +66,10 @@ extension SwiftDataSuites {
 			seed.calendar.restoreReads()
 			await coach.lifecycle(.becameActive)
 
-			#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
+			let settled = try await firstSnapshot(
+				in: await coach.observe(.main), within: .hangGuard
+			) { $0.review == nil }
+			#expect(settled != nil)
 			#expect(try await seed.chain().last?.stage == .completed)
 			#expect(seed.calendar.writes.isEmpty)
 		}

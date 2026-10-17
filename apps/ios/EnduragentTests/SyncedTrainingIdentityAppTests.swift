@@ -111,12 +111,7 @@ struct SyncedTrainingIdentityAppTests {
 		#expect(model.connected?.athleteName == "Bo Lind")
 		#expect(model.chat?.review?.ref.review == original.ref.review)
 		let token = try #require(model.chat?.review?.controls.approveToken)
-		await model.decide(.approve(token))
-		try await until { model.reviewNotice?.key == Catalog.reviewAccountChanged }
-		try await until {
-			if case .armed(.cancelOnly, _)? = model.chat?.review?.controls { return true }
-			return false
-		}
+		try await harness.approvalIsBlockedForTheChangedAthlete(on: model, using: token)
 		try fixture.trainingPeer.delete()
 		await model.sceneChanged(.becameActive)
 		try await model.waitForStatus { $0.training == .unconnected }

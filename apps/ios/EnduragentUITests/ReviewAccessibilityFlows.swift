@@ -31,12 +31,14 @@ enum ReviewAccessibility {
 		TutorialHarness.wait(run.named("chat.preview.checkAgain"), until: .enabled, within: .turn)
 		card.expect(notice: [], controls: [.checkAgain, .cancel], screen: "unconfirmed")
 		card.reach(.checkAgain).tap()
-		TutorialHarness.wait(run.named("chat.preview.tryAgain"), until: .enabled)
-		card.expect(notice: [], controls: [.tryAgain, .cancel], screen: "try-again")
-		card.reach(.tryAgain)
+		TutorialHarness.wait(run.named("chat.preview.add"), until: .enabled)
+		card.expect(
+			notice: [.text("chat.review.notice", run.say(Catalog.workoutsStopped))],
+			controls: [.cancel, .add], screen: "not-saved")
+		card.reach(.add)
 		card.reach(.cancel).tap()
 		TutorialHarness.wait(run.named("chat.preview.cancel"), until: .absent)
-		XCTAssertFalse(run.named("chat.preview.tryAgain").exists)
+		XCTAssertFalse(run.named("chat.preview.add").exists)
 		card.capture("cancelled-unsaved")
 	}
 

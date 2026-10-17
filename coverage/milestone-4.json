@@ -1264,6 +1264,7 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "noControlExistsBeforeTheAcknowledgement"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "aFailedAppendShowsTheStorageNoticeUntilTheNextRecoverResumesTheRun"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolProgressTests.swift", "function": "workingPersistsAcrossIndependentModelAndToolWaits"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewDuringReplyTests.swift", "function": "aReviewCommittedBeforeItsTurnIsSavedStaysHiddenUntilTheTurnSettles"},
 				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testApprovalControls"},
 				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testUnconfirmedChangeControls"},
 				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testBlockedReviewControls"},

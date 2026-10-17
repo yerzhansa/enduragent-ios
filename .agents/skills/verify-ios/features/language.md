@@ -91,7 +91,7 @@ The `LanguageMatrix` classes prove the retained screens in every supported langu
 | `testSettings` | `settings`, `settings-access-method`, `settings-credits`, `settings-session`, `settings-training`, `settings-switch-athlete`, `language-choice-not-saved`. |
 | `testFailureNotices` | `out-of-credits` with Buy Credits and Switch to OpenRouter, `failed-reply`, `locked-iphone`, `secure-storage-unavailable`, `training-storage-unavailable`, `draft-not-sent`. |
 | `testHistory` | `history-empty`, `history-earlier-athlete`, `history-conversation`. |
-| `testUnconfirmedChange` | Opens the build 6833d90f unknown write offline. `review-unconfirmed` with Check again and Cancel, `review-try-again` with Try again and Cancel after Check again finds nothing, `review-cancelled` with the change-not-made line. |
+| `testUnconfirmedChange` | Opens the build 6833d90f unknown write offline. `review-unconfirmed` with Check again and Cancel, `review-not-saved` with the `workouts.stopped` notice, Add to calendar and Cancel after Check again finds nothing, `review-cancelled` with the change-not-made line. |
 | `testOpenRouter` | `openrouter-blocked-request` with the 403 notice, `settings-openrouter`, `settings-model`. |
 | `testShortcuts` | `shortcut-choices` with the `/workout` and `/status` rows, whose command names stay untranslated beside their catalog titles, `shortcut-working` after `/workout 45 minutes indoors` is sent, `shortcut-reply`. |
 

@@ -32,7 +32,10 @@ import Testing
 		#expect(after.ref.review == review.id)
 		#expect(after.ref.revision == review.revision)
 		#expect(after.placement.notice.map { english.say($0) } == "Prepared earlier")
-		#expect(await coach.currentSnapshot(.main)?.turns.isEmpty == true)
+		let opened = try #require(await coach.currentSnapshot(.main))
+		#expect(opened.turns.isEmpty)
+		#expect(opened.review?.ref == after.ref)
+		#expect(opened.review?.placement == .preparedEarlier)
 		#expect(await coach.desk.decide(.presented(after.ref)) == .presentationRecorded)
 		guard
 			case .armed(.approveOrCancel, let token) = try #require(

@@ -31,7 +31,10 @@ extension SwiftDataSuites {
 			#expect(
 				try await seed.outcomes().flatMap(\.lines).map(\.result) == [.seenOnCalendar])
 			#expect(seed.calendar.writes.isEmpty)
-			#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
+			let settled = try await firstSnapshot(
+				in: await coach.observe(.main), within: .hangGuard
+			) { $0.review == nil }
+			#expect(settled != nil)
 		}
 	}
 }

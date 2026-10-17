@@ -21,6 +21,23 @@ extension FixtureLaunchTests {
 		try await until { model.chat?.review?.controls != ReviewControls.none }
 		return try #require(model.chat?.review?.controls.approveToken)
 	}
+
+	func approvalIsBlockedForTheChangedAthlete(
+		on model: ShellModel, using token: ReviewControlToken
+	)
+		async throws
+	{
+		await model.decide(.approve(token))
+		#expect(model.reviewNotice?.key == Catalog.reviewAccountChanged)
+		try await until { model.chat?.review.map { $0.ref != token.ref } == true }
+		let blocked = try #require(model.chat?.review)
+		#expect(blocked.ref.review == token.ref.review)
+		await model.decide(.presented(blocked.ref))
+		try await until {
+			if case .armed(.cancelOnly, _)? = model.chat?.review?.controls { return true }
+			return false
+		}
+	}
 }
 
 extension ReviewControls {

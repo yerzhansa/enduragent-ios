@@ -128,7 +128,7 @@ enum ReviewProjection {
 		let shown = ShownWorkout(change.action)
 		return ReviewCard(
 			index: change.position, action: shown.action, name: shown.name, date: shown.date,
-			chart: nil, instructions: ReviewInstructions(content: .supplied(shown.description)),
+			chart: nil, instructions: shown.instructions,
 			durationMinutes: shown.durationSeconds.map(minutes(ofSeconds:)),
 			estimatedLoad: shown.load, progress: progress)
 	}
@@ -164,7 +164,7 @@ private struct ShownWorkout {
 	let action: ReviewCard.Action
 	let name: ReviewSummary
 	let date: CivilDate
-	let description: String
+	let instructions: ReviewInstructions
 	let durationSeconds: Int?
 	let load: Int?
 
@@ -175,7 +175,7 @@ private struct ShownWorkout {
 			self.action = .add
 			name = .supplied(payload.name)
 			date = payload.date
-			description = payload.description
+			instructions = ReviewInstructions(payload.authoredSteps, otherwise: payload.description)
 			durationSeconds = payload.movingTime
 			load = payload.trainingLoad
 		case .edit(let edited):
@@ -186,14 +186,16 @@ private struct ShownWorkout {
 				self.action = .edit(previousName: reviewed.name)
 				name = desired.name.map(ReviewSummary.supplied) ?? Self.unnamedEdit(patch)
 				date = desired.date
-				description = desired.description ?? ""
+				instructions = ReviewInstructions(
+					patch.authoredSteps, otherwise: desired.description ?? "")
 				durationSeconds = desired.durationSeconds
 				load = desired.load
 			case .upgradedWithoutSnapshot(_, let reviewedDate):
 				self.action = .edit(previousName: nil)
 				name = patch.name.map(ReviewSummary.supplied) ?? Self.unnamedEdit(patch)
 				date = patch.date ?? reviewedDate
-				description = patch.description ?? ""
+				instructions = ReviewInstructions(
+					patch.authoredSteps, otherwise: patch.description ?? "")
 				durationSeconds = patch.durationSeconds
 				load = patch.trainingLoad
 			}
@@ -203,13 +205,13 @@ private struct ShownWorkout {
 			case .reviewed(_, let reviewed):
 				name = reviewed.name.map(ReviewSummary.supplied) ?? .deleteWorkout
 				date = reviewed.date
-				description = reviewed.description ?? ""
+				instructions = ReviewInstructions(nil, otherwise: reviewed.description ?? "")
 				durationSeconds = reviewed.durationSeconds
 				load = reviewed.load
 			case .upgradedWithoutSnapshot(_, let reviewedDate):
 				name = .deleteWorkout
 				date = reviewedDate
-				description = ""
+				instructions = ReviewInstructions(nil, otherwise: "")
 				durationSeconds = nil
 				load = nil
 			}
@@ -236,5 +238,11 @@ extension OutcomeLine.Result {
 		case .remaining, .refused: self = .givenUp
 		case .sending, .mayHaveBeenSaved: self = .mayHaveBeenSaved
 		}
+	}
+}
+
+extension ReviewInstructions {
+	fileprivate init(_ authored: AuthoredSteps?, otherwise description: String) {
+		self.init(content: authored.map { .cycling($0.workout) } ?? .supplied(description))
 	}
 }

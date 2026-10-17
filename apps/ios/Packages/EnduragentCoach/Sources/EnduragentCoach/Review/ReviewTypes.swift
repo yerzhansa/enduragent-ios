@@ -148,15 +148,6 @@ public enum ReviewDecision: Sendable, Equatable {
 	case tryAgain(ReviewControlToken)
 	case checkAgain(ReviewControlToken)
 	case cancel(ReviewControlToken)
-
-	package var ref: ReviewRef {
-		switch self {
-		case .presented(let ref), .presentationFailed(let ref), .showAgain(let ref): ref
-		case .approve(let token), .tryAgain(let token), .checkAgain(let token),
-			.cancel(let token):
-			token.ref
-		}
-	}
 }
 
 public enum ReviewOutcome: Sendable, Equatable {

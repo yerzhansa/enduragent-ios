@@ -147,7 +147,7 @@ struct PayloadDocument: Codable {
 		description = payload.description
 		movingTime = payload.movingTime
 		trainingLoad = payload.trainingLoad
-		authoredSteps = payload.authoredSteps.map(canonicalJSON)
+		authoredSteps = payload.authoredSteps.map { canonicalJSON($0.json) }
 	}
 
 	func payload() throws -> CalendarPayload {
@@ -157,8 +157,8 @@ struct PayloadDocument: Codable {
 		return CalendarPayload(
 			date: try decodeCivilDate(date), type: type, name: name, description: description,
 			movingTime: movingTime, trainingLoad: trainingLoad,
-			authoredSteps: try authoredSteps.map { (raw) throws(DecodingError) in
-				try JSONValue.parse(raw)
+			authoredSteps: try authoredSteps.map { raw in
+				try AuthoredSteps.ride(try JSONValue.parse(raw))
 			})
 	}
 }
@@ -179,7 +179,7 @@ struct PatchDocument: Codable {
 		description = patch.description
 		trainingLoad = patch.trainingLoad
 		workoutDocument = patch.workoutDocument.map(canonicalJSON)
-		authoredSteps = patch.authoredSteps.map(canonicalJSON)
+		authoredSteps = patch.authoredSteps.map { canonicalJSON($0.json) }
 	}
 
 	func patch() throws -> WorkoutPatch {
@@ -189,8 +189,8 @@ struct PatchDocument: Codable {
 			workoutDocument: try workoutDocument.map { (raw) throws(DecodingError) in
 				try JSONValue.parse(raw)
 			},
-			authoredSteps: try authoredSteps.map { (raw) throws(DecodingError) in
-				try JSONValue.parse(raw)
+			authoredSteps: try authoredSteps.map { raw in
+				try AuthoredSteps.structure(try JSONValue.parse(raw))
 			})
 	}
 }
