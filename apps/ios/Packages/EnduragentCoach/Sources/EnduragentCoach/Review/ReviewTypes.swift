@@ -97,10 +97,18 @@ public struct ReviewSnapshot: Sendable, Equatable {
 	}
 
 	func disablingButtons() -> Self {
+		storageUnavailable(disabled: controls.set)
+	}
+
+	func withoutControls() -> Self {
+		storageUnavailable(disabled: nil)
+	}
+
+	private func storageUnavailable(disabled: ControlSet?) -> Self {
 		switch state {
-		case .available(let content, let controls):
+		case .available(let content, _):
 			Self(
-				ref: ref, state: .storageUnavailable(content, disabled: controls.set),
+				ref: ref, state: .storageUnavailable(content, disabled: disabled),
 				placement: placement, attribution: attribution)
 		case .storageUnavailable: self
 		}
@@ -126,7 +134,7 @@ public enum ReviewControls: Sendable, Equatable {
 	case none
 	case armed(ControlSet, ReviewControlToken)
 
-	public var set: ControlSet? {
+	var set: ControlSet? {
 		guard case .armed(let set, _) = self else { return nil }
 		return set
 	}

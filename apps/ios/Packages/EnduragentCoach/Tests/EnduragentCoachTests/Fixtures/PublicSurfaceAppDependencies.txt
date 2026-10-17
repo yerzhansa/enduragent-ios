@@ -230,16 +230,12 @@ SystemClock.uptime
 ToolName
 ToolName.calculateZones
 ToolName.getPendingWorkoutChanges
-ToolName.intervalsCreateStrengthWorkout
-ToolName.intervalsCreateWorkout
-ToolName.intervalsDeleteWorkout
 ToolName.intervalsFetchActivities
 ToolName.intervalsFetchActivity
 ToolName.intervalsFetchAthlete
 ToolName.intervalsFetchStreams
 ToolName.intervalsFetchWellness
 ToolName.intervalsListEvents
-ToolName.intervalsUpdateWorkout
 ToolName.ledgerAppend
 ToolName.memoryQuery
 ToolName.memoryRead

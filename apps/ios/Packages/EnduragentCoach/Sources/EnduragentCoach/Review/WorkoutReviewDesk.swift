@@ -177,7 +177,7 @@ package actor WorkoutReviewDesk {
 			attribution: AthleteAttribution(
 				accounts: [review.account], using: try await ledger.informationOwnership(),
 				device: ledger.deviceId))
-		return stalled.contains(chat) ? shown.disablingButtons() : shown
+		return stalled.contains(chat) ? shown.withoutControls() : shown
 	}
 
 	package func holdsBoundWork() async throws(LedgerFailure) -> Bool {

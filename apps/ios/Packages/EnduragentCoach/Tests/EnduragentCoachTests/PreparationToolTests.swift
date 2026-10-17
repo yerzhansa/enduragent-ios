@@ -160,7 +160,6 @@ import Testing
 
 	@Test func anUnreadablePendingReviewIsRecordedAsAToolFailure() async throws {
 		let failing = FaultInjectingRecordLog(wrapping: store)
-		failing.failNextFetch(in: .deviceLocal([.workoutReview]))
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(name: "get_pending_workout_changes", arguments: "{}"),
@@ -170,6 +169,8 @@ import Testing
 			], otherwise: transport.respond)
 		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: failing, clock: auckland)
+		#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
+		failing.failNextFetch(in: .deviceLocal([.workoutReview]))
 
 		#expect(replyText(try await coach.sendAndSettle("Plan my week")) == "I could not read it.")
 
