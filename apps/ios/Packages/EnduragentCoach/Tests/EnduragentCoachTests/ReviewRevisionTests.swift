@@ -121,6 +121,7 @@ import Testing
 				turns.prepare(
 					turns.revise(
 						first, [(ride.reference, PreparationFixture.ride(on: "1998-09-13"))])),
+				.finish(reason: .toolCalls),
 				turns.prepare(ReviewTurns.oneRide),
 			], on: coach)
 
