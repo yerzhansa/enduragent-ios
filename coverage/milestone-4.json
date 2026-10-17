@@ -22,6 +22,7 @@
 		"7.4": 6,
 		"9.1": 3,
 		"9.2": 9,
+		"9.3": 8,
 		"8.1": 4
 	},
 	"criteria": [
@@ -1274,6 +1275,88 @@
 			]
 		},
 		{
+			"id": "9.3.1",
+			"statement": "In make live-coach, after its seeded targets T1, T2 and K are each found once, the mixed request on T1, T2 and two adds drafts one workout review of those four changes with exactly one complete preparation that prepare_workout_changes accepts (a call it refuses for its input drafts nothing), with no calendar write, and every model call is admitted against the $10 cap in LIVE_LOGS/spend.tsv before it is sent.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachCheck.swift", "function": "coachSuiteAgainstTheRealModel"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "theReviewScenariosNameTheSeededTargetsAndTheFirstThursdayWithNoEntry"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatFollowsEachReviewScenarioPassesAndCancelSendsNoCalendarRequest"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatStraysFromEachReviewScenarioFailsItsCheck"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "anAccountWithoutItsSeededTargetsPlansNoReviewAndFailsTheRun"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aScenarioWhoseSeededTargetIsGoneStopsBeforeAnyModelCall"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachHelperTests.swift", "function": "theReadOnlyTrainingRefusesEveryWriteWithoutReachingTheAccount"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCheckHelperTests.swift", "function": "theMeteredTransportNeverReachesTheModelPastTheCapAndChargesWhatItReports"}
+			]
+		},
+		{
+			"id": "9.3.2",
+			"statement": "\"Make Thursday easier\" drafts exactly one revise and revises one change: the review is at revision 2 and the other three changes keep their ids and actions.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachCheck.swift", "function": "coachSuiteAgainstTheRealModel"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "theReviewScenariosNameTheSeededTargetsAndTheFirstThursdayWithNoEntry"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatFollowsEachReviewScenarioPassesAndCancelSendsNoCalendarRequest"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatStraysFromEachReviewScenarioFailsItsCheck"}
+			]
+		},
+		{
+			"id": "9.3.3",
+			"statement": "An explicit \"replace all of it\" replaces the set: the replacement names the waiting review's setId and revision as its base, and revision 2 holds only the new changes, none of revision 1.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachCheck.swift", "function": "coachSuiteAgainstTheRealModel"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "theReviewScenariosNameTheSeededTargetsAndTheFirstThursdayWithNoEntry"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatFollowsEachReviewScenarioPassesAndCancelSendsNoCalendarRequest"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatStraysFromEachReviewScenarioFailsItsCheck"}
+			]
+		},
+		{
+			"id": "9.3.4",
+			"statement": "Before a revision or a replacement the coach calls get_pending_workout_changes before prepare_workout_changes.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachCheck.swift", "function": "coachSuiteAgainstTheRealModel"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "theReviewScenariosNameTheSeededTargetsAndTheFirstThursdayWithNoEntry"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatFollowsEachReviewScenarioPassesAndCancelSendsNoCalendarRequest"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatStraysFromEachReviewScenarioFailsItsCheck"}
+			]
+		},
+		{
+			"id": "9.3.5",
+			"statement": "An unrelated message prepares nothing and leaves the waiting review unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachCheck.swift", "function": "coachSuiteAgainstTheRealModel"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "theReviewScenariosNameTheSeededTargetsAndTheFirstThursdayWithNoEntry"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatFollowsEachReviewScenarioPassesAndCancelSendsNoCalendarRequest"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatStraysFromEachReviewScenarioFailsItsCheck"}
+			]
+		},
+		{
+			"id": "9.3.6",
+			"statement": "Cancel of the waiting review answers canceled, makes zero calendar requests, and leaves no review waiting.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachCheck.swift", "function": "coachSuiteAgainstTheRealModel"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatFollowsEachReviewScenarioPassesAndCancelSendsNoCalendarRequest"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "cancelThatMakesACalendarRequestOrFindsNoReviewFailsTheScenario"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "theReadOnlyTrainingCountsEveryCalendarReadItPassesOn"}
+			]
+		},
+		{
+			"id": "9.3.7",
+			"statement": "With no review waiting, moving the seeded race gives a prepare_workout_changes result that carries the race refusal (not_a_workout, the workoutOnly ineligibility) or the coach's own incomplete preparation, the turn shows workouts.notPrepared, and no review waits.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachCheck.swift", "function": "coachSuiteAgainstTheRealModel"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "theReviewScenariosNameTheSeededTargetsAndTheFirstThursdayWithNoEntry"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatFollowsEachReviewScenarioPassesAndCancelSendsNoCalendarRequest"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aCoachThatStraysFromEachReviewScenarioFailsItsCheck"}
+			]
+		},
+		{
+			"id": "9.3.8",
+			"statement": "The coach run fails when a file of its run folder holds either Keychain key, checked with LiveRunFolder.files(containing:), and passes when none does.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachCheck.swift", "function": "coachSuiteAgainstTheRealModel"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aRunFolderFileThatHoldsEitherKeyFailsTheCoachRun"}
+			]
+		},
+		{
 			"id": "8.1.1",
 			"statement": "Each card's date, name, duration, steps and estimated Load equal the request its write sends, a strength card shows its effort and description, and each card shows its progress after approval.",
 			"tests": [
@@ -1622,6 +1705,41 @@
 			"id": "G10",
 			"statement": "An upgrade with pending and completed work keeps the completed outcomes and never runs stale work, offline and then online.",
 			"criteria": ["7.4.1", "7.4.2", "7.4.3", "7.4.4", "7.4.5", "7.4.6", "9.2.3", "9.2.4"]
+		},
+		{
+			"id": "B17.04",
+			"statement": "Edits change only the named fields and target the right event, a pending item id is never taken for an event id, and the coach reads the pending set before a revision or a whole-set replacement.",
+			"criteria": ["2.3.1", "2.3.2", "2.3.3", "2.5.4", "4.1.1", "4.1.6", "4.2.5", "4.2.10", "5.1.1", "5.1.6", "9.3.4"]
+		},
+		{
+			"id": "B18.07",
+			"statement": "Preparation that cannot finish offers no shortened set, keeps saved memory, and reports that the review could not be prepared, apart from saved but not verified.",
+			"criteria": ["4.2.2", "4.2.3", "4.2.4", "9.3.7"]
+		},
+		{
+			"id": "A01",
+			"statement": "One workout goes through the workout review, with approve and cancel, and nothing is written before approval.",
+			"criteria": ["9.2.1", "9.3.1"]
+		},
+		{
+			"id": "A02",
+			"statement": "The mixed request of two adds, one edit and one delete prepares one review of all four changes.",
+			"criteria": ["9.3.1"]
+		},
+		{
+			"id": "A11",
+			"statement": "Make one easier → a complete new review revision that keeps the untouched changes, and the earlier approval writes nothing.",
+			"criteria": ["4.2.5", "4.2.6", "4.2.7", "4.2.8", "9.3.2"]
+		},
+		{
+			"id": "A12",
+			"statement": "An unrelated topic while a review waits → the review stays unchanged and can still be approved.",
+			"criteria": ["4.2.9", "5.1.3", "9.3.5"]
+		},
+		{
+			"id": "A17",
+			"statement": "A request that cannot be prepared whole → no partial review, and the athlete is told the review could not be prepared.",
+			"criteria": ["4.2.2", "4.2.3", "4.2.4", "9.3.7"]
 		},
 		{
 			"id": "B18.02",
@@ -3057,25 +3175,18 @@
 		]
 	},
 	"open": [
-		"B17.04",
 		"B18.03",
 		"B18.05",
 		"B18.06",
-		"B18.07",
 		"B19.01",
 		"B21.05",
-		"A01",
-		"A02",
 		"A06",
 		"A07",
 		"A08",
-		"A11",
-		"A12",
 		"A13",
 		"A14",
 		"A15",
 		"A16",
-		"A17",
 		"A18",
 		"B11",
 		"D02",
