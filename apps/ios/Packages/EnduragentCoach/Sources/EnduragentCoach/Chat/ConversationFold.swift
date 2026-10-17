@@ -5,7 +5,7 @@ package enum ConversationFold {
 		[
 			.userMessage, .attemptQuestion, .turnSettled, .windowStart, .compactionSummary,
 			.reviewApplied,
-			.reviewWrite, .reviewCancelledUnknown,
+			.reviewWrite, .reviewCancelledUnknown, .reviewOutcome,
 		],
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart]
 	)
@@ -49,6 +49,7 @@ package struct Conversation: Sendable, Equatable {
 	package var legacyMessageUlids: Set<ULID> = []
 	var appliedRecordIDs: Set<ULID> = []
 	var calendarRecords: [ULID: AthleteRecord] = [:]
+	var outcomeRecords: [ULID: AthleteRecord] = [:]
 
 	package var current: Segment {
 		guard let last = segments.last else {

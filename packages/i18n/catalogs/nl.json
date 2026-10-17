@@ -3054,6 +3054,14 @@
     },
     "notPrepared": "De trainingsbeoordeling kon niet worden voorbereid.",
     "notPreparedInformationSaved": "Je gegevens zijn opgeslagen, maar de trainingsbeoordeling kon niet worden voorbereid.",
-    "stopped": "De trainingsbeoordeling is gestopt voordat alle wijzigingen waren doorgevoerd. Wijzigingen die al zijn doorgevoerd, blijven behouden."
+    "stopped": "De trainingsbeoordeling is gestopt voordat alle wijzigingen waren doorgevoerd. Wijzigingen die al zijn doorgevoerd, blijven behouden.",
+    "outcome": {
+      "saved": "{{workout}}, {{date}}: wijziging opgeslagen.",
+      "seenOnCalendar": "{{workout}}, {{date}}: wijziging gezien in de kalender.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: staat niet meer in de kalender.",
+      "givenUp": "{{workout}}, {{date}}: wijziging niet doorgevoerd.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: wijziging is mogelijk opgeslagen. Controleer je kalender."
+    },
+    "preparedEarlier": "Eerder voorbereid"
   }
 }

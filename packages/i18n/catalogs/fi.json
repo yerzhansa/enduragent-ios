@@ -3054,6 +3054,14 @@
     },
     "notPrepared": "Harjoituksen tarkistusta ei voitu valmistella.",
     "notPreparedInformationSaved": "Tietosi tallennettiin, mutta harjoituksen tarkistusta ei voitu valmistella.",
-    "stopped": "Harjoituksen tarkistus pysähtyi ennen kuin kaikki muutokset tehtiin. Jo tehdyt muutokset säilyvät."
+    "stopped": "Harjoituksen tarkistus pysähtyi ennen kuin kaikki muutokset tehtiin. Jo tehdyt muutokset säilyvät.",
+    "outcome": {
+      "saved": "{{workout}}, {{date}}: muutos tallennettu.",
+      "seenOnCalendar": "{{workout}}, {{date}}: muutos näkyy kalenterissa.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: ei enää kalenterissa.",
+      "givenUp": "{{workout}}, {{date}}: muutosta ei tehty.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: muutos on ehkä tallennettu. Tarkista kalenterisi."
+    },
+    "preparedEarlier": "Valmisteltu aiemmin"
   }
 }

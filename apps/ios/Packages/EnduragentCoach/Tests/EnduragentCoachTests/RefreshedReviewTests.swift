@@ -62,6 +62,24 @@ import Testing
 			])
 	}
 
+	@Test func theRefreshedOutcomeNoticeReadsEveryChangedFieldAfterApproval() async throws {
+		let rig = DeskRig()
+		try await rig.save(try rig.mixed())
+		rig.base.events[0].movingTime = 90 * 60
+		let desk = try rig.desk()
+
+		let outcome = await desk.decide(.approve(try await rig.token(on: desk)))
+
+		guard case .refreshed = outcome else {
+			Issue.record("the changed workout gave \(outcome)")
+			return
+		}
+		#expect(
+			outcome.notice?.sentence(in: english)
+				== Self.headline + " Endurance: duration changed from 60 to 90 minutes.")
+		#expect(rig.calendar.writes.isEmpty)
+	}
+
 	@Test func aRefreshAfterFinishedWorkSaysNothingElseWasChanged() async throws {
 		let finished = FinishedChange(
 			change: ReviewChange(

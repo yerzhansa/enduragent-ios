@@ -97,14 +97,10 @@ extension Ledger {
 		-> [WorkoutReviewID: ReviewOutcomeBody]
 	{
 		let page = try await read(RecordQuery(scope: .synced([.reviewOutcome]), chatId: chat))
-		var outcomes: [WorkoutReviewID: ReviewOutcomeBody] = [:]
-		for record in page.records {
-			guard case .synced(.reviewOutcome(let body)) = record.body,
-				outcomes[body.review] == nil
-			else { continue }
-			outcomes[body.review] = body
-		}
-		return outcomes
+		return Dictionary(
+			uniqueKeysWithValues: ReviewOutcomeNotes.notes(from: page.records).map {
+				($0.body.review, $0.body)
+			})
 	}
 
 	package func reviewPreparing(chat: ChatID, turn: TurnID) async throws(LedgerFailure)

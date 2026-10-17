@@ -3054,6 +3054,14 @@
     },
     "notPrepared": "Gjennomgangen av treningsøkten kunne ikke klargjøres.",
     "notPreparedInformationSaved": "Informasjonen din ble lagret, men gjennomgangen av treningsøkten kunne ikke klargjøres.",
-    "stopped": "Gjennomgangen av treningsøkten stoppet før alle endringene ble gjort. Endringer som allerede er gjort, beholdes."
+    "stopped": "Gjennomgangen av treningsøkten stoppet før alle endringene ble gjort. Endringer som allerede er gjort, beholdes.",
+    "outcome": {
+      "saved": "{{workout}}, {{date}}: endringen er lagret.",
+      "seenOnCalendar": "{{workout}}, {{date}}: endringen vises i kalenderen.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: er ikke lenger i kalenderen.",
+      "givenUp": "{{workout}}, {{date}}: endringen ble ikke gjort.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: endringen kan ha blitt lagret. Sjekk kalenderen din."
+    },
+    "preparedEarlier": "Forberedt tidligere"
   }
 }

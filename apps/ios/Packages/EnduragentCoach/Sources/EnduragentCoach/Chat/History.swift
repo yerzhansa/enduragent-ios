@@ -55,7 +55,7 @@ extension Ledger {
 		[
 			.userMessage, .attemptQuestion, .turnSettled, .trainingIdentityObserved, .windowStart,
 			.reviewApplied,
-			.reviewWrite, .reviewCancelledUnknown,
+			.reviewWrite, .reviewCancelledUnknown, .reviewOutcome,
 		],
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart])
 

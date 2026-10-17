@@ -3014,6 +3014,14 @@
     },
     "notPrepared": "운동 검토 내용을 준비할 수 없습니다.",
     "notPreparedInformationSaved": "정보는 저장되었지만 운동 검토 내용을 준비할 수 없습니다.",
-    "stopped": "모든 변경이 적용되기 전에 운동 검토가 중단되었습니다. 이미 적용된 변경은 유지됩니다."
+    "stopped": "모든 변경이 적용되기 전에 운동 검토가 중단되었습니다. 이미 적용된 변경은 유지됩니다.",
+    "outcome": {
+      "saved": "{{workout}}, {{date}}: 변경이 저장되었습니다.",
+      "seenOnCalendar": "{{workout}}, {{date}}: 변경이 캘린더에서 확인되었습니다.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: 더 이상 캘린더에 없습니다.",
+      "givenUp": "{{workout}}, {{date}}: 변경이 적용되지 않았습니다.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: 변경이 저장되었을 수 있습니다. 캘린더를 확인하세요."
+    },
+    "preparedEarlier": "이전에 준비됨"
   }
 }

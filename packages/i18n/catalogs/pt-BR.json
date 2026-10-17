@@ -3054,6 +3054,14 @@
     },
     "notPrepared": "Não foi possível preparar a revisão do treino.",
     "notPreparedInformationSaved": "Suas informações foram salvas, mas não foi possível preparar a revisão do treino.",
-    "stopped": "A revisão do treino parou antes de todas as alterações serem feitas. As alterações já feitas são mantidas."
+    "stopped": "A revisão do treino parou antes de todas as alterações serem feitas. As alterações já feitas são mantidas.",
+    "outcome": {
+      "saved": "{{workout}}, {{date}}: alteração salva.",
+      "seenOnCalendar": "{{workout}}, {{date}}: alteração vista no calendário.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: não está mais no calendário.",
+      "givenUp": "{{workout}}, {{date}}: alteração não feita.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: a alteração pode ter sido salva. Confira seu calendário."
+    },
+    "preparedEarlier": "Preparado antes"
   }
 }
