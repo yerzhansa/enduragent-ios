@@ -69,6 +69,24 @@ import Testing
 		#expect(current.controls == .none)
 	}
 
+	@Test func showingTheCardAgainAsksTheModelNothingAndTouchesNoCalendar() async throws {
+		let coach = await turns.coach()
+		_ = try await turns.committed(ReviewTurns.oneRide, on: coach)
+		let requests = turns.transport.requests.count
+		let calendarCalls = turns.intervals.calls.filter(\.isCalendarCall)
+		let shown = try #require(try await coach.desk.snapshot(chat: .main))
+
+		#expect(await coach.desk.decide(.presented(shown.ref)) == .presentationRecorded)
+		#expect(await coach.desk.decide(.showAgain(shown.ref)) == .presentationRecorded)
+		let again = try #require(try await coach.desk.snapshot(chat: .main))
+		let reopened = try #require(try await turns.coach().desk.snapshot(chat: .main))
+
+		#expect(again.cards == shown.cards)
+		#expect(reopened.cards == shown.cards)
+		#expect(turns.transport.requests.count == requests)
+		#expect(turns.intervals.calls.filter(\.isCalendarCall) == calendarCalls)
+	}
+
 	private func armedToken(_ snapshot: ReviewSnapshot) throws -> ReviewControlToken {
 		guard case .armed(_, let token) = snapshot.controls else {
 			throw UnarmedCard()

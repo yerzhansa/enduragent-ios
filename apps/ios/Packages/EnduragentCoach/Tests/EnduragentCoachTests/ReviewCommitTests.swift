@@ -73,4 +73,24 @@ import Testing
 		#expect(after.1 == committed)
 		#expect(try await turns.view(of: unrelated, on: coach).reviewNotice == nil)
 	}
+
+	@Test(arguments: [FinishReason.error, .contentFilter])
+	func aReplyThatEndsWithAProviderFinishAfterItsTextStillCommitsTheReview(_ reason: FinishReason)
+		async throws
+	{
+		let coach = await turns.coach()
+		turns.script([
+			turns.prepare(ReviewTurns.oneRide), .finish(reason: .toolCalls), .text("Ready."),
+			.finish(reason: reason),
+		])
+
+		let turn = try #require(try await coach.send(draft("Plan my week"), to: .main).acceptedTurn)
+		_ = try #require(await coach.settledState(of: turn, in: .main))
+
+		#expect(await coach.transcript(.main).contains("Ready."))
+		let review = try #require(try await turns.head(of: coach).1)
+		#expect(review.origin.turn == turn)
+		#expect(review.stage == .waiting(.approval(.prepared)))
+		#expect(try await coach.desk.snapshot(chat: .main)?.cards.count == 1)
+	}
 }

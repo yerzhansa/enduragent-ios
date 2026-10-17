@@ -45,11 +45,6 @@ extension SwiftDataSuites {
 			#expect(
 				try await coach.memory.fullContext(for: testConnection.account).contains(
 					"Rides with a group on Saturdays."))
-			let review = try #require(await coach.currentSnapshot(.main)?.review)
-			#expect(review.authority == .thisDevice)
-			#expect(review.cards.count == 1)
-			#expect(review.cards.first?.date == "1998-06-16")
-			#expect(review.totals.additions == 1)
 			let history = try await coach.history()
 			#expect(history.count == 1)
 			let summary = try #require(history.first)
@@ -104,22 +99,6 @@ extension SwiftDataSuites {
 				#expect(archive.turns.count == 1)
 				#expect(archive.turns.compactMap { replyText($0.state) }.count == 1)
 			}
-		}
-
-		@Test func pendingV1ReviewIsReadOnly() async throws {
-			let log = try open("review")
-			let transport = FakeModelTransport()
-			let coach = await makeCoach(transport: transport, store: log)
-			let review = try #require(await coach.currentSnapshot(.main)?.review)
-			#expect(review.authority == .readOnly)
-			#expect(review.controls == .none)
-			#expect(review.notice?.key == Catalog.reviewEarlierVersion)
-			#expect(transport.requests.isEmpty)
-			let page = try await log.fetch(
-				RecordQuery(
-					scope: .deviceLocal([.pendingProposal, .proposalCleared])))
-			#expect(page.skipped.isEmpty)
-			#expect(kinds(page.records) == ["pendingProposal"])
 		}
 
 		@Test func build6833d90fOpenReviewClosesOnceAtUpgrade() async throws {
@@ -357,7 +336,7 @@ extension SwiftDataSuites {
 		private static let chain = RecordQuery(
 			scope: .deviceLocal([.workoutReview]), chatId: .main)
 
-		private func open(
+		func open(
 			_ scenario: String, folder: String = "Fixtures/v1-upgrade", device: String? = nil
 		) throws -> SwiftDataRecordLog {
 			try UpgradeStore(

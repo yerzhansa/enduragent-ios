@@ -63,6 +63,15 @@ struct CoverageChecker {
 				try problems.report(identifier, "missing-criterion", "unit \(unit.name)")
 			}
 		}
+		let carried = try document.member("carried")
+		switch carried {
+		case .undefined:
+			break
+		case .object:
+			try checkCarried(carried, in: &sources)
+		default:
+			throw CoverageFailure(description: "the carried section is not a group")
+		}
 		if let requirements {
 			try RequirementChecker(
 				requirements: requirements, scope: .milestoneFour, problems: problems,
@@ -110,7 +119,7 @@ struct CoverageChecker {
 		}
 	}
 
-	private func check(
+	func check(
 		_ test: JSONValue, _ identifier: String, in sources: inout SourceFiles
 	) throws {
 		guard let file = try test.member("file").text else {
@@ -139,7 +148,7 @@ struct CoverageChecker {
 	}
 }
 
-private struct SourceFiles {
+struct SourceFiles {
 	let root: String
 	private let patterns = JavaScriptPatterns()
 	private var read: [String: SwiftDeclarations?] = [:]

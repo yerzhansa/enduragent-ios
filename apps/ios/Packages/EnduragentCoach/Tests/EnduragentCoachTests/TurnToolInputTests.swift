@@ -37,43 +37,6 @@ extension TurnRunnerTests {
 				.isEmpty)
 	}
 
-	@Test(arguments: [
-		#"[{"type":"steady","duration":{"value":1.5e17,"unit":"minutes"}}]"#,
-		#"[{"type":"steady","duration":{"value":86401,"unit":"seconds"}}]"#,
-		#"[{"type":"steady","duration":{"value":1441,"unit":"minutes"}}]"#,
-		#"[{"type":"steady","duration":{"value":1e20,"unit":"seconds"}}]"#,
-		#"[{"type":"steady","duration":{"value":1e18,"unit":"minutes"}}]"#,
-		#"[{"type":"steady","duration":{"value":1e308,"unit":"minutes"}}]"#,
-		#"[{"type":"steady","duration":{"value":5e18,"unit":"seconds"}},{"type":"steady","duration":{"value":5e18,"unit":"seconds"}}]"#,
-		#"[{"type":"set","repeat":20,"interval":{"type":"steady","duration":{"value":5e17,"unit":"seconds"}},"recovery":{"type":"rest","duration":{"value":30,"unit":"seconds"}}}]"#,
-	])
-	func oversizedWorkoutDurationsReturnErrors(steps: String) async throws {
-		let result = try await toolResult(
-			name: "intervals_create_workout",
-			arguments:
-				"{\"date\":\"1998-06-14\",\"workout\":{\"name\":\"Ride\",\"steps\":\(steps)}}")
-		#expect(result.objectFields["error"] == .string("invalid_workout"))
-		#expect(
-			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
-				.isEmpty)
-	}
-
-	@Test(arguments: [
-		#"{"value":86400,"unit":"seconds"}"#,
-		#"{"value":1440,"unit":"minutes"}"#,
-	])
-	func workoutDurationLimitRemainsProposable(duration: String) async throws {
-		let result = try await toolResult(
-			name: "intervals_create_workout",
-			arguments:
-				#"{"date":"1998-06-14","workout":{"name":"Ride","steps":[{"type":"steady","duration":\#(duration)}]}}"#
-		)
-		#expect(result.objectFields["pendingConfirmation"] == .bool(true))
-		#expect(
-			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
-				.count == 1)
-	}
-
 	@Test(arguments: ["1500-02-28", "1582-10-10", "0001-01-01"])
 	func historicalDateKeysReturnInvalidDate(oldest: String) async throws {
 		let result = try await toolResult(
@@ -107,7 +70,7 @@ extension TurnRunnerTests {
 		#expect(prompt.contains("Recommend at most one."))
 	}
 
-	private func toolResult(name: String, arguments: String) async throws -> JSONValue {
+	func toolResult(name: String, arguments: String) async throws -> JSONValue {
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(name: name, arguments: arguments), .finish(reason: .toolCalls),

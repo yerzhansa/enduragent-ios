@@ -100,22 +100,6 @@ import Testing
 		return try #require(claims.records.last?.account)
 	}
 
-	func proposeRide(on coach: Coach) async throws -> ReviewSnapshot {
-		transport.respond = ScriptedReply.sequence(
-			[
-				.toolCall(
-					name: "intervals_create_workout",
-					arguments:
-						#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-				),
-				.finish(reason: .toolCalls),
-				.text("I've prepared the ride. Confirm to add it."),
-				.finish(reason: .stop),
-			], otherwise: transport.respond)
-		_ = try await coach.sendAndSettle("Give me an endurance ride for tomorrow")
-		return try #require(await coach.currentSnapshot(.main)?.review)
-	}
-
 	@Test func blankReplacementKeepsTheWorkingKey() async throws {
 		let secrets = keyedSecrets()
 		let coach = await coach(secrets)
@@ -190,47 +174,6 @@ import Testing
 		#expect(transport.requests.isEmpty)
 	}
 
-	@Test func differentAthleteWithBoundWorkIsRefused() async throws {
-		let secrets = keyedSecrets()
-		let coach = await coach(secrets)
-		_ = try await proposeRide(on: coach)
-		let current = try #require(IntervalsAthleteID(rawValue: "i1001"))
-		let new = try #require(IntervalsAthleteID(rawValue: "i2002"))
-		#expect(
-			await coach.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
-				== .refused(.differentAthlete(current: current, new: new)))
-		#expect(try secrets.intervalsConnection() == testConnection)
-		#expect(await coach.currentSnapshot(.main)?.review?.notice == nil)
-		#expect(
-			try await claimAccount(after: "Is Thursday on?", on: coach) == account(testConnection))
-	}
-
-	@Test func unverifiedAthleteResolvesOnTheNextReadAndThenRefusesAnotherAthlete() async throws {
-		let secrets = keyedSecrets()
-		let coach = await coach(secrets)
-		guard
-			case .replaced(_, .unverifiable?) = await coach.changeTraining(
-				.replace(apiKey: "icu-offline", athlete: .keyOwner))
-		else {
-			Issue.record("expected an unverifiable replacement")
-			return
-		}
-		#expect(try secrets.intervalsConnection()?.resolvedAthlete == nil)
-		offline.athlete = .cyclist(id: "i3003", name: "Nobody", ftp: 200)
-		offline.restore(.profile)
-		let status = try await coach.refreshedStatus()
-		let resolved = try #require(try secrets.intervalsConnection())
-		let athlete = try #require(IntervalsAthleteID(rawValue: "i3003"))
-		#expect(resolved.resolvedAthlete == athlete)
-		#expect(status.trainingAccount == account(resolved))
-		_ = try await proposeRide(on: coach)
-		let other = try #require(IntervalsAthleteID(rawValue: "i2002"))
-		#expect(
-			await coach.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
-				== .refused(.differentAthlete(current: athlete, new: other)))
-		#expect(try secrets.intervalsConnection() == resolved)
-	}
-
 	@Test func differentAthleteWithoutBoundWorkFlips() async throws {
 		let secrets = keyedSecrets()
 		let outcome = await coach(secrets).changeTraining(
@@ -241,46 +184,6 @@ import Testing
 		}
 		#expect(summary.athleteName == "Bo Lind")
 		#expect(try secrets.intervalsConnection()?.resolvedAthlete?.rawValue == "i2002")
-	}
-
-	@Test func confirmingAthleteSwitchFlips() async throws {
-		let secrets = keyedSecrets()
-		let coach = await coach(secrets)
-		let pending = try await proposeRide(on: coach)
-		#expect(pending.notice == nil)
-		let outcome = await coach.changeTraining(
-			.replaceConfirmingAthleteSwitch(apiKey: "other-athlete", athlete: .keyOwner))
-		#expect(
-			outcome
-				== .replaced(
-					IntervalsSummary(
-						connectionID: try #require(try secrets.intervalsConnection()).id,
-						keySuffix: "lete",
-						profile: .available(
-							IntervalsProfile(
-								athleteID: try #require(IntervalsAthleteID(rawValue: "i2002")),
-								name: "Bo Lind", wellness: .waiting))),
-					authority: .changed))
-		let active = try #require(try secrets.intervalsConnection())
-		#expect(active.resolvedAthlete?.rawValue == "i2002")
-		let status = try await coach.refreshedStatus()
-		guard case .connected(let summary, let switched) = status.training else {
-			Issue.record("expected a connected account, got \(status.training)")
-			return
-		}
-		#expect(summary.athleteName == "Bo Lind")
-		#expect(switched == account(active))
-		let switchedReview = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(switchedReview.ref.review == pending.ref.review)
-		#expect(switchedReview.notice?.kind == .accountChanged)
-		#expect(switchedReview.controls == .none)
-		let reopened = try #require(await self.coach(secrets).currentSnapshot(.main)?.review)
-		#expect(reopened.ref.review == pending.ref.review)
-		#expect(reopened.notice?.kind == .accountChanged)
-		let proposals = try await records.fetch(
-			RecordQuery(scope: .deviceLocal([.pendingProposal]), chatId: "main")
-		).records
-		#expect(proposals.map(\.account) == [account(testConnection)])
 	}
 
 	@Test func disconnectLeavesTheNextTurnUnconnected() async throws {

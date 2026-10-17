@@ -66,6 +66,58 @@ import Testing
 		#expect(try await turns.head(of: coach).1?.stage == .completed)
 	}
 
+	@Test func aHangingWriteLeavesStopAndANewMessageWorkingAndSendsNothingBesideIt()
+		async throws
+	{
+		let turns = ReviewTurns()
+		let calendar = ScriptedCalendar(turns.intervals)
+		let held = Gate()
+		defer { held.release() }
+		calendar.answer { _, _ in
+			await held.wait()
+			return nil
+		}
+		let coach = await makeCoach(
+			transport: turns.transport, intervals: calendar, store: turns.store,
+			clock: turns.clock, tools: .workoutReview)
+		_ = try await turns.committed(ReviewTurns.oneRide, on: coach)
+		let shown = try #require(try await coach.desk.snapshot(chat: .main))
+		#expect(await coach.desk.decide(.presented(shown.ref)) == .presentationRecorded)
+		guard
+			case .armed(.approveOrCancel, let token) = try #require(
+				try await coach.desk.snapshot(chat: .main)
+			).controls
+		else {
+			Issue.record("the committed review never armed Approve")
+			return
+		}
+		let approving = Task { await coach.desk.decide(.approve(token)) }
+		try await waitUntil { calendar.writes.count == 1 }
+
+		let stopped: Void? = try await beforeDeadline(
+			within: .hangGuard, onTimeout: { held.release() }
+		) {
+			await coach.stop(.main)
+		}
+		#expect(stopped != nil)
+		let replied = try await beforeDeadline(within: .hangGuard, onTimeout: { held.release() }) {
+			try await turns.reply(
+				after: [turns.prepare(ReviewTurns.oneRide)], on: coach, asking: "Add another ride")
+		}
+		#expect(replied != nil)
+
+		#expect(try turns.toolData().first?.objectFields["error"] == .string("review_running"))
+		#expect(calendar.writes.count == 1)
+		held.release()
+		let outcome = try await beforeDeadline(within: .hangGuard) { await approving.value }
+		guard case .completed(let receipts) = outcome else {
+			Issue.record("the held approval ended \(String(describing: outcome))")
+			return
+		}
+		#expect(receipts.count == 1)
+		#expect(calendar.writes.count == 1)
+	}
+
 	@Test func theMixedReviewSendsEachReviewedRequestInCardOrderAndPublishesItsOutcome()
 		async throws
 	{

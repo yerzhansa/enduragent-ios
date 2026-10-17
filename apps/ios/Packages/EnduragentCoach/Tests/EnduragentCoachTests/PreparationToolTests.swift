@@ -240,6 +240,42 @@ import Testing
 			])
 	}
 
+	@Test func refusalsReachTheModelWithoutSwiftTypeNames() async throws {
+		intervals.fail(
+			.wellness, with: IntervalsError(code: "http", details: "status 503", status: 503))
+		let coach = await makeCoach(
+			transport: transport, intervals: intervals, store: store, clock: auckland,
+			tools: .workoutReview)
+		transport.respond = ScriptedReply.sequence(
+			[
+				prepare(
+					PreparedRideBoundsTests.oneRide(
+						steps: [#"{"type":"ramp","duration":{"value":10,"unit":"minutes"}}"#])),
+				.toolCall(
+					name: "intervals_fetch_wellness",
+					arguments: #"{"oldest":"1998-09-01","newest":"1998-09-07"}"#),
+				.finish(reason: .toolCalls), .text("Ready."), .finish(reason: .stop),
+			], otherwise: transport.respond)
+
+		#expect(replyText(try await coach.sendAndSettle("Plan my week")) == "Ready.")
+
+		let results = try #require(transport.requests.last).messages.filter { $0.role == .tool }
+			.map(\.content)
+		for result in results {
+			for typeName in ["IntervalsError", "InvalidWorkout", "EnduragentCoach", "Optional("] {
+				#expect(!result.contains(typeName), "\(typeName) in \(result)")
+			}
+		}
+		let details = try results.map { content in
+			let json = try JSONValue.parse(content)
+			return (json.objectFields["data"] ?? json).objectFields["details"]?.stringValue
+		}
+		#expect(
+			details == [
+				"preparation.changes[0]: steps[0]: ramp step requires a power target", "status 503",
+			])
+	}
+
 	private func prepare(_ preparation: String) -> ScriptedEvent {
 		.toolCall(name: "prepare_workout_changes", arguments: #"{"preparation":\#(preparation)}"#)
 	}
