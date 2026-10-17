@@ -12,8 +12,12 @@ package struct WorkoutSnapshot: Hashable, Sendable {
 		text.replacingOccurrences(of: "\r\n", with: "\n")
 	}
 
+	var hasParsedSteps: Bool { structure != nil }
+
 	static func normalizedStructure(_ document: JSONValue) -> String? {
-		document == .null ? nil : normalizedJSON(document).canonicalDigestInput()
+		guard let steps = document.objectFields["steps"], steps.arrayValue?.isEmpty == false
+		else { return nil }
+		return JSONValue.object(["steps": normalizedJSON(steps)]).canonicalDigestInput()
 	}
 
 	private static func normalizedJSON(_ value: JSONValue) -> JSONValue {

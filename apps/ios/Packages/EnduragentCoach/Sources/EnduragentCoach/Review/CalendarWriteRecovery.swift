@@ -69,7 +69,7 @@ extension SingleProposalReviews {
 				return .blocked(.accountChanged)
 			}
 			guard case .connected(let connection) = try await training(true),
-				Self.permits(intent.record.account.authority(under: connection.account))
+				intent.record.account.authority(under: connection.account).permitsWrites
 			else {
 				return .blocked(.accountChanged)
 			}

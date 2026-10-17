@@ -103,6 +103,13 @@ public enum AccountAuthority: Sendable, Equatable {
 	case sameAthlete
 	case changed
 	case unverifiable
+
+	package var permitsWrites: Bool {
+		switch self {
+		case .same, .sameAthlete: true
+		case .changed, .unverifiable: false
+		}
+	}
 }
 
 package struct AthleteTime: Hashable, Sendable {

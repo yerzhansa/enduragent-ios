@@ -283,13 +283,16 @@ import Testing
 			calendar: Self.seeded { sent, event in
 				guard sent == ["name"] else { return event }
 				var stored = event
-				stored.workoutDocument = .object(["steps": .array([]), "duration": .number(0)])
+				stored.workoutDocument = .object([
+					"steps": .array([.object(["duration": .number(600)])]),
+					"duration": .number(600),
+				])
 				return stored
 			})
 		await nameEdit.run()
 		#expect(
 			nameEdit.failures == [
-				"edit name: edit of name: workout_doc sent null, stored \"{\\\"duration\\\":0,\\\"steps\\\":[]}\", a rewrite intervals-rewrites.json does not list"
+				"edit name: edit of name: workout_doc sent null, stored \"{\\\"steps\\\":[{\\\"duration\\\":600}]}\", a rewrite intervals-rewrites.json does not list"
 			])
 	}
 

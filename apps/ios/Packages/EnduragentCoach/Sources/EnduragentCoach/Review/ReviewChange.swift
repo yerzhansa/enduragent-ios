@@ -48,7 +48,14 @@ extension WorkoutSnapshot {
 
 extension WorkoutPatch {
 	package func isApplied(on current: WorkoutSnapshot) -> Bool {
-		applied(to: current).differences(from: current).isEmpty
+		unrewritten(applied(to: current).differences(from: current), on: current).isEmpty
+	}
+
+	func unrewritten(_ fields: Set<SnapshotField>, on current: WorkoutSnapshot)
+		-> Set<SnapshotField>
+	{
+		guard description != nil, applied(to: current).hasParsedSteps else { return fields }
+		return fields.subtracting([.load])
 	}
 }
 
@@ -105,15 +112,19 @@ package struct ReviewWork: Equatable, Sendable {
 	package let remaining: [ReviewChange]
 }
 
+extension ChangeAction {
+	var target: ReviewedTarget? {
+		switch self {
+		case .add: nil
+		case .edit(let edit): edit.target
+		case .delete(let delete): delete.target
+		}
+	}
+}
+
 extension ReviewChange {
 	var isUpgradedWithoutSnapshot: Bool {
-		let target: ReviewedTarget? =
-			switch action {
-			case .add: nil
-			case .edit(let edit): edit.target
-			case .delete(let delete): delete.target
-			}
-		if case .upgradedWithoutSnapshot = target { return true }
+		if case .upgradedWithoutSnapshot = action.target { return true }
 		return false
 	}
 
