@@ -128,9 +128,10 @@ enum ReviewProjection {
 		let shown = ShownWorkout(change.action)
 		return ReviewCard(
 			index: change.position, action: shown.action, name: shown.name, date: shown.date,
-			chart: nil, instructions: shown.instructions,
+			chart: shown.steps.flatMap { WorkoutChartModel($0.workout) },
+			instructions: ReviewInstructions(shown.steps, otherwise: shown.description),
 			durationMinutes: shown.durationSeconds.map(minutes(ofSeconds:)),
-			estimatedLoad: shown.load, progress: progress)
+			estimatedLoad: shown.load, progress: progress, edit: shown.edit)
 	}
 
 	static func minutes(ofSeconds seconds: Int) -> Int {
@@ -164,9 +165,11 @@ private struct ShownWorkout {
 	let action: ReviewCard.Action
 	let name: ReviewSummary
 	let date: CivilDate
-	let instructions: ReviewInstructions
+	let steps: AuthoredSteps?
+	let description: String
 	let durationSeconds: Int?
 	let load: Int?
+	let edit: ReviewEdit?
 
 	init(_ action: ChangeAction) {
 		switch action {
@@ -175,43 +178,48 @@ private struct ShownWorkout {
 			self.action = .add
 			name = .supplied(payload.name)
 			date = payload.date
-			instructions = ReviewInstructions(payload.authoredSteps, otherwise: payload.description)
+			steps = payload.authoredSteps
+			description = payload.description
 			durationSeconds = payload.movingTime
 			load = payload.trainingLoad
+			edit = nil
 		case .edit(let edited):
 			let patch = edited.patch
+			steps = patch.authoredSteps
 			switch edited.target {
 			case .reviewed(_, let reviewed):
 				let desired = patch.applied(to: reviewed)
 				self.action = .edit(previousName: reviewed.name)
 				name = desired.name.map(ReviewSummary.supplied) ?? Self.unnamedEdit(patch)
 				date = desired.date
-				instructions = ReviewInstructions(
-					patch.authoredSteps, otherwise: desired.description ?? "")
+				description = desired.description ?? ""
 				durationSeconds = desired.durationSeconds
 				load = desired.load
+				edit = ReviewEdit(of: patch, from: reviewed, to: desired)
 			case .upgradedWithoutSnapshot(_, let reviewedDate):
 				self.action = .edit(previousName: nil)
 				name = patch.name.map(ReviewSummary.supplied) ?? Self.unnamedEdit(patch)
 				date = patch.date ?? reviewedDate
-				instructions = ReviewInstructions(
-					patch.authoredSteps, otherwise: patch.description ?? "")
+				description = patch.description ?? ""
 				durationSeconds = patch.durationSeconds
 				load = patch.trainingLoad
+				edit = nil
 			}
 		case .delete(let deleted):
 			self.action = .delete
+			steps = nil
+			edit = nil
 			switch deleted.target {
 			case .reviewed(_, let reviewed):
 				name = reviewed.name.map(ReviewSummary.supplied) ?? .deleteWorkout
 				date = reviewed.date
-				instructions = ReviewInstructions(nil, otherwise: reviewed.description ?? "")
+				description = reviewed.description ?? ""
 				durationSeconds = reviewed.durationSeconds
 				load = reviewed.load
 			case .upgradedWithoutSnapshot(_, let reviewedDate):
 				name = .deleteWorkout
 				date = reviewedDate
-				instructions = ReviewInstructions(nil, otherwise: "")
+				description = ""
 				durationSeconds = nil
 				load = nil
 			}
@@ -226,6 +234,26 @@ private struct ShownWorkout {
 	private static func unnamedEdit(_ patch: WorkoutPatch) -> ReviewSummary {
 		.updateWorkout(
 			date: patch.date, name: patch.name, descriptionChanged: patch.description != nil)
+	}
+}
+
+extension ReviewEdit {
+	fileprivate init(
+		of patch: WorkoutPatch, from reviewed: WorkoutSnapshot, to desired: WorkoutSnapshot
+	) {
+		let differences = reviewed.differences(from: desired)
+		let steps = patch.authoredSteps != nil || differences.contains(.structure)
+		let fields: [(Field, Bool)] = [
+			(.date, differences.contains(.date)), (.name, differences.contains(.name)),
+			(.duration, differences.contains(.duration)), (.load, differences.contains(.load)),
+			(.description, differences.contains(.description) && patch.authoredSteps == nil),
+			(.steps, steps),
+		]
+		self.init(
+			changed: fields.compactMap { $0.1 ? $0.0 : nil }, date: reviewed.date,
+			name: reviewed.name,
+			durationMinutes: reviewed.durationSeconds.map(ReviewProjection.minutes(ofSeconds:)),
+			estimatedLoad: reviewed.load)
 	}
 }
 

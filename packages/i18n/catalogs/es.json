@@ -3058,6 +3058,37 @@
       "givenUp": "{{workout}}, {{date}}: cambio no realizado.",
       "mayHaveBeenSaved": "{{workout}}, {{date}}: es posible que el cambio se haya guardado. Revisa tu calendario."
     },
-    "preparedEarlier": "Preparado antes"
+    "preparedEarlier": "Preparado antes",
+    "approve": "Aplicar cambios",
+    "card": {
+      "add": "Añadir",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "heading": "{{action}} · {{position}} de {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "duración desconocida",
+      "unknown": "desconocida",
+      "load": "Carga de entrenamiento estimada: {{load}}",
+      "removed": "Este entrenamiento se eliminará del calendario.",
+      "changed": {
+        "date": "Fecha: {{from}} → {{to}}",
+        "name": "Nombre: {{from}} → {{to}}",
+        "duration": "Duración: {{from}} → {{to}}",
+        "load": "Carga de entrenamiento estimada: {{from}} → {{to}}",
+        "description": "La descripción cambia.",
+        "steps": "Los pasos del entrenamiento cambian."
+      },
+      "progress": {
+        "sending": "Enviando…",
+        "saved": "Guardado",
+        "seenOnCalendar": "Visto en el calendario",
+        "noLongerOnCalendar": "Ya no está en el calendario",
+        "refused": "No guardado",
+        "mayHaveBeenSaved": "Puede que se haya guardado"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Porcentaje del FTP",
+      "watts": "Potencia en vatios"
+    }
   }
 }

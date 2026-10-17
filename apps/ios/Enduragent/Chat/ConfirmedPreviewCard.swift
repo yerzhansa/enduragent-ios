@@ -14,15 +14,10 @@ struct ConfirmedPreviewCard: View {
 						.accessibilityIdentifier("chat.preview.preparedEarlier")
 				}
 				ForEach(review.cards, id: \.index) { card in
-					Text(
-						card.lines(in: model.displayLocale).isEmpty
-							? card.name.sentence(in: model.displayLocale)
-							: card.lines(in: model.displayLocale).joined(separator: "\n")
-					)
-					.frame(maxWidth: .infinity, alignment: .leading)
+					ReviewCardView(model: model, card: card, count: review.cards.count)
 				}
 				if let notice = review.notice {
-					Text(model.phrasebook.say(notice.key, notice.vars))
+					Text(notice.sentences(in: model.displayLocale).joined(separator: "\n"))
 						.accessibilityIdentifier("chat.preview.notice")
 				}
 				if let outcome = model.reviewNotice {
@@ -48,7 +43,9 @@ struct ConfirmedPreviewCard: View {
 	var actions: [ConfirmedPreviewAction] {
 		guard case .armed(let set, let token) = review.controls else { return [] }
 		return ConfirmedPreviewButton.layout(of: set).map { button in
-			ConfirmedPreviewAction(button: button, decision: button.decision(token))
+			ConfirmedPreviewAction(
+				button: button, title: button.title(in: review.content),
+				decision: button.decision(token))
 		}
 	}
 
@@ -66,7 +63,7 @@ struct ConfirmedPreviewCard: View {
 			.accessibilityIdentifier(action.id)
 		}
 		ForEach(disabledButtons, id: \.rawValue) { button in
-			Button(say(button.title)) {}
+			Button(say(button.title(in: review.content))) {}
 				.accessibilityIdentifier(button.rawValue)
 				.disabled(true)
 		}
@@ -76,7 +73,7 @@ struct ConfirmedPreviewCard: View {
 		!review.cards.isEmpty
 			&& review.cards.allSatisfy {
 				!$0.lines(in: model.displayLocale).isEmpty
-					|| !$0.name.sentence(in: model.displayLocale).isEmpty
+					|| !$0.title(in: model.displayLocale).isEmpty
 			}
 	}
 
@@ -116,10 +113,10 @@ enum ConfirmedPreviewButton: String {
 		}
 	}
 
-	var title: CatalogKey {
+	func title(in content: ReviewContent) -> CatalogKey {
 		switch self {
 		case .cancel: Catalog.commonCancel
-		case .add: Catalog.reviewAdd
+		case .add: content.approveTitle
 		case .tryAgain: Catalog.chatTranscriptRetry
 		case .checkAgain: Catalog.setupTelegramCheckAgain
 		}
@@ -137,7 +134,7 @@ enum ConfirmedPreviewButton: String {
 
 struct ConfirmedPreviewAction {
 	let button: ConfirmedPreviewButton
+	let title: CatalogKey
 	let decision: ReviewDecision
 	var id: String { button.rawValue }
-	var title: CatalogKey { button.title }
 }

@@ -3018,6 +3018,37 @@
       "givenUp": "{{workout}}（{{date}}）：変更は行われませんでした。",
       "mayHaveBeenSaved": "{{workout}}（{{date}}）：変更が保存された可能性があります。カレンダーを確認してください。"
     },
-    "preparedEarlier": "以前に準備済み"
+    "preparedEarlier": "以前に準備済み",
+    "approve": "変更を適用",
+    "card": {
+      "add": "追加",
+      "edit": "編集",
+      "delete": "削除",
+      "heading": "{{action}} · {{position}}/{{count}}件目 · {{date}} · {{duration}}",
+      "durationUnknown": "時間不明",
+      "unknown": "不明",
+      "load": "推定トレーニング負荷：{{load}}",
+      "removed": "このワークアウトはカレンダーから削除されます。",
+      "changed": {
+        "date": "日付：{{from}} → {{to}}",
+        "name": "名前：{{from}} → {{to}}",
+        "duration": "時間：{{from}} → {{to}}",
+        "load": "推定トレーニング負荷：{{from}} → {{to}}",
+        "description": "説明が変わります。",
+        "steps": "ワークアウトのステップが変わります。"
+      },
+      "progress": {
+        "sending": "送信中…",
+        "saved": "保存済み",
+        "seenOnCalendar": "カレンダーで確認済み",
+        "noLongerOnCalendar": "カレンダーにもうありません",
+        "refused": "未保存",
+        "mayHaveBeenSaved": "保存された可能性があります"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "FTPに対する割合",
+      "watts": "パワー（ワット）"
+    }
   }
 }

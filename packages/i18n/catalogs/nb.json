@@ -3058,6 +3058,37 @@
       "givenUp": "{{workout}}, {{date}}: endringen ble ikke gjort.",
       "mayHaveBeenSaved": "{{workout}}, {{date}}: endringen kan ha blitt lagret. Sjekk kalenderen din."
     },
-    "preparedEarlier": "Forberedt tidligere"
+    "preparedEarlier": "Forberedt tidligere",
+    "approve": "Bruk endringene",
+    "card": {
+      "add": "Legg til",
+      "edit": "Rediger",
+      "delete": "Slett",
+      "heading": "{{action}} · {{position}} av {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "varighet ukjent",
+      "unknown": "ukjent",
+      "load": "Anslått treningsbelastning: {{load}}",
+      "removed": "Denne treningsøkten blir fjernet fra kalenderen.",
+      "changed": {
+        "date": "Dato: {{from}} → {{to}}",
+        "name": "Navn: {{from}} → {{to}}",
+        "duration": "Varighet: {{from}} → {{to}}",
+        "load": "Anslått treningsbelastning: {{from}} → {{to}}",
+        "description": "Beskrivelsen endres.",
+        "steps": "Treningstrinnene endres."
+      },
+      "progress": {
+        "sending": "Sender …",
+        "saved": "Lagret",
+        "seenOnCalendar": "Sett i kalenderen",
+        "noLongerOnCalendar": "Ikke lenger i kalenderen",
+        "refused": "Ikke lagret",
+        "mayHaveBeenSaved": "Kanskje lagret"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Prosent av FTP",
+      "watts": "Effekt i watt"
+    }
   }
 }

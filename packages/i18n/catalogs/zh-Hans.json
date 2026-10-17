@@ -3018,6 +3018,37 @@
       "givenUp": "{{workout}}（{{date}}）：未进行此更改。",
       "mayHaveBeenSaved": "{{workout}}（{{date}}）：此更改可能已保存。请检查你的日历。"
     },
-    "preparedEarlier": "之前已准备"
+    "preparedEarlier": "之前已准备",
+    "approve": "应用更改",
+    "card": {
+      "add": "添加",
+      "edit": "编辑",
+      "delete": "删除",
+      "heading": "{{action}} · 第 {{position}}/{{count}} 项 · {{date}} · {{duration}}",
+      "durationUnknown": "时长未知",
+      "unknown": "未知",
+      "load": "预估训练负荷：{{load}}",
+      "removed": "此训练将从日历中删除。",
+      "changed": {
+        "date": "日期：{{from}} → {{to}}",
+        "name": "名称：{{from}} → {{to}}",
+        "duration": "时长：{{from}} → {{to}}",
+        "load": "预估训练负荷：{{from}} → {{to}}",
+        "description": "描述将更改。",
+        "steps": "训练步骤将更改。"
+      },
+      "progress": {
+        "sending": "正在发送…",
+        "saved": "已保存",
+        "seenOnCalendar": "已在日历中看到",
+        "noLongerOnCalendar": "已不在日历中",
+        "refused": "未保存",
+        "mayHaveBeenSaved": "可能已保存"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "FTP 百分比",
+      "watts": "功率（瓦）"
+    }
   }
 }

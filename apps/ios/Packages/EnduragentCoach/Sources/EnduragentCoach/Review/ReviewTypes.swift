@@ -121,6 +121,10 @@ public struct ReviewContent: Sendable, Equatable {
 	public let totals: ReviewTotals
 	public let receipts: [ReviewReceipt]
 	public let notice: ReviewNotice?
+
+	public var approveTitle: CatalogKey {
+		cards.allSatisfy { $0.action == .add } ? Catalog.reviewAdd : Catalog.workoutsApprove
+	}
 }
 
 public enum ControlSet: Equatable, Sendable {
@@ -179,6 +183,7 @@ public struct WorkoutChartModel: Sendable, Equatable {
 		case steady(durationSeconds: Int, target: Double)
 		case range(durationSeconds: Int, low: Double, high: Double)
 		case ramp(durationSeconds: Int, start: Double, end: Double)
+		case open(durationSeconds: Int)
 	}
 	public let unit: Unit
 	public let durationSeconds: Int
@@ -194,16 +199,28 @@ public struct ReviewCard: Sendable, Equatable {
 	public let index: Int
 	public let action: Action
 	public let name: ReviewSummary
-	public let date: CivilDate?
+	public let date: CivilDate
 	public let chart: WorkoutChartModel?
 	public let instructions: ReviewInstructions
 	public let durationMinutes: Int?
 	public let estimatedLoad: Int?
 	public let progress: CardProgress
+	public let edit: ReviewEdit?
 
 	public func lines(in display: DisplayLocale) -> [String] {
 		instructions.lines(in: display)
 	}
+}
+
+public struct ReviewEdit: Sendable, Equatable {
+	public enum Field: Sendable, Equatable, CaseIterable {
+		case date, name, duration, load, description, steps
+	}
+	public let changed: [Field]
+	public let date: CivilDate
+	public let name: String?
+	public let durationMinutes: Int?
+	public let estimatedLoad: Int?
 }
 
 public struct KeptWorkout: Sendable, Equatable {
@@ -265,7 +282,7 @@ public struct ReviewNotice: Sendable, Equatable {
 		self.differences = differences
 	}
 
-	package func sentences(in display: DisplayLocale) -> [String] {
+	public func sentences(in display: DisplayLocale) -> [String] {
 		[display.say(key, vars.mapValues(CatalogArgument.text))]
 			+ differences.flatMap { $0.sentences(in: display) }
 	}
