@@ -56,7 +56,7 @@ extension SourceChecker {
 		#"(?:[^()\[\]{},]|\(\#(bracketed)\)|\[\#(bracketed)\]|\{\#(bracketed)\})"#
 	static let reviewChainBuilt = [
 		#"\b\#(reviewChainType)\s*(?:\(|\.\s*init\b)"#,
-		#"\b(?:init|[A-Z]\w*)\s*\(\s*review\s*:"#,
+		#"\b(?:init|Self)\s*\(\s*review\s*:\#(lastArgumentText)*,?\s*\)"#,
 		#"\b(?:init|Self)\s*\(\s*chatId\s*:\#(argumentText)*?\bturn\s*:\#(argumentText)*?"#
 			+ #"\battempt\s*:\#(lastArgumentText)*,?\s*\)"#,
 	]

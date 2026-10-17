@@ -86,6 +86,15 @@ extension SourceCases {
 						+ "func prepare(review: WorkoutReview) {}"
 				]),
 			.accepts(
+				"accepts other types whose first initializer label is review",
+				[
+					reviewChainOutside[0]:
+						"let base = ReviewBase(review: id, revision: r)\n"
+						+ "let request: PreparationRequest = .replace(.init(review: id, revision: r), changes)\n"
+						+ "let write = LegacyUnknownWrite(\n"
+						+ "\treview: id, chat: chat, account: account, origin: origin, change: change)"
+				]),
+			.accepts(
 				"accepts the bodies built outside the package's main target",
 				[
 					"\(coachTests)/ReviewChainLogTests.swift": reviewChainBodies[0],
