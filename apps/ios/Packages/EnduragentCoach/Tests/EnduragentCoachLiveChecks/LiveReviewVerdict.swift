@@ -19,10 +19,12 @@ enum LiveReviewVerdict {
 		case .leavesNoReview:
 			return turn.reviewPending || after != nil ? "a workout review is waiting" : nil
 		case .preparesOnce(let kind):
-			let kinds = preparations.map { preparation(of: $0)["kind"]?.stringValue ?? "none" }
+			let results = turn.toolResults
+			let kinds = preparations.filter { drafted(results[$0.id]) }
+				.map { preparation(of: $0)["kind"]?.stringValue ?? "none" }
 			return kinds == [kind.rawValue]
 				? nil
-				: "\(prepare) was called with kinds [\(kinds.joined(separator: ", "))], not once with kind \(kind.rawValue)"
+				: "\(prepare) drafted a review with kinds [\(kinds.joined(separator: ", "))], not once with kind \(kind.rawValue)"
 		case .readsPendingBeforePreparing:
 			guard let first = calls.firstIndex(where: { $0.name == prepare }) else {
 				return "\(prepare) was not called"
@@ -74,15 +76,23 @@ enum LiveReviewVerdict {
 		case .unchanged:
 			guard let before else { return "no workout review waited before the turn" }
 			return after == before ? nil : "the waiting review changed"
-		case .refusesPreparation(let expected):
+		case .endsUnprepared(let expected):
 			let results = turn.toolResults
-			return preparations.contains { results[$0.id] == expected }
-				? nil : "no \(prepare) result carried \(expected)"
+			return preparations.contains { call in expected.contains { results[call.id] == $0 } }
+				? nil
+				: "no \(prepare) result carried \(expected.joined(separator: " or "))"
 		case .showsNotPrepared:
 			return turn.notice == Catalog.workoutsNotPrepared
 				? nil
 				: "the turn shows \(turn.notice?.rawValue ?? "no review notice"), not \(Catalog.workoutsNotPrepared.rawValue)"
 		}
+	}
+
+	private static func drafted(_ result: String?) -> Bool {
+		guard let result,
+			case .success(let value) = Result(catching: { try JSONValue.parse(result) })
+		else { return false }
+		return value.objectFields["data"]?.objectFields["kind"]?.stringValue == "prepared"
 	}
 
 	private static func preparation(of call: LiveVerdict.ParsedCall) -> [String: JSONValue] {

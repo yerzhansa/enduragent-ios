@@ -47,7 +47,7 @@ enum LiveReviewExpectation: Sendable, Equatable {
 	case revisesOnly(LiveChangeShape)
 	case replacesWith([LiveChangeShape])
 	case unchanged
-	case refusesPreparation(String)
+	case endsUnprepared([String])
 	case showsNotPrepared
 	case leavesNoReview
 }
@@ -168,7 +168,7 @@ extension LiveCoachPlan {
 					LiveTurnPlan(
 						message: "Move my \"\(race.name)\" on \(day(race.date)) to \(day(sunday)).",
 						expectations: [
-							.review(.refusesPreparation(raceRefusal(of: race.event))),
+							.review(.endsUnprepared([raceRefusal(of: race.event), incomplete])),
 							.review(.showsNotPrepared), .review(.leavesNoReview),
 						])
 				], targets: seeded),
@@ -176,10 +176,13 @@ extension LiveCoachPlan {
 	}
 
 	static func raceRefusal(of race: EventID) -> String {
-		encodeToolOutcome(
-			.result(
-				UntrustedEnvelope.wrap(
-					PreparationReply.refused(.ineligible(race, .notAWorkout)).json)))
+		toolResult(.refused(.ineligible(race, .notAWorkout)))
+	}
+
+	static let incomplete = toolResult(.incomplete)
+
+	private static func toolResult(_ reply: PreparationReply) -> String {
+		encodeToolOutcome(.result(UntrustedEnvelope.wrap(reply.json)))
 	}
 
 	static func weekday(_ date: CivilDate) -> Int? {

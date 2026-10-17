@@ -1275,7 +1275,7 @@
 		},
 		{
 			"id": "9.3.1",
-			"statement": "In make live-coach, after its seeded targets T1, T2 and K are each found once, the mixed request on T1, T2 and two adds prepares one workout review of those four changes in one prepare_workout_changes call with no calendar write, and every model call is admitted against the $10 cap in LIVE_LOGS/spend.tsv before it is sent.",
+			"statement": "In make live-coach, after its seeded targets T1, T2 and K are each found once, the mixed request on T1, T2 and two adds drafts one workout review of those four changes with exactly one complete preparation that prepare_workout_changes accepts (a call it refuses for its input drafts nothing), with no calendar write, and every model call is admitted against the $10 cap in LIVE_LOGS/spend.tsv before it is sent.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachCheck.swift", "function": "coachSuiteAgainstTheRealModel"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "theReviewScenariosNameTheSeededTargetsAndTheFirstThursdayWithNoEntry"},
@@ -1289,7 +1289,7 @@
 		},
 		{
 			"id": "9.3.2",
-			"statement": "\"Make Thursday easier\" revises one change: the review is at revision 2 and the other three changes keep their ids and actions.",
+			"statement": "\"Make Thursday easier\" drafts exactly one revise and revises one change: the review is at revision 2 and the other three changes keep their ids and actions.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachCheck.swift", "function": "coachSuiteAgainstTheRealModel"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "theReviewScenariosNameTheSeededTargetsAndTheFirstThursdayWithNoEntry"},
@@ -1339,7 +1339,7 @@
 		},
 		{
 			"id": "9.3.7",
-			"statement": "With no review waiting, moving the seeded race gives a prepare_workout_changes result that carries the race refusal (not_a_workout, the workoutOnly ineligibility), the turn shows workouts.notPrepared, and no review waits.",
+			"statement": "With no review waiting, moving the seeded race gives a prepare_workout_changes result that carries the race refusal (not_a_workout, the workoutOnly ineligibility) or the coach's own incomplete preparation, the turn shows workouts.notPrepared, and no review waits.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCoachCheck.swift", "function": "coachSuiteAgainstTheRealModel"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "theReviewScenariosNameTheSeededTargetsAndTheFirstThursdayWithNoEntry"},

@@ -115,7 +115,8 @@ struct ReviewBenchRig {
 						Self.revise([
 							(thursdayItem, Self.ride(on: thursday, minutes: 40)),
 							(saturdayItem, Self.strength(on: saturday, minutes: 20)),
-						]), Self.reply,
+						]), Self.revise([(saturdayItem, Self.strength(on: saturday, minutes: 20))]),
+						Self.reply,
 					],
 					[
 						Self.read,
@@ -192,15 +193,18 @@ struct ReviewBenchRig {
 		-> Step
 	{
 		{ request in
-			let pending: JSONValue
-			do {
-				pending = try JSONValue.parse(request.toolResults.last ?? "")
-			} catch {
-				return [
-					.text("The pending review was unreadable: \(error)"), .finish(reason: .stop),
-				]
+			var read: [String: JSONValue]?
+			for result in request.toolResults.reversed() where read == nil {
+				do {
+					let fields = try JSONValue.parse(result).objectFields["data"]?.objectFields
+					if fields?["kind"]?.stringValue == "pending" { read = fields }
+				} catch {
+					return [
+						.text("A tool result was unreadable: \(error)"), .finish(reason: .stop),
+					]
+				}
 			}
-			let fields = pending.objectFields["data"]?.objectFields ?? [:]
+			let fields = read ?? [:]
 			guard let reference = fields["reference"],
 				let arguments = build(canonicalJSON(reference), fields["changes"]?.arrayValue ?? [])
 			else { return [.text("No pending item matched."), .finish(reason: .stop)] }
