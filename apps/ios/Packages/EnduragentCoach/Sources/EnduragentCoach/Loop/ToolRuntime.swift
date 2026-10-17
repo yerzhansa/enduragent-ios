@@ -18,7 +18,7 @@ enum ToolRuntime {
 		scope: TurnScope
 	) async throws -> ToolExecution {
 		switch tool.effect {
-		case .proposal:
+		case .proposal, .preparation:
 			return try await runPrepared(tool, arguments: arguments, scope: scope)
 		case .write:
 			let execution = try await runPrepared(tool, arguments: arguments, scope: scope)

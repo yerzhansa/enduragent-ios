@@ -234,6 +234,7 @@ SystemClock.timeZone
 SystemClock.uptime
 ToolName
 ToolName.calculateZones
+ToolName.getPendingWorkoutChanges
 ToolName.intervalsCreateStrengthWorkout
 ToolName.intervalsCreateWorkout
 ToolName.intervalsDeleteWorkout
@@ -249,6 +250,7 @@ ToolName.memoryQuery
 ToolName.memoryRead
 ToolName.memoryWrite
 ToolName.planSave
+ToolName.prepareWorkoutChanges
 TranscriptNote
 TranscriptNote.after
 TranscriptNote.id

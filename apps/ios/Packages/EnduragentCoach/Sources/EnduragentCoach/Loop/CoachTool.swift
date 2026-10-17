@@ -7,10 +7,13 @@ package struct TurnReach: Sendable {
 	package let ledger: Ledger
 	package let clock: any Clock
 	package let reviews: SingleProposalReviews
+	package let desk: WorkoutReviewDesk
+	package let attempt: DraftKey
 
 	package init(
 		training: TrainingConnection, memory: MemoryView, chat: ChatID, ledger: Ledger,
-		clock: any Clock, reviews: SingleProposalReviews
+		clock: any Clock, reviews: SingleProposalReviews, desk: WorkoutReviewDesk,
+		attempt: DraftKey
 	) {
 		self.training = training
 		self.memory = memory
@@ -18,6 +21,8 @@ package struct TurnReach: Sendable {
 		self.ledger = ledger
 		self.clock = clock
 		self.reviews = reviews
+		self.desk = desk
+		self.attempt = attempt
 	}
 }
 
@@ -27,6 +32,8 @@ struct LocalReach: Sendable {
 	let ledger: Ledger
 	let clock: any Clock
 	let reviews: SingleProposalReviews
+	let desk: WorkoutReviewDesk
+	let attempt: DraftKey
 
 	fileprivate init(_ turn: TurnReach, scope: TurnScope) {
 		self.chat = turn.chat
@@ -34,6 +41,8 @@ struct LocalReach: Sendable {
 		self.ledger = turn.ledger
 		self.clock = turn.clock
 		self.reviews = turn.reviews
+		self.desk = turn.desk
+		self.attempt = turn.attempt
 	}
 
 	var today: CivilDate {
@@ -56,6 +65,7 @@ enum ToolEffect: Sendable, Equatable {
 	case memoryRead(MemoryReadToolName)
 	case write(ReplayUnsafeToolName)
 	case proposal(GatedToolName)
+	case preparation(PreparationToolName)
 
 	var name: ToolName {
 		switch self {
@@ -63,6 +73,20 @@ enum ToolEffect: Sendable, Equatable {
 		case .memoryRead(let name): name.toolName
 		case .write(let name): name.toolName
 		case .proposal(let name): name.toolName
+		case .preparation(let name): name.toolName
+		}
+	}
+}
+
+package enum ToolSet: Sendable {
+	case app
+	case workoutReview
+
+	fileprivate func offers(_ effect: ToolEffect) -> Bool {
+		switch effect {
+		case .proposal: self == .app
+		case .preparation: self == .workoutReview
+		case .read, .memoryRead, .write: true
 		}
 	}
 }
@@ -159,6 +183,8 @@ enum CoachTools {
 		case .intervalsCreateStrengthWorkout: createStrengthWorkout
 		case .intervalsDeleteWorkout: deleteWorkout
 		case .intervalsUpdateWorkout: updateWorkout
+		case .getPendingWorkoutChanges: getPendingWorkoutChanges
+		case .prepareWorkoutChanges: prepareWorkoutChanges
 		case .memoryRead: memoryRead
 		case .memoryQuery: memoryQuery
 		case .memoryWrite: memoryWrite
@@ -171,8 +197,10 @@ enum CoachTools {
 package struct ToolOffer: Sendable {
 	private let bound: [BoundTool]
 
-	package init(for turn: TurnReach) {
-		bound = ToolName.allCases.compactMap { CoachTools.definition(of: $0)?.bound(to: turn) }
+	package init(for turn: TurnReach, from set: ToolSet) {
+		bound = ToolName.allCases.compactMap(CoachTools.definition(of:))
+			.filter { set.offers($0.effect) }
+			.compactMap { $0.bound(to: turn) }
 	}
 
 	package var schemas: [ToolSchema] {

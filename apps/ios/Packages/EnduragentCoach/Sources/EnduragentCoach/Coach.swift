@@ -93,7 +93,8 @@ public actor Coach {
 		self.runner = TurnRunner(
 			transport: transport, ledger: ledger, clock: clock,
 			diagnostics: diagnostics, ladder: .npm,
-			reviews: reviews, watchdogSleep: ports.watchdogSleep,
+			reviews: reviews, desk: WorkoutReviewDesk(ledger: ledger, clock: clock),
+			tools: ports.tools, watchdogSleep: ports.watchdogSleep,
 			authorizeInvocation: authorizeInvocation
 		)
 		self.process = ProcessID(ulid: ULID.generate(at: clock.now))

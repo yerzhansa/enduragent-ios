@@ -168,6 +168,8 @@ import Testing
 			diagnostics: diagnostics,
 			ladder: ladder,
 			reviews: makeReviews(ledger: ledger, clock: clock),
+			desk: WorkoutReviewDesk(ledger: ledger, clock: clock),
+			tools: .app,
 			authorizeInvocation: { _ in }
 		)
 		return try await runner.run(

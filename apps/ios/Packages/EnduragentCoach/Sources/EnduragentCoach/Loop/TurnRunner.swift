@@ -59,6 +59,8 @@ package struct TurnRunner: Sendable {
 	let diagnostics: DiagnosticsLog
 	let ladder: RetryLadder
 	let reviews: SingleProposalReviews
+	let desk: WorkoutReviewDesk
+	let tools: ToolSet
 	private let snapshots: TrainingSnapshotReader
 
 	package init(
@@ -68,6 +70,8 @@ package struct TurnRunner: Sendable {
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
 		reviews: SingleProposalReviews,
+		desk: WorkoutReviewDesk,
+		tools: ToolSet,
 		watchdogSleep: @escaping @Sendable (Duration) async throws(CancellationError) -> Void =
 			SystemClock().sleep,
 		authorizeInvocation: @escaping @Sendable (ModelInvocation) async throws -> Void
@@ -82,6 +86,8 @@ package struct TurnRunner: Sendable {
 		self.snapshots = TrainingSnapshotReader(
 			clock: clock, deadlineSleep: watchdogSleep, diagnostics: diagnostics)
 		self.reviews = reviews
+		self.desk = desk
+		self.tools = tools
 	}
 
 	package func run(
@@ -233,7 +239,9 @@ package struct TurnRunner: Sendable {
 		let offer = ToolOffer(
 			for: TurnReach(
 				training: attempt.training, memory: view, chat: attempt.chat, ledger: ledger,
-				clock: clock, reviews: reviews))
+				clock: clock, reviews: reviews, desk: desk,
+				attempt: DraftKey(turn: attempt.turn, attempt: attempt.attempt)),
+			from: tools)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let snapshot = try await snapshots.snapshot(
 			for: attempt.training, attempt: attempt.attempt)

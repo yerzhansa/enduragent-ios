@@ -98,6 +98,75 @@ extension CoachTools {
 		return (.updateWorkout(update), update.description ?? "")
 	}
 
+	static let getPendingWorkoutChanges = CoachTool.training(
+		.preparation(.getPendingWorkoutChanges),
+		"Read the workout review that waits for the athlete's approval: its reference (setId and revision), the count of changes already written, and each remaining change with its item id. Item ids differ from calendar event ids. Read this before revising or replacing a pending review.",
+		parameters: ToolParameters.none,
+		rerunWith: nil
+	) { _, reach in
+		do {
+			return .result(try await reach.local.desk.pending(chat: reach.local.chat).json)
+		} catch {
+			throw ToolInputError(
+				code: "storage_unavailable",
+				details: "The pending review could not be read on this phone.")
+		}
+	}
+
+	static let prepareWorkoutChanges = CoachTool.training(
+		.preparation(.prepareWorkoutChanges),
+		"Prepare the entire requested set of calendar additions, edits and deletions for one athlete review. Submit once per turn, including single workouts. This does not write to the calendar. Use incomplete with a reason when any requested change cannot be prepared; never submit a partial set. For a pending review, first read get_pending_workout_changes, then use revise with its base reference and the item ids to replace, or replace for an explicitly requested whole-set replacement. Use complete only without a pending review. Cycling additions use structured steps; strength additions need durationMinutes and effort. Edit patches accept date, name, durationSeconds, description, trainingLoad and structure. Today and future dates only; edits and deletions need coach-created workouts, and each workout may appear once. Other workouts on the same dates are kept.",
+		parameters: ToolParameters.object(
+			properties: [
+				"preparation": .object([
+					"type": .string("object"),
+					"description": .string(
+						"kind complete with changes; replace with base and changes; revise with base and replacements [{id, change}]; or incomplete with reason. A change is {kind: add-cycling, date, workout, trainingLoad?}, {kind: add-strength, date, name, durationMinutes, effort, description, trainingLoad?}, {kind: edit, eventId, patch} or {kind: delete, eventId}. base is {setId, revision} from get_pending_workout_changes."
+					),
+					"properties": .object([
+						"kind": .object([
+							"type": .string("string"),
+							"enum": .array(
+								["complete", "replace", "revise", "incomplete"].map(
+									JSONValue.string)),
+						]),
+						"changes": .object([
+							"type": .string("array"),
+							"items": .object(["type": .string("object")]),
+						]),
+						"base": ToolParameters.object(
+							properties: [
+								"setId": ToolParameters.string("The pending review's setId"),
+								"revision": ToolParameters.integer(
+									"The pending review's revision", minimum: 1),
+							],
+							required: ["setId", "revision"]),
+						"replacements": .object([
+							"type": .string("array"),
+							"items": ToolParameters.object(
+								properties: [
+									"id": ToolParameters.string("A pending item id"),
+									"change": .object(["type": .string("object")]),
+								],
+								required: ["id", "change"]),
+						]),
+						"reason": ToolParameters.string("Why the requested set cannot be prepared"),
+					]),
+					"required": .array([.string("kind")]),
+				])
+			],
+			required: ["preparation"]
+		),
+		rerunWith: nil
+	) { arguments, reach in
+		let local = reach.local
+		let request = try PreparationRequest(arguments: arguments, today: local.today)
+		let reply = await local.desk.prepare(
+			request, for: local.attempt, chat: local.chat, binding: local.scope.stamp.binding,
+			reads: reach.calendar)
+		return .result(reply.json)
+	}
+
 	private static let listedCategories: Set<String> = ["WORKOUT", "RACE_A", "RACE_B", "RACE_C"]
 
 	private static func encodeEvent(_ event: CalendarEvent) -> JSONValue {

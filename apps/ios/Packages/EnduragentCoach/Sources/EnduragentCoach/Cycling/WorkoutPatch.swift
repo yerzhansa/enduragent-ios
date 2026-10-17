@@ -124,7 +124,7 @@ package struct WorkoutPatch: Sendable, Equatable {
 			throw ToolInputError(
 				code: "invalid_date", details: "date is not a real calendar date. Use YYYY-MM-DD.")
 		}
-		if date < today {
+		if Eligibility.refusal(ofAddOn: date, today: today) != nil {
 			throw ToolInputError(
 				code: "past_workout_destination",
 				details:
