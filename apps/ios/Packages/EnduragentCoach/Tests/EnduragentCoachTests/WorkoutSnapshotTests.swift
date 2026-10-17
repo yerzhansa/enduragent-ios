@@ -24,7 +24,7 @@ extension IntervalsRESTClientTests {
 						date: "1998-06-14", name: "Endurance", durationSeconds: 3600,
 						description: "Warmup\n- 10m 55%", load: 52,
 						structure:
-							#"{"duration":3600,"steps":[{"duration":3600,"text":"spin\neasy"}]}"#
+							#"{"steps":[{"duration":3600,"text":"spin\neasy"}]}"#
 					),
 					WorkoutSnapshot(
 						date: "1998-06-15", name: nil, durationSeconds: nil, description: nil,

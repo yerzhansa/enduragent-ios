@@ -115,26 +115,25 @@ package enum CalendarWriter {
 		} catch {
 			return .readFailed
 		}
-		let carrying = listed.filter { $0.externalId == add.identity.externalID }
-		guard let event = carrying.first else { return .notSaved }
-		return carrying.count == 1 ? .seen(event.id) : .readFailed
+		return switch add.onCalendar(listed) {
+		case .absent: .notSaved
+		case .found(let event): .seen(event)
+		case .ambiguous: .readFailed
+		}
 	}
 
 	private static func settle(_ edit: EditedWorkout, on client: any IntervalsClient) async
 		-> SettleRead
 	{
-		let current: CalendarEvent
 		let stored: WorkoutSnapshot
 		do {
-			current = try await client.fetchEvent(id: edit.target.event)
-			stored = try current.snapshot
+			stored = try await client.fetchEvent(id: edit.target.event).snapshot
 		} catch let error as IntervalsError where error.status == 404 {
 			return .notSaved
 		} catch {
 			return .readFailed
 		}
-		return edit.patch.asStored(by: current).isApplied(on: stored)
-			? .seen(edit.target.event) : .notSaved
+		return edit.patch.isApplied(on: stored) ? .seen(edit.target.event) : .notSaved
 	}
 
 	private static func settle(_ delete: DeletedWorkout, on client: any IntervalsClient) async
@@ -161,12 +160,16 @@ extension CalendarPayload {
 	}
 }
 
-extension WorkoutPatch {
-	fileprivate func asStored(by event: CalendarEvent) -> WorkoutPatch {
-		let steps = event.workoutDocument?.objectFields["steps"]?.arrayValue ?? []
-		guard description != nil, !steps.isEmpty else { return self }
-		return WorkoutPatch(
-			date: date, name: name, durationSeconds: durationSeconds, description: description,
-			trainingLoad: nil, workoutDocument: workoutDocument)
+enum AddOnCalendar: Equatable, Sendable {
+	case absent
+	case found(EventID)
+	case ambiguous
+}
+
+extension AddedWorkout {
+	func onCalendar(_ listed: [CalendarEvent]) -> AddOnCalendar {
+		let carrying = listed.filter { $0.externalId == identity.externalID }
+		guard let event = carrying.first else { return .absent }
+		return carrying.count == 1 ? .found(event.id) : .ambiguous
 	}
 }

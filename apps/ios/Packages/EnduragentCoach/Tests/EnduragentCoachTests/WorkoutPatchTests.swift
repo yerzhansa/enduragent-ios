@@ -65,7 +65,7 @@ struct WorkoutPatchTests {
 		let desired = patch.applied(to: Self.reviewed)
 		#expect(
 			desired.structure
-				== #"{"description":"Opener\nkeep it smooth","steps":[{"duration":600,"power":{"units":"%ftp","value":60},"warmup":true},{"reps":3,"steps":[{"duration":120,"power":{"units":"%ftp","value":105}},{"duration":60,"power":{"units":"%ftp","value":50}}]}]}"#
+				== #"{"steps":[{"duration":600,"power":{"units":"%ftp","value":60},"warmup":true},{"reps":3,"steps":[{"duration":120,"power":{"units":"%ftp","value":105}},{"duration":60,"power":{"units":"%ftp","value":50}}]}]}"#
 		)
 		#expect(desired.description == Self.reviewed.description)
 	}

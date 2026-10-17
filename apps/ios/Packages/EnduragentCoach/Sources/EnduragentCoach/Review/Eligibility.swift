@@ -5,6 +5,14 @@ package enum Ineligibility: Equatable, Sendable {
 	case notCoachCreated
 	case pastWorkout
 	case pastDate(CivilDate)
+
+	var block: ReviewBlock {
+		switch self {
+		case .notAWorkout: .workoutOnly
+		case .notCoachCreated: .coachOnly
+		case .pastWorkout, .pastDate: .pastProtected
+		}
+	}
 }
 
 enum Eligibility {
