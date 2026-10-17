@@ -197,7 +197,11 @@ import Testing
 					kept: [
 						KeptWorkout(name: "Group ride", date: "1998-09-10", durationMinutes: 120)
 					],
-					differences: [TargetDifference(change: Fixture.change(1), fields: [.duration])])
+					differences: [
+						TargetDifference(
+							change: Fixture.change(1), before: try Self.edited.snapshot,
+							after: try longer.snapshot)
+					])
 		)
 	}
 
@@ -219,8 +223,7 @@ import Testing
 
 		let verdict = Self.judged(review, Calendar([current]))
 
-		#expect(
-			verdict.differences == [TargetDifference(change: Fixture.change(0), fields: [field])])
+		#expect(verdict.namedFields == [Fixture.change(0): [field]])
 	}
 
 	@Test func aLoadTheAthleteTypedIsNamedWhenTheEditSendsTheSameSteps() throws {
@@ -236,7 +239,11 @@ import Testing
 			verdict
 				== .changed(
 					targets: [Fixture.change(0): try typed.snapshot], kept: [],
-					differences: [TargetDifference(change: Fixture.change(0), fields: [.load])]))
+					differences: [
+						TargetDifference(
+							change: Fixture.change(0), before: try reviewed.snapshot,
+							after: try typed.snapshot)
+					]))
 	}
 
 	@Test func eligibilityIsJudgedBeforeADifferenceOnTheSameTarget() throws {

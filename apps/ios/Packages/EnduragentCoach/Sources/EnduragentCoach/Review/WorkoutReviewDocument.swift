@@ -127,19 +127,23 @@ enum ApprovalDocument: Codable {
 
 struct DifferenceDocument: Codable {
 	let change: String
-	let fields: [String]
+	let before: SnapshotDocument
+	let after: SnapshotDocument
 
 	init(_ difference: TargetDifference) {
 		change = difference.change.ulid.rawValue
-		fields = difference.fields.map(\.rawValue).sorted()
+		before = SnapshotDocument(difference.before)
+		after = SnapshotDocument(difference.after)
 	}
 
 	func difference() throws -> TargetDifference {
-		let parsed = fields.compactMap(SnapshotField.init(rawValue:))
-		guard parsed.count == fields.count, Set(parsed).count == parsed.count else {
+		let difference = TargetDifference(
+			change: ChangeID(ulid: try decodeULID(change)), before: try before.snapshot(),
+			after: try after.snapshot())
+		guard !difference.fields.isEmpty else {
 			throw RecordDecodeFailure(reason: "difference fields")
 		}
-		return TargetDifference(change: ChangeID(ulid: try decodeULID(change)), fields: Set(parsed))
+		return difference
 	}
 }
 

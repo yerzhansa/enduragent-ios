@@ -62,20 +62,32 @@
             "refreshed": {
               "differences": [
                 {
-                  "change": "00T47DW5000000000000000413",
-                  "fields": [
-                    "date",
-                    "duration",
-                    "name"
-                  ]
+                  "after": {
+                    "date": "1998-07-03",
+                    "durationSeconds": 10800,
+                    "name": "Long ride"
+                  },
+                  "before": {
+                    "date": "1998-07-02",
+                    "durationSeconds": 7200,
+                    "name": "Long endurance ride"
+                  },
+                  "change": "00T47DW5000000000000000413"
                 },
                 {
-                  "change": "00T47DW5000000000000000414",
-                  "fields": [
-                    "description",
-                    "load",
-                    "structure"
-                  ]
+                  "after": {
+                    "date": "1998-07-04",
+                    "description": "Openers\n- 3x1m 120%",
+                    "load": 30,
+                    "structure": "{\"steps\":[{\"duration\":180}]}"
+                  },
+                  "before": {
+                    "date": "1998-07-04",
+                    "description": "Openers",
+                    "load": 25,
+                    "structure": "{\"steps\":[{\"duration\":120}]}"
+                  },
+                  "change": "00T47DW5000000000000000414"
                 }
               ]
             }

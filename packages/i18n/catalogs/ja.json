@@ -3001,6 +3001,16 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "このワークアウトはアプリのアップデート前に確認されたものです。もう一度コーチに依頼してください。"
+    },
+    "refreshed": {
+      "nothingChanged": "確認後に{{service}}でこの確認のワークアウトが変更されたため、何も変更していません。承認する前にもう一度確認してください。",
+      "nothingElseChanged": "確認後に{{service}}でこの確認のワークアウトが変更されたため、これ以上は何も変更していません。承認する前にもう一度確認してください。",
+      "date": "{{workout}}：日付が{{from}}から{{to}}に変更されました。",
+      "name": "{{workout}}：名前が{{to}}に変更されました。",
+      "duration": "{{workout}}：時間が{{from}}分から{{to}}分に変更されました。",
+      "description": "{{workout}}：説明が変更されました。",
+      "load": "{{workout}}：トレーニング負荷が{{from}}から{{to}}に変更されました。",
+      "structure": "{{workout}}：ワークアウトのステップが変更されました。"
     }
   }
 }

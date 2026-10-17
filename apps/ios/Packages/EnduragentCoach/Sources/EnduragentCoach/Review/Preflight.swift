@@ -218,8 +218,8 @@ package enum Preflight {
 			guard case .reviewed(_, let reviewed) = change.action.target,
 				let now = current[change.id]
 			else { return nil }
-			let fields = reviewed.differences(from: now)
-			return fields.isEmpty ? nil : TargetDifference(change: change.id, fields: fields)
+			let difference = TargetDifference(change: change.id, before: reviewed, after: now)
+			return difference.fields.isEmpty ? nil : difference
 		}
 	}
 }

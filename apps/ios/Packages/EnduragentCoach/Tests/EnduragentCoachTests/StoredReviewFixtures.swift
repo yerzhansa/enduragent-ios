@@ -32,9 +32,23 @@ struct StoredReviewFixture: Sendable, CustomTestStringConvertible {
 				.approval(
 					.refreshed([
 						TargetDifference(
-							change: reviewChange(413), fields: [.date, .duration, .name]),
+							change: reviewChange(413),
+							before: WorkoutSnapshot(
+								date: "1998-07-02", name: "Long endurance ride",
+								durationSeconds: 7200, description: nil, load: nil, structure: nil),
+							after: WorkoutSnapshot(
+								date: "1998-07-03", name: "Long ride", durationSeconds: 10800,
+								description: nil, load: nil, structure: nil)),
 						TargetDifference(
-							change: reviewChange(414), fields: [.description, .load, .structure]),
+							change: reviewChange(414),
+							before: WorkoutSnapshot(
+								date: "1998-07-04", name: nil, durationSeconds: nil,
+								description: "Openers", load: 25,
+								structure: #"{"steps":[{"duration":120}]}"#),
+							after: WorkoutSnapshot(
+								date: "1998-07-04", name: nil, durationSeconds: nil,
+								description: "Openers\n- 3x1m 120%", load: 30,
+								structure: #"{"steps":[{"duration":180}]}"#)),
 					])))),
 		StoredReviewFixture(
 			"workout-review-approval-could-not-check", [.approvalCouldNotCheck, .add, .ride],

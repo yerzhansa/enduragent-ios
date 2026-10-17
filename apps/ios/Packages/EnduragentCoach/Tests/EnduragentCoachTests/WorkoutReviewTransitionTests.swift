@@ -78,10 +78,17 @@ struct Transition: Sendable, CustomTestStringConvertible {
 
 struct WorkoutReviewTransitionTests {
 	static let edit = reviewChange(402)
-	static let differences = [TargetDifference(change: edit, fields: [.duration])]
 	static let current = WorkoutSnapshot(
 		date: "1998-06-17", name: "Endurance", durationSeconds: 5400, description: "Steady ride",
 		load: 50, structure: nil)
+	static let differences = [
+		TargetDifference(
+			change: edit,
+			before: WorkoutSnapshot(
+				date: "1998-06-17", name: "Endurance", durationSeconds: 3600,
+				description: "Steady ride", load: 50, structure: nil),
+			after: current)
+	]
 	static let found: [ReviewStage: Landing] = [
 		.sending: .tryAgain(.settled), .sendingLast: .completed, .unconfirmed: .tryAgain(.settled),
 		.unconfirmedUpgraded: .tryAgain(.settled),

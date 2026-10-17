@@ -3041,6 +3041,16 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "Este entrenamiento se revisó antes de actualizar la app. Vuelve a pedírselo al entrenador."
+    },
+    "refreshed": {
+      "nothingChanged": "Algunos entrenamientos de esta revisión cambiaron en {{service}} después de que los revisaras, así que no se cambió nada. Revísalos de nuevo antes de aprobar.",
+      "nothingElseChanged": "Algunos entrenamientos de esta revisión cambiaron en {{service}} después de que los revisaras, así que no se cambió nada más. Revísalos de nuevo antes de aprobar.",
+      "date": "{{workout}}: la fecha cambió de {{from}} a {{to}}.",
+      "name": "{{workout}}: el nombre cambió a {{to}}.",
+      "duration": "{{workout}}: la duración cambió de {{from}} a {{to}} minutos.",
+      "description": "{{workout}}: la descripción cambió.",
+      "load": "{{workout}}: la carga de entrenamiento cambió de {{from}} a {{to}}.",
+      "structure": "{{workout}}: los pasos del entrenamiento cambiaron."
     }
   }
 }

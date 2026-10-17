@@ -155,9 +155,9 @@ extension PreflightVerdict {
 		}
 	}
 
-	var differences: [TargetDifference]? {
+	var namedFields: [ChangeID: Set<SnapshotField>]? {
 		guard case .changed(_, _, let differences) = self else { return nil }
-		return differences
+		return Dictionary(uniqueKeysWithValues: differences.map { ($0.change, $0.fields) })
 	}
 
 	var seen: [ChangeID: EventID]? {

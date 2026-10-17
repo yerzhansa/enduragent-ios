@@ -3001,6 +3001,16 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "이 운동은 앱이 업데이트되기 전에 검토되었습니다. 코치에게 다시 요청하세요."
+    },
+    "refreshed": {
+      "nothingChanged": "검토한 뒤 {{service}}에서 이 검토의 운동이 변경되어 아무것도 변경하지 않았습니다. 승인하기 전에 다시 확인하세요.",
+      "nothingElseChanged": "검토한 뒤 {{service}}에서 이 검토의 운동이 변경되어 더 이상 아무것도 변경하지 않았습니다. 승인하기 전에 다시 확인하세요.",
+      "date": "{{workout}}: 날짜가 {{from}}에서 {{to}}(으)로 변경되었습니다.",
+      "name": "{{workout}}: 이름이 {{to}}(으)로 변경되었습니다.",
+      "duration": "{{workout}}: 시간이 {{from}}분에서 {{to}}분으로 변경되었습니다.",
+      "description": "{{workout}}: 설명이 변경되었습니다.",
+      "load": "{{workout}}: 훈련 부하가 {{from}}에서 {{to}}(으)로 변경되었습니다.",
+      "structure": "{{workout}}: 운동 단계가 변경되었습니다."
     }
   }
 }

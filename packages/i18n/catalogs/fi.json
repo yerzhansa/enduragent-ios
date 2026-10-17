@@ -3041,6 +3041,16 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "Tämä harjoitus tarkistettiin ennen sovelluksen päivitystä. Pyydä valmentajaa uudelleen."
+    },
+    "refreshed": {
+      "nothingChanged": "Tämän tarkistuksen harjoituksia muutettiin palvelussa {{service}} sen jälkeen, kun tarkistit ne, joten mitään ei muutettu. Tarkista ne uudelleen ennen hyväksymistä.",
+      "nothingElseChanged": "Tämän tarkistuksen harjoituksia muutettiin palvelussa {{service}} sen jälkeen, kun tarkistit ne, joten muuta ei muutettu. Tarkista ne uudelleen ennen hyväksymistä.",
+      "date": "{{workout}}: päivämäärä muuttui {{from}} → {{to}}.",
+      "name": "{{workout}}: nimeksi muuttui {{to}}.",
+      "duration": "{{workout}}: kesto muuttui {{from}} → {{to}} minuuttia.",
+      "description": "{{workout}}: kuvaus muuttui.",
+      "load": "{{workout}}: harjoituskuorma muuttui {{from}} → {{to}}.",
+      "structure": "{{workout}}: harjoituksen vaiheet muuttuivat."
     }
   }
 }

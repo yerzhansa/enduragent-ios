@@ -3041,6 +3041,16 @@
   "workouts": {
     "blocked": {
       "reviewedBeforeUpgrade": "Deze training is beoordeeld voordat de app werd bijgewerkt. Vraag het de coach opnieuw."
+    },
+    "refreshed": {
+      "nothingChanged": "Trainingen in deze controle zijn in {{service}} gewijzigd nadat je ze hebt gecontroleerd, dus er is niets gewijzigd. Controleer ze opnieuw voordat je goedkeurt.",
+      "nothingElseChanged": "Trainingen in deze controle zijn in {{service}} gewijzigd nadat je ze hebt gecontroleerd, dus er is verder niets gewijzigd. Controleer ze opnieuw voordat je goedkeurt.",
+      "date": "{{workout}}: datum gewijzigd van {{from}} naar {{to}}.",
+      "name": "{{workout}}: naam gewijzigd in {{to}}.",
+      "duration": "{{workout}}: duur gewijzigd van {{from}} naar {{to}} minuten.",
+      "description": "{{workout}}: beschrijving gewijzigd.",
+      "load": "{{workout}}: trainingsbelasting gewijzigd van {{from}} naar {{to}}.",
+      "structure": "{{workout}}: trainingsstappen gewijzigd."
     }
   }
 }
