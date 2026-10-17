@@ -3058,6 +3058,37 @@
       "givenUp": "{{workout}}, {{date}}: wijziging niet doorgevoerd.",
       "mayHaveBeenSaved": "{{workout}}, {{date}}: wijziging is mogelijk opgeslagen. Controleer je kalender."
     },
-    "preparedEarlier": "Eerder voorbereid"
+    "preparedEarlier": "Eerder voorbereid",
+    "approve": "Wijzigingen toepassen",
+    "card": {
+      "add": "Toevoegen",
+      "edit": "Bewerken",
+      "delete": "Verwijderen",
+      "heading": "{{action}} · {{position}} van {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "duur onbekend",
+      "unknown": "onbekend",
+      "load": "Geschatte trainingsbelasting: {{load}}",
+      "removed": "Deze training wordt uit de kalender verwijderd.",
+      "changed": {
+        "date": "Datum: {{from}} → {{to}}",
+        "name": "Naam: {{from}} → {{to}}",
+        "duration": "Duur: {{from}} → {{to}}",
+        "load": "Geschatte trainingsbelasting: {{from}} → {{to}}",
+        "description": "De beschrijving verandert.",
+        "steps": "De trainingsstappen veranderen."
+      },
+      "progress": {
+        "sending": "Verzenden…",
+        "saved": "Opgeslagen",
+        "seenOnCalendar": "Gezien in de kalender",
+        "noLongerOnCalendar": "Niet meer in de kalender",
+        "refused": "Niet opgeslagen",
+        "mayHaveBeenSaved": "Mogelijk opgeslagen"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Procent van FTP",
+      "watts": "Vermogen in watt"
+    }
   }
 }

@@ -68,6 +68,11 @@ import Testing
 					"setId": .string(committed.id.ulid.rawValue), "revision": .number(1),
 				]))
 		#expect(pending["changes"]?.arrayValue?.count == 4)
+		let edit = pending["changes"]?.arrayValue?[2].objectFields["change"]?.objectFields
+		#expect(edit?["kind"] == .string("edit"))
+		#expect(
+			edit?["patch"]?.objectFields["structure"]
+				== (try JSONValue.parse(ReviewTurns.authoredSteps)))
 		let after = try await turns.head(of: coach)
 		#expect(after.0 == head)
 		#expect(after.1 == committed)

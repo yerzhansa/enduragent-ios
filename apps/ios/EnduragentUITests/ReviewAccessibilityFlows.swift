@@ -134,12 +134,15 @@ struct ReviewCardReading {
 		XCTAssertEqual(
 			lines.first, .text("", run.say(Catalog.reviewTitle)),
 			"\(name(screen)): VoiceOver does not start at the review title: \(heard)")
+		let body = Array(lines.dropFirst())
+		let workoutLines = body.prefix { $0.identifier.hasPrefix("chat.preview.card.") }
 		XCTAssertTrue(
-			lines.count > 1 && lines[1].type == .staticText
-				&& lines[1].label.contains(workout),
+			workoutLines.first?.identifier == "chat.preview.card.title"
+				&& workoutLines.allSatisfy { $0.type == .staticText }
+				&& workoutLines.contains { $0.label.contains(workout) },
 			"\(name(screen)): the workout does not follow the title: \(heard)")
 		XCTAssertEqual(
-			Array(lines.dropFirst(2)), expected,
+			Array(body.dropFirst(workoutLines.count)), expected,
 			"\(name(screen)): the notice and the controls are not read in order after the workout: \(heard)"
 		)
 		for (earlier, later) in zip(card.items, card.items.dropFirst()) {
