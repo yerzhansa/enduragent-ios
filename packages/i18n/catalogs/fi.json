@@ -3058,6 +3058,37 @@
       "givenUp": "{{workout}}, {{date}}: muutosta ei tehty.",
       "mayHaveBeenSaved": "{{workout}}, {{date}}: muutos on ehkä tallennettu. Tarkista kalenterisi."
     },
-    "preparedEarlier": "Valmisteltu aiemmin"
+    "preparedEarlier": "Valmisteltu aiemmin",
+    "approve": "Ota muutokset käyttöön",
+    "card": {
+      "add": "Lisää",
+      "edit": "Muokkaa",
+      "delete": "Poista",
+      "heading": "{{action}} · {{position}}/{{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "kesto tuntematon",
+      "unknown": "tuntematon",
+      "load": "Arvioitu harjoituskuorma: {{load}}",
+      "removed": "Tämä harjoitus poistetaan kalenterista.",
+      "changed": {
+        "date": "Päivä: {{from}} → {{to}}",
+        "name": "Nimi: {{from}} → {{to}}",
+        "duration": "Kesto: {{from}} → {{to}}",
+        "load": "Arvioitu harjoituskuorma: {{from}} → {{to}}",
+        "description": "Kuvaus muuttuu.",
+        "steps": "Harjoituksen vaiheet muuttuvat."
+      },
+      "progress": {
+        "sending": "Lähetetään…",
+        "saved": "Tallennettu",
+        "seenOnCalendar": "Näkyy kalenterissa",
+        "noLongerOnCalendar": "Ei enää kalenterissa",
+        "refused": "Ei tallennettu",
+        "mayHaveBeenSaved": "Ehkä tallennettu"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Prosenttia FTP:stä",
+      "watts": "Teho watteina"
+    }
   }
 }

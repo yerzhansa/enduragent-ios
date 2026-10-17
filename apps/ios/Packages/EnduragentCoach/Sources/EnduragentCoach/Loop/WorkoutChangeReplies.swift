@@ -164,7 +164,7 @@ extension WorkoutPatch {
 		fields["durationSeconds"] = durationSeconds.map { .number(Double($0)) }
 		fields["description"] = description.map(JSONValue.string)
 		fields["trainingLoad"] = trainingLoad.map { .number(Double($0)) }
-		fields["structure"] = workoutDocument
+		fields["structure"] = authoredSteps?.json ?? workoutDocument
 		return .object(fields)
 	}
 }

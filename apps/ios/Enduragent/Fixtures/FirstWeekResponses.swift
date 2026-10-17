@@ -36,6 +36,9 @@
 					if request.text == trainingDataDirective {
 						return trainingDataReply(request)
 					}
+					if let review = reviewReply(request, intervals: intervals) {
+						return review
+					}
 					let slowTool = request.text == toolProgressDirective && !request.retry
 					if request.step == 0 {
 						intervals.delay(

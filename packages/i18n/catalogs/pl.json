@@ -3138,6 +3138,37 @@
       "givenUp": "{{workout}}, {{date}}: zmiana nie została wprowadzona.",
       "mayHaveBeenSaved": "{{workout}}, {{date}}: zmiana mogła zostać zapisana. Sprawdź swój kalendarz."
     },
-    "preparedEarlier": "Przygotowano wcześniej"
+    "preparedEarlier": "Przygotowano wcześniej",
+    "approve": "Zastosuj zmiany",
+    "card": {
+      "add": "Dodaj",
+      "edit": "Edytuj",
+      "delete": "Usuń",
+      "heading": "{{action}} · {{position}} z {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "czas trwania nieznany",
+      "unknown": "nieznane",
+      "load": "Szacowane obciążenie treningowe: {{load}}",
+      "removed": "Ten trening zostanie usunięty z kalendarza.",
+      "changed": {
+        "date": "Data: {{from}} → {{to}}",
+        "name": "Nazwa: {{from}} → {{to}}",
+        "duration": "Czas trwania: {{from}} → {{to}}",
+        "load": "Szacowane obciążenie treningowe: {{from}} → {{to}}",
+        "description": "Opis się zmienia.",
+        "steps": "Kroki treningu się zmieniają."
+      },
+      "progress": {
+        "sending": "Wysyłanie…",
+        "saved": "Zapisano",
+        "seenOnCalendar": "Widoczne w kalendarzu",
+        "noLongerOnCalendar": "Nie ma już w kalendarzu",
+        "refused": "Nie zapisano",
+        "mayHaveBeenSaved": "Mogło zostać zapisane"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Procent FTP",
+      "watts": "Moc w watach"
+    }
   }
 }

@@ -3058,6 +3058,37 @@
       "givenUp": "{{workout}}, {{date}}: change not made.",
       "mayHaveBeenSaved": "{{workout}}, {{date}}: change may have been saved. Check your calendar."
     },
-    "preparedEarlier": "Prepared earlier"
+    "preparedEarlier": "Prepared earlier",
+    "approve": "Apply changes",
+    "card": {
+      "add": "Add",
+      "edit": "Edit",
+      "delete": "Delete",
+      "heading": "{{action}} · {{position}} of {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "duration unknown",
+      "unknown": "unknown",
+      "load": "Estimated training load: {{load}}",
+      "removed": "This workout will be removed from the calendar.",
+      "changed": {
+        "date": "Date: {{from}} → {{to}}",
+        "name": "Name: {{from}} → {{to}}",
+        "duration": "Duration: {{from}} → {{to}}",
+        "load": "Estimated training load: {{from}} → {{to}}",
+        "description": "The description changes.",
+        "steps": "The workout steps change."
+      },
+      "progress": {
+        "sending": "Sending…",
+        "saved": "Saved",
+        "seenOnCalendar": "Seen on the calendar",
+        "noLongerOnCalendar": "No longer on the calendar",
+        "refused": "Not saved",
+        "mayHaveBeenSaved": "May have been saved"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Percent of FTP",
+      "watts": "Power in watts"
+    }
   }
 }
