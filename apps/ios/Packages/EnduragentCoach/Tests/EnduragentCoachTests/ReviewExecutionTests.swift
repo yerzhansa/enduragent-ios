@@ -223,6 +223,8 @@ import Testing
 			Task { await host.expire(.systemExpired) }
 			do {
 				try await waitUntil { Task.isCancelled }
+			} catch is CancellationError {
+				return .lost(.canceled)
 			} catch {
 				Issue.record(error, "waiting for the lease to end failed")
 			}

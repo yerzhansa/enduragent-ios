@@ -175,11 +175,15 @@ import Testing
 			Issue.record("the changed target did not refresh the review")
 			return
 		}
-		let refreshed = try #require(try await desk.snapshot(chat: .main))
-		#expect(refreshed.ref.revision == ReviewRevision(rawValue: 2))
 
-		#expect(await desk.decide(.approve(old)) == .staleControl(newer: refreshed.ref))
+		guard case .staleControl(let newer?) = await desk.decide(.approve(old)) else {
+			Issue.record("the old token did not name the refreshed revision")
+			return
+		}
+		#expect(newer.revision == ReviewRevision(rawValue: 2))
 		#expect(rig.calendar.writes.isEmpty)
+		let refreshed = try #require(try await desk.snapshot(chat: .main))
+		#expect(refreshed.ref == newer)
 
 		guard case .completed = await desk.decide(.approve(try await rig.token(on: desk))) else {
 			Issue.record("the refreshed review did not run")
