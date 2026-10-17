@@ -431,7 +431,8 @@
 			"statement": "OperationID.workoutReview encodes to the same workoutChangeSet:<ulid>:<rev> string as before, an old string decodes, and the build-2bbe2ee seed keeps its memory, review history and consent after the rename.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewPayloadTests.swift", "function": "aWorkoutReviewCauseKeepsTheChangeSetString"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build2bbe2eeKeepsMemoryReviewHistoryAndConsent"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build2bbe2eeKeepsMemoryReviewHistoryAndConsent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleChangeRecordTests.swift", "function": "build2bbe2eeOpenProposalLoadsAsThisDevicesReview"}
 			]
 		},
 		{
@@ -1640,16 +1641,12 @@
 			"apps/ios/EnduragentTests/FixtureDisabledReviewTests.swift",
 			"apps/ios/EnduragentTests/FixtureReviewStorageFailureTests.swift",
 			"apps/ios/EnduragentUITests/ReviewProofs.swift",
-			"apps/ios/EnduragentUITests/ReviewAccessibilityFlows.swift",
-			"apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift",
-			"apps/ios/EnduragentUITests/ReviewCardComposerProof.swift",
 			"apps/ios/EnduragentUITests/ReviewLanguageProof.swift",
 			"apps/ios/EnduragentUITests/ReviewStorageFailureProofs.swift",
 			"apps/ios/EnduragentUITests/CancelUnknownSaveProofs.swift",
 			"apps/ios/EnduragentUITests/UnknownCalendarSaveProofs.swift",
 			"apps/ios/EnduragentUITests/ReconnectReviewProof.swift",
 			"apps/ios/EnduragentUITests/LanguageMatrixFlows.swift",
-			"apps/ios/EnduragentUITests/SingleChangeTutorialProofs.swift",
 			"apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SerializerBoundsTests.swift"
 		],
 		"tests": [
@@ -1881,10 +1878,9 @@
 			},
 			{
 				"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarEvidenceTests.swift", "function": "aHeldWriteDoesNotBlockStopOrANewSendWithAnOverlappingTool"},
-				"statement": "A running write blocks new preparation and holds one lease until it ends.",
+				"statement": "While an approved write hangs, Stop returns and a new message gets its reply, and a calendar tool in that message sends no second write.",
 				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationTests.swift", "function": "aRunningReviewRefusesEveryPreparation"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "theRunHoldsOneLeaseFromTheClaimUntilItEnds"}
+					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "aHangingWriteLeavesStopAndANewMessageWorkingAndSendsNothingBesideIt"}
 				]
 			},
 			{
@@ -2603,6 +2599,13 @@
 				]
 			},
 			{
+				"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleChangeRecordTests.swift", "function": "build2bbe2eeOpenProposalLoadsAsThisDevicesReview"},
+				"statement": "The build-2bbe2ee seed's open proposal loads as this device's review with one card on 1998-06-16 and one addition. ADR-0083 replaces this: an open Milestone 2 review closes once at upgrade.",
+				"replacements": [
+					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fOpenReviewClosesOnceAtUpgrade"}
+				]
+			},
+			{
 				"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleChangeRecordTests.swift", "function": "committedCalendarWriteSettlesWritesSaved"},
 				"statement": "A turn with a committed calendar write settles as writes saved.",
 				"retiredBy": "ADR-0083: preparing a review writes nothing to the calendar and the card appears after the reply ends, so a turn never holds a committed calendar write to settle."
@@ -2747,14 +2750,6 @@
 				]
 			},
 			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewCardComposerProof.swift", "class": "ReviewCardComposerProof", "method": "testKeyboardKeepsReviewRowsAboveTheComposer"},
-				"statement": "The review rows stay above the composer with the keyboard up.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"}
-				]
-			},
-			{
 				"test": {"file": "apps/ios/EnduragentUITests/ReviewLanguageProof.swift", "class": "ReviewLanguageProof", "method": "testReviewAndSavedOutcomeFollowTheChosenLanguage"},
 				"statement": "The review and its saved outcome follow the chosen language.",
 				"replacements": [
@@ -2886,286 +2881,6 @@
 				"statement": "Cancel under another athlete offline sends nothing.",
 				"replacements": [
 					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewOutcomeNotesTests.swift", "function": "aCancelAfterPartialWorkKeepsTheSavedAndMayHaveBeenSavedLinesAndNeverReadsAgain"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/SingleChangeTutorialProofs.swift", "class": "RecordsClockOrderProof", "method": "testRecordsClockOrder"},
-				"statement": "Records list in clock order, including the review's records.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aPreparedTurnCommitsRevisionOneOnlyWhenItsReplyEnds"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "theClaimIsSavedBeforePreflightReadsTheCalendar"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityEnSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityEnSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityEsSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityEsSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityFrSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityFrSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityItSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityItSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityNlSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityNlSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDaSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDaSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilitySvSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilitySvSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityNbSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityNbSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityFiSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityFiSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityPtPTProof", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityPtPTProof", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityPtBRSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityPtBRSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityPlSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityPlSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityKoSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityKoSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityJaSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityJaSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityZhHansSweep", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityZhHansSweep", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityZhHantProof", "method": "testApprovalControls"},
-				"statement": "The approval card offers Approve and Cancel once its delivery is presented.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "aWaitingReviewShowsTheDeliveredControlsWhereItIsPlaced"}
-				]
-			},
-			{
-				"test": {"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityZhHantProof", "method": "testUncertainSaveControls"},
-				"statement": "An unconfirmed change offers Check again and Cancel.",
-				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "anAcknowledgedDeliveryArmsTheStagesControls"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"}
 				]
 			}
 		]

@@ -80,6 +80,19 @@ extension SwiftDataSuites.UpgradeStoreTests {
 		#expect(page.skipped.isEmpty)
 		#expect(kinds(page.records) == ["pendingProposal"])
 	}
+
+	@Test func build2bbe2eeOpenProposalLoadsAsThisDevicesReview() async throws {
+		let log = try open("build-2bbe2ee", folder: "Fixtures")
+		let clock = FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana")
+		let transport = FakeModelTransport()
+		let coach = await makeCoach(
+			transport: transport, store: log, clock: clock, consent: false)
+		let review = try #require(await coach.currentSnapshot(.main)?.review)
+		#expect(review.authority == .thisDevice)
+		#expect(review.cards.count == 1)
+		#expect(review.cards.first?.date == "1998-06-16")
+		#expect(review.totals.additions == 1)
+	}
 }
 
 extension RetryLadderTests {

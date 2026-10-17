@@ -45,11 +45,6 @@ extension SwiftDataSuites {
 			#expect(
 				try await coach.memory.fullContext(for: testConnection.account).contains(
 					"Rides with a group on Saturdays."))
-			let review = try #require(await coach.currentSnapshot(.main)?.review)
-			#expect(review.authority == .thisDevice)
-			#expect(review.cards.count == 1)
-			#expect(review.cards.first?.date == "1998-06-16")
-			#expect(review.totals.additions == 1)
 			let history = try await coach.history()
 			#expect(history.count == 1)
 			let summary = try #require(history.first)
