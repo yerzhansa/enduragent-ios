@@ -94,7 +94,10 @@ import Testing
 			if case .create = $0 { return true }
 			return false
 		}
-		#expect(adds.count == 9)
+		#expect(adds.count == 14)
+		#expect(
+			run.log.filter { $0.contains("CalendarWriter.classify gave saved for the live create") }
+				.count == 2)
 	}
 
 	@Test(arguments: [
@@ -276,7 +279,8 @@ import Testing
 		await steplessStrength.run()
 		#expect(
 			steplessStrength.failures == [
-				"add strength: strength: icu_training_load sent 24, stored 7, a rewrite intervals-rewrites.json does not list"
+				"add strength: strength: icu_training_load sent 24, stored 7, a rewrite intervals-rewrites.json does not list",
+				"desk review: desk-strength: icu_training_load sent 24, stored 7, a rewrite intervals-rewrites.json does not list",
 			])
 
 		var nameEdit = try Self.run(

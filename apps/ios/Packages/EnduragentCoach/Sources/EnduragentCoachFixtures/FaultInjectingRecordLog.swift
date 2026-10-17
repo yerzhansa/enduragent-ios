@@ -25,6 +25,7 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 		var syncedAppends = false
 		var syncedAcknowledgments = false
 		var appendKinds: Set<String> = []
+		var chosenAppend: (kind: String, skipping: Int)?
 		var fetches = false
 		var nextFetch: (scope: RecordQuery.Scope, skipping: Int)?
 		var failedFetches = 0
@@ -110,11 +111,25 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 		try await wrapped.append(record, after: head, in: query)
 	}
 
+	package func failAppend(ofKind kind: String, skipping: Int) throws {
+		guard SyncedKind(rawValue: kind) != nil || DeviceLocalKind(rawValue: kind) != nil else {
+			throw RecordFaultConfigurationError.unknownKind(kind)
+		}
+		faults.withLock { $0.chosenAppend = (kind, skipping) }
+	}
+
 	private func failIfAsked(appending kinds: [String], locality: RecordLocality) throws {
 		let fails = faults.withLock { current -> Bool in
 			if current.nextAppend {
 				current.nextAppend = false
 				return true
+			}
+			if let chosen = current.chosenAppend, kinds.contains(chosen.kind) {
+				guard chosen.skipping > 0 else {
+					current.chosenAppend = nil
+					return true
+				}
+				current.chosenAppend = (chosen.kind, chosen.skipping - 1)
 			}
 			return (current.syncedAppends && locality == .synced)
 				|| kinds.contains { current.appendKinds.contains($0) }

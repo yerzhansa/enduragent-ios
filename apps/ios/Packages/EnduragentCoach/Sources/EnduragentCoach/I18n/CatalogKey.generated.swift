@@ -2579,4 +2579,5 @@ public enum Catalog {
 	public static let workoutsRefreshedNothingChanged = CatalogKey(rawValue: "workouts.refreshed.nothingChanged")
 	public static let workoutsRefreshedNothingElseChanged = CatalogKey(rawValue: "workouts.refreshed.nothingElseChanged")
 	public static let workoutsRefreshedStructure = CatalogKey(rawValue: "workouts.refreshed.structure")
+	public static let workoutsStopped = CatalogKey(rawValue: "workouts.stopped")
 }

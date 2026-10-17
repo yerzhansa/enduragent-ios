@@ -3053,6 +3053,7 @@
       "structure": "{{workout}}: passets steg ändrades."
     },
     "notPrepared": "Granskningen av träningspasset kunde inte förberedas.",
-    "notPreparedInformationSaved": "Din information sparades, men granskningen av träningspasset kunde inte förberedas."
+    "notPreparedInformationSaved": "Din information sparades, men granskningen av träningspasset kunde inte förberedas.",
+    "stopped": "Granskningen av träningspasset stoppades innan alla ändringar gjordes. Ändringar som redan gjorts behålls."
   }
 }

@@ -3053,6 +3053,7 @@
       "structure": "{{workout}}: etapas do treino alteradas."
     },
     "notPrepared": "Não foi possível preparar a revisão do treino.",
-    "notPreparedInformationSaved": "Suas informações foram salvas, mas não foi possível preparar a revisão do treino."
+    "notPreparedInformationSaved": "Suas informações foram salvas, mas não foi possível preparar a revisão do treino.",
+    "stopped": "A revisão do treino parou antes de todas as alterações serem feitas. As alterações já feitas são mantidas."
   }
 }

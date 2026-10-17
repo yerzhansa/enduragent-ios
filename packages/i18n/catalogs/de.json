@@ -3053,6 +3053,7 @@
       "structure": "{{workout}}: Trainingsschritte geändert."
     },
     "notPrepared": "Die Trainingsprüfung konnte nicht vorbereitet werden.",
-    "notPreparedInformationSaved": "Deine Angaben wurden gespeichert, aber die Trainingsprüfung konnte nicht vorbereitet werden."
+    "notPreparedInformationSaved": "Deine Angaben wurden gespeichert, aber die Trainingsprüfung konnte nicht vorbereitet werden.",
+    "stopped": "Die Trainingsprüfung wurde beendet, bevor alle Änderungen vorgenommen wurden. Bereits vorgenommene Änderungen bleiben erhalten."
   }
 }

@@ -3053,6 +3053,7 @@
       "structure": "{{workout}}: passaggi dell’allenamento cambiati."
     },
     "notPrepared": "Impossibile preparare la revisione dell’allenamento.",
-    "notPreparedInformationSaved": "Le tue informazioni sono state salvate, ma non è stato possibile preparare la revisione dell’allenamento."
+    "notPreparedInformationSaved": "Le tue informazioni sono state salvate, ma non è stato possibile preparare la revisione dell’allenamento.",
+    "stopped": "La revisione dell’allenamento si è interrotta prima che tutte le modifiche fossero applicate. Le modifiche già applicate restano."
   }
 }

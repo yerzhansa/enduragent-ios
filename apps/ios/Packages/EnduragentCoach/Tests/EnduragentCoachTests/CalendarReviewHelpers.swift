@@ -19,6 +19,15 @@ func makeReviews(
 		training: { _ in connectedTraining(intervals) })
 }
 
+func makeDesk(
+	ledger: Ledger, clock: any EnduragentCoach.Clock,
+	diagnostics: DiagnosticsLog? = nil
+) -> WorkoutReviewDesk {
+	WorkoutReviewDesk(
+		ledger: ledger, clock: clock, diagnostics: diagnostics ?? DiagnosticsLog(clock: clock),
+		training: { _ in .unconnected }, host: ImmediateExecutionHost())
+}
+
 func makeToolOffer(
 	training: TrainingConnection, ledger: Ledger, clock: any EnduragentCoach.Clock,
 	memory: MemoryView = MemoryView(
@@ -28,8 +37,7 @@ func makeToolOffer(
 		for: TurnReach(
 			training: training, memory: memory, chat: .main, ledger: ledger, clock: clock,
 			reviews: makeReviews(ledger: ledger, clock: clock),
-			desk: WorkoutReviewDesk(
-				ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			desk: makeDesk(ledger: ledger, clock: clock),
 			attempt: DraftKey(
 				turn: TurnID(ulid: fixedUlid(1)), attempt: AttemptID(ulid: fixedUlid(2)))),
 		from: .app)

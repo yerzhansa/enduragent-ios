@@ -168,8 +168,7 @@ import Testing
 			diagnostics: diagnostics,
 			ladder: ladder,
 			reviews: makeReviews(ledger: ledger, clock: clock),
-			desk: WorkoutReviewDesk(
-				ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			desk: makeDesk(ledger: ledger, clock: clock),
 			tools: .app,
 			authorizeInvocation: { _ in }
 		)

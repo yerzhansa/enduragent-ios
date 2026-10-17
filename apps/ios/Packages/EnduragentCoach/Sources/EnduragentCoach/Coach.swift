@@ -91,7 +91,12 @@ public actor Coach {
 			}
 		)
 		self.reviews = reviews
-		let desk = WorkoutReviewDesk(ledger: ledger, clock: clock, diagnostics: diagnostics)
+		let desk = WorkoutReviewDesk(
+			ledger: ledger, clock: clock, diagnostics: diagnostics,
+			training: { (recheck: Bool) async throws(AccessUnavailable) in
+				try await vault.trainingConnection(recheck: recheck)
+			},
+			host: ports.host)
 		self.desk = desk
 		self.runner = TurnRunner(
 			transport: transport, ledger: ledger, clock: clock,

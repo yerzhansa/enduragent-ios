@@ -3013,6 +3013,7 @@
       "structure": "{{workout}}: 운동 단계가 변경되었습니다."
     },
     "notPrepared": "운동 검토 내용을 준비할 수 없습니다.",
-    "notPreparedInformationSaved": "정보는 저장되었지만 운동 검토 내용을 준비할 수 없습니다."
+    "notPreparedInformationSaved": "정보는 저장되었지만 운동 검토 내용을 준비할 수 없습니다.",
+    "stopped": "모든 변경이 적용되기 전에 운동 검토가 중단되었습니다. 이미 적용된 변경은 유지됩니다."
   }
 }
