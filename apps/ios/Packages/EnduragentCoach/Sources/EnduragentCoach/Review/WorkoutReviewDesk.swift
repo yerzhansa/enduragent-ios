@@ -139,14 +139,33 @@ package actor WorkoutReviewDesk {
 		let ending: ReviewOutcomeBody.Ending =
 			if case .canceled = review.stage { .canceled } else { .completed }
 		do throws(LedgerFailure) {
-			_ = try await ledger.commit(
-				synced: [.reviewOutcome(ReviewProjection.summary(of: review, ending: ending))],
-				stamp: stamp)
+			try await commitOnce(ReviewProjection.summary(of: review, ending: ending), stamp: stamp)
 			moved(review.chat)
 			return true
 		} catch {
 			diagnostics.record(.reviewOutcomeUnsaved(error))
 			return false
+		}
+	}
+
+	func commitOnce(_ summary: ReviewOutcomeBody, stamp: OperationStamp)
+		async throws(LedgerFailure)
+	{
+		let query = RecordQuery(scope: .synced([.reviewOutcome]), chatId: summary.chatId)
+		while true {
+			let head = try await ledger.head(of: query)
+			guard try await ledger.reviewOutcomes(chat: summary.chatId)[summary.review] == nil
+			else { return }
+			do throws(TransitionFailure) {
+				try await ledger.commit(
+					synced: .reviewOutcome(summary), stamp: stamp, after: head, in: query)
+				return
+			} catch {
+				switch error {
+				case .headMoved: continue
+				case .storage(let failure): throw failure
+				}
+			}
 		}
 	}
 
@@ -214,13 +233,25 @@ package actor WorkoutReviewDesk {
 
 	private func commit(_ draft: ReviewDraft, over head: RecordHead) async -> PreparationOutcome {
 		let current: (RecordHead, WorkoutReview?)
+		var finished: WorkoutReview?
 		do throws(LedgerFailure) {
 			current = try await ledger.reviewHead(chat: draft.chat)
+			if let previous = current.1,
+				previous.nextStep(.resume, summarySaved: try await isPublished(previous))
+					== .publish
+			{
+				finished = previous
+			}
 		} catch {
 			diagnostics.record(.reviewOutcomeUnsaved(error))
 			return .notPrepared(.notSaved)
 		}
 		guard current.0 == head else { return .notPrepared(.refused) }
+		if let finished,
+			!(await publish(finished, stamp: stamp(for: finished, attempt: await ledger.nextULID())))
+		{
+			return .notPrepared(.notSaved)
+		}
 		let ledger = ledger
 		guard
 			let review = await draft.committed(

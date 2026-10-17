@@ -24,8 +24,6 @@ struct UpgradePlan: Equatable, Sendable {
 	let closed: [LegacyClosure]
 	let unconfirmed: [LegacyUnknownWrite]
 	let unreadable: [LegacyWriteFault]
-
-	var writesNothing: Bool { closed.isEmpty && unconfirmed.isEmpty }
 }
 
 enum ReviewUpgrade {
@@ -103,16 +101,10 @@ extension WorkoutReviewDesk {
 	func upgrade() async {
 		do throws(LedgerFailure) {
 			let legacy = try await legacyReviews()
-			var reviewed = try await summaryIDs().union(try await headIDs())
-			var plan = ReviewUpgrade.plan(
+			let reviewed = try await summaryIDs().union(try await headIDs())
+			let plan = ReviewUpgrade.plan(
 				proposals: legacy.proposals, writes: legacy.writes, reviewed: reviewed,
 				device: ledger.deviceId)
-			if !plan.writesNothing {
-				reviewed.formUnion(try await chainIDs())
-				plan = ReviewUpgrade.plan(
-					proposals: legacy.proposals, writes: legacy.writes, reviewed: reviewed,
-					device: ledger.deviceId)
-			}
 			for unreadable in plan.unreadable {
 				diagnostics.record(
 					.toolFailed(unreadable.attempt, unreadable.tool, failure: unreadable.fault))
@@ -130,8 +122,8 @@ extension WorkoutReviewDesk {
 
 	private func close(_ closure: LegacyClosure) async throws(LedgerFailure) {
 		let summary = closure.summary
-		_ = try await ledger.commit(
-			synced: [.reviewOutcome(summary)],
+		try await commitOnce(
+			summary,
 			stamp: OperationStamp(
 				operation: .workoutReview(summary.review, summary.revision),
 				attempt: AttemptID(ulid: await ledger.nextULID()),
@@ -143,6 +135,7 @@ extension WorkoutReviewDesk {
 	private func reopen(_ write: LegacyUnknownWrite) async throws(LedgerFailure) {
 		let (head, current) = try await ledger.reviewHead(chat: write.chat)
 		if let current, !(try await isPublished(current)) { return }
+		if try await chainIDs(in: write.chat).contains(write.review) { return }
 		let review = WorkoutReview.upgraded(
 			write, change: ChangeID(ulid: await ledger.nextULID()),
 			claim: ClaimID(ulid: await ledger.nextULID()))
@@ -197,9 +190,11 @@ extension WorkoutReviewDesk {
 		return heads
 	}
 
-	private func chainIDs() async throws(LedgerFailure) -> Set<WorkoutReviewID> {
+	private func chainIDs(in chat: ChatID) async throws(LedgerFailure) -> Set<WorkoutReviewID> {
 		Set(
-			try await ledger.read(RecordQuery(scope: .deviceLocal([.workoutReview]))).records
+			try await ledger.read(
+				RecordQuery(scope: .deviceLocal([.workoutReview]), chatId: chat)
+			).records
 				.compactMap { record in
 					guard case .deviceLocal(.workoutReview(let body)) = record.body else {
 						return nil

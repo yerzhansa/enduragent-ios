@@ -120,7 +120,9 @@ import Testing
 		#expect(head.work.remaining.map(\.action.target) == [upgraded.reviewed])
 		#expect(rig.calendar.calls == [.read])
 		let token = try await rig.token(on: desk)
-		guard case .armed(.cancelOnly, _) = try #require(try await desk.snapshot(chat: .main)).controls
+		guard
+			case .armed(.cancelOnly, _) = try #require(try await desk.snapshot(chat: .main))
+				.controls
 		else {
 			Issue.record("the blocked upgraded change offered more than Cancel")
 			return
@@ -182,7 +184,8 @@ struct LegacyReviews {
 			_ = try await ledger.commit(
 				local: [
 					.proposalCleared(
-						ProposalClearedBody(chatId: .main, nonce: proposal.nonce, reason: .executed))
+						ProposalClearedBody(chatId: .main, nonce: proposal.nonce, reason: .executed)
+					)
 				], stamp: proposal.stamp)
 		}
 		return proposal

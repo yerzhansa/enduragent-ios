@@ -266,6 +266,92 @@ extension SwiftDataSuites {
 			#expect(seed.calendar.calls.isEmpty)
 		}
 
+		@Test func build6833d90fOpenReviewClosesOnceWhenTwoDesksRecoverTogether() async throws {
+			let log = try open("open-review", folder: M2Seed.folder, device: M2Seed.device)
+			let seed = try await M2Seed(log)
+			let held = HeldScopeReadLog(
+				inner: log, holding: .synced([.reviewOutcome]), .afterReading)
+			let late = try seed.desk(over: held)
+			let lateRecover = Task { await late.recover() }
+			try await held.waitUntilReached()
+
+			await (try seed.desk()).recover()
+			held.release()
+			await lateRecover.value
+
+			#expect(try await seed.outcomes().map(\.review) == [seed.review])
+			#expect(try await seed.chain().isEmpty)
+		}
+
+		@Test func build6833d90fUnknownWriteSettledByOneDeskIsNotUpgradedAgainByAnother()
+			async throws
+		{
+			let log = try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device)
+			let seed = try await M2Seed(log)
+			let held = HeldScopeReadLog(
+				inner: log, holding: .deviceLocal([.workoutReview]), .beforeReading)
+			let late = try seed.desk(over: held)
+			let lateRecover = Task { await late.recover() }
+			try await held.waitUntilReached()
+			let first = try seed.desk()
+			seed.calendar.failReads()
+			await first.recover()
+			let added = try seed.added(try #require(try await seed.chain().first))
+			_ = await seed.calendar.base.write(.create(added.payload, identity: seed.identity))
+			seed.calendar.restoreReads()
+			await first.recover()
+			#expect(try await seed.chain().last?.stage == .completed)
+
+			held.release()
+			await lateRecover.value
+
+			let chain = try await seed.chain()
+			#expect(chain.filter { if case .waiting = $0.stage { true } else { false } }.count == 1)
+			#expect(chain.last?.stage == .completed)
+			#expect(try await seed.outcomes().map(\.ending) == [.completed])
+			#expect(seed.calendar.writes.isEmpty)
+		}
+
+		@Test func build6833d90fUnknownWriteCanceledOnOneDeskIsNotRevivedByAnother() async throws {
+			let log = try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device)
+			let seed = try await M2Seed(log)
+			let held = HeldScopeReadLog(
+				inner: log, holding: .deviceLocal([.workoutReview]), .beforeReading)
+			let late = try seed.desk(over: held)
+			let lateRecover = Task { await late.recover() }
+			try await held.waitUntilReached()
+			let first = try seed.desk()
+			seed.calendar.failReads()
+			await first.recover()
+			let shown = try #require(try await first.snapshot(chat: .main))
+			#expect(await first.decide(.presented(shown.ref)) == .presentationRecorded)
+			guard
+				case .armed(.checkAgainOrCancel, let token) = try #require(
+					try await first.snapshot(chat: .main)
+				).controls
+			else {
+				Issue.record("the upgraded unconfirmed change offered no Cancel")
+				return
+			}
+			guard case .canceled = await first.decide(.cancel(token)) else {
+				Issue.record("canceling the upgraded unconfirmed change did not cancel it")
+				return
+			}
+			seed.calendar.restoreReads()
+
+			held.release()
+			await lateRecover.value
+
+			let chain = try await seed.chain()
+			#expect(!chain.contains { $0.stage == .waiting(.approval(.interruptedBeforeWriting)) })
+			guard case .canceled = chain.last?.stage else {
+				Issue.record("another desk revived the canceled upgraded change")
+				return
+			}
+			#expect(try await seed.outcomes().map(\.ending) == [.canceled])
+			#expect(seed.calendar.writes.isEmpty)
+		}
+
 		private func open(
 			_ scenario: String, folder: String = "Fixtures/v1-upgrade", device: String? = nil
 		) throws -> SwiftDataRecordLog {
@@ -282,84 +368,5 @@ extension SwiftDataSuites {
 				local: try ModelContainerHandle.withoutCloudKit(
 					storeURL: root.appending(path: "local-records.store")))
 		}
-	}
-}
-
-struct M2Seed {
-	enum Landing: String, CaseIterable, CustomTestStringConvertible {
-		case bulkUpsert, singleCreate
-
-		var testDescription: String { rawValue }
-	}
-
-	static let folder = "Fixtures/build-6833d90f"
-	static let device = "build-6833d90f"
-
-	let log: SwiftDataRecordLog
-	let clock = FixedClock(now: "1998-06-15T08:05:00Z", timeZone: "Europe/Ljubljana")
-	let calendar = ScriptedCalendar(FakeIntervalsClient(athleteName: "Ada", ftp: 250))
-	let account: TrainingAccount
-	let review: WorkoutReviewID
-	let turn: TurnID
-	let identity: CalendarWriteID
-
-	init(_ log: SwiftDataRecordLog) async throws {
-		self.log = log
-		let proposals = try await log.fetch(
-			RecordQuery(scope: .deviceLocal([.pendingProposal]))
-		).records
-		let proposal = try #require(proposals.last)
-		guard case .operation(.turn(let turn), _) = proposal.cause,
-			case .deviceLocal(.pendingProposal(let body)) = proposal.body
-		else {
-			throw UnexpectedReview(detail: "the seed proposal has no turn")
-		}
-		self.turn = turn
-		account = proposal.account
-		review = WorkoutReviewID(ulid: proposal.ulid)
-		identity = try #require(body.writeID)
-	}
-
-	func desk() throws -> WorkoutReviewDesk {
-		guard case .intervals(let connection, let athlete?) = account else {
-			throw UnexpectedReview(detail: "the seed account is not an intervals.icu athlete")
-		}
-		let calendar = calendar
-		return WorkoutReviewDesk(
-			ledger: Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
-			clock: clock, diagnostics: DiagnosticsLog(clock: clock),
-			training: { _ in
-				.connected(
-					ConnectedTraining(connection: connection, athlete: athlete, client: calendar))
-			}, host: ImmediateExecutionHost())
-	}
-
-	func added(_ review: WorkoutReview) throws -> AddedWorkout {
-		let change: ReviewChange
-		if case .waiting(.unconfirmed(let attempt)) = review.stage {
-			change = attempt.change
-		} else {
-			change = try #require(review.work.remaining.first)
-		}
-		guard case .add(let added) = change.action else {
-			throw UnexpectedReview(detail: "the upgraded review holds no add")
-		}
-		return added
-	}
-
-	func chain() async throws -> [WorkoutReview] {
-		try await log.fetch(RecordQuery(scope: .deviceLocal([.workoutReview]))).records
-			.compactMap { record in
-				guard case .deviceLocal(.workoutReview(let body)) = record.body else { return nil }
-				return body.review
-			}
-	}
-
-	func outcomes() async throws -> [ReviewOutcomeBody] {
-		try await log.fetch(RecordQuery(scope: .synced([.reviewOutcome]))).records
-			.compactMap { record in
-				guard case .synced(.reviewOutcome(let body)) = record.body else { return nil }
-				return body
-			}
 	}
 }

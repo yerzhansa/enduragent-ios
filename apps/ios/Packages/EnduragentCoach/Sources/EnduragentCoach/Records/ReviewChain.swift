@@ -64,15 +64,41 @@ extension Ledger {
 	package func commit(review: WorkoutReview, stamp: OperationStamp, after head: RecordHead)
 		async throws(TransitionFailure) -> AthleteRecord
 	{
+		try await commit(
+			.deviceLocal(.workoutReview(WorkoutReviewBody(review: review))), stamp: stamp,
+			after: head, in: Self.chain(of: review.chat))
+	}
+
+	package func head(of query: RecordQuery) async throws(LedgerFailure) -> RecordHead {
+		try await openIfNeeded()
+		let newest: AthleteRecord?
+		do {
+			newest = try await chain.newest(query)
+		} catch {
+			throw LedgerFailure.unavailable
+		}
+		if let newest { fold(newest.hlc) }
+		return RecordHead(newest)
+	}
+
+	package func commit(
+		synced body: SyncedRecordBody, stamp: OperationStamp, after head: RecordHead,
+		in query: RecordQuery
+	) async throws(TransitionFailure) {
+		_ = try await commit(.synced(body), stamp: stamp, after: head, in: query)
+	}
+
+	private func commit(
+		_ body: RecordBody, stamp: OperationStamp, after head: RecordHead, in query: RecordQuery
+	) async throws(TransitionFailure) -> AthleteRecord {
 		do {
 			try await openIfNeeded()
 		} catch {
 			throw TransitionFailure.storage(error)
 		}
-		let record = prepare(
-			.deviceLocal(.workoutReview(WorkoutReviewBody(review: review))), stamp: stamp)
+		let record = prepare(body, stamp: stamp)
 		do {
-			try await chain.append(record, after: head, in: Self.chain(of: review.chat))
+			try await chain.append(record, after: head, in: query)
 		} catch let moved as HeadMoved {
 			throw TransitionFailure.headMoved(moved.current)
 		} catch {
