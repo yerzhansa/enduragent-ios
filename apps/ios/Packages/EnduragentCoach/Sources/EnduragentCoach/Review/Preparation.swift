@@ -281,11 +281,7 @@ enum Preparation {
 			} catch {
 				throw .keptUnreadable(date)
 			}
-			kept += listed.filter { $0.category == "WORKOUT" && !targeted.contains($0.id) }.map {
-				KeptWorkout(
-					name: $0.name, date: date,
-					durationMinutes: $0.movingTime.map(ReviewProjection.minutes(ofSeconds:)))
-			}
+			kept += KeptWorkout.listed(listed, on: date) { targeted.contains($0.id) }
 		}
 		return kept
 	}
@@ -308,14 +304,20 @@ private enum PlannedChange {
 	}
 }
 
-extension ChangeAction {
-	fileprivate var event: EventID? {
-		switch self {
-		case .add: nil
-		case .edit(let edit): edit.target.event
-		case .delete(let delete): delete.target.event
+extension KeptWorkout {
+	static func listed(
+		_ events: [CalendarEvent], on date: CivilDate, leaving touched: (CalendarEvent) -> Bool
+	) -> [KeptWorkout] {
+		events.filter { $0.category == "WORKOUT" && !touched($0) }.map {
+			KeptWorkout(
+				name: $0.name, date: date,
+				durationMinutes: $0.movingTime.map(ReviewProjection.minutes(ofSeconds:)))
 		}
 	}
+}
+
+extension ChangeAction {
+	fileprivate var event: EventID? { target?.event }
 
 	fileprivate var affectedDate: CivilDate {
 		switch self {

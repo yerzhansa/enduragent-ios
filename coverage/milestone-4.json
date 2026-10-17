@@ -12,7 +12,8 @@
 		"3.2": 5,
 		"3.3": 7,
 		"4.1": 7,
-		"4.2": 12
+		"4.2": 12,
+		"5.1": 10
 	},
 	"criteria": [
 		{
@@ -721,6 +722,87 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewPresentationHandshakeTests.swift", "function": "aFailedPresentationDisarmsAndShowAgainStartsANewDelivery"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewPresentationHandshakeTests.swift", "function": "aPresentationOfAnOlderHeadArmsNothing"}
 			]
+		},
+		{
+			"id": "5.1.1",
+			"statement": "A set whose last change targets a workout that lost coach provenance after review gives blocked(coachOnly); a race gives blocked(workoutOnly), and a target dated in the past or an edit moved into the past gives blocked(pastProtected).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "aLastChangeWhoseTargetTurnedIneligibleBlocksTheWholeSet"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "anEarlierCheckDecidesTheVerdictWhenTwoTargetsFailDifferentChecks"}
+			]
+		},
+		{
+			"id": "5.1.2",
+			"statement": "A deleted target gives blocked(cannotVerify), and the verdict carries no refreshed values, even beside a changed target.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "aDeletedTargetCannotBeVerifiedAndNoTargetIsRefreshed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "aDeleteTargetGoneFromIntervalsCannotBeVerified"}
+			]
+		},
+		{
+			"id": "5.1.3",
+			"statement": "An edit or delete target dated 1998-09-07, prepared at 23:30 that day in Pacific/Auckland, gives blocked(pastProtected) when preflight runs at 00:30 on 1998-09-08 there, while UTC is still on 1998-09-07.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "aTargetOfTheEveningBeforeIsPastWhenApprovedAfterMidnightInAuckland"}
+			]
+		},
+		{
+			"id": "5.1.4",
+			"statement": "An add dated 1998-09-07, prepared at 23:30 that day in Pacific/Auckland, gives blocked(pastProtected) when preflight runs at 00:30 on 1998-09-08 there.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "anAddOfTheEveningBeforeIsPastWhenApprovedAfterMidnightInAuckland"}
+			]
+		},
+		{
+			"id": "5.1.5",
+			"statement": "A different athlete's key after review gives blocked(accountChanged) before any calendar read or write.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "anotherAthletesKeyAfterReviewBlocksBeforeAnyRead"}
+			]
+		},
+		{
+			"id": "5.1.6",
+			"statement": "A target whose duration went from 60 to 90 minutes gives changed naming that target and duration, with every remaining target's current values and the kept workouts; date, name, description, Load and structure changed alone are each named alone; a change made on intervals.icu after preflight and before the write is not detected.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "aWorkoutThatWentFrom60To90MinutesIsNamedWithItsDuration"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "eachReviewedFieldChangedAloneIsNamedAlone"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "aLoadTheAthleteTypedIsNamedWhenTheEditSendsTheSameSteps"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "aChangeMadeOnIntervalsAfterPreflightAndBeforeTheWriteIsNotDetected"}
+			]
+		},
+		{
+			"id": "5.1.7",
+			"statement": "A change only in server metadata gives clear; each rewrite intervals-rewrites.json lists gives clear, except that preflight names every Load difference, and isApplied(on:) reads the rewritten save as applied, while the same field changed in a way the rule does not explain is named.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "aChangeOnlyInServerMetadataNeedsNoNewApproval"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRewriteTests.swift", "function": "eachListedRewriteReadsAsAppliedAfterASaveAndPreflightStillNamesLoad"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CalendarWriterTests.swift", "function": "eachSettleReadsOnceAndGivesWhatTheCalendarShows"}
+			]
+		},
+		{
+			"id": "5.1.8",
+			"statement": "One unreadable target, an unreadable kept-workout day or an unreadable add window gives unchecked with no write.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "oneUnreadableReadLeavesTheWholeVerdictUnchecked"}
+			]
+		},
+		{
+			"id": "5.1.9",
+			"statement": "A remaining add whose external_id is in its 366-day window is in clear's seen list and not among the kept workouts, on its own date and 30 days later or earlier; one outside the window or matching only by uid is not seen; two events carrying it give unchecked; each window is read once.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "anAddAlreadyInItsWindowIsSeenAndNotKept"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "anAddIsSeenOnlyByItsOwnExternalIDWithinItsWindow"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "twoEventsCarryingAnAddsExternalIDLeaveTheVerdictUnchecked"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightRunTests.swift", "function": "readsEachAffectedDayAndEachAddWindowOnceAndWritesNothing"}
+			]
+		},
+		{
+			"id": "5.1.10",
+			"statement": "Eligibility is judged before difference: a target that both changed and became a race gives blocked(workoutOnly), and every earlier check decides over every later one.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "eligibilityIsJudgedBeforeADifferenceOnTheSameTarget"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreflightJudgeTests.swift", "function": "anEarlierCheckDecidesTheVerdictWhenTwoTargetsFailDifferentChecks"}
+			]
 		}
 	],
 	"requirements": [
@@ -793,6 +875,11 @@
 			"id": "B18.04",
 			"statement": "Revising chosen items or replacing the whole set gives a complete new review revision whose earlier approval is dead; untouched items, omitted edit fields and a renamed workout's steps are kept, and finished changes survive a replacement.",
 			"criteria": ["4.2.5", "4.2.6", "4.2.7", "4.2.8"]
+		},
+		{
+			"id": "G06",
+			"statement": "Reject a stale or foreign approval: an access change or an external edit after review stops the approval before any write.",
+			"criteria": ["5.1.5", "5.1.6"]
 		}
 	],
 	"plan": {
@@ -991,7 +1078,6 @@
 		"G03",
 		"G04",
 		"G05",
-		"G06",
 		"G10"
 	]
 }

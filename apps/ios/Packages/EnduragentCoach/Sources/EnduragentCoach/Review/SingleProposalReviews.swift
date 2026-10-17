@@ -126,7 +126,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 				})
 			else { return .refused(.staleControl(newer: nil)) }
 			let connection = try await training(true)
-			guard Self.permits(live.account.authority(under: connection.account)) else {
+			guard live.account.authority(under: connection.account).permitsWrites else {
 				return .refused(.blocked(.accountChanged))
 			}
 			guard case .connected(let connected) = connection else {
@@ -266,16 +266,9 @@ package actor SingleProposalReviews: WorkoutReviews {
 		return minted
 	}
 
-	static func permits(_ authority: AccountAuthority) -> Bool {
-		switch authority {
-		case .same, .sameAthlete: true
-		case .changed, .unverifiable: false
-		}
-	}
-
 	func accountBlock(_ account: TrainingAccount) async -> ReviewBlock? {
 		do {
-			return Self.permits(account.authority(under: try await training(false).account))
+			return account.authority(under: try await training(false).account).permitsWrites
 				? nil : .accountChanged
 		} catch { return .cannotVerify }
 	}

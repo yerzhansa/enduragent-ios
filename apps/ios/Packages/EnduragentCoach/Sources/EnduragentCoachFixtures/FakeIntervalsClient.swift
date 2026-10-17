@@ -37,6 +37,8 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	package var streams: [ActivityID: [StreamSamples]]
 	package var streamGaps: [ActivityID: [String: ChannelGap]]
 	public var events: [CalendarEvent]
+	package var unreadableEvents: Set<EventID> = []
+	package var unreadableLists: [ReadRange] = []
 	private let recordedCalls = Mutex<[FakeIntervalsCall]>([])
 	public var calls: [FakeIntervalsCall] { recordedCalls.withLock { $0 } }
 	public var writeFailure: IntervalsWriteAnswer?
@@ -150,6 +152,9 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 			try consumeCalendarReadFault()
 		#endif
 		try await begin(.event)
+		if unreadableEvents.contains(id) {
+			throw IntervalsError.unreachable(URLError(.timedOut))
+		}
 		guard let event = events.first(where: { $0.id == id }) else {
 			throw IntervalsError(code: "http", details: "Missing event", status: 404)
 		}
@@ -161,6 +166,9 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		#if DEBUG
 			try consumeCalendarReadFault()
 		#endif
+		if unreadableLists.contains(range) {
+			throw IntervalsError.unreachable(URLError(.timedOut))
+		}
 		return events.filter { event in
 			CivilDate(rawValue: String(event.startDateLocal.prefix(10))).map(range.contains)
 				?? false
