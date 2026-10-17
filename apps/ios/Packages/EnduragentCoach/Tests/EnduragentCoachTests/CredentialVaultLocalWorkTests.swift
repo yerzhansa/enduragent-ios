@@ -50,25 +50,6 @@ extension CredentialVaultTests {
 		#expect(await coach.mailboxes.isEmpty)
 	}
 
-	@Test func unopenedPendingReviewBlocksAthleteSwitch() async throws {
-		try await seed(
-			records,
-			[
-				storedRecord(
-					device: records.deviceId, wall: 1,
-					body: .deviceLocal(
-						.pendingProposal(
-							sampleProposal(
-								chatId: "unopened", nonce: Nonce(),
-								expiresAt: clock.now.addingTimeInterval(600)))))
-			])
-		let secrets = keyedSecrets()
-		let coach = await coach(secrets)
-		#expect(await coach.mailboxes.isEmpty)
-		try await expectAthleteSwitchRefused(on: coach, secrets: secrets)
-		#expect(await coach.mailboxes.isEmpty)
-	}
-
 	@Test(arguments: [false, true])
 	func unresolvedLocalClaimBlocksAthleteSwitch(opened: Bool) async throws {
 		try await seedLocalQuestion(claimed: true)

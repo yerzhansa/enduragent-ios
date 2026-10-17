@@ -125,37 +125,6 @@ import Testing
 		}
 		try await bench.expectNoReviewAndAnUntouchedCalendar(coach)
 	}
-
-	@Test(arguments: CalendarRequest.allCases)
-	func schedulingAfterAProseWorkoutMakesOneReviewThatWaitsAndWritesNothing(
-		request: CalendarRequest
-	) async throws {
-		let bench = AuthorizationBench()
-		let coach = try await bench.coach(replying: [
-			.text("Warm up, 2x15 minutes in Z4, cool down."), .finish(reason: .stop),
-			.toolCall(name: request.tool.rawValue, arguments: request.arguments),
-			.finish(reason: .toolCalls),
-			.text("Ready for your approval."), .finish(reason: .stop),
-		])
-		_ = try await coach.sendAndSettle("Give me a threshold workout for 45 minutes indoors")
-		try await bench.expectNoReviewAndAnUntouchedCalendar(coach)
-
-		let settled = try await coach.sendAndSettle(request.message)
-
-		#expect(replyText(settled) == "Ready for your approval.")
-		#expect(bench.chatRequests.count == 3)
-		let review = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(review.cards.map(\.action) == [request.action])
-		#expect(review.cards.map(\.date) == [request.date])
-		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
-		guard case .approveOrCancel = await coach.currentSnapshot(.main)?.review?.controls else {
-			Issue.record("the review is not waiting for the athlete's approval")
-			return
-		}
-		#expect(try await bench.savedProposals() == 1)
-		#expect(bench.intervals.calls.filter(\.isWrite).isEmpty)
-		#expect(bench.intervals.events == [AuthorizationBench.planned])
-	}
 }
 
 enum ContextOnlyTurn: CaseIterable {

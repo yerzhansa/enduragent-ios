@@ -234,49 +234,6 @@ extension SwiftDataSuites {
 			await coach.lifecycle(.willTerminate)
 		}
 
-		@Test func pendingReviewRetainsItsSavedAthlete() async throws {
-			let fixture = try AthleteScopedCoachingFixture(store: InMemoryRecordLog())
-			let coach = await fixture.open()
-			fixture.transport.respond = ScriptedReply.sequence(
-				[
-					.toolCall(
-						name: "intervals_create_workout",
-						arguments:
-							#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-					),
-					.finish(reason: .toolCalls), .text("Review ready."), .finish(reason: .stop),
-				], otherwise: fixture.transport.respond)
-			_ = try await coach.sendAndSettle("Prepare an endurance ride")
-			let snapshots = await coach.observe(.main)
-			let before = try #require(
-				try await firstSnapshot(in: snapshots, within: .hangGuard) {
-					$0.review != nil
-				}?.review)
-			#expect(before.attribution.ownership == .verified(try #require(athleteA)))
-			#expect(await coach.decide(.presented(before.ref), in: .main) == .presentationRecorded)
-			try fixture.peer.replace(.athleteB)
-			await coach.lifecycle(.becameActive)
-			let blocked = try #require(
-				try await firstSnapshot(in: snapshots, within: .hangGuard) {
-					$0.review?.notice?.kind == .accountChanged
-				}?.review)
-			#expect(blocked.attribution.ownership == before.attribution.ownership)
-			#expect(blocked.controls == .none)
-			#expect(blocked.notice?.key == Catalog.reviewAccountChanged)
-			#expect(blocked.cards == before.cards)
-			await coach.lifecycle(.willTerminate)
-			let after = await fixture.open()
-			await after.lifecycle(.becameActive)
-			let reopened = try #require(
-				try await firstSnapshot(in: await after.observe(.main), within: .hangGuard) {
-					$0.review?.notice?.kind == .accountChanged
-				}?.review)
-			#expect(reopened.attribution == blocked.attribution)
-			#expect(reopened.controls == .none)
-			#expect(fixture.peer.athleteA.events.isEmpty && fixture.peer.athleteB.events.isEmpty)
-			await after.lifecycle(.willTerminate)
-		}
-
 		private func summary(on coach: Coach, chat: ChatID) async throws
 			-> ArchivedConversationSummary
 		{

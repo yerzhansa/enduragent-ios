@@ -96,56 +96,6 @@ struct IntervalsRESTClientTests {
 		#expect(items.filter { $0.name == "newest" }.map(\.value) == ["1998-06-20"])
 	}
 
-	enum IneligibleTarget: Sendable {
-		case race, athleteOwned, past, movedIntoThePast
-
-		var event: CalendarEvent {
-			let owned = self == .past || self == .movedIntoThePast
-			return CalendarEvent(
-				id: EventID(rawValue: 43),
-				startDateLocal: self == .past ? "1998-06-12T00:00:00" : "1998-06-20T00:00:00",
-				name: "Endurance", category: self == .race ? "RACE_A" : "WORKOUT",
-				externalId: nil, uid: nil, tags: owned ? [IntervalsPolicy.coachTag] : [],
-				coachCreated: owned)
-		}
-
-		var code: String {
-			switch self {
-			case .race: "not_a_workout"
-			case .athleteOwned: "not_coach_created"
-			case .past: "past_workout_protected"
-			case .movedIntoThePast: "past_workout_destination"
-			}
-		}
-	}
-
-	@Test(arguments: [
-		(IneligibleTarget.race, false), (.race, true), (.athleteOwned, false),
-		(.athleteOwned, true), (.past, false), (.past, true), (.movedIntoThePast, false),
-	])
-	func theOldPathRefusesAnIneligibleTargetWithTodaysCodeBeforeItWrites(
-		target: IneligibleTarget, deleting: Bool
-	) async throws {
-		let client = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		client.events = [target.event]
-		let id = target.event.id
-		let input: GatedToolInput =
-			deleting
-			? .deleteWorkout(eventId: id)
-			: .updateWorkout(
-				UpdateWorkoutInput(
-					eventId: id, date: target == .movedIntoThePast ? "1998-06-12" : nil,
-					name: "Endurance", description: nil))
-		do {
-			_ = try await CalendarWriteOperation.prepare(
-				try oldPathProposal(input, writeID: nil), client: client, today: "1998-06-13")
-			Issue.record("expected \(target.code)")
-		} catch let error as IntervalsError {
-			#expect(error.code == target.code)
-		}
-		#expect(client.calls.allSatisfy { !$0.isWrite })
-	}
-
 	@Test func selectedAthleteGoesIntoEveryAthletePath() async throws {
 		let coached = try #require(IntervalsAthleteID(rawValue: "i2002"))
 		let client = try makeClient(athlete: .athlete(coached))
@@ -196,6 +146,25 @@ struct IntervalsRESTClientTests {
 		}
 		_ = try await training.client.profile()
 		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002")
+	}
+
+	@Test(arguments: [
+		"null",
+		"{}",
+		"[null]",
+		"[{}]",
+		#"[{"id":1,"name":"Ride","category":"WORKOUT"}]"#,
+		#"[{"id":1,"name":"Ride","category":"WORKOUT","start_date_local":"invalid"}]"#,
+		#"[{"id":1,"name":"Ride","category":"WORKOUT","start_date_local":"1998-06-14T00:00:00","tags":[42]}]"#,
+		#"[{"id":1,"name":"Ride","category":"WORKOUT","start_date_local":"1998-06-14T00:00:00"},{}]"#,
+	])
+	func aMalformedCalendarListIsAFailedReadAndNeverAnEmptyDay(_ body: String) async throws {
+		let client = try makeClient()
+		IntervalsURLProtocolStub.handler = { _ in (200, Data(body.utf8)) }
+
+		await #expect(throws: (any Error).self) {
+			_ = try await client.listEvents(in: .day("1998-06-14"))
+		}
 	}
 
 	func makeClient(

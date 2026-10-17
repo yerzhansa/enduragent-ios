@@ -106,22 +106,6 @@ extension SwiftDataSuites {
 			}
 		}
 
-		@Test func pendingV1ReviewIsReadOnly() async throws {
-			let log = try open("review")
-			let transport = FakeModelTransport()
-			let coach = await makeCoach(transport: transport, store: log)
-			let review = try #require(await coach.currentSnapshot(.main)?.review)
-			#expect(review.authority == .readOnly)
-			#expect(review.controls == .none)
-			#expect(review.notice?.key == Catalog.reviewEarlierVersion)
-			#expect(transport.requests.isEmpty)
-			let page = try await log.fetch(
-				RecordQuery(
-					scope: .deviceLocal([.pendingProposal, .proposalCleared])))
-			#expect(page.skipped.isEmpty)
-			#expect(kinds(page.records) == ["pendingProposal"])
-		}
-
 		@Test func build6833d90fOpenReviewClosesOnceAtUpgrade() async throws {
 			let seed = try await M2Seed(
 				try open("open-review", folder: M2Seed.folder, device: M2Seed.device))
@@ -357,7 +341,7 @@ extension SwiftDataSuites {
 		private static let chain = RecordQuery(
 			scope: .deviceLocal([.workoutReview]), chatId: .main)
 
-		private func open(
+		func open(
 			_ scenario: String, folder: String = "Fixtures/v1-upgrade", device: String? = nil
 		) throws -> SwiftDataRecordLog {
 			try UpgradeStore(

@@ -223,6 +223,25 @@ import Testing
 			try await coach.desk.snapshot(chat: .main)?.ref.review == next.id)
 	}
 
+	@Test func aCompletedReviewsNoteReadsInTheChosenLanguage() async throws {
+		let coach = await coach()
+		let review = try await turns.committed(ReviewTurns.oneRide, on: coach)
+		guard case .completed = await coach.desk.decide(.approve(try await token(on: coach.desk)))
+		else {
+			Issue.record("the review did not complete")
+			return
+		}
+
+		try await coach.mailbox(for: .main).refreshImports()
+
+		let notes = try #require(await coach.currentSnapshot(.main)?.notes[review.origin.turn])
+		let french = displayLocale(.fr, region: "fr_FR")
+		#expect(
+			notes.map { $0.sentence(in: french) } == [
+				"Threshold 2x2, 09/09/1998 : modification enregistrée."
+			])
+	}
+
 	private func coach() async -> Coach {
 		await makeCoach(
 			transport: turns.transport, intervals: calendar, store: turns.store, clock: turns.clock,

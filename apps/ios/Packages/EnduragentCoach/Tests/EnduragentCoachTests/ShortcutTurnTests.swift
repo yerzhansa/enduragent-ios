@@ -160,34 +160,6 @@ import Testing
 		#expect(bench.intervals.events.isEmpty)
 	}
 
-	@Test func workoutToolCalledFromStatusWaitsForTheAthleteAndWritesNothing() async throws {
-		let bench = ShortcutBench()
-		let coach = try await bench.coach(replying: [
-			.toolCall(
-				name: "intervals_create_workout",
-				arguments:
-					#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-			), .finish(reason: .toolCalls),
-			.text("Your Form is fresh. I drafted a ride for tomorrow."), .finish(reason: .stop),
-		])
-
-		let settled = try await coach.sendAndSettle("/status")
-
-		#expect(replyText(settled) == "Your Form is fresh. I drafted a ride for tomorrow.")
-		#expect(bench.transport.requests.count == 2)
-		let review = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(review.cards.map(\.action) == [.add])
-		#expect(review.cards.map(\.date) == ["1998-06-14"])
-		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
-		guard case .approveOrCancel = await coach.currentSnapshot(.main)?.review?.controls else {
-			Issue.record("the review is not waiting for the athlete's approval")
-			return
-		}
-		#expect(try await bench.savedProposals() == 1)
-		#expect(bench.intervals.calls.filter(\.isWrite).isEmpty)
-		#expect(bench.intervals.events.isEmpty)
-	}
-
 	@Test(arguments: WorkoutProgress.allCases)
 	func runningWorkoutShowsTheMessageAndAWorkingStateWithNoFinishedReply(
 		reached: WorkoutProgress

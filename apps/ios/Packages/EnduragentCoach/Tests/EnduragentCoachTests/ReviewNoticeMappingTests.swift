@@ -22,36 +22,6 @@ struct ReviewNoticeMappingTests {
 	static let saved = [ReviewReceipt(index: 0, progress: .saved(EventID(rawValue: 1)))]
 	static let intervals: [String: CatalogArgument] = ["service": .text("intervals.icu")]
 
-	static let oldPath: [Row] = [
-		Row(name: "completed", outcome: .completed(saved), notice: nil),
-		Row(name: "canceled", outcome: .canceled([]), notice: nil),
-		Row(name: "presentationRecorded", outcome: .presentationRecorded, notice: nil),
-		Row(
-			name: "unconfirmed pending", outcome: .unconfirmed([], pending),
-			notice: AthleteNotice(key: Catalog.reviewWritePending, actions: [])),
-		Row(
-			name: "unconfirmed read failed", outcome: .unconfirmed([], readFailed),
-			notice: AthleteNotice(key: Catalog.reviewWriteReadFailed, actions: [])),
-		Row(
-			name: "blocked accountChanged", outcome: .blocked(.accountChanged),
-			notice: AthleteNotice(key: Catalog.reviewAccountChanged, vars: intervals, actions: [])),
-		Row(
-			name: "blocked trainingNotConnected", outcome: .blocked(.trainingNotConnected),
-			notice: AthleteNotice(key: Catalog.connectMissing, actions: [.connectTraining])),
-		Row(
-			name: "blocked cannotVerify", outcome: .blocked(.cannotVerify),
-			notice: AthleteNotice(key: Catalog.reviewCannotVerify, vars: intervals, actions: [])),
-		Row(
-			name: "blocked turnStopping", outcome: .blocked(.turnStopping),
-			notice: AthleteNotice(key: Catalog.reviewTurnStopping, actions: [])),
-		Row(
-			name: "staleControl", outcome: .staleControl(newer: nil),
-			notice: AthleteNotice(key: Catalog.coachConfirmationExpired, actions: [])),
-		Row(
-			name: "storageUnavailable", outcome: .storageUnavailable,
-			notice: AthleteNotice(key: Catalog.reviewSaveFailed, actions: [])),
-	]
-
 	static let workoutReview: [Row] = [
 		Row(
 			name: "stopped", outcome: .stopped(saved, serviceNotice),
@@ -72,6 +42,35 @@ struct ReviewNoticeMappingTests {
 					chat: .main, review: WorkoutReviewID(ulid: reviewULID(101)),
 					revision: ReviewRevision(rawValue: 2), delivery: UUID())),
 			notice: AthleteNotice(key: Catalog.coachConfirmationExpired, actions: [])),
+		Row(name: "presentationRecorded", outcome: .presentationRecorded, notice: nil),
+		Row(
+			name: "unconfirmed after a lost answer",
+			outcome: .unconfirmed(
+				[],
+				ReviewNotice(
+					kind: .partialFailure, key: Catalog.reviewUncertain,
+					vars: ["service": "intervals.icu"])),
+			notice: AthleteNotice(key: Catalog.reviewUncertain, vars: intervals, actions: [])),
+		Row(
+			name: "stopped with an unreadable account",
+			outcome: .stopped(
+				[],
+				ReviewNotice(
+					kind: .partialFailure, key: Catalog.reviewCannotVerify,
+					vars: ["service": "intervals.icu"])),
+			notice: AthleteNotice(key: Catalog.reviewCannotVerify, vars: intervals, actions: [])),
+		Row(
+			name: "blocked accountChanged", outcome: .blocked(.accountChanged),
+			notice: AthleteNotice(key: Catalog.reviewAccountChanged, vars: intervals, actions: [])),
+		Row(
+			name: "blocked trainingNotConnected", outcome: .blocked(.trainingNotConnected),
+			notice: AthleteNotice(key: Catalog.connectMissing, actions: [.connectTraining])),
+		Row(
+			name: "blocked cannotVerify", outcome: .blocked(.cannotVerify),
+			notice: AthleteNotice(key: Catalog.reviewCannotVerify, vars: intervals, actions: [])),
+		Row(
+			name: "storageUnavailable", outcome: .storageUnavailable,
+			notice: AthleteNotice(key: Catalog.reviewSaveFailed, actions: [])),
 		Row(
 			name: "blocked reviewedBeforeUpgrade", outcome: .blocked(.reviewedBeforeUpgrade),
 			notice: AthleteNotice(key: Catalog.workoutsBlockedReviewedBeforeUpgrade, actions: [])),
@@ -85,11 +84,6 @@ struct ReviewNoticeMappingTests {
 			name: "blocked workoutOnly", outcome: .blocked(.workoutOnly),
 			notice: AthleteNotice(key: Catalog.coachErrorUnknown, actions: [])),
 	]
-
-	@Test(arguments: oldPath)
-	func eachOutcomeTheOldPathGivesKeepsItsNotice(_ row: Row) {
-		#expect(row.outcome.notice == row.notice)
-	}
 
 	@Test(arguments: workoutReview)
 	func eachWorkoutReviewOutcomeGivesItsNotice(_ row: Row) {

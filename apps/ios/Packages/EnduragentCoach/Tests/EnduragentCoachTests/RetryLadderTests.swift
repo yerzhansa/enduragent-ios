@@ -111,23 +111,6 @@ import Testing
 				counters: .zero) == .terminal(.model(.budgetExhausted(.wallClock))))
 	}
 
-	@Test func committedCalendarWriteSettlesWritesSaved() {
-		let calendar = situation(
-			committed: [
-				CommittedWrite(tool: .memoryWrite), CommittedWrite(tool: .intervalsCreateWorkout),
-			])
-		#expect(
-			RetryLadder.npm.decide(
-				.provider(.serverError(status: 500, retryAfter: nil)), situation: calendar,
-				counters: .zero) == .settleSavedWork(.writesSaved))
-		#expect(
-			RetryLadder.npm.decide(.windowExceededFinish, situation: calendar, counters: .zero)
-				== .settleSavedWork(.writesSaved))
-		let notice = AthleteNotices.notice(for: .writesSaved)
-		#expect(notice.key == Catalog.coachFallbackWritesSaved)
-		#expect(notice.actions.isEmpty)
-	}
-
 	@Test func committedMemoryWriteSettlesSavedUnverified() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
@@ -294,7 +277,7 @@ import Testing
 		.http(status: 400, body: #"{"error":{"message":"maximum context length exceeded"}}"#)
 	}
 
-	private func situation(
+	func situation(
 		committed: [CommittedWrite] = [], observedText: Bool = false
 	) -> AttemptSituation {
 		AttemptSituation(

@@ -64,41 +64,6 @@ import Testing
 				== Catalog.settingsTrainingReplace)
 	}
 
-	@Test func correctionCannotAuthorizeAnEarlierAthleteReview() async throws {
-		try secrets.storeIntervalsConnection(testConnection)
-		let coach = await basis.coach(secrets)
-		try await coach.setLanguage(.fixed(.fr))
-		let previous = try await coach.refreshedStatus()
-		let identity = try await coach.creditsIdentity()
-		let review = try await basis.proposeRide(on: coach)
-		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
-		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
-		let turn = try #require(await coach.currentSnapshot(.main)?.turns.first)
-		try backing.corruptIntervalsConnection()
-		guard
-			case .replaced = await coach.changeTraining(
-				.replace(apiKey: "other-athlete", athlete: .keyOwner))
-		else {
-			Issue.record("The malformed connection was not corrected")
-			return
-		}
-		#expect(await coach.decide(.approve(token), in: .main) == .blocked(.accountChanged))
-		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
-		#expect(
-			!basis.bo.calls.contains {
-				if case .createEvent = $0 { return true }
-				return false
-			})
-		#expect(await coach.currentSnapshot(.main)?.turns.first == turn)
-		let current = try await coach.observedStatus()
-		#expect(current.language == previous.language)
-		#expect(current.session == previous.session)
-		#expect(current.setup == previous.setup)
-		#expect(try await coach.creditsIdentity() == identity)
-		#expect(try secrets.openRouterAccountKey(at: .legacy) == "synthetic-router-key")
-		#expect(try secrets.accessSelection() == .init(.credits))
-	}
-
 	@Test(arguments: [false, true])
 	func storageRecoveryClearsNoticeWithoutLeakingContent(unavailable: Bool) async throws {
 		try secrets.storeIntervalsConnection(testConnection)
@@ -162,5 +127,4 @@ import Testing
 			}
 		}
 	}
-
 }

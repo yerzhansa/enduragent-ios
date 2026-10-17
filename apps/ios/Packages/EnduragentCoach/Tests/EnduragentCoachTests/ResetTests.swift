@@ -70,28 +70,6 @@ import Testing
 		#expect(try await coach.history().isEmpty)
 	}
 
-	@Test func resetLeavesWorkoutReviewUntouched() async throws {
-		let nonce = Nonce()
-		let proposal = sampleProposal(
-			chatId: .main, nonce: nonce, expiresAt: clock.now.addingTimeInterval(300))
-		try await seed(
-			store,
-			[
-				seededRecord(
-					store, at: clock.now.addingTimeInterval(-10),
-					ulid: ULID.generate(at: clock.now.addingTimeInterval(-10)),
-					body: .deviceLocal(.pendingProposal(proposal)))
-			])
-		let coach = await coach()
-		answer("Here is Thursday.")
-		_ = try await coach.sendAndSettle("Plan Thursday")
-		let review = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
-		#expect(await coach.currentSnapshot(.main)?.review?.ref == review.ref)
-		#expect(try await count(.deviceLocal([.proposalCleared])) == 0)
-		#expect(await self.coach().currentSnapshot(.main)?.review?.ref.review == review.ref.review)
-	}
-
 	@Test func resetWithPartialFlushReportsPartiallySaved() async throws {
 		let coach = await coach()
 		answer("Two rides.")
