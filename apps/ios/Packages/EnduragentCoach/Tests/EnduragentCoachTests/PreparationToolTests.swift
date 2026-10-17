@@ -122,6 +122,7 @@ import Testing
 				prepare(
 					#"{"kind":"complete","changes":[\#(PreparationFixture.ride(on: "1998-09-09"))]}"#
 				),
+				.finish(reason: .toolCalls),
 				.toolCall(name: "get_pending_workout_changes", arguments: "{}"),
 			], from: coach)
 
@@ -163,9 +164,42 @@ import Testing
 				== [nil, .number(101), .number(102)])
 	}
 
+	@Test func anUnreadablePendingReviewIsRecordedAsAToolFailure() async throws {
+		let failing = FaultInjectingRecordLog(wrapping: store)
+		failing.failNextFetch(in: .deviceLocal([.workoutReview]))
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "get_pending_workout_changes", arguments: "{}"),
+				.finish(reason: .toolCalls),
+				.text("I could not read it."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
+		let coach = await makeCoach(
+			transport: transport, intervals: intervals, store: failing, clock: auckland,
+			tools: .workoutReview)
+
+		#expect(replyText(try await coach.sendAndSettle("Plan my week")) == "I could not read it.")
+
+		let followUp = try #require(transport.requests.last)
+		let toolMessage = try #require(followUp.messages.last(where: { $0.role == .tool }))
+		#expect(toolMessage.content == ToolFault.saveFailed.json.canonicalDigestInput())
+		let failures = coach.diagnostics.entries.compactMap { entry -> ToolFault? in
+			guard
+				case .toolFailed(
+					transport.requests[0].attempt, .getPendingWorkoutChanges, let failure) = entry
+					.event
+			else { return nil }
+			return failure
+		}
+		#expect(failures == [.saveFailed])
+	}
+
 	@Test(arguments: [
 		#"{"preparation":{"kind":"incomplete","reason":"No slot"},"extra":true}"#,
 		#"{"preparation":{"kind":"incomplete","reason":"No slot","changes":[]}}"#,
+		#"{"preparation":{"kind":"complete","base":{"setId":"00T47DW5000000000000000100","revision":1},"changes":[{"kind":"delete","eventId":201}]}}"#,
+		#"{"preparation":{"kind":"replace","base":{"setId":"00T47DW5000000000000000100","revision":1},"changes":[{"kind":"delete","eventId":201}],"replacements":[{"id":"00T47DW5000000000000000401","change":{"kind":"delete","eventId":201}}]}}"#,
+		#"{"preparation":{"kind":"revise","base":{"setId":"00T47DW5000000000000000100","revision":1},"replacements":[{"id":"00T47DW5000000000000000401","change":{"kind":"delete","eventId":201}}],"changes":[{"kind":"delete","eventId":201}]}}"#,
 		#"{"preparation":{"kind":"complete","changes":[{"kind":"add-cycling","date":"1998-09-09","name":"Ride","workout":{"name":"Ride","steps":[]}}]}}"#,
 		#"{"preparation":{"kind":"complete","changes":[{"kind":"add-strength","date":"1998-09-09","name":"Core","durationMinutes":30,"effort":"Easy","description":"Plank","workout":{}}]}}"#,
 		#"{"preparation":{"kind":"complete","changes":[{"kind":"edit","eventId":201,"patch":{"name":"Tempo"},"date":"1998-09-09"}]}}"#,

@@ -104,13 +104,7 @@ extension CoachTools {
 		parameters: ToolParameters.none,
 		rerunWith: nil
 	) { _, reach in
-		do {
-			return .result(try await reach.local.desk.pending(chat: reach.local.chat).json)
-		} catch {
-			throw ToolInputError(
-				code: "storage_unavailable",
-				details: "The pending review could not be read on this phone.")
-		}
+		.result(try await reach.local.desk.pending(chat: reach.local.chat).json)
 	}
 
 	static let prepareWorkoutChanges = CoachTool.training(
