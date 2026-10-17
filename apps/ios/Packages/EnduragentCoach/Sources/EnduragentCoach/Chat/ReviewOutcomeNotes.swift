@@ -1,18 +1,25 @@
 import Foundation
 
 public struct ReviewOutcomeNote: Sendable, Equatable {
+	package let ending: ReviewOutcomeBody.Ending
 	package let lines: [OutcomeLine]
 
 	func sentence(in display: DisplayLocale) -> String {
-		lines.sorted { $0.position < $1.position }.map { line in
-			display.say(
-				line.result.key,
-				[
-					"workout": .text(
-						line.name.isEmpty ? display.say(Catalog.coachProposalUnnamed) : line.name),
-					"date": .day(line.date),
-				])
-		}.joined(separator: "\n")
+		switch ending {
+		case .closedAtUpgrade:
+			display.say(Catalog.workoutsOutcomeClosedAtUpgrade)
+		case .completed, .canceled:
+			lines.sorted { $0.position < $1.position }.map { line in
+				display.say(
+					line.result.key,
+					[
+						"workout": .text(
+							line.name.isEmpty
+								? display.say(Catalog.coachProposalUnnamed) : line.name),
+						"date": .day(line.date),
+					])
+			}.joined(separator: "\n")
+		}
 	}
 }
 
@@ -47,7 +54,7 @@ extension Conversation {
 				ReviewNote(
 					ulid: record.ulid, hlc: record.hlc, date: record.civilDate,
 					account: record.account,
-					content: .outcome(ReviewOutcomeNote(lines: body.lines)),
+					content: .outcome(ReviewOutcomeNote(ending: body.ending, lines: body.lines)),
 					after: after))
 			segments[index].notes.sort { $0.hlc < $1.hlc }
 		}

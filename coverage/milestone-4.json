@@ -1091,7 +1091,9 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownWriteBecomesOneUnconfirmedChange"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fOpenReviewClosesOnceWhenTwoDesksRecoverTogether"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownWriteSettledByOneDeskIsNotUpgradedAgainByAnother"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownWriteCanceledOnOneDeskIsNotRevivedByAnother"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownWriteCanceledOnOneDeskIsNotRevivedByAnother"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeOutcomeStoreTests.swift", "function": "build6833d90fOpenReviewShowsOneClosedAtUpgradeNoteInTheConversation"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeOutcomeStoreTests.swift", "function": "build6833d90fOpenReviewClosesBesideASyncedOutcomeThisBuildCannotRead"}
 			]
 		},
 		{

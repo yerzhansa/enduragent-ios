@@ -1,10 +1,20 @@
 import Foundation
 
 package protocol ReviewChainLog: RecordLog {
-	func newest(_ query: RecordQuery) async throws -> AthleteRecord?
+	func newest(_ query: RecordQuery) async throws -> NewestRecord
 	func append(_ record: AthleteRecord, after head: RecordHead, in query: RecordQuery)
 		async throws
 	func chats(holding scope: RecordQuery.Scope) async throws -> Set<ChatID>
+}
+
+package struct NewestRecord: Sendable, Equatable {
+	package let record: AthleteRecord?
+	package let skipped: [SkippedRow]
+
+	package init(record: AthleteRecord?, skipped: [SkippedRow]) {
+		self.record = record
+		self.skipped = skipped
+	}
 }
 
 package enum RecordHead: Hashable, Sendable {
@@ -40,7 +50,7 @@ extension Ledger {
 		try await openIfNeeded()
 		let newest: AthleteRecord?
 		do {
-			newest = try await chain.newest(Self.chain(of: chat))
+			newest = try await readable(chain.newest(Self.chain(of: chat)))
 		} catch {
 			throw LedgerFailure.unavailable
 		}
@@ -73,12 +83,17 @@ extension Ledger {
 		try await openIfNeeded()
 		let newest: AthleteRecord?
 		do {
-			newest = try await chain.newest(query)
+			newest = try await readable(chain.newest(query))
 		} catch {
 			throw LedgerFailure.unavailable
 		}
 		if let newest { fold(newest.hlc) }
 		return RecordHead(newest)
+	}
+
+	private func readable(_ newest: NewestRecord) -> AthleteRecord? {
+		report(newest.skipped)
+		return newest.record
 	}
 
 	package func commit(

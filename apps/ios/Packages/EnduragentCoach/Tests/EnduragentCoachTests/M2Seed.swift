@@ -45,13 +45,15 @@ struct M2Seed {
 		}
 		let calendar = calendar
 		return WorkoutReviewDesk(
-			ledger: Ledger(
-				log: store ?? log, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
-			clock: clock, diagnostics: DiagnosticsLog(clock: clock),
+			ledger: ledger(over: store), clock: clock, diagnostics: DiagnosticsLog(clock: clock),
 			training: { _ in
 				.connected(
 					ConnectedTraining(connection: connection, athlete: athlete, client: calendar))
 			}, host: ImmediateExecutionHost())
+	}
+
+	func ledger(over store: (any ReviewChainLog)? = nil) -> Ledger {
+		Ledger(log: store ?? log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 	}
 
 	func added(_ review: WorkoutReview) throws -> AddedWorkout {

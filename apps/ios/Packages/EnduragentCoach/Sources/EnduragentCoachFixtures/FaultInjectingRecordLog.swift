@@ -161,7 +161,7 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 		return try await wrapped.fetch(query)
 	}
 
-	package func newest(_ query: RecordQuery) async throws -> AthleteRecord? {
+	package func newest(_ query: RecordQuery) async throws -> NewestRecord {
 		try failIfAsked(reading: query)
 		return try await wrapped.newest(query)
 	}

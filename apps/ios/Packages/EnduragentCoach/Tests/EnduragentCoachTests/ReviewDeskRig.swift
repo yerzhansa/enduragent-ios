@@ -137,7 +137,7 @@ final class BarrierChainLog: ChainForwardingLog {
 		try await inner.append(batch, locality: locality)
 	}
 
-	func newest(_ query: RecordQuery) async throws -> AthleteRecord? {
+	func newest(_ query: RecordQuery) async throws -> NewestRecord {
 		let newest = try await inner.newest(query)
 		let held = barrier.withLock { current -> Int? in
 			guard current.waiting > current.arrived else { return nil }

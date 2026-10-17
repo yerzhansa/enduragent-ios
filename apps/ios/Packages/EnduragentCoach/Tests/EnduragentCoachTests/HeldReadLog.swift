@@ -4,21 +4,26 @@ import Testing
 
 @testable import EnduragentCoach
 
-final class HeldScopeReadLog: ChainForwardingLog, Sendable {
+final class HeldReadLog: ChainForwardingLog, Sendable {
+	enum Read: Sendable, Equatable {
+		case fetch(RecordQuery)
+		case newest(RecordQuery)
+	}
+
 	enum Moment: Sendable {
 		case beforeReading, afterReading
 	}
 
 	var chainStore: any ReviewChainLog { inner }
 	let inner: any ReviewChainLog
-	private let scope: RecordQuery.Scope
+	private let read: Read
 	private let moment: Moment
 	private let gate = Gate()
 	private let claimed = Mutex(false)
 
-	init(inner: any ReviewChainLog, holding scope: RecordQuery.Scope, _ moment: Moment) {
+	init(inner: any ReviewChainLog, holding read: Read, _ moment: Moment) {
 		self.inner = inner
-		self.scope = scope
+		self.read = read
 		self.moment = moment
 	}
 
@@ -34,11 +39,11 @@ final class HeldScopeReadLog: ChainForwardingLog, Sendable {
 	}
 
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		try await holding(query) { try await inner.fetch(query) }
+		try await holding(.fetch(query)) { try await inner.fetch(query) }
 	}
 
-	func newest(_ query: RecordQuery) async throws -> AthleteRecord? {
-		try await holding(query) { try await inner.newest(query) }
+	func newest(_ query: RecordQuery) async throws -> NewestRecord {
+		try await holding(.newest(query)) { try await inner.newest(query) }
 	}
 
 	func release() { gate.release() }
@@ -51,18 +56,18 @@ final class HeldScopeReadLog: ChainForwardingLog, Sendable {
 		try #require(parked == true, "The held read was never reached")
 	}
 
-	private func holding<Value>(_ query: RecordQuery, _ read: () async throws -> Value)
+	private func holding<Value>(_ attempt: Read, _ reading: () async throws -> Value)
 		async throws -> Value
 	{
 		let holds =
-			query.scope == scope
+			attempt == read
 			&& claimed.withLock { done in
 				guard !done else { return false }
 				done = true
 				return true
 			}
 		if holds, moment == .beforeReading { await gate.wait() }
-		let value = try await read()
+		let value = try await reading()
 		if holds, moment == .afterReading { await gate.wait() }
 		return value
 	}

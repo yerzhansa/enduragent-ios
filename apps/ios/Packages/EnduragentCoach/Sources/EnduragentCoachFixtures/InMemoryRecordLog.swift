@@ -30,8 +30,8 @@ package final class InMemoryRecordLog: ReviewChainLog, @unchecked Sendable {
 		}
 	}
 
-	package func newest(_ query: RecordQuery) async throws -> AthleteRecord? {
-		records.withLock { Self.newest(query, in: $0) }
+	package func newest(_ query: RecordQuery) async throws -> NewestRecord {
+		NewestRecord(record: records.withLock { Self.newest(query, in: $0) }, skipped: [])
 	}
 
 	package func append(_ record: AthleteRecord, after head: RecordHead, in query: RecordQuery)

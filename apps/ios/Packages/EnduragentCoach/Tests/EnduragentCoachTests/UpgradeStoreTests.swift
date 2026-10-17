@@ -269,8 +269,10 @@ extension SwiftDataSuites {
 		@Test func build6833d90fOpenReviewClosesOnceWhenTwoDesksRecoverTogether() async throws {
 			let log = try open("open-review", folder: M2Seed.folder, device: M2Seed.device)
 			let seed = try await M2Seed(log)
-			let held = HeldScopeReadLog(
-				inner: log, holding: .synced([.reviewOutcome]), .afterReading)
+			let held = HeldReadLog(
+				inner: log,
+				holding: .fetch(RecordQuery(scope: .synced([.reviewOutcome]), chatId: .main)),
+				.afterReading)
 			let late = try seed.desk(over: held)
 			let lateRecover = Task { await late.recover() }
 			try await held.waitUntilReached()
@@ -288,8 +290,8 @@ extension SwiftDataSuites {
 		{
 			let log = try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device)
 			let seed = try await M2Seed(log)
-			let held = HeldScopeReadLog(
-				inner: log, holding: .deviceLocal([.workoutReview]), .beforeReading)
+			let held = HeldReadLog(
+				inner: log, holding: .newest(Self.chain), .beforeReading)
 			let late = try seed.desk(over: held)
 			let lateRecover = Task { await late.recover() }
 			try await held.waitUntilReached()
@@ -315,8 +317,8 @@ extension SwiftDataSuites {
 		@Test func build6833d90fUnknownWriteCanceledOnOneDeskIsNotRevivedByAnother() async throws {
 			let log = try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device)
 			let seed = try await M2Seed(log)
-			let held = HeldScopeReadLog(
-				inner: log, holding: .deviceLocal([.workoutReview]), .beforeReading)
+			let held = HeldReadLog(
+				inner: log, holding: .newest(Self.chain), .beforeReading)
 			let late = try seed.desk(over: held)
 			let lateRecover = Task { await late.recover() }
 			try await held.waitUntilReached()
@@ -352,21 +354,16 @@ extension SwiftDataSuites {
 			#expect(seed.calendar.writes.isEmpty)
 		}
 
+		private static let chain = RecordQuery(
+			scope: .deviceLocal([.workoutReview]), chatId: .main)
+
 		private func open(
 			_ scenario: String, folder: String = "Fixtures/v1-upgrade", device: String? = nil
 		) throws -> SwiftDataRecordLog {
-			let source = try #require(
-				Bundle.module.url(
-					forResource: scenario, withExtension: nil, subdirectory: folder))
-			let root = try TestTemporaryFolders.make()
-			try FileManager.default.copyItem(at: source, to: root)
-			return SwiftDataRecordLog(
-				deviceId: DeviceID(
-					rawValue: device ?? (folder == "Fixtures" ? scenario : "v1-upgrade-fixture")),
-				synced: try ModelContainerHandle.withoutCloudKit(
-					storeURL: root.appending(path: "synced-records.store")),
-				local: try ModelContainerHandle.withoutCloudKit(
-					storeURL: root.appending(path: "local-records.store")))
+			try UpgradeStore(
+				scenario, folder: folder,
+				device: device ?? (folder == "Fixtures" ? scenario : "v1-upgrade-fixture")
+			).log
 		}
 	}
 }
