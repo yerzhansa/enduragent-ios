@@ -55,6 +55,10 @@ extension TurnRunner {
 				(call, prompt.offer.tool(named: call.name))
 			}
 			await progress(.activity(.runningTools(calls.compactMap { $0.1?.name })))
+			if calls.count(where: { $0.1?.name == .prepareWorkoutChanges }) > 1 {
+				await desk.refuseConcurrentPreparations(
+					DraftKey(turn: attempt.turn, attempt: attempt.attempt))
+			}
 			let outcomes = try await runTools(calls, scope: scope)
 			for (call, outcome) in outcomes {
 				if case .pending(let proposal) = outcome {

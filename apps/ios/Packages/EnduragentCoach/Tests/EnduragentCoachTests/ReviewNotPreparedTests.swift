@@ -68,39 +68,27 @@ import Testing
 		#expect(try await turns.view(of: turn, on: coach).reviewNotice == ReviewTurns.notPrepared)
 	}
 
-	@Test func aSecondPreparationWhileTheFirstReadsRefusesTheAttemptAndCommitsNothing()
-		async throws
-	{
+	@Test func aStepWithTwoPreparationsRefusesBothAndCommitsNothing() async throws {
 		let coach = await turns.coach()
-		let desk = await coach.desk
-		let reads = turns.intervals
-		let binding = testStamp().binding
-		let key = PreparationFixture.key
-		let first = try PreparationFixture.request(
-			#"{"kind":"complete","changes":[{"kind":"edit","eventId":201,"patch":{"name":"Tempo"}}]}"#,
-			today: "1998-09-08")
-		let second = try PreparationFixture.request(
-			#"{"kind":"complete","changes":[{"kind":"edit","eventId":202,"patch":{"name":"Recovery"}}]}"#,
-			today: "1998-09-08")
-		let read = reads.hold(.event)
-		let reading = Task {
-			await desk.prepare(
-				.success(first), for: key, chat: .main, binding: binding, reads: reads)
-		}
-		try #require(
-			try await beforeDeadline(within: .hangGuard) { await read.waitUntilEntered() } != nil)
 
-		let overlapping = await desk.prepare(
-			.success(second), for: key, chat: .main, binding: binding, reads: reads)
-		await read.release()
-		let finished = await reading.value
-		let outcome = await desk.settle(key, in: .main, ending: .finished)
+		let turn = try await turns.reply(
+			after: [
+				turns.prepare(
+					#"{"kind":"complete","changes":[{"kind":"edit","eventId":201,"patch":{"name":"Tempo"}}]}"#
+				),
+				turns.prepare(
+					#"{"kind":"complete","changes":[{"kind":"edit","eventId":202,"patch":{"name":"Recovery"}}]}"#
+				),
+			], on: coach)
 
-		#expect(overlapping.json.objectFields["error"] == .string("concurrent_preparation"))
-		#expect(finished.json.objectFields["error"] == .string("concurrent_preparation"))
-		#expect(outcome == .notPrepared(.refused))
+		#expect(
+			try turns.toolData().map { $0.objectFields["error"] } == [
+				.string("concurrent_preparation"), .string("concurrent_preparation"),
+			])
+		#expect(try await turns.settled(turn).map(\.reviewNotPrepared) == [.refused])
+		#expect(try await turns.view(of: turn, on: coach).reviewNotice == ReviewTurns.notPrepared)
 		#expect(try await turns.head(of: coach).1 == nil)
-		#expect(try await desk.snapshot(chat: .main) == nil)
+		#expect(try await coach.desk.snapshot(chat: .main) == nil)
 	}
 
 	@Test func aSavedMemoryFactSurvivesAFailedPreparationAndBothAreReported() async throws {

@@ -82,7 +82,7 @@ extension PreparationRefusal {
 		case .unreadableRequest(let error):
 			error.details
 		case .concurrentPreparation:
-			"Another prepare_workout_changes call of this turn was still running, so this turn prepares no review. Submit the complete set once per turn, and tell the athlete the change could not be prepared."
+			"One step of this turn sent more than one prepare_workout_changes call, so this turn prepares no review. Submit the complete set in one call per turn, and tell the athlete the change could not be prepared."
 		case .storageUnavailable:
 			"The pending review could not be read on this phone, so nothing was prepared."
 		}

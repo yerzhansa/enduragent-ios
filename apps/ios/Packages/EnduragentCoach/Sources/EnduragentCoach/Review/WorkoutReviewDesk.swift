@@ -18,12 +18,8 @@ package actor WorkoutReviewDesk {
 		_ request: Result<PreparationRequest, ToolInputError>, for key: DraftKey, chat: ChatID,
 		binding: ActionBinding, reads: any CalendarReads
 	) async -> PreparationReply {
-		switch preparations[key] {
-		case .reading?, .refused(.concurrentPreparation)?:
-			preparations[key] = .refused(.concurrentPreparation)
+		if preparations[key] == .refused(.concurrentPreparation) {
 			return .refused(.concurrentPreparation)
-		case .drafted?, .refused?, .abandoned?, nil:
-			break
 		}
 		let parsed: PreparationRequest
 		switch request {
@@ -63,10 +59,15 @@ package actor WorkoutReviewDesk {
 				case .changes(let remaining, _):
 					.drafted(changes: remaining.count, base: draft.base)
 				}
-			return finishing(key, as: .drafted(draft, over: head.0), replying: reply)
+			preparations[key] = .drafted(draft, over: head.0)
+			return reply
 		} catch {
 			return refusing(error, for: key)
 		}
+	}
+
+	package func refuseConcurrentPreparations(_ key: DraftKey) {
+		preparations[key] = .refused(.concurrentPreparation)
 	}
 
 	package func abandonDraft(_ key: DraftKey) {
@@ -139,21 +140,8 @@ package actor WorkoutReviewDesk {
 	}
 
 	private func refusing(_ refusal: PreparationRefusal, for key: DraftKey) -> PreparationReply {
-		finishing(key, as: .refused(refusal), replying: .refused(refusal))
-	}
-
-	private func finishing(_ key: DraftKey, as state: Preparing, replying reply: PreparationReply)
-		-> PreparationReply
-	{
-		switch preparations[key] {
-		case .reading?:
-			preparations[key] = state
-			return reply
-		case .refused(.concurrentPreparation)?:
-			return .refused(.concurrentPreparation)
-		case .drafted?, .refused?, .abandoned?, nil:
-			return reply
-		}
+		preparations[key] = .refused(refusal)
+		return .refused(refusal)
 	}
 
 	private func commit(_ draft: ReviewDraft, over head: RecordHead) async -> PreparationOutcome {
