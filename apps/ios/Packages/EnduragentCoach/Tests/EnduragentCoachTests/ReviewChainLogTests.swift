@@ -153,6 +153,32 @@ extension SwiftDataSuites {
 				))
 		}
 
+		@Test(arguments: [SharedChainStore.oneSwiftDataLog, .oneInMemoryLog])
+		func theReviewChatsAreEachChatWithAReviewChainOnce(_ store: SharedChainStore) async throws {
+			let writer = ledger(try store.logs(deviceId: phone).0)
+			let approval = try reviewFixture("workout-review-approval")
+			let claimed = try approval.claimed(Claim(id: claimID(1), action: .approve))
+			let other = try #require(ChatID(rawValue: "other"))
+			let marked = try #require(ChatID(rawValue: "marked"))
+			let elsewhere = try WorkoutReviewPayload.decode(
+				Data(
+					String(decoding: try fixtureData("workout-review-approval"), as: UTF8.self)
+						.replacingOccurrences(of: "\"chat\": \"main\"", with: "\"chat\": \"other\"")
+						.utf8))
+			#expect(try await writer.reviewChats() == [])
+			let first = try await writer.commit(
+				review: approval, stamp: stamp(approval), after: .empty)
+			_ = try await writer.commit(
+				review: claimed, stamp: stamp(claimed), after: .record(first.ulid))
+			_ = try await writer.commit(review: elsewhere, stamp: stamp(elsewhere), after: .empty)
+			try await writer.markPreparing(
+				chat: marked, turn: TurnID(ulid: fixedUlid(7)),
+				attempt: AttemptID(ulid: fixedUlid(8)),
+				stamp: stamp(approval))
+
+			#expect(try await writer.reviewChats() == [.main, other])
+		}
+
 		@Test func onlyTheOutcomeOfAReviewReachesAnotherDevice() async throws {
 			let directory = try TestTemporaryFolders.make()
 			let synced = try ModelContainerHandle.withoutCloudKit(

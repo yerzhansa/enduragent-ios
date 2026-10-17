@@ -44,6 +44,13 @@ package final class InMemoryRecordLog: ReviewChainLog, @unchecked Sendable {
 		}
 	}
 
+	package func chats(holding scope: RecordQuery.Scope) async throws -> Set<ChatID> {
+		let query = RecordQuery(scope: scope)
+		return records.withLock { records in
+			Set(records.filter { recordMatches($0, query) }.compactMap(\.chatId))
+		}
+	}
+
 	private static func newest(_ query: RecordQuery, in records: [AthleteRecord]) -> AthleteRecord?
 	{
 		records.filter { recordMatches($0, query) }.max { $0.hlc < $1.hlc }

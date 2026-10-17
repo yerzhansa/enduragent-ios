@@ -49,6 +49,10 @@ final class ScriptedCalendar: TrainingClient {
 		script.withLock { $0.readsFail = true }
 	}
 
+	func restoreReads() {
+		script.withLock { $0.readsFail = false }
+	}
+
 	func profile() async throws -> AthleteProfile { try await base.profile() }
 	func wellness(in range: ReadRange) async throws -> [WellnessDay] {
 		try await base.wellness(in: range)
@@ -87,12 +91,12 @@ final class ScriptedCalendar: TrainingClient {
 	}
 
 	private func reading() async throws {
-		let (fails, observe) = script.withLock { current in
+		let observe = script.withLock { current in
 			current.calls.append(.read)
-			return (current.readsFail, current.observe)
+			return current.observe
 		}
 		await observe?(.read)
-		if fails {
+		if script.withLock({ $0.readsFail }) {
 			throw IntervalsError.unreachable(URLError(.timedOut))
 		}
 	}
@@ -175,10 +179,11 @@ struct DeskRig {
 		Ledger(log: log ?? store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 	}
 
-	func desk(over log: (any ReviewChainLog)? = nil, athlete: String = "i1001") throws
-		-> WorkoutReviewDesk
-	{
-		let calendar = calendar
+	func desk(
+		over log: (any ReviewChainLog)? = nil, calendar: ScriptedCalendar? = nil,
+		athlete: String = "i1001"
+	) throws -> WorkoutReviewDesk {
+		let calendar = calendar ?? self.calendar
 		let athlete = try #require(IntervalsAthleteID(rawValue: athlete))
 		return WorkoutReviewDesk(
 			ledger: ledger(over: log), clock: clock, diagnostics: DiagnosticsLog(clock: clock),
@@ -253,6 +258,22 @@ struct DeskRig {
 				guard case .synced(.reviewOutcome(let body)) = record.body else { return nil }
 				return body
 			}
+	}
+
+	func keep(_ write: CalendarWrite) async -> IntervalsWriteAnswer {
+		switch write {
+		case .create:
+			break
+		case .update(let id, let patch):
+			if let index = base.events.firstIndex(where: { $0.id == id }),
+				let seconds = patch.durationSeconds
+			{
+				base.events[index].movingTime = seconds
+			}
+		case .delete(let id):
+			base.events.removeAll { $0.id == id }
+		}
+		return await base.write(write)
 	}
 
 	static func request(for change: ReviewChange) -> CalendarWrite {

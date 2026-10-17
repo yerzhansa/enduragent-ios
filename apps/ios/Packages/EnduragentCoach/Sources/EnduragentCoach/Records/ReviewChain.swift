@@ -4,6 +4,7 @@ package protocol ReviewChainLog: RecordLog {
 	func newest(_ query: RecordQuery) async throws -> AthleteRecord?
 	func append(_ record: AthleteRecord, after head: RecordHead, in query: RecordQuery)
 		async throws
+	func chats(holding scope: RecordQuery.Scope) async throws -> Set<ChatID>
 }
 
 package enum RecordHead: Hashable, Sendable {
@@ -49,6 +50,15 @@ extension Ledger {
 		}
 		fold(newest.hlc)
 		return (.record(newest.ulid), body.review)
+	}
+
+	package func reviewChats() async throws(LedgerFailure) -> Set<ChatID> {
+		try await openIfNeeded()
+		do {
+			return try await chain.chats(holding: .deviceLocal([.workoutReview]))
+		} catch {
+			throw LedgerFailure.unavailable
+		}
 	}
 
 	package func commit(review: WorkoutReview, stamp: OperationStamp, after head: RecordHead)

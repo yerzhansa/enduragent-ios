@@ -289,6 +289,15 @@ extension SwiftDataRecordLog: ReviewChainLog {
 		}
 	}
 
+	package func chats(holding scope: RecordQuery.Scope) async throws -> Set<ChatID> {
+		guard var descriptor = Self.rows(matching: RecordQuery(scope: scope)) else { return [] }
+		descriptor.propertiesToFetch = [\.chatId]
+		return Set(
+			try ModelContext(container(for: scope.locality)).fetch(descriptor).compactMap {
+				$0.chatId.flatMap(ChatID.init(rawValue:))
+			})
+	}
+
 	private func newest(_ query: RecordQuery, in context: ModelContext) throws -> AthleteRecord? {
 		guard var descriptor = Self.rows(matching: query) else { return nil }
 		descriptor.sortBy = [

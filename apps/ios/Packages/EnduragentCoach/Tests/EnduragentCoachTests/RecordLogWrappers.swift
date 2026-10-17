@@ -19,6 +19,10 @@ extension ChainForwardingLog {
 	{
 		try await chainStore.append(record, after: head, in: query)
 	}
+
+	func chats(holding scope: RecordQuery.Scope) async throws -> Set<ChatID> {
+		try await chainStore.chats(holding: scope)
+	}
 }
 
 final class BatchRecordingLog: ChainForwardingLog, @unchecked Sendable {

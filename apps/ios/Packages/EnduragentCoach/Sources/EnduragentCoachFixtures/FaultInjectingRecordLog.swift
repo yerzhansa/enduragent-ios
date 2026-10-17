@@ -26,6 +26,7 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 		var syncedAcknowledgments = false
 		var appendKinds: Set<String> = []
 		var chosenAppend: (kind: String, skipping: Int)?
+		var appendsBeforeRefusal: Int?
 		var fetches = false
 		var nextFetch: (scope: RecordQuery.Scope, skipping: Int)?
 		var failedFetches = 0
@@ -118,8 +119,16 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 		faults.withLock { $0.chosenAppend = (kind, skipping) }
 	}
 
+	package func refuseEveryAppend(after appends: Int) {
+		faults.withLock { $0.appendsBeforeRefusal = appends }
+	}
+
 	private func failIfAsked(appending kinds: [String], locality: RecordLocality) throws {
 		let fails = faults.withLock { current -> Bool in
+			if let left = current.appendsBeforeRefusal {
+				guard left > 0 else { return true }
+				current.appendsBeforeRefusal = left - 1
+			}
 			if current.nextAppend {
 				current.nextAppend = false
 				return true
@@ -155,6 +164,11 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 	package func newest(_ query: RecordQuery) async throws -> AthleteRecord? {
 		try failIfAsked(reading: query)
 		return try await wrapped.newest(query)
+	}
+
+	package func chats(holding scope: RecordQuery.Scope) async throws -> Set<ChatID> {
+		try failIfAsked(reading: RecordQuery(scope: scope))
+		return try await wrapped.chats(holding: scope)
 	}
 
 	private func failIfAsked(reading query: RecordQuery) throws {

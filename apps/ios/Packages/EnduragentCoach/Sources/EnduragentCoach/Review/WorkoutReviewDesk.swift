@@ -10,6 +10,9 @@ package actor WorkoutReviewDesk {
 	private var preparations: [DraftKey: Preparing] = [:]
 	private var marked: Set<DraftKey> = []
 	var deliveries: [ChatID: Delivery] = [:]
+	var stalled: Set<ChatID> = []
+	package nonisolated let changes: AsyncStream<ChatID>
+	private let changed: AsyncStream<ChatID>.Continuation
 
 	package init(
 		ledger: Ledger, clock: any Clock, diagnostics: DiagnosticsLog,
@@ -21,6 +24,7 @@ package actor WorkoutReviewDesk {
 		self.diagnostics = diagnostics
 		self.training = training
 		self.host = host
+		(changes, changed) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(1))
 	}
 
 	package func prepare(
@@ -117,7 +121,9 @@ package actor WorkoutReviewDesk {
 			return await effects.pass { await approving(token) }
 		case .cancel(let token):
 			return await canceling(token)
-		case .retryRemaining(let token), .tryAgain(let token), .checkAgain(let token):
+		case .checkAgain(let token):
+			return await effects.pass { await checkingAgain(token) }
+		case .retryRemaining(let token), .tryAgain(let token):
 			guard let delivery = deliveries[token.ref.chat], delivery.admits(token) else {
 				return .staleControl(newer: deliveries[token.ref.chat]?.ref)
 			}
@@ -134,6 +140,7 @@ package actor WorkoutReviewDesk {
 			_ = try await ledger.commit(
 				synced: [.reviewOutcome(ReviewProjection.summary(of: review, ending: ending))],
 				stamp: stamp)
+			moved(review.chat)
 			return true
 		} catch {
 			diagnostics.record(.reviewOutcomeUnsaved(error))
@@ -144,21 +151,54 @@ package actor WorkoutReviewDesk {
 	package func snapshot(chat: ChatID) async throws(LedgerFailure) -> ReviewSnapshot? {
 		let (head, review) = try await ledger.reviewHead(chat: chat)
 		guard let review, case .record(let ulid) = head else { return nil }
-		switch review.stage {
-		case .completed, .canceled:
-			if try await ledger.reviewOutcomes(chat: chat)[review.id] != nil { return nil }
-		case .waiting, .running:
-			break
-		}
+		if try await isPublished(review) { return nil }
 		let delivery =
 			deliveries[chat].flatMap { $0.head == ulid ? $0 : nil }
 			?? Delivery.fresh(for: review, at: ulid)
 		deliveries[chat] = delivery
-		return ReviewProjection.snapshot(
+		let shown = ReviewProjection.snapshot(
 			of: review, delivery: delivery, placement: .afterTurn(review.origin.turn),
 			attribution: AthleteAttribution(
 				accounts: [review.account], using: try await ledger.informationOwnership(),
 				device: ledger.deviceId))
+		return stalled.contains(chat) ? shown.disablingButtons() : shown
+	}
+
+	package func holdsBoundWork() async throws(LedgerFailure) -> Bool {
+		let preparing = preparations.values.contains { preparation in
+			switch preparation {
+			case .reading, .drafted: true
+			case .refused, .abandoned: false
+			}
+		}
+		if preparing { return true }
+		for chat in try await ledger.reviewChats() {
+			switch try await ledger.reviewHead(chat: chat).1?.stage {
+			case .waiting?, .running?: return true
+			case .completed?, .canceled?, nil: continue
+			}
+		}
+		return false
+	}
+
+	func isPublished(_ review: WorkoutReview) async throws(LedgerFailure) -> Bool {
+		switch review.stage {
+		case .completed, .canceled:
+			try await ledger.reviewOutcomes(chat: review.chat)[review.id] != nil
+		case .waiting, .running:
+			false
+		}
+	}
+
+	func moved(_ chat: ChatID) {
+		stalled.remove(chat)
+		changed.yield(chat)
+	}
+
+	func stall(_ chat: ChatID) -> ReviewOutcome {
+		stalled.insert(chat)
+		changed.yield(chat)
+		return .storageUnavailable
 	}
 
 	package func pending(chat: ChatID) async throws(LedgerFailure) -> PendingReview {
@@ -194,6 +234,7 @@ package actor WorkoutReviewDesk {
 					binding: draft.binding),
 				after: head)
 			deliveries[draft.chat] = .fresh(for: review, at: record.ulid)
+			moved(draft.chat)
 			return .committed(ReviewBase(of: review))
 		} catch {
 			switch error {
