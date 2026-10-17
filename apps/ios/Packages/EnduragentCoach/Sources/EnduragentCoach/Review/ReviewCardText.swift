@@ -33,19 +33,24 @@ extension ReviewCard {
 
 	public func status(in display: DisplayLocale) -> String? {
 		let key: CatalogKey? =
-			switch progress {
-			case .remaining: nil
-			case .sending: Catalog.workoutsCardProgressSending
-			case .saved: Catalog.workoutsCardProgressSaved
-			case .seenOnCalendar: Catalog.workoutsCardProgressSeenOnCalendar
-			case .noLongerOnCalendar: Catalog.workoutsCardProgressNoLongerOnCalendar
-			case .refused: Catalog.workoutsCardProgressRefused
-			case .mayHaveBeenSaved: Catalog.workoutsCardProgressMayHaveBeenSaved
+			switch (progress, action) {
+			case (.remaining, _): nil
+			case (.sending, _): Catalog.workoutsCardProgressSending
+			case (.saved, .add): Catalog.workoutsCardProgressAdded
+			case (.saved, .edit): Catalog.workoutsCardProgressSaved
+			case (.saved, .delete): Catalog.workoutsCardProgressRemoved
+			case (.seenOnCalendar, _): Catalog.workoutsCardProgressSeenOnCalendar
+			case (.noLongerOnCalendar, _): Catalog.workoutsCardProgressNoLongerOnCalendar
+			case (.refused, .delete): Catalog.workoutsCardProgressNotRemoved
+			case (.refused, .add), (.refused, .edit): Catalog.workoutsCardProgressRefused
+			case (.mayHaveBeenSaved, .delete): Catalog.workoutsCardProgressMayHaveBeenRemoved
+			case (.mayHaveBeenSaved, .add), (.mayHaveBeenSaved, .edit):
+				Catalog.workoutsCardProgressMayHaveBeenSaved
 			}
 		return key.map { display.say($0) }
 	}
 
-	fileprivate static func minutes(_ minutes: Int, in display: DisplayLocale) -> String {
+	static func minutes(_ minutes: Int, in display: DisplayLocale) -> String {
 		display.say(Catalog.chatAttachmentMinutes, ["number": .integer(minutes)])
 	}
 }

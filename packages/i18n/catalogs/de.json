@@ -3083,12 +3083,46 @@
         "seenOnCalendar": "Im Kalender gefunden",
         "noLongerOnCalendar": "Nicht mehr im Kalender",
         "refused": "Nicht gespeichert",
-        "mayHaveBeenSaved": "Möglicherweise gespeichert"
+        "mayHaveBeenSaved": "Möglicherweise gespeichert",
+        "added": "Hinzugefügt",
+        "removed": "Entfernt",
+        "notRemoved": "Nicht entfernt",
+        "mayHaveBeenRemoved": "Möglicherweise entfernt"
       }
     },
     "chart": {
       "percentOfFTP": "Prozent der FTP",
       "watts": "Leistung in Watt"
+    },
+    "totals": {
+      "additions_one": "{{count}} Hinzufügung",
+      "additions_other": "{{count}} Hinzufügungen",
+      "edits_one": "{{count}} Änderung",
+      "edits_other": "{{count}} Änderungen",
+      "deletions_one": "{{count}} Löschung",
+      "deletions_other": "{{count}} Löschungen",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} für hinzugefügte oder geänderte Trainings",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · Gesamtdauer unbekannt"
+    },
+    "kept": {
+      "title": "Vorhandene Trainings bleiben",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Dieses Training zum Kalender hinzufügen?",
+        "add_other": "Diese Trainings zum Kalender hinzufügen?",
+        "edit_one": "Dieses Training im Kalender aktualisieren?",
+        "edit_other": "Diese Trainings im Kalender aktualisieren?",
+        "delete_one": "Dieses Training aus dem Kalender entfernen?",
+        "delete_other": "Diese Trainings aus dem Kalender entfernen?",
+        "mixed": "Alle geprüften Änderungen übernehmen?"
+      },
+      "approveEdits": "Kalender aktualisieren",
+      "approveDeletions": "Aus Kalender entfernen",
+      "unseen": "Scrolle durch alle Karten, um fortzufahren.",
+      "cardFailed": "Karte {{position}} von {{count}} konnte nicht angezeigt werden. Nichts wurde geändert.",
+      "showAgain": "Erneut anzeigen"
     }
   }
 }

@@ -8,7 +8,12 @@ struct ChatView: View {
 		NavigationStack(path: $model.navigation) {
 			TranscriptView(model: model)
 				.safeAreaInset(edge: .bottom, spacing: 0) {
-					ComposerView(model: model)
+					VStack(spacing: 0) {
+						if let review = model.chat?.review {
+							ReviewBarView(model: model, review: review)
+						}
+						ComposerView(model: model)
+					}
 				}
 				#if DEBUG
 					.overlay(alignment: .topLeading) {

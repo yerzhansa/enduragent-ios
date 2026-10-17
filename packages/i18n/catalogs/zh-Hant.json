@@ -3043,12 +3043,40 @@
         "seenOnCalendar": "已在行事曆中看到",
         "noLongerOnCalendar": "已不在行事曆中",
         "refused": "未儲存",
-        "mayHaveBeenSaved": "可能已儲存"
+        "mayHaveBeenSaved": "可能已儲存",
+        "added": "已加入",
+        "removed": "已移除",
+        "notRemoved": "未移除",
+        "mayHaveBeenRemoved": "可能已移除"
       }
     },
     "chart": {
       "percentOfFTP": "FTP 百分比",
       "watts": "功率（瓦）"
+    },
+    "totals": {
+      "additions_other": "{{count}} 項新增",
+      "edits_other": "{{count}} 項編輯",
+      "deletions_other": "{{count}} 項刪除",
+      "line": "{{additions}}、{{edits}}、{{deletions}} · 新增或編輯的訓練共 {{duration}}",
+      "lineDurationUnknown": "{{additions}}、{{edits}}、{{deletions}} · 總時長未知"
+    },
+    "kept": {
+      "title": "保留的現有訓練",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_other": "要將訓練加入你的行事曆嗎？",
+        "edit_other": "要更新你行事曆中的訓練嗎？",
+        "delete_other": "要從你的行事曆中移除訓練嗎？",
+        "mixed": "要套用所有已審核的變更嗎？"
+      },
+      "approveEdits": "更新行事曆",
+      "approveDeletions": "從行事曆中移除",
+      "unseen": "捲動瀏覽所有卡片即可繼續。",
+      "cardFailed": "無法顯示第 {{position}}/{{count}} 張卡片。未進行任何變更。",
+      "showAgain": "再次顯示"
     }
   }
 }

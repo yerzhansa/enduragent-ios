@@ -20,6 +20,7 @@
 		let signInOutcome: FixtureSignInOutcome
 		let replyParser: ReplyParser
 		let reviewProofDriver: FixtureReviewProofDriver?
+		let presentationFault: FixturePresentationFault?
 	}
 
 	extension AppServices {
@@ -124,7 +125,8 @@
 					signInOutcome: launch.signInOutcome,
 					replyParser: launch.replyParserFault == .fail ? .failing : .foundation,
 					reviewProofDriver: launch.recordReadFault == .failAfterPresentedOnce
-						? FixtureReviewProofDriver() : nil)
+						? FixtureReviewProofDriver() : nil,
+					presentationFault: launch.presentationFault)
 			)
 		}
 

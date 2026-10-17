@@ -41,9 +41,44 @@ enum ReviewCardScreen {
 			file: file, line: line)
 	}
 
-	static func card(_ app: XCUIApplication) -> XCUIElement {
-		TutorialHarness.named(app, "chat.transcript").cells.containing(
-			NSPredicate(format: "identifier BEGINSWITH %@", "chat.preview.")
-		).firstMatch
+	static func bar(_ app: XCUIApplication) -> XCUIElement {
+		TutorialHarness.named(app, "chat.review.bar")
+	}
+
+	static func card(_ app: XCUIApplication, _ index: Int) -> XCUIElement {
+		TutorialHarness.named(app, "chat.transcript").descendants(matching: .any)
+			.matching(identifier: "chat.preview.card.\(index)").firstMatch
+	}
+
+	static func reveal(
+		_ app: XCUIApplication, _ element: XCUIElement,
+		direction: TutorialHarness.ScrollDirection = .up, beforeEachStep: @escaping () -> Void = {},
+		file: StaticString = #filePath, line: UInt = #line
+	) {
+		TutorialHarness.wait(
+			until: {
+				if element.exists { return true }
+				beforeEachStep()
+				step(app, direction)
+				return element.exists
+			}, within: .bulk, message: "\(element) never appeared in the transcript", file: file,
+			line: line)
+	}
+
+	static func showEveryCard(_ app: XCUIApplication) {
+		let approve = bar(app).buttons.matching(identifier: "chat.preview.add").firstMatch
+		reveal(app, approve)
+		reveal(app, TutorialHarness.named(app, "chat.preview.title"), direction: .down)
+	}
+
+	private static func step(_ app: XCUIApplication, _ direction: TutorialHarness.ScrollDirection) {
+		let band = TutorialHarness.transcriptBand(app)
+		let reach = band.height * 0.3
+		let upper = CGPoint(x: band.midX, y: band.midY - reach)
+		let lower = CGPoint(x: band.midX, y: band.midY + reach)
+		switch direction {
+		case .up: TutorialHarness.drag(app, from: lower, to: upper, pace: .steady)
+		case .down: TutorialHarness.drag(app, from: upper, to: lower, pace: .steady)
+		}
 	}
 }

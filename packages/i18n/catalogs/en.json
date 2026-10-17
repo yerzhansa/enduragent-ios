@@ -3083,12 +3083,46 @@
         "seenOnCalendar": "Seen on the calendar",
         "noLongerOnCalendar": "No longer on the calendar",
         "refused": "Not saved",
-        "mayHaveBeenSaved": "May have been saved"
+        "mayHaveBeenSaved": "May have been saved",
+        "added": "Added",
+        "removed": "Removed",
+        "notRemoved": "Not removed",
+        "mayHaveBeenRemoved": "May have been removed"
       }
     },
     "chart": {
       "percentOfFTP": "Percent of FTP",
       "watts": "Power in watts"
+    },
+    "totals": {
+      "additions_one": "{{count}} addition",
+      "additions_other": "{{count}} additions",
+      "edits_one": "{{count}} edit",
+      "edits_other": "{{count}} edits",
+      "deletions_one": "{{count}} deletion",
+      "deletions_other": "{{count}} deletions",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} for added or edited workouts",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · total duration unknown"
+    },
+    "kept": {
+      "title": "Existing workouts kept",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Add this workout to your calendar?",
+        "add_other": "Add these workouts to your calendar?",
+        "edit_one": "Update this workout on your calendar?",
+        "edit_other": "Update these workouts on your calendar?",
+        "delete_one": "Remove this workout from your calendar?",
+        "delete_other": "Remove these workouts from your calendar?",
+        "mixed": "Apply all reviewed changes?"
+      },
+      "approveEdits": "Update calendar",
+      "approveDeletions": "Remove from calendar",
+      "unseen": "Scroll through every card to continue.",
+      "cardFailed": "Card {{position}} of {{count}} could not be shown. Nothing was changed.",
+      "showAgain": "Show again"
     }
   }
 }

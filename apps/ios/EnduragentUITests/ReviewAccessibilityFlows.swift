@@ -118,21 +118,23 @@ struct ReviewCardReading {
 
 	func expect(notice: [Line], controls: [Control], screen: String) {
 		let buttons = controls.map { Line.button($0.rawValue, run.say($0.title)) }
-		let expected = notice + buttons
 		TutorialHarness.wait(
-			until: { expected.allSatisfy { run.named($0.identifier).exists } },
+			until: { (notice + buttons).allSatisfy { run.named($0.identifier).exists } },
 			message: "\(name(screen)): the review did not show its notice and controls")
 		let card: (items: [Spoken], frame: CGRect)
+		let bar: (items: [Spoken], frame: CGRect)
 		do {
-			card = try spoken()
+			card = try spoken(transcriptCell())
+			bar = try spoken(run.named("chat.review.bar"))
 		} catch {
-			XCTFail("\(name(screen)): the review card could not be read: \(error)")
+			XCTFail("\(name(screen)): the review could not be read: \(error)")
 			return
 		}
 		let lines = card.items.map(\.line)
-		let heard = lines.map { "\($0.identifier) \"\($0.label)\"" }.joined(separator: " | ")
+		let heard = (card.items + bar.items).map { "\($0.line.identifier) \"\($0.line.label)\"" }
+			.joined(separator: " | ")
 		XCTAssertEqual(
-			lines.first, .text("", run.say(Catalog.reviewTitle)),
+			lines.first, .text("chat.preview.title", run.say(Catalog.reviewTitle)),
 			"\(name(screen)): VoiceOver does not start at the review title: \(heard)")
 		let body = Array(lines.dropFirst())
 		let workoutLines = body.prefix { $0.identifier.hasPrefix("chat.preview.card.") }
@@ -141,32 +143,51 @@ struct ReviewCardReading {
 				&& workoutLines.allSatisfy { $0.type == .staticText }
 				&& workoutLines.contains { $0.label.contains(workout) },
 			"\(name(screen)): the workout does not follow the title: \(heard)")
+		let rest = body.dropFirst(workoutLines.count)
+		let kept = rest.prefix { $0.identifier.hasPrefix("chat.preview.kept") }
 		XCTAssertEqual(
-			Array(body.dropFirst(workoutLines.count)), expected,
-			"\(name(screen)): the notice and the controls are not read in order after the workout: \(heard)"
+			Array(rest.dropFirst(kept.count)), notice,
+			"\(name(screen)): the notice is not read after the workout: \(heard)")
+		let question =
+			controls.contains(.add)
+			? [Line.text("chat.review.question", run.say(Catalog.workoutsBarQuestionAdd, count: 1))]
+			: []
+		let barLines = bar.items.map(\.line)
+		XCTAssertEqual(
+			barLines.first?.identifier, "chat.review.totals",
+			"\(name(screen)): the bar does not start at the totals: \(heard)")
+		XCTAssertEqual(
+			Array(barLines.dropFirst()), question + buttons,
+			"\(name(screen)): the question and the controls are not read in order after the totals: \(heard)"
 		)
-		for (earlier, later) in zip(card.items, card.items.dropFirst()) {
+		for container in [card, bar] {
+			expect(container, screen: screen)
+		}
+		audit(screen, inside: [card.frame, bar.frame])
+		capture(screen)
+	}
+
+	private func expect(_ container: (items: [Spoken], frame: CGRect), screen: String) {
+		for (earlier, later) in zip(container.items, container.items.dropFirst()) {
 			XCTAssertTrue(
 				Self.follows(earlier.frame, later.frame),
 				"\(name(screen)): \"\(later.line.label)\" \(later.frame) is not after \"\(earlier.line.label)\" \(earlier.frame)"
 			)
 		}
-		for item in card.items {
+		for item in container.items {
 			XCTAssertTrue(
-				item.frame.width > 0 && item.frame.minX >= card.frame.minX - 1
-					&& item.frame.maxX <= card.frame.maxX + 1
+				item.frame.width > 0 && item.frame.minX >= container.frame.minX - 1
+					&& item.frame.maxX <= container.frame.maxX + 1
 					&& item.frame.maxX <= run.app.frame.maxX,
-				"\(name(screen)): \"\(item.line.label)\" \(item.frame) leaves the card \(card.frame)"
+				"\(name(screen)): \"\(item.line.label)\" \(item.frame) leaves its container \(container.frame)"
 			)
 		}
-		for item in card.items where item.line.type == .button {
+		for item in container.items where item.line.type == .button {
 			XCTAssertTrue(item.enabled, "\(name(screen)): \"\(item.line.label)\" is disabled")
 			XCTAssertGreaterThanOrEqual(
 				item.frame.height, Self.minimumTarget,
 				"\(name(screen)): \"\(item.line.label)\" is not drawn at the largest text size")
 		}
-		audit(screen, inside: card.frame)
-		capture(screen)
 	}
 
 	@discardableResult
@@ -201,22 +222,25 @@ struct ReviewCardReading {
 		"u9-2-\(run.language.rawValue)-\(screen)"
 	}
 
-	private func spoken() throws -> (items: [Spoken], frame: CGRect) {
-		let cell = run.named("chat.transcript").cells.containing(
+	private func transcriptCell() -> XCUIElement {
+		run.named("chat.transcript").cells.containing(
 			NSPredicate(format: "identifier BEGINSWITH %@", "chat.preview.")
 		).firstMatch
-		let snapshot = try cell.snapshot()
+	}
+
+	private func spoken(_ element: XCUIElement) throws -> (items: [Spoken], frame: CGRect) {
+		let snapshot = try element.snapshot()
 		var items: [Spoken] = []
 		Self.collect(snapshot, into: &items)
 		return (items, snapshot.frame)
 	}
 
-	private func audit(_ screen: String, inside card: CGRect) {
+	private func audit(_ screen: String, inside frames: [CGRect]) {
 		do {
 			try run.app.performAccessibilityAudit(for: [.textClipped, .dynamicType, .hitRegion]) {
 				issue in
 				guard let element = issue.element, element.exists else { return true }
-				return !card.insetBy(dx: -1, dy: -1).contains(element.frame)
+				return !frames.contains { $0.insetBy(dx: -1, dy: -1).contains(element.frame) }
 			}
 		} catch {
 			XCTFail("\(name(screen)): the accessibility audit did not run: \(error)")

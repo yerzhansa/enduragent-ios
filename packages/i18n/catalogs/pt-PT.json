@@ -3083,12 +3083,46 @@
         "seenOnCalendar": "Visto no calendário",
         "noLongerOnCalendar": "Já não está no calendário",
         "refused": "Não guardado",
-        "mayHaveBeenSaved": "Pode ter sido guardado"
+        "mayHaveBeenSaved": "Pode ter sido guardado",
+        "added": "Adicionado",
+        "removed": "Removido",
+        "notRemoved": "Não removido",
+        "mayHaveBeenRemoved": "Pode ter sido removido"
       }
     },
     "chart": {
       "percentOfFTP": "Percentagem do FTP",
       "watts": "Potência em watts"
+    },
+    "totals": {
+      "additions_one": "{{count}} adição",
+      "additions_other": "{{count}} adições",
+      "edits_one": "{{count}} edição",
+      "edits_other": "{{count}} edições",
+      "deletions_one": "{{count}} eliminação",
+      "deletions_other": "{{count}} eliminações",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} para treinos adicionados ou editados",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · duração total desconhecida"
+    },
+    "kept": {
+      "title": "Treinos existentes mantidos",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Adicionar este treino ao seu calendário?",
+        "add_other": "Adicionar estes treinos ao seu calendário?",
+        "edit_one": "Atualizar este treino no seu calendário?",
+        "edit_other": "Atualizar estes treinos no seu calendário?",
+        "delete_one": "Remover este treino do seu calendário?",
+        "delete_other": "Remover estes treinos do seu calendário?",
+        "mixed": "Aplicar todas as alterações revistas?"
+      },
+      "approveEdits": "Atualizar calendário",
+      "approveDeletions": "Remover do calendário",
+      "unseen": "Percorra todos os cartões para continuar.",
+      "cardFailed": "Não foi possível mostrar o cartão {{position}} de {{count}}. Nada foi alterado.",
+      "showAgain": "Mostrar novamente"
     }
   }
 }

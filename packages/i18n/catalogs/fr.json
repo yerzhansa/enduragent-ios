@@ -3083,12 +3083,46 @@
         "seenOnCalendar": "Vue dans le calendrier",
         "noLongerOnCalendar": "N’est plus dans le calendrier",
         "refused": "Non enregistrée",
-        "mayHaveBeenSaved": "Peut-être enregistrée"
+        "mayHaveBeenSaved": "Peut-être enregistrée",
+        "added": "Ajoutée",
+        "removed": "Retirée",
+        "notRemoved": "Non retirée",
+        "mayHaveBeenRemoved": "Peut-être retirée"
       }
     },
     "chart": {
       "percentOfFTP": "Pourcentage de la FTP",
       "watts": "Puissance en watts"
+    },
+    "totals": {
+      "additions_one": "{{count}} ajout",
+      "additions_other": "{{count}} ajouts",
+      "edits_one": "{{count}} modification",
+      "edits_other": "{{count}} modifications",
+      "deletions_one": "{{count}} suppression",
+      "deletions_other": "{{count}} suppressions",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} pour les séances ajoutées ou modifiées",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · durée totale inconnue"
+    },
+    "kept": {
+      "title": "Séances existantes conservées",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Ajouter cette séance à votre calendrier ?",
+        "add_other": "Ajouter ces séances à votre calendrier ?",
+        "edit_one": "Mettre à jour cette séance dans votre calendrier ?",
+        "edit_other": "Mettre à jour ces séances dans votre calendrier ?",
+        "delete_one": "Retirer cette séance de votre calendrier ?",
+        "delete_other": "Retirer ces séances de votre calendrier ?",
+        "mixed": "Appliquer toutes les modifications vérifiées ?"
+      },
+      "approveEdits": "Mettre à jour le calendrier",
+      "approveDeletions": "Retirer du calendrier",
+      "unseen": "Faites défiler toutes les cartes pour continuer.",
+      "cardFailed": "La carte {{position}} sur {{count}} n’a pas pu s’afficher. Rien n’a été modifié.",
+      "showAgain": "Afficher à nouveau"
     }
   }
 }

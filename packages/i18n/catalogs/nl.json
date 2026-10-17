@@ -3083,12 +3083,46 @@
         "seenOnCalendar": "Gezien in de kalender",
         "noLongerOnCalendar": "Niet meer in de kalender",
         "refused": "Niet opgeslagen",
-        "mayHaveBeenSaved": "Mogelijk opgeslagen"
+        "mayHaveBeenSaved": "Mogelijk opgeslagen",
+        "added": "Toegevoegd",
+        "removed": "Verwijderd",
+        "notRemoved": "Niet verwijderd",
+        "mayHaveBeenRemoved": "Mogelijk verwijderd"
       }
     },
     "chart": {
       "percentOfFTP": "Procent van FTP",
       "watts": "Vermogen in watt"
+    },
+    "totals": {
+      "additions_one": "{{count}} toevoeging",
+      "additions_other": "{{count}} toevoegingen",
+      "edits_one": "{{count}} wijziging",
+      "edits_other": "{{count}} wijzigingen",
+      "deletions_one": "{{count}} verwijdering",
+      "deletions_other": "{{count}} verwijderingen",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} voor toegevoegde of gewijzigde trainingen",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · totale duur onbekend"
+    },
+    "kept": {
+      "title": "Bestaande trainingen die blijven",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Deze training aan je kalender toevoegen?",
+        "add_other": "Deze trainingen aan je kalender toevoegen?",
+        "edit_one": "Deze training in je kalender bijwerken?",
+        "edit_other": "Deze trainingen in je kalender bijwerken?",
+        "delete_one": "Deze training uit je kalender verwijderen?",
+        "delete_other": "Deze trainingen uit je kalender verwijderen?",
+        "mixed": "Alle gecontroleerde wijzigingen toepassen?"
+      },
+      "approveEdits": "Kalender bijwerken",
+      "approveDeletions": "Uit kalender verwijderen",
+      "unseen": "Scrol door alle kaarten om verder te gaan.",
+      "cardFailed": "Kaart {{position}} van {{count}} kon niet worden getoond. Er is niets gewijzigd.",
+      "showAgain": "Opnieuw tonen"
     }
   }
 }

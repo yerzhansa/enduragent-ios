@@ -76,8 +76,15 @@ struct TranscriptView: View {
 			.accessibilityIdentifier("chat.transcript")
 			.environment(\.defaultMinListRowHeight, 0)
 			.buttonStyle(.borderless)
-			.onChange(of: model.chat?.revision, initial: true) {
-				scrollToEnd(proxy)
+			.onChange(of: scrollMark, initial: true) { old, new in
+				if let review = new.review, review != old.review || old == new {
+					proxy.scrollTo(review, anchor: .top)
+					reveal()
+				} else if reviewEndsTranscript {
+					reveal()
+				} else {
+					scrollToEnd(proxy)
+				}
 			}
 			.onChange(of: scenePhase) { _, phase in
 				guard phase == .active, let turn = model.chat?.turns.last,
@@ -102,8 +109,30 @@ struct TranscriptView: View {
 		}
 	}
 
+	private var scrollMark: ScrollMark {
+		ScrollMark(
+			revision: model.chat?.revision,
+			review: model.chat?.review.map { review in
+				ConfirmedPreviewCard.topRow(
+					of: review,
+					round: model.reviewPresentation?.round ?? 0)
+			})
+	}
+
+	private var reviewEndsTranscript: Bool {
+		guard let review = model.chat?.review else { return false }
+		switch review.placement {
+		case .afterTurn(let turn): return turn == model.chat?.turns.last?.id
+		case .preparedEarlier: return model.chat?.turns.isEmpty ?? true
+		}
+	}
+
 	private func scrollToEnd(_ proxy: ScrollViewProxy) {
 		proxy.scrollTo("transcript.tail", anchor: .bottom)
+		reveal()
+	}
+
+	private func reveal() {
 		if scenePhase == .active {
 			revealedBackgroundTurns.formUnion(
 				(model.chat?.turns ?? []).filter(\.completedInBackground).map(\.id))
@@ -120,8 +149,10 @@ struct TranscriptView: View {
 	@ViewBuilder
 	private func reviewCard(at placement: ReviewPlacement) -> some View {
 		if let review = model.chat?.review, review.placement == placement {
-			ConfirmedPreviewCard(model: model, review: review)
-				.fixedSize(horizontal: false, vertical: true)
+			ConfirmedPreviewCard(
+				model: model, review: review, round: model.reviewPresentation?.round ?? 0
+			)
+			.fixedSize(horizontal: false, vertical: true)
 		}
 	}
 
@@ -130,4 +161,9 @@ struct TranscriptView: View {
 			.foregroundStyle(.secondary)
 			.accessibilityIdentifier("chat.newConversation.notice")
 	}
+}
+
+private struct ScrollMark: Equatable {
+	let revision: UInt64?
+	let review: String?
 }

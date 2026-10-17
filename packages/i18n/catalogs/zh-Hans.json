@@ -3043,12 +3043,40 @@
         "seenOnCalendar": "已在日历中看到",
         "noLongerOnCalendar": "已不在日历中",
         "refused": "未保存",
-        "mayHaveBeenSaved": "可能已保存"
+        "mayHaveBeenSaved": "可能已保存",
+        "added": "已添加",
+        "removed": "已删除",
+        "notRemoved": "未删除",
+        "mayHaveBeenRemoved": "可能已删除"
       }
     },
     "chart": {
       "percentOfFTP": "FTP 百分比",
       "watts": "功率（瓦）"
+    },
+    "totals": {
+      "additions_other": "{{count}} 项新增",
+      "edits_other": "{{count}} 项编辑",
+      "deletions_other": "{{count}} 项删除",
+      "line": "{{additions}}、{{edits}}、{{deletions}} · 新增或编辑的训练共 {{duration}}",
+      "lineDurationUnknown": "{{additions}}、{{edits}}、{{deletions}} · 总时长未知"
+    },
+    "kept": {
+      "title": "保留的现有训练",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_other": "要将训练添加到你的日历吗？",
+        "edit_other": "要更新你日历中的训练吗？",
+        "delete_other": "要从你的日历中删除训练吗？",
+        "mixed": "要应用所有已审核的更改吗？"
+      },
+      "approveEdits": "更新日历",
+      "approveDeletions": "从日历中删除",
+      "unseen": "滚动浏览所有卡片以继续。",
+      "cardFailed": "无法显示第 {{position}}/{{count}} 张卡片。未做任何更改。",
+      "showAgain": "再次显示"
     }
   }
 }

@@ -3083,12 +3083,46 @@
         "seenOnCalendar": "Näkyy kalenterissa",
         "noLongerOnCalendar": "Ei enää kalenterissa",
         "refused": "Ei tallennettu",
-        "mayHaveBeenSaved": "Ehkä tallennettu"
+        "mayHaveBeenSaved": "Ehkä tallennettu",
+        "added": "Lisätty",
+        "removed": "Poistettu",
+        "notRemoved": "Ei poistettu",
+        "mayHaveBeenRemoved": "Ehkä poistettu"
       }
     },
     "chart": {
       "percentOfFTP": "Prosenttia FTP:stä",
       "watts": "Teho watteina"
+    },
+    "totals": {
+      "additions_one": "{{count}} lisäys",
+      "additions_other": "{{count}} lisäystä",
+      "edits_one": "{{count}} muokkaus",
+      "edits_other": "{{count}} muokkausta",
+      "deletions_one": "{{count}} poisto",
+      "deletions_other": "{{count}} poistoa",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} lisätyille tai muokatuille harjoituksille",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · kokonaiskesto tuntematon"
+    },
+    "kept": {
+      "title": "Säilyvät harjoitukset",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Lisätäänkö tämä harjoitus kalenteriisi?",
+        "add_other": "Lisätäänkö nämä harjoitukset kalenteriisi?",
+        "edit_one": "Päivitetäänkö tämä harjoitus kalenterissasi?",
+        "edit_other": "Päivitetäänkö nämä harjoitukset kalenterissasi?",
+        "delete_one": "Poistetaanko tämä harjoitus kalenteristasi?",
+        "delete_other": "Poistetaanko nämä harjoitukset kalenteristasi?",
+        "mixed": "Otetaanko kaikki tarkistetut muutokset käyttöön?"
+      },
+      "approveEdits": "Päivitä kalenteri",
+      "approveDeletions": "Poista kalenterista",
+      "unseen": "Vieritä kaikkien korttien läpi jatkaaksesi.",
+      "cardFailed": "Korttia {{position}}/{{count}} ei voitu näyttää. Mitään ei muutettu.",
+      "showAgain": "Näytä uudelleen"
     }
   }
 }

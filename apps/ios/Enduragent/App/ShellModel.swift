@@ -27,6 +27,7 @@ final class ShellModel {
 	private(set) var status: CoachStatus
 	var newConversationUncertain: Bool { submission.isUncertain(chat?.reset) }
 	private var reviewOutcomeNotice: AthleteNotice?
+	private var presentation: ReviewPresentation?
 
 	let environment: AppEnvironment
 	let lifecycle: AppLifecycle
@@ -115,6 +116,12 @@ final class ShellModel {
 			return nil
 		}
 		return reviewOutcomeNotice
+	}
+
+	var reviewPresentation: ReviewPresentation? {
+		guard let review = chat?.review else { return nil }
+		if let presentation, presentation.belongs(to: review) { return presentation }
+		return ReviewPresentation(of: review)
 	}
 
 	var languageNotSavedLine: String? {
@@ -319,6 +326,40 @@ final class ShellModel {
 		}
 	}
 
+	func cardAppeared(_ card: ReviewCard) async {
+		guard let review = chat?.review, var shown = reviewPresentation else { return }
+		let decision =
+			presentationFails(card, of: review, round: shown.round)
+			? shown.failed(card, of: review) : shown.appeared(card, of: review, in: displayLocale)
+		presentation = shown
+		if let decision { await decide(decision) }
+	}
+
+	func showReviewAgain() async {
+		guard let review = chat?.review, var shown = reviewPresentation else { return }
+		let decision = shown.showAgain(review)
+		presentation = shown
+		await decide(decision)
+	}
+
+	private func presentDelivered() async {
+		guard let review = chat?.review, var shown = reviewPresentation else { return }
+		let decision = shown.delivered(review)
+		presentation = shown
+		if let decision { await decide(decision) }
+	}
+
+	private func presentationFails(_ card: ReviewCard, of review: ReviewSnapshot, round: Int)
+		-> Bool
+	{
+		#if DEBUG
+			return services.fixture?.presentationFault == .failLastCardOnce && round == 0
+				&& card.index == review.cards.last?.index
+		#else
+			return false
+		#endif
+	}
+
 	private func observeChat() {
 		guard observation == nil else { return }
 		let coach = services.coach
@@ -326,6 +367,7 @@ final class ShellModel {
 			for await snapshot in await coach.observe(.main) {
 				guard let self, !Task.isCancelled else { return }
 				self.chat = snapshot
+				await self.presentDelivered()
 				#if DEBUG
 					if let fixture = services.fixture, let driver = fixture.reviewProofDriver {
 						await driver.refreshIfReady(

@@ -3083,12 +3083,46 @@
         "seenOnCalendar": "Syns i kalendern",
         "noLongerOnCalendar": "Finns inte längre i kalendern",
         "refused": "Inte sparat",
-        "mayHaveBeenSaved": "Kan ha sparats"
+        "mayHaveBeenSaved": "Kan ha sparats",
+        "added": "Tillagt",
+        "removed": "Borttaget",
+        "notRemoved": "Inte borttaget",
+        "mayHaveBeenRemoved": "Kan ha tagits bort"
       }
     },
     "chart": {
       "percentOfFTP": "Procent av FTP",
       "watts": "Effekt i watt"
+    },
+    "totals": {
+      "additions_one": "{{count}} tillägg",
+      "additions_other": "{{count}} tillägg",
+      "edits_one": "{{count}} ändring",
+      "edits_other": "{{count}} ändringar",
+      "deletions_one": "{{count}} borttagning",
+      "deletions_other": "{{count}} borttagningar",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} för tillagda eller ändrade träningspass",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · total längd okänd"
+    },
+    "kept": {
+      "title": "Befintliga träningspass som behålls",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Vill du lägga till det här träningspasset i kalendern?",
+        "add_other": "Vill du lägga till de här träningspassen i kalendern?",
+        "edit_one": "Vill du uppdatera det här träningspasset i kalendern?",
+        "edit_other": "Vill du uppdatera de här träningspassen i kalendern?",
+        "delete_one": "Vill du ta bort det här träningspasset från kalendern?",
+        "delete_other": "Vill du ta bort de här träningspassen från kalendern?",
+        "mixed": "Vill du tillämpa alla granskade ändringar?"
+      },
+      "approveEdits": "Uppdatera kalendern",
+      "approveDeletions": "Ta bort från kalendern",
+      "unseen": "Bläddra igenom alla kort för att fortsätta.",
+      "cardFailed": "Kort {{position}} av {{count}} kunde inte visas. Inget ändrades.",
+      "showAgain": "Visa igen"
     }
   }
 }

@@ -41,7 +41,7 @@ struct ReviewCardView: View {
 		}
 		.padding(12)
 		.frame(maxWidth: .infinity, alignment: .leading)
-		.background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 10))
+		.background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
 		.accessibilityElement(children: .contain)
 		.accessibilityIdentifier("chat.preview.card.\(card.index)")
 	}

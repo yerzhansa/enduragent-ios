@@ -36,6 +36,19 @@ public enum WorkoutReviewFixture {
 		preparation([#"{"kind":"delete","eventId":\#(deletedEvent.rawValue)}"#])
 	}
 
+	public static var editOnly: String {
+		preparation([
+			#"{"kind":"edit","eventId":\#(editedEvent.rawValue),"patch":{"structure":\#(threshold),"trainingLoad":60}}"#
+		])
+	}
+
+	public static func strengthSessions(_ count: Int, today: CivilDate) -> String {
+		preparation(
+			(1...count).map { day in
+				#"{"kind":"add-strength","date":"\#(today.adding(days: day).rawValue)","name":"Strength \#(day)","durationMinutes":30,"effort":"Easy","description":"Plank 3x45s"}"#
+			})
+	}
+
 	public static func rename(after toolResults: [String]) throws -> String? {
 		let fields =
 			try toolResults.reversed().map(JSONValue.parse)

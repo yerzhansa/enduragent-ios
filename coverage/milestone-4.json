@@ -23,7 +23,8 @@
 		"9.1": 3,
 		"9.2": 9,
 		"9.3": 8,
-		"8.1": 4
+		"8.1": 4,
+		"8.2": 5
 	},
 	"criteria": [
 		{
@@ -1263,7 +1264,7 @@
 			"statement": "The card shows each control set's buttons, each waiting for its token, the storage-unavailable card shows the notice with no usable control, and the card appears after the reply ends, never during it.",
 			"tests": [
 				{"file": "apps/ios/EnduragentTests/ConfirmedPreviewLayoutTests.swift", "function": "eachControlSetShowsItsOwnButtonsInReadingOrder"},
-				{"file": "apps/ios/EnduragentTests/ConfirmedPreviewLayoutTests.swift", "function": "theArmedCardsButtonsEachCarryItsTokenAndAnUnarmedCardHasNone"},
+				{"file": "apps/ios/EnduragentTests/ConfirmedPreviewLayoutTests.swift", "function": "theBarArmsOnlyAfterEveryCardAppearedAndEachButtonCarriesItsToken"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "noControlExistsBeforeTheAcknowledgement"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "aFailedAppendShowsTheStorageNoticeUntilTheNextRecoverResumesTheRun"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolProgressTests.swift", "function": "workingPersistsAcrossIndependentModelAndToolWaits"},
@@ -1376,7 +1377,7 @@
 		},
 		{
 			"id": "8.1.3",
-			"statement": "The delete card names the workout, says it will be removed and shows no Load, and a review with an edit or a delete offers Apply changes and no Add to calendar.",
+			"statement": "The delete card names the workout, says it will be removed and shows no Load, and a delete-only review offers Remove from calendar and no Add to calendar.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionCardTests.swift", "function": "aDeleteCardSaysItWillBeRemovedAndTheReviewOffersNoAdd"},
 				{"file": "apps/ios/EnduragentUITests/ReviewCardContentProofs.swift", "class": "ReviewCardsDeleteProof", "method": "testADeleteCardSaysItWillBeRemovedAndTheReviewOffersNoAdd"}
@@ -1387,6 +1388,53 @@
 			"statement": "A card with no known duration says duration unknown, and an edit from an unknown duration says unknown, never zero.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionCardTests.swift", "function": "aCardWithNoKnownDurationSaysUnknownNeverZero"}
+			]
+		}
+,
+		{
+			"id": "8.2.1",
+			"statement": "The mixed review totals 2 additions, 1 edit and 1 deletion with 155 minutes for the added and edited workouts in one line of the docked bar, and lists the kept 45-minute Commute under its date.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewTotalsTests.swift", "function": "theMixedReviewTotalsItsChangesAndShowsTheKeptWorkoutUnderItsDate"},
+				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewTotalsProof", "method": "testTheMixedReviewTotalsItsChangesAndKeepsTheCommuteUnderItsDate"}
+			]
+		},
+		{
+			"id": "8.2.2",
+			"statement": "An edit with no known duration makes the total minutes unknown, and a delete with no known duration does not.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewTotalsTests.swift", "function": "anEditWithNoKnownDurationMakesTheMinutesUnknownAndADeleteNeverDoes"}
+			]
+		},
+		{
+			"id": "8.2.3",
+			"statement": "Add-only, edit-only, delete-only and mixed reviews each ask their own question and name their own approve button: Add to calendar, Update calendar, Remove from calendar and Apply changes.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewTotalsTests.swift", "function": "eachKindOfReviewAsksItsOwnQuestionAndNamesItsOwnApproval"},
+				{"file": "apps/ios/EnduragentTests/ConfirmedPreviewLayoutTests.swift", "function": "aReviewThatDeletesOffersRemoveFromCalendarAndNoAddToCalendar"},
+				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewApprovalBarProof", "method": "testAnAddOnlyReviewAsksToAddIt"},
+				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewApprovalBarProof", "method": "testAnEditOnlyReviewAsksToUpdateIt"},
+				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewApprovalBarProof", "method": "testADeleteOnlyReviewAsksToRemoveIt"},
+				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewApprovalBarProof", "method": "testAMixedReviewAsksToApplyEveryChange"}
+			]
+		},
+		{
+			"id": "8.2.4",
+			"statement": "A presentation that fails on the last card shows no Approve, and showing the review again whole arms the controls only after every card has appeared again.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewPresentationTests.swift", "function": "aLastCardThatFailsLeavesNoControlUntilTheReviewIsShownAgainWhole"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewPresentationTests.swift", "function": "aLaterDeliveryOfAPresentedRevisionArmsAtOnceButARevisionStartsOver"},
+				{"file": "apps/ios/EnduragentTests/ConfirmedPreviewLayoutTests.swift", "function": "theFailingLastCardHookLeavesNoControlUntilTheReviewIsShownAgainWhole"}
+			]
+		},
+		{
+			"id": "8.2.5",
+			"statement": "On the 40-change review no Approve exists before the last card has appeared; with the last card made to fail no Approve exists, and after the review is shown again whole Approve exists.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewPresentationTests.swift", "function": "noControlExistsBeforeEveryCardOfTheFortyChangeReviewHasAppeared"},
+				{"file": "apps/ios/EnduragentTests/ConfirmedPreviewLayoutTests.swift", "function": "theBarArmsOnlyAfterEveryCardAppearedAndEachButtonCarriesItsToken"},
+				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewLongPresentationProof", "method": "testNoApproveExistsBeforeTheLastOfFortyCardsHasAppeared"},
+				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewLongPresentationProof", "method": "testALastCardThatFailsLeavesNoApproveUntilTheReviewIsShownAgainWhole"}
 			]
 		}
 	],
@@ -1760,6 +1808,27 @@
 			"id": "A05",
 			"statement": "The deletion identifies the workout and says that it will be removed.",
 			"criteria": ["8.1.1", "8.1.2", "8.1.3", "8.1.4"]
+		}
+,
+		{
+			"id": "B18.03",
+			"statement": "Kept workouts show on each affected date and one totals line counts each action and sums the minutes of added and edited workouts only, with an unknown duration kept unknown, in one totals and approval area after every card.",
+			"criteria": ["4.1.4", "8.2.1", "8.2.2"]
+		},
+		{
+			"id": "A06",
+			"statement": "The mixed summary shows two additions, one edit, one deletion, and 155 minutes for the three added or edited workouts.",
+			"criteria": ["8.2.1", "8.2.2"]
+		},
+		{
+			"id": "A07",
+			"statement": "The addition on an occupied date shows the existing 45-minute workout as retained calendar context.",
+			"criteria": ["8.2.1", "8.2.2"]
+		},
+		{
+			"id": "B19.01",
+			"statement": "One native approval runs exactly the saved payload of the current revision with no model call, and its control text names the action for additions, edits, deletions and mixed sets.",
+			"criteria": ["6.2.1", "8.2.3"]
 		}
 	],
 	"plan": {
@@ -3175,13 +3244,9 @@
 		]
 	},
 	"open": [
-		"B18.03",
 		"B18.05",
 		"B18.06",
-		"B19.01",
 		"B21.05",
-		"A06",
-		"A07",
 		"A08",
 		"A13",
 		"A14",

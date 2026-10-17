@@ -3043,12 +3043,40 @@
         "seenOnCalendar": "カレンダーで確認済み",
         "noLongerOnCalendar": "カレンダーにもうありません",
         "refused": "未保存",
-        "mayHaveBeenSaved": "保存された可能性があります"
+        "mayHaveBeenSaved": "保存された可能性があります",
+        "added": "追加済み",
+        "removed": "削除済み",
+        "notRemoved": "未削除",
+        "mayHaveBeenRemoved": "削除された可能性があります"
       }
     },
     "chart": {
       "percentOfFTP": "FTPに対する割合",
       "watts": "パワー（ワット）"
+    },
+    "totals": {
+      "additions_other": "追加 {{count}} 件",
+      "edits_other": "編集 {{count}} 件",
+      "deletions_other": "削除 {{count}} 件",
+      "line": "{{additions}}、{{edits}}、{{deletions}} · 追加または編集したワークアウトで {{duration}}",
+      "lineDurationUnknown": "{{additions}}、{{edits}}、{{deletions}} · 合計時間は不明"
+    },
+    "kept": {
+      "title": "そのまま残る既存のワークアウト",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_other": "ワークアウトをカレンダーに追加しますか？",
+        "edit_other": "カレンダーのワークアウトを更新しますか？",
+        "delete_other": "ワークアウトをカレンダーから削除しますか？",
+        "mixed": "確認したすべての変更を適用しますか？"
+      },
+      "approveEdits": "カレンダーを更新",
+      "approveDeletions": "カレンダーから削除",
+      "unseen": "続けるには、すべてのカードをスクロールしてください。",
+      "cardFailed": "カード {{position}}/{{count}} を表示できませんでした。何も変更されていません。",
+      "showAgain": "もう一度表示"
     }
   }
 }

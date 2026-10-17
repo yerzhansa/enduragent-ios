@@ -3083,12 +3083,46 @@
         "seenOnCalendar": "Sett i kalenderen",
         "noLongerOnCalendar": "Ikke lenger i kalenderen",
         "refused": "Ikke lagret",
-        "mayHaveBeenSaved": "Kanskje lagret"
+        "mayHaveBeenSaved": "Kanskje lagret",
+        "added": "Lagt til",
+        "removed": "Fjernet",
+        "notRemoved": "Ikke fjernet",
+        "mayHaveBeenRemoved": "Kanskje fjernet"
       }
     },
     "chart": {
       "percentOfFTP": "Prosent av FTP",
       "watts": "Effekt i watt"
+    },
+    "totals": {
+      "additions_one": "{{count}} tillegg",
+      "additions_other": "{{count}} tillegg",
+      "edits_one": "{{count}} endring",
+      "edits_other": "{{count}} endringer",
+      "deletions_one": "{{count}} sletting",
+      "deletions_other": "{{count}} slettinger",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} for treningsøkter som legges til eller endres",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · total varighet ukjent"
+    },
+    "kept": {
+      "title": "Eksisterende treningsøkter som beholdes",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Vil du legge til denne treningsøkten i kalenderen?",
+        "add_other": "Vil du legge til disse treningsøktene i kalenderen?",
+        "edit_one": "Vil du oppdatere denne treningsøkten i kalenderen?",
+        "edit_other": "Vil du oppdatere disse treningsøktene i kalenderen?",
+        "delete_one": "Vil du fjerne denne treningsøkten fra kalenderen?",
+        "delete_other": "Vil du fjerne disse treningsøktene fra kalenderen?",
+        "mixed": "Vil du bruke alle de gjennomgåtte endringene?"
+      },
+      "approveEdits": "Oppdater kalender",
+      "approveDeletions": "Fjern fra kalender",
+      "unseen": "Bla gjennom alle kortene for å fortsette.",
+      "cardFailed": "Kort {{position}} av {{count}} kunne ikke vises. Ingenting ble endret.",
+      "showAgain": "Vis igjen"
     }
   }
 }

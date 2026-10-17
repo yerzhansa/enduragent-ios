@@ -64,6 +64,7 @@ struct Delivery: Equatable, Sendable {
 public struct ReviewSnapshot: Sendable, Equatable {
 	public let ref: ReviewRef
 	public let state: State
+	public let offered: ControlSet?
 	public let placement: ReviewPlacement
 	public let attribution: AthleteAttribution
 
@@ -109,7 +110,7 @@ public struct ReviewSnapshot: Sendable, Equatable {
 		case .available(let content, _):
 			Self(
 				ref: ref, state: .storageUnavailable(content, disabled: disabled),
-				placement: placement, attribution: attribution)
+				offered: offered, placement: placement, attribution: attribution)
 		case .storageUnavailable: self
 		}
 	}
@@ -121,10 +122,6 @@ public struct ReviewContent: Sendable, Equatable {
 	public let totals: ReviewTotals
 	public let receipts: [ReviewReceipt]
 	public let notice: ReviewNotice?
-
-	public var approveTitle: CatalogKey {
-		cards.allSatisfy { $0.action == .add } ? Catalog.reviewAdd : Catalog.workoutsApprove
-	}
 }
 
 public enum ControlSet: Equatable, Sendable {

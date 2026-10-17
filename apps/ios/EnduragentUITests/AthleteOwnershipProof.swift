@@ -44,7 +44,8 @@ private enum AthleteOwnershipScreen {
 
 	private static func approveForTheOtherAthlete(_ app: XCUIApplication) {
 		let transcript = TutorialHarness.named(app, "chat.transcript")
-		let add = transcript.buttons.matching(identifier: "chat.preview.add").firstMatch
+		let add = ReviewCardScreen.bar(app).buttons.matching(identifier: "chat.preview.add")
+			.firstMatch
 		TutorialHarness.scroll(app, to: add)
 		add.tap()
 		let notice = transcript.staticTexts.matching(identifier: "chat.review.notice").firstMatch
@@ -56,9 +57,10 @@ private enum AthleteOwnershipScreen {
 
 	private static func assertBlockedReview(_ app: XCUIApplication) {
 		let transcript = TutorialHarness.named(app, "chat.transcript")
-		let cancel = transcript.buttons.matching(identifier: "chat.preview.cancel").firstMatch
-		TutorialHarness.scroll(app, to: cancel)
-		ReviewCardScreen.assertButtons(transcript, .cancelOnly)
+		let cancel = ReviewCardScreen.bar(app).buttons.matching(identifier: "chat.preview.cancel")
+			.firstMatch
+		TutorialHarness.wait(cancel, until: .hittable)
+		ReviewCardScreen.assertButtons(ReviewCardScreen.bar(app), .cancelOnly)
 		assertExcludedCopy(in: transcript)
 		XCTAssertFalse(
 			transcript.staticTexts.containing(
