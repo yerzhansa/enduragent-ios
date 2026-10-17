@@ -55,6 +55,7 @@ struct LiveCalendarRun {
 		await refuseUnknownCategory()
 		await deleteTwice(strength)
 		await loseEachAnswer()
+		await reviewThroughTheDesk()
 		await removeEverything()
 	}
 
@@ -279,7 +280,7 @@ struct LiveCalendarRun {
 		}
 	}
 
-	private mutating func send(_ add: LiveCalendarAdd) async -> CalendarEvent? {
+	mutating func send(_ add: LiveCalendarAdd) async -> CalendarEvent? {
 		guard record(add) else { return nil }
 		let answer = await client.write(add.write)
 		note("POST bulk \(add.key) answered \(Self.text(answer))")
@@ -353,7 +354,7 @@ struct LiveCalendarRun {
 		}
 	}
 
-	private mutating func report(_ diffs: [LiveFieldDiff], of subject: String, in save: LiveSave) {
+	mutating func report(_ diffs: [LiveFieldDiff], of subject: String, in save: LiveSave) {
 		for diff in diffs {
 			note("\(subject): intervals.icu stored \(diff.line)")
 		}

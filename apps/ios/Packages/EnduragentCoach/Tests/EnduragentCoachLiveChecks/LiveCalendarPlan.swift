@@ -26,6 +26,17 @@ struct LiveCalendarMove: Sendable, Equatable {
 	}
 }
 
+struct LiveDeskPlan: Sendable {
+	let ride: LiveCalendarAdd
+	let strength: LiveCalendarAdd
+	let edited: LiveCalendarAdd
+	let deleted: LiveCalendarAdd
+	let kept: LiveCalendarAdd
+	let edit: WorkoutPatch
+
+	var adds: [LiveCalendarAdd] { [ride, strength, edited, deleted, kept] }
+}
+
 struct LiveCalendarPlan: Sendable {
 	static let daysAhead = 40
 	static let unknownCategory = "ENDURAGENT_UNKNOWN_CATEGORY"
@@ -66,9 +77,10 @@ struct LiveCalendarPlan: Sendable {
 	let lost: LiveCalendarAdd
 	let edits: [(field: String, patch: WorkoutPatch)]
 	let lostEdit: WorkoutPatch
+	let desk: LiveDeskPlan
 
 	var adds: [LiveCalendarAdd] {
-		[ride, strength, edited, movedNear.add, movedFar.add, refused, lost]
+		[ride, strength, edited, movedNear.add, movedFar.add, refused, lost] + desk.adds
 	}
 
 	init(today: CivilDate, identities: () -> CalendarWriteID = { CalendarWriteID() }) throws {
@@ -92,17 +104,20 @@ struct LiveCalendarPlan: Sendable {
 					.object(["date": .string(destination.rawValue)]), today: today))
 		}
 		self.ride = try ride("ride", on: first, load: 21)
-		self.strength = LiveCalendarAdd(
-			key: "strength", identity: identities(),
-			payload: try CalendarPayload.strength(
-				.object([
-					"date": .string(first.adding(days: 1).rawValue),
-					"name": .string("\(LiveSeedPlan.namePrefix) live-calendar strength"),
-					"durationMinutes": .number(37.5),
-					"effort": .string("Moderate, RPE 6"),
-					"description": .string("3 x 10 goblet squats\n3 x 8 single-leg deadlifts"),
-					"trainingLoad": .number(24),
-				]), today: today))
+		func strength(_ key: String, on date: CivilDate) throws -> LiveCalendarAdd {
+			LiveCalendarAdd(
+				key: key, identity: identities(),
+				payload: try CalendarPayload.strength(
+					.object([
+						"date": .string(date.rawValue),
+						"name": .string("\(LiveSeedPlan.namePrefix) live-calendar \(key)"),
+						"durationMinutes": .number(37.5),
+						"effort": .string("Moderate, RPE 6"),
+						"description": .string("3 x 10 goblet squats\n3 x 8 single-leg deadlifts"),
+						"trainingLoad": .number(24),
+					]), today: today))
+		}
+		self.strength = try strength("strength", on: first.adding(days: 1))
 		self.edited = try ride("edited", on: first.adding(days: 2), load: 22)
 		self.movedNear = try move(ride("moved-30", on: first.adding(days: 3), load: 23), days: 30)
 		self.movedFar = try move(ride("moved-200", on: first.adding(days: 4), load: 24), days: 200)
@@ -110,6 +125,14 @@ struct LiveCalendarPlan: Sendable {
 		self.lost = try ride("lost", on: first.adding(days: 6), load: 26)
 		self.lostEdit = try WorkoutPatch.parse(
 			.object(["structure": Self.editedSteps, "trainingLoad": .number(34)]), today: today)
+		self.desk = LiveDeskPlan(
+			ride: try ride("desk-ride", on: first.adding(days: 7), load: 27),
+			strength: try strength("desk-strength", on: first.adding(days: 8)),
+			edited: try ride("desk-edited", on: first.adding(days: 8), load: 28),
+			deleted: try ride("desk-deleted", on: first.adding(days: 9), load: 29),
+			kept: try ride("desk-kept", on: first.adding(days: 9), load: 30),
+			edit: try WorkoutPatch.parse(.object(["durationSeconds": .number(1_800)]), today: today)
+		)
 		let editDate = first.adding(days: 2)
 		let fields: [(String, JSONValue)] = [
 			("date", .string(editDate.adding(days: 1).rawValue)),

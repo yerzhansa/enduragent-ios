@@ -73,6 +73,14 @@ extension SourceChecker {
 	static let reviewChainBodyFiles = ["WorkoutReviewBody.swift", "ReviewPreparingBody.swift"].map {
 		reviewChainRecords + $0
 	}
+	static let reviewOutcomeWriters = [
+		"Review/WorkoutReviewDesk.swift", "Records/RecordCodec.swift",
+		"Records/RecordEnvelopePayload.swift", "Records/ReviewOutcomeBody.swift",
+	].map { "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/" + $0 }
+	static let reviewOutcomeBuilt = [
+		#"\.\s*reviewOutcome\s*\((?!\s*(?:let|var)\b)(?!\s*_\s*[,)])"#,
+		#"\bSyncedRecordBody\s*\.\s*reviewOutcome\b(?!\s*\()"#,
+	]
 	static let swiftCopy =
 		#"\b(?:Text|Label|Button|Section|navigationTitle|alert|confirmationDialog"#
 		+ #"|String\(localized:)\s*\(?(?:\s*)"((?:\\.|[^"\\])*)""#
@@ -144,6 +152,9 @@ extension SourceChecker {
 		if try buildsReviewChainBodyOutsideTheChain(file, text) {
 			try findings.report(file, "review-chain-only")
 		}
+		if try writesReviewOutcomeOutsideTheDesk(file, text) {
+			try findings.report(file, "review-outcome-writer")
+		}
 		if try file.hasSameUnits(as: Self.mailbox) && hasExposedMailboxState(text) {
 			try findings.report(file, "mailbox-private-state")
 		}
@@ -173,6 +184,13 @@ extension SourceChecker {
 			+ (Self.reviewChainBodyFiles.contains(where: file.hasSameUnits(as:))
 				? [] : Self.reviewChainRenamed)
 		return try forbidden.contains { try patterns.test($0, text) }
+	}
+
+	private func writesReviewOutcomeOutsideTheDesk(_ file: String, _ text: String) throws -> Bool {
+		guard try patterns.test(Self.coachSource, file),
+			!Self.reviewOutcomeWriters.contains(where: file.hasSameUnits(as:))
+		else { return false }
+		return try Self.reviewOutcomeBuilt.contains { try patterns.test($0, text) }
 	}
 
 	private func mintsOutsideItsFile(_ file: String, _ text: String) throws -> Bool {

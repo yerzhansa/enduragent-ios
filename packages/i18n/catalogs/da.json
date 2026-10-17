@@ -3053,6 +3053,7 @@
       "structure": "{{workout}}: træningstrinene blev ændret."
     },
     "notPrepared": "Træningsgennemgangen kunne ikke forberedes.",
-    "notPreparedInformationSaved": "Dine oplysninger blev gemt, men træningsgennemgangen kunne ikke forberedes."
+    "notPreparedInformationSaved": "Dine oplysninger blev gemt, men træningsgennemgangen kunne ikke forberedes.",
+    "stopped": "Træningsgennemgangen stoppede, før alle ændringer blev foretaget. Ændringer, der allerede er foretaget, bevares."
   }
 }

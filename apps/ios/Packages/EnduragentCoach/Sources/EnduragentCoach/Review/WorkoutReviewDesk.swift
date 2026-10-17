@@ -1,17 +1,26 @@
 import Foundation
 
 package actor WorkoutReviewDesk {
-	private let ledger: Ledger
-	private let clock: any Clock
-	private let diagnostics: DiagnosticsLog
+	let ledger: Ledger
+	let clock: any Clock
+	let diagnostics: DiagnosticsLog
+	let training: @Sendable (Bool) async throws(AccessUnavailable) -> TrainingConnection
+	let host: any ExecutionHost
+	let effects = Turnstile()
 	private var preparations: [DraftKey: Preparing] = [:]
 	private var marked: Set<DraftKey> = []
-	private var deliveries: [ChatID: Delivery] = [:]
+	var deliveries: [ChatID: Delivery] = [:]
 
-	package init(ledger: Ledger, clock: any Clock, diagnostics: DiagnosticsLog) {
+	package init(
+		ledger: Ledger, clock: any Clock, diagnostics: DiagnosticsLog,
+		training: @escaping @Sendable (Bool) async throws(AccessUnavailable) -> TrainingConnection,
+		host: any ExecutionHost
+	) {
 		self.ledger = ledger
 		self.clock = clock
 		self.diagnostics = diagnostics
+		self.training = training
+		self.host = host
 	}
 
 	package func prepare(
@@ -96,7 +105,7 @@ package actor WorkoutReviewDesk {
 		}
 	}
 
-	package func decide(_ decision: ReviewDecision) -> ReviewOutcome {
+	package func decide(_ decision: ReviewDecision) async -> ReviewOutcome {
 		switch decision {
 		case .presented(let ref):
 			return presenting(ref) { $0.acknowledge() }
@@ -104,14 +113,31 @@ package actor WorkoutReviewDesk {
 			return presenting(ref) { $0.disarmed() }
 		case .showAgain(let ref):
 			return presenting(ref) { $0.renewed() }
-		case .approve(let token), .retryRemaining(let token), .tryAgain(let token),
-			.checkAgain(let token), .cancel(let token):
+		case .approve(let token):
+			return await effects.pass { await approving(token) }
+		case .cancel(let token):
+			return await canceling(token)
+		case .retryRemaining(let token), .tryAgain(let token), .checkAgain(let token):
 			guard let delivery = deliveries[token.ref.chat], delivery.admits(token) else {
 				return .staleControl(newer: deliveries[token.ref.chat]?.ref)
 			}
 			return .wrongAction
 		case .checkAgainWithoutToken:
 			return .wrongAction
+		}
+	}
+
+	func publish(_ review: WorkoutReview, stamp: OperationStamp) async -> Bool {
+		let ending: ReviewOutcomeBody.Ending =
+			if case .canceled = review.stage { .canceled } else { .completed }
+		do throws(LedgerFailure) {
+			_ = try await ledger.commit(
+				synced: [.reviewOutcome(ReviewProjection.summary(of: review, ending: ending))],
+				stamp: stamp)
+			return true
+		} catch {
+			diagnostics.record(.reviewOutcomeUnsaved(error))
+			return false
 		}
 	}
 

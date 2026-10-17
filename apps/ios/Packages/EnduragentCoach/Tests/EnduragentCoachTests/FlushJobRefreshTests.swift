@@ -86,7 +86,7 @@ import Testing
 			reviews: SingleProposalReviews(
 				ledger: ledger, clock: clock, diagnostics: diagnostics,
 				training: { _ in .unconnected }),
-			desk: WorkoutReviewDesk(ledger: ledger, clock: clock, diagnostics: diagnostics))
+			desk: makeDesk(ledger: ledger, clock: clock, diagnostics: diagnostics))
 		try await records.refresh()
 		try #require(records.jobs.map(\.id) == [job])
 		let empty = Ledger(

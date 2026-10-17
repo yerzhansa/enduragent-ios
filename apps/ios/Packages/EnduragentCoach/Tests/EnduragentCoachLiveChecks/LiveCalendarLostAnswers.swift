@@ -4,27 +4,35 @@ import Foundation
 
 enum LiveSendAttempt {
 	static func sending(_ action: ChangeAction, at now: Date) throws -> SendAttempt {
-		let change = ReviewChange(
-			id: ChangeID(ulid: .generate(at: now)), position: 0, action: action)
-		let review = try WorkoutReviewPayload.decode(
-			Data(
-				JSONValue.object([
-					"id": .string(ULID.generate(at: now).rawValue), "revision": .number(1),
-					"chat": .string("main"),
-					"account": .string(TrainingAccount.unconnected.storedValue),
-					"turn": .string(ULID.generate(at: now).rawValue),
-					"attempt": .string(ULID.generate(at: now).rawValue),
-					"finished": .array([]), "remaining": .array([try json(ChangeDocument(change))]),
-					"kept": .array([]),
-					"stage": try json(StageDocument(.waiting(.approval(.prepared)))),
-				]).canonicalDigestInput().utf8))
-		let running = try review.claimed(
+		let running = try review(of: [action], account: .unconnected, at: now).claimed(
 			Claim(id: ClaimID(ulid: .generate(at: now)), action: .approve)
 		).sending(at: now, seen: [:])
 		guard case .running(let run) = running.stage, let attempt = run.sending else {
 			throw LiveCheckStop(description: "the one-change review started no send attempt")
 		}
 		return attempt
+	}
+
+	static func review(of actions: [ChangeAction], account: TrainingAccount, at now: Date)
+		throws -> WorkoutReview
+	{
+		let remaining = try actions.enumerated().map { position, action in
+			try json(
+				ChangeDocument(
+					ReviewChange(
+						id: ChangeID(ulid: .generate(at: now)), position: position, action: action))
+			)
+		}
+		return try WorkoutReviewPayload.decode(
+			Data(
+				JSONValue.object([
+					"id": .string(ULID.generate(at: now).rawValue), "revision": .number(1),
+					"chat": .string("main"), "account": .string(account.storedValue),
+					"turn": .string(ULID.generate(at: now).rawValue),
+					"attempt": .string(ULID.generate(at: now).rawValue),
+					"finished": .array([]), "remaining": .array(remaining), "kept": .array([]),
+					"stage": try json(StageDocument(.waiting(.approval(.prepared)))),
+				]).canonicalDigestInput().utf8))
 	}
 
 	private static func json(_ value: some Encodable) throws -> JSONValue {
@@ -79,7 +87,7 @@ extension LiveCalendarRun {
 		}
 	}
 
-	private mutating func reviewed(_ id: EventID) async -> ReviewedTarget? {
+	mutating func reviewed(_ id: EventID) async -> ReviewedTarget? {
 		do {
 			return .reviewed(id, try await client.fetchEvent(id: id).snapshot)
 		} catch {

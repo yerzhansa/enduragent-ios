@@ -3013,6 +3013,7 @@
       "structure": "{{workout}}：训练步骤已更改。"
     },
     "notPrepared": "无法准备训练审核内容。",
-    "notPreparedInformationSaved": "你的信息已保存，但无法准备训练审核内容。"
+    "notPreparedInformationSaved": "你的信息已保存，但无法准备训练审核内容。",
+    "stopped": "训练审核在完成所有更改之前已停止。已完成的更改会保留。"
   }
 }

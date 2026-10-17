@@ -26,6 +26,50 @@ enum ReviewProjection {
 		receipts(of: cards(of: review))
 	}
 
+	static func outcome(after review: WorkoutReview) -> ReviewOutcome {
+		let receipts = receipts(of: review)
+		switch review.stage {
+		case .completed:
+			return .completed(receipts)
+		case .canceled:
+			return .canceled(receipts)
+		case .waiting(.blocked(let block)):
+			return .blocked(block)
+		case .waiting(.approval(.refreshed(let differences))):
+			return .refreshed(refreshedNotice(of: review, naming: differences))
+		case .waiting(.unconfirmed):
+			return .unconfirmed(
+				receipts,
+				ReviewNotice(
+					kind: .partialFailure, key: Catalog.reviewUncertain,
+					vars: ["service": "intervals.icu"]))
+		case .waiting(.approval(.couldNotCheck)), .waiting(.tryAgain(.couldNotCheck)):
+			return .stopped(
+				receipts,
+				ReviewNotice(
+					kind: .partialFailure, key: Catalog.reviewCannotVerify,
+					vars: ["service": "intervals.icu"]))
+		case .waiting(.approval), .waiting(.tryAgain), .running:
+			return .stopped(
+				receipts,
+				ReviewNotice(kind: .partialFailure, key: Catalog.workoutsStopped, vars: [:]))
+		}
+	}
+
+	static func summary(of review: WorkoutReview, ending: ReviewOutcomeBody.Ending)
+		-> ReviewOutcomeBody
+	{
+		ReviewOutcomeBody(
+			chatId: review.chat, review: review.id, revision: review.revision,
+			after: review.origin.turn, ending: ending,
+			lines: placed(review).map { change, progress in
+				let shown = ShownWorkout(change.action)
+				return OutcomeLine(
+					position: change.position, action: shown.action, name: shown.title,
+					date: shown.date, result: OutcomeLine.Result(progress))
+			})
+	}
+
 	private static func receipts(of cards: [ReviewCard]) -> [ReviewReceipt] {
 		cards.compactMap { card in
 			switch card.progress {
@@ -37,6 +81,10 @@ enum ReviewProjection {
 	}
 
 	private static func cards(of review: WorkoutReview) -> [ReviewCard] {
+		placed(review).map { card(of: $0.0, progress: $0.1) }
+	}
+
+	private static func placed(_ review: WorkoutReview) -> [(ReviewChange, CardProgress)] {
 		let finished = review.work.finished.map { finished in
 			(finished.change, progress(of: finished.result))
 		}
@@ -52,9 +100,7 @@ enum ReviewProjection {
 					+ (cancellation.unconfirmed.map { [($0.change, .mayHaveBeenSaved)] } ?? [])
 			case .waiting, .completed: []
 			}
-		return (finished + placed + remaining)
-			.sorted { $0.0.position < $1.0.position }
-			.map { card(of: $0.0, progress: $0.1) }
+		return (finished + placed + remaining).sorted { $0.0.position < $1.0.position }
 	}
 
 	private static func progress(of result: ChangeResult) -> CardProgress {
@@ -156,8 +202,25 @@ private struct ShownWorkout {
 		}
 	}
 
+	var title: String {
+		if case .supplied(let text) = name { return text }
+		return ""
+	}
+
 	private static func unnamedEdit(_ patch: WorkoutPatch) -> ReviewSummary {
 		.updateWorkout(
 			date: patch.date, name: patch.name, descriptionChanged: patch.description != nil)
+	}
+}
+
+extension OutcomeLine.Result {
+	fileprivate init(_ progress: CardProgress) {
+		switch progress {
+		case .saved: self = .saved
+		case .seenOnCalendar: self = .seenOnCalendar
+		case .noLongerOnCalendar: self = .noLongerOnCalendar
+		case .remaining, .refused: self = .givenUp
+		case .sending, .mayHaveBeenSaved: self = .mayHaveBeenSaved
+		}
 	}
 }

@@ -3053,6 +3053,7 @@
       "structure": "{{workout}} : étapes de la séance modifiées."
     },
     "notPrepared": "Impossible de préparer la vérification de séance.",
-    "notPreparedInformationSaved": "Tes informations ont été enregistrées, mais la vérification de séance n’a pas pu être préparée."
+    "notPreparedInformationSaved": "Tes informations ont été enregistrées, mais la vérification de séance n’a pas pu être préparée.",
+    "stopped": "La vérification de séance s’est arrêtée avant que toutes les modifications soient faites. Les modifications déjà faites sont conservées."
   }
 }

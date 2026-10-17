@@ -3053,6 +3053,7 @@
       "structure": "{{workout}}: workout steps changed."
     },
     "notPrepared": "The workout review could not be prepared.",
-    "notPreparedInformationSaved": "Your information was saved, but the workout review could not be prepared."
+    "notPreparedInformationSaved": "Your information was saved, but the workout review could not be prepared.",
+    "stopped": "This workout review stopped before every change was made. Changes already made are kept."
   }
 }

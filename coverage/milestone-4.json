@@ -14,7 +14,8 @@
 		"4.1": 7,
 		"5.1": 10,
 		"5.2": 4,
-		"4.2": 12
+		"4.2": 12,
+		"6.2": 12
 	},
 	"criteria": [
 		{
@@ -834,6 +835,106 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RefreshedReviewTests.swift", "function": "theKeptWorkoutsAreTheOnesReadAtPreflight"}
 			]
+		},
+		{
+			"id": "6.2.1",
+			"statement": "Approving the mixed review after another turn sends four requests in card order, each equal to its reviewed change, saves four Receipts and a completed outcome, keeps the unrelated 45-minute workout, and adds no model request; a refreshed review approved with its new token runs its changes; the live-calendar desk run checks the same on the test account against a calendar fake.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "approvalAfterAnotherTurnRunsTheSavedReviewWithNoModelRequest"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "theMixedReviewSendsEachReviewedRequestInCardOrderAndPublishesItsOutcome"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "afterARefreshTheOldTokenSendsNothingAndTheNewerRevisionRuns"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCalendarPlanTests.swift", "function": "aRunAgainstACalendarThatKeepsWhatItIsSentPassesAndRemovesEveryAdd"}
+			]
+		},
+		{
+			"id": "6.2.2",
+			"statement": "The claim is the review head at the first preflight read; when the claim's append fails, the approval gives storageUnavailable, nothing is read or sent, the head stays, and the same token then runs the review.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "theClaimIsSavedBeforePreflightReadsTheCalendar"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "aClaimThatIsNotSavedReadsAndSendsNothingAndKeepsTheToken"}
+			]
+		},
+		{
+			"id": "6.2.3",
+			"statement": "Each write request leaves while the record holding its send attempt is the head; when the append of attempt k fails for an add, an edit or a delete as change k, no request k is sent and the head stays at the record of change k-1.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "eachRequestLeavesOnlyAfterTheRecordHoldingItsAttemptIsTheHead"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "anAttemptThatIsNotSavedSendsNoRequest"}
+			]
+		},
+		{
+			"id": "6.2.4",
+			"statement": "A renewed, consumed, canceled or other-chat token sends nothing and saves nothing; after a refreshed review the old token sends nothing and its outcome names the newer revision; a wrong action sends nothing and leaves the token usable.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "aDeadTokenSendsNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "afterARefreshTheOldTokenSendsNothingAndTheNewerRevisionRuns"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "aWrongActionSendsNothingAndLeavesTheTokenUsable"}
+			]
+		},
+		{
+			"id": "6.2.5",
+			"statement": "A double tap, two concurrent deliveries of one token, and two desks over one store whose head reads are held until both have read each save one running claim with no sending attempt, run seven chain records, give staleControl to the loser and send four requests.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "aSecondTapAfterTheRunSendsNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "twoConcurrentDeliveriesOfOneTokenRunTheReviewOnce"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewDefectTests.swift", "function": "twoDesksApproveOnceRunOnce"}
+			]
+		},
+		{
+			"id": "6.2.6",
+			"statement": "Cancel before approval is saved and published before its outcome returns and sends nothing, and after a relaunch its token sends and saves nothing; a renewed or consumed Cancel token saves nothing; cancel after two saved changes keeps both Receipts; approve and cancel raced save one head that the shown outcome matches.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCancelTests.swift", "function": "cancelBeforeApprovalIsSavedSendsNothingAndItsTokenDiesAfterARelaunch"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCancelTests.swift", "function": "aStaleOrConsumedCancelSavesNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCancelTests.swift", "function": "cancelAfterTwoFinishedChangesKeepsBothReceipts"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCancelTests.swift", "function": "approveAndCancelRacedSaveOneHeadThatTheShownOutcomeMatches"}
+			]
+		},
+		{
+			"id": "6.2.7",
+			"statement": "An add first and a last target that lost coach provenance, is gone, is unreadable or belongs to another account, or an add dated before the phone's today, gives zero write requests and saves the blocked or could-not-check stage; a blocked review offers Cancel alone and refuses Approve.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "aBlockedVerdictSendsNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewDefectTests.swift", "function": "unownedTargetWritesNothing"}
+			]
+		},
+		{
+			"id": "6.2.8",
+			"statement": "After two saved changes and a refused third, no fourth request is sent, the outcome stops with two saved cards and the refused one, and the review keeps the two finished changes apart from the two remaining.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "aRefusedThirdChangeStopsTheRunAndKeepsFinishedApartFromRemaining"}
+			]
+		},
+		{
+			"id": "6.2.9",
+			"statement": "For an add, an edit and a delete whose answer is lost, the run sends no second request; a change the immediate read finds finishes as seen on the calendar or no longer on it, never with a Receipt; one not found returns to the remaining work; a failed read leaves it unconfirmed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "aLostAnswerStopsTheRunAndIsSettledByOneImmediateRead"}
+			]
+		},
+		{
+			"id": "6.2.10",
+			"statement": "twoDesksApproveOnceRunOnce, changedTargetBeforeApprovalWritesNothing and unownedTargetWritesNothing each fail on each of 20 runs with their defect planted: a claim that skips the head check at the desk's claim call site, differences(from:) returning no difference, and eligibility returning no refusal.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewDefectTests.swift", "function": "twoDesksApproveOnceRunOnce"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewDefectTests.swift", "function": "changedTargetBeforeApprovalWritesNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutReviewDefectTests.swift", "function": "unownedTargetWritesNothing"}
+			]
+		},
+		{
+			"id": "6.2.11",
+			"statement": "After a completed run, a relaunched desk answers the old token's Approve and Cancel with staleControl and sends and saves nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "aCompletedRunsTokenSendsNothingAfterARelaunch"}
+			]
+		},
+		{
+			"id": "6.2.12",
+			"statement": "The run holds one athlete lease from the claim until the drive ends and ends it finished after a completed, stopped or unconfirmed run and failed after a storage failure; a host that ends the lease mid-run leaves the change in flight unconfirmed, the lease interrupted, and the saved head's resume step a settle of that change.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "theRunHoldsOneLeaseFromTheClaimUntilItEnds"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "anEndedLeaseLeavesTheChangeInFlightUnconfirmedForRecovery"}
+			]
 		}
 	],
 	"requirements": [
@@ -936,6 +1037,96 @@
 			"id": "C06",
 			"statement": "Change only unrelated server metadata or an equivalent normalized representation → keep the reviewed workout valid without an unnecessary new approval.",
 			"criteria": ["5.1.6", "5.1.7", "5.2.1", "5.2.2", "5.2.3"]
+		},
+		{
+			"id": "B17.05",
+			"statement": "A deletion names its exact event and reviewed snapshot, deletes only that event, and a canceled review's old controls stay dead after a relaunch.",
+			"criteria": ["4.1.1", "4.1.6", "4.2.5", "4.2.10", "5.1.1", "5.1.6", "6.2.1", "6.2.6"]
+		},
+		{
+			"id": "B19.02",
+			"statement": "Cancel is saved before it is shown, survives a relaunch, writes nothing when it comes first, keeps every earlier success, and a raced approval and cancellation give one saved result that the shown outcome matches.",
+			"criteria": ["6.2.6"]
+		},
+		{
+			"id": "B20.01",
+			"statement": "Edits and deletes reach only coach-created WORKOUT events dated today or later, and no add or move lands in the past, checked at preparation and again before the first write.",
+			"criteria": ["4.1.2", "4.1.3", "5.1.1", "5.1.3", "5.1.4", "6.2.7"]
+		},
+		{
+			"id": "B20.02",
+			"statement": "Date, name, duration, description, Load and structured effort reach the outbound request exactly as reviewed, and the desk sends each reviewed change as its own request.",
+			"criteria": ["2.2.1", "2.2.2", "2.2.6", "2.3.1", "2.5.4", "6.1.1", "6.2.1"]
+		},
+		{
+			"id": "B20.04",
+			"statement": "A changed target stops the set before any write, names the difference and offers a refreshed review whose new approval runs it while the older approval writes nothing.",
+			"criteria": ["3.1.5", "3.1.6", "5.1.6", "5.1.7", "5.2.1", "5.2.2", "5.2.3", "6.2.1", "6.2.4"]
+		},
+		{
+			"id": "B21.01",
+			"statement": "Each send attempt is saved before its request, a Receipt comes only from intervals.icu's answer, and the run stops at the first refused or unconfirmed change with successes shown apart from the rest.",
+			"criteria": ["3.1.11", "6.1.2", "6.2.3", "6.2.8", "6.2.9"]
+		},
+		{
+			"id": "A09",
+			"statement": "Inspect the calendar after approval → preserve the unrelated 45-minute workout and every other untargeted workout.",
+			"criteria": ["6.2.1"]
+		},
+		{
+			"id": "A10",
+			"statement": "Cancel before execution → apply zero changes and make the canceled approval unusable.",
+			"criteria": ["6.2.6"]
+		},
+		{
+			"id": "B01",
+			"statement": "Propose edits and deletions of workouts without coach provenance → reject those actions without calendar writes.",
+			"criteria": ["4.1.2", "4.1.3", "5.1.1", "5.1.3", "5.1.4", "6.2.7"]
+		},
+		{
+			"id": "B02",
+			"statement": "Propose edits and deletions of calendar entries outside category WORKOUT → reject those actions without calendar writes.",
+			"criteria": ["4.1.2", "4.1.3", "5.1.1", "5.1.3", "5.1.4", "6.2.7"]
+		},
+		{
+			"id": "B03",
+			"statement": "Propose edits and deletions dated before the athlete-local current date → reject those actions without calendar writes.",
+			"criteria": ["4.1.2", "4.1.3", "5.1.1", "5.1.3", "5.1.4", "6.2.7"]
+		},
+		{
+			"id": "B04",
+			"statement": "Approve otherwise valid edits and deletions dated today or later → allow those actions under the existing restrictions.",
+			"criteria": ["4.1.2", "4.1.3", "5.1.1", "5.1.3", "5.1.4", "6.2.7"]
+		},
+		{
+			"id": "B05",
+			"statement": "Move a workout to a past date → reject the move without calendar writes.",
+			"criteria": ["4.1.2", "4.1.3", "5.1.1", "5.1.3", "5.1.4", "6.2.7"]
+		},
+		{
+			"id": "C04",
+			"statement": "Approve the refreshed eligible set → apply only the newly reviewed changes.",
+			"criteria": ["6.2.1"]
+		},
+		{
+			"id": "D01",
+			"statement": "Fail a mixed set after two confirmed successful writes → stop before attempting subsequent changes.",
+			"criteria": ["6.1.2", "6.2.3", "6.2.8", "6.2.9"]
+		},
+		{
+			"id": "X02",
+			"statement": "Progress is saved before the next action, every send attempt is its own record, and a lost answer after a possible save is settled as uncertain, never replayed.",
+			"criteria": ["3.1.1", "3.1.2", "3.3.2", "6.2.2", "6.2.3"]
+		},
+		{
+			"id": "X04",
+			"statement": "Authority is checked again at execution, and a review of one athlete writes nothing when the connection belongs to another.",
+			"criteria": ["2.5.6", "5.1.5", "6.2.7"]
+		},
+		{
+			"id": "G04",
+			"statement": "Review and apply the mixed set: the old control of a revised or refreshed review writes nothing, and the approved set applies once.",
+			"criteria": ["4.2.5", "6.2.1", "6.2.5"]
 		}
 	],
 	"plan": {
@@ -1060,20 +1251,14 @@
 	"open": [
 		"B17.02",
 		"B17.04",
-		"B17.05",
 		"B18.02",
 		"B18.03",
 		"B18.05",
 		"B18.06",
 		"B18.07",
 		"B19.01",
-		"B19.02",
-		"B20.01",
-		"B20.02",
 		"B20.03",
-		"B20.04",
 		"B20.05",
-		"B21.01",
 		"B21.02",
 		"B21.03",
 		"B21.04",
@@ -1086,8 +1271,6 @@
 		"A06",
 		"A07",
 		"A08",
-		"A09",
-		"A10",
 		"A11",
 		"A12",
 		"A13",
@@ -1096,20 +1279,13 @@
 		"A16",
 		"A17",
 		"A18",
-		"B01",
-		"B02",
-		"B03",
-		"B04",
-		"B05",
 		"B07",
 		"B08",
 		"B09",
 		"B10",
 		"B11",
-		"C04",
 		"C07",
 		"C08",
-		"D01",
 		"D02",
 		"D03",
 		"D04",
@@ -1122,12 +1298,9 @@
 		"D11",
 		"D12",
 		"X01",
-		"X02",
-		"X04",
 		"X05",
 		"X06",
 		"G03",
-		"G04",
 		"G05",
 		"G10"
 	]
