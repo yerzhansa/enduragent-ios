@@ -94,12 +94,17 @@ import Testing
 		let approving = Task { await coach.desk.decide(.approve(token)) }
 		try await waitUntil { calendar.writes.count == 1 }
 
-		let stopped: Void? = try await beforeDeadline(within: .hangGuard) {
+		let stopped: Void? = try await beforeDeadline(
+			within: .hangGuard, onTimeout: { held.release() }
+		) {
 			await coach.stop(.main)
 		}
 		#expect(stopped != nil)
-		_ = try await turns.reply(
-			after: [turns.prepare(ReviewTurns.oneRide)], on: coach, asking: "Add another ride")
+		let replied = try await beforeDeadline(within: .hangGuard, onTimeout: { held.release() }) {
+			try await turns.reply(
+				after: [turns.prepare(ReviewTurns.oneRide)], on: coach, asking: "Add another ride")
+		}
+		#expect(replied != nil)
 
 		#expect(try turns.toolData().first?.objectFields["error"] == .string("review_running"))
 		#expect(calendar.writes.count == 1)
