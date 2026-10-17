@@ -3054,6 +3054,14 @@
     },
     "notPrepared": "Die Trainingsprüfung konnte nicht vorbereitet werden.",
     "notPreparedInformationSaved": "Deine Angaben wurden gespeichert, aber die Trainingsprüfung konnte nicht vorbereitet werden.",
-    "stopped": "Die Trainingsprüfung wurde beendet, bevor alle Änderungen vorgenommen wurden. Bereits vorgenommene Änderungen bleiben erhalten."
+    "stopped": "Die Trainingsprüfung wurde beendet, bevor alle Änderungen vorgenommen wurden. Bereits vorgenommene Änderungen bleiben erhalten.",
+    "outcome": {
+      "saved": "{{workout}}, {{date}}: Änderung gespeichert.",
+      "seenOnCalendar": "{{workout}}, {{date}}: Änderung im Kalender gefunden.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: nicht mehr im Kalender.",
+      "givenUp": "{{workout}}, {{date}}: Änderung nicht vorgenommen.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: Änderung wurde möglicherweise gespeichert. Prüfe deinen Kalender."
+    },
+    "preparedEarlier": "Früher vorbereitet"
   }
 }

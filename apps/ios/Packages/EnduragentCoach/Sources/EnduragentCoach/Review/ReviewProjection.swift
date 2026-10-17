@@ -22,6 +22,16 @@ enum ReviewProjection {
 			placement: placement, attribution: attribution)
 	}
 
+	static func placement(of review: WorkoutReview, in conversation: Conversation)
+		-> ReviewPlacement
+	{
+		let turn = review.origin.turn
+		let earlier = conversation.segments.dropLast().contains { segment in
+			segment.turns.contains { $0.turn == turn }
+		}
+		return earlier ? .preparedEarlier : .afterTurn(turn)
+	}
+
 	static func receipts(of review: WorkoutReview) -> [ReviewReceipt] {
 		receipts(of: cards(of: review))
 	}

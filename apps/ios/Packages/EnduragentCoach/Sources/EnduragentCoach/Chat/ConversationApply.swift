@@ -50,6 +50,9 @@ extension Conversation {
 			{
 				calendarRecords[record.ulid] = record
 			}
+			if case .synced(.reviewOutcome) = record.body {
+				outcomeRecords[record.ulid] = record
+			}
 			switch record.body {
 			case .synced(.attemptQuestion(let body)):
 				guard case .operation(.turn(let turn), let attempt) = record.cause,
@@ -150,6 +153,7 @@ extension Conversation {
 		for (facts, first) in orderedTurns {
 			segments[segmentIndex(for: first.ulid, at: first.hlc)].turns.append(facts)
 		}
+		placeOutcomeNotes()
 		guard !calendarRecords.isEmpty else { return }
 		for index in segments.indices {
 			segments[index].notes.removeAll {
