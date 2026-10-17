@@ -265,4 +265,20 @@ public struct ReviewNotice: Sendable, Equatable {
 	public let kind: Kind
 	public let key: CatalogKey
 	public let vars: [String: String]
+	package let differences: [TargetDifference]
+
+	package init(
+		kind: Kind, key: CatalogKey, vars: [String: String],
+		differences: [TargetDifference] = []
+	) {
+		self.kind = kind
+		self.key = key
+		self.vars = vars
+		self.differences = differences
+	}
+
+	package func sentences(in display: DisplayLocale) -> [String] {
+		[display.say(key, vars.mapValues(CatalogArgument.text))]
+			+ differences.flatMap { $0.sentences(in: display) }
+	}
 }

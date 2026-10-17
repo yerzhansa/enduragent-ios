@@ -3042,6 +3042,16 @@
     "blocked": {
       "reviewedBeforeUpgrade": "Cette séance a été vérifiée avant la mise à jour de l’app. Redemande au coach."
     },
+    "refreshed": {
+      "nothingChanged": "Des séances de cette vérification ont été modifiées dans {{service}} après ta vérification, donc rien n’a été modifié. Vérifie-les à nouveau avant d’approuver.",
+      "nothingElseChanged": "Des séances de cette vérification ont été modifiées dans {{service}} après ta vérification, donc rien d’autre n’a été modifié. Vérifie-les à nouveau avant d’approuver.",
+      "date": "{{workout}} : date modifiée de {{from}} à {{to}}.",
+      "name": "{{workout}} : nom modifié en {{to}}.",
+      "duration": "{{workout}} : durée modifiée de {{from}} à {{to}} minutes.",
+      "description": "{{workout}} : description modifiée.",
+      "load": "{{workout}} : charge d’entraînement modifiée de {{from}} à {{to}}.",
+      "structure": "{{workout}} : étapes de la séance modifiées."
+    },
     "notPrepared": "Impossible de préparer la vérification de séance.",
     "notPreparedInformationSaved": "Tes informations ont été enregistrées, mais la vérification de séance n’a pas pu être préparée."
   }

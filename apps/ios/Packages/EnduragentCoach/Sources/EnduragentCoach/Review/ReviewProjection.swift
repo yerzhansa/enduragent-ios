@@ -16,7 +16,7 @@ enum ReviewProjection {
 			state: .available(
 				ReviewContent(
 					cards: cards, kept: review.kept, totals: totals(of: cards),
-					receipts: receipts(of: cards), notice: nil,
+					receipts: receipts(of: cards), notice: notice(of: review),
 					authority: terminal ? .readOnly : .thisDevice),
 				delivery.controls(review.allowedControls)),
 			placement: placement, attribution: attribution)

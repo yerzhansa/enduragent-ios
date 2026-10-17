@@ -3042,6 +3042,16 @@
     "blocked": {
       "reviewedBeforeUpgrade": "Questo allenamento è stato rivisto prima dell’aggiornamento dell’app. Chiedi di nuovo al coach."
     },
+    "refreshed": {
+      "nothingChanged": "Alcuni allenamenti di questa revisione sono cambiati in {{service}} dopo che li hai rivisti, quindi non è stato cambiato nulla. Ricontrollali prima di approvare.",
+      "nothingElseChanged": "Alcuni allenamenti di questa revisione sono cambiati in {{service}} dopo che li hai rivisti, quindi non è stato cambiato nient’altro. Ricontrollali prima di approvare.",
+      "date": "{{workout}}: data cambiata da {{from}} a {{to}}.",
+      "name": "{{workout}}: nome cambiato in {{to}}.",
+      "duration": "{{workout}}: durata cambiata da {{from}} a {{to}} minuti.",
+      "description": "{{workout}}: descrizione cambiata.",
+      "load": "{{workout}}: carico di allenamento cambiato da {{from}} a {{to}}.",
+      "structure": "{{workout}}: passaggi dell’allenamento cambiati."
+    },
     "notPrepared": "Impossibile preparare la revisione dell’allenamento.",
     "notPreparedInformationSaved": "Le tue informazioni sono state salvate, ma non è stato possibile preparare la revisione dell’allenamento."
   }

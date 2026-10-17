@@ -3042,6 +3042,16 @@
     "blocked": {
       "reviewedBeforeUpgrade": "This workout was reviewed before the app was updated. Ask the coach again."
     },
+    "refreshed": {
+      "nothingChanged": "Workouts in this review changed in {{service}} after you reviewed them, so nothing was changed. Check them again before you approve.",
+      "nothingElseChanged": "Workouts in this review changed in {{service}} after you reviewed them, so nothing else was changed. Check them again before you approve.",
+      "date": "{{workout}}: date changed from {{from}} to {{to}}.",
+      "name": "{{workout}}: name changed to {{to}}.",
+      "duration": "{{workout}}: duration changed from {{from}} to {{to}} minutes.",
+      "description": "{{workout}}: description changed.",
+      "load": "{{workout}}: training load changed from {{from}} to {{to}}.",
+      "structure": "{{workout}}: workout steps changed."
+    },
     "notPrepared": "The workout review could not be prepared.",
     "notPreparedInformationSaved": "Your information was saved, but the workout review could not be prepared."
   }

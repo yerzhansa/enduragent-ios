@@ -3042,6 +3042,16 @@
     "blocked": {
       "reviewedBeforeUpgrade": "Denne økten ble gjennomgått før appen ble oppdatert. Spør treneren på nytt."
     },
+    "refreshed": {
+      "nothingChanged": "Treningsøkter i denne gjennomgangen ble endret i {{service}} etter at du gjennomgikk dem, så ingenting ble endret. Sjekk dem igjen før du godkjenner.",
+      "nothingElseChanged": "Treningsøkter i denne gjennomgangen ble endret i {{service}} etter at du gjennomgikk dem, så ingenting annet ble endret. Sjekk dem igjen før du godkjenner.",
+      "date": "{{workout}}: datoen ble endret fra {{from}} til {{to}}.",
+      "name": "{{workout}}: navnet ble endret til {{to}}.",
+      "duration": "{{workout}}: varigheten ble endret fra {{from}} til {{to}} minutter.",
+      "description": "{{workout}}: beskrivelsen ble endret.",
+      "load": "{{workout}}: treningsbelastningen ble endret fra {{from}} til {{to}}.",
+      "structure": "{{workout}}: treningstrinnene ble endret."
+    },
     "notPrepared": "Gjennomgangen av treningsøkten kunne ikke klargjøres.",
     "notPreparedInformationSaved": "Informasjonen din ble lagret, men gjennomgangen av treningsøkten kunne ikke klargjøres."
   }

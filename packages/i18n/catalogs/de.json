@@ -3042,6 +3042,16 @@
     "blocked": {
       "reviewedBeforeUpgrade": "Dieses Training wurde vor dem Update der App geprüft. Frag den Coach noch einmal."
     },
+    "refreshed": {
+      "nothingChanged": "Trainings in dieser Prüfung wurden in {{service}} geändert, nachdem du sie geprüft hast. Deshalb wurde nichts geändert. Prüfe sie noch einmal, bevor du zustimmst.",
+      "nothingElseChanged": "Trainings in dieser Prüfung wurden in {{service}} geändert, nachdem du sie geprüft hast. Deshalb wurde nichts weiter geändert. Prüfe sie noch einmal, bevor du zustimmst.",
+      "date": "{{workout}}: Datum von {{from}} auf {{to}} geändert.",
+      "name": "{{workout}}: Name in {{to}} geändert.",
+      "duration": "{{workout}}: Dauer von {{from}} auf {{to}} Minuten geändert.",
+      "description": "{{workout}}: Beschreibung geändert.",
+      "load": "{{workout}}: Trainingsbelastung von {{from}} auf {{to}} geändert.",
+      "structure": "{{workout}}: Trainingsschritte geändert."
+    },
     "notPrepared": "Die Trainingsprüfung konnte nicht vorbereitet werden.",
     "notPreparedInformationSaved": "Deine Angaben wurden gespeichert, aber die Trainingsprüfung konnte nicht vorbereitet werden."
   }

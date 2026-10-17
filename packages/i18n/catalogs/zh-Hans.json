@@ -3002,6 +3002,16 @@
     "blocked": {
       "reviewedBeforeUpgrade": "此训练是在应用更新前审核的。请重新询问教练。"
     },
+    "refreshed": {
+      "nothingChanged": "你审核后，此审核中的训练在 {{service}} 中被更改，因此未做任何更改。请在批准前再次检查。",
+      "nothingElseChanged": "你审核后，此审核中的训练在 {{service}} 中被更改，因此未再做其他更改。请在批准前再次检查。",
+      "date": "{{workout}}：日期从 {{from}} 改为 {{to}}。",
+      "name": "{{workout}}：名称改为 {{to}}。",
+      "duration": "{{workout}}：时长从 {{from}} 分钟改为 {{to}} 分钟。",
+      "description": "{{workout}}：描述已更改。",
+      "load": "{{workout}}：训练负荷从 {{from}} 改为 {{to}}。",
+      "structure": "{{workout}}：训练步骤已更改。"
+    },
     "notPrepared": "无法准备训练审核内容。",
     "notPreparedInformationSaved": "你的信息已保存，但无法准备训练审核内容。"
   }
