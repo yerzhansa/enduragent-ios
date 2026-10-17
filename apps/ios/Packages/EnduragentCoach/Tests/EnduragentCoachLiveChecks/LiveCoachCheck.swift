@@ -36,7 +36,11 @@
 				accountReads: { credential, selection in
 					IntervalsRESTClient(credential: credential, athlete: selection)
 				})
-			let plan = LiveCoachPlan(listing: listing, today: today)
+			let plan = LiveCoachPlan(
+				listing: listing,
+				calendar: try await account.listEvents(
+					in: try LiveSeedCalendar.window(around: today)),
+				today: today)
 			var report = LiveCoachReport(unavailable: plan.unavailable, spentBefore: ledger.total)
 			for scenario in plan.scenarios {
 				guard !ledger.capReached else {
@@ -52,8 +56,12 @@
 				}
 				report.results.append((scenario.name, runs))
 			}
+			report.leaks = try LiveCoachReport.leaks(in: folder, of: keys)
 			try folder.write(
 				report.markdown(total: ledger.total, limit: ledger.limit), to: "summary.md")
+			report.leaks += try LiveCoachReport.leaks(in: folder, of: keys).filter {
+				$0.hasPrefix("summary.md:")
+			}
 			for failure in report.failures(capReached: ledger.capReached) {
 				Issue.record(Comment(rawValue: failure))
 			}
@@ -66,6 +74,15 @@ struct LiveCoachReport {
 	let spentBefore: Double
 	var results: [(name: String, runs: [LiveScenarioRun])] = []
 	var stoppedBefore: String?
+	var leaks: [String] = []
+
+	static func leaks(in folder: LiveRunFolder, of keys: [LiveKey: String]) throws -> [String] {
+		try keys.sorted { $0.key.rawValue < $1.key.rawValue }.flatMap { key, secret in
+			try folder.files(containing: secret).map {
+				"\($0): the saved file holds the key of \(key.rawValue)"
+			}
+		}
+	}
 
 	func verdict(of runs: [LiveScenarioRun]) -> String {
 		switch (runs.first?.passed, runs.dropFirst().first?.passed) {
@@ -85,6 +102,7 @@ struct LiveCoachReport {
 			return "\(result.name): \(reasons.joined(separator: "; "))"
 		}
 		failures += unavailable.map { "not available, so not covered: \($0)" }
+		failures += leaks
 		if capReached {
 			failures.append(
 				"The spend cap stopped the suite\(stoppedBefore.map { " before \($0)" } ?? "").")
@@ -107,6 +125,7 @@ struct LiveCoachReport {
 			)
 		}
 		if let stoppedBefore { lines += ["", "Stopped by the spend cap before \(stoppedBefore)."] }
+		if !leaks.isEmpty { lines += ["", "## Key leaks", ""] + leaks.map { "- \($0)" } }
 		if !unavailable.isEmpty {
 			lines += ["", "## Not available in this account", ""] + unavailable.map { "- \($0)" }
 		}

@@ -14,10 +14,6 @@ enum LiveVerdict {
 		if reply.range(of: #"\bUTC\b"#, options: .regularExpression) != nil {
 			found.append("the reply labels a time UTC")
 		}
-		if turn.toolCalls.contains(where: { $0.name == ToolName.prepareWorkoutChanges.rawValue }) {
-			found.append("workout changes were prepared")
-		}
-		if turn.reviewPending { found.append("a workout review is waiting") }
 		if turn.calendarWrites > 0 { found.append("the calendar was written") }
 		let calls = turn.toolCalls.map(ParsedCall.init)
 		for call in calls where call.arguments == nil {
@@ -26,11 +22,24 @@ enum LiveVerdict {
 		return found + expectations.compactMap { check($0, on: turn, calls: calls, reply: reply) }
 	}
 
-	private struct ParsedCall {
+	static func violations(ofCancel cancel: LiveCancelRecord?) -> [String] {
+		guard let cancel else { return ["no review waited to cancel"] }
+		var found: [String] = []
+		if !cancel.canceled { found.append("Cancel answered \(cancel.outcome)") }
+		if cancel.calendarRequests > 0 {
+			found.append("Cancel made \(cancel.calendarRequests) calendar requests")
+		}
+		if cancel.waitingAfter { found.append("a workout review still waits after Cancel") }
+		return found
+	}
+
+	struct ParsedCall {
+		let id: String
 		let name: String
 		let parsed: Result<[String: JSONValue], any Error>
 
 		init(_ call: WireToolCall) {
+			id = call.id
 			name = call.name
 			parsed = Result { try call.parseArguments().objectFields }
 		}
@@ -82,6 +91,8 @@ enum LiveVerdict {
 			let missing = words.filter { reply.range(of: $0, options: .caseInsensitive) == nil }
 			return missing.isEmpty
 				? nil : "the reply does not mention \(missing.joined(separator: ", "))"
+		case .review(let expectation):
+			return LiveReviewVerdict.check(expectation, on: turn, calls: calls)
 		}
 	}
 }
