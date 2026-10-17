@@ -75,6 +75,7 @@ struct SourceChecker {
 				featureProofSources.append(source)
 			}
 			try checkContentRules(source)
+			try checkSingleChangePath(source)
 		}
 		let generatedProject = NodePath.resolve(root, Self.xcodeProject)
 		if FileManager.default.fileExists(atPath: generatedProject) {

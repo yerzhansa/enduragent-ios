@@ -35,6 +35,7 @@ extension SourceChecker {
 	static let secretShape =
 		#"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:gh[pousr]_[A-Za-z0-9]{30,}"#
 		+ #"|github_pat_[A-Za-z0-9_]{30,}|sk-or-v1-[a-f0-9]{32,}|AKIA[A-Z0-9]{16})\b"#
+	static let npmTopicCopy = #"\/Fixtures\/knowledge-topics-npm\/[^/]+\.md$"#
 	static let coachPackageSource = #"^apps\/ios\/Packages\/EnduragentCoach\/.*\.swift$"#
 	static let reviewSource = "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Review/"
 	static let mintedValues = [
@@ -45,6 +46,12 @@ extension SourceChecker {
 		MintedValue(
 			name: "SendAttempt", owner: reviewSource + "WorkoutReview.swift", anywhere: [],
 			elsewhere: [#"\bextension\s+SendAttempt\b"#, #"\bSendAttempt(?:\s*\.\s*init)?\s*\("#]),
+		MintedValue(
+			name: "ReviewControlToken", owner: reviewSource + "ReviewTypes.swift", anywhere: [],
+			elsewhere: [
+				#"\bReviewControlToken\s*(?:\(|\.\s*init\b)"#,
+				#"(?:\.\s*init|\bSelf)\s*\(\s*ref\s*:\#(argumentText)*?\bsecret\s*:"#,
+			]),
 	]
 	static let coachSource =
 		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$"#
@@ -159,7 +166,9 @@ extension SourceChecker {
 			try findings.report(file, "mailbox-private-state")
 		}
 		if try patterns.test(Self.activityID, text) { try findings.report(file, "activity-id") }
-		if try patterns.test(Self.fixture, file) && hasCurrentEraDate(text) {
+		if try patterns.test(Self.fixture, file) && !patterns.test(Self.npmTopicCopy, file)
+			&& hasCurrentEraDate(text)
+		{
 			try findings.report(file, "fixture-date")
 		}
 		if try patterns.test(Self.secretShape, text) { try findings.report(file, "secret-shape") }
