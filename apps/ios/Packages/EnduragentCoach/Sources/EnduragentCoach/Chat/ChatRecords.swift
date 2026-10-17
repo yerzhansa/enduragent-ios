@@ -171,6 +171,7 @@ final class ChatRecords {
 	) async {
 		let review = await desk.settle(
 			DraftKey(turn: turn, attempt: attempt), in: chat, ending: TurnEnding(settlement))
+		if case .committed = review { _ = await refreshReview() }
 		await save(
 			TurnLifecycle.settled(
 				attempt, settlement, on: conversation.turn(turn), chat: chat,
