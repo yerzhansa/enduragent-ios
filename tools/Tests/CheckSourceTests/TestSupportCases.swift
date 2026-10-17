@@ -235,6 +235,22 @@ extension SourceCases {
 						sqliteStore
 				])
 		}
+		+ ["open-review", "unknown-write", "completed"].map { scenario in
+			.accepts(
+				"accepts committed build-6833d90f SQLite stores in \(scenario)",
+				binaries: [
+					upgradeStore.replacingOccurrences(
+						of: "v1-upgrade/history", with: "build-6833d90f/\(scenario)"): sqliteStore
+				])
+		}
+		+ ["build-6833d90f", "build-6833d90f/other"].map { folder in
+			.rejects(
+				"rejects SQLite stores in \(folder)",
+				binaries: [
+					upgradeStore.replacingOccurrences(of: "v1-upgrade/history", with: folder):
+						sqliteStore
+				], finding: "unexpected-binary")
+		}
 		+ [
 			.rejects(
 				"rejects other binary files in upgrade resources",

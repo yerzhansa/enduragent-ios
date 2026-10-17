@@ -74,7 +74,7 @@ extension SourceChecker {
 		reviewChainRecords + $0
 	}
 	static let reviewOutcomeWriters = [
-		"Review/WorkoutReviewDesk.swift", "Records/RecordCodec.swift",
+		"Review/WorkoutReviewDesk.swift", "Review/ReviewUpgrade.swift", "Records/RecordCodec.swift",
 		"Records/RecordEnvelopePayload.swift", "Records/ReviewOutcomeBody.swift",
 	].map { "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/" + $0 }
 	static let reviewOutcomeBuilt = [

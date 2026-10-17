@@ -25,12 +25,7 @@ struct CalendarWriteOperation: Sendable {
 				event, today: today, eventId: update.eventId, action: "update",
 				nextDate: update.date)
 			return Self(
-				write: .update(
-					update.eventId,
-					WorkoutPatch(
-						date: update.date, name: update.name, durationSeconds: nil,
-						description: update.description, trainingLoad: nil, workoutDocument: nil,
-						authoredSteps: nil)),
+				write: .update(update.eventId, patch(update)),
 				target: .update(
 					eventID: update.eventId.rawValue, date: String(event.startDateLocal.prefix(10)))
 			)
@@ -62,6 +57,13 @@ struct CalendarWriteOperation: Sendable {
 		case .updateWorkout, .deleteWorkout, .planSave:
 			throw IntervalsError(code: "invalid_operation", details: "Not a calendar creation")
 		}
+	}
+
+	static func patch(_ update: UpdateWorkoutInput) -> WorkoutPatch {
+		WorkoutPatch(
+			date: update.date, name: update.name, durationSeconds: nil,
+			description: update.description, trainingLoad: nil, workoutDocument: nil,
+			authoredSteps: nil)
 	}
 
 	private static func legacyExternalID(_ input: GatedToolInput) -> String? {

@@ -145,6 +145,13 @@ public enum ReviewAuthority: Sendable, Equatable {
 	case otherDevice
 }
 
+public enum ControlSet: Equatable, Sendable {
+	case approveOrCancel
+	case tryAgainOrCancel
+	case checkAgainOrCancel
+	case cancelOnly
+}
+
 public enum ReviewControls: Sendable, Equatable {
 	case none
 	case approveOrCancel(ReviewControlToken)

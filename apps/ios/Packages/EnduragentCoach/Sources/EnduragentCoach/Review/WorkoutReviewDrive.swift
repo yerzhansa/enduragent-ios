@@ -75,6 +75,7 @@ extension WorkoutReviewDesk {
 
 	package func recover() async {
 		await effects.pass {
+			await upgrade()
 			let chats: Set<ChatID>
 			do throws(LedgerFailure) {
 				chats = try await ledger.reviewChats()
@@ -264,7 +265,7 @@ extension WorkoutReviewDesk {
 		}
 	}
 
-	private func stamp(for review: WorkoutReview, attempt: ULID) -> OperationStamp {
+	func stamp(for review: WorkoutReview, attempt: ULID) -> OperationStamp {
 		OperationStamp(
 			operation: .workoutReview(review.id, review.revision),
 			attempt: AttemptID(ulid: attempt),

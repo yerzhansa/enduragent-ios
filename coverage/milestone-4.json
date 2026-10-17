@@ -16,7 +16,8 @@
 		"5.2": 4,
 		"4.2": 12,
 		"6.2": 12,
-		"7.2": 8
+		"7.2": 8,
+		"7.4": 6
 	},
 	"criteria": [
 		{
@@ -996,6 +997,51 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "boundWorkIsAPreparingAttemptOrAHeadThatIsNotTerminal"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "theChangesStreamNamesTheChatWhoseCardTheRecoverChanged"}
+			]
+		},
+		{
+			"id": "7.4.1",
+			"statement": "The open-review and unknown-write scenarios each upgrade as stated, once, and a second run plans nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fOpenReviewClosesOnceAtUpgrade"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownWriteBecomesOneUnconfirmedChange"}
+			]
+		},
+		{
+			"id": "7.4.2",
+			"statement": "When the second upgrade append fails, a second run upgrades the rest, and every item is upgraded exactly once.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewUpgradeTests.swift", "function": "aFailedSecondUpgradeAppendLeavesTheRestForTheNextRecover"}
+			]
+		},
+		{
+			"id": "7.4.3",
+			"statement": "An unknown add found by its external_id finishes as seen on the calendar, also when the Milestone 2 single create made it; one not found becomes waiting(approval(.interruptedBeforeWriting)), and approving it gives preflight clear and one bulk upsert with the Milestone 2 external_id.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownAddFoundOnTheCalendarFinishesAsSeen"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownAddNotFoundIsApprovedAgainUnderTheSameExternalID"}
+			]
+		},
+		{
+			"id": "7.4.4",
+			"statement": "An unknown write made on another device, with no payload here, or with no CalendarWriteID, gets no review.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownWriteFromAnotherDeviceGetsNoReview"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewUpgradeTests.swift", "function": "anUnknownWriteWithoutItsPayloadHereOrItsIdentityGetsNoReview"}
+			]
+		},
+		{
+			"id": "7.4.5",
+			"statement": "An upgraded edit or delete asked to run again blocks with reviewedBeforeUpgrade.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewUpgradeTests.swift", "function": "anUpgradedEditOrDeleteThatDidNotLandBlocksWithReviewedBeforeUpgrade"}
+			]
+		},
+		{
+			"id": "7.4.6",
+			"statement": "The completed scenario plans nothing, and its records stay as they are.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fCompletedReviewsPlanNothingAndKeepTheirRecords"}
 			]
 		}
 	],

@@ -122,9 +122,153 @@ extension SwiftDataSuites {
 			#expect(kinds(page.records) == ["pendingProposal"])
 		}
 
-		private func open(_ scenario: String, folder: String = "Fixtures/v1-upgrade") throws
-			-> SwiftDataRecordLog
+		@Test func build6833d90fOpenReviewClosesOnceAtUpgrade() async throws {
+			let seed = try await M2Seed(
+				try open("open-review", folder: M2Seed.folder, device: M2Seed.device))
+
+			await (try seed.desk()).recover()
+			await (try seed.desk()).recover()
+
+			#expect(
+				try await seed.outcomes() == [
+					ReviewOutcomeBody(
+						chatId: .main, review: seed.review, revision: ReviewRevision(rawValue: 1),
+						after: seed.turn, ending: .closedAtUpgrade, lines: [])
+				])
+			#expect(try await seed.chain().isEmpty)
+			#expect(seed.calendar.calls.isEmpty)
+		}
+
+		@Test func build6833d90fUnknownWriteBecomesOneUnconfirmedChange() async throws {
+			let seed = try await M2Seed(
+				try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device))
+			seed.calendar.failReads()
+
+			await (try seed.desk()).recover()
+			await (try seed.desk()).recover()
+
+			let chain = try await seed.chain()
+			#expect(chain.count == 1)
+			let review = try #require(chain.first)
+			#expect(review.id == seed.review)
+			#expect(review.account == seed.account)
+			#expect(review.origin.turn == seed.turn)
+			guard case .waiting(.unconfirmed) = review.stage else {
+				Issue.record("the unknown write did not become an unconfirmed change")
+				return
+			}
+			let added = try seed.added(review)
+			#expect(added.identity == seed.identity)
+			#expect(added.identity.externalID == "cycling-coach:\(seed.identity.uid)")
+			#expect(added.payload.date == "1998-06-16")
+			#expect(added.payload.name == "Endurance with tempo")
+			#expect(try await seed.outcomes().isEmpty)
+			#expect(seed.calendar.writes.isEmpty)
+		}
+
+		@Test(arguments: M2Seed.Landing.allCases)
+		func build6833d90fUnknownAddFoundOnTheCalendarFinishesAsSeen(_ landing: M2Seed.Landing)
+			async throws
 		{
+			let seed = try await M2Seed(
+				try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device))
+			seed.calendar.failReads()
+			await (try seed.desk()).recover()
+			let added = try seed.added(try #require(try await seed.chain().first))
+			switch landing {
+			case .bulkUpsert:
+				_ = await seed.calendar.base.write(.create(added.payload, identity: seed.identity))
+			case .singleCreate:
+				seed.calendar.base.events.append(
+					CalendarEvent(
+						description:
+							"- 10m 55-65%\n\n2x\n- 10m 190-225w\n- 5m Z1-Z2\n\n- 10m 55-65%",
+						type: "Ride", id: EventID(rawValue: 7001),
+						startDateLocal: "1998-06-16T00:00:00", name: "Endurance with tempo",
+						category: "WORKOUT", externalId: seed.identity.externalID,
+						uid: seed.identity.uid, tags: [IntervalsPolicy.coachTag], coachCreated: true
+					))
+			}
+			seed.calendar.restoreReads()
+
+			await (try seed.desk()).recover()
+
+			#expect(try await seed.chain().last?.stage == .completed)
+			#expect(
+				try await seed.outcomes().map(\.lines) == [
+					[
+						OutcomeLine(
+							position: 0, action: .add, name: "Endurance with tempo",
+							date: "1998-06-16",
+							result: .seenOnCalendar)
+					]
+				])
+			#expect(seed.calendar.writes.isEmpty)
+		}
+
+		@Test func build6833d90fUnknownAddNotFoundIsApprovedAgainUnderTheSameExternalID()
+			async throws
+		{
+			let seed = try await M2Seed(
+				try open("unknown-write", folder: M2Seed.folder, device: M2Seed.device))
+			let desk = try seed.desk()
+
+			await desk.recover()
+
+			let review = try #require(try await seed.chain().last)
+			#expect(review.stage == .waiting(.approval(.interruptedBeforeWriting)))
+			let added = try seed.added(review)
+			let shown = try #require(try await desk.snapshot(chat: .main))
+			#expect(await desk.decide(.presented(shown.ref)) == .presentationRecorded)
+			guard
+				case .armed(_, let token) = try #require(try await desk.snapshot(chat: .main))
+					.controls
+			else {
+				Issue.record("the interrupted upgraded add offered no Approve")
+				return
+			}
+
+			guard case .completed = await desk.decide(.approve(token)) else {
+				Issue.record("approving the upgraded add did not complete")
+				return
+			}
+
+			#expect(seed.calendar.writes == [.create(added.payload, identity: seed.identity)])
+			#expect(
+				seed.calendar.base.events.compactMap(\.externalId) == [seed.identity.externalID])
+		}
+
+		@Test func build6833d90fUnknownWriteFromAnotherDeviceGetsNoReview() async throws {
+			let seed = try await M2Seed(
+				try open("unknown-write", folder: M2Seed.folder, device: "another-phone"))
+
+			await (try seed.desk()).recover()
+			await (try seed.desk()).recover()
+
+			#expect(try await seed.chain().isEmpty)
+			#expect(try await seed.outcomes().isEmpty)
+			#expect(seed.calendar.calls.isEmpty)
+		}
+
+		@Test func build6833d90fCompletedReviewsPlanNothingAndKeepTheirRecords() async throws {
+			let log = try open("completed", folder: M2Seed.folder, device: M2Seed.device)
+			let synced = try await log.fetch(RecordQuery(scope: .everySynced))
+			let local = try await log.fetch(RecordQuery(scope: .everyDeviceLocal))
+			let seed = try await M2Seed(log)
+
+			await (try seed.desk()).recover()
+			await (try seed.desk()).recover()
+
+			#expect(synced.skipped.isEmpty)
+			#expect(local.skipped.isEmpty)
+			#expect(try await log.fetch(RecordQuery(scope: .everySynced)) == synced)
+			#expect(try await log.fetch(RecordQuery(scope: .everyDeviceLocal)) == local)
+			#expect(seed.calendar.calls.isEmpty)
+		}
+
+		private func open(
+			_ scenario: String, folder: String = "Fixtures/v1-upgrade", device: String? = nil
+		) throws -> SwiftDataRecordLog {
 			let source = try #require(
 				Bundle.module.url(
 					forResource: scenario, withExtension: nil, subdirectory: folder))
@@ -132,11 +276,90 @@ extension SwiftDataSuites {
 			try FileManager.default.copyItem(at: source, to: root)
 			return SwiftDataRecordLog(
 				deviceId: DeviceID(
-					rawValue: folder == "Fixtures" ? scenario : "v1-upgrade-fixture"),
+					rawValue: device ?? (folder == "Fixtures" ? scenario : "v1-upgrade-fixture")),
 				synced: try ModelContainerHandle.withoutCloudKit(
 					storeURL: root.appending(path: "synced-records.store")),
 				local: try ModelContainerHandle.withoutCloudKit(
 					storeURL: root.appending(path: "local-records.store")))
 		}
+	}
+}
+
+struct M2Seed {
+	enum Landing: String, CaseIterable, CustomTestStringConvertible {
+		case bulkUpsert, singleCreate
+
+		var testDescription: String { rawValue }
+	}
+
+	static let folder = "Fixtures/build-6833d90f"
+	static let device = "build-6833d90f"
+
+	let log: SwiftDataRecordLog
+	let clock = FixedClock(now: "1998-06-15T08:05:00Z", timeZone: "Europe/Ljubljana")
+	let calendar = ScriptedCalendar(FakeIntervalsClient(athleteName: "Ada", ftp: 250))
+	let account: TrainingAccount
+	let review: WorkoutReviewID
+	let turn: TurnID
+	let identity: CalendarWriteID
+
+	init(_ log: SwiftDataRecordLog) async throws {
+		self.log = log
+		let proposals = try await log.fetch(
+			RecordQuery(scope: .deviceLocal([.pendingProposal]))
+		).records
+		let proposal = try #require(proposals.last)
+		guard case .operation(.turn(let turn), _) = proposal.cause,
+			case .deviceLocal(.pendingProposal(let body)) = proposal.body
+		else {
+			throw UnexpectedReview(detail: "the seed proposal has no turn")
+		}
+		self.turn = turn
+		account = proposal.account
+		review = WorkoutReviewID(ulid: proposal.ulid)
+		identity = try #require(body.writeID)
+	}
+
+	func desk() throws -> WorkoutReviewDesk {
+		guard case .intervals(let connection, let athlete?) = account else {
+			throw UnexpectedReview(detail: "the seed account is not an intervals.icu athlete")
+		}
+		let calendar = calendar
+		return WorkoutReviewDesk(
+			ledger: Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock, diagnostics: DiagnosticsLog(clock: clock),
+			training: { _ in
+				.connected(
+					ConnectedTraining(connection: connection, athlete: athlete, client: calendar))
+			}, host: ImmediateExecutionHost())
+	}
+
+	func added(_ review: WorkoutReview) throws -> AddedWorkout {
+		let change: ReviewChange
+		if case .waiting(.unconfirmed(let attempt)) = review.stage {
+			change = attempt.change
+		} else {
+			change = try #require(review.work.remaining.first)
+		}
+		guard case .add(let added) = change.action else {
+			throw UnexpectedReview(detail: "the upgraded review holds no add")
+		}
+		return added
+	}
+
+	func chain() async throws -> [WorkoutReview] {
+		try await log.fetch(RecordQuery(scope: .deviceLocal([.workoutReview]))).records
+			.compactMap { record in
+				guard case .deviceLocal(.workoutReview(let body)) = record.body else { return nil }
+				return body.review
+			}
+	}
+
+	func outcomes() async throws -> [ReviewOutcomeBody] {
+		try await log.fetch(RecordQuery(scope: .synced([.reviewOutcome]))).records
+			.compactMap { record in
+				guard case .synced(.reviewOutcome(let body)) = record.body else { return nil }
+				return body
+			}
 	}
 }

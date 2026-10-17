@@ -3054,6 +3054,9 @@
     },
     "notPrepared": "Impossible de préparer la vérification de séance.",
     "notPreparedInformationSaved": "Tes informations ont été enregistrées, mais la vérification de séance n’a pas pu être préparée.",
-    "stopped": "La vérification de séance s’est arrêtée avant que toutes les modifications soient faites. Les modifications déjà faites sont conservées."
+    "stopped": "La vérification de séance s’est arrêtée avant que toutes les modifications soient faites. Les modifications déjà faites sont conservées.",
+    "outcome": {
+      "closedAtUpgrade": "Cette vérification de séance a été préparée avant la mise à jour de l’app. Redemande au coach."
+    }
   }
 }

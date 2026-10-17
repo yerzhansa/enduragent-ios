@@ -3054,6 +3054,9 @@
     },
     "notPrepared": "Die Trainingsprüfung konnte nicht vorbereitet werden.",
     "notPreparedInformationSaved": "Deine Angaben wurden gespeichert, aber die Trainingsprüfung konnte nicht vorbereitet werden.",
-    "stopped": "Die Trainingsprüfung wurde beendet, bevor alle Änderungen vorgenommen wurden. Bereits vorgenommene Änderungen bleiben erhalten."
+    "stopped": "Die Trainingsprüfung wurde beendet, bevor alle Änderungen vorgenommen wurden. Bereits vorgenommene Änderungen bleiben erhalten.",
+    "outcome": {
+      "closedAtUpgrade": "Diese Trainingsprüfung wurde vor dem Update der App vorbereitet. Frag den Coach noch einmal."
+    }
   }
 }

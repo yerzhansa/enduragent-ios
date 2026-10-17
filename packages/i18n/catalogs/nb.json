@@ -3054,6 +3054,9 @@
     },
     "notPrepared": "Gjennomgangen av treningsøkten kunne ikke klargjøres.",
     "notPreparedInformationSaved": "Informasjonen din ble lagret, men gjennomgangen av treningsøkten kunne ikke klargjøres.",
-    "stopped": "Gjennomgangen av treningsøkten stoppet før alle endringene ble gjort. Endringer som allerede er gjort, beholdes."
+    "stopped": "Gjennomgangen av treningsøkten stoppet før alle endringene ble gjort. Endringer som allerede er gjort, beholdes.",
+    "outcome": {
+      "closedAtUpgrade": "Denne gjennomgangen av treningsøkten ble forberedt før appen ble oppdatert. Spør treneren på nytt."
+    }
   }
 }

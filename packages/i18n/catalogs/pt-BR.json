@@ -3054,6 +3054,9 @@
     },
     "notPrepared": "Não foi possível preparar a revisão do treino.",
     "notPreparedInformationSaved": "Suas informações foram salvas, mas não foi possível preparar a revisão do treino.",
-    "stopped": "A revisão do treino parou antes de todas as alterações serem feitas. As alterações já feitas são mantidas."
+    "stopped": "A revisão do treino parou antes de todas as alterações serem feitas. As alterações já feitas são mantidas.",
+    "outcome": {
+      "closedAtUpgrade": "Esta revisão do treino foi preparada antes da atualização do app. Peça novamente ao treinador."
+    }
   }
 }

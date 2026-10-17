@@ -3054,6 +3054,9 @@
     },
     "notPrepared": "Impossibile preparare la revisione dell’allenamento.",
     "notPreparedInformationSaved": "Le tue informazioni sono state salvate, ma non è stato possibile preparare la revisione dell’allenamento.",
-    "stopped": "La revisione dell’allenamento si è interrotta prima che tutte le modifiche fossero applicate. Le modifiche già applicate restano."
+    "stopped": "La revisione dell’allenamento si è interrotta prima che tutte le modifiche fossero applicate. Le modifiche già applicate restano.",
+    "outcome": {
+      "closedAtUpgrade": "Questa revisione dell’allenamento è stata preparata prima dell’aggiornamento dell’app. Chiedi di nuovo al coach."
+    }
   }
 }
