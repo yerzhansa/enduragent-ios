@@ -2936,8 +2936,6 @@
     "accountChanged": "Cette séance a été préparée pour un autre athlète sur {{service}}. Demande-moi à nouveau de la préparer pour l'athlète connecté.",
     "add": "Ajouter au calendrier",
     "cannotVerify": "Je n'ai pas pu vérifier ta connexion à {{service}}, donc rien n'a été modifié. Réessaie dans un instant.",
-    "turnStopping": "Cette réponse est en cours d'arrêt. Une fois arrêtée, tu pourras approuver ou annuler la vérification de la séance.",
-    "earlierVersion": "Cette vérification de séance provient d’une ancienne version de l’app et ne peut plus être appliquée.",
     "cancelledUnknown": "Annulé. Cette séance a peut-être tout de même été enregistrée. Vérifie ton calendrier.",
     "saveFailed": "Impossible d’enregistrer votre choix sur cet iPhone. Rien n’a donc été modifié. Réessayez.",
     "storageUnavailable": "Impossible de lire la vérification de séance enregistrée. Ses boutons sont temporairement désactivés.",
@@ -2948,10 +2946,7 @@
       "mainSet": "Bloc principal",
       "cooldown": "Retour au calme",
       "ramp": "progressif"
-    },
-    "writePending": "Cet entraînement a peut-être été enregistré. Vérifie le calendrier avant de continuer.",
-    "writeReadFailed": "Impossible de vérifier le calendrier. Ton entraînement approuvé est toujours en attente.",
-    "saveApprovedAgain": "Enregistrer à nouveau l'entraînement approuvé"
+    }
   },
   "credits": {
     "buy": "Acheter",

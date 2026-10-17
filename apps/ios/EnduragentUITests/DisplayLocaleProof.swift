@@ -60,7 +60,7 @@ final class DisplayLocaleProof: XCTestCase {
 		TutorialHarness.wait(app.navigationBars["Chat"])
 		TutorialHarness.wait(note)
 		XCTAssertTrue(note.label.contains(outcomeDate), note.label)
-		XCTAssertTrue(note.label.hasPrefix("Done"), note.label)
+		XCTAssertTrue(note.label.hasSuffix("change saved."), note.label)
 		TutorialHarness.attach(self, name: "u9-3-review-notice-en-\(region)", app: app)
 	}
 }

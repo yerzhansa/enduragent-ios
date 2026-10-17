@@ -89,7 +89,8 @@ extension WorkoutReviewDesk {
 				device: ledger.deviceId)
 			for ulid in plan.unreadable {
 				diagnostics.record(
-					.skippedRecord(.malformed(kind: LegacyKind.reviewWrite.rawValue, ulid: ulid.rawValue)))
+					.skippedRecord(
+						.malformed(kind: LegacyKind.reviewWrite.rawValue, ulid: ulid.rawValue)))
 			}
 			for closure in plan.closed {
 				try await close(closure)

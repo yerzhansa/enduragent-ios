@@ -577,9 +577,7 @@ ReviewDecision.tryAgain
 ReviewNotice
 ReviewNotice.Kind
 ReviewNotice.Kind.accountChanged
-ReviewNotice.Kind.earlierVersion
 ReviewNotice.Kind.partialFailure
-ReviewNotice.Kind.proposedRevision
 ReviewNotice.Kind.refreshedAfterStaleTarget
 ReviewNotice.Kind.storageUnavailable
 ReviewNotice.key

@@ -34,7 +34,10 @@ import Testing
 	}
 
 	@Test(arguments: [
-		(#"{"chatId":"main","summary":"Legacy outcome"}"#, ReviewSummary.supplied("Legacy outcome")),
+		(
+			#"{"chatId":"main","summary":"Legacy outcome"}"#,
+			ReviewSummary.supplied("Legacy outcome")
+		),
 		(
 			#"{"chatId":"main","change":{"createWorkout":{"name":"Endurance","date":"1998-06-14"}}}"#,
 			.createWorkout(name: "Endurance", date: "1998-06-14")

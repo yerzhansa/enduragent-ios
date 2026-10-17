@@ -25,15 +25,35 @@
 		static let longReply = (1...longReplyLines).map { "Day \($0). " + weekSummary }
 			.joined(separator: "\n")
 
-		static let workoutArguments = """
-			{"date":"1998-06-16","workout":{"name":"Endurance with tempo","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}},{"type":"ramp","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":60.5,"high":80.5},"cadence":{"value":90},"label":"Warmup ramp 1.5"},{"type":"set","repeat":2,"interval":{"type":"interval","duration":{"value":10,"unit":"minutes"},"power":{"kind":"watts","low":190.5,"high":225.5},"cadence":{"low":85,"high":95}},"recovery":{"type":"recovery","duration":{"value":5,"unit":"minutes"},"power":{"kind":"zone","low":1,"high":2}}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}
-			"""
+		static let workout =
+			#"{"name":"Endurance with tempo","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}},{"type":"ramp","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":60.5,"high":80.5},"cadence":{"value":90},"label":"Warmup ramp 1.5"},{"type":"set","repeat":2,"interval":{"type":"interval","duration":{"value":10,"unit":"minutes"},"power":{"kind":"watts","low":190.5,"high":225.5},"cadence":{"low":85,"high":95}},"recovery":{"type":"recovery","duration":{"value":5,"unit":"minutes"},"power":{"kind":"zone","low":1,"high":2}}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}"#
+
+		static let preparationArguments =
+			#"{"preparation":{"kind":"complete","changes":[{"kind":"add-cycling","date":"\#(tomorrow.rawValue)","workout":\#(workout)}]}}"#
+
+		static let preparation: [ScriptedEvent] = [
+			.toolCall(
+				name: ToolName.prepareWorkoutChanges.rawValue, arguments: preparationArguments),
+			.finish(reason: .toolCalls),
+		]
 
 		static func install(on secrets: ICloudKeychainStore) throws {
 			try secrets.storeCreditsAccount(
 				CreditsAccount(
 					appAccountToken: secrets.prepareCreditsAccount().appAccountToken,
 					key: creditsKey))
+		}
+
+		static func installReviewSeedConnection(on secrets: ICloudKeychainStore) throws {
+			guard let athlete = IntervalsAthleteID(rawValue: FixtureStorePolicy.reviewSeedAthlete)
+			else {
+				throw FixtureLaunchError.unknownArgument(
+					key: "seedAthlete", value: FixtureStorePolicy.reviewSeedAthlete)
+			}
+			try secrets.storeIntervalsConnection(
+				IntervalsConnection(
+					id: ConnectionID(rawValue: FixtureStorePolicy.reviewSeedConnection),
+					credential: .apiKey("fixture"), selection: .keyOwner, resolvedAthlete: athlete))
 		}
 
 		static func install(on credits: FakeCreditsClient) {
@@ -70,10 +90,7 @@
 				guard offersTrainingTools else {
 					return [.text(trainingDataMissing), .finish(reason: .stop)]
 				}
-				return [
-					.toolCall(
-						name: ToolName.intervalsCreateWorkout.rawValue, arguments: workoutArguments),
-					.finish(reason: .toolCalls),
+				return preparation + [
 					.text("I've prepared the ride. Confirm to add it."),
 					.finish(reason: .stop),
 				]

@@ -2936,8 +2936,6 @@
     "accountChanged": "Este treino foi preparado para outro atleta no {{service}}. Peça de novo para eu prepará-lo para o atleta conectado.",
     "add": "Adicionar ao calendário",
     "cannotVerify": "Não consegui verificar sua conexão com {{service}}, então nada foi alterado. Tente novamente daqui a pouco.",
-    "turnStopping": "Esta resposta está sendo interrompida. Quando parar, você poderá aprovar ou cancelar a revisão do treino.",
-    "earlierVersion": "Esta revisão de treino é de uma versão anterior do app e não pode mais ser aplicada.",
     "cancelledUnknown": "Cancelado. Este treino pode ter sido salvo mesmo assim. Confira seu calendário.",
     "saveFailed": "Não foi possível salvar sua escolha neste iPhone, então nada foi alterado. Tente novamente.",
     "storageUnavailable": "Não foi possível ler a revisão do treino salva. Os botões estão temporariamente desativados.",
@@ -2948,10 +2946,7 @@
       "mainSet": "Série principal",
       "cooldown": "Desaquecimento",
       "ramp": "rampa"
-    },
-    "writePending": "Este treino pode ter sido salvo. Confira o calendário antes de continuar.",
-    "writeReadFailed": "Não foi possível verificar o calendário. Seu treino aprovado continua pendente.",
-    "saveApprovedAgain": "Salvar novamente o treino aprovado"
+    }
   },
   "credits": {
     "buy": "Comprar",

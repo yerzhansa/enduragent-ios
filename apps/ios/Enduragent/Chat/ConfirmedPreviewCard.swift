@@ -8,6 +8,11 @@ struct ConfirmedPreviewCard: View {
 	var body: some View {
 		GroupBox(say(Catalog.reviewTitle)) {
 			VStack(alignment: .leading, spacing: 12) {
+				if review.placement == .preparedEarlier {
+					Text(say(Catalog.workoutsPreparedEarlier))
+						.foregroundStyle(.secondary)
+						.accessibilityIdentifier("chat.preview.preparedEarlier")
+				}
 				ForEach(review.cards, id: \.index) { card in
 					Text(
 						card.lines(in: model.displayLocale).isEmpty
@@ -41,43 +46,15 @@ struct ConfirmedPreviewCard: View {
 	}
 
 	var actions: [ConfirmedPreviewAction] {
-		if case .storageUnavailable = review.state {
-			return [
-				ConfirmedPreviewAction(
-					button: .retryRead, decision: .checkAgainWithoutToken(review.ref))
-			]
-		}
-		guard review.authority == .thisDevice else { return [] }
-		return switch review.controls {
-		case .approveOrCancel(let token):
-			[
-				ConfirmedPreviewAction(button: .cancel, decision: .cancel(token)),
-				ConfirmedPreviewAction(button: .add, decision: .approve(token)),
-			]
-		case .checkAgain(let ref):
-			[ConfirmedPreviewAction(button: .checkAgain, decision: .checkAgainWithoutToken(ref))]
-		case .retryRemainingOrCancel(let token):
-			[
-				ConfirmedPreviewAction(
-					button: .checkAgain, decision: .checkAgainWithoutToken(token.ref)),
-				ConfirmedPreviewAction(button: .cancel, decision: .cancel(token)),
-				ConfirmedPreviewAction(button: .saveAgain, decision: .retryRemaining(token)),
-			]
-		case .cancelOnly(let token):
-			[ConfirmedPreviewAction(button: .cancel, decision: .cancel(token))]
-		case .none, .armed: []
+		guard case .armed(let set, let token) = review.controls else { return [] }
+		return ConfirmedPreviewButton.layout(of: set).map { button in
+			ConfirmedPreviewAction(button: button, decision: button.decision(token))
 		}
 	}
 
 	var disabledButtons: [ConfirmedPreviewButton] {
-		guard case .storageUnavailable(_, let layout) = review.state else { return [] }
-		return switch layout {
-		case .none: []
-		case .approveOrCancel: [.cancel, .add]
-		case .retryRemainingOrCancel: [.checkAgain, .cancel, .saveAgain]
-		case .checkAgain: [.checkAgain]
-		case .cancelOnly: [.cancel]
-		}
+		guard case .storageUnavailable(_, let disabled?) = review.state else { return [] }
+		return ConfirmedPreviewButton.layout(of: disabled)
 	}
 
 	@ViewBuilder
@@ -127,17 +104,33 @@ struct ReviewOutcomeNotice: View {
 enum ConfirmedPreviewButton: String {
 	case cancel = "chat.preview.cancel"
 	case add = "chat.preview.add"
+	case tryAgain = "chat.preview.tryAgain"
 	case checkAgain = "chat.preview.checkAgain"
-	case saveAgain = "chat.preview.saveAgain"
-	case retryRead = "chat.preview.retryRead"
+
+	static func layout(of set: ControlSet) -> [Self] {
+		switch set {
+		case .approveOrCancel: [.cancel, .add]
+		case .tryAgainOrCancel: [.tryAgain, .cancel]
+		case .checkAgainOrCancel: [.checkAgain, .cancel]
+		case .cancelOnly: [.cancel]
+		}
+	}
 
 	var title: CatalogKey {
 		switch self {
 		case .cancel: Catalog.commonCancel
 		case .add: Catalog.reviewAdd
+		case .tryAgain: Catalog.chatTranscriptRetry
 		case .checkAgain: Catalog.setupTelegramCheckAgain
-		case .saveAgain: Catalog.reviewSaveApprovedAgain
-		case .retryRead: Catalog.chatTranscriptRetry
+		}
+	}
+
+	func decision(_ token: ReviewControlToken) -> ReviewDecision {
+		switch self {
+		case .cancel: .cancel(token)
+		case .add: .approve(token)
+		case .tryAgain: .tryAgain(token)
+		case .checkAgain: .checkAgain(token)
 		}
 	}
 }

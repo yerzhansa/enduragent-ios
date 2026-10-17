@@ -19,10 +19,12 @@ struct TranscriptView: View {
 							newConversationNotice(notice)
 						}
 					}
+					reviewCard(at: .preparedEarlier)
 					notes(after: nil)
 					ForEach(model.chat?.turns ?? []) { turn in
 						TurnRowView(model: model, turn: turn)
 						notes(after: turn.id)
+						reviewCard(at: .afterTurn(turn.id))
 					}
 					if case .waiting? = model.chat?.reset {
 						Text(model.phrasebook.say(Catalog.chatNoticeStartingNewConversation, [:]))
@@ -50,10 +52,7 @@ struct TranscriptView: View {
 								.accessibilityIdentifier("chat.access.outcome")
 						}
 					}
-					if let review = model.chat?.review {
-						ConfirmedPreviewCard(model: model, review: review)
-							.fixedSize(horizontal: false, vertical: true)
-					} else if let notice = model.reviewNotice {
+					if model.chat?.review == nil, let notice = model.reviewNotice {
 						ReviewOutcomeNotice(model: model, notice: notice)
 					}
 				}
@@ -115,6 +114,14 @@ struct TranscriptView: View {
 		ForEach(model.chat?.notes[turn] ?? []) { note in
 			Text(note.sentence(in: model.displayLocale))
 				.accessibilityIdentifier("chat.note")
+		}
+	}
+
+	@ViewBuilder
+	private func reviewCard(at placement: ReviewPlacement) -> some View {
+		if let review = model.chat?.review, review.placement == placement {
+			ConfirmedPreviewCard(model: model, review: review)
+				.fixedSize(horizontal: false, vertical: true)
 		}
 	}
 

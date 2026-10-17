@@ -178,8 +178,6 @@ package enum AthleteNotices {
 	private static let intervals = "intervals.icu"
 	package static let unrecoveredClaim = AthleteNotice(
 		key: Catalog.chatHistoryFailure, actions: [])
-	package static let earlierVersion = ReviewNotice(
-		kind: .earlierVersion, key: Catalog.reviewEarlierVersion, vars: [:])
 	package static let accountChanged = ReviewNotice(
 		kind: .accountChanged, key: Catalog.reviewAccountChanged, vars: ["service": intervals])
 

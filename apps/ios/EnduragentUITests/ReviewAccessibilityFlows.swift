@@ -21,29 +21,42 @@ enum ReviewAccessibility {
 		card.capture("cancelled")
 	}
 
-	static func uncertainSave(_ test: XCTestCase, _ language: LanguageTag) {
-		let arguments = FixtureArguments(calendarSaveFault: .loseAnswerOnce)
+	static func unconfirmedChange(_ test: XCTestCase, _ language: LanguageTag) {
+		let arguments = FixtureArguments(
+			store: .unknownWriteBeforeUpgrade, onboarded: true, calendarReadFault: .failOnce)
+		let run = MatrixRun.begin(test, language, arguments: arguments)
+		TutorialHarness.wait(run.named("chat.preview.checkAgain"), until: .enabled)
+		reopenAtLargestText(run.app, arguments)
+		let card = ReviewCardReading(run: run, workout: ReviewCardReading.upgradedLabel)
+		TutorialHarness.wait(run.named("chat.preview.checkAgain"), until: .enabled, within: .turn)
+		card.expect(notice: [], controls: [.checkAgain, .cancel], screen: "unconfirmed")
+		card.reach(.checkAgain).tap()
+		TutorialHarness.wait(run.named("chat.preview.tryAgain"), until: .enabled)
+		card.expect(notice: [], controls: [.tryAgain, .cancel], screen: "try-again")
+		card.reach(.tryAgain)
+		card.reach(.cancel).tap()
+		TutorialHarness.wait(run.named("chat.preview.cancel"), until: .absent)
+		XCTAssertFalse(run.named("chat.preview.tryAgain").exists)
+		card.capture("cancelled-unsaved")
+	}
+
+	static func blockedReview(_ test: XCTestCase, _ language: LanguageTag) {
+		let arguments = FixtureArguments()
 		let run = MatrixRun.begin(test, language, arguments: arguments)
 		TutorialHarness.exchange(run.app, TutorialHarness.workout)
 		TutorialHarness.wait(run.named("chat.preview.add"), until: .enabled)
+		TutorialHarness.fixtureControl(run.app, "fixture.switchAthlete")
 		run.tap("chat.preview.add")
-		run.expect("chat.preview.notice", Catalog.reviewWritePending)
-		TutorialHarness.wait(run.named("chat.preview.checkAgain"), until: .enabled)
+		run.expect(
+			"chat.review.notice", Catalog.reviewAccountChanged, ["service": "intervals.icu"])
+		TutorialHarness.wait(run.named("chat.preview.add"), until: .absent)
 		reopenAtLargestText(run.app, arguments)
 		let card = ReviewCardReading(run: run)
-		let pending = ReviewCardReading.Line.text(
-			"chat.preview.notice", run.say(Catalog.reviewWritePending))
-		TutorialHarness.wait(run.named("chat.preview.checkAgain"), until: .enabled, within: .turn)
-		card.expect(notice: [pending], controls: [.checkAgain], screen: "save-uncertain")
-		card.reach(.checkAgain).tap()
-		TutorialHarness.wait(run.named("chat.preview.saveAgain"), until: .enabled)
-		card.expect(
-			notice: [pending], controls: [.checkAgain, .cancel, .saveAgain], screen: "save-again")
-		card.reach(.saveAgain)
+		TutorialHarness.wait(run.named("chat.preview.cancel"), until: .enabled, within: .turn)
+		card.expect(notice: [], controls: [.cancel], screen: "cancel-only")
 		card.reach(.cancel).tap()
 		TutorialHarness.wait(run.named("chat.preview.cancel"), until: .absent)
-		run.expect("chat.note", Catalog.reviewCancelledUnknown)
-		card.capture("cancelled-unknown")
+		card.capture("cancelled-blocked")
 	}
 
 	static func reopenAtLargestText(_ app: XCUIApplication, _ arguments: FixtureArguments) {
@@ -59,19 +72,20 @@ enum ReviewAccessibility {
 @MainActor
 struct ReviewCardReading {
 	let run: MatrixRun
+	var workout = Self.copiedLabel
 
 	enum Control: String {
 		case cancel = "chat.preview.cancel"
 		case add = "chat.preview.add"
+		case tryAgain = "chat.preview.tryAgain"
 		case checkAgain = "chat.preview.checkAgain"
-		case saveAgain = "chat.preview.saveAgain"
 
 		var title: CatalogKey {
 			switch self {
 			case .cancel: Catalog.commonCancel
 			case .add: Catalog.reviewAdd
+			case .tryAgain: Catalog.chatTranscriptRetry
 			case .checkAgain: Catalog.setupTelegramCheckAgain
-			case .saveAgain: Catalog.reviewSaveApprovedAgain
 			}
 		}
 	}
@@ -97,6 +111,7 @@ struct ReviewCardReading {
 	}
 
 	static let copiedLabel = "Warmup ramp 1.5"
+	static let upgradedLabel = "190-225w"
 	static let minimumTarget: CGFloat = 44
 
 	func expect(notice: [Line], controls: [Control], screen: String) {
@@ -119,7 +134,7 @@ struct ReviewCardReading {
 			"\(name(screen)): VoiceOver does not start at the review title: \(heard)")
 		XCTAssertTrue(
 			lines.count > 1 && lines[1].type == .staticText
-				&& lines[1].label.contains(Self.copiedLabel),
+				&& lines[1].label.contains(workout),
 			"\(name(screen)): the workout does not follow the title: \(heard)")
 		XCTAssertEqual(
 			Array(lines.dropFirst(2)), expected,
@@ -178,7 +193,7 @@ struct ReviewCardReading {
 	}
 
 	private func name(_ screen: String) -> String {
-		"u9-6-\(run.language.rawValue)-\(screen)"
+		"u9-2-\(run.language.rawValue)-\(screen)"
 	}
 
 	private func spoken() throws -> (items: [Spoken], frame: CGRect) {

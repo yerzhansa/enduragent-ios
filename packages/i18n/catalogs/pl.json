@@ -3008,8 +3008,6 @@
     "accountChanged": "Ten trening przygotowano dla innego sportowca w {{service}}. Poproś mnie ponownie o przygotowanie go dla połączonego sportowca.",
     "add": "Dodaj do kalendarza",
     "cannotVerify": "Nie mogę sprawdzić Twojego połączenia z {{service}}, więc nic się nie zmieniło. Spróbuj ponownie za chwilę.",
-    "turnStopping": "Ta odpowiedź jest zatrzymywana. Po jej zatrzymaniu możesz zatwierdzić lub anulować przegląd treningu.",
-    "earlierVersion": "Ten przegląd treningu pochodzi z wcześniejszej wersji aplikacji i nie można go już zastosować.",
     "cancelledUnknown": "Anulowano. Ten trening mógł mimo to zostać zapisany. Sprawdź swój kalendarz.",
     "saveFailed": "Nie udało się zapisać Twojego wyboru na tym iPhonie, więc nic nie zostało zmienione. Spróbuj ponownie.",
     "storageUnavailable": "Nie udało się odczytać zapisanego przeglądu treningu. Jego przyciski są tymczasowo wyłączone.",
@@ -3020,10 +3018,7 @@
       "mainSet": "Seria główna",
       "cooldown": "Schłodzenie",
       "ramp": "narastająco"
-    },
-    "writePending": "Ten trening mógł zostać zapisany. Sprawdź kalendarz, zanim przejdziesz dalej.",
-    "writeReadFailed": "Nie udało się sprawdzić kalendarza. Zatwierdzony trening nadal oczekuje na potwierdzenie.",
-    "saveApprovedAgain": "Zapisz ponownie zatwierdzony trening"
+    }
   },
   "credits": {
     "buy": "Kup",

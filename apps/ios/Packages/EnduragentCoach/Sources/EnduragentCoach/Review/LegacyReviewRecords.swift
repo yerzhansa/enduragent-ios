@@ -31,7 +31,8 @@ enum LegacyReviewRecords {
 		let ordered = local.sorted { $0.hlc < $1.hlc }
 		var clearedAt: [Nonce: HybridLogicalClock] = [:]
 		for record in ordered {
-			if case .legacy(.proposalCleared(let cleared, let nonce)) = record.body, cleared == chat {
+			if case .legacy(.proposalCleared(let cleared, let nonce)) = record.body, cleared == chat
+			{
 				clearedAt[nonce] = record.hlc
 			}
 		}

@@ -113,7 +113,8 @@ func kinds(_ records: [AthleteRecord]) -> [String] {
 func legacyCancellation(review: WorkoutReviewID, chat: ChatID = .main) throws
 	-> ReviewCancelledUnknownBody
 {
-	let json = #"{"chatId":"\#(chat.rawValue)","observation":"absent","review":"\#(review.ulid.rawValue)"}"#
+	let json =
+		#"{"chatId":"\#(chat.rawValue)","observation":"absent","review":"\#(review.ulid.rawValue)"}"#
 	let decoded = try RecordCodec.decode(
 		kind: LegacyKind.reviewCancelledUnknown.rawValue, version: 2, data: Data(json.utf8),
 		civilDate: "1998-06-14", ulid: review.ulid.rawValue

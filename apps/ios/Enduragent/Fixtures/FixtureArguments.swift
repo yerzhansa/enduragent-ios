@@ -9,13 +9,37 @@
 		case v1History = "v1-history"
 		case v1Review = "v1-review"
 		case preVault = "pre-vault-5de5c782"
+		case openReviewBeforeUpgrade = "build-6833d90f-open-review"
+		case unknownWriteBeforeUpgrade = "build-6833d90f-unknown-write"
+		case completedBeforeUpgrade = "build-6833d90f-completed"
+
+		static let reviewSeedDevice = "build-6833d90f"
+		static let reviewSeedConnection = UUID(
+			uuid: (
+				0x7F, 0x23, 0x99, 0x00, 0x8A, 0x92, 0x44, 0xE2, 0xAB, 0xC4, 0xC6, 0x64, 0x55, 0x5D,
+				0xC5, 0xAE
+			))
+		static let reviewSeedAthlete = "i1001"
 
 		var upgradeResource: (folder: String?, name: String, device: String)? {
 			switch self {
 			case .v1History: ("v1-upgrade", "history", "v1-upgrade-fixture")
 			case .v1Review: ("v1-upgrade", "review", "v1-upgrade-fixture")
 			case .preVault: (nil, rawValue, rawValue)
+			case .openReviewBeforeUpgrade:
+				(Self.reviewSeedDevice, "open-review", Self.reviewSeedDevice)
+			case .unknownWriteBeforeUpgrade:
+				(Self.reviewSeedDevice, "unknown-write", Self.reviewSeedDevice)
+			case .completedBeforeUpgrade:
+				(Self.reviewSeedDevice, "completed", Self.reviewSeedDevice)
 			case .fresh, .keep, .unreadable: nil
+			}
+		}
+
+		var keepsSeedConnection: Bool {
+			switch self {
+			case .openReviewBeforeUpgrade, .unknownWriteBeforeUpgrade, .completedBeforeUpgrade: true
+			case .fresh, .keep, .unreadable, .v1History, .v1Review, .preVault: false
 			}
 		}
 	}

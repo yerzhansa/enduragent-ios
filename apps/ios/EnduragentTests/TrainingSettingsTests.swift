@@ -139,7 +139,7 @@ struct TrainingSettingsTests {
 		#expect(editor.key.isEmpty)
 		await editor.keep()
 		#expect(try fixture.secrets.intervalsConnection() == previous)
-		#expect(model.chat?.review?.controls == .approveOrCancel(token))
+		#expect(model.chat?.review?.controls == .armed(.approveOrCancel, token))
 		editor.edit()
 		editor.key = "other-athlete"
 		await editor.replace()

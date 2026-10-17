@@ -156,6 +156,9 @@
 			if launch.store != .keep, launch.keychain != .empty {
 				try FirstWeekFixture.install(launch.accessMethod, on: fixture.store)
 			}
+			if launch.store.keepsSeedConnection {
+				try FirstWeekFixture.installReviewSeedConnection(on: fixture.store)
+			}
 			fixture.backing.locked = launch.keychain == .locked
 			fixture.backing.unavailable = launch.keychain == .unavailable
 			if launch.keychain == .malformedIntervals {
