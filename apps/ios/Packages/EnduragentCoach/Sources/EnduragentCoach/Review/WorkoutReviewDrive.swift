@@ -53,10 +53,60 @@ extension WorkoutReviewDesk {
 			saved = .record(
 				try await ledger.commit(review: canceled, stamp: stamp, after: head).ulid)
 		} catch {
-			return ending(error)
+			return ending(error, in: canceled.chat)
 		}
 		deliveries[canceled.chat] = nil
-		return await effects.pass { await drive(canceled, at: saved, stamp: stamp) }
+		moved(canceled.chat)
+		return await effects.pass {
+			await drive(canceled, at: saved, from: .claimed, stamp: stamp)
+		}
+	}
+
+	func checkingAgain(_ token: ReviewControlToken) async -> ReviewOutcome {
+		switch await admit(token, allowing: { $0 == .checkAgainOrCancel }) {
+		case .refused(let outcome):
+			return outcome
+		case .admitted(let head, let review):
+			return await drive(
+				review, at: head, from: .resume,
+				stamp: stamp(for: review, attempt: await ledger.nextULID()))
+		}
+	}
+
+	package func recover() async {
+		await effects.pass {
+			let chats: Set<ChatID>
+			do throws(LedgerFailure) {
+				chats = try await ledger.reviewChats()
+			} catch {
+				diagnostics.record(.recoveryUnavailable(error))
+				return
+			}
+			for chat in chats.sorted(by: { $0.rawValue < $1.rawValue }) {
+				await resume(chat)
+			}
+		}
+	}
+
+	private func resume(_ chat: ChatID) async {
+		if stalled.contains(chat) { moved(chat) }
+		let head: RecordHead
+		let review: WorkoutReview
+		let published: Bool
+		do throws(LedgerFailure) {
+			let current = try await ledger.reviewHead(chat: chat)
+			guard let saved = current.1 else { return }
+			head = current.0
+			review = saved
+			published = try await isPublished(saved)
+		} catch {
+			diagnostics.record(.reviewUnavailable(chat, error))
+			return
+		}
+		guard review.nextStep(.resume, summarySaved: published) != .idle else { return }
+		_ = await drive(
+			review, at: head, from: .resume,
+			stamp: stamp(for: review, attempt: await ledger.nextULID()))
 	}
 
 	private func admit(
@@ -90,27 +140,31 @@ extension WorkoutReviewDesk {
 			saved = .record(
 				try await ledger.commit(review: claimed, stamp: stamp, after: head).ulid)
 		} catch {
-			return ending(error)
+			return ending(error, in: claimed.chat)
 		}
 		deliveries[claimed.chat] = nil
-		return await drive(claimed, at: saved, stamp: stamp)
+		moved(claimed.chat)
+		return await drive(claimed, at: saved, from: .claimed, stamp: stamp)
 	}
 
-	private func drive(_ start: WorkoutReview, at saved: RecordHead, stamp: OperationStamp) async
-		-> ReviewOutcome
-	{
+	private func drive(
+		_ start: WorkoutReview, at saved: RecordHead, from first: DriveStart,
+		stamp: OperationStamp
+	) async -> ReviewOutcome {
 		var review = start
 		var head = saved
+		var step = first
 		var calendar: ConnectedTraining?
 		var summarySaved = false
 		while true {
 			let next: WorkoutReview?
+			defer { step = .claimed }
 			do throws(TransitionRefusal) {
-				switch review.nextStep(.claimed, summarySaved: summarySaved) {
+				switch review.nextStep(step, summarySaved: summarySaved) {
 				case .idle:
 					return ReviewProjection.outcome(after: review)
 				case .publish:
-					guard await publish(review, stamp: stamp) else { return .storageUnavailable }
+					guard await publish(review, stamp: stamp) else { return stall(review.chat) }
 					summarySaved = true
 					continue
 				case .preflight:
@@ -120,7 +174,7 @@ extension WorkoutReviewDesk {
 				case .send(let attempt):
 					next = try await send(attempt, of: review, on: calendar)
 				case .settle(let attempt):
-					next = try review.settled(await read(attempt, on: calendar))
+					next = try review.settled(await settle(attempt, of: review))
 				case .restore:
 					next = try review.restoredAfterInterruption()
 				}
@@ -135,8 +189,9 @@ extension WorkoutReviewDesk {
 				if case .waiting = next.stage {
 					deliveries[next.chat] = .fresh(for: next, at: record.ulid)
 				}
+				moved(next.chat)
 			} catch {
-				return ending(error)
+				return ending(error, in: next.chat)
 			}
 		}
 	}
@@ -181,18 +236,31 @@ extension WorkoutReviewDesk {
 		}
 	}
 
+	private func settle(_ attempt: SendAttempt, of review: WorkoutReview) async -> SettleRead {
+		let connection: TrainingConnection
+		do throws(AccessUnavailable) {
+			connection = try await training(true)
+		} catch {
+			return .readFailed
+		}
+		guard case .connected(let connected) = connection,
+			review.account.authority(under: connected.account).permitsWrites
+		else { return .readFailed }
+		return await read(attempt, on: connected)
+	}
+
 	private func read(_ attempt: SendAttempt, on calendar: ConnectedTraining?) async -> SettleRead {
 		guard let calendar, !Task.isCancelled else { return .readFailed }
 		return await CalendarWriter.settle(attempt, on: calendar.client)
 	}
 
-	private func ending(_ failure: TransitionFailure) -> ReviewOutcome {
+	private func ending(_ failure: TransitionFailure, in chat: ChatID) -> ReviewOutcome {
 		switch failure {
 		case .headMoved:
 			return .staleControl(newer: nil)
 		case .storage(let storage):
 			diagnostics.record(.reviewOutcomeUnsaved(storage))
-			return .storageUnavailable
+			return stall(chat)
 		}
 	}
 

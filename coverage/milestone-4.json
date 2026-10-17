@@ -15,7 +15,8 @@
 		"5.1": 10,
 		"5.2": 4,
 		"4.2": 12,
-		"6.2": 12
+		"6.2": 12,
+		"7.2": 8
 	},
 	"criteria": [
 		{
@@ -935,6 +936,67 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "theRunHoldsOneLeaseFromTheClaimUntilItEnds"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewExecutionTests.swift", "function": "anEndedLeaseLeavesTheChangeInFlightUnconfirmedForRecovery"}
 			]
+		},
+		{
+			"id": "7.2.1",
+			"statement": "Each execution row of the crash table stops the old drive for good at its point, and recover() on a new desk over the same store leaves the expected head with the exact request count, with no request or append from the stopped drive after its point; each row with a request runs for an add, an edit and a delete, and the landed add includes one moved 30 days later.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryTests.swift", "function": "aDriveStoppedForGoodAtEachPointIsSettledByTheNextRecover"}
+			]
+		},
+		{
+			"id": "7.2.2",
+			"statement": "A failed append at each append of the mixed run, the summary included, ends the drive with a storage failure whose snapshot shows the storage notice and no control, and the next recover() resumes from the last saved head.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "aFailedAppendShowsTheStorageNoticeUntilTheNextRecoverResumesTheRun"}
+			]
+		},
+		{
+			"id": "7.2.3",
+			"statement": "An unconfirmed change is read again at every recover() call and at Check again; a read that finds it ends the unconfirmed state, and a read that fails writes no record and leaves the token usable.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "anUnconfirmedChangeIsReadAgainAtEveryRecover"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainReadsTheChangeAndAFailedReadKeepsTheTokenUsable"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "aChangeLeftUnconfirmedByAnEndedLeaseIsSettledByTheNextRecover"}
+			]
+		},
+		{
+			"id": "7.2.4",
+			"statement": "Check again with a stale token, or in any other stage, reads nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainWithAStaleTokenReadsNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CheckAgainTests.swift", "function": "checkAgainInAnyOtherStageReadsNothingAndKeepsTheToken"}
+			]
+		},
+		{
+			"id": "7.2.5",
+			"statement": "Two recover() calls at once, on one desk or on two, or a kill inside one, end in the same head as one call, and recovery finds each chat that holds a review chain once.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "recoversAtOnceOrAKillInsideOneEndInTheHeadOfOneCall"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "theReviewChatsAreEachChatWithAReviewChainOnce"}
+			]
+		},
+		{
+			"id": "7.2.6",
+			"statement": "A second desk's recover() during a live send of an add leaves one chain with no two records after one head and one calendar event for the add, with one POST for that change, and the first desk stops on headMoved when its answer is released.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "aSecondDeskRecoveringDuringALiveSendLeavesOneChainAndOneEvent"}
+			]
+		},
+		{
+			"id": "7.2.7",
+			"statement": "Relaunch and device restart more than ten minutes after a review was prepared restore the same review and revision, and the same control set once the view presents it again, with no model request.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRestoreTests.swift", "function": "aReviewPreparedMoreThanTenMinutesAgoIsRestoredWithItsControls"}
+			]
+		},
+		{
+			"id": "7.2.8",
+			"statement": "holdsBoundWork is true for a waiting, running or unconfirmed head and for a preparing attempt, and false for a completed or canceled head, a canceled unconfirmed change included; the changes stream names the chat whose card a recover changed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "boundWorkIsAPreparingAttemptOrAHeadThatIsNotTerminal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "theChangesStreamNamesTheChatWhoseCardTheRecoverChanged"}
+			]
 		}
 	],
 	"requirements": [
@@ -1127,6 +1189,21 @@
 			"id": "G04",
 			"statement": "Review and apply the mixed set: the old control of a revised or refreshed review writes nothing, and the approved set applies once.",
 			"criteria": ["4.2.5", "6.2.1", "6.2.5"]
+		},
+		{
+			"id": "B21.03",
+			"statement": "Exact pending reviews and partial execution are restored after a relaunch.",
+			"criteria": ["7.2.1", "7.2.2", "7.2.7"]
+		},
+		{
+			"id": "D07",
+			"statement": "Relaunch and device restart more than ten minutes later restore the review.",
+			"criteria": ["7.2.1", "7.2.2", "7.2.7"]
+		},
+		{
+			"id": "D08",
+			"statement": "A partial failure is restored without replaying a finished change.",
+			"criteria": ["7.2.1", "7.2.2", "7.2.7"]
 		}
 	],
 	"plan": {
@@ -1260,7 +1337,6 @@
 		"B20.03",
 		"B20.05",
 		"B21.02",
-		"B21.03",
 		"B21.04",
 		"B21.05",
 		"A01",
@@ -1291,8 +1367,6 @@
 		"D04",
 		"D05",
 		"D06",
-		"D07",
-		"D08",
 		"D09",
 		"D10",
 		"D11",
