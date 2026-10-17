@@ -79,8 +79,10 @@ extension ReviewEdit {
 				display.say(
 					Catalog.workoutsCardChangedDuration,
 					[
-						"from": Self.amount(durationMinutes, in: display, ReviewCard.minutes(_:in:)),
-						"to": Self.amount(card.durationMinutes, in: display, ReviewCard.minutes(_:in:)),
+						"from": Self.amount(
+							durationMinutes, in: display, ReviewCard.minutes(_:in:)),
+						"to": Self.amount(
+							card.durationMinutes, in: display, ReviewCard.minutes(_:in:)),
 					])
 			case .load:
 				display.say(

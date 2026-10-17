@@ -1,3 +1,4 @@
+import EnduragentCoach
 import XCTest
 
 @MainActor
@@ -33,7 +34,12 @@ final class ReviewCardsEditProof: XCTestCase {
 		ReviewCardContent.expect(edit, title: "Endurance")
 		ReviewCardContent.expect(edit, heading: "Edit · 3 of 4 · 6/18/1998 · 75 min")
 		ReviewCardContent.expect(
-			edit, changes: ["Duration: 60 min → 75 min", "The workout steps change."])
+			edit,
+			changes: [
+				"Duration: 60 min → 75 min", "Estimated training load: 40 → 60",
+				"The workout steps change.",
+			])
+		ReviewCardContent.expect(edit, load: "Estimated training load: 60")
 		let steps = ReviewCardContent.line(edit, "steps")
 		TutorialHarness.wait(steps)
 		let readable = steps.label
@@ -50,7 +56,7 @@ final class ReviewCardsEditProof: XCTestCase {
 			renamed,
 			changes: [
 				"Name: Endurance → Threshold 3x10", "Duration: 60 min → 75 min",
-				"The workout steps change.",
+				"Estimated training load: 40 → 60", "The workout steps change.",
 			])
 		XCTAssertEqual(ReviewCardContent.line(renamed, "steps").label, readable)
 		TutorialHarness.bringIntoTranscript(app, renamed)
@@ -75,6 +81,45 @@ final class ReviewCardsDeleteProof: XCTestCase {
 		XCTAssertEqual(
 			review.buttons.matching(NSPredicate(format: "label == %@", "Add to calendar")).count, 0)
 		TutorialHarness.attach(self, name: "u8-1-review-cards-delete", app: app)
+	}
+}
+
+@MainActor
+final class ReviewCardsLargestTextProof: XCTestCase {
+	func testGermanChartLabelsNeitherOverlapNorLeaveTheCard() {
+		let arguments = FixtureArguments()
+		let run = MatrixRun.begin(self, .de, arguments: arguments)
+		TutorialHarness.exchange(run.app, ReviewCardContent.mixed)
+		TutorialHarness.wait(ReviewCardContent.approve(run.app), until: .enabled)
+		ReviewAccessibility.reopenAtLargestText(run.app, arguments)
+		TutorialHarness.wait(ReviewCardContent.approve(run.app), until: .enabled, within: .turn)
+		let card = ReviewCardContent.card(run.app, 0)
+		let chart = card.descendants(matching: .any)
+			.matching(identifier: "chat.preview.card.chart").firstMatch
+		let ticks = chart.staticTexts.matching(identifier: "chat.preview.card.chart.tick")
+		TutorialHarness.wait(
+			until: { ticks.allElementsBoundByIndex.map(\.label) == ["75", "50"] },
+			message: "the chart did not show its axis labels 75 and 50")
+		for tick in ticks.allElementsBoundByIndex {
+			TutorialHarness.bringIntoTranscript(run.app, tick)
+		}
+		TutorialHarness.attach(self, name: "u8-1-review-cards-largest-de", app: run.app)
+		let labels = chart.staticTexts.allElementsBoundByIndex.map { ($0.label, $0.frame) }
+		XCTAssertEqual(labels.count, 5, "\(labels)")
+		let cardFrame = card.frame.insetBy(dx: -1, dy: -1)
+		for (label, frame) in labels {
+			XCTAssertTrue(
+				frame.width > 0 && cardFrame.contains(frame),
+				"\"\(label)\" \(frame) leaves the card \(card.frame)")
+		}
+		for (index, (label, frame)) in labels.enumerated() {
+			for (other, otherFrame) in labels.dropFirst(index + 1) {
+				XCTAssertFalse(
+					frame.insetBy(dx: 0.5, dy: 0.5).intersects(
+						otherFrame.insetBy(dx: 0.5, dy: 0.5)),
+					"\"\(label)\" \(frame) overlaps \"\(other)\" \(otherFrame)")
+			}
+		}
 	}
 }
 

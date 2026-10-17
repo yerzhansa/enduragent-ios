@@ -27,7 +27,7 @@ public enum WorkoutReviewFixture {
 		preparation([
 			#"{"kind":"add-cycling","date":"\#(today.adding(days: 1).rawValue)","workout":\#(ride),"trainingLoad":42}"#,
 			#"{"kind":"add-strength","date":"\#(today.adding(days: 2).rawValue)","name":"Core strength","durationMinutes":30,"effort":"Moderate","description":"3 rounds: plank 45s, side plank 30s, glute bridge 12","trainingLoad":18}"#,
-			#"{"kind":"edit","eventId":\#(editedEvent.rawValue),"patch":{"structure":\#(threshold)}}"#,
+			#"{"kind":"edit","eventId":\#(editedEvent.rawValue),"patch":{"structure":\#(threshold),"trainingLoad":60}}"#,
 			#"{"kind":"delete","eventId":\#(deletedEvent.rawValue)}"#,
 		])
 	}

@@ -13,7 +13,8 @@
 			_ request: ScriptedRequest, intervals: FakeIntervalsClient
 		) -> ScriptedReply? {
 			let text = request.text.trimmingCharacters(in: .whitespacesAndNewlines)
-			guard [reviewMixedDirective, reviewDeleteDirective, reviewRenameDirective].contains(text)
+			guard
+				[reviewMixedDirective, reviewDeleteDirective, reviewRenameDirective].contains(text)
 			else { return nil }
 			guard request.offersTrainingTools else {
 				return ScriptedReply([.text(trainingDataMissing), .finish(reason: .stop)])
@@ -49,7 +50,8 @@
 				])
 			case 1:
 				do {
-					guard let arguments = try WorkoutReviewFixture.rename(after: request.toolResults)
+					guard
+						let arguments = try WorkoutReviewFixture.rename(after: request.toolResults)
 					else {
 						return ScriptedReply([
 							.text("Review fixture found no pending edit to rename."),

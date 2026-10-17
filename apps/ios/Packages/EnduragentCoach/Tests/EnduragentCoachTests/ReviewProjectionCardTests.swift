@@ -22,23 +22,30 @@ import Testing
 				let body = payload.requestBody(identity).objectFields
 				#expect(body["start_date_local"] == .string("\(card.date.rawValue)T00:00:00"))
 				#expect(body["name"] == .string(card.title(in: english)))
-				#expect(body["moving_time"] == card.durationMinutes.map { JSONValue.number(Double($0 * 60)) })
-				#expect(body["icu_training_load"] == card.estimatedLoad.map { JSONValue.number(Double($0)) })
+				#expect(
+					body["moving_time"]
+						== card.durationMinutes.map { JSONValue.number(Double($0 * 60)) })
+				#expect(
+					body["icu_training_load"]
+						== card.estimatedLoad.map { JSONValue.number(Double($0)) })
 				#expect(
 					body["description"] == .string(card.lines(in: english).joined(separator: "\n")))
 			case .update(let event, let patch):
 				let body = patch.requestBody.objectFields
 				let target = try #require(turns.intervals.events.first { $0.id == event })
 				#expect(event == WorkoutReviewFixture.editedEvent)
-				#expect(body["moving_time"] == card.durationMinutes.map { JSONValue.number(Double($0 * 60)) })
+				#expect(
+					body["moving_time"]
+						== card.durationMinutes.map { JSONValue.number(Double($0 * 60)) })
 				#expect(
 					body["description"] == .string(card.lines(in: english).joined(separator: "\n")))
 				#expect(body["start_date_local"] == nil)
 				#expect(target.startDateLocal == "\(card.date.rawValue)T00:00:00")
 				#expect(body["name"] == nil)
 				#expect(target.name == card.title(in: english))
-				#expect(body["icu_training_load"] == nil)
-				#expect(target.trainingLoad == card.estimatedLoad)
+				#expect(
+					body["icu_training_load"]
+						== card.estimatedLoad.map { JSONValue.number(Double($0)) })
 			case .delete(let event):
 				#expect(event == WorkoutReviewFixture.deletedEvent)
 				#expect(card.title(in: english) == "Recovery spin")
@@ -57,8 +64,9 @@ import Testing
 		#expect(
 			cards.map { $0.load(in: english) } == [
 				"Estimated training load: 42", "Estimated training load: 18",
-				"Estimated training load: 40", nil,
+				"Estimated training load: 60", nil,
 			])
+		#expect(cards[2].changes(in: english).contains("Estimated training load: 40 → 60"))
 		#expect(
 			cards[0].chart
 				== WorkoutChartModel(
@@ -77,7 +85,11 @@ import Testing
 		let first = try await committed(WorkoutReviewFixture.mixed(today: today), on: coach)
 		let edit = first[2]
 
-		#expect(edit.changes(in: english) == ["Duration: 60 min → 75 min", "The workout steps change."])
+		#expect(
+			edit.changes(in: english) == [
+				"Duration: 60 min → 75 min", "Estimated training load: 40 → 60",
+				"The workout steps change.",
+			])
 		#expect(edit.heading(of: 4, in: english) == "Edit · 3 of 4 · 9/11/1998 · 75 min")
 		#expect(edit.chart?.durationSeconds == 4500)
 		#expect(edit.chart?.segments.count == 8)
@@ -101,7 +113,7 @@ import Testing
 		#expect(
 			renamed[2].changes(in: english) == [
 				"Name: Endurance → Threshold 3x10", "Duration: 60 min → 75 min",
-				"The workout steps change.",
+				"Estimated training load: 40 → 60", "The workout steps change.",
 			])
 	}
 
@@ -111,9 +123,10 @@ import Testing
 			#"{"preparation":{"kind":"complete","changes":[{"kind":"edit","eventId":201,"patch":{"name":"Long endurance"}},{"kind":"edit","eventId":202,"patch":{"date":"1998-09-13"}}]}}"#,
 			on: coach)
 
-		#expect(cards.map { $0.changes(in: english) } == [
-			["Name: Endurance → Long endurance"], ["Date: 9/11/1998 → 9/13/1998"],
-		])
+		#expect(
+			cards.map { $0.changes(in: english) } == [
+				["Name: Endurance → Long endurance"], ["Date: 9/11/1998 → 9/13/1998"],
+			])
 		#expect(cards.map { $0.lines(in: english) } == [["Steady ride"], ["Steady ride"]])
 	}
 
@@ -125,7 +138,8 @@ import Testing
 		#expect(cards.count == 1)
 		#expect(cards[0].title(in: english) == "Recovery spin")
 		#expect(cards[0].heading(of: 1, in: english) == "Delete · 1 of 1 · 9/12/1998 · 30 min")
-		#expect(cards[0].changes(in: english) == ["This workout will be removed from the calendar."])
+		#expect(
+			cards[0].changes(in: english) == ["This workout will be removed from the calendar."])
 		#expect(cards[0].load(in: english) == nil)
 		#expect(shown.content.approveTitle == Catalog.workoutsApprove)
 		#expect(english.say(shown.content.approveTitle) == "Apply changes")
