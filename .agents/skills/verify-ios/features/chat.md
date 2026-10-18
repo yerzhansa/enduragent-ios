@@ -4,7 +4,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 
 ## Sub-features
 
-- `chat-welcome` shows `chat.welcome` until the first message. It lists `/start`, `/workout`, `/status`, `/review`, and `/language` with localized titles whether or not intervals.icu is connected. The health disclaimer remains below the composer.
+- `chat-welcome` shows `chat.welcome` until the first message. It lists `/start`, `/workout`, `/status`, `/review`, and `/language` with localized titles whether or not intervals.icu is connected. The health disclaimer remains below the composer; at accessibility text sizes it opens the transcript instead, so the composer stays one field high.
 - `chat-send` saves the athlete message before it appears as accepted, then clears the composer. Send is disabled during acceptance, so another tap cannot duplicate that draft.
 - `chat-draft` keeps unsent text across relaunch. A failed save leaves the draft and shows `Not sent. Your draft is still here.` in `chat.composer.notSent`.
 - `chat-composer-navigation` keeps the draft visible and hittable after returning from Settings, its children, History and an archived conversation. The composer stays above a visible keyboard or at the screen bottom when the keyboard is absent.

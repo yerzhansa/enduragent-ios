@@ -87,7 +87,7 @@ private struct ReviewTranscriptRow: View {
 				if let outcome = model.reviewNotice {
 					ReviewOutcomeNotice(model: model, notice: outcome)
 				}
-				if ReviewBarPlacement(dynamicTypeSize) == .closingTheReview {
+				if ChromePlacement(dynamicTypeSize) == .inTranscript {
 					ReviewBarView(model: model, review: review)
 				}
 			}

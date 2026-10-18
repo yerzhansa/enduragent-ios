@@ -45,7 +45,7 @@ final class ReviewCardsEditProof: XCTestCase {
 		let readable = steps.label
 		XCTAssertTrue(readable.contains("Main set 3x"), readable)
 		XCTAssertFalse(readable.contains("Steady ride"), readable)
-		TutorialHarness.bringIntoTranscript(app, edit)
+		TutorialHarness.bringIntoTranscript(app, ReviewCardContent.line(edit, "title"))
 		TutorialHarness.attach(self, name: "u8-1-review-cards-edit", app: app)
 
 		TutorialHarness.exchange(app, ReviewCardContent.rename)
@@ -59,7 +59,7 @@ final class ReviewCardsEditProof: XCTestCase {
 				"Estimated training load: 40 → 60", "The workout steps change.",
 			])
 		XCTAssertEqual(ReviewCardContent.line(renamed, "steps").label, readable)
-		TutorialHarness.bringIntoTranscript(app, renamed)
+		TutorialHarness.bringIntoTranscript(app, ReviewCardContent.line(renamed, "title"))
 		TutorialHarness.attach(self, name: "u8-1-review-cards-edit-renamed", app: app)
 	}
 }

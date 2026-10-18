@@ -11,7 +11,7 @@ struct ChatView: View {
 				.safeAreaInset(edge: .bottom, spacing: 0) {
 					VStack(spacing: 0) {
 						if let review = model.chat?.review,
-							ReviewBarPlacement(dynamicTypeSize) == .docked
+							ChromePlacement(dynamicTypeSize) == .pinned
 						{
 							ReviewBarView(model: model, review: review)
 								.padding(.horizontal, 12)

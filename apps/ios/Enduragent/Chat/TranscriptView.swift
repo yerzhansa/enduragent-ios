@@ -4,6 +4,7 @@ import SwiftUI
 struct TranscriptView: View {
 	@Bindable var model: ShellModel
 	@Environment(\.scenePhase) private var scenePhase
+	@Environment(\.dynamicTypeSize) private var dynamicTypeSize
 	@State private var revealedBackgroundTurns: Set<TurnID> = []
 	@State private var openedReview: String?
 
@@ -11,6 +12,9 @@ struct TranscriptView: View {
 		ScrollViewReader { proxy in
 			List {
 				Group {
+					if ChromePlacement(dynamicTypeSize) == .inTranscript {
+						ChatDisclaimer(model: model)
+					}
 					if let opening = model.chat?.opening {
 						if opening.showsWelcome {
 							Text(Welcome.text(in: model.phrasebook))

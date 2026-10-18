@@ -1,15 +1,6 @@
 import EnduragentCoach
 import SwiftUI
 
-enum ReviewBarPlacement {
-	case docked
-	case closingTheReview
-
-	init(_ size: DynamicTypeSize) {
-		self = size.isAccessibilitySize ? .closingTheReview : .docked
-	}
-}
-
 struct ReviewBarView: View {
 	var model: ShellModel
 	var review: ReviewSnapshot

@@ -121,7 +121,11 @@ final class ReviewLongPresentationProof: XCTestCase {
 		let transcript = TutorialHarness.named(app, "chat.transcript")
 		let title = transcript.descendants(matching: .any)
 			.matching(identifier: "chat.preview.title").firstMatch
-		TutorialHarness.wait(title, until: .hittable)
+		TutorialHarness.wait(title)
+		let band = TutorialHarness.transcriptBand(app)
+		XCTAssertTrue(
+			title.frame.minY >= band.minY - 1 && title.frame.maxY <= band.maxY + 1,
+			"the review title \(title.frame) is outside the transcript \(band)")
 		TutorialHarness.wait(ReviewCardScreen.card(app, 0))
 		TutorialHarness.waitForIdentifier(app, "chat.review.status", reading: Self.unseen)
 		XCTAssertFalse(

@@ -172,7 +172,14 @@ struct ReviewCardReading {
 				Self.follows(last.frame, first.frame),
 				"\(name(screen)): the bar \(first.frame) does not follow the review \(last.frame)")
 		}
-		audit(screen, inside: [card.frame, bar.frame])
+		let window = TutorialHarness.transcriptBand(run.app)
+		for item in bar.items {
+			XCTAssertLessThanOrEqual(
+				item.frame.height, window.height,
+				"\(name(screen)): \"\(item.line.label)\" \(item.frame) cannot be read whole in the transcript \(window)"
+			)
+		}
+		audit(screen, inside: [card.frame, bar.frame].map { $0.intersection(window) })
 		capture(screen)
 	}
 
