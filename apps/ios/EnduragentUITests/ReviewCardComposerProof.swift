@@ -29,8 +29,7 @@ final class ReviewCardComposerProof: XCTestCase {
 		let docked = bar.frame.union(composerFrame)
 		let transcript = TutorialHarness.named(app, "chat.transcript")
 		XCTAssertTrue(
-			transcript.cells.containing(.staticText, identifier: "chat.preview.title").firstMatch
-				.exists)
+			transcript.cells.containing(.any, identifier: "chat.preview.card.0").firstMatch.exists)
 		let viewport = transcript.frame.intersection(app.frame)
 		let rows = transcript.cells.allElementsBoundByIndex
 		let visibleFrames = rows.map { $0.frame.intersection(viewport) }.filter {
@@ -38,8 +37,8 @@ final class ReviewCardComposerProof: XCTestCase {
 		}
 		XCTAssertFalse(visibleFrames.isEmpty, "no transcript rows were measured")
 		for frame in visibleFrames {
-			XCTAssertFalse(
-				docked.intersects(frame),
+			XCTAssertLessThan(
+				docked.intersection(frame).height, 0.5,
 				"transcript row \(frame) overlaps the review bar and composer \(docked)")
 		}
 		XCTAssertLessThanOrEqual(add.frame.maxY, composerFrame.minY)

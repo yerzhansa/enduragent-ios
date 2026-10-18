@@ -1434,7 +1434,8 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewPresentationTests.swift", "function": "noControlExistsBeforeEveryCardOfTheFortyChangeReviewHasAppeared"},
 				{"file": "apps/ios/EnduragentTests/ConfirmedPreviewLayoutTests.swift", "function": "theBarArmsOnlyAfterEveryCardAppearedAndEachButtonCarriesItsToken"},
 				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewLongPresentationProof", "method": "testNoApproveExistsBeforeTheLastOfFortyCardsHasAppeared"},
-				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewLongPresentationProof", "method": "testALastCardThatFailsLeavesNoApproveUntilTheReviewIsShownAgainWhole"}
+				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewLongPresentationProof", "method": "testALastCardThatFailsLeavesNoApproveUntilTheReviewIsShownAgainWhole"},
+				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewLongPresentationProof", "method": "testARelaunchedFortyCardReviewOpensAtItsTitleAndFirstCard"}
 			]
 		}
 	],

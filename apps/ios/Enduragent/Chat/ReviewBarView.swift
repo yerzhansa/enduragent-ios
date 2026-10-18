@@ -1,6 +1,15 @@
 import EnduragentCoach
 import SwiftUI
 
+enum ReviewBarPlacement {
+	case docked
+	case closingTheReview
+
+	init(_ size: DynamicTypeSize) {
+		self = size.isAccessibilitySize ? .closingTheReview : .docked
+	}
+}
+
 struct ReviewBarView: View {
 	var model: ShellModel
 	var review: ReviewSnapshot
@@ -40,9 +49,6 @@ struct ReviewBarView: View {
 		.padding(16)
 		.frame(maxWidth: .infinity, alignment: .leading)
 		.background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
-		.padding(.horizontal, 12)
-		.padding(.bottom, 8)
-		.background(Color(.systemBackground))
 		.accessibilityElement(children: .contain)
 		.accessibilityIdentifier("chat.review.bar")
 	}

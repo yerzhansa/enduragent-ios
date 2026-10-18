@@ -99,15 +99,34 @@ final class ReviewLongPresentationProof: XCTestCase {
 		TutorialHarness.attach(self, name: "u8-2-review-card-failed-shown-again", app: app)
 	}
 
+	func testARelaunchedFortyCardReviewOpensAtItsTitleAndFirstCard() {
+		let app = arrived(FixtureArguments())
+		TutorialHarness.relaunchKeepingStore(app)
+		expectOpenedAtItsTop(app)
+		TutorialHarness.attach(self, name: "u8-2-review-long-relaunched", app: app)
+		walkToTheLastCard(app)
+		TutorialHarness.wait(approve(app), until: .enabled)
+	}
+
 	private func arrived(_ arguments: FixtureArguments) -> XCUIApplication {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app, arguments: arguments)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.exchange(app, Self.forty)
+		expectOpenedAtItsTop(app)
+		return app
+	}
+
+	private func expectOpenedAtItsTop(_ app: XCUIApplication) {
+		let transcript = TutorialHarness.named(app, "chat.transcript")
+		let title = transcript.descendants(matching: .any)
+			.matching(identifier: "chat.preview.title").firstMatch
+		TutorialHarness.wait(title, until: .hittable)
 		TutorialHarness.wait(ReviewCardScreen.card(app, 0))
 		TutorialHarness.waitForIdentifier(app, "chat.review.status", reading: Self.unseen)
+		XCTAssertFalse(
+			ReviewCardScreen.card(app, 39).exists, "the review opened at its last card")
 		XCTAssertFalse(approve(app).exists, "Approve appeared before any card was scrolled to")
-		return app
 	}
 
 	private func walkToTheLastCard(_ app: XCUIApplication) {

@@ -7,20 +7,22 @@ struct ConfirmedPreviewCard: View {
 	var round: Int
 
 	var body: some View {
+		ReviewTitleRow(model: model, review: review)
+			.id(Self.titleRow(of: review))
 		if review.cards.isEmpty {
-			ReviewTranscriptRow(model: model, review: review, card: nil, leads: true, ends: true)
+			ReviewTranscriptRow(model: model, review: review, card: nil, ends: true)
 		} else {
 			ForEach(rows, id: \.id) { row in
 				ReviewTranscriptRow(
 					model: model, review: review, card: row.card,
-					leads: row.card.index == review.cards.first?.index,
 					ends: row.card.index == review.cards.last?.index)
 			}
 		}
 	}
 
-	static func topRow(of review: ReviewSnapshot, round: Int) -> String {
-		ShownCard.id(of: review.ref, round: round, index: review.cards.first?.index)
+	static func titleRow(of review: ReviewSnapshot) -> String {
+		["review", review.ref.review.ulid.rawValue, String(review.ref.revision.rawValue), "title"]
+			.joined(separator: ".")
 	}
 
 	private var rows: [ShownCard] {
@@ -33,13 +35,31 @@ private struct ShownCard {
 	let ref: ReviewRef
 	let round: Int
 
-	var id: String { Self.id(of: ref, round: round, index: card.index) }
-
-	static func id(of ref: ReviewRef, round: Int, index: Int?) -> String {
+	var id: String {
 		[
 			"review", ref.review.ulid.rawValue, String(ref.revision.rawValue), String(round),
-			index.map(String.init) ?? "none",
+			String(card.index),
 		].joined(separator: ".")
+	}
+}
+
+private struct ReviewTitleRow: View {
+	var model: ShellModel
+	var review: ReviewSnapshot
+
+	var body: some View {
+		VStack(alignment: .leading, spacing: 12) {
+			Text(model.phrasebook.say(Catalog.reviewTitle, [:]))
+				.font(.headline)
+				.accessibilityIdentifier("chat.preview.title")
+			if review.placement == .preparedEarlier {
+				Text(model.phrasebook.say(Catalog.workoutsPreparedEarlier, [:]))
+					.foregroundStyle(.secondary)
+					.accessibilityIdentifier("chat.preview.preparedEarlier")
+			}
+		}
+		.frame(maxWidth: .infinity, alignment: .leading)
+		.accessibilityElement(children: .contain)
 	}
 }
 
@@ -47,21 +67,11 @@ private struct ReviewTranscriptRow: View {
 	var model: ShellModel
 	var review: ReviewSnapshot
 	var card: ReviewCard?
-	var leads: Bool
 	var ends: Bool
+	@Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 12) {
-			if leads {
-				Text(model.phrasebook.say(Catalog.reviewTitle, [:]))
-					.font(.headline)
-					.accessibilityIdentifier("chat.preview.title")
-				if review.placement == .preparedEarlier {
-					Text(model.phrasebook.say(Catalog.workoutsPreparedEarlier, [:]))
-						.foregroundStyle(.secondary)
-						.accessibilityIdentifier("chat.preview.preparedEarlier")
-				}
-			}
 			if let card {
 				ReviewCardView(model: model, card: card, count: review.cards.count)
 					.onAppear {
@@ -76,6 +86,9 @@ private struct ReviewTranscriptRow: View {
 				}
 				if let outcome = model.reviewNotice {
 					ReviewOutcomeNotice(model: model, notice: outcome)
+				}
+				if ReviewBarPlacement(dynamicTypeSize) == .closingTheReview {
+					ReviewBarView(model: model, review: review)
 				}
 			}
 		}

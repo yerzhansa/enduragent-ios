@@ -99,7 +99,6 @@ final class ReviewCardsLargestTextProof: XCTestCase {
 		ReviewAccessibility.reopenAtLargestText(run.app, arguments)
 		TutorialHarness.wait(ReviewCardScreen.card(run.app, 0), within: .turn)
 		ReviewCardScreen.showEveryCard(run.app)
-		TutorialHarness.wait(ReviewCardContent.approve(run.app), until: .enabled, within: .turn)
 		let card = ReviewCardContent.card(run.app, 0)
 		let chart = card.descendants(matching: .any)
 			.matching(identifier: "chat.preview.card.chart").firstMatch
@@ -143,7 +142,6 @@ enum ReviewCardContent {
 		TutorialHarness.exchange(app, directive)
 		TutorialHarness.wait(ReviewCardScreen.card(app, 0))
 		ReviewCardScreen.showEveryCard(app)
-		TutorialHarness.wait(approve(app), until: .enabled)
 		return app
 	}
 

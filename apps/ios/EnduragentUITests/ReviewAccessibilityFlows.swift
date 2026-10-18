@@ -124,8 +124,8 @@ struct ReviewCardReading {
 		let card: (items: [Spoken], frame: CGRect)
 		let bar: (items: [Spoken], frame: CGRect)
 		do {
-			card = try spoken(transcriptCell())
-			bar = try spoken(run.named("chat.review.bar"))
+			card = try spoken(reviewRows(), leaving: Self.bar)
+			bar = try spoken([run.named(Self.bar)])
 		} catch {
 			XCTFail("\(name(screen)): the review could not be read: \(error)")
 			return
@@ -162,6 +162,15 @@ struct ReviewCardReading {
 		)
 		for container in [card, bar] {
 			expect(container, screen: screen)
+		}
+		XCTAssertTrue(
+			run.named("chat.transcript").descendants(matching: .any)
+				.matching(identifier: Self.bar).firstMatch.exists,
+			"\(name(screen)): at the largest text size the bar is not the end of the review")
+		if let last = card.items.last, let first = bar.items.first {
+			XCTAssertTrue(
+				Self.follows(last.frame, first.frame),
+				"\(name(screen)): the bar \(first.frame) does not follow the review \(last.frame)")
 		}
 		audit(screen, inside: [card.frame, bar.frame])
 		capture(screen)
@@ -222,17 +231,23 @@ struct ReviewCardReading {
 		"u9-2-\(run.language.rawValue)-\(screen)"
 	}
 
-	private func transcriptCell() -> XCUIElement {
+	private func reviewRows() -> [XCUIElement] {
 		run.named("chat.transcript").cells.containing(
 			NSPredicate(format: "identifier BEGINSWITH %@", "chat.preview.")
-		).firstMatch
+		).allElementsBoundByIndex
 	}
 
-	private func spoken(_ element: XCUIElement) throws -> (items: [Spoken], frame: CGRect) {
-		let snapshot = try element.snapshot()
+	private func spoken(_ elements: [XCUIElement], leaving excluded: String? = nil) throws -> (
+		items: [Spoken], frame: CGRect
+	) {
 		var items: [Spoken] = []
-		Self.collect(snapshot, into: &items)
-		return (items, snapshot.frame)
+		var frame = CGRect.null
+		for element in elements {
+			let snapshot = try element.snapshot()
+			Self.collect(snapshot, into: &items, leaving: excluded)
+			frame = frame.union(snapshot.frame)
+		}
+		return (items, frame)
 	}
 
 	private func audit(_ screen: String, inside frames: [CGRect]) {
@@ -247,7 +262,12 @@ struct ReviewCardReading {
 		}
 	}
 
-	private static func collect(_ node: any XCUIElementSnapshot, into items: inout [Spoken]) {
+	private static let bar = "chat.review.bar"
+
+	private static func collect(
+		_ node: any XCUIElementSnapshot, into items: inout [Spoken], leaving excluded: String?
+	) {
+		if let excluded, node.identifier == excluded { return }
 		let spoken = node.elementType == .staticText || node.elementType == .button
 		if spoken && !node.label.isEmpty {
 			items.append(
@@ -257,7 +277,7 @@ struct ReviewCardReading {
 					frame: node.frame, enabled: node.isEnabled))
 		}
 		if node.elementType == .button { return }
-		for child in node.children { collect(child, into: &items) }
+		for child in node.children { collect(child, into: &items, leaving: excluded) }
 	}
 
 	private static func follows(_ earlier: CGRect, _ later: CGRect) -> Bool {

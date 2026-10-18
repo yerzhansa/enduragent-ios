@@ -5,6 +5,7 @@ struct TranscriptView: View {
 	@Bindable var model: ShellModel
 	@Environment(\.scenePhase) private var scenePhase
 	@State private var revealedBackgroundTurns: Set<TurnID> = []
+	@State private var openedReview: String?
 
 	var body: some View {
 		ScrollViewReader { proxy in
@@ -19,12 +20,12 @@ struct TranscriptView: View {
 							newConversationNotice(notice)
 						}
 					}
-					reviewCard(at: .preparedEarlier)
+					reviewCard(at: .preparedEarlier, proxy: proxy)
 					notes(after: nil)
 					ForEach(model.chat?.turns ?? []) { turn in
 						TurnRowView(model: model, turn: turn)
 						notes(after: turn.id)
-						reviewCard(at: .afterTurn(turn.id))
+						reviewCard(at: .afterTurn(turn.id), proxy: proxy)
 					}
 					if case .waiting? = model.chat?.reset {
 						Text(model.phrasebook.say(Catalog.chatNoticeStartingNewConversation, [:]))
@@ -59,6 +60,9 @@ struct TranscriptView: View {
 				.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
 				.listRowSeparator(.hidden)
 				.listRowBackground(Color.clear)
+				.onAppear {
+					openReview(proxy)
+				}
 				if model.slashListVisible {
 					SlashListView(model: model)
 						.listRowInsets(EdgeInsets())
@@ -76,15 +80,18 @@ struct TranscriptView: View {
 			.accessibilityIdentifier("chat.transcript")
 			.environment(\.defaultMinListRowHeight, 0)
 			.buttonStyle(.borderless)
-			.onChange(of: scrollMark, initial: true) { old, new in
-				if let review = new.review, review != old.review || old == new {
-					proxy.scrollTo(review, anchor: .top)
-					reveal()
-				} else if reviewEndsTranscript {
+			.onChange(of: model.chat?.revision, initial: true) {
+				if reviewEndsTranscript {
 					reveal()
 				} else {
 					scrollToEnd(proxy)
 				}
+			}
+			.onChange(of: shownRound) { old, new in
+				guard let old, let new, old.title == new.title, old.round != new.round else {
+					return
+				}
+				proxy.scrollTo(new.title, anchor: .top)
 			}
 			.onChange(of: scenePhase) { _, phase in
 				guard phase == .active, let turn = model.chat?.turns.last,
@@ -109,14 +116,12 @@ struct TranscriptView: View {
 		}
 	}
 
-	private var scrollMark: ScrollMark {
-		ScrollMark(
-			revision: model.chat?.revision,
-			review: model.chat?.review.map { review in
-				ConfirmedPreviewCard.topRow(
-					of: review,
-					round: model.reviewPresentation?.round ?? 0)
-			})
+	private var shownRound: ShownRound? {
+		model.chat?.review.map { review in
+			ShownRound(
+				title: ConfirmedPreviewCard.titleRow(of: review),
+				round: model.reviewPresentation?.round ?? 0)
+		}
 	}
 
 	private var reviewEndsTranscript: Bool {
@@ -125,6 +130,14 @@ struct TranscriptView: View {
 		case .afterTurn(let turn): return turn == model.chat?.turns.last?.id
 		case .preparedEarlier: return model.chat?.turns.isEmpty ?? true
 		}
+	}
+
+	private func openReview(_ proxy: ScrollViewProxy) {
+		guard reviewEndsTranscript, let review = model.chat?.review else { return }
+		let title = ConfirmedPreviewCard.titleRow(of: review)
+		guard openedReview != title else { return }
+		openedReview = title
+		proxy.scrollTo(title, anchor: .top)
 	}
 
 	private func scrollToEnd(_ proxy: ScrollViewProxy) {
@@ -147,12 +160,15 @@ struct TranscriptView: View {
 	}
 
 	@ViewBuilder
-	private func reviewCard(at placement: ReviewPlacement) -> some View {
+	private func reviewCard(at placement: ReviewPlacement, proxy: ScrollViewProxy) -> some View {
 		if let review = model.chat?.review, review.placement == placement {
 			ConfirmedPreviewCard(
 				model: model, review: review, round: model.reviewPresentation?.round ?? 0
 			)
 			.fixedSize(horizontal: false, vertical: true)
+			.onAppear {
+				openReview(proxy)
+			}
 		}
 	}
 
@@ -163,7 +179,7 @@ struct TranscriptView: View {
 	}
 }
 
-private struct ScrollMark: Equatable {
-	let revision: UInt64?
-	let review: String?
+private struct ShownRound: Equatable {
+	let title: String
+	let round: Int
 }

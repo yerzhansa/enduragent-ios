@@ -68,6 +68,7 @@ enum ReviewCardScreen {
 	static func showEveryCard(_ app: XCUIApplication) {
 		let approve = bar(app).buttons.matching(identifier: "chat.preview.add").firstMatch
 		reveal(app, approve)
+		TutorialHarness.wait(approve, until: .enabled)
 		reveal(app, TutorialHarness.named(app, "chat.preview.title"), direction: .down)
 	}
 
