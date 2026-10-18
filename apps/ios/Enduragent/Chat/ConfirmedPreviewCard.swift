@@ -5,17 +5,22 @@ struct ConfirmedPreviewCard: View {
 	var model: ShellModel
 	var review: ReviewSnapshot
 	var round: Int
+	var titleLaidOut: () -> Void
+	var cardLaidOut: () -> Void
 
 	var body: some View {
 		ReviewTitleRow(model: model, review: review)
 			.id(Self.titleRow(of: review))
+			.onAppear(perform: titleLaidOut)
 		if review.cards.isEmpty {
 			ReviewTranscriptRow(model: model, review: review, card: nil, ends: true)
 		} else {
 			ForEach(rows, id: \.id) { row in
 				ReviewTranscriptRow(
 					model: model, review: review, card: row.card,
-					ends: row.card.index == review.cards.last?.index)
+					ends: row.card.index == review.cards.last?.index
+				)
+				.onAppear(perform: cardLaidOut)
 			}
 		}
 	}

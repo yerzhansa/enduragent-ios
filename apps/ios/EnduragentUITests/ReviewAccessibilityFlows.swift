@@ -179,7 +179,8 @@ struct ReviewCardReading {
 				"\(name(screen)): \"\(item.line.label)\" \(item.frame) cannot be read whole in the transcript \(window)"
 			)
 		}
-		audit(screen, inside: [card.frame, bar.frame].map { $0.intersection(window) })
+		auditPageByPage(screen)
+		expectDisclaimerEndsTheTranscript(screen)
 		capture(screen)
 	}
 
@@ -211,17 +212,26 @@ struct ReviewCardReading {
 		let button = run.named(control.rawValue)
 		TutorialHarness.wait(
 			until: {
-				if button.exists && button.isHittable { return true }
 				let band = TutorialHarness.transcriptBand(run.app)
-				let upper = CGPoint(x: band.midX, y: band.minY + band.height * 0.2)
-				let lower = CGPoint(x: band.midX, y: band.minY + band.height * 0.8)
-				if button.frame.midY < band.midY {
-					TutorialHarness.drag(run.app, from: upper, to: lower, pace: .fling)
-				} else {
-					TutorialHarness.drag(run.app, from: lower, to: upper, pace: .fling)
+				let frame = button.frame
+				if button.exists && frame.minY >= band.minY && frame.maxY <= band.maxY
+					&& button.isHittable
+				{
+					return true
 				}
-				return button.exists && button.isHittable
-			}, message: "[\(run.language.rawValue)] \(control.rawValue) cannot be tapped")
+				let reach = band.height * 0.15
+				let upper = CGPoint(x: band.midX, y: band.midY - reach)
+				let lower = CGPoint(x: band.midX, y: band.midY + reach)
+				if frame.midY < band.midY {
+					TutorialHarness.drag(run.app, from: upper, to: lower, pace: .steady)
+				} else {
+					TutorialHarness.drag(run.app, from: lower, to: upper, pace: .steady)
+				}
+				return false
+			}, within: .bulk,
+			message:
+				"[\(run.language.rawValue)] \(control.rawValue) cannot be brought whole into the transcript and tapped"
+		)
 		return button
 	}
 
@@ -257,19 +267,109 @@ struct ReviewCardReading {
 		return (items, frame)
 	}
 
-	private func audit(_ screen: String, inside frames: [CGRect]) {
+	private func auditPageByPage(_ screen: String) {
+		let title = run.named("chat.transcript").descendants(matching: .any)
+			.matching(identifier: "chat.preview.title").firstMatch
+		TutorialHarness.bringIntoTranscript(run.app, title)
+		for page in 0..<Self.pageLimit {
+			let review: (items: [Spoken], owned: Set<Owner>)
+			do {
+				review = try ownedByTheReview()
+			} catch {
+				XCTFail("\(name(screen)): page \(page) of the review could not be read: \(error)")
+				return
+			}
+			audit("\(screen) page \(page)", owned: review.owned)
+			let band = TutorialHarness.transcriptBand(run.app)
+			let next = review.items.first { $0.frame.maxY > band.maxY }
+			let bar = run.named(Self.bar)
+			if next == nil && bar.exists && bar.frame.maxY <= band.maxY + 1 { return }
+			let margin = Self.pageMargin
+			let toNext = (next?.frame.minY ?? band.maxY) - band.minY - margin
+			let stride = toNext > margin ? min(toNext, band.height - 2 * margin) : band.height * 0.8
+			let start = CGPoint(x: band.midX, y: band.maxY - margin)
+			TutorialHarness.drag(
+				run.app, from: start, to: CGPoint(x: start.x, y: start.y - stride), pace: .steady)
+		}
+		XCTFail(
+			"\(name(screen)): the end of the review bar was not reached in \(Self.pageLimit) pages")
+	}
+
+	private func ownedByTheReview() throws -> (items: [Spoken], owned: Set<Owner>) {
+		var items: [Spoken] = []
+		var owned: Set<Owner> = []
+		for row in reviewRows() {
+			let snapshot = try row.snapshot()
+			Self.collect(snapshot, into: &items, leaving: nil)
+			Self.own(snapshot, into: &owned)
+		}
+		return (items, owned)
+	}
+
+	private func audit(_ page: String, owned: Set<Owner>) {
 		do {
 			try run.app.performAccessibilityAudit(for: [.textClipped, .dynamicType, .hitRegion]) {
 				issue in
 				guard let element = issue.element, element.exists else { return true }
-				return !frames.contains { $0.insetBy(dx: -1, dy: -1).contains(element.frame) }
+				return !owned.contains(Self.owner(of: element))
 			}
 		} catch {
-			XCTFail("\(name(screen)): the accessibility audit did not run: \(error)")
+			XCTFail("\(name(page)): the accessibility audit did not run: \(error)")
 		}
 	}
 
+	private func expectDisclaimerEndsTheTranscript(_ screen: String) {
+		let label = run.say(Catalog.chatViewDisclaimer)
+		let reading = NSPredicate(format: "label == %@", label)
+		let transcript = run.named("chat.transcript")
+		let disclaimer = transcript.staticTexts.matching(reading).firstMatch
+		ReviewCardScreen.reveal(run.app, disclaimer)
+		TutorialHarness.bringIntoTranscript(run.app, disclaimer)
+		XCTAssertEqual(
+			run.named("chat.composer.container").staticTexts.matching(reading).count, 0,
+			"\(name(screen)): at the largest text size the disclaimer is still under the composer")
+		var rows: [Spoken] = []
+		do {
+			Self.collect(try transcript.snapshot(), into: &rows, leaving: nil)
+		} catch {
+			XCTFail("\(name(screen)): the transcript could not be read: \(error)")
+			return
+		}
+		let top = disclaimer.frame.minY
+		let below = rows.filter { $0.line.label != label && $0.frame.maxY > top + 2 }
+		XCTAssertTrue(
+			below.isEmpty,
+			"\(name(screen)): the disclaimer \(disclaimer.frame) is not the last row of the transcript: \(below.map { "\($0.line.identifier) \"\($0.line.label)\" \($0.frame)" })"
+		)
+	}
+
+	private struct Owner: Hashable {
+		let type: UInt
+		let identifier: String
+		let label: String
+		let frame: String
+	}
+
+	private static func owner(of node: any XCUIElementSnapshot) -> Owner {
+		Owner(
+			type: node.elementType.rawValue, identifier: node.identifier, label: node.label,
+			frame: "\(node.frame.integral)")
+	}
+
+	private static func owner(of element: XCUIElement) -> Owner {
+		Owner(
+			type: element.elementType.rawValue, identifier: element.identifier,
+			label: element.label, frame: "\(element.frame.integral)")
+	}
+
+	private static func own(_ node: any XCUIElementSnapshot, into owned: inout Set<Owner>) {
+		owned.insert(owner(of: node))
+		for child in node.children { own(child, into: &owned) }
+	}
+
 	private static let bar = "chat.review.bar"
+	private static let pageLimit = 40
+	private static let pageMargin: CGFloat = 24
 
 	private static func collect(
 		_ node: any XCUIElementSnapshot, into items: inout [Spoken], leaving excluded: String?

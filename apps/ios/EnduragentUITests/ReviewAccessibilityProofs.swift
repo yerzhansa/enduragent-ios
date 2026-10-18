@@ -34,6 +34,9 @@ final class ReviewAccessibilityDeProof: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .de) }
 	func testUnconfirmedChangeControls() { ReviewAccessibility.unconfirmedChange(self, .de) }
 	func testBlockedReviewControls() { ReviewAccessibility.blockedReview(self, .de) }
+	func testChatOpensWithTheDisclaimerOnScreen() {
+		ReviewAccessibility.disclaimerOnOpening(self, .de)
+	}
 }
 
 @MainActor
@@ -76,6 +79,9 @@ final class ReviewAccessibilityPtPTProof: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .ptPT) }
 	func testUnconfirmedChangeControls() { ReviewAccessibility.unconfirmedChange(self, .ptPT) }
 	func testBlockedReviewControls() { ReviewAccessibility.blockedReview(self, .ptPT) }
+	func testChatOpensWithTheDisclaimerOnScreen() {
+		ReviewAccessibility.disclaimerOnOpening(self, .ptPT)
+	}
 }
 
 @MainActor
@@ -118,4 +124,7 @@ final class ReviewAccessibilityZhHantProof: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .zhHant) }
 	func testUnconfirmedChangeControls() { ReviewAccessibility.unconfirmedChange(self, .zhHant) }
 	func testBlockedReviewControls() { ReviewAccessibility.blockedReview(self, .zhHant) }
+	func testChatOpensWithTheDisclaimerOnScreen() {
+		ReviewAccessibility.disclaimerOnOpening(self, .zhHant)
+	}
 }

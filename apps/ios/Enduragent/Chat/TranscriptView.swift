@@ -12,9 +12,6 @@ struct TranscriptView: View {
 		ScrollViewReader { proxy in
 			List {
 				Group {
-					if ChromePlacement(dynamicTypeSize) == .inTranscript {
-						ChatDisclaimer(model: model)
-					}
 					if let opening = model.chat?.opening {
 						if opening.showsWelcome {
 							Text(Welcome.text(in: model.phrasebook))
@@ -60,13 +57,14 @@ struct TranscriptView: View {
 					if model.chat?.review == nil, let notice = model.reviewNotice {
 						ReviewOutcomeNotice(model: model, notice: notice)
 					}
+					if ChromePlacement(dynamicTypeSize) == .inTranscript {
+						ChatDisclaimer(model: model)
+							.fixedSize(horizontal: false, vertical: true)
+					}
 				}
 				.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
 				.listRowSeparator(.hidden)
 				.listRowBackground(Color.clear)
-				.onAppear {
-					openReview(proxy)
-				}
 				if model.slashListVisible {
 					SlashListView(model: model)
 						.listRowInsets(EdgeInsets())
@@ -91,11 +89,13 @@ struct TranscriptView: View {
 					scrollToEnd(proxy)
 				}
 			}
-			.onChange(of: shownRound) { old, new in
-				guard let old, let new, old.title == new.title, old.round != new.round else {
-					return
+			.onChange(of: shownRound, initial: true) { old, new in
+				guard let new else { return }
+				if let old, old.title == new.title, old.round != new.round {
+					proxy.scrollTo(new.title, anchor: .top)
+				} else if let review = model.chat?.review {
+					approachReview(review, proxy)
 				}
-				proxy.scrollTo(new.title, anchor: .top)
 			}
 			.onChange(of: scenePhase) { _, phase in
 				guard phase == .active, let turn = model.chat?.turns.last,
@@ -136,10 +136,15 @@ struct TranscriptView: View {
 		}
 	}
 
-	private func openReview(_ proxy: ScrollViewProxy) {
-		guard reviewEndsTranscript, let review = model.chat?.review else { return }
+	private func approachReview(_ review: ReviewSnapshot, _ proxy: ScrollViewProxy) {
 		let title = ConfirmedPreviewCard.titleRow(of: review)
-		guard openedReview != title else { return }
+		guard reviewEndsTranscript, openedReview != title else { return }
+		proxy.scrollTo(title, anchor: .top)
+	}
+
+	private func openReview(_ review: ReviewSnapshot, _ proxy: ScrollViewProxy) {
+		let title = ConfirmedPreviewCard.titleRow(of: review)
+		guard reviewEndsTranscript, openedReview != title else { return }
 		openedReview = title
 		proxy.scrollTo(title, anchor: .top)
 	}
@@ -167,12 +172,11 @@ struct TranscriptView: View {
 	private func reviewCard(at placement: ReviewPlacement, proxy: ScrollViewProxy) -> some View {
 		if let review = model.chat?.review, review.placement == placement {
 			ConfirmedPreviewCard(
-				model: model, review: review, round: model.reviewPresentation?.round ?? 0
+				model: model, review: review, round: model.reviewPresentation?.round ?? 0,
+				titleLaidOut: { openReview(review, proxy) },
+				cardLaidOut: { approachReview(review, proxy) }
 			)
 			.fixedSize(horizontal: false, vertical: true)
-			.onAppear {
-				openReview(proxy)
-			}
 		}
 	}
 
