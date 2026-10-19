@@ -2940,7 +2940,6 @@
     "saveFailed": "Impossible d’enregistrer votre choix sur cet iPhone. Rien n’a donc été modifié. Réessayez.",
     "storageUnavailable": "Impossible de lire la vérification de séance enregistrée. Ses boutons sont temporairement désactivés.",
     "title": "Vérification de la séance",
-    "uncertain": "Je n'ai pas pu confirmer si cela a été transmis à ton calendrier {{service}}. Vérifie ton calendrier avant de me le redemander.",
     "workout": {
       "warmup": "Échauffement",
       "mainSet": "Bloc principal",
@@ -3035,7 +3034,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "Cette séance a été vérifiée avant la mise à jour de l’app. Redemande au coach."
+      "reviewedBeforeUpgrade": "Cette séance a été vérifiée avant la mise à jour de l’app. Redemande au coach.",
+      "missing": "Une séance de cette vérification n’est plus dans ton calendrier {{service}}, donc la vérification ne peut pas continuer. Annule-la et redemande au coach.",
+      "pastProtected": "Une séance de cette vérification est maintenant passée, donc la vérification ne peut pas continuer. Annule-la et redemande au coach.",
+      "coachOnly": "Une séance de cette vérification n’a pas été ajoutée par le coach, donc la vérification ne peut pas continuer. Annule-la et redemande au coach.",
+      "workoutOnly": "Une entrée de cette vérification n’est pas une séance, donc la vérification ne peut pas continuer. Annule-la et redemande au coach."
     },
     "refreshed": {
       "nothingChanged": "Des séances de cette vérification ont été modifiées dans {{service}} après ta vérification, donc rien n’a été modifié. Vérifie-les à nouveau avant d’approuver.",
@@ -3050,6 +3053,12 @@
     "notPrepared": "Impossible de préparer la vérification de séance.",
     "notPreparedInformationSaved": "Tes informations ont été enregistrées, mais la vérification de séance n’a pas pu être préparée.",
     "stopped": "La vérification de séance s’est arrêtée avant que toutes les modifications soient faites. Les modifications déjà faites sont conservées.",
+    "sending": "Application des modifications vérifiées à ton calendrier {{service}}…",
+    "partial": "{{service}} a refusé une modification, donc les modifications restantes ont été arrêtées. Les modifications déjà faites sont conservées. Vérifie le reste avant de réessayer.",
+    "unconfirmed": "Une modification a peut-être été enregistrée dans ton calendrier {{service}}. Vérifie à nouveau avant que quoi que ce soit d’autre soit modifié.",
+    "completed": "Toutes les modifications vérifiées sont terminées.",
+    "canceled": "Les modifications restantes ont été annulées.",
+    "finishedTitle": "Déjà effectué",
     "outcome": {
       "closedAtUpgrade": "Cette vérification de séance a été préparée avant la mise à jour de l’app. Redemande au coach.",
       "saved": "{{workout}}, {{date}} : modification enregistrée.",

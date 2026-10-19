@@ -2940,7 +2940,6 @@
     "saveFailed": "No se pudo guardar tu elección en este iPhone, así que no se cambió nada. Inténtalo de nuevo.",
     "storageUnavailable": "No se pudo leer la revisión del entrenamiento guardada. Sus botones están desactivados temporalmente.",
     "title": "Revisión del entrenamiento",
-    "uncertain": "No he podido confirmar si esto llegó a tu calendario de {{service}}. Revisa tu calendario antes de pedírmelo otra vez.",
     "workout": {
       "warmup": "Calentamiento",
       "mainSet": "Bloque principal",
@@ -3035,7 +3034,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "Este entrenamiento se revisó antes de actualizar la app. Vuelve a pedírselo al entrenador."
+      "reviewedBeforeUpgrade": "Este entrenamiento se revisó antes de actualizar la app. Vuelve a pedírselo al entrenador.",
+      "missing": "Un entrenamiento de esta revisión ya no está en tu calendario de {{service}}, así que la revisión no puede continuar. Cancélala y vuelve a pedírselo al entrenador.",
+      "pastProtected": "Un entrenamiento de esta revisión ya está en el pasado, así que la revisión no puede continuar. Cancélala y vuelve a pedírselo al entrenador.",
+      "coachOnly": "Un entrenamiento de esta revisión no lo añadió el entrenador, así que la revisión no puede continuar. Cancélala y vuelve a pedírselo al entrenador.",
+      "workoutOnly": "Una entrada de esta revisión no es un entrenamiento, así que la revisión no puede continuar. Cancélala y vuelve a pedírselo al entrenador."
     },
     "refreshed": {
       "nothingChanged": "Algunos entrenamientos de esta revisión cambiaron en {{service}} después de que los revisaras, así que no se cambió nada. Revísalos de nuevo antes de aprobar.",
@@ -3050,6 +3053,12 @@
     "notPrepared": "No se pudo preparar la revisión del entrenamiento.",
     "notPreparedInformationSaved": "Tu información se guardó, pero no se pudo preparar la revisión del entrenamiento.",
     "stopped": "La revisión del entrenamiento se detuvo antes de aplicar todos los cambios. Los cambios ya aplicados se conservan.",
+    "sending": "Aplicando los cambios revisados en tu calendario de {{service}}…",
+    "partial": "{{service}} rechazó un cambio, así que los cambios restantes se detuvieron. Los cambios ya aplicados se conservan. Revisa el resto antes de volver a intentarlo.",
+    "unconfirmed": "Es posible que un cambio se haya guardado en tu calendario de {{service}}. Comprueba de nuevo para saberlo antes de cambiar nada más.",
+    "completed": "Todos los cambios revisados están completos.",
+    "canceled": "Los cambios restantes se cancelaron.",
+    "finishedTitle": "Ya completado",
     "outcome": {
       "closedAtUpgrade": "Esta revisión del entrenamiento se preparó antes de actualizar la app. Vuelve a pedírselo al entrenador.",
       "saved": "{{workout}}, {{date}}: cambio guardado.",

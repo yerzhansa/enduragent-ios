@@ -249,6 +249,8 @@ enum LanguageMatrix {
 		run.expectText(Catalog.reviewTitle)
 		run.expect("chat.preview.checkAgain", Catalog.setupTelegramCheckAgain)
 		run.expect("chat.preview.cancel", Catalog.commonCancel)
+		run.expect(
+			"chat.review.notice", Catalog.workoutsUnconfirmed, ["service": "intervals.icu"])
 		run.screen("review-unconfirmed")
 		run.tap("chat.preview.checkAgain")
 		TutorialHarness.wait(run.named("chat.preview.add"), until: .enabled)

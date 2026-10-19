@@ -50,6 +50,14 @@ extension ReviewCard {
 		return key.map { display.say($0) }
 	}
 
+	public func finishedLine(in display: DisplayLocale) -> String? {
+		switch progress {
+		case .saved, .seenOnCalendar, .noLongerOnCalendar:
+			OutcomeLine.Result(progress).sentence(naming: title(in: display), on: date, in: display)
+		case .remaining, .sending, .refused, .mayHaveBeenSaved: nil
+		}
+	}
+
 	static func minutes(_ minutes: Int, in display: DisplayLocale) -> String {
 		display.say(Catalog.chatAttachmentMinutes, ["number": .integer(minutes)])
 	}

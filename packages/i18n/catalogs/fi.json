@@ -2940,7 +2940,6 @@
     "saveFailed": "Valintaasi ei voitu tallentaa tähän iPhoneen, joten mitään ei muutettu. Yritä uudelleen.",
     "storageUnavailable": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Sen painikkeet on poistettu tilapäisesti käytöstä.",
     "title": "Harjoituksen tarkistus",
-    "uncertain": "En voinut vahvistaa, tallentuiko tämä kalenteriisi palvelussa {{service}}. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
     "workout": {
       "warmup": "Lämmittely",
       "mainSet": "Pääsarja",
@@ -3035,7 +3034,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "Tämä harjoitus tarkistettiin ennen sovelluksen päivitystä. Pyydä valmentajaa uudelleen."
+      "reviewedBeforeUpgrade": "Tämä harjoitus tarkistettiin ennen sovelluksen päivitystä. Pyydä valmentajaa uudelleen.",
+      "missing": "Tämän tarkistuksen harjoitus ei ole enää kalenterissasi palvelussa {{service}}, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen.",
+      "pastProtected": "Tämän tarkistuksen harjoitus on nyt menneisyydessä, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen.",
+      "coachOnly": "Valmentaja ei lisännyt tämän tarkistuksen harjoitusta, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen.",
+      "workoutOnly": "Tämän tarkistuksen merkintä ei ole harjoitus, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen."
     },
     "refreshed": {
       "nothingChanged": "Tämän tarkistuksen harjoituksia muutettiin palvelussa {{service}} sen jälkeen, kun tarkistit ne, joten mitään ei muutettu. Tarkista ne uudelleen ennen hyväksymistä.",
@@ -3050,6 +3053,12 @@
     "notPrepared": "Harjoituksen tarkistusta ei voitu valmistella.",
     "notPreparedInformationSaved": "Tietosi tallennettiin, mutta harjoituksen tarkistusta ei voitu valmistella.",
     "stopped": "Harjoituksen tarkistus pysähtyi ennen kuin kaikki muutokset tehtiin. Jo tehdyt muutokset säilyvät.",
+    "sending": "Tarkistettuja muutoksia tehdään kalenteriisi palvelussa {{service}}…",
+    "partial": "{{service}} hylkäsi muutoksen, joten jäljellä olevat muutokset pysäytettiin. Jo tehdyt muutokset säilyvät. Tarkista loput ennen kuin yrität uudelleen.",
+    "unconfirmed": "Muutos on saatettu tallentaa kalenteriisi palvelussa {{service}}. Tarkista uudelleen ennen kuin mitään muuta muutetaan.",
+    "completed": "Kaikki tarkistetut muutokset on tehty.",
+    "canceled": "Jäljellä olevat muutokset peruttiin.",
+    "finishedTitle": "Jo tehty",
     "outcome": {
       "closedAtUpgrade": "Tämä harjoituksen tarkistus valmisteltiin ennen sovelluksen päivitystä. Pyydä valmentajaa uudelleen.",
       "saved": "{{workout}}, {{date}}: muutos tallennettu.",

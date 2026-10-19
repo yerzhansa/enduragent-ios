@@ -278,4 +278,9 @@ public struct TranscriptNote: Sendable, Equatable, Identifiable {
 			note.sentence(in: display)
 		}
 	}
+
+	public func closing(in display: DisplayLocale) -> String? {
+		guard case .outcome(let note) = content else { return nil }
+		return note.closing(in: display)
+	}
 }

@@ -2904,7 +2904,6 @@
     "saveFailed": "无法在此 iPhone 上保存你的选择，因此未做任何更改。请重试。",
     "storageUnavailable": "无法读取已保存的训练审核内容。其按钮已暂时禁用。",
     "title": "训练审核",
-    "uncertain": "无法确认此更改是否已同步到你的 {{service}} 日历。再次提出请求前，请先检查日历。",
     "workout": {
       "warmup": "热身",
       "mainSet": "主训练",
@@ -2995,7 +2994,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "此训练是在应用更新前审核的。请重新询问教练。"
+      "reviewedBeforeUpgrade": "此训练是在应用更新前审核的。请重新询问教练。",
+      "missing": "此审核中的一项训练已不在你的 {{service}} 日历中，因此无法继续审核。请取消审核并重新询问教练。",
+      "pastProtected": "此审核中的一项训练现已成为过去，因此无法继续审核。请取消审核并重新询问教练。",
+      "coachOnly": "此审核中的一项训练并非由教练添加，因此无法继续审核。请取消审核并重新询问教练。",
+      "workoutOnly": "此审核中的一项内容不是训练，因此无法继续审核。请取消审核并重新询问教练。"
     },
     "refreshed": {
       "nothingChanged": "你审核后，此审核中的训练在 {{service}} 中被更改，因此未做任何更改。请在批准前再次检查。",
@@ -3010,6 +3013,12 @@
     "notPrepared": "无法准备训练审核内容。",
     "notPreparedInformationSaved": "你的信息已保存，但无法准备训练审核内容。",
     "stopped": "训练审核在完成所有更改之前已停止。已完成的更改会保留。",
+    "sending": "正在将已审核的更改应用到你的 {{service}} 日历…",
+    "partial": "{{service}} 拒绝了一项更改，因此其余更改已停止。已完成的更改会保留。重试前请检查其余更改。",
+    "unconfirmed": "一项更改可能已保存到你的 {{service}} 日历。在进行其他更改前，请重新检查。",
+    "completed": "所有已审核的更改均已完成。",
+    "canceled": "其余更改已取消。",
+    "finishedTitle": "已完成",
     "outcome": {
       "closedAtUpgrade": "此训练审核是在应用更新前准备的。请重新询问教练。",
       "saved": "{{workout}}（{{date}}）：更改已保存。",

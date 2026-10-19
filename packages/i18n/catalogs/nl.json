@@ -2940,7 +2940,6 @@
     "saveFailed": "Je keuze kon niet op deze iPhone worden opgeslagen, dus er is niets gewijzigd. Probeer het opnieuw.",
     "storageUnavailable": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. De knoppen zijn tijdelijk uitgeschakeld.",
     "title": "Training controleren",
-    "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt.",
     "workout": {
       "warmup": "Warming-up",
       "mainSet": "Hoofdblok",
@@ -3035,7 +3034,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "Deze training is beoordeeld voordat de app werd bijgewerkt. Vraag het de coach opnieuw."
+      "reviewedBeforeUpgrade": "Deze training is beoordeeld voordat de app werd bijgewerkt. Vraag het de coach opnieuw.",
+      "missing": "Een training in deze controle staat niet meer in je {{service}}-kalender, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw.",
+      "pastProtected": "Een training in deze controle ligt nu in het verleden, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw.",
+      "coachOnly": "Een training in deze controle is niet door de coach toegevoegd, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw.",
+      "workoutOnly": "Een item in deze controle is geen training, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw."
     },
     "refreshed": {
       "nothingChanged": "Trainingen in deze controle zijn in {{service}} gewijzigd nadat je ze hebt gecontroleerd, dus er is niets gewijzigd. Controleer ze opnieuw voordat je goedkeurt.",
@@ -3050,6 +3053,12 @@
     "notPrepared": "De trainingsbeoordeling kon niet worden voorbereid.",
     "notPreparedInformationSaved": "Je gegevens zijn opgeslagen, maar de trainingsbeoordeling kon niet worden voorbereid.",
     "stopped": "De trainingsbeoordeling is gestopt voordat alle wijzigingen waren doorgevoerd. Wijzigingen die al zijn doorgevoerd, blijven behouden.",
+    "sending": "De gecontroleerde wijzigingen worden doorgevoerd in je {{service}}-kalender…",
+    "partial": "{{service}} heeft een wijziging geweigerd, dus de resterende wijzigingen zijn gestopt. Wijzigingen die al zijn doorgevoerd, blijven behouden. Controleer de rest voordat je het opnieuw probeert.",
+    "unconfirmed": "Een wijziging is mogelijk opgeslagen in je {{service}}-kalender. Controleer het opnieuw voordat er iets anders wordt gewijzigd.",
+    "completed": "Alle gecontroleerde wijzigingen zijn voltooid.",
+    "canceled": "De resterende wijzigingen zijn geannuleerd.",
+    "finishedTitle": "Al voltooid",
     "outcome": {
       "closedAtUpgrade": "Deze trainingsbeoordeling is voorbereid voordat de app werd bijgewerkt. Vraag het de coach opnieuw.",
       "saved": "{{workout}}, {{date}}: wijziging opgeslagen.",

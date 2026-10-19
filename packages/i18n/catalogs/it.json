@@ -2940,7 +2940,6 @@
     "saveFailed": "Non è stato possibile salvare la tua scelta su questo iPhone, quindi non è stato modificato nulla. Riprova.",
     "storageUnavailable": "Impossibile leggere la revisione dell'allenamento salvata. I suoi pulsanti sono temporaneamente disattivati.",
     "title": "Revisione dell'allenamento",
-    "uncertain": "Non ho potuto confermare se questa modifica è arrivata al tuo calendario su {{service}}. Controlla il calendario prima di chiedermelo di nuovo.",
     "workout": {
       "warmup": "Riscaldamento",
       "mainSet": "Blocco principale",
@@ -3035,7 +3034,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "Questo allenamento è stato rivisto prima dell’aggiornamento dell’app. Chiedi di nuovo al coach."
+      "reviewedBeforeUpgrade": "Questo allenamento è stato rivisto prima dell’aggiornamento dell’app. Chiedi di nuovo al coach.",
+      "missing": "Un allenamento di questa revisione non è più nel tuo calendario {{service}}, quindi la revisione non può continuare. Annullala e chiedi di nuovo al coach.",
+      "pastProtected": "Un allenamento di questa revisione ora è nel passato, quindi la revisione non può continuare. Annullala e chiedi di nuovo al coach.",
+      "coachOnly": "Un allenamento di questa revisione non è stato aggiunto dal coach, quindi la revisione non può continuare. Annullala e chiedi di nuovo al coach.",
+      "workoutOnly": "Una voce di questa revisione non è un allenamento, quindi la revisione non può continuare. Annullala e chiedi di nuovo al coach."
     },
     "refreshed": {
       "nothingChanged": "Alcuni allenamenti di questa revisione sono cambiati in {{service}} dopo che li hai rivisti, quindi non è stato cambiato nulla. Ricontrollali prima di approvare.",
@@ -3050,6 +3053,12 @@
     "notPrepared": "Impossibile preparare la revisione dell’allenamento.",
     "notPreparedInformationSaved": "Le tue informazioni sono state salvate, ma non è stato possibile preparare la revisione dell’allenamento.",
     "stopped": "La revisione dell’allenamento si è interrotta prima che tutte le modifiche fossero applicate. Le modifiche già applicate restano.",
+    "sending": "Applicazione delle modifiche riviste al tuo calendario {{service}}…",
+    "partial": "{{service}} ha rifiutato una modifica, quindi le modifiche rimanenti sono state interrotte. Le modifiche già applicate restano. Controlla il resto prima di riprovare.",
+    "unconfirmed": "Una modifica potrebbe essere stata salvata nel tuo calendario {{service}}. Controlla di nuovo prima che venga cambiato altro.",
+    "completed": "Tutte le modifiche riviste sono state completate.",
+    "canceled": "Le modifiche rimanenti sono state annullate.",
+    "finishedTitle": "Già completato",
     "outcome": {
       "closedAtUpgrade": "Questa revisione dell’allenamento è stata preparata prima dell’aggiornamento dell’app. Chiedi di nuovo al coach.",
       "saved": "{{workout}}, {{date}}: modifica salvata.",

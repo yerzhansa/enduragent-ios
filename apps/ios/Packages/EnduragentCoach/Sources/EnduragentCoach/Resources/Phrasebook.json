@@ -202991,214 +202991,6 @@
         }
       }
     },
-    "review.uncertain": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn't confirm whether this reached your %#@service@ calendar. Check your calendar before asking again."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No he podido confirmar si esto llegó a tu calendario de %#@service@. Revisa tu calendario antes de pedírmelo otra vez."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je n'ai pas pu confirmer si cela a été transmis à ton calendrier %#@service@. Vérifie ton calendrier avant de me le redemander."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non ho potuto confermare se questa modifica è arrivata al tuo calendario su %#@service@. Controlla il calendario prima di chiedermelo di nuovo."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ich konnte nicht bestätigen, ob dies in deinem Kalender bei %#@service@ angekommen ist. Prüfe deinen Kalender, bevor du mich erneut darum bittest."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ik kon niet bevestigen of dit in je kalender op %#@service@ is aangekomen. Controleer je kalender voordat je het opnieuw vraagt."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jeg kunne ikke bekræfte, om dette nåede frem til din kalender på %#@service@. Tjek din kalender, før du spørger igen."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jag kunde inte bekräfta om detta nådde din kalender på %#@service@. Kontrollera kalendern innan du frågar igen."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jeg kunne ikke bekrefte om dette nådde kalenderen din på %#@service@. Sjekk kalenderen før du spør igjen."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En voinut vahvistaa, tallentuiko tämä kalenteriisi palvelussa %#@service@. Tarkista kalenterisi ennen kuin pyydät uudelleen."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Não consegui confirmar se isto chegou ao teu calendário no %#@service@. Verifica o calendário antes de pedires novamente."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Não consegui confirmar se isso chegou ao seu calendário no %#@service@. Verifique o calendário antes de pedir novamente."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nie mogę potwierdzić, czy ta zmiana trafiła do Twojego kalendarza w %#@service@. Sprawdź kalendarz, zanim poprosisz ponownie."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이 변경 사항이 %#@service@ 캘린더에 반영되었는지 확인하지 못했습니다. 다시 요청하기 전에 캘린더를 확인해 주세요."
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "この変更が%#@service@のカレンダーに反映されたか確認できませんでした。再度依頼する前に、カレンダーを確認してください。"
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法确认此更改是否已同步到你的 %#@service@ 日历。再次提出请求前，请先检查日历。"
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "無法確認此變更是否已同步至你的 %#@service@ 行事曆。再次提出請求前，請先檢查行事曆。"
-          },
-          "substitutions": {
-            "service": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        }
-      }
-    },
     "review.workout.cooldown": {
       "localizations": {
         "en": {
@@ -376015,6 +375807,426 @@
         }
       }
     },
+    "workouts.blocked.coachOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A workout in this review wasn't added by the coach, so this review can't continue. Cancel it and ask the coach again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un entrenamiento de esta revisión no lo añadió el entrenador, así que la revisión no puede continuar. Cancélala y vuelve a pedírselo al entrenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une séance de cette vérification n’a pas été ajoutée par le coach, donc la vérification ne peut pas continuer. Annule-la et redemande au coach."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un allenamento di questa revisione non è stato aggiunto dal coach, quindi la revisione non può continuare. Annullala e chiedi di nuovo al coach."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Training in dieser Prüfung wurde nicht vom Coach hinzugefügt, deshalb kann die Prüfung nicht fortgesetzt werden. Brich sie ab und frag den Coach noch einmal."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een training in deze controle is niet door de coach toegevoegd, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Et træningspas i denne gennemgang blev ikke tilføjet af træneren, så gennemgangen kan ikke fortsætte. Annuller den, og spørg træneren igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ett träningspass i den här granskningen lades inte till av tränaren, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En treningsøkt i denne gjennomgangen ble ikke lagt til av treneren, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valmentaja ei lisännyt tämän tarkistuksen harjoitusta, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um treino desta revisão não foi adicionado pelo treinador, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um treino desta revisão não foi adicionado pelo treinador, então a revisão não pode continuar. Cancele-a e peça novamente ao treinador."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trening z tego przeglądu nie został dodany przez trenera, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 검토의 운동은 코치가 추가한 것이 아니어서 검토를 계속할 수 없습니다. 검토를 취소하고 코치에게 다시 요청하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この確認のワークアウトはコーチが追加したものではないため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此审核中的一项训练并非由教练添加，因此无法继续审核。请取消审核并重新询问教练。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此審核中的一項訓練並非由教練新增，因此無法繼續審核。請取消審核並重新詢問教練。"
+          }
+        }
+      }
+    },
+    "workouts.blocked.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A workout in this review is no longer on your %#@service@ calendar, so this review can't continue. Cancel it and ask the coach again."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un entrenamiento de esta revisión ya no está en tu calendario de %#@service@, así que la revisión no puede continuar. Cancélala y vuelve a pedírselo al entrenador."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une séance de cette vérification n’est plus dans ton calendrier %#@service@, donc la vérification ne peut pas continuer. Annule-la et redemande au coach."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un allenamento di questa revisione non è più nel tuo calendario %#@service@, quindi la revisione non può continuare. Annullala e chiedi di nuovo al coach."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Training in dieser Prüfung ist nicht mehr in deinem Kalender bei %#@service@, deshalb kann die Prüfung nicht fortgesetzt werden. Brich sie ab und frag den Coach noch einmal."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een training in deze controle staat niet meer in je %#@service@-kalender, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Et træningspas i denne gennemgang er ikke længere i din kalender på %#@service@, så gennemgangen kan ikke fortsætte. Annuller den, og spørg træneren igen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ett träningspass i den här granskningen finns inte längre i din kalender på %#@service@, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En treningsøkt i denne gjennomgangen er ikke lenger i kalenderen din på %#@service@, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämän tarkistuksen harjoitus ei ole enää kalenterissasi palvelussa %#@service@, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um treino desta revisão já não está no teu calendário no %#@service@, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um treino desta revisão não está mais no seu calendário do %#@service@, então a revisão não pode continuar. Cancele-a e peça novamente ao treinador."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trening z tego przeglądu nie znajduje się już w kalendarzu %#@service@, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 검토의 운동이 더 이상 %#@service@ 캘린더에 없어 검토를 계속할 수 없습니다. 검토를 취소하고 코치에게 다시 요청하세요."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この確認のワークアウトが%#@service@のカレンダーにもうないため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此审核中的一项训练已不在你的 %#@service@ 日历中，因此无法继续审核。请取消审核并重新询问教练。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此審核中的一項訓練已不在你的 %#@service@ 行事曆中，因此無法繼續審核。請取消審核並重新詢問教練。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.blocked.pastProtected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A workout in this review is now in the past, so this review can't continue. Cancel it and ask the coach again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un entrenamiento de esta revisión ya está en el pasado, así que la revisión no puede continuar. Cancélala y vuelve a pedírselo al entrenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une séance de cette vérification est maintenant passée, donc la vérification ne peut pas continuer. Annule-la et redemande au coach."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un allenamento di questa revisione ora è nel passato, quindi la revisione non può continuare. Annullala e chiedi di nuovo al coach."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Training in dieser Prüfung liegt jetzt in der Vergangenheit, deshalb kann die Prüfung nicht fortgesetzt werden. Brich sie ab und frag den Coach noch einmal."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een training in deze controle ligt nu in het verleden, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Et træningspas i denne gennemgang ligger nu i fortiden, så gennemgangen kan ikke fortsætte. Annuller den, og spørg træneren igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ett träningspass i den här granskningen ligger nu bakåt i tiden, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En treningsøkt i denne gjennomgangen ligger nå i fortiden, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämän tarkistuksen harjoitus on nyt menneisyydessä, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um treino desta revisão está agora no passado, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um treino desta revisão agora está no passado, então a revisão não pode continuar. Cancele-a e peça novamente ao treinador."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trening z tego przeglądu jest już w przeszłości, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 검토의 운동이 이제 지난 날짜여서 검토를 계속할 수 없습니다. 검토를 취소하고 코치에게 다시 요청하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この確認のワークアウトはすでに過去の日付のため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此审核中的一项训练现已成为过去，因此无法继续审核。请取消审核并重新询问教练。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此審核中的一項訓練現已成為過去，因此無法繼續審核。請取消審核並重新詢問教練。"
+          }
+        }
+      }
+    },
     "workouts.blocked.reviewedBeforeUpgrade": {
       "localizations": {
         "en": {
@@ -376117,6 +376329,218 @@
           "stringUnit": {
             "state": "translated",
             "value": "此訓練是在 App 更新前審核的。請重新詢問教練。"
+          }
+        }
+      }
+    },
+    "workouts.blocked.workoutOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An entry in this review isn't a workout, so this review can't continue. Cancel it and ask the coach again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una entrada de esta revisión no es un entrenamiento, así que la revisión no puede continuar. Cancélala y vuelve a pedírselo al entrenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une entrée de cette vérification n’est pas une séance, donc la vérification ne peut pas continuer. Annule-la et redemande au coach."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una voce di questa revisione non è un allenamento, quindi la revisione non può continuare. Annullala e chiedi di nuovo al coach."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Eintrag in dieser Prüfung ist kein Training, deshalb kann die Prüfung nicht fortgesetzt werden. Brich sie ab und frag den Coach noch einmal."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een item in deze controle is geen training, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En post i denne gennemgang er ikke et træningspas, så gennemgangen kan ikke fortsætte. Annuller den, og spørg træneren igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En post i den här granskningen är inte ett träningspass, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En oppføring i denne gjennomgangen er ikke en treningsøkt, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämän tarkistuksen merkintä ei ole harjoitus, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um item desta revisão não é um treino, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um item desta revisão não é um treino, então a revisão não pode continuar. Cancele-a e peça novamente ao treinador."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpis w tym przeglądzie nie jest treningiem, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 검토의 항목은 운동이 아니어서 검토를 계속할 수 없습니다. 검토를 취소하고 코치에게 다시 요청하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この確認の項目はワークアウトではないため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此审核中的一项内容不是训练，因此无法继续审核。请取消审核并重新询问教练。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此審核中的一項內容不是訓練，因此無法繼續審核。請取消審核並重新詢問教練。"
+          }
+        }
+      }
+    },
+    "workouts.canceled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The remaining changes were canceled."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los cambios restantes se cancelaron."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les modifications restantes ont été annulées."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le modifiche rimanenti sono state annullate."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die übrigen Änderungen wurden abgebrochen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De resterende wijzigingen zijn geannuleerd."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De resterende ændringer blev annulleret."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De återstående ändringarna avbröts."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De gjenværende endringene ble avbrutt."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jäljellä olevat muutokset peruttiin."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As alterações restantes foram canceladas."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As alterações restantes foram canceladas."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pozostałe zmiany zostały anulowane."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나머지 변경이 취소되었습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "残りの変更はキャンセルされました。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其余更改已取消。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其餘變更已取消。"
           }
         }
       }
@@ -380033,6 +380457,218 @@
         }
       }
     },
+    "workouts.completed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All reviewed changes are complete."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los cambios revisados están completos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toutes les modifications vérifiées sont terminées."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutte le modifiche riviste sono state completate."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle geprüften Änderungen sind abgeschlossen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle gecontroleerde wijzigingen zijn voltooid."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle gennemgåede ændringer er gennemført."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alla granskade ändringar är klara."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle gjennomgåtte endringer er fullført."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaikki tarkistetut muutokset on tehty."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as alterações revistas foram concluídas."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as alterações revisadas foram concluídas."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wszystkie sprawdzone zmiany zostały wprowadzone."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "검토한 모든 변경이 완료되었습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認したすべての変更が完了しました。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有已审核的更改均已完成。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有已審核的變更均已完成。"
+          }
+        }
+      }
+    },
+    "workouts.finishedTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already completed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya completado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déjà effectué"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Già completato"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereits erledigt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al voltooid"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allerede gennemført"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redan klart"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allerede fullført"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jo tehty"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Já concluído"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Já concluído"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Już wykonane"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이미 완료됨"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完了済み"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
+          }
+        }
+      }
+    },
     "workouts.kept.title": {
       "localizations": {
         "en": {
@@ -382107,6 +382743,214 @@
             },
             "date": {
               "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.partial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ refused a change, so the remaining changes were stopped. Changes already made are kept. Check the rest before you try again."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ rechazó un cambio, así que los cambios restantes se detuvieron. Los cambios ya aplicados se conservan. Revisa el resto antes de volver a intentarlo."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ a refusé une modification, donc les modifications restantes ont été arrêtées. Les modifications déjà faites sont conservées. Vérifie le reste avant de réessayer."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ ha rifiutato una modifica, quindi le modifiche rimanenti sono state interrotte. Le modifiche già applicate restano. Controlla il resto prima di riprovare."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ hat eine Änderung abgelehnt, deshalb wurden die übrigen Änderungen angehalten. Bereits vorgenommene Änderungen bleiben erhalten. Prüfe den Rest, bevor du es erneut versuchst."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ heeft een wijziging geweigerd, dus de resterende wijzigingen zijn gestopt. Wijzigingen die al zijn doorgevoerd, blijven behouden. Controleer de rest voordat je het opnieuw probeert."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ afviste en ændring, så de resterende ændringer blev stoppet. Ændringer, der allerede er foretaget, bevares. Tjek resten, før du prøver igen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ avvisade en ändring, så de återstående ändringarna stoppades. Ändringar som redan gjorts behålls. Kontrollera resten innan du försöker igen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ avviste en endring, så de gjenværende endringene ble stoppet. Endringer som allerede er gjort, beholdes. Sjekk resten før du prøver igjen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ hylkäsi muutoksen, joten jäljellä olevat muutokset pysäytettiin. Jo tehdyt muutokset säilyvät. Tarkista loput ennen kuin yrität uudelleen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O %#@service@ recusou uma alteração, por isso as alterações restantes foram interrompidas. As alterações já feitas mantêm-se. Verifica o resto antes de tentares novamente."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O %#@service@ recusou uma alteração, então as alterações restantes foram interrompidas. As alterações já feitas são mantidas. Confira o restante antes de tentar novamente."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ odrzucił zmianę, więc pozostałe zmiany zostały wstrzymane. Wprowadzone już zmiany zostają zachowane. Sprawdź resztę, zanim spróbujesz ponownie."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@에서 변경을 거부해 나머지 변경을 중단했습니다. 이미 적용된 변경은 유지됩니다. 다시 시도하기 전에 나머지를 확인하세요."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@が変更を拒否したため、残りの変更を停止しました。すでに行われた変更はそのまま残ります。再試行する前に残りを確認してください。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ 拒绝了一项更改，因此其余更改已停止。已完成的更改会保留。重试前请检查其余更改。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ 拒絕了一項變更，因此其餘變更已停止。已完成的變更會保留。重試前請檢查其餘變更。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
               "formatSpecifier": "@"
             }
           }
@@ -384359,6 +385203,214 @@
         }
       }
     },
+    "workouts.sending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Making the reviewed changes on your %#@service@ calendar…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicando los cambios revisados en tu calendario de %#@service@…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application des modifications vérifiées à ton calendrier %#@service@…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applicazione delle modifiche riviste al tuo calendario %#@service@…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die geprüften Änderungen werden in deinem Kalender bei %#@service@ vorgenommen …"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De gecontroleerde wijzigingen worden doorgevoerd in je %#@service@-kalender…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foretager de gennemgåede ændringer i din kalender på %#@service@ …"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gör de granskade ändringarna i din kalender på %#@service@ …"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gjør de gjennomgåtte endringene i kalenderen din på %#@service@ …"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarkistettuja muutoksia tehdään kalenteriisi palvelussa %#@service@…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A aplicar as alterações revistas ao teu calendário no %#@service@…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicando as alterações revisadas no seu calendário do %#@service@…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wprowadzanie sprawdzonych zmian w kalendarzu %#@service@…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "검토한 변경을 %#@service@ 캘린더에 적용하는 중…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認した変更を%#@service@のカレンダーに反映しています…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在将已审核的更改应用到你的 %#@service@ 日历…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在將已審核的變更套用到你的 %#@service@ 行事曆…"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
     "workouts.stopped": {
       "localizations": {
         "en": {
@@ -386415,6 +387467,214 @@
             },
             "deletions": {
               "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.unconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A change may have been saved to your %#@service@ calendar. Check again to find out before anything else is changed."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es posible que un cambio se haya guardado en tu calendario de %#@service@. Comprueba de nuevo para saberlo antes de cambiar nada más."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une modification a peut-être été enregistrée dans ton calendrier %#@service@. Vérifie à nouveau avant que quoi que ce soit d’autre soit modifié."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una modifica potrebbe essere stata salvata nel tuo calendario %#@service@. Controlla di nuovo prima che venga cambiato altro."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Änderung wurde möglicherweise in deinem Kalender bei %#@service@ gespeichert. Prüfe es erneut, bevor etwas anderes geändert wird."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een wijziging is mogelijk opgeslagen in je %#@service@-kalender. Controleer het opnieuw voordat er iets anders wordt gewijzigd."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En ændring kan være blevet gemt i din kalender på %#@service@. Kontrollér igen for at finde ud af det, før noget andet ændres."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En ändring kan ha sparats i din kalender på %#@service@. Kontrollera igen innan något annat ändras."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En endring kan ha blitt lagret i kalenderen din på %#@service@. Sjekk igjen før noe annet endres."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muutos on saatettu tallentaa kalenteriisi palvelussa %#@service@. Tarkista uudelleen ennen kuin mitään muuta muutetaan."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma alteração pode ter sido guardada no teu calendário no %#@service@. Verifica novamente antes de mais alguma coisa ser alterada."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma alteração pode ter sido salva no seu calendário do %#@service@. Verifique novamente antes que qualquer outra coisa seja alterada."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmiana mogła zostać zapisana w kalendarzu %#@service@. Sprawdź ponownie, zanim cokolwiek innego zostanie zmienione."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "변경이 %#@service@ 캘린더에 저장되었을 수 있습니다. 다른 변경을 하기 전에 다시 확인하세요."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "変更が%#@service@のカレンダーに保存された可能性があります。ほかの変更を行う前に再確認してください。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一项更改可能已保存到你的 %#@service@ 日历。在进行其他更改前，请重新检查。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一項變更可能已儲存到你的 %#@service@ 行事曆。在進行其他變更前，請再次檢查。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
               "formatSpecifier": "@"
             }
           }

@@ -396,7 +396,10 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `chat-new-conversation` | A reply with `chat.newConversation` in the top bar; after the tap, the welcome with `New conversation started.` |
 | `review-ready` | The `Workout review` card after a workout request. For the card content, `u8-1-review-cards-add` after `fixture:review-mixed` from `ReviewCardsAddProof` |
 | `review-ready-scroll` | The same review scrolled to its last card, `u8-1-review-cards-add-scrolled` from `ReviewCardsAddProof` |
-| `review-canceled-first` | The chat after `chat.preview.cancel` |
+| `review-canceled-first` | A review canceled before any change was written: the note box with `change not made.` for every change and `The remaining changes were canceled.`, `u8-3-review-canceled-first` from `ReviewBlockedProof` |
+| `review-partial` | A run stopped at a refused change: `Already completed` with the saved lines, the remaining cards, the refusal notice and Try again with Cancel, `u8-3-review-partial` from `ReviewPartialProof` |
+| `review-retried` | The note box after Try again finished the rest, closing with `All reviewed changes are complete.`, `u8-3-review-retried` from `ReviewRetriedProof` |
+| `review-canceled` | The note box after Cancel at a refused change, saved lines then `change not made.` lines and `The remaining changes were canceled.`, `u8-3-review-canceled` from `ReviewCanceledProof` |
 | `review-deliver` | The mixed review with every card seen: totals and kept workouts, `u8-2-review-totals` and `u8-2-review-totals-kept` from `ReviewTotalsProof`, and the question and approve label per kind of review from `ReviewApprovalBarProof` |
 | `review-arriving` | A long review just arrived with no button yet, `u8-2-review-long-arriving` from `ReviewLongPresentationProof` |
 | `review-card-failed` | The bar after the last card failed to present, with Show again and no approve button, `u8-2-review-card-failed` from `ReviewLongPresentationProof` |

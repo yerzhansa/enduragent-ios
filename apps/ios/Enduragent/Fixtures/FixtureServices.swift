@@ -46,6 +46,7 @@
 				directory: launch.directory, deviceId: persistedDeviceID(in: defaults),
 				unreadable: launch.store == .unreadable)
 			let records = fixture.faults
+			try launch.reviewStage.map { try $0.install(on: intervals, records: records) }
 			if launch.resetFault == .failBoundary { try records.failAppends(ofKind: "windowStart") }
 			records.failRecoveryReads = launch.recovery == .unreadable
 			let (secrets, backing, native) = try fixtureSecrets(launch)
@@ -175,6 +176,32 @@
 					CredentialSlot.accessSelection.rawValue, with: errSecNotAvailable)
 			}
 			return (fixture.store, fixture.backing, nil)
+		}
+	}
+	extension FixtureReviewStage {
+		static let sendingHeldWrite = 2
+		static let storageStallAfter = 3
+		static let refreshedMinutes = 90
+
+		func install(on intervals: FakeIntervalsClient, records: RecordFaults) throws {
+			switch self {
+			case .sending:
+				intervals.holdCalendarWrite = Self.sendingHeldWrite
+			case .partial:
+				intervals.refuseCalendarUpdateOnce = true
+				intervals.answerCalendarDeletesGone = true
+			case .unconfirmed:
+				intervals.loseCalendarSaveAnswerOnce = true
+				intervals.failCalendarReadAfterLostAnswer = true
+			case .refreshed:
+				intervals.driftAfterFirstRead = [
+					WorkoutReviewFixture.editedEvent: .lengthen(minutes: Self.refreshedMinutes)
+				]
+			case .blocked:
+				intervals.driftAfterFirstRead = [WorkoutReviewFixture.deletedEvent: .remove]
+			case .storage:
+				try records.failReviewAppend(after: Self.storageStallAfter)
+			}
 		}
 	}
 #endif
