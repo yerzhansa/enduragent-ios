@@ -245,6 +245,8 @@ final class ReviewBlockedProof: XCTestCase {
 		TutorialHarness.attach(self, name: "u8-3-review-blocked", app: app)
 		TutorialHarness.relaunchKeepingStore(app)
 		ReviewStates.expect(app, "chat.review.notice", reading: [ReviewStates.missing])
+		let cancel = ReviewCardScreen.bar(app).buttons.matching(identifier: "chat.preview.cancel")
+		ReviewCardScreen.reveal(app, cancel.firstMatch)
 		ReviewCardScreen.assertButtons(app, .cancelOnly)
 		TutorialHarness.attach(self, name: "u8-3-review-blocked-relaunched", app: app)
 		ReviewStates.tap(app, "chat.preview.cancel")

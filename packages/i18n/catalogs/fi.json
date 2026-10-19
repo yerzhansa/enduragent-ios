@@ -3088,13 +3088,8 @@
       },
       "progress": {
         "sending": "Lähetetään…",
-        "saved": "Tallennettu",
-        "seenOnCalendar": "Näkyy kalenterissa",
-        "noLongerOnCalendar": "Ei enää kalenterissa",
         "refused": "Ei tallennettu",
         "mayHaveBeenSaved": "Ehkä tallennettu",
-        "added": "Lisätty",
-        "removed": "Poistettu",
         "notRemoved": "Ei poistettu",
         "mayHaveBeenRemoved": "Ehkä poistettu"
       }

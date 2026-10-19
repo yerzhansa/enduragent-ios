@@ -3048,13 +3048,8 @@
       },
       "progress": {
         "sending": "正在发送…",
-        "saved": "已保存",
-        "seenOnCalendar": "已在日历中看到",
-        "noLongerOnCalendar": "已不在日历中",
         "refused": "未保存",
         "mayHaveBeenSaved": "可能已保存",
-        "added": "已添加",
-        "removed": "已删除",
         "notRemoved": "未删除",
         "mayHaveBeenRemoved": "可能已删除"
       }

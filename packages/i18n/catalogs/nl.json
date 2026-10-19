@@ -3088,13 +3088,8 @@
       },
       "progress": {
         "sending": "Verzenden…",
-        "saved": "Opgeslagen",
-        "seenOnCalendar": "Gezien in de kalender",
-        "noLongerOnCalendar": "Niet meer in de kalender",
         "refused": "Niet opgeslagen",
         "mayHaveBeenSaved": "Mogelijk opgeslagen",
-        "added": "Toegevoegd",
-        "removed": "Verwijderd",
         "notRemoved": "Niet verwijderd",
         "mayHaveBeenRemoved": "Mogelijk verwijderd"
       }

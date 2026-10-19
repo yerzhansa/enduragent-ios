@@ -111,7 +111,6 @@ import Testing
 		#expect(settled.controls == .armed(.tryAgainOrCancel, tryAgain))
 		#expect(settled.notice?.sentences(in: Self.english) == [Self.stopped])
 		#expect(Self.decisionNotice(after: checked) == Self.cardNotice(of: settled))
-		#expect(settled.cards[0].status(in: Self.english) == "Seen on the calendar")
 		#expect(
 			settled.cards.compactMap { $0.finishedLine(in: Self.english) } == [
 				"Tempo ride, 9/9/1998: change seen on the calendar."

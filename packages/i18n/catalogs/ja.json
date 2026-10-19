@@ -3048,13 +3048,8 @@
       },
       "progress": {
         "sending": "送信中…",
-        "saved": "保存済み",
-        "seenOnCalendar": "カレンダーで確認済み",
-        "noLongerOnCalendar": "カレンダーにもうありません",
         "refused": "未保存",
         "mayHaveBeenSaved": "保存された可能性があります",
-        "added": "追加済み",
-        "removed": "削除済み",
         "notRemoved": "未削除",
         "mayHaveBeenRemoved": "削除された可能性があります"
       }

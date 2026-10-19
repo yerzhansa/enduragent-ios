@@ -3048,13 +3048,8 @@
       },
       "progress": {
         "sending": "보내는 중…",
-        "saved": "저장됨",
-        "seenOnCalendar": "캘린더에서 확인됨",
-        "noLongerOnCalendar": "더 이상 캘린더에 없음",
         "refused": "저장되지 않음",
         "mayHaveBeenSaved": "저장되었을 수 있음",
-        "added": "추가됨",
-        "removed": "삭제됨",
         "notRemoved": "삭제되지 않음",
         "mayHaveBeenRemoved": "삭제되었을 수 있음"
       }

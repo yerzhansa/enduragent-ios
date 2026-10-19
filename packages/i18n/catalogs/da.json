@@ -3088,13 +3088,8 @@
       },
       "progress": {
         "sending": "Sender …",
-        "saved": "Gemt",
-        "seenOnCalendar": "Set i kalenderen",
-        "noLongerOnCalendar": "Ikke længere i kalenderen",
         "refused": "Ikke gemt",
         "mayHaveBeenSaved": "Måske gemt",
-        "added": "Tilføjet",
-        "removed": "Fjernet",
         "notRemoved": "Ikke fjernet",
         "mayHaveBeenRemoved": "Måske fjernet"
       }

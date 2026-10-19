@@ -34,13 +34,8 @@ extension ReviewCard {
 	public func status(in display: DisplayLocale) -> String? {
 		let key: CatalogKey? =
 			switch (progress, action) {
-			case (.remaining, _): nil
+			case (.remaining, _), (.saved, _), (.seenOnCalendar, _), (.noLongerOnCalendar, _): nil
 			case (.sending, _): Catalog.workoutsCardProgressSending
-			case (.saved, .add): Catalog.workoutsCardProgressAdded
-			case (.saved, .edit): Catalog.workoutsCardProgressSaved
-			case (.saved, .delete): Catalog.workoutsCardProgressRemoved
-			case (.seenOnCalendar, _): Catalog.workoutsCardProgressSeenOnCalendar
-			case (.noLongerOnCalendar, _): Catalog.workoutsCardProgressNoLongerOnCalendar
 			case (.refused, .delete): Catalog.workoutsCardProgressNotRemoved
 			case (.refused, .add), (.refused, .edit): Catalog.workoutsCardProgressRefused
 			case (.mayHaveBeenSaved, .delete): Catalog.workoutsCardProgressMayHaveBeenRemoved

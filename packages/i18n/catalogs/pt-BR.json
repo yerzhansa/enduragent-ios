@@ -3088,13 +3088,8 @@
       },
       "progress": {
         "sending": "Enviando…",
-        "saved": "Salvo",
-        "seenOnCalendar": "Visto no calendário",
-        "noLongerOnCalendar": "Não está mais no calendário",
         "refused": "Não salvo",
         "mayHaveBeenSaved": "Pode ter sido salvo",
-        "added": "Adicionado",
-        "removed": "Removido",
         "notRemoved": "Não removido",
         "mayHaveBeenRemoved": "Pode ter sido removido"
       }
