@@ -49,10 +49,10 @@ final class ReviewLargestTextFortyProof: XCTestCase {
 			XCTAssertTrue(
 				button.frame.minY >= band.minY && button.frame.maxY <= band.maxY,
 				"\(control.rawValue) \(button.frame) is not whole in the transcript \(band)")
-			ReviewLong.audit(app, "\(control.rawValue) at the largest text size")
 			TutorialHarness.attach(
 				self, name: "u8-4-review-largest-text-\(control == .add ? "approve" : "cancel")",
 				app: app)
+			ReviewLong.audit(app, "\(control.rawValue) at the largest text size")
 		}
 		card.reach(.cancel).tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.cancel"), until: .absent)
