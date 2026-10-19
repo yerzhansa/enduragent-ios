@@ -3012,7 +3012,6 @@
     "saveFailed": "Nie udało się zapisać Twojego wyboru na tym iPhonie, więc nic nie zostało zmienione. Spróbuj ponownie.",
     "storageUnavailable": "Nie udało się odczytać zapisanego przeglądu treningu. Jego przyciski są tymczasowo wyłączone.",
     "title": "Przegląd treningu",
-    "uncertain": "Nie mogę potwierdzić, czy ta zmiana trafiła do Twojego kalendarza w {{service}}. Sprawdź kalendarz, zanim poprosisz ponownie.",
     "workout": {
       "warmup": "Rozgrzewka",
       "mainSet": "Seria główna",
@@ -3115,7 +3114,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "Ten trening został sprawdzony przed aktualizacją aplikacji. Poproś trenera ponownie."
+      "reviewedBeforeUpgrade": "Ten trening został sprawdzony przed aktualizacją aplikacji. Poproś trenera ponownie.",
+      "missing": "Trening z tego przeglądu nie znajduje się już w kalendarzu {{service}}, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie.",
+      "pastProtected": "Trening z tego przeglądu jest już w przeszłości, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie.",
+      "coachOnly": "Trening z tego przeglądu nie został dodany przez trenera, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie.",
+      "workoutOnly": "Wpis w tym przeglądzie nie jest treningiem, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie."
     },
     "refreshed": {
       "nothingChanged": "Treningi w tym przeglądzie zmieniły się w {{service}} po tym, jak je sprawdzono, więc nic nie zostało zmienione. Sprawdź je ponownie przed zatwierdzeniem.",
@@ -3130,6 +3133,12 @@
     "notPrepared": "Nie udało się przygotować przeglądu treningu.",
     "notPreparedInformationSaved": "Twoje informacje zostały zapisane, ale nie udało się przygotować przeglądu treningu.",
     "stopped": "Przegląd treningu zatrzymał się przed wprowadzeniem wszystkich zmian. Wprowadzone już zmiany zostają zachowane.",
+    "sending": "Wprowadzanie sprawdzonych zmian w kalendarzu {{service}}…",
+    "partial": "{{service}} odrzucił zmianę, więc pozostałe zmiany zostały wstrzymane. Wprowadzone już zmiany zostają zachowane. Sprawdź resztę, zanim spróbujesz ponownie.",
+    "unconfirmed": "Zmiana mogła zostać zapisana w kalendarzu {{service}}. Sprawdź ponownie, zanim cokolwiek innego zostanie zmienione.",
+    "completed": "Wszystkie sprawdzone zmiany zostały wprowadzone.",
+    "canceled": "Pozostałe zmiany zostały anulowane.",
+    "finishedTitle": "Już wykonane",
     "outcome": {
       "closedAtUpgrade": "Ten przegląd treningu został przygotowany przed aktualizacją aplikacji. Poproś trenera ponownie.",
       "saved": "{{workout}}, {{date}}: zmiana zapisana.",
@@ -3159,13 +3168,8 @@
       },
       "progress": {
         "sending": "Wysyłanie…",
-        "saved": "Zapisano",
-        "seenOnCalendar": "Widoczne w kalendarzu",
-        "noLongerOnCalendar": "Nie ma już w kalendarzu",
         "refused": "Nie zapisano",
         "mayHaveBeenSaved": "Mogło zostać zapisane",
-        "added": "Dodano",
-        "removed": "Usunięto",
         "notRemoved": "Nie usunięto",
         "mayHaveBeenRemoved": "Mogło zostać usunięte"
       }

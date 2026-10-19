@@ -557,6 +557,7 @@ ReviewCard.date
 ReviewCard.durationMinutes
 ReviewCard.edit
 ReviewCard.estimatedLoad
+ReviewCard.finishedLine(in:)
 ReviewCard.heading(of:in:)
 ReviewCard.index
 ReviewCard.instructions
@@ -604,7 +605,10 @@ ReviewEdit.name
 ReviewNotice
 ReviewNotice.Kind
 ReviewNotice.Kind.accountChanged
+ReviewNotice.Kind.blocked
+ReviewNotice.Kind.outcome
 ReviewNotice.Kind.partialFailure
+ReviewNotice.Kind.progress
 ReviewNotice.Kind.refreshedAfterStaleTarget
 ReviewNotice.Kind.storageUnavailable
 ReviewNotice.key
@@ -753,6 +757,7 @@ TranscriptNote.Content
 TranscriptNote.Content.applied
 TranscriptNote.Content.cancelledUnknown
 TranscriptNote.Content.outcome
+TranscriptNote.closing(in:)
 TranscriptNote.content
 TurnActivity
 TurnActivity.compacting
@@ -838,11 +843,9 @@ WriteSummary.memorySections
 WriteSummary.none
 WriteSummary.planSaves
 WriteSummary.unverifiedCalendarWrites
-
 CoachPorts.openRouterSignIn
 OpenRouterSignInService
 OpenRouterSignInService.init(authorizer:)
-
 AccessStatus.consent
 AccessConsent
 AccessConsent.required

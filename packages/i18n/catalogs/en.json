@@ -1662,7 +1662,6 @@
     "saveFailed": "Couldn't save your choice on this iPhone, so nothing was changed. Try again.",
     "storageUnavailable": "Couldn't read the saved workout review. Its buttons are temporarily disabled.",
     "title": "Workout review",
-    "uncertain": "Couldn't confirm whether this reached your {{service}} calendar. Check your calendar before asking again.",
     "workout": {
       "warmup": "Warmup",
       "mainSet": "Main set",
@@ -3035,7 +3034,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "This workout was reviewed before the app was updated. Ask the coach again."
+      "reviewedBeforeUpgrade": "This workout was reviewed before the app was updated. Ask the coach again.",
+      "missing": "A workout in this review is no longer on your {{service}} calendar, so this review can't continue. Cancel it and ask the coach again.",
+      "pastProtected": "A workout in this review is now in the past, so this review can't continue. Cancel it and ask the coach again.",
+      "coachOnly": "A workout in this review wasn't added by the coach, so this review can't continue. Cancel it and ask the coach again.",
+      "workoutOnly": "An entry in this review isn't a workout, so this review can't continue. Cancel it and ask the coach again."
     },
     "refreshed": {
       "nothingChanged": "Workouts in this review changed in {{service}} after you reviewed them, so nothing was changed. Check them again before you approve.",
@@ -3050,6 +3053,12 @@
     "notPrepared": "The workout review could not be prepared.",
     "notPreparedInformationSaved": "Your information was saved, but the workout review could not be prepared.",
     "stopped": "This workout review stopped before every change was made. Changes already made are kept.",
+    "sending": "Making the reviewed changes on your {{service}} calendar…",
+    "partial": "{{service}} refused a change, so the remaining changes were stopped. Changes already made are kept. Check the rest before you try again.",
+    "unconfirmed": "A change may have been saved to your {{service}} calendar. Check again to find out before anything else is changed.",
+    "completed": "All reviewed changes are complete.",
+    "canceled": "The remaining changes were canceled.",
+    "finishedTitle": "Already completed",
     "outcome": {
       "closedAtUpgrade": "This review was prepared before the app was updated. Ask the coach again.",
       "saved": "{{workout}}, {{date}}: change saved.",
@@ -3079,13 +3088,8 @@
       },
       "progress": {
         "sending": "Sending…",
-        "saved": "Saved",
-        "seenOnCalendar": "Seen on the calendar",
-        "noLongerOnCalendar": "No longer on the calendar",
         "refused": "Not saved",
         "mayHaveBeenSaved": "May have been saved",
-        "added": "Added",
-        "removed": "Removed",
         "notRemoved": "Not removed",
         "mayHaveBeenRemoved": "May have been removed"
       }

@@ -182,10 +182,17 @@ import Testing
 			return
 		}
 		let cards = try #require(try await coach.desk.snapshot(chat: .main)).cards
-		#expect(cards.map { $0.status(in: english) } == ["Added", "Added", "Not saved", nil])
+		#expect(
+			cards.compactMap { $0.finishedLine(in: english) } == [
+				"Endurance 50, 9/9/1998: change saved.", "Core strength, 9/10/1998: change saved.",
+			])
+		#expect(
+			cards.filter { $0.finishedLine(in: english) == nil }.map { $0.status(in: english) } == [
+				"Not saved", nil,
+			])
 	}
 
-	@Test func aFinishedDeleteSaysRemovedAndARefusedDeleteSaysNotRemoved() async throws {
+	@Test func aFinishedDeleteGetsAFinishedLineAndARefusedDeleteSaysNotRemoved() async throws {
 		let (coach, calendar) = await seededCoach()
 		_ = try await committed(
 			#"{"preparation":{"kind":"complete","changes":[{"kind":"delete","eventId":\#(WorkoutReviewFixture.deletedEvent.rawValue)},{"kind":"delete","eventId":\#(WorkoutReviewFixture.editedEvent.rawValue)}]}}"#,
@@ -197,7 +204,14 @@ import Testing
 			return
 		}
 		let cards = try #require(try await coach.desk.snapshot(chat: .main)).cards
-		#expect(cards.map { $0.status(in: english) } == ["Removed", "Not removed"])
+		#expect(
+			cards.compactMap { $0.finishedLine(in: english) } == [
+				"Recovery spin, 9/12/1998: change saved."
+			])
+		#expect(
+			cards.filter { $0.finishedLine(in: english) == nil }.map { $0.status(in: english) } == [
+				"Not removed"
+			])
 	}
 
 	private var strengthDescription: String {

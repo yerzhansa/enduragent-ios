@@ -66,6 +66,13 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	#if DEBUG
 		public var loseCalendarSaveAnswerOnce = false
 		public var failCalendarReadOnce = false
+		public var failCalendarReadAfterLostAnswer = false
+		public var holdCalendarWrite: Int?
+		public var refuseCalendarUpdateOnce = false
+		public var answerCalendarDeletesGone = false
+		public var driftAfterFirstRead: [EventID: CalendarDrift] = [:]
+		private var calendarWrites = 0
+		private var readEvents: Set<EventID> = []
 	#endif
 
 	package init(athlete: AthleteProfile) {
@@ -150,6 +157,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	public func fetchEvent(id: EventID) async throws -> CalendarEvent {
 		#if DEBUG
 			try consumeCalendarReadFault()
+			drift(id)
 		#endif
 		try await begin(.event)
 		if unreadableEvents.contains(id) {
@@ -179,6 +187,9 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		if let writeFailure {
 			return writeFailure
 		}
+		#if DEBUG
+			if let scripted = await scriptedAnswer(to: write) { return scripted }
+		#endif
 		switch write {
 		case .create(let payload, let identity):
 			return create(payload, identity: identity)
@@ -230,6 +241,7 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		#if DEBUG
 			if loseCalendarSaveAnswerOnce {
 				loseCalendarSaveAnswerOnce = false
+				failCalendarReadOnce = failCalendarReadOnce || failCalendarReadAfterLostAnswer
 				return .lost(.transport)
 			}
 		#endif
@@ -237,6 +249,48 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 	}
 
 	#if DEBUG
+		private func scriptedAnswer(to write: CalendarWrite) async -> IntervalsWriteAnswer? {
+			calendarWrites += 1
+			if calendarWrites == holdCalendarWrite {
+				do {
+					while !Task.isCancelled { try await Task.sleep(for: .seconds(60)) }
+				} catch is CancellationError {
+					return .lost(.canceled)
+				} catch {
+					fatalError("Task.sleep failed: \(error)")
+				}
+				return .lost(.canceled)
+			}
+			switch write {
+			case .update(let id, _) where refuseCalendarUpdateOnce:
+				refuseCalendarUpdateOnce = false
+				recordedCalls.withLock { $0.append(.updateEvent(id)) }
+				return .httpStatus(400)
+			case .delete(let id) where answerCalendarDeletesGone:
+				recordedCalls.withLock { $0.append(.deleteEvent(id)) }
+				return .httpStatus(404)
+			case .create, .update, .delete:
+				return nil
+			}
+		}
+
+		private func drift(_ id: EventID) {
+			guard !readEvents.insert(id).inserted, let drift = driftAfterFirstRead[id]
+			else { return }
+			driftAfterFirstRead[id] = nil
+			switch drift {
+			case .lengthen(let minutes):
+				events = events.map { event in
+					guard event.id == id else { return event }
+					var longer = event
+					longer.movingTime = minutes * 60
+					return longer
+				}
+			case .remove:
+				events.removeAll { $0.id == id }
+			}
+		}
+
 		private func consumeCalendarReadFault() throws {
 			if failCalendarReadOnce {
 				failCalendarReadOnce = false
@@ -245,3 +299,10 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		}
 	#endif
 }
+
+#if DEBUG
+	public enum CalendarDrift: Sendable, Equatable {
+		case lengthen(minutes: Int)
+		case remove
+	}
+#endif

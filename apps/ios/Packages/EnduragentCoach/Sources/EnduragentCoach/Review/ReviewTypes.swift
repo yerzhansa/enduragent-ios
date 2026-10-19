@@ -263,6 +263,7 @@ public struct ReviewReceipt: Sendable, Equatable {
 public struct ReviewNotice: Sendable, Equatable {
 	public enum Kind: Sendable, Equatable {
 		case refreshedAfterStaleTarget, partialFailure, accountChanged, storageUnavailable
+		case blocked, progress, outcome
 	}
 	public let kind: Kind
 	public let key: CatalogKey

@@ -107,15 +107,16 @@ final class ShellModel {
 	}
 
 	var reviewNotice: AthleteNotice? {
-		guard let reviewOutcomeNotice else { return nil }
-		if let cardNotice = chat?.review?.notice,
-			cardNotice.kind == .storageUnavailable
-				|| (cardNotice.key == reviewOutcomeNotice.key
-					&& cardNotice.vars.mapValues(CatalogArgument.text) == reviewOutcomeNotice.vars)
-		{
-			return nil
-		}
+		guard let reviewOutcomeNotice, chat?.review?.notice?.kind != .storageUnavailable,
+			!reviewNoticeRepeatsCard(reviewOutcomeNotice) || !reviewOutcomeNotice.actions.isEmpty
+		else { return nil }
 		return reviewOutcomeNotice
+	}
+
+	func reviewNoticeRepeatsCard(_ notice: AthleteNotice) -> Bool {
+		guard let cardNotice = chat?.review?.notice else { return false }
+		return cardNotice.key == notice.key
+			&& cardNotice.vars.mapValues(CatalogArgument.text) == notice.vars
 	}
 
 	var reviewPresentation: ReviewPresentation? {

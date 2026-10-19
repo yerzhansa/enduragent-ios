@@ -1,13 +1,6 @@
 import Foundation
 
 extension ReviewProjection {
-	static func notice(of review: WorkoutReview) -> ReviewNotice? {
-		guard case .waiting(.approval(.refreshed(let differences))) = review.stage else {
-			return nil
-		}
-		return refreshedNotice(of: review, naming: differences)
-	}
-
 	static func refreshedNotice(of review: WorkoutReview, naming differences: [TargetDifference])
 		-> ReviewNotice
 	{

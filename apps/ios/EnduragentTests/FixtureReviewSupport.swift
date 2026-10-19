@@ -4,16 +4,17 @@ import Testing
 @testable import Enduragent
 
 extension FixtureLaunchTests {
-	func presentedReview(on model: ShellModel, connect: Bool = true) async throws
-		-> ReviewControlToken
-	{
+	func presentedReview(
+		on model: ShellModel, connect: Bool = true,
+		asking request: String = TutorialCopy.rideRequest
+	) async throws -> ReviewControlToken {
 		if connect {
 			model.trainingSettings.edit()
 			model.connectKey = "fixture"
 			await model.connect()
 			try #require(model.didConnect)
 		}
-		model.draft.text = TutorialCopy.rideRequest
+		model.draft.text = request
 		await model.send()
 		try await until { model.chat?.review != nil }
 		let review = try #require(model.chat?.review)
@@ -28,9 +29,10 @@ extension FixtureLaunchTests {
 		async throws
 	{
 		await model.decide(.approve(token))
-		#expect(model.reviewNotice?.key == Catalog.reviewAccountChanged)
 		try await until { model.chat?.review.map { $0.ref != token.ref } == true }
 		let blocked = try #require(model.chat?.review)
+		#expect(blocked.notice?.key == Catalog.reviewAccountChanged)
+		#expect(model.reviewNotice == nil)
 		#expect(blocked.ref.review == token.ref.review)
 		await model.decide(.presented(blocked.ref))
 		try await until {
@@ -44,5 +46,10 @@ extension ReviewControls {
 	var approveToken: ReviewControlToken? {
 		guard case .armed(.approveOrCancel, let token) = self else { return nil }
 		return token
+	}
+
+	var offered: ControlSet? {
+		guard case .armed(let set, _) = self else { return nil }
+		return set
 	}
 }

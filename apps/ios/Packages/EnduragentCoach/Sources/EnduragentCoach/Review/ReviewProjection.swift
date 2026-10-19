@@ -42,21 +42,13 @@ enum ReviewProjection {
 		case .waiting(.approval(.refreshed(let differences))):
 			return .refreshed(refreshedNotice(of: review, naming: differences))
 		case .waiting(.unconfirmed):
-			return .unconfirmed(
-				receipts,
-				ReviewNotice(
-					kind: .partialFailure, key: Catalog.reviewUncertain,
-					vars: ["service": "intervals.icu"]))
-		case .waiting(.approval(.couldNotCheck)), .waiting(.tryAgain(.couldNotCheck)):
-			return .stopped(
-				receipts,
-				ReviewNotice(
-					kind: .partialFailure, key: Catalog.reviewCannotVerify,
-					vars: ["service": "intervals.icu"]))
-		case .waiting(.approval), .waiting(.tryAgain), .running:
-			return .stopped(
-				receipts,
-				ReviewNotice(kind: .partialFailure, key: Catalog.workoutsStopped, vars: [:]))
+			return .unconfirmed(receipts, .unconfirmed)
+		case .running:
+			return .stopped(receipts, .stopped)
+		case .waiting(.approval(let reason)):
+			return .stopped(receipts, ReviewNotice.waiting(for: reason))
+		case .waiting(.tryAgain(let reason)):
+			return .stopped(receipts, ReviewNotice.tryingAgain(after: reason))
 		}
 	}
 
@@ -258,7 +250,7 @@ extension ReviewEdit {
 }
 
 extension OutcomeLine.Result {
-	fileprivate init(_ progress: CardProgress) {
+	init(_ progress: CardProgress) {
 		switch progress {
 		case .saved: self = .saved
 		case .seenOnCalendar: self = .seenOnCalendar

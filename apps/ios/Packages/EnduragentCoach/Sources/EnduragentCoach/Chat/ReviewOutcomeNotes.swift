@@ -10,16 +10,19 @@ public struct ReviewOutcomeNote: Sendable, Equatable {
 			display.say(Catalog.workoutsOutcomeClosedAtUpgrade)
 		case .completed, .canceled:
 			lines.sorted { $0.position < $1.position }.map { line in
-				display.say(
-					line.result.key,
-					[
-						"workout": .text(
-							line.name.isEmpty
-								? display.say(Catalog.coachProposalUnnamed) : line.name),
-						"date": .day(line.date),
-					])
+				line.result.sentence(naming: line.name, on: line.date, in: display)
 			}.joined(separator: "\n")
 		}
+	}
+
+	func closing(in display: DisplayLocale) -> String? {
+		let notice: ReviewNotice? =
+			switch ending {
+			case .completed: .completed
+			case .canceled: .canceled
+			case .closedAtUpgrade: nil
+			}
+		return notice?.sentences(in: display).joined(separator: "\n")
 	}
 }
 
@@ -62,7 +65,16 @@ extension Conversation {
 }
 
 extension OutcomeLine.Result {
-	fileprivate var key: CatalogKey {
+	func sentence(naming name: String, on date: CivilDate, in display: DisplayLocale) -> String {
+		display.say(
+			key,
+			[
+				"workout": .text(name.isEmpty ? display.say(Catalog.coachProposalUnnamed) : name),
+				"date": .day(date),
+			])
+	}
+
+	private var key: CatalogKey {
 		switch self {
 		case .saved: Catalog.workoutsOutcomeSaved
 		case .seenOnCalendar: Catalog.workoutsOutcomeSeenOnCalendar

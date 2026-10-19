@@ -2904,7 +2904,6 @@
     "saveFailed": "無法在此 iPhone 上儲存你的選擇，因此未做任何變更。請重試。",
     "storageUnavailable": "無法讀取已儲存的訓練審核內容。其按鈕已暫時停用。",
     "title": "訓練審核",
-    "uncertain": "無法確認此變更是否已同步至你的 {{service}} 行事曆。再次提出請求前，請先檢查行事曆。",
     "workout": {
       "warmup": "暖身",
       "mainSet": "主要訓練",
@@ -2995,7 +2994,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "此訓練是在 App 更新前審核的。請重新詢問教練。"
+      "reviewedBeforeUpgrade": "此訓練是在 App 更新前審核的。請重新詢問教練。",
+      "missing": "此審核中的一項訓練已不在你的 {{service}} 行事曆中，因此無法繼續審核。請取消審核並重新詢問教練。",
+      "pastProtected": "此審核中的一項訓練現已成為過去，因此無法繼續審核。請取消審核並重新詢問教練。",
+      "coachOnly": "此審核中的一項訓練並非由教練新增，因此無法繼續審核。請取消審核並重新詢問教練。",
+      "workoutOnly": "此審核中的一項內容不是訓練，因此無法繼續審核。請取消審核並重新詢問教練。"
     },
     "refreshed": {
       "nothingChanged": "你審核後，此審核中的訓練在 {{service}} 中被變更，因此未做任何變更。請在核准前再次檢查。",
@@ -3010,6 +3013,12 @@
     "notPrepared": "無法準備訓練審核內容。",
     "notPreparedInformationSaved": "你的資訊已儲存，但無法準備訓練審核內容。",
     "stopped": "訓練審核在完成所有變更之前已停止。已完成的變更會保留。",
+    "sending": "正在將已審核的變更套用到你的 {{service}} 行事曆…",
+    "partial": "{{service}} 拒絕了一項變更，因此其餘變更已停止。已完成的變更會保留。重試前請檢查其餘變更。",
+    "unconfirmed": "一項變更可能已儲存到你的 {{service}} 行事曆。在進行其他變更前，請再次檢查。",
+    "completed": "所有已審核的變更均已完成。",
+    "canceled": "其餘變更已取消。",
+    "finishedTitle": "已完成",
     "outcome": {
       "closedAtUpgrade": "此訓練審核是在 App 更新前準備的。請重新詢問教練。",
       "saved": "{{workout}}（{{date}}）：變更已儲存。",
@@ -3039,13 +3048,8 @@
       },
       "progress": {
         "sending": "正在傳送…",
-        "saved": "已儲存",
-        "seenOnCalendar": "已在行事曆中看到",
-        "noLongerOnCalendar": "已不在行事曆中",
         "refused": "未儲存",
         "mayHaveBeenSaved": "可能已儲存",
-        "added": "已加入",
-        "removed": "已移除",
         "notRemoved": "未移除",
         "mayHaveBeenRemoved": "可能已移除"
       }

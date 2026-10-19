@@ -2904,7 +2904,6 @@
     "saveFailed": "이 iPhone에 선택 사항을 저장하지 못해 아무것도 변경되지 않았습니다. 다시 시도하세요.",
     "storageUnavailable": "저장된 운동 검토 내용을 읽을 수 없습니다. 버튼이 일시적으로 비활성화되었습니다.",
     "title": "운동 검토",
-    "uncertain": "이 변경 사항이 {{service}} 캘린더에 반영되었는지 확인하지 못했습니다. 다시 요청하기 전에 캘린더를 확인해 주세요.",
     "workout": {
       "warmup": "웜업",
       "mainSet": "메인 세트",
@@ -2995,7 +2994,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "이 운동은 앱이 업데이트되기 전에 검토되었습니다. 코치에게 다시 요청하세요."
+      "reviewedBeforeUpgrade": "이 운동은 앱이 업데이트되기 전에 검토되었습니다. 코치에게 다시 요청하세요.",
+      "missing": "이 검토의 운동이 더 이상 {{service}} 캘린더에 없어 검토를 계속할 수 없습니다. 검토를 취소하고 코치에게 다시 요청하세요.",
+      "pastProtected": "이 검토의 운동이 이제 지난 날짜여서 검토를 계속할 수 없습니다. 검토를 취소하고 코치에게 다시 요청하세요.",
+      "coachOnly": "이 검토의 운동은 코치가 추가한 것이 아니어서 검토를 계속할 수 없습니다. 검토를 취소하고 코치에게 다시 요청하세요.",
+      "workoutOnly": "이 검토의 항목은 운동이 아니어서 검토를 계속할 수 없습니다. 검토를 취소하고 코치에게 다시 요청하세요."
     },
     "refreshed": {
       "nothingChanged": "검토한 뒤 {{service}}에서 이 검토의 운동이 변경되어 아무것도 변경하지 않았습니다. 승인하기 전에 다시 확인하세요.",
@@ -3010,6 +3013,12 @@
     "notPrepared": "운동 검토 내용을 준비할 수 없습니다.",
     "notPreparedInformationSaved": "정보는 저장되었지만 운동 검토 내용을 준비할 수 없습니다.",
     "stopped": "모든 변경이 적용되기 전에 운동 검토가 중단되었습니다. 이미 적용된 변경은 유지됩니다.",
+    "sending": "검토한 변경을 {{service}} 캘린더에 적용하는 중…",
+    "partial": "{{service}}에서 변경을 거부해 나머지 변경을 중단했습니다. 이미 적용된 변경은 유지됩니다. 다시 시도하기 전에 나머지를 확인하세요.",
+    "unconfirmed": "변경이 {{service}} 캘린더에 저장되었을 수 있습니다. 다른 변경을 하기 전에 다시 확인하세요.",
+    "completed": "검토한 모든 변경이 완료되었습니다.",
+    "canceled": "나머지 변경이 취소되었습니다.",
+    "finishedTitle": "이미 완료됨",
     "outcome": {
       "closedAtUpgrade": "이 운동 검토는 앱이 업데이트되기 전에 준비되었습니다. 코치에게 다시 요청하세요.",
       "saved": "{{workout}}, {{date}}: 변경이 저장되었습니다.",
@@ -3039,13 +3048,8 @@
       },
       "progress": {
         "sending": "보내는 중…",
-        "saved": "저장됨",
-        "seenOnCalendar": "캘린더에서 확인됨",
-        "noLongerOnCalendar": "더 이상 캘린더에 없음",
         "refused": "저장되지 않음",
         "mayHaveBeenSaved": "저장되었을 수 있음",
-        "added": "추가됨",
-        "removed": "삭제됨",
         "notRemoved": "삭제되지 않음",
         "mayHaveBeenRemoved": "삭제되었을 수 있음"
       }
