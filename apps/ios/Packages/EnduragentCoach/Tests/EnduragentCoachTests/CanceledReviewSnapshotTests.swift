@@ -10,6 +10,7 @@ import Testing
 			[.reviewOutcome],
 			includeLegacy: [.reviewApplied, .reviewWrite, .reviewCancelledUnknown]),
 		chatId: .main)
+	static let outcomes = RecordQuery(scope: .synced([.reviewOutcome]), chatId: .main)
 	static let conversation = RecordQuery(scope: ConversationFold.syncedScope, chatId: .main)
 
 	let turns = ReviewTurns()
@@ -47,23 +48,27 @@ import Testing
 			try canceledClosing(in: shown, after: turn) == "The remaining changes were canceled.")
 	}
 
-	@Test func aCancelLeavesNoCardWhenANewerReviewReadFails() async throws {
+	@Test func aCancelLeavesTheNoteAndNoCardWhenANewerReviewReadFailsAtTheDesk() async throws {
 		let faults = FaultInjectingRecordLog(wrapping: turns.store)
 		let observer = HeldReadLog(inner: faults, holding: .fetch(Self.notes), .beforeReading)
 		let decidePath = HeldReadLog(
-			inner: observer, holding: .fetch(Self.notes), .afterReading, armed: false)
+			inner: observer, holding: .fetch(Self.outcomes), .afterReading, armed: false)
+		let outcome = HeldAppendLog(inner: decidePath, holding: "reviewOutcome", occurrence: 1)
 		defer {
+			outcome.release()
 			decidePath.release()
 			observer.release()
 		}
-		let (coach, turn) = try await blockedCoach(over: decidePath, observer: observer)
+		let (coach, turn) = try await blockedCoach(over: outcome, observer: observer)
 		let blocked = try #require(try await coach.desk.snapshot(chat: .main))
 		let cancel = try await armedToken(on: coach)
 
-		decidePath.arm()
 		async let canceling = coach.decide(.cancel(cancel), in: .main)
+		try await outcome.waitUntilReached()
+		decidePath.arm()
+		outcome.release()
 		try await decidePath.waitUntilReached()
-		faults.failNextFetch(in: Self.notes.scope)
+		faults.failNextFetch(in: Self.outcomes.scope)
 		_ = await coach.decide(.presented(blocked.ref), in: .main)
 		#expect(faults.failedFetchCount == 1)
 		decidePath.release()
