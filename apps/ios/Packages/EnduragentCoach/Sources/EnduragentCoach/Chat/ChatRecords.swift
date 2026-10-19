@@ -8,6 +8,7 @@ final class ChatRecords {
 	private(set) var conversation: Conversation
 	private(set) var review: ReviewSnapshot?
 	private var reviewReads = 0
+	private var shownRead = 0
 	private(set) var jobs: [FlushJob] = []
 	private var applied: [ULID: AthleteRecord] = [:]
 	private var pendingSettlements: [ULID: AthleteRecord] = [:]
@@ -67,11 +68,10 @@ final class ChatRecords {
 			} else {
 				jobs = try await ledger.flushJobs(in: folded)
 			}
-			let snapshot = try await desk.snapshot(chat: chat)
+			try await readReview()
 			folded.apply(Array(applied.values), device: ledger.deviceId)
 			conversation = folded
 			self.jobs = jobs
-			return ((), snapshot)
 		}
 	}
 
@@ -112,27 +112,28 @@ final class ChatRecords {
 
 	func updateReview(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
 		try await readingReview { () throws(LedgerFailure) in
-			return ((), try await savedReview())
+			try await refreshNotes()
+			try await readReview()
 		}
 	}
 
-	private func savedReview(isolation: isolated (any Actor)? = #isolation)
-		async throws(LedgerFailure) -> ReviewSnapshot?
+	private func readReview(isolation: isolated (any Actor)? = #isolation)
+		async throws(LedgerFailure)
 	{
-		try await refreshNotes()
-		return try await desk.snapshot(chat: chat)
+		reviewReads += 1
+		let read = reviewReads
+		let snapshot = try await desk.snapshot(chat: chat)
+		guard read > shownRead else { return }
+		review = snapshot
+		shownRead = read
 	}
 
-	private func readingReview<Value>(
+	private func readingReview(
 		isolation: isolated (any Actor)? = #isolation,
-		_ read: nonisolated(nonsending) () async throws(LedgerFailure) -> (Value, ReviewSnapshot?)
-	) async throws(LedgerFailure) -> Value {
-		reviewReads += 1
-		let started = reviewReads
+		_ read: nonisolated(nonsending) () async throws(LedgerFailure) -> Void
+	) async throws(LedgerFailure) {
 		do {
-			let (value, snapshot) = try await read()
-			if started == reviewReads { review = snapshot }
-			return value
+			try await read()
 		} catch {
 			review = review?.disablingButtons()
 			ledger.report(.reviewUnavailable(chat, error))

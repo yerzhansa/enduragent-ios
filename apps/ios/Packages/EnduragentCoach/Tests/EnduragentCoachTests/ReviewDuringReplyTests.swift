@@ -83,4 +83,49 @@ import Testing
 		#expect(revised.review?.ref.review == original.id)
 		#expect(revised.review?.ref.revision == ReviewRevision(rawValue: 2))
 	}
+
+	@Test func theFirstSnapshotOfASettledTurnCarriesItsReviewWhileANewerReadIsStillRunning()
+		async throws
+	{
+		let notes = RecordQuery(
+			scope: .synced(
+				[.reviewOutcome],
+				includeLegacy: [.reviewApplied, .reviewWrite, .reviewCancelledUnknown]),
+			chatId: .main)
+		let observer = HeldReadLog(inner: turns.store, holding: .fetch(notes), .beforeReading)
+		let settling = HeldReadLog(
+			inner: observer, holding: .fetch(notes), .afterReading, armed: false)
+		let newer = HeldReadLog(
+			inner: settling, holding: .fetch(notes), .beforeReading, armed: false)
+		defer {
+			newer.release()
+			settling.release()
+			observer.release()
+		}
+		let coach = await turns.coach(over: newer)
+		await coach.lifecycle(.becameActive)
+		let opened = await coach.observe(.main)
+		await coach.desk.moved(.main)
+		try await observer.waitUntilReached()
+		settling.arm()
+
+		async let committing = firstSnapshot(in: opened, within: .hangGuard) {
+			$0.turns.first?.state.isSettled == true
+		}
+		turns.script([
+			turns.prepare(ReviewTurns.fourChanges), .finish(reason: .toolCalls), .text("Ready."),
+			.finish(reason: .stop),
+		])
+		_ = try #require(try await coach.send(draft("Plan my week"), to: .main).acceptedTurn)
+		try await settling.waitUntilReached()
+		newer.arm()
+		let shown = try #require(try await coach.desk.snapshot(chat: .main))
+		async let presenting = coach.decide(.presented(shown.ref), in: .main)
+		try await newer.waitUntilReached()
+		settling.release()
+		let committed = try #require(try await committing)
+		#expect(committed.review?.ref.revision == ReviewRevision(rawValue: 1))
+		newer.release()
+		_ = await presenting
+	}
 }
