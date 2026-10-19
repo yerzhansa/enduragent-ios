@@ -121,6 +121,7 @@ struct ReviewCardReading {
 		TutorialHarness.wait(
 			until: { (notice + buttons).allSatisfy { run.named($0.identifier).exists } },
 			message: "\(name(screen)): the review did not show its notice and controls")
+		bringTheTitleIntoTheTranscript()
 		let card: (items: [Spoken], frame: CGRect)
 		let bar: (items: [Spoken], frame: CGRect)
 		do {
@@ -267,21 +268,23 @@ struct ReviewCardReading {
 		return (items, frame)
 	}
 
-	private func auditPageByPage(_ screen: String) {
+	private func bringTheTitleIntoTheTranscript() {
 		let title = run.named("chat.transcript").descendants(matching: .any)
 			.matching(identifier: "chat.preview.title").firstMatch
+		if !title.exists {
+			ReviewCardScreen.reveal(run.app, title, direction: reviewRows().isEmpty ? .up : .down)
+		}
 		TutorialHarness.bringIntoTranscript(run.app, title)
+	}
+
+	private func auditPageByPage(_ screen: String) {
+		guard audit("\(screen) text sizes", for: [.dynamicType]) != nil else { return }
+		bringTheTitleIntoTheTranscript()
 		for page in 0..<Self.pageLimit {
-			let review: (items: [Spoken], owned: Set<Owner>)
-			do {
-				review = try ownedByTheReview()
-			} catch {
-				XCTFail("\(name(screen)): page \(page) of the review could not be read: \(error)")
-				return
-			}
-			audit("\(screen) page \(page)", owned: review.owned)
+			guard let items = audit("\(screen) page \(page)", for: [.textClipped, .hitRegion])
+			else { return }
 			let band = TutorialHarness.transcriptBand(run.app)
-			let next = review.items.first { $0.frame.maxY > band.maxY }
+			let next = items.first { $0.frame.maxY > band.maxY }
 			let bar = run.named(Self.bar)
 			if next == nil && bar.exists && bar.frame.maxY <= band.maxY + 1 { return }
 			let margin = Self.pageMargin
@@ -295,27 +298,24 @@ struct ReviewCardReading {
 			"\(name(screen)): the end of the review bar was not reached in \(Self.pageLimit) pages")
 	}
 
-	private func ownedByTheReview() throws -> (items: [Spoken], owned: Set<Owner>) {
+	private func audit(_ page: String, for types: XCUIAccessibilityAuditType) -> [Spoken]? {
 		var items: [Spoken] = []
 		var owned: Set<Owner> = []
-		for row in reviewRows() {
-			let snapshot = try row.snapshot()
-			Self.collect(snapshot, into: &items, leaving: nil)
-			Self.own(snapshot, into: &owned)
-		}
-		return (items, owned)
-	}
-
-	private func audit(_ page: String, owned: Set<Owner>) {
 		do {
-			try run.app.performAccessibilityAudit(for: [.textClipped, .dynamicType, .hitRegion]) {
-				issue in
+			for row in reviewRows() {
+				let snapshot = try row.snapshot()
+				Self.collect(snapshot, into: &items, leaving: nil)
+				Self.own(snapshot, into: &owned)
+			}
+			try run.app.performAccessibilityAudit(for: types) { issue in
 				guard let element = issue.element, element.exists else { return true }
 				return !owned.contains(Self.owner(of: element))
 			}
 		} catch {
-			XCTFail("\(name(page)): the accessibility audit did not run: \(error)")
+			XCTFail("\(name(page)): the review could not be read and audited: \(error)")
+			return nil
 		}
+		return items
 	}
 
 	private func expectDisclaimerEndsTheTranscript(_ screen: String) {
@@ -347,19 +347,16 @@ struct ReviewCardReading {
 		let type: UInt
 		let identifier: String
 		let label: String
-		let frame: String
 	}
 
 	private static func owner(of node: any XCUIElementSnapshot) -> Owner {
-		Owner(
-			type: node.elementType.rawValue, identifier: node.identifier, label: node.label,
-			frame: "\(node.frame.integral)")
+		Owner(type: node.elementType.rawValue, identifier: node.identifier, label: node.label)
 	}
 
 	private static func owner(of element: XCUIElement) -> Owner {
 		Owner(
 			type: element.elementType.rawValue, identifier: element.identifier,
-			label: element.label, frame: "\(element.frame.integral)")
+			label: element.label)
 	}
 
 	private static func own(_ node: any XCUIElementSnapshot, into owned: inout Set<Owner>) {

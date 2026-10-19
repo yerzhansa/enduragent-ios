@@ -7,6 +7,7 @@ struct TranscriptView: View {
 	@Environment(\.dynamicTypeSize) private var dynamicTypeSize
 	@State private var revealedBackgroundTurns: Set<TurnID> = []
 	@State private var openedReview: String?
+	@State private var viewport = TranscriptViewport(frame: .null)
 
 	var body: some View {
 		ScrollViewReader { proxy in
@@ -79,8 +80,14 @@ struct TranscriptView: View {
 					.id("transcript.tail")
 			}
 			.listStyle(.plain)
+			.onGeometryChange(for: CGRect.self) {
+				$0.frame(in: .global)
+			} action: {
+				viewport = TranscriptViewport(frame: $0)
+			}
 			.accessibilityIdentifier("chat.transcript")
 			.environment(\.defaultMinListRowHeight, 0)
+			.environment(\.transcriptViewport, viewport)
 			.buttonStyle(.borderless)
 			.onChange(of: model.chat?.revision, initial: true) {
 				if reviewEndsTranscript {

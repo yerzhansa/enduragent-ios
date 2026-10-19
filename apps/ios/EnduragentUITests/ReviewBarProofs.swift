@@ -135,9 +135,14 @@ final class ReviewLongPresentationProof: XCTestCase {
 
 	private func walkToTheLastCard(_ app: XCUIApplication) {
 		let approve = approve(app)
-		ReviewCardScreen.reveal(app, ReviewCardScreen.card(app, 39)) {
+		let last = ReviewCardScreen.card(app, 39)
+		ReviewCardScreen.reveal(app, last) {
 			XCTAssertFalse(approve.exists, "Approve appeared before the last card did")
 		}
+		if !TutorialHarness.transcriptBand(app).intersects(last.frame) {
+			XCTAssertFalse(approve.exists, "Approve appeared while the last card was off screen")
+		}
+		TutorialHarness.bringIntoTranscript(app, last)
 	}
 
 	private func approve(_ app: XCUIApplication) -> XCUIElement {

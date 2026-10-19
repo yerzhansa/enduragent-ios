@@ -74,13 +74,30 @@ private struct ReviewTranscriptRow: View {
 	var card: ReviewCard?
 	var ends: Bool
 	@Environment(\.dynamicTypeSize) private var dynamicTypeSize
+	@Environment(\.transcriptViewport) private var viewport
+	@State private var placement = CGRect.null
+	@State private var onScreen = false
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 12) {
 			if let card {
 				ReviewCardView(model: model, card: card, count: review.cards.count)
-					.onAppear {
-						Task { await model.cardAppeared(card) }
+					.onGeometryChange(for: CGRect.self) {
+						$0.frame(in: .global)
+					} action: {
+						placement = $0
+					}
+					.onChange(of: viewport.shows(placement), initial: true) { _, shown in
+						onScreen = shown
+						guard shown else { return }
+						Task {
+							guard onScreen else { return }
+							await model.cardAppeared(card)
+						}
+					}
+					.onDisappear {
+						placement = .null
+						onScreen = false
 					}
 			}
 			if ends {
