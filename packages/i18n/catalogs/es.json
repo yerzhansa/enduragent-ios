@@ -3083,12 +3083,46 @@
         "seenOnCalendar": "Visto en el calendario",
         "noLongerOnCalendar": "Ya no está en el calendario",
         "refused": "No guardado",
-        "mayHaveBeenSaved": "Puede que se haya guardado"
+        "mayHaveBeenSaved": "Puede que se haya guardado",
+        "added": "Añadido",
+        "removed": "Quitado",
+        "notRemoved": "No quitado",
+        "mayHaveBeenRemoved": "Puede que se haya quitado"
       }
     },
     "chart": {
       "percentOfFTP": "Porcentaje del FTP",
       "watts": "Potencia en vatios"
+    },
+    "totals": {
+      "additions_one": "{{count}} adición",
+      "additions_other": "{{count}} adiciones",
+      "edits_one": "{{count}} edición",
+      "edits_other": "{{count}} ediciones",
+      "deletions_one": "{{count}} eliminación",
+      "deletions_other": "{{count}} eliminaciones",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} de entrenamientos añadidos o editados",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · duración total desconocida"
+    },
+    "kept": {
+      "title": "Entrenamientos existentes que se mantienen",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "¿Añadir este entrenamiento a tu calendario?",
+        "add_other": "¿Añadir estos entrenamientos a tu calendario?",
+        "edit_one": "¿Actualizar este entrenamiento en tu calendario?",
+        "edit_other": "¿Actualizar estos entrenamientos en tu calendario?",
+        "delete_one": "¿Quitar este entrenamiento de tu calendario?",
+        "delete_other": "¿Quitar estos entrenamientos de tu calendario?",
+        "mixed": "¿Aplicar todos los cambios revisados?"
+      },
+      "approveEdits": "Actualizar calendario",
+      "approveDeletions": "Quitar del calendario",
+      "unseen": "Desplázate por todas las tarjetas para continuar.",
+      "cardFailed": "No se pudo mostrar la tarjeta {{position}} de {{count}}. No se cambió nada.",
+      "showAgain": "Mostrar de nuevo"
     }
   }
 }

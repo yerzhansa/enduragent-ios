@@ -345,9 +345,14 @@ IntervalsWellnessState
 IntervalsWellnessState.available
 IntervalsWellnessState.failed
 IntervalsWellnessState.waiting
+KeptDay
+KeptDay.date
+KeptDay.heading(in:)
+KeptDay.workouts
 KeptWorkout
 KeptWorkout.date
 KeptWorkout.durationMinutes
+KeptWorkout.line(in:)
 KeptWorkout.name
 LanguagePreference
 LanguagePreference.appLanguage(device:)
@@ -565,7 +570,9 @@ ReviewContent
 ReviewContent.approveTitle
 ReviewContent.cards
 ReviewContent.kept
+ReviewContent.keptDays
 ReviewContent.notice
+ReviewContent.question(in:)
 ReviewContent.receipts
 ReviewContent.totals
 ReviewControlToken
@@ -621,6 +628,16 @@ ReviewPlacement
 ReviewPlacement.afterTurn
 ReviewPlacement.notice
 ReviewPlacement.preparedEarlier
+ReviewPresentation
+ReviewPresentation.appeared(_:of:in:)
+ReviewPresentation.belongs(to:)
+ReviewPresentation.delivered(_:)
+ReviewPresentation.failed(_:of:)
+ReviewPresentation.failure
+ReviewPresentation.init(of:)
+ReviewPresentation.round
+ReviewPresentation.showAgain(_:)
+ReviewPresentation.status(of:in:)
 ReviewReceipt
 ReviewReceipt.index
 ReviewReceipt.progress
@@ -642,6 +659,7 @@ ReviewSnapshot.content
 ReviewSnapshot.controls
 ReviewSnapshot.kept
 ReviewSnapshot.notice
+ReviewSnapshot.offered
 ReviewSnapshot.placement
 ReviewSnapshot.receipts
 ReviewSnapshot.ref
@@ -652,6 +670,7 @@ ReviewTotals.additions
 ReviewTotals.deletions
 ReviewTotals.durationMinutes
 ReviewTotals.edits
+ReviewTotals.line(in:)
 SavedAccessReference
 SavedWorkOutcome
 SavedWorkOutcome.savedUnverified

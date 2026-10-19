@@ -6,6 +6,8 @@
 		static let reviewMixedDirective = "fixture:review-mixed"
 		static let reviewDeleteDirective = "fixture:review-delete"
 		static let reviewRenameDirective = "fixture:review-rename"
+		static let reviewEditDirective = "fixture:review-edit"
+		static let reviewFortyDirective = "fixture:review-forty"
 		static let reviewPreparedReply = "I've prepared the changes. Check each card first."
 		static let reviewRenamedReply = "I renamed the edited workout. Check the cards again."
 
@@ -14,7 +16,10 @@
 		) -> ScriptedReply? {
 			let text = request.text.trimmingCharacters(in: .whitespacesAndNewlines)
 			guard
-				[reviewMixedDirective, reviewDeleteDirective, reviewRenameDirective].contains(text)
+				[
+					reviewMixedDirective, reviewDeleteDirective, reviewRenameDirective,
+					reviewEditDirective, reviewFortyDirective,
+				].contains(text)
 			else { return nil }
 			guard request.offersTrainingTools else {
 				return ScriptedReply([.text(trainingDataMissing), .finish(reason: .stop)])
@@ -24,6 +29,11 @@
 				return prepared(WorkoutReviewFixture.mixed(today: today), request, intervals)
 			case reviewDeleteDirective:
 				return prepared(WorkoutReviewFixture.deleteOnly, request, intervals)
+			case reviewEditDirective:
+				return prepared(WorkoutReviewFixture.editOnly, request, intervals)
+			case reviewFortyDirective:
+				return prepared(
+					WorkoutReviewFixture.strengthSessions(40, today: today), request, intervals)
 			default:
 				return renamed(request)
 			}

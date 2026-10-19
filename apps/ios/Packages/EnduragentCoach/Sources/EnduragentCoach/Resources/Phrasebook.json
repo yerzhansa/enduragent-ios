@@ -374315,6 +374315,1706 @@
         }
       }
     },
+    "workouts.bar.approveDeletions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from calendar"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar del calendario"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer du calendrier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimuovi dal calendario"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus Kalender entfernen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uit kalender verwijderen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fjern fra kalender"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta bort från kalendern"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fjern fra kalender"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poista kalenterista"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remover do calendário"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remover do calendário"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń z kalendarza"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "캘린더에서 삭제"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カレンダーから削除"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从日历中删除"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "從行事曆中移除"
+          }
+        }
+      }
+    },
+    "workouts.bar.approveEdits": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update calendar"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizar calendario"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettre à jour le calendrier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiorna il calendario"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalender aktualisieren"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalender bijwerken"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opdater kalender"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdatera kalendern"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oppdater kalender"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Päivitä kalenteri"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualizar calendário"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualizar calendário"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaktualizuj kalendarz"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "캘린더 업데이트"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カレンダーを更新"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新日历"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新行事曆"
+          }
+        }
+      }
+    },
+    "workouts.bar.cardFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Card %#@position@ of %#@count@ could not be shown. Nothing was changed."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo mostrar la tarjeta %#@position@ de %#@count@. No se cambió nada."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La carte %#@position@ sur %#@count@ n’a pas pu s’afficher. Rien n’a été modifié."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile mostrare la scheda %#@position@ di %#@count@. Non è stato modificato nulla."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karte %#@position@ von %#@count@ konnte nicht angezeigt werden. Nichts wurde geändert."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaart %#@position@ van %#@count@ kon niet worden getoond. Er is niets gewijzigd."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kort %#@position@ af %#@count@ kunne ikke vises. Intet blev ændret."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kort %#@position@ av %#@count@ kunde inte visas. Inget ändrades."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kort %#@position@ av %#@count@ kunne ikke vises. Ingenting ble endret."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Korttia %#@position@/%#@count@ ei voitu näyttää. Mitään ei muutettu."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível mostrar o cartão %#@position@ de %#@count@. Nada foi alterado."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível mostrar o cartão %#@position@ de %#@count@. Nada foi alterado."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się wyświetlić karty %#@position@ z %#@count@. Nic nie zostało zmienione."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "카드 %#@position@/%#@count@을(를) 표시할 수 없습니다. 아무것도 변경되지 않았습니다."
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カード %#@position@/%#@count@ を表示できませんでした。何も変更されていません。"
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法显示第 %#@position@/%#@count@ 张卡片。未做任何更改。"
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法顯示第 %#@position@/%#@count@ 張卡片。未進行任何變更。"
+          },
+          "substitutions": {
+            "position": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.bar.question.add": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Add this workout to your calendar?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Add these workouts to your calendar?"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "¿Añadir este entrenamiento a tu calendario?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "¿Añadir estos entrenamientos a tu calendario?"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ajouter cette séance à votre calendrier ?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ajouter ces séances à votre calendrier ?"
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Aggiungere questo allenamento al calendario?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Aggiungere questi allenamenti al calendario?"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dieses Training zum Kalender hinzufügen?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Diese Trainings zum Kalender hinzufügen?"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Deze training aan je kalender toevoegen?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Deze trainingen aan je kalender toevoegen?"
+                }
+              }
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du føje dette træningspas til din kalender?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du føje disse træningspas til din kalender?"
+                }
+              }
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vill du lägga till det här träningspasset i kalendern?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vill du lägga till de här träningspassen i kalendern?"
+                }
+              }
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du legge til denne treningsøkten i kalenderen?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du legge til disse treningsøktene i kalenderen?"
+                }
+              }
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Lisätäänkö tämä harjoitus kalenteriisi?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Lisätäänkö nämä harjoitukset kalenteriisi?"
+                }
+              }
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Adicionar este treino ao seu calendário?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Adicionar estes treinos ao seu calendário?"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Adicionar este treino ao seu calendário?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Adicionar estes treinos ao seu calendário?"
+                }
+              }
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodać ten trening do kalendarza?"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodać te treningi do kalendarza?"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodać te treningi do kalendarza?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodać te treningi do kalendarza?"
+                }
+              }
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "운동을 캘린더에 추가할까요?"
+                }
+              }
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "ワークアウトをカレンダーに追加しますか？"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "要将训练添加到你的日历吗？"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "要將訓練加入你的行事曆嗎？"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "workouts.bar.question.delete": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Remove this workout from your calendar?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Remove these workouts from your calendar?"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "¿Quitar este entrenamiento de tu calendario?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "¿Quitar estos entrenamientos de tu calendario?"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Retirer cette séance de votre calendrier ?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Retirer ces séances de votre calendrier ?"
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Rimuovere questo allenamento dal calendario?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Rimuovere questi allenamenti dal calendario?"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dieses Training aus dem Kalender entfernen?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Diese Trainings aus dem Kalender entfernen?"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Deze training uit je kalender verwijderen?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Deze trainingen uit je kalender verwijderen?"
+                }
+              }
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du fjerne dette træningspas fra din kalender?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du fjerne disse træningspas fra din kalender?"
+                }
+              }
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vill du ta bort det här träningspasset från kalendern?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vill du ta bort de här träningspassen från kalendern?"
+                }
+              }
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du fjerne denne treningsøkten fra kalenderen?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du fjerne disse treningsøktene fra kalenderen?"
+                }
+              }
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Poistetaanko tämä harjoitus kalenteristasi?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Poistetaanko nämä harjoitukset kalenteristasi?"
+                }
+              }
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Remover este treino do seu calendário?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Remover estes treinos do seu calendário?"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Remover este treino do seu calendário?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Remover estes treinos do seu calendário?"
+                }
+              }
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Usunąć ten trening z kalendarza?"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Usunąć te treningi z kalendarza?"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Usunąć te treningi z kalendarza?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Usunąć te treningi z kalendarza?"
+                }
+              }
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "운동을 캘린더에서 삭제할까요?"
+                }
+              }
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "ワークアウトをカレンダーから削除しますか？"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "要从你的日历中删除训练吗？"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "要從你的行事曆中移除訓練嗎？"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "workouts.bar.question.edit": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Update this workout on your calendar?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Update these workouts on your calendar?"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "¿Actualizar este entrenamiento en tu calendario?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "¿Actualizar estos entrenamientos en tu calendario?"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Mettre à jour cette séance dans votre calendrier ?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Mettre à jour ces séances dans votre calendrier ?"
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Aggiornare questo allenamento nel calendario?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Aggiornare questi allenamenti nel calendario?"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dieses Training im Kalender aktualisieren?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Diese Trainings im Kalender aktualisieren?"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Deze training in je kalender bijwerken?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Deze trainingen in je kalender bijwerken?"
+                }
+              }
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du opdatere dette træningspas i din kalender?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du opdatere disse træningspas i din kalender?"
+                }
+              }
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vill du uppdatera det här träningspasset i kalendern?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vill du uppdatera de här träningspassen i kalendern?"
+                }
+              }
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du oppdatere denne treningsøkten i kalenderen?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vil du oppdatere disse treningsøktene i kalenderen?"
+                }
+              }
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Päivitetäänkö tämä harjoitus kalenterissasi?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Päivitetäänkö nämä harjoitukset kalenterissasi?"
+                }
+              }
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Atualizar este treino no seu calendário?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Atualizar estes treinos no seu calendário?"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Atualizar este treino no seu calendário?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Atualizar estes treinos no seu calendário?"
+                }
+              }
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Zaktualizować ten trening w kalendarzu?"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Zaktualizować te treningi w kalendarzu?"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Zaktualizować te treningi w kalendarzu?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Zaktualizować te treningi w kalendarzu?"
+                }
+              }
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "캘린더의 운동을 업데이트할까요?"
+                }
+              }
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "カレンダーのワークアウトを更新しますか？"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "要更新你日历中的训练吗？"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "要更新你行事曆中的訓練嗎？"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "workouts.bar.question.mixed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply all reviewed changes?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Aplicar todos los cambios revisados?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appliquer toutes les modifications vérifiées ?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applicare tutte le modifiche controllate?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle geprüften Änderungen übernehmen?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle gecontroleerde wijzigingen toepassen?"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vil du anvende alle gennemgåede ændringer?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vill du tillämpa alla granskade ändringar?"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vil du bruke alle de gjennomgåtte endringene?"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otetaanko kaikki tarkistetut muutokset käyttöön?"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicar todas as alterações revistas?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicar todas as alterações revisadas?"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zastosować wszystkie sprawdzone zmiany?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "검토한 모든 변경 사항을 적용할까요?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認したすべての変更を適用しますか？"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要应用所有已审核的更改吗？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要套用所有已審核的變更嗎？"
+          }
+        }
+      }
+    },
+    "workouts.bar.showAgain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar de nuevo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher à nouveau"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra di nuovo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut anzeigen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnieuw tonen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vis igen"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa igen"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vis igjen"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Näytä uudelleen"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar novamente"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar novamente"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokaż ponownie"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다시 표시"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "もう一度表示"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次显示"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次顯示"
+          }
+        }
+      }
+    },
+    "workouts.bar.unseen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scroll through every card to continue."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desplázate por todas las tarjetas para continuar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faites défiler toutes les cartes pour continuer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scorri tutte le schede per continuare."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrolle durch alle Karten, um fortzufahren."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrol door alle kaarten om verder te gaan."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rul gennem alle kort for at fortsætte."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bläddra igenom alla kort för att fortsätta."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bla gjennom alle kortene for å fortsette."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vieritä kaikkien korttien läpi jatkaaksesi."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Percorra todos os cartões para continuar."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Role por todos os cartões para continuar."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przewiń wszystkie karty, aby kontynuować."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계속하려면 모든 카드를 스크롤해 확인하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "続けるには、すべてのカードをスクロールしてください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "滚动浏览所有卡片以继续。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捲動瀏覽所有卡片即可繼續。"
+          }
+        }
+      }
+    },
     "workouts.blocked.reviewedBeforeUpgrade": {
       "localizations": {
         "en": {
@@ -376849,6 +378549,218 @@
         }
       }
     },
+    "workouts.card.progress.added": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiunto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinzugefügt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toegevoegd"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tilføjet"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tillagt"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lagt til"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lisätty"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionado"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionado"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodano"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "추가됨"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "追加済み"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已添加"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加入"
+          }
+        }
+      }
+    },
+    "workouts.card.progress.mayHaveBeenRemoved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "May have been removed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puede que se haya quitado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peut-être retirée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potrebbe essere stato rimosso"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Möglicherweise entfernt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mogelijk verwijderd"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Måske fjernet"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kan ha tagits bort"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kanskje fjernet"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ehkä poistettu"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pode ter sido removido"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pode ter sido removido"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mogło zostać usunięte"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "삭제되었을 수 있음"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除された可能性があります"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可能已删除"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可能已移除"
+          }
+        }
+      }
+    },
     "workouts.card.progress.mayHaveBeenSaved": {
       "localizations": {
         "en": {
@@ -377061,6 +378973,112 @@
         }
       }
     },
+    "workouts.card.progress.notRemoved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not removed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No quitado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non retirée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non rimosso"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht entfernt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet verwijderd"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikke fjernet"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inte borttaget"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikke fjernet"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ei poistettu"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não removido"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não removido"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie usunięto"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "삭제되지 않음"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未削除"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未删除"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未移除"
+          }
+        }
+      }
+    },
     "workouts.card.progress.refused": {
       "localizations": {
         "en": {
@@ -377163,6 +379181,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "未儲存"
+          }
+        }
+      }
+    },
+    "workouts.card.progress.removed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimosso"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderd"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fjernet"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borttaget"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fjernet"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poistettu"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removido"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removido"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięto"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "삭제됨"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除済み"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已删除"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已移除"
           }
         }
       }
@@ -377905,6 +380029,388 @@
           "stringUnit": {
             "state": "translated",
             "value": "功率（瓦）"
+          }
+        }
+      }
+    },
+    "workouts.kept.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing workouts kept"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrenamientos existentes que se mantienen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Séances existantes conservées"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allenamenti esistenti mantenuti"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorhandene Trainings bleiben"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestaande trainingen die blijven"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksisterende træningspas, der beholdes"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Befintliga träningspass som behålls"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksisterende treningsøkter som beholdes"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Säilyvät harjoitukset"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Treinos existentes mantidos"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Treinos existentes mantidos"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Istniejące treningi pozostają"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "그대로 유지되는 기존 운동"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "そのまま残る既存のワークアウト"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留的现有训练"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留的現有訓練"
+          }
+        }
+      }
+    },
+    "workouts.kept.workout": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@name@ · %#@duration@"
+          },
+          "substitutions": {
+            "name": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         }
       }
@@ -381955,6 +384461,1962 @@
           "stringUnit": {
             "state": "translated",
             "value": "訓練審核在完成所有變更之前已停止。已完成的變更會保留。"
+          }
+        }
+      }
+    },
+    "workouts.totals.additions": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ addition"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ additions"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ adición"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ adiciones"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ ajout"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ ajouts"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ aggiunta"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ aggiunte"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ Hinzufügung"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ Hinzufügungen"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ toevoeging"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ toevoegingen"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ tilføjelse"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ tilføjelser"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ tillägg"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ tillägg"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ tillegg"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ tillegg"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ lisäys"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ lisäystä"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ adição"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ adições"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ adição"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ adições"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ dodanie"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ dodania"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ dodań"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ dodania"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "추가 %#@count@개"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "追加 %#@count@ 件"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ 项新增"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ 項新增"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.totals.deletions": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ deletion"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ deletions"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ eliminación"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ eliminaciones"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ suppression"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ suppressions"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ eliminazione"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ eliminazioni"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ Löschung"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ Löschungen"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ verwijdering"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ verwijderingen"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ sletning"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ sletninger"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ borttagning"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ borttagningar"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ sletting"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ slettinger"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ poisto"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ poistoa"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ eliminação"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ eliminações"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ exclusão"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ exclusões"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ usunięcie"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ usunięcia"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ usunięć"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ usunięcia"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "삭제 %#@count@개"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "削除 %#@count@ 件"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ 项删除"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ 項刪除"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.totals.edits": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ edit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ edits"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ edición"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ ediciones"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ modification"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ modifications"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ modifica"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ modifiche"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ Änderung"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ Änderungen"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ wijziging"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ wijzigingen"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ ændring"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ ændringer"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ ändring"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ ändringar"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ endring"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ endringer"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ muokkaus"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ muokkausta"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ edição"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ edições"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ edição"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ edições"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ edycja"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ edycje"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ edycji"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ edycji"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "편집 %#@count@개"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "編集 %#@count@ 件"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ 项编辑"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@count@ 項編輯"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.totals.line": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ for added or edited workouts"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ de entrenamientos añadidos o editados"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ pour les séances ajoutées ou modifiées"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ per gli allenamenti aggiunti o modificati"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ für hinzugefügte oder geänderte Trainings"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ voor toegevoegde of gewijzigde trainingen"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ for tilføjede eller ændrede træningspas"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ för tillagda eller ändrade träningspass"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ for treningsøkter som legges til eller endres"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ lisätyille tai muokatuille harjoituksille"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ para treinos adicionados ou editados"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ para treinos adicionados ou editados"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · %#@duration@ dla dodanych lub edytowanych treningów"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · 추가하거나 편집한 운동 %#@duration@"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@、%#@edits@、%#@deletions@ · 追加または編集したワークアウトで %#@duration@"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@、%#@edits@、%#@deletions@ · 新增或编辑的训练共 %#@duration@"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@、%#@edits@、%#@deletions@ · 新增或編輯的訓練共 %#@duration@"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            },
+            "duration": {
+              "argNum": 4,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "workouts.totals.lineDurationUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · total duration unknown"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · duración total desconocida"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · durée totale inconnue"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · durata totale sconosciuta"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · Gesamtdauer unbekannt"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · totale duur onbekend"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · samlet varighed ukendt"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · total längd okänd"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · total varighet ukjent"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · kokonaiskesto tuntematon"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · duração total desconhecida"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · duração total desconhecida"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · łączny czas trwania nieznany"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@, %#@edits@, %#@deletions@ · 총 시간 알 수 없음"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@、%#@edits@、%#@deletions@ · 合計時間は不明"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@、%#@edits@、%#@deletions@ · 总时长未知"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@additions@、%#@edits@、%#@deletions@ · 總時長未知"
+          },
+          "substitutions": {
+            "additions": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "edits": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "deletions": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
           }
         }
       }

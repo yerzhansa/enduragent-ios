@@ -197,3 +197,4 @@ da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.view.ri
 de,nl	training.view.title	Training	Established German and Dutch loanword for training.
 nl	training.view.week	Week	Native Dutch noun for a week; shared spelling.
 da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.view.weekRange	{{start}}–{{end}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	workouts.kept.workout	{{name}} · {{duration}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.

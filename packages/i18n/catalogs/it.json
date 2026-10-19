@@ -3083,12 +3083,46 @@
         "seenOnCalendar": "Visto nel calendario",
         "noLongerOnCalendar": "Non è più nel calendario",
         "refused": "Non salvato",
-        "mayHaveBeenSaved": "Potrebbe essere stato salvato"
+        "mayHaveBeenSaved": "Potrebbe essere stato salvato",
+        "added": "Aggiunto",
+        "removed": "Rimosso",
+        "notRemoved": "Non rimosso",
+        "mayHaveBeenRemoved": "Potrebbe essere stato rimosso"
       }
     },
     "chart": {
       "percentOfFTP": "Percentuale della FTP",
       "watts": "Potenza in watt"
+    },
+    "totals": {
+      "additions_one": "{{count}} aggiunta",
+      "additions_other": "{{count}} aggiunte",
+      "edits_one": "{{count}} modifica",
+      "edits_other": "{{count}} modifiche",
+      "deletions_one": "{{count}} eliminazione",
+      "deletions_other": "{{count}} eliminazioni",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} per gli allenamenti aggiunti o modificati",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · durata totale sconosciuta"
+    },
+    "kept": {
+      "title": "Allenamenti esistenti mantenuti",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Aggiungere questo allenamento al calendario?",
+        "add_other": "Aggiungere questi allenamenti al calendario?",
+        "edit_one": "Aggiornare questo allenamento nel calendario?",
+        "edit_other": "Aggiornare questi allenamenti nel calendario?",
+        "delete_one": "Rimuovere questo allenamento dal calendario?",
+        "delete_other": "Rimuovere questi allenamenti dal calendario?",
+        "mixed": "Applicare tutte le modifiche controllate?"
+      },
+      "approveEdits": "Aggiorna il calendario",
+      "approveDeletions": "Rimuovi dal calendario",
+      "unseen": "Scorri tutte le schede per continuare.",
+      "cardFailed": "Impossibile mostrare la scheda {{position}} di {{count}}. Non è stato modificato nulla.",
+      "showAgain": "Mostra di nuovo"
     }
   }
 }

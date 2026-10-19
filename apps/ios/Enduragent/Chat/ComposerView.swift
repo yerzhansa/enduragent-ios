@@ -4,6 +4,7 @@ import SwiftUI
 struct ComposerView: View {
 	@Bindable var model: ShellModel
 	@FocusState private var composerFocused: Bool
+	@Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 8) {
@@ -47,8 +48,9 @@ struct ComposerView: View {
 					.foregroundStyle(.secondary)
 					.accessibilityIdentifier("chat.composer.notice")
 			}
-			Text(say(Catalog.chatViewDisclaimer))
-				.font(.footnote)
+			if ChromePlacement(dynamicTypeSize) == .pinned {
+				ChatDisclaimer(model: model)
+			}
 		}
 		.padding()
 		.background(.background)
@@ -61,5 +63,14 @@ struct ComposerView: View {
 
 	private func say(_ key: CatalogKey) -> String {
 		model.phrasebook.say(key, [:])
+	}
+}
+
+struct ChatDisclaimer: View {
+	var model: ShellModel
+
+	var body: some View {
+		Text(model.phrasebook.say(Catalog.chatViewDisclaimer, [:]))
+			.font(.footnote)
 	}
 }

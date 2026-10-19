@@ -21,7 +21,7 @@ final class ReviewCardsAddProof: XCTestCase {
 			steps: ["Moderate", "3 rounds: plank 45s, side plank 30s, glute bridge 12"])
 		ReviewCardContent.expect(strength, load: "Estimated training load: 18")
 		TutorialHarness.attach(self, name: "u8-1-review-cards-add", app: app)
-		TutorialHarness.bringIntoTranscript(app, ReviewCardContent.approve(app))
+		TutorialHarness.bringIntoTranscript(app, ReviewCardContent.card(app, 3))
 		TutorialHarness.attach(self, name: "u8-1-review-cards-add-scrolled", app: app)
 	}
 }
@@ -45,7 +45,7 @@ final class ReviewCardsEditProof: XCTestCase {
 		let readable = steps.label
 		XCTAssertTrue(readable.contains("Main set 3x"), readable)
 		XCTAssertFalse(readable.contains("Steady ride"), readable)
-		TutorialHarness.bringIntoTranscript(app, edit)
+		TutorialHarness.bringIntoTranscript(app, ReviewCardContent.line(edit, "title"))
 		TutorialHarness.attach(self, name: "u8-1-review-cards-edit", app: app)
 
 		TutorialHarness.exchange(app, ReviewCardContent.rename)
@@ -59,7 +59,7 @@ final class ReviewCardsEditProof: XCTestCase {
 				"Estimated training load: 40 → 60", "The workout steps change.",
 			])
 		XCTAssertEqual(ReviewCardContent.line(renamed, "steps").label, readable)
-		TutorialHarness.bringIntoTranscript(app, renamed)
+		TutorialHarness.bringIntoTranscript(app, ReviewCardContent.line(renamed, "title"))
 		TutorialHarness.attach(self, name: "u8-1-review-cards-edit-renamed", app: app)
 	}
 }
@@ -74,12 +74,15 @@ final class ReviewCardsDeleteProof: XCTestCase {
 		ReviewCardContent.expect(
 			delete, changes: ["This workout will be removed from the calendar."])
 		XCTAssertFalse(ReviewCardContent.line(delete, "load").exists)
-		let review = ReviewCardScreen.card(app)
-		let apply = ReviewCardContent.approve(app)
-		TutorialHarness.wait(apply, until: .enabled)
-		XCTAssertEqual(apply.label, "Apply changes")
+		let bar = ReviewCardScreen.bar(app)
+		let remove = ReviewCardContent.approve(app)
+		TutorialHarness.wait(remove, until: .enabled)
+		XCTAssertEqual(remove.label, "Remove from calendar")
 		XCTAssertEqual(
-			review.buttons.matching(NSPredicate(format: "label == %@", "Add to calendar")).count, 0)
+			TutorialHarness.named(app, "chat.review.question").label,
+			"Remove this workout from your calendar?")
+		XCTAssertEqual(
+			bar.buttons.matching(NSPredicate(format: "label == %@", "Add to calendar")).count, 0)
 		TutorialHarness.attach(self, name: "u8-1-review-cards-delete", app: app)
 	}
 }
@@ -90,9 +93,12 @@ final class ReviewCardsLargestTextProof: XCTestCase {
 		let arguments = FixtureArguments()
 		let run = MatrixRun.begin(self, .de, arguments: arguments)
 		TutorialHarness.exchange(run.app, ReviewCardContent.mixed)
+		TutorialHarness.wait(ReviewCardScreen.card(run.app, 0))
+		ReviewCardScreen.showEveryCard(run.app)
 		TutorialHarness.wait(ReviewCardContent.approve(run.app), until: .enabled)
 		ReviewAccessibility.reopenAtLargestText(run.app, arguments)
-		TutorialHarness.wait(ReviewCardContent.approve(run.app), until: .enabled, within: .turn)
+		TutorialHarness.wait(ReviewCardScreen.card(run.app, 0), within: .turn)
+		ReviewCardScreen.showEveryCard(run.app)
 		let card = ReviewCardContent.card(run.app, 0)
 		let chart = card.descendants(matching: .any)
 			.matching(identifier: "chat.preview.card.chart").firstMatch
@@ -134,18 +140,18 @@ enum ReviewCardContent {
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.exchange(app, directive)
-		TutorialHarness.wait(approve(app), until: .enabled)
+		TutorialHarness.wait(ReviewCardScreen.card(app, 0))
+		ReviewCardScreen.showEveryCard(app)
 		return app
 	}
 
 	static func approve(_ app: XCUIApplication) -> XCUIElement {
-		ReviewCardScreen.card(app).buttons.matching(identifier: "chat.preview.add").firstMatch
+		ReviewCardScreen.bar(app).buttons.matching(identifier: "chat.preview.add").firstMatch
 	}
 
 	static func card(_ app: XCUIApplication, _ index: Int) -> XCUIElement {
-		let card = ReviewCardScreen.card(app).descendants(matching: .any)
-			.matching(identifier: "chat.preview.card.\(index)").firstMatch
-		TutorialHarness.wait(card)
+		let card = ReviewCardScreen.card(app, index)
+		ReviewCardScreen.reveal(app, card)
 		return card
 	}
 

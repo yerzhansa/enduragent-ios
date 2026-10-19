@@ -4,18 +4,104 @@ import SwiftUI
 struct ConfirmedPreviewCard: View {
 	var model: ShellModel
 	var review: ReviewSnapshot
+	var round: Int
+	var titleLaidOut: () -> Void
+	var cardLaidOut: () -> Void
 
 	var body: some View {
-		GroupBox(say(Catalog.reviewTitle)) {
-			VStack(alignment: .leading, spacing: 12) {
-				if review.placement == .preparedEarlier {
-					Text(say(Catalog.workoutsPreparedEarlier))
-						.foregroundStyle(.secondary)
-						.accessibilityIdentifier("chat.preview.preparedEarlier")
-				}
-				ForEach(review.cards, id: \.index) { card in
-					ReviewCardView(model: model, card: card, count: review.cards.count)
-				}
+		ReviewTitleRow(model: model, review: review)
+			.id(Self.titleRow(of: review))
+			.onAppear(perform: titleLaidOut)
+		if review.cards.isEmpty {
+			ReviewTranscriptRow(model: model, review: review, card: nil, ends: true)
+		} else {
+			ForEach(rows, id: \.id) { row in
+				ReviewTranscriptRow(
+					model: model, review: review, card: row.card,
+					ends: row.card.index == review.cards.last?.index
+				)
+				.onAppear(perform: cardLaidOut)
+			}
+		}
+	}
+
+	static func titleRow(of review: ReviewSnapshot) -> String {
+		["review", review.ref.review.ulid.rawValue, String(review.ref.revision.rawValue), "title"]
+			.joined(separator: ".")
+	}
+
+	private var rows: [ShownCard] {
+		review.cards.map { ShownCard(card: $0, ref: review.ref, round: round) }
+	}
+}
+
+private struct ShownCard {
+	let card: ReviewCard
+	let ref: ReviewRef
+	let round: Int
+
+	var id: String {
+		[
+			"review", ref.review.ulid.rawValue, String(ref.revision.rawValue), String(round),
+			String(card.index),
+		].joined(separator: ".")
+	}
+}
+
+private struct ReviewTitleRow: View {
+	var model: ShellModel
+	var review: ReviewSnapshot
+
+	var body: some View {
+		VStack(alignment: .leading, spacing: 12) {
+			Text(model.phrasebook.say(Catalog.reviewTitle, [:]))
+				.font(.headline)
+				.accessibilityIdentifier("chat.preview.title")
+			if review.placement == .preparedEarlier {
+				Text(model.phrasebook.say(Catalog.workoutsPreparedEarlier, [:]))
+					.foregroundStyle(.secondary)
+					.accessibilityIdentifier("chat.preview.preparedEarlier")
+			}
+		}
+		.frame(maxWidth: .infinity, alignment: .leading)
+		.accessibilityElement(children: .contain)
+	}
+}
+
+private struct ReviewTranscriptRow: View {
+	var model: ShellModel
+	var review: ReviewSnapshot
+	var card: ReviewCard?
+	var ends: Bool
+	@Environment(\.dynamicTypeSize) private var dynamicTypeSize
+	@Environment(\.transcriptViewport) private var viewport
+	@State private var placement = CGRect.null
+	@State private var onScreen = false
+
+	var body: some View {
+		VStack(alignment: .leading, spacing: 12) {
+			if let card {
+				ReviewCardView(model: model, card: card, count: review.cards.count)
+					.onGeometryChange(for: CGRect.self) {
+						$0.frame(in: .global)
+					} action: {
+						placement = $0
+					}
+					.onChange(of: viewport.shows(placement), initial: true) { _, shown in
+						onScreen = shown
+						guard shown else { return }
+						Task {
+							guard onScreen else { return }
+							await model.cardAppeared(card)
+						}
+					}
+					.onDisappear {
+						placement = .null
+						onScreen = false
+					}
+			}
+			if ends {
+				KeptWorkoutsView(model: model, days: review.content.keptDays)
 				if let notice = review.notice {
 					Text(notice.sentences(in: model.displayLocale).joined(separator: "\n"))
 						.accessibilityIdentifier("chat.preview.notice")
@@ -23,62 +109,41 @@ struct ConfirmedPreviewCard: View {
 				if let outcome = model.reviewNotice {
 					ReviewOutcomeNotice(model: model, notice: outcome)
 				}
-				if !actions.isEmpty || !disabledButtons.isEmpty {
-					ViewThatFits(in: .horizontal) {
-						HStack { buttons }
-						VStack(alignment: .leading) { buttons }
+				if ChromePlacement(dynamicTypeSize) == .inTranscript {
+					ReviewBarView(model: model, review: review)
+				}
+			}
+		}
+		.frame(maxWidth: .infinity, alignment: .leading)
+		.accessibilityElement(children: .contain)
+	}
+}
+
+private struct KeptWorkoutsView: View {
+	var model: ShellModel
+	var days: [KeptDay]
+
+	var body: some View {
+		if !days.isEmpty {
+			VStack(alignment: .leading, spacing: 4) {
+				Text(model.phrasebook.say(Catalog.workoutsKeptTitle, [:]))
+					.font(.subheadline.weight(.semibold))
+					.accessibilityIdentifier("chat.preview.kept.title")
+				ForEach(days, id: \.date) { day in
+					Text(day.heading(in: model.displayLocale))
+						.font(.subheadline)
+						.foregroundStyle(.secondary)
+						.accessibilityIdentifier("chat.preview.kept.day")
+					ForEach(Array(day.workouts.enumerated()), id: \.offset) { _, workout in
+						Text(workout.line(in: model.displayLocale))
+							.accessibilityIdentifier("chat.preview.kept.workout")
 					}
 				}
 			}
 			.frame(maxWidth: .infinity, alignment: .leading)
+			.accessibilityElement(children: .contain)
+			.accessibilityIdentifier("chat.preview.kept")
 		}
-		.accessibilityElement(children: .contain)
-		.task(id: review.ref) {
-			guard case .available = review.state else { return }
-			await model.decide(
-				presentable ? .presented(review.ref) : .presentationFailed(review.ref))
-		}
-	}
-
-	var actions: [ConfirmedPreviewAction] {
-		guard case .armed(let set, let token) = review.controls else { return [] }
-		return ConfirmedPreviewButton.layout(of: set).map { button in
-			ConfirmedPreviewAction(
-				button: button, title: button.title(in: review.content),
-				decision: button.decision(token))
-		}
-	}
-
-	var disabledButtons: [ConfirmedPreviewButton] {
-		guard case .storageUnavailable(_, let disabled?) = review.state else { return [] }
-		return ConfirmedPreviewButton.layout(of: disabled)
-	}
-
-	@ViewBuilder
-	private var buttons: some View {
-		ForEach(actions, id: \.id) { action in
-			Button(say(action.title)) {
-				Task { await model.decide(action.decision) }
-			}
-			.accessibilityIdentifier(action.id)
-		}
-		ForEach(disabledButtons, id: \.rawValue) { button in
-			Button(say(button.title(in: review.content))) {}
-				.accessibilityIdentifier(button.rawValue)
-				.disabled(true)
-		}
-	}
-
-	private var presentable: Bool {
-		!review.cards.isEmpty
-			&& review.cards.allSatisfy {
-				!$0.lines(in: model.displayLocale).isEmpty
-					|| !$0.title(in: model.displayLocale).isEmpty
-			}
-	}
-
-	private func say(_ key: CatalogKey) -> String {
-		model.phrasebook.say(key, [:])
 	}
 }
 
@@ -96,45 +161,4 @@ struct ReviewOutcomeNotice: View {
 			.accessibilityIdentifier("chat.review.connect")
 		}
 	}
-}
-
-enum ConfirmedPreviewButton: String {
-	case cancel = "chat.preview.cancel"
-	case add = "chat.preview.add"
-	case tryAgain = "chat.preview.tryAgain"
-	case checkAgain = "chat.preview.checkAgain"
-
-	static func layout(of set: ControlSet) -> [Self] {
-		switch set {
-		case .approveOrCancel: [.cancel, .add]
-		case .tryAgainOrCancel: [.tryAgain, .cancel]
-		case .checkAgainOrCancel: [.checkAgain, .cancel]
-		case .cancelOnly: [.cancel]
-		}
-	}
-
-	func title(in content: ReviewContent) -> CatalogKey {
-		switch self {
-		case .cancel: Catalog.commonCancel
-		case .add: content.approveTitle
-		case .tryAgain: Catalog.chatTranscriptRetry
-		case .checkAgain: Catalog.setupTelegramCheckAgain
-		}
-	}
-
-	func decision(_ token: ReviewControlToken) -> ReviewDecision {
-		switch self {
-		case .cancel: .cancel(token)
-		case .add: .approve(token)
-		case .tryAgain: .tryAgain(token)
-		case .checkAgain: .checkAgain(token)
-		}
-	}
-}
-
-struct ConfirmedPreviewAction {
-	let button: ConfirmedPreviewButton
-	let title: CatalogKey
-	let decision: ReviewDecision
-	var id: String { button.rawValue }
 }

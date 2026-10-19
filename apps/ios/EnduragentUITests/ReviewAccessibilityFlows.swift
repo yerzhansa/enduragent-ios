@@ -106,7 +106,7 @@ struct ReviewCardReading {
 		}
 	}
 
-	private struct Spoken {
+	struct Spoken {
 		var line: Line
 		var frame: CGRect
 		var enabled: Bool
@@ -118,21 +118,24 @@ struct ReviewCardReading {
 
 	func expect(notice: [Line], controls: [Control], screen: String) {
 		let buttons = controls.map { Line.button($0.rawValue, run.say($0.title)) }
-		let expected = notice + buttons
 		TutorialHarness.wait(
-			until: { expected.allSatisfy { run.named($0.identifier).exists } },
+			until: { (notice + buttons).allSatisfy { run.named($0.identifier).exists } },
 			message: "\(name(screen)): the review did not show its notice and controls")
+		bringTheTitleIntoTheTranscript()
 		let card: (items: [Spoken], frame: CGRect)
+		let bar: (items: [Spoken], frame: CGRect)
 		do {
-			card = try spoken()
+			card = try spoken(reviewRows(), leaving: Self.bar)
+			bar = try spoken([run.named(Self.bar)])
 		} catch {
-			XCTFail("\(name(screen)): the review card could not be read: \(error)")
+			XCTFail("\(name(screen)): the review could not be read: \(error)")
 			return
 		}
 		let lines = card.items.map(\.line)
-		let heard = lines.map { "\($0.identifier) \"\($0.label)\"" }.joined(separator: " | ")
+		let heard = (card.items + bar.items).map { "\($0.line.identifier) \"\($0.line.label)\"" }
+			.joined(separator: " | ")
 		XCTAssertEqual(
-			lines.first, .text("", run.say(Catalog.reviewTitle)),
+			lines.first, .text("chat.preview.title", run.say(Catalog.reviewTitle)),
 			"\(name(screen)): VoiceOver does not start at the review title: \(heard)")
 		let body = Array(lines.dropFirst())
 		let workoutLines = body.prefix { $0.identifier.hasPrefix("chat.preview.card.") }
@@ -141,32 +144,68 @@ struct ReviewCardReading {
 				&& workoutLines.allSatisfy { $0.type == .staticText }
 				&& workoutLines.contains { $0.label.contains(workout) },
 			"\(name(screen)): the workout does not follow the title: \(heard)")
+		let rest = body.dropFirst(workoutLines.count)
+		let kept = rest.prefix { $0.identifier.hasPrefix("chat.preview.kept") }
 		XCTAssertEqual(
-			Array(body.dropFirst(workoutLines.count)), expected,
-			"\(name(screen)): the notice and the controls are not read in order after the workout: \(heard)"
+			Array(rest.dropFirst(kept.count)), notice,
+			"\(name(screen)): the notice is not read after the workout: \(heard)")
+		let question =
+			controls.contains(.add)
+			? [Line.text("chat.review.question", run.say(Catalog.workoutsBarQuestionAdd, count: 1))]
+			: []
+		let barLines = bar.items.map(\.line)
+		XCTAssertEqual(
+			barLines.first?.identifier, "chat.review.totals",
+			"\(name(screen)): the bar does not start at the totals: \(heard)")
+		XCTAssertEqual(
+			Array(barLines.dropFirst()), question + buttons,
+			"\(name(screen)): the question and the controls are not read in order after the totals: \(heard)"
 		)
-		for (earlier, later) in zip(card.items, card.items.dropFirst()) {
+		for container in [card, bar] {
+			expect(container, screen: screen)
+		}
+		XCTAssertTrue(
+			run.named("chat.transcript").descendants(matching: .any)
+				.matching(identifier: Self.bar).firstMatch.exists,
+			"\(name(screen)): at the largest text size the bar is not the end of the review")
+		if let last = card.items.last, let first = bar.items.first {
+			XCTAssertTrue(
+				Self.follows(last.frame, first.frame),
+				"\(name(screen)): the bar \(first.frame) does not follow the review \(last.frame)")
+		}
+		let window = TutorialHarness.transcriptBand(run.app)
+		for item in bar.items {
+			XCTAssertLessThanOrEqual(
+				item.frame.height, window.height,
+				"\(name(screen)): \"\(item.line.label)\" \(item.frame) cannot be read whole in the transcript \(window)"
+			)
+		}
+		auditPageByPage(screen)
+		expectDisclaimerEndsTheTranscript(screen)
+		capture(screen)
+	}
+
+	private func expect(_ container: (items: [Spoken], frame: CGRect), screen: String) {
+		for (earlier, later) in zip(container.items, container.items.dropFirst()) {
 			XCTAssertTrue(
 				Self.follows(earlier.frame, later.frame),
 				"\(name(screen)): \"\(later.line.label)\" \(later.frame) is not after \"\(earlier.line.label)\" \(earlier.frame)"
 			)
 		}
-		for item in card.items {
+		for item in container.items {
 			XCTAssertTrue(
-				item.frame.width > 0 && item.frame.minX >= card.frame.minX - 1
-					&& item.frame.maxX <= card.frame.maxX + 1
+				item.frame.width > 0 && item.frame.minX >= container.frame.minX - 1
+					&& item.frame.maxX <= container.frame.maxX + 1
 					&& item.frame.maxX <= run.app.frame.maxX,
-				"\(name(screen)): \"\(item.line.label)\" \(item.frame) leaves the card \(card.frame)"
+				"\(name(screen)): \"\(item.line.label)\" \(item.frame) leaves its container \(container.frame)"
 			)
 		}
-		for item in card.items where item.line.type == .button {
+		for item in container.items where item.line.type == .button {
 			XCTAssertTrue(item.enabled, "\(name(screen)): \"\(item.line.label)\" is disabled")
 			XCTAssertGreaterThanOrEqual(
 				item.frame.height, Self.minimumTarget,
 				"\(name(screen)): \"\(item.line.label)\" is not drawn at the largest text size")
 		}
-		audit(screen, inside: card.frame)
-		capture(screen)
 	}
 
 	@discardableResult
@@ -174,17 +213,26 @@ struct ReviewCardReading {
 		let button = run.named(control.rawValue)
 		TutorialHarness.wait(
 			until: {
-				if button.exists && button.isHittable { return true }
 				let band = TutorialHarness.transcriptBand(run.app)
-				let upper = CGPoint(x: band.midX, y: band.minY + band.height * 0.2)
-				let lower = CGPoint(x: band.midX, y: band.minY + band.height * 0.8)
-				if button.frame.midY < band.midY {
-					TutorialHarness.drag(run.app, from: upper, to: lower, pace: .fling)
-				} else {
-					TutorialHarness.drag(run.app, from: lower, to: upper, pace: .fling)
+				let frame = button.frame
+				if button.exists && frame.minY >= band.minY && frame.maxY <= band.maxY
+					&& button.isHittable
+				{
+					return true
 				}
-				return button.exists && button.isHittable
-			}, message: "[\(run.language.rawValue)] \(control.rawValue) cannot be tapped")
+				let reach = band.height * 0.15
+				let upper = CGPoint(x: band.midX, y: band.midY - reach)
+				let lower = CGPoint(x: band.midX, y: band.midY + reach)
+				if frame.midY < band.midY {
+					TutorialHarness.drag(run.app, from: upper, to: lower, pace: .steady)
+				} else {
+					TutorialHarness.drag(run.app, from: lower, to: upper, pace: .steady)
+				}
+				return false
+			}, within: .bulk,
+			message:
+				"[\(run.language.rawValue)] \(control.rawValue) cannot be brought whole into the transcript and tapped"
+		)
 		return button
 	}
 
@@ -197,33 +245,69 @@ struct ReviewCardReading {
 		TutorialHarness.attach(run.test, name: name(screen), app: run.app)
 	}
 
-	private func name(_ screen: String) -> String {
+	func name(_ screen: String) -> String {
 		"u9-2-\(run.language.rawValue)-\(screen)"
 	}
 
-	private func spoken() throws -> (items: [Spoken], frame: CGRect) {
-		let cell = run.named("chat.transcript").cells.containing(
+	func reviewRows() -> [XCUIElement] {
+		run.named("chat.transcript").cells.containing(
 			NSPredicate(format: "identifier BEGINSWITH %@", "chat.preview.")
-		).firstMatch
-		let snapshot = try cell.snapshot()
+		).allElementsBoundByIndex
+	}
+
+	private func spoken(_ elements: [XCUIElement], leaving excluded: String? = nil) throws -> (
+		items: [Spoken], frame: CGRect
+	) {
 		var items: [Spoken] = []
-		Self.collect(snapshot, into: &items)
-		return (items, snapshot.frame)
-	}
-
-	private func audit(_ screen: String, inside card: CGRect) {
-		do {
-			try run.app.performAccessibilityAudit(for: [.textClipped, .dynamicType, .hitRegion]) {
-				issue in
-				guard let element = issue.element, element.exists else { return true }
-				return !card.insetBy(dx: -1, dy: -1).contains(element.frame)
-			}
-		} catch {
-			XCTFail("\(name(screen)): the accessibility audit did not run: \(error)")
+		var frame = CGRect.null
+		for element in elements {
+			let snapshot = try element.snapshot()
+			Self.collect(snapshot, into: &items, leaving: excluded)
+			frame = frame.union(snapshot.frame)
 		}
+		return (items, frame)
 	}
 
-	private static func collect(_ node: any XCUIElementSnapshot, into items: inout [Spoken]) {
+	func bringTheTitleIntoTheTranscript() {
+		let title = run.named("chat.transcript").descendants(matching: .any)
+			.matching(identifier: "chat.preview.title").firstMatch
+		if !title.exists {
+			ReviewCardScreen.reveal(run.app, title, direction: reviewRows().isEmpty ? .up : .down)
+		}
+		TutorialHarness.bringIntoTranscript(run.app, title)
+	}
+
+	private func expectDisclaimerEndsTheTranscript(_ screen: String) {
+		let label = run.say(Catalog.chatViewDisclaimer)
+		let reading = NSPredicate(format: "label == %@", label)
+		let transcript = run.named("chat.transcript")
+		let disclaimer = transcript.staticTexts.matching(reading).firstMatch
+		ReviewCardScreen.reveal(run.app, disclaimer)
+		TutorialHarness.bringIntoTranscript(run.app, disclaimer)
+		XCTAssertEqual(
+			run.named("chat.composer.container").staticTexts.matching(reading).count, 0,
+			"\(name(screen)): at the largest text size the disclaimer is still under the composer")
+		var rows: [Spoken] = []
+		do {
+			Self.collect(try transcript.snapshot(), into: &rows, leaving: nil)
+		} catch {
+			XCTFail("\(name(screen)): the transcript could not be read: \(error)")
+			return
+		}
+		let top = disclaimer.frame.minY
+		let below = rows.filter { $0.line.label != label && $0.frame.maxY > top + 2 }
+		XCTAssertTrue(
+			below.isEmpty,
+			"\(name(screen)): the disclaimer \(disclaimer.frame) is not the last row of the transcript: \(below.map { "\($0.line.identifier) \"\($0.line.label)\" \($0.frame)" })"
+		)
+	}
+
+	static let bar = "chat.review.bar"
+
+	static func collect(
+		_ node: any XCUIElementSnapshot, into items: inout [Spoken], leaving excluded: String?
+	) {
+		if let excluded, node.identifier == excluded { return }
 		let spoken = node.elementType == .staticText || node.elementType == .button
 		if spoken && !node.label.isEmpty {
 			items.append(
@@ -233,7 +317,7 @@ struct ReviewCardReading {
 					frame: node.frame, enabled: node.isEnabled))
 		}
 		if node.elementType == .button { return }
-		for child in node.children { collect(child, into: &items) }
+		for child in node.children { collect(child, into: &items, leaving: excluded) }
 	}
 
 	private static func follows(_ earlier: CGRect, _ later: CGRect) -> Bool {

@@ -3083,12 +3083,46 @@
         "seenOnCalendar": "Set i kalenderen",
         "noLongerOnCalendar": "Ikke længere i kalenderen",
         "refused": "Ikke gemt",
-        "mayHaveBeenSaved": "Måske gemt"
+        "mayHaveBeenSaved": "Måske gemt",
+        "added": "Tilføjet",
+        "removed": "Fjernet",
+        "notRemoved": "Ikke fjernet",
+        "mayHaveBeenRemoved": "Måske fjernet"
       }
     },
     "chart": {
       "percentOfFTP": "Procent af FTP",
       "watts": "Effekt i watt"
+    },
+    "totals": {
+      "additions_one": "{{count}} tilføjelse",
+      "additions_other": "{{count}} tilføjelser",
+      "edits_one": "{{count}} ændring",
+      "edits_other": "{{count}} ændringer",
+      "deletions_one": "{{count}} sletning",
+      "deletions_other": "{{count}} sletninger",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} for tilføjede eller ændrede træningspas",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · samlet varighed ukendt"
+    },
+    "kept": {
+      "title": "Eksisterende træningspas, der beholdes",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Vil du føje dette træningspas til din kalender?",
+        "add_other": "Vil du føje disse træningspas til din kalender?",
+        "edit_one": "Vil du opdatere dette træningspas i din kalender?",
+        "edit_other": "Vil du opdatere disse træningspas i din kalender?",
+        "delete_one": "Vil du fjerne dette træningspas fra din kalender?",
+        "delete_other": "Vil du fjerne disse træningspas fra din kalender?",
+        "mixed": "Vil du anvende alle gennemgåede ændringer?"
+      },
+      "approveEdits": "Opdater kalender",
+      "approveDeletions": "Fjern fra kalender",
+      "unseen": "Rul gennem alle kort for at fortsætte.",
+      "cardFailed": "Kort {{position}} af {{count}} kunne ikke vises. Intet blev ændret.",
+      "showAgain": "Vis igen"
     }
   }
 }

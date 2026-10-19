@@ -3163,12 +3163,58 @@
         "seenOnCalendar": "Widoczne w kalendarzu",
         "noLongerOnCalendar": "Nie ma już w kalendarzu",
         "refused": "Nie zapisano",
-        "mayHaveBeenSaved": "Mogło zostać zapisane"
+        "mayHaveBeenSaved": "Mogło zostać zapisane",
+        "added": "Dodano",
+        "removed": "Usunięto",
+        "notRemoved": "Nie usunięto",
+        "mayHaveBeenRemoved": "Mogło zostać usunięte"
       }
     },
     "chart": {
       "percentOfFTP": "Procent FTP",
       "watts": "Moc w watach"
+    },
+    "totals": {
+      "additions_one": "{{count}} dodanie",
+      "additions_few": "{{count}} dodania",
+      "additions_many": "{{count}} dodań",
+      "additions_other": "{{count}} dodania",
+      "edits_one": "{{count}} edycja",
+      "edits_few": "{{count}} edycje",
+      "edits_many": "{{count}} edycji",
+      "edits_other": "{{count}} edycji",
+      "deletions_one": "{{count}} usunięcie",
+      "deletions_few": "{{count}} usunięcia",
+      "deletions_many": "{{count}} usunięć",
+      "deletions_other": "{{count}} usunięcia",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} dla dodanych lub edytowanych treningów",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · łączny czas trwania nieznany"
+    },
+    "kept": {
+      "title": "Istniejące treningi pozostają",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Dodać ten trening do kalendarza?",
+        "add_few": "Dodać te treningi do kalendarza?",
+        "add_many": "Dodać te treningi do kalendarza?",
+        "add_other": "Dodać te treningi do kalendarza?",
+        "edit_one": "Zaktualizować ten trening w kalendarzu?",
+        "edit_few": "Zaktualizować te treningi w kalendarzu?",
+        "edit_many": "Zaktualizować te treningi w kalendarzu?",
+        "edit_other": "Zaktualizować te treningi w kalendarzu?",
+        "delete_one": "Usunąć ten trening z kalendarza?",
+        "delete_few": "Usunąć te treningi z kalendarza?",
+        "delete_many": "Usunąć te treningi z kalendarza?",
+        "delete_other": "Usunąć te treningi z kalendarza?",
+        "mixed": "Zastosować wszystkie sprawdzone zmiany?"
+      },
+      "approveEdits": "Zaktualizuj kalendarz",
+      "approveDeletions": "Usuń z kalendarza",
+      "unseen": "Przewiń wszystkie karty, aby kontynuować.",
+      "cardFailed": "Nie udało się wyświetlić karty {{position}} z {{count}}. Nic nie zostało zmienione.",
+      "showAgain": "Pokaż ponownie"
     }
   }
 }

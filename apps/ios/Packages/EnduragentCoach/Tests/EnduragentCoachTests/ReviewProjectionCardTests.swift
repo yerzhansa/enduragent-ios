@@ -141,8 +141,8 @@ import Testing
 		#expect(
 			cards[0].changes(in: english) == ["This workout will be removed from the calendar."])
 		#expect(cards[0].load(in: english) == nil)
-		#expect(shown.content.approveTitle == Catalog.workoutsApprove)
-		#expect(english.say(shown.content.approveTitle) == "Apply changes")
+		#expect(shown.content.approveTitle == Catalog.workoutsBarApproveDeletions)
+		#expect(english.say(shown.content.approveTitle) == "Remove from calendar")
 		let mixed = try await committedElsewhere(WorkoutReviewFixture.mixed(today: today))
 		#expect(mixed.approveTitle == Catalog.workoutsApprove)
 		let add = try await committedElsewhere(ReviewTurns.oneRide.preparationArguments)
@@ -182,7 +182,22 @@ import Testing
 			return
 		}
 		let cards = try #require(try await coach.desk.snapshot(chat: .main)).cards
-		#expect(cards.map { $0.status(in: english) } == ["Saved", "Saved", "Not saved", nil])
+		#expect(cards.map { $0.status(in: english) } == ["Added", "Added", "Not saved", nil])
+	}
+
+	@Test func aFinishedDeleteSaysRemovedAndARefusedDeleteSaysNotRemoved() async throws {
+		let (coach, calendar) = await seededCoach()
+		_ = try await committed(
+			#"{"preparation":{"kind":"complete","changes":[{"kind":"delete","eventId":\#(WorkoutReviewFixture.deletedEvent.rawValue)},{"kind":"delete","eventId":\#(WorkoutReviewFixture.editedEvent.rawValue)}]}}"#,
+			on: coach)
+		calendar.answer { index, _ in index == 1 ? .httpStatus(400) : nil }
+
+		guard case .stopped = await coach.desk.decide(.approve(try await armed(coach))) else {
+			Issue.record("the refused second delete did not stop the run")
+			return
+		}
+		let cards = try #require(try await coach.desk.snapshot(chat: .main)).cards
+		#expect(cards.map { $0.status(in: english) } == ["Removed", "Not removed"])
 	}
 
 	private var strengthDescription: String {

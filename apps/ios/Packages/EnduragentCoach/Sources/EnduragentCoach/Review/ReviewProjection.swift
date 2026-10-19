@@ -13,7 +13,7 @@ enum ReviewProjection {
 					cards: cards, kept: review.kept, totals: totals(of: cards),
 					receipts: receipts(of: cards), notice: notice(of: review)),
 				delivery.controls(review.allowedControls)),
-			placement: placement, attribution: attribution)
+			offered: review.allowedControls, placement: placement, attribution: attribution)
 	}
 
 	static func placement(of review: WorkoutReview, in conversation: Conversation)
