@@ -7,6 +7,7 @@ final class ChatRecords {
 	private let clock: any Clock
 	private(set) var conversation: Conversation
 	private(set) var review: ReviewSnapshot?
+	private var reviewReads = 0
 	private(set) var jobs: [FlushJob] = []
 	private var applied: [ULID: AthleteRecord] = [:]
 	private var pendingSettlements: [ULID: AthleteRecord] = [:]
@@ -126,13 +127,14 @@ final class ChatRecords {
 		isolation: isolated (any Actor)? = #isolation,
 		_ read: nonisolated(nonsending) () async throws(LedgerFailure) -> (Value, ReviewSnapshot?)
 	) async throws(LedgerFailure) -> Value {
-		let retained = review
+		reviewReads += 1
+		let started = reviewReads
 		do {
 			let (value, snapshot) = try await read()
-			review = snapshot
+			if started == reviewReads { review = snapshot }
 			return value
 		} catch {
-			review = (review?.ref == retained?.ref ? retained : review)?.disablingButtons()
+			review = review?.disablingButtons()
 			ledger.report(.reviewUnavailable(chat, error))
 			throw error
 		}

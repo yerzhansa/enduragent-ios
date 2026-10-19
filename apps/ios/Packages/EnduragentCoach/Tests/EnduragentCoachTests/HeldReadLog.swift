@@ -19,12 +19,13 @@ final class HeldReadLog: ChainForwardingLog, Sendable {
 	private let read: Read
 	private let moment: Moment
 	private let gate = Gate()
-	private let claimed = Mutex(false)
+	private let claimed: Mutex<Bool>
 
-	init(inner: any ReviewChainLog, holding read: Read, _ moment: Moment) {
+	init(inner: any ReviewChainLog, holding read: Read, _ moment: Moment, armed: Bool = true) {
 		self.inner = inner
 		self.read = read
 		self.moment = moment
+		claimed = Mutex(!armed)
 	}
 
 	var deviceId: DeviceID { inner.deviceId }
@@ -45,6 +46,8 @@ final class HeldReadLog: ChainForwardingLog, Sendable {
 	func newest(_ query: RecordQuery) async throws -> NewestRecord {
 		try await holding(.newest(query)) { try await inner.newest(query) }
 	}
+
+	func arm() { claimed.withLock { $0 = false } }
 
 	func release() { gate.release() }
 

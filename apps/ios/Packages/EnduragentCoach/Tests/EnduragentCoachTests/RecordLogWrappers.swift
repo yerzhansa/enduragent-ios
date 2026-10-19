@@ -126,13 +126,24 @@ final class HeldAppendLog: ChainForwardingLog, Sendable {
 	var deviceId: DeviceID { inner.deviceId }
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		await holding(batch)
+		try await inner.append(batch, locality: locality)
+	}
+
+	func append(_ record: AthleteRecord, after head: RecordHead, in query: RecordQuery)
+		async throws
+	{
+		await holding([record])
+		try await inner.append(record, after: head, in: query)
+	}
+
+	private func holding(_ batch: [AthleteRecord]) async {
 		let hold = seen.withLock { current -> Bool in
 			guard batch.contains(where: { $0.body.kind == kind }) else { return false }
 			current += 1
 			return current == occurrence
 		}
 		if hold { await gate.wait() }
-		try await inner.append(batch, locality: locality)
 	}
 
 	func release() { gate.release() }
