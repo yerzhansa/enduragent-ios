@@ -13,7 +13,7 @@ struct ReviewNoticeMappingTests {
 	}
 
 	static let pending = ReviewNotice(
-		kind: .partialFailure, key: Catalog.reviewUncertain, vars: ["service": "intervals.icu"])
+		kind: .partialFailure, key: Catalog.workoutsUnconfirmed, vars: ["service": "intervals.icu"])
 	static let serviceNotice = ReviewNotice(
 		kind: .refreshedAfterStaleTarget, key: Catalog.reviewCannotVerify,
 		vars: ["service": "intervals.icu"])
@@ -26,7 +26,7 @@ struct ReviewNoticeMappingTests {
 			notice: AthleteNotice(key: Catalog.reviewCannotVerify, vars: intervals, actions: [])),
 		Row(
 			name: "unconfirmed with receipts", outcome: .unconfirmed(saved, pending),
-			notice: AthleteNotice(key: Catalog.reviewUncertain, vars: intervals, actions: [])),
+			notice: AthleteNotice(key: Catalog.workoutsUnconfirmed, vars: intervals, actions: [])),
 		Row(
 			name: "refreshed", outcome: .refreshed(serviceNotice),
 			notice: AthleteNotice(key: Catalog.reviewCannotVerify, vars: intervals, actions: [])),
@@ -46,9 +46,9 @@ struct ReviewNoticeMappingTests {
 			outcome: .unconfirmed(
 				[],
 				ReviewNotice(
-					kind: .partialFailure, key: Catalog.reviewUncertain,
+					kind: .partialFailure, key: Catalog.workoutsUnconfirmed,
 					vars: ["service": "intervals.icu"])),
-			notice: AthleteNotice(key: Catalog.reviewUncertain, vars: intervals, actions: [])),
+			notice: AthleteNotice(key: Catalog.workoutsUnconfirmed, vars: intervals, actions: [])),
 		Row(
 			name: "stopped with an unreadable account",
 			outcome: .stopped(
@@ -65,7 +65,8 @@ struct ReviewNoticeMappingTests {
 			notice: AthleteNotice(key: Catalog.connectMissing, actions: [.connectTraining])),
 		Row(
 			name: "blocked cannotVerify", outcome: .blocked(.cannotVerify),
-			notice: AthleteNotice(key: Catalog.reviewCannotVerify, vars: intervals, actions: [])),
+			notice: AthleteNotice(key: Catalog.workoutsBlockedMissing, vars: intervals, actions: [])
+		),
 		Row(
 			name: "storageUnavailable", outcome: .storageUnavailable,
 			notice: AthleteNotice(key: Catalog.reviewSaveFailed, actions: [])),
@@ -74,13 +75,13 @@ struct ReviewNoticeMappingTests {
 			notice: AthleteNotice(key: Catalog.workoutsBlockedReviewedBeforeUpgrade, actions: [])),
 		Row(
 			name: "blocked pastProtected", outcome: .blocked(.pastProtected),
-			notice: AthleteNotice(key: Catalog.coachErrorUnknown, actions: [])),
+			notice: AthleteNotice(key: Catalog.workoutsBlockedPastProtected, actions: [])),
 		Row(
 			name: "blocked coachOnly", outcome: .blocked(.coachOnly),
-			notice: AthleteNotice(key: Catalog.coachErrorUnknown, actions: [])),
+			notice: AthleteNotice(key: Catalog.workoutsBlockedCoachOnly, actions: [])),
 		Row(
 			name: "blocked workoutOnly", outcome: .blocked(.workoutOnly),
-			notice: AthleteNotice(key: Catalog.coachErrorUnknown, actions: [])),
+			notice: AthleteNotice(key: Catalog.workoutsBlockedWorkoutOnly, actions: [])),
 	]
 
 	@Test(arguments: workoutReview)

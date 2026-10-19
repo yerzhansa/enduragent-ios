@@ -2940,7 +2940,6 @@
     "saveFailed": "Kunne ikke lagre valget ditt på denne iPhonen, så ingenting ble endret. Prøv igjen.",
     "storageUnavailable": "Kunne ikke lese den lagrede gjennomgangen av treningsøkten. Knappene er midlertidig deaktivert.",
     "title": "Gjennomgang av treningsøkt",
-    "uncertain": "Jeg kunne ikke bekrefte om dette nådde kalenderen din på {{service}}. Sjekk kalenderen før du spør igjen.",
     "workout": {
       "warmup": "Oppvarming",
       "mainSet": "Hoveddel",
@@ -3035,7 +3034,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "Denne økten ble gjennomgått før appen ble oppdatert. Spør treneren på nytt."
+      "reviewedBeforeUpgrade": "Denne økten ble gjennomgått før appen ble oppdatert. Spør treneren på nytt.",
+      "missing": "En treningsøkt i denne gjennomgangen er ikke lenger i kalenderen din på {{service}}, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt.",
+      "pastProtected": "En treningsøkt i denne gjennomgangen ligger nå i fortiden, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt.",
+      "coachOnly": "En treningsøkt i denne gjennomgangen ble ikke lagt til av treneren, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt.",
+      "workoutOnly": "En oppføring i denne gjennomgangen er ikke en treningsøkt, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt."
     },
     "refreshed": {
       "nothingChanged": "Treningsøkter i denne gjennomgangen ble endret i {{service}} etter at du gjennomgikk dem, så ingenting ble endret. Sjekk dem igjen før du godkjenner.",
@@ -3050,6 +3053,12 @@
     "notPrepared": "Gjennomgangen av treningsøkten kunne ikke klargjøres.",
     "notPreparedInformationSaved": "Informasjonen din ble lagret, men gjennomgangen av treningsøkten kunne ikke klargjøres.",
     "stopped": "Gjennomgangen av treningsøkten stoppet før alle endringene ble gjort. Endringer som allerede er gjort, beholdes.",
+    "sending": "Gjør de gjennomgåtte endringene i kalenderen din på {{service}} …",
+    "partial": "{{service}} avviste en endring, så de gjenværende endringene ble stoppet. Endringer som allerede er gjort, beholdes. Sjekk resten før du prøver igjen.",
+    "unconfirmed": "En endring kan ha blitt lagret i kalenderen din på {{service}}. Sjekk igjen før noe annet endres.",
+    "completed": "Alle gjennomgåtte endringer er fullført.",
+    "canceled": "De gjenværende endringene ble avbrutt.",
+    "finishedTitle": "Allerede fullført",
     "outcome": {
       "closedAtUpgrade": "Denne gjennomgangen av treningsøkten ble forberedt før appen ble oppdatert. Spør treneren på nytt.",
       "saved": "{{workout}}, {{date}}: endringen er lagret.",
@@ -3079,13 +3088,8 @@
       },
       "progress": {
         "sending": "Sender …",
-        "saved": "Lagret",
-        "seenOnCalendar": "Sett i kalenderen",
-        "noLongerOnCalendar": "Ikke lenger i kalenderen",
         "refused": "Ikke lagret",
         "mayHaveBeenSaved": "Kanskje lagret",
-        "added": "Lagt til",
-        "removed": "Fjernet",
         "notRemoved": "Ikke fjernet",
         "mayHaveBeenRemoved": "Kanskje fjernet"
       }

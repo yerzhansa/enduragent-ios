@@ -178,9 +178,6 @@ package enum AthleteNotices {
 	private static let intervals = "intervals.icu"
 	package static let unrecoveredClaim = AthleteNotice(
 		key: Catalog.chatHistoryFailure, actions: [])
-	package static let accountChanged = ReviewNotice(
-		kind: .accountChanged, key: Catalog.reviewAccountChanged, vars: ["service": intervals])
-
 	package static func notice(for outcome: ReviewOutcome) -> AthleteNotice? {
 		switch outcome {
 		case .completed, .canceled, .wrongAction, .presentationRecorded:
@@ -189,23 +186,15 @@ package enum AthleteNotices {
 			return AthleteNotice(
 				key: notice.key, vars: notice.vars.mapValues(CatalogArgument.text),
 				differences: notice.differences, actions: [])
-		case .blocked(.accountChanged):
+		case .blocked(let block):
+			let notice = ReviewNotice.blocked(block)
 			return AthleteNotice(
-				key: accountChanged.key, vars: accountChanged.vars.mapValues(CatalogArgument.text),
-				actions: [])
-		case .blocked(.trainingNotConnected):
-			return AthleteNotice(key: Catalog.connectMissing, actions: [.connectTraining])
-		case .blocked(.cannotVerify):
-			return AthleteNotice(
-				key: Catalog.reviewCannotVerify, vars: ["service": .text(intervals)], actions: [])
-		case .blocked(.reviewedBeforeUpgrade):
-			return AthleteNotice(key: Catalog.workoutsBlockedReviewedBeforeUpgrade, actions: [])
+				key: notice.key, vars: notice.vars.mapValues(CatalogArgument.text),
+				actions: block == .trainingNotConnected ? [.connectTraining] : [])
 		case .staleControl:
 			return AthleteNotice(key: Catalog.coachConfirmationExpired, actions: [])
 		case .storageUnavailable:
 			return AthleteNotice(key: Catalog.reviewSaveFailed, actions: [])
-		case .blocked(.pastProtected), .blocked(.coachOnly), .blocked(.workoutOnly):
-			return AthleteNotice(key: Catalog.coachErrorUnknown, actions: [])
 		}
 	}
 

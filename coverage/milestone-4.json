@@ -24,7 +24,8 @@
 		"9.2": 9,
 		"9.3": 8,
 		"8.1": 4,
-		"8.2": 5
+		"8.2": 5,
+		"8.3": 3
 	},
 	"criteria": [
 		{
@@ -1437,6 +1438,44 @@
 				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewLongPresentationProof", "method": "testALastCardThatFailsLeavesNoApproveUntilTheReviewIsShownAgainWhole"},
 				{"file": "apps/ios/EnduragentUITests/ReviewBarProofs.swift", "class": "ReviewLongPresentationProof", "method": "testARelaunchedFortyCardReviewOpensAtItsTitleAndFirstCard"}
 			]
+		},
+		{
+			"id": "8.3.1",
+			"statement": "Each stage of the review reads as the captures show and offers only its controls: sending says so with no control, a refused change keeps the finished changes apart under Already completed with Try again and Cancel, an unconfirmed change says it may have been saved with Check again and Cancel, a refreshed review names what changed and asks again, a blocked review gives its reason with Cancel alone, also after a relaunch, completed and canceled reviews close with their own line, and a review that cannot record a step shows only the storage notice with no control.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionStateTests.swift", "function": "aRefusedChangeKeepsTheFinishedApartOffersTryAgainAndEndsWithAClosingLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionStateTests.swift", "function": "aSendingReviewSaysSoWithTheFinishedApartAndNoControl"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionStateTests.swift", "function": "aMissingTargetBlocksWithItsReasonAfterARelaunchAndCancelsWithAClosingLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionStateTests.swift", "function": "aStalledSendShowsOnlyTheStorageNoticeAndNoControl"},
+				{"file": "apps/ios/EnduragentTests/FixtureReviewStageTests.swift", "function": "eachReviewStageLaunchLeavesTheMixedReviewInItsStageWithOnlyItsControls"},
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewPartialProof", "method": "testARefusedEditKeepsTheFinishedApartAndOffersTryAgain"},
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewSendingProof", "method": "testASendingReviewSaysSoWithTheFinishedApartAndNoControl"},
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewUnconfirmedProof", "method": "testALostAnswerMayHaveBeenSavedUntilCheckAgainSeesItOnTheCalendar"},
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewRefreshedProof", "method": "testAWorkoutChangedOnTheCalendarNamesTheChangeAndAsksAgain"},
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewBlockedProof", "method": "testAMissingWorkoutBlocksWithItsReasonBeforeAndAfterARelaunch"},
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewStorageProof", "method": "testAStalledSendShowsOnlyTheStorageNoticeAndNoControl"}
+			]
+		},
+		{
+			"id": "8.3.2",
+			"statement": "A change found on the calendar after a lost answer reads seen on the calendar and a delete the calendar no longer had reads no longer on the calendar, each worded apart from saved on the card and in the outcome note, and the note closes with All reviewed changes are complete or The remaining changes were canceled.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionStateTests.swift", "function": "aLostAnswerReadsAsMayHaveBeenSavedUntilCheckAgainSeesItOnTheCalendar"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionStateTests.swift", "function": "aRefusedChangeKeepsTheFinishedApartOffersTryAgainAndEndsWithAClosingLine"},
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewRetriedProof", "method": "testTryAgainFinishesTheRestAndTheGoneDeleteReadsNoLongerOnTheCalendar"},
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewCompletedProof", "method": "testACompletedReviewTellsSeenOnTheCalendarApartFromSaved"},
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewCanceledProof", "method": "testCancelAfterARefusalKeepsTheSavedLinesAndClosesTheRest"},
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewStateLanguageProof", "method": "testGermanPreparedEarlierAndOutcomeNoteAtTheLargestText"}
+			]
+		},
+		{
+			"id": "8.3.3",
+			"statement": "Every review string lives under workouts in all 17 catalogs, review.uncertain is deleted with its last reader, every review key left is read by a view or the coach, each blocked review has its own reason instead of the unknown-error text, and the could-not-be-prepared notice shows under the turn.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewNoticeMappingTests.swift", "function": "eachWorkoutReviewOutcomeGivesItsNotice"},
+				{"file": "apps/ios/EnduragentTests/FixtureReviewStageTests.swift", "function": "theNotPreparedDirectiveLeavesTheCouldNotBePreparedNoticeOnItsTurn"},
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewNotPreparedProof", "method": "testARefusedPreparationSaysTheReviewCouldNotBePrepared"}
+			]
 		}
 	],
 	"requirements": [
@@ -1830,6 +1869,16 @@
 			"id": "B19.01",
 			"statement": "One native approval runs exactly the saved payload of the current revision with no model call, and its control text names the action for additions, edits, deletions and mixed sets.",
 			"criteria": ["6.2.1", "8.2.3"]
+		},
+		{
+			"id": "B21.05",
+			"statement": "Completed and canceled outcomes stay visible and non-actionable: they persist with their confirmed receipts and canceled remaining work, show again after refresh, reopening, reset and relaunch without executable controls, and keep cancellation of pending work apart from confirmed remote effects.",
+			"criteria": ["7.3.1", "7.3.2", "7.3.6", "8.3.1", "8.3.2"]
+		},
+		{
+			"id": "D02",
+			"statement": "Inspect the result of a mixed set stopped after two confirmed successful writes and observe the two successes and each remaining action separately.",
+			"criteria": ["6.1.2", "6.2.3", "6.2.8", "6.2.9", "8.3.1", "8.3.2"]
 		}
 	],
 	"plan": {
@@ -3247,7 +3296,6 @@
 	"open": [
 		"B18.05",
 		"B18.06",
-		"B21.05",
 		"A08",
 		"A13",
 		"A14",
@@ -3255,7 +3303,6 @@
 		"A16",
 		"A18",
 		"B11",
-		"D02",
 		"D12",
 		"X06",
 		"G05"

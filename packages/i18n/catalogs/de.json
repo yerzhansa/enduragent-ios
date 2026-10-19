@@ -2940,7 +2940,6 @@
     "saveFailed": "Deine Auswahl konnte auf diesem iPhone nicht gespeichert werden. Deshalb wurde nichts geändert. Versuche es erneut.",
     "storageUnavailable": "Die gespeicherte Trainingsprüfung konnte nicht gelesen werden. Ihre Schaltflächen sind vorübergehend deaktiviert.",
     "title": "Training prüfen",
-    "uncertain": "Ich konnte nicht bestätigen, ob dies in deinem Kalender bei {{service}} angekommen ist. Prüfe deinen Kalender, bevor du mich erneut darum bittest.",
     "workout": {
       "warmup": "Aufwärmen",
       "mainSet": "Hauptteil",
@@ -3035,7 +3034,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "Dieses Training wurde vor dem Update der App geprüft. Frag den Coach noch einmal."
+      "reviewedBeforeUpgrade": "Dieses Training wurde vor dem Update der App geprüft. Frag den Coach noch einmal.",
+      "missing": "Ein Training in dieser Prüfung ist nicht mehr in deinem Kalender bei {{service}}, deshalb kann die Prüfung nicht fortgesetzt werden. Brich sie ab und frag den Coach noch einmal.",
+      "pastProtected": "Ein Training in dieser Prüfung liegt jetzt in der Vergangenheit, deshalb kann die Prüfung nicht fortgesetzt werden. Brich sie ab und frag den Coach noch einmal.",
+      "coachOnly": "Ein Training in dieser Prüfung wurde nicht vom Coach hinzugefügt, deshalb kann die Prüfung nicht fortgesetzt werden. Brich sie ab und frag den Coach noch einmal.",
+      "workoutOnly": "Ein Eintrag in dieser Prüfung ist kein Training, deshalb kann die Prüfung nicht fortgesetzt werden. Brich sie ab und frag den Coach noch einmal."
     },
     "refreshed": {
       "nothingChanged": "Trainings in dieser Prüfung wurden in {{service}} geändert, nachdem du sie geprüft hast. Deshalb wurde nichts geändert. Prüfe sie noch einmal, bevor du zustimmst.",
@@ -3050,6 +3053,12 @@
     "notPrepared": "Die Trainingsprüfung konnte nicht vorbereitet werden.",
     "notPreparedInformationSaved": "Deine Angaben wurden gespeichert, aber die Trainingsprüfung konnte nicht vorbereitet werden.",
     "stopped": "Die Trainingsprüfung wurde beendet, bevor alle Änderungen vorgenommen wurden. Bereits vorgenommene Änderungen bleiben erhalten.",
+    "sending": "Die geprüften Änderungen werden in deinem Kalender bei {{service}} vorgenommen …",
+    "partial": "{{service}} hat eine Änderung abgelehnt, deshalb wurden die übrigen Änderungen angehalten. Bereits vorgenommene Änderungen bleiben erhalten. Prüfe den Rest, bevor du es erneut versuchst.",
+    "unconfirmed": "Eine Änderung wurde möglicherweise in deinem Kalender bei {{service}} gespeichert. Prüfe es erneut, bevor etwas anderes geändert wird.",
+    "completed": "Alle geprüften Änderungen sind abgeschlossen.",
+    "canceled": "Die übrigen Änderungen wurden abgebrochen.",
+    "finishedTitle": "Bereits erledigt",
     "outcome": {
       "closedAtUpgrade": "Diese Trainingsprüfung wurde vor dem Update der App vorbereitet. Frag den Coach noch einmal.",
       "saved": "{{workout}}, {{date}}: Änderung gespeichert.",
@@ -3079,13 +3088,8 @@
       },
       "progress": {
         "sending": "Wird gesendet …",
-        "saved": "Gespeichert",
-        "seenOnCalendar": "Im Kalender gefunden",
-        "noLongerOnCalendar": "Nicht mehr im Kalender",
         "refused": "Nicht gespeichert",
         "mayHaveBeenSaved": "Möglicherweise gespeichert",
-        "added": "Hinzugefügt",
-        "removed": "Entfernt",
         "notRemoved": "Nicht entfernt",
         "mayHaveBeenRemoved": "Möglicherweise entfernt"
       }

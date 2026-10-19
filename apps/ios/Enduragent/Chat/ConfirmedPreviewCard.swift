@@ -12,16 +12,11 @@ struct ConfirmedPreviewCard: View {
 		ReviewTitleRow(model: model, review: review)
 			.id(Self.titleRow(of: review))
 			.onAppear(perform: titleLaidOut)
-		if review.cards.isEmpty {
-			ReviewTranscriptRow(model: model, review: review, card: nil, ends: true)
-		} else {
-			ForEach(rows, id: \.id) { row in
-				ReviewTranscriptRow(
-					model: model, review: review, card: row.card,
-					ends: row.card.index == review.cards.last?.index
-				)
-				.onAppear(perform: cardLaidOut)
-			}
+		ForEach(parts, id: \.id) { shown in
+			ReviewTranscriptRow(
+				model: model, review: review, part: shown.part, ends: shown.id == parts.last?.id
+			)
+			.onAppear(perform: cardLaidOut)
 		}
 	}
 
@@ -30,20 +25,40 @@ struct ConfirmedPreviewCard: View {
 			.joined(separator: ".")
 	}
 
-	private var rows: [ShownCard] {
-		review.cards.map { ShownCard(card: $0, ref: review.ref, round: round) }
+	private var parts: [ShownPart] {
+		let display = model.displayLocale
+		let finished = review.cards.compactMap { card in
+			card.finishedLine(in: display).map { FinishedChange(card: card, line: $0) }
+		}
+		let remaining = review.cards.filter { $0.finishedLine(in: display) == nil }
+		let shown: [(part: ReviewPart, key: String)] =
+			(finished.isEmpty ? [] : [(.finished(finished), "finished")])
+			+ remaining.map { (.card($0), String($0.index)) }
+		return (shown.isEmpty ? [(.empty, "empty")] : shown).map {
+			ShownPart(part: $0.part, key: $0.key, ref: review.ref, round: round)
+		}
 	}
 }
 
-private struct ShownCard {
+private struct FinishedChange: Equatable {
 	let card: ReviewCard
-	let ref: ReviewRef
-	let round: Int
+	let line: String
+}
 
-	var id: String {
-		[
-			"review", ref.review.ulid.rawValue, String(ref.revision.rawValue), String(round),
-			String(card.index),
+private enum ReviewPart: Equatable {
+	case finished([FinishedChange])
+	case card(ReviewCard)
+	case empty
+}
+
+private struct ShownPart {
+	let part: ReviewPart
+	let id: String
+
+	init(part: ReviewPart, key: String, ref: ReviewRef, round: Int) {
+		self.part = part
+		id = [
+			"review", ref.review.ulid.rawValue, String(ref.revision.rawValue), String(round), key,
 		].joined(separator: ".")
 	}
 }
@@ -71,40 +86,25 @@ private struct ReviewTitleRow: View {
 private struct ReviewTranscriptRow: View {
 	var model: ShellModel
 	var review: ReviewSnapshot
-	var card: ReviewCard?
+	var part: ReviewPart
 	var ends: Bool
 	@Environment(\.dynamicTypeSize) private var dynamicTypeSize
-	@Environment(\.transcriptViewport) private var viewport
-	@State private var placement = CGRect.null
-	@State private var onScreen = false
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 12) {
-			if let card {
+			switch part {
+			case .finished(let changes):
+				FinishedChangesView(model: model, changes: changes)
+			case .card(let card):
 				ReviewCardView(model: model, card: card, count: review.cards.count)
-					.onGeometryChange(for: CGRect.self) {
-						$0.frame(in: .global)
-					} action: {
-						placement = $0
-					}
-					.onChange(of: viewport.shows(placement), initial: true) { _, shown in
-						onScreen = shown
-						guard shown else { return }
-						Task {
-							guard onScreen else { return }
-							await model.cardAppeared(card)
-						}
-					}
-					.onDisappear {
-						placement = .null
-						onScreen = false
-					}
+					.reportsAppearance(of: card, to: model)
+			case .empty:
+				EmptyView()
 			}
 			if ends {
 				KeptWorkoutsView(model: model, days: review.content.keptDays)
 				if let notice = review.notice {
-					Text(notice.sentences(in: model.displayLocale).joined(separator: "\n"))
-						.accessibilityIdentifier("chat.preview.notice")
+					ReviewStageNotice(model: model, notice: notice)
 				}
 				if let outcome = model.reviewNotice {
 					ReviewOutcomeNotice(model: model, notice: outcome)
@@ -116,6 +116,83 @@ private struct ReviewTranscriptRow: View {
 		}
 		.frame(maxWidth: .infinity, alignment: .leading)
 		.accessibilityElement(children: .contain)
+	}
+}
+
+private struct FinishedChangesView: View {
+	var model: ShellModel
+	var changes: [FinishedChange]
+
+	var body: some View {
+		VStack(alignment: .leading, spacing: 8) {
+			Text(model.phrasebook.say(Catalog.workoutsFinishedTitle, [:]))
+				.font(.headline)
+				.accessibilityIdentifier("chat.preview.finished.title")
+			ForEach(changes, id: \.card.index) { change in
+				Text(change.line)
+					.accessibilityIdentifier("chat.preview.finished.line")
+					.reportsAppearance(of: change.card, to: model)
+			}
+		}
+		.padding(12)
+		.frame(maxWidth: .infinity, alignment: .leading)
+		.background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+		.accessibilityElement(children: .contain)
+		.accessibilityIdentifier("chat.preview.finished")
+	}
+}
+
+private struct ReviewStageNotice: View {
+	var model: ShellModel
+	var notice: ReviewNotice
+
+	var body: some View {
+		let text = Text(notice.sentences(in: model.displayLocale).joined(separator: "\n"))
+		switch notice.kind {
+		case .storageUnavailable:
+			text.accessibilityIdentifier("chat.preview.notice")
+		case .outcome:
+			text
+				.font(.body.weight(.semibold))
+				.accessibilityIdentifier("chat.preview.closing")
+		case .refreshedAfterStaleTarget, .partialFailure, .accountChanged, .blocked, .progress:
+			text.accessibilityIdentifier("chat.review.notice")
+		}
+	}
+}
+
+private struct AppearanceReport: ViewModifier {
+	var model: ShellModel
+	var card: ReviewCard
+	@Environment(\.transcriptViewport) private var viewport
+	@State private var placement = CGRect.null
+	@State private var onScreen = false
+
+	func body(content: Content) -> some View {
+		content
+			.onGeometryChange(for: CGRect.self) {
+				$0.frame(in: .global)
+			} action: {
+				placement = $0
+			}
+			.onChange(of: viewport.shows(placement), initial: true) { _, shown in
+				onScreen = shown
+				guard shown else { return }
+				Task {
+					guard onScreen else { return }
+					await model.cardAppeared(card)
+				}
+			}
+			.onDisappear {
+				placement = .null
+				onScreen = false
+			}
+	}
+}
+
+extension View {
+	fileprivate func reportsAppearance(of card: ReviewCard, to model: ShellModel) -> some View {
+		modifier(AppearanceReport(model: model, card: card))
 	}
 }
 
@@ -152,8 +229,10 @@ struct ReviewOutcomeNotice: View {
 	var notice: AthleteNotice
 
 	var body: some View {
-		Text(notice.sentence(in: model.displayLocale))
-			.accessibilityIdentifier("chat.review.notice")
+		if !model.reviewNoticeRepeatsCard(notice) {
+			Text(notice.sentence(in: model.displayLocale))
+				.accessibilityIdentifier("chat.review.notice")
+		}
 		ForEach(Array(notice.actions.enumerated()), id: \.offset) { _, action in
 			Button(model.phrasebook.say(action.title)) {
 				Task { await model.perform(action) }

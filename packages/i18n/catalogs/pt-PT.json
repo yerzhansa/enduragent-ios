@@ -2940,7 +2940,6 @@
     "saveFailed": "Não foi possível guardar a tua escolha neste iPhone, por isso nada foi alterado. Tenta novamente.",
     "storageUnavailable": "Não foi possível ler a revisão do treino guardada. Os botões estão temporariamente desativados.",
     "title": "Revisão do treino",
-    "uncertain": "Não consegui confirmar se isto chegou ao teu calendário no {{service}}. Verifica o calendário antes de pedires novamente.",
     "workout": {
       "warmup": "Aquecimento",
       "mainSet": "Série principal",
@@ -3035,7 +3034,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "Este treino foi revisto antes da atualização da app. Pede novamente ao treinador."
+      "reviewedBeforeUpgrade": "Este treino foi revisto antes da atualização da app. Pede novamente ao treinador.",
+      "missing": "Um treino desta revisão já não está no teu calendário no {{service}}, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador.",
+      "pastProtected": "Um treino desta revisão está agora no passado, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador.",
+      "coachOnly": "Um treino desta revisão não foi adicionado pelo treinador, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador.",
+      "workoutOnly": "Um item desta revisão não é um treino, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador."
     },
     "refreshed": {
       "nothingChanged": "Treinos desta revisão foram alterados no {{service}} depois de os reveres, por isso nada foi alterado. Verifica-os novamente antes de aprovar.",
@@ -3050,6 +3053,12 @@
     "notPrepared": "Não foi possível preparar a revisão do treino.",
     "notPreparedInformationSaved": "As tuas informações foram guardadas, mas não foi possível preparar a revisão do treino.",
     "stopped": "A revisão do treino parou antes de todas as alterações serem feitas. As alterações já feitas mantêm-se.",
+    "sending": "A aplicar as alterações revistas ao teu calendário no {{service}}…",
+    "partial": "O {{service}} recusou uma alteração, por isso as alterações restantes foram interrompidas. As alterações já feitas mantêm-se. Verifica o resto antes de tentares novamente.",
+    "unconfirmed": "Uma alteração pode ter sido guardada no teu calendário no {{service}}. Verifica novamente antes de mais alguma coisa ser alterada.",
+    "completed": "Todas as alterações revistas foram concluídas.",
+    "canceled": "As alterações restantes foram canceladas.",
+    "finishedTitle": "Já concluído",
     "outcome": {
       "closedAtUpgrade": "Esta revisão do treino foi preparada antes da atualização da app. Pede novamente ao treinador.",
       "saved": "{{workout}}, {{date}}: alteração guardada.",
@@ -3079,13 +3088,8 @@
       },
       "progress": {
         "sending": "A enviar…",
-        "saved": "Guardado",
-        "seenOnCalendar": "Visto no calendário",
-        "noLongerOnCalendar": "Já não está no calendário",
         "refused": "Não guardado",
         "mayHaveBeenSaved": "Pode ter sido guardado",
-        "added": "Adicionado",
-        "removed": "Removido",
         "notRemoved": "Não removido",
         "mayHaveBeenRemoved": "Pode ter sido removido"
       }

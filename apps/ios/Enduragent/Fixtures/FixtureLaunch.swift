@@ -55,6 +55,7 @@
 		static let calendarReadArgumentKey = "EnduragentFixtureCalendarRead"
 		static let recordReadArgumentKey = "EnduragentFixtureRecordRead"
 		static let presentationArgumentKey = "EnduragentFixturePresentation"
+		static let reviewStageArgumentKey = "EnduragentFixtureReviewStage"
 		static let replyParserArgumentKey = "EnduragentFixtureReplyParser"
 		static let trainingDisplayArgumentKey = "EnduragentFixtureTrainingDisplay"
 		static let credentialWriteArgumentKey = "EnduragentFixtureCredentialWrite"
@@ -81,6 +82,7 @@
 		var calendarReadFault: FixtureCalendarReadFault?
 		var recordReadFault: FixtureRecordReadFault?
 		var presentationFault: FixturePresentationFault?
+		var reviewStage: FixtureReviewStage?
 		var resetFault: FixtureResetFault?
 		var replyParserFault: FixtureReplyParserFault?
 		var trainingDisplay: FixtureTrainingDisplay?
@@ -107,6 +109,7 @@
 				calendarReadFault: try policy(arguments, key: calendarReadArgumentKey),
 				recordReadFault: try policy(arguments, key: recordReadArgumentKey),
 				presentationFault: try policy(arguments, key: presentationArgumentKey),
+				reviewStage: try policy(arguments, key: reviewStageArgumentKey),
 				resetFault: try policy(arguments, key: resetArgumentKey),
 				replyParserFault: try policy(arguments, key: replyParserArgumentKey),
 				trainingDisplay: try policy(arguments, key: trainingDisplayArgumentKey),

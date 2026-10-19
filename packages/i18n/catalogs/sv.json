@@ -2940,7 +2940,6 @@
     "saveFailed": "Det gick inte att spara ditt val på denna iPhone, så ingenting ändrades. Försök igen.",
     "storageUnavailable": "Kunde inte läsa den sparade granskningen av träningspasset. Knapparna är tillfälligt inaktiverade.",
     "title": "Granskning av träningspass",
-    "uncertain": "Jag kunde inte bekräfta om detta nådde din kalender på {{service}}. Kontrollera kalendern innan du frågar igen.",
     "workout": {
       "warmup": "Uppvärmning",
       "mainSet": "Huvuddel",
@@ -3035,7 +3034,11 @@
   },
   "workouts": {
     "blocked": {
-      "reviewedBeforeUpgrade": "Det här passet granskades innan appen uppdaterades. Fråga tränaren igen."
+      "reviewedBeforeUpgrade": "Det här passet granskades innan appen uppdaterades. Fråga tränaren igen.",
+      "missing": "Ett träningspass i den här granskningen finns inte längre i din kalender på {{service}}, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen.",
+      "pastProtected": "Ett träningspass i den här granskningen ligger nu bakåt i tiden, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen.",
+      "coachOnly": "Ett träningspass i den här granskningen lades inte till av tränaren, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen.",
+      "workoutOnly": "En post i den här granskningen är inte ett träningspass, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen."
     },
     "refreshed": {
       "nothingChanged": "Träningspass i den här granskningen ändrades i {{service}} efter att du granskade dem, så inget ändrades. Kontrollera dem igen innan du godkänner.",
@@ -3050,6 +3053,12 @@
     "notPrepared": "Granskningen av träningspasset kunde inte förberedas.",
     "notPreparedInformationSaved": "Din information sparades, men granskningen av träningspasset kunde inte förberedas.",
     "stopped": "Granskningen av träningspasset stoppades innan alla ändringar gjordes. Ändringar som redan gjorts behålls.",
+    "sending": "Gör de granskade ändringarna i din kalender på {{service}} …",
+    "partial": "{{service}} avvisade en ändring, så de återstående ändringarna stoppades. Ändringar som redan gjorts behålls. Kontrollera resten innan du försöker igen.",
+    "unconfirmed": "En ändring kan ha sparats i din kalender på {{service}}. Kontrollera igen innan något annat ändras.",
+    "completed": "Alla granskade ändringar är klara.",
+    "canceled": "De återstående ändringarna avbröts.",
+    "finishedTitle": "Redan klart",
     "outcome": {
       "closedAtUpgrade": "Den här granskningen av träningspasset förbereddes innan appen uppdaterades. Fråga tränaren igen.",
       "saved": "{{workout}}, {{date}}: ändringen sparades.",
@@ -3079,13 +3088,8 @@
       },
       "progress": {
         "sending": "Skickar …",
-        "saved": "Sparat",
-        "seenOnCalendar": "Syns i kalendern",
-        "noLongerOnCalendar": "Finns inte längre i kalendern",
         "refused": "Inte sparat",
         "mayHaveBeenSaved": "Kan ha sparats",
-        "added": "Tillagt",
-        "removed": "Borttaget",
         "notRemoved": "Inte borttaget",
         "mayHaveBeenRemoved": "Kan ha tagits bort"
       }

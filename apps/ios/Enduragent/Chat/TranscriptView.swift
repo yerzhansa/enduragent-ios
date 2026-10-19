@@ -170,8 +170,7 @@ struct TranscriptView: View {
 
 	private func notes(after turn: TurnID?) -> some View {
 		ForEach(model.chat?.notes[turn] ?? []) { note in
-			Text(note.sentence(in: model.displayLocale))
-				.accessibilityIdentifier("chat.note")
+			TranscriptNoteView(display: model.displayLocale, note: note)
 		}
 	}
 
@@ -191,6 +190,29 @@ struct TranscriptView: View {
 		Text(model.phrasebook.say(key, [:]))
 			.foregroundStyle(.secondary)
 			.accessibilityIdentifier("chat.newConversation.notice")
+	}
+}
+
+private struct TranscriptNoteView: View {
+	var display: DisplayLocale
+	var note: TranscriptNote
+
+	var body: some View {
+		let sentence = Text(note.sentence(in: display)).accessibilityIdentifier("chat.note")
+		if let closing = note.closing(in: display) {
+			VStack(alignment: .leading, spacing: 8) {
+				sentence
+				Text(closing)
+					.font(.body.weight(.semibold))
+					.accessibilityIdentifier("chat.note.closing")
+			}
+			.padding(12)
+			.frame(maxWidth: .infinity, alignment: .leading)
+			.background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+			.accessibilityElement(children: .contain)
+		} else {
+			sentence
+		}
 	}
 }
 

@@ -29,7 +29,12 @@ enum ReviewAccessibility {
 		reopenAtLargestText(run.app, arguments)
 		let card = ReviewCardReading(run: run, workout: ReviewCardReading.upgradedLabel)
 		TutorialHarness.wait(run.named("chat.preview.checkAgain"), until: .enabled, within: .turn)
-		card.expect(notice: [], controls: [.checkAgain, .cancel], screen: "unconfirmed")
+		card.expect(
+			notice: [
+				.text(
+					"chat.review.notice",
+					run.say(Catalog.workoutsUnconfirmed, ["service": "intervals.icu"]))
+			], controls: [.checkAgain, .cancel], screen: "unconfirmed")
 		card.reach(.checkAgain).tap()
 		TutorialHarness.wait(run.named("chat.preview.add"), until: .enabled)
 		card.expect(
@@ -55,7 +60,12 @@ enum ReviewAccessibility {
 		reopenAtLargestText(run.app, arguments)
 		let card = ReviewCardReading(run: run)
 		TutorialHarness.wait(run.named("chat.preview.cancel"), until: .enabled, within: .turn)
-		card.expect(notice: [], controls: [.cancel], screen: "cancel-only")
+		card.expect(
+			notice: [
+				.text(
+					"chat.review.notice",
+					run.say(Catalog.reviewAccountChanged, ["service": "intervals.icu"]))
+			], controls: [.cancel], screen: "cancel-only")
 		card.reach(.cancel).tap()
 		TutorialHarness.wait(run.named("chat.preview.cancel"), until: .absent)
 		card.capture("cancelled-blocked")

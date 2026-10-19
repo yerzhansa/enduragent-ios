@@ -48,5 +48,9 @@ public final class RecordFaults: Sendable {
 		public func failNextReviewRead() {
 			log.failNextFetch(in: .deviceLocal([.workoutReview]))
 		}
+
+		public func failReviewAppend(after appends: Int) throws {
+			try log.failAppend(ofKind: DeviceLocalKind.workoutReview.rawValue, skipping: appends)
+		}
 	#endif
 }

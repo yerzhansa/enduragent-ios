@@ -93,6 +93,15 @@
 		case failAfterPresentedOnce = "fail-after-presented-once"
 	}
 
+	enum FixtureReviewStage: String, CaseIterable {
+		case sending
+		case partial
+		case unconfirmed
+		case refreshed
+		case blocked
+		case storage
+	}
+
 	enum FixturePresentationFault: String {
 		case failLastCardOnce = "fail-last-card-once"
 	}
@@ -138,6 +147,7 @@
 		var calendarReadFault: FixtureCalendarReadFault?
 		var recordReadFault: FixtureRecordReadFault?
 		var presentationFault: FixturePresentationFault?
+		var reviewStage: FixtureReviewStage?
 		var resetFault: FixtureResetFault?
 		var replyParserFault: FixtureReplyParserFault?
 		var trainingDisplay: FixtureTrainingDisplay?
@@ -172,6 +182,9 @@
 			}
 			if let presentationFault {
 				values += ["-EnduragentFixturePresentation", presentationFault.rawValue]
+			}
+			if let reviewStage {
+				values += ["-EnduragentFixtureReviewStage", reviewStage.rawValue]
 			}
 			if let resetFault { values += ["-EnduragentFixtureReset", resetFault.rawValue] }
 			if let replyParserFault {
@@ -220,6 +233,7 @@
 			calendarReadFault = try policy(values, "-EnduragentFixtureCalendarRead")
 			recordReadFault = try policy(values, "-EnduragentFixtureRecordRead")
 			presentationFault = try policy(values, "-EnduragentFixturePresentation")
+			reviewStage = try policy(values, "-EnduragentFixtureReviewStage")
 			resetFault = try policy(values, "-EnduragentFixtureReset")
 			replyParserFault = try policy(values, "-EnduragentFixtureReplyParser")
 			trainingDisplay = try policy(values, "-EnduragentFixtureTrainingDisplay")
