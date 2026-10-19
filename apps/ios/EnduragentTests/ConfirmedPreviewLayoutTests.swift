@@ -69,6 +69,25 @@ extension FixtureLaunchTests {
 		#expect(bar.actions.map(\.title) == [Catalog.commonCancel, Catalog.reviewAdd])
 	}
 
+	@Test(arguments: [
+		(FirstWeekFixture.reviewEightDirective, 8), (FirstWeekFixture.reviewTwentyDirective, 20),
+		(FirstWeekFixture.reviewFortyDirective, 40),
+	])
+	func eachLongFixtureShowsEveryCardAndOffersOneApprovalOnlyAfterTheLast(
+		_ directive: String, _ count: Int
+	) async throws {
+		let model = try await reviewing(directive, launch: launch)
+		let shown = try #require(model.chat?.review)
+		#expect(shown.cards.map(\.index) == Array(0..<count))
+		for card in shown.cards {
+			#expect(model.chat?.review?.controls == ReviewControls.none)
+			await model.cardAppeared(card)
+		}
+		try await until { model.chat?.review?.controls != ReviewControls.none }
+		let bar = ReviewBarView(model: model, review: try #require(model.chat?.review))
+		#expect(bar.actions.map(\.title) == [Catalog.commonCancel, Catalog.reviewAdd])
+	}
+
 	private func reviewing(_ text: String, launch: FixtureLaunch) async throws -> ShellModel {
 		let services = try fixtureServices(launch, defaults: defaults)
 		let model = await model(services)

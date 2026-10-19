@@ -49,6 +49,19 @@ public enum WorkoutReviewFixture {
 			})
 	}
 
+	public static let eightWorkoutDays = [1, 2, 3, 4, 6, 7, 9, 10]
+
+	public static func eightWorkouts(today: CivilDate) -> String {
+		preparation(
+			eightWorkoutDays.enumerated().map { index, day in
+				let date = today.adding(days: day).rawValue
+				let workout = ride(named: "Ride \(index + 1)")
+				return index.isMultiple(of: 2)
+					? #"{"kind":"add-cycling","date":"\#(date)","workout":\#(workout),"trainingLoad":42}"#
+					: #"{"kind":"add-strength","date":"\#(date)","name":"Strength \#(index + 1)","durationMinutes":30,"effort":"Moderate","description":"Plank 3x45s","trainingLoad":18}"#
+			})
+	}
+
 	public static func rename(after toolResults: [String]) throws -> String? {
 		let fields =
 			try toolResults.reversed().map(JSONValue.parse)
@@ -65,8 +78,11 @@ public enum WorkoutReviewFixture {
 			#"{"preparation":{"kind":"revise","base":{"setId":"\#(setId)","revision":\#(Int(revision))},"replacements":[{"id":"\#(id)","change":{"kind":"edit","eventId":\#(editedEvent.rawValue),"patch":{"name":"\#(renamed)"}}}]}}"#
 	}
 
-	public static let ride =
-		#"{"name":"Endurance 50","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":55}},{"type":"steady","duration":{"value":30,"unit":"minutes"},"power":{"kind":"percent_ftp","low":65,"high":75}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":50}}]}"#
+	public static let ride = ride(named: "Endurance 50")
+
+	public static func ride(named name: String) -> String {
+		#"{"name":"\#(name)","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":55}},{"type":"steady","duration":{"value":30,"unit":"minutes"},"power":{"kind":"percent_ftp","low":65,"high":75}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":50}}]}"#
+	}
 
 	public static let threshold =
 		#"{"steps":[{"type":"warmup","duration":{"value":15,"unit":"minutes"},"power":{"kind":"percent_ftp","value":55}},{"type":"set","repeat":3,"interval":{"type":"interval","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":95}},"recovery":{"type":"recovery","duration":{"value":5,"unit":"minutes"},"power":{"kind":"percent_ftp","value":50}}},{"type":"cooldown","duration":{"value":15,"unit":"minutes"},"power":{"kind":"percent_ftp","value":50}}]}"#
