@@ -29,9 +29,10 @@ extension FixtureLaunchTests {
 		async throws
 	{
 		await model.decide(.approve(token))
-		#expect(model.reviewNotice?.key == Catalog.reviewAccountChanged)
 		try await until { model.chat?.review.map { $0.ref != token.ref } == true }
 		let blocked = try #require(model.chat?.review)
+		#expect(blocked.notice?.key == Catalog.reviewAccountChanged)
+		#expect(model.reviewNotice == nil)
 		#expect(blocked.ref.review == token.ref.review)
 		await model.decide(.presented(blocked.ref))
 		try await until {

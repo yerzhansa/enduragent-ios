@@ -179,6 +179,9 @@ final class ReviewUnconfirmedProof: XCTestCase {
 		ReviewStates.approve(app)
 		ReviewStates.expect(app, "chat.review.notice", reading: [ReviewStates.unconfirmed])
 		ReviewCardScreen.assertButtons(app, .checkAgainOrCancel)
+		XCTAssertEqual(
+			app.staticTexts.matching(identifier: "chat.review.notice").count, 1,
+			"the unconfirmed change was told twice")
 		ReviewStates.expectStatus(app, card: 0, "May have been saved")
 		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.finished").exists)
 		TutorialHarness.attach(self, name: "u8-3-review-unconfirmed", app: app)
