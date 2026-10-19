@@ -31,17 +31,18 @@ import Testing
 			])
 	}
 
-	@Test(arguments: [(LanguageTag.de, "de_DE"), (.ptPT, "pt_PT"), (.zhHant, "zh_TW")])
+	static let languages = [(LanguageTag.de, "de_DE"), (.ptPT, "pt_PT"), (.zhHant, "zh_TW")]
+
+	@Test(arguments: languages)
 	func everyLineOfAReviewAndItsProgressReadsInTheDisplayLanguage(
 		_ tag: LanguageTag, _ region: String
 	) async throws {
 		let today: CivilDate = "1998-09-08"
 		turns.intervals.events = []
 		WorkoutReviewFixture.seed(turns.intervals, today: today)
-		let calendar = ScriptedCalendar(turns.intervals)
 		let coach = await makeCoach(
-			transport: turns.transport, intervals: calendar, store: turns.store,
-			clock: turns.clock)
+			transport: turns.transport, intervals: ScriptedCalendar(turns.intervals),
+			store: turns.store, clock: turns.clock)
 		_ = try await turns.reply(
 			after: [
 				.toolCall(
@@ -49,19 +50,6 @@ import Testing
 					arguments: WorkoutReviewFixture.mixed(today: today))
 			], on: coach)
 		let shown = try #require(try await coach.desk.snapshot(chat: .main))
-		_ = await coach.decide(.presented(shown.ref), in: .main)
-		guard
-			case .armed(_, let token) = try #require(try await coach.desk.snapshot(chat: .main))
-				.controls
-		else {
-			Issue.record("the mixed review was presented but offers no control")
-			return
-		}
-		calendar.answer { index, _ in index == 2 ? .httpStatus(400) : nil }
-		_ = await coach.decide(.approve(token), in: .main)
-		let stopped = try #require(try await coach.desk.snapshot(chat: .main))
-		let shownLanguage = displayLocale(tag, region: region)
-		let english = displayLocale(.en, region: region)
 
 		let lines = { (display: DisplayLocale) -> [String] in
 			var presentation = ReviewPresentation(of: shown)
@@ -71,7 +59,7 @@ import Testing
 				shown.cards.flatMap { card in
 					[card.heading(of: shown.cards.count, in: display)] + card.changes(in: display)
 						+ [card.load(in: display)].compactMap { $0 }
-				} + stopped.cards.compactMap { $0.status(in: display) }
+				}
 				+ [
 					display.say(Catalog.reviewTitle), display.say(Catalog.workoutsKeptTitle),
 					shown.totals.line(in: display), shown.content.question(in: display),
@@ -79,12 +67,32 @@ import Testing
 					display.say(Catalog.workoutsBarShowAgain),
 				] + [unseen, presentation.status(of: shown, in: display)].compactMap { $0 }
 		}
-		let shownLines = try lines(shownLanguage)
-		let englishLines = try lines(english)
 
-		#expect(shownLines.count == 23)
-		#expect(shownLines.count == englishLines.count)
-		for (line, source) in zip(shownLines, englishLines) {
+		try Self.expectTranslated(
+			try lines(displayLocale(tag, region: region)),
+			try lines(displayLocale(.en, region: region)),
+			count: 20, in: tag)
+	}
+
+	@Test(arguments: languages)
+	func everyStageNoticeFinishedLineAndClosingLineReadsInTheDisplayLanguage(
+		_ tag: LanguageTag, _ region: String
+	) async throws {
+		let stages = try await ReviewStageScreens.reached()
+
+		#expect(stages.map(\.name) == ReviewStageScreens.names)
+		try Self.expectTranslated(
+			stages.flatMap { $0.lines(in: displayLocale(tag, region: region)) },
+			stages.flatMap { $0.lines(in: displayLocale(.en, region: region)) }, count: 30,
+			in: tag)
+	}
+
+	static func expectTranslated(
+		_ shown: [String], _ english: [String], count: Int, in tag: LanguageTag
+	) throws {
+		#expect(shown.count == count)
+		try #require(shown.count == english.count)
+		for (line, source) in zip(shown, english) {
 			#expect(line != source, "[\(tag.rawValue)] still reads English: \(line)")
 			#expect(!line.contains("{{") && !line.contains("}}"), "[\(tag.rawValue)] \(line)")
 		}

@@ -260,7 +260,7 @@ import Testing
 	}
 }
 
-private final class SeenSnapshot: Sendable {
+final class SeenSnapshot: Sendable {
 	private let seen = Mutex<ReviewSnapshot?>(nil)
 
 	var shown: ReviewSnapshot? { seen.withLock { $0 } }

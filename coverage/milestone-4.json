@@ -1513,13 +1513,32 @@
 		},
 		{
 			"id": "8.4.5",
-			"statement": "German, Portuguese of Portugal and Traditional Chinese show every review string of 8.1 to 8.3 in the language, with no English fallback, unresolved placeholder or clipped control.",
+			"statement": "German, Portuguese of Portugal and Traditional Chinese show every review string of 8.1 to 8.3 in the language, including each stage notice, the Already completed box, the card statuses and the outcome note with its closing line, with no English fallback, unresolved placeholder or clipped control.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "everyLineOfAReviewAndItsProgressReadsInTheDisplayLanguage"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "everyStageNoticeFinishedLineAndClosingLineReadsInTheDisplayLanguage"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CatalogCompletenessTests.swift", "function": "everyEnglishKeyHasAValueInEveryLocale"},
 				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testEveryReviewStringIsTranslatedAndNoControlIsClipped"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testARefusedChangeAndTryAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testALostAnswerAndCheckAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testASendingReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testARefreshedReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testABlockedReviewItsCancelAndANotPreparedTurnReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testAStalledReviewReadsInTheLanguage"},
 				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testEveryReviewStringIsTranslatedAndNoControlIsClipped"},
-				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testEveryReviewStringIsTranslatedAndNoControlIsClipped"}
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testARefusedChangeAndTryAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testALostAnswerAndCheckAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testASendingReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testARefreshedReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testABlockedReviewItsCancelAndANotPreparedTurnReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testAStalledReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testEveryReviewStringIsTranslatedAndNoControlIsClipped"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testARefusedChangeAndTryAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testALostAnswerAndCheckAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testASendingReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testARefreshedReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testABlockedReviewItsCancelAndANotPreparedTurnReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testAStalledReviewReadsInTheLanguage"}
 			]
 		}
 	],
