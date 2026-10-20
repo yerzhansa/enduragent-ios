@@ -721,9 +721,9 @@
 		},
 		{
 			"id": "4.2.9",
-			"statement": "Eleven minutes and an unrelated turn after the commit, pending returns the waiting review unchanged.",
+			"statement": "Eleven minutes and an unrelated turn after the commit, pending returns the waiting review unchanged, and approving it then completes the review with a saved Receipt and one calendar write for each of its four changes.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn"}
 			]
 		},
 		{
@@ -1889,6 +1889,16 @@
 			"criteria": ["4.2.9", "5.1.3", "9.3.5"]
 		},
 		{
+			"id": "B18.05",
+			"statement": "A valid waiting review has no elapsed-time expiry: it survives unrelated chat and waiting and is approved more than ten minutes later, and validity is checked at approval, so an athlete-local date advance gives a validity refusal, not a timer message.",
+			"criteria": ["4.2.9", "5.1.3"]
+		},
+		{
+			"id": "A13",
+			"statement": "Approve after time passes while all dates and targets remain valid → accept the approval without an elapsed-time expiry.",
+			"criteria": ["4.2.9", "5.1.3"]
+		},
+		{
 			"id": "A17",
 			"statement": "A request that cannot be prepared whole → no partial review, and the athlete is told the review could not be prepared.",
 			"criteria": ["4.2.2", "4.2.3", "4.2.4", "9.3.7"]
@@ -2188,7 +2198,7 @@
 				"replacements": [
 					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewPresentationHandshakeTests.swift", "function": "aFailedPresentationDisarmsAndShowAgainStartsANewDelivery"},
 					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "aTokenFromAnEarlierHeadOrDeliveryIsNotAdmitted"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn"}
+					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn"}
 				]
 			},
 			{
@@ -2731,7 +2741,7 @@
 				"statement": "Approving an earlier turn's review runs it with no model request and leaves the current turn alone.",
 				"replacements": [
 					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "approvalAfterAnotherTurnRunsTheSavedReviewWithNoModelRequest"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn"}
+					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn"}
 				]
 			},
 			{
@@ -3061,7 +3071,7 @@
 				"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleChangeTurnTests.swift", "function": "numberAndLabelKeepWorkoutReviewPendingUntilExplicitApproval"},
 				"statement": "Answering a numbered choice never approves the waiting review.",
 				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn"},
+					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn"},
 					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "approvalAfterAnotherTurnRunsTheSavedReviewWithNoModelRequest"}
 				]
 			},
@@ -3177,7 +3187,7 @@
 				"statement": "A waiting review stays across a new message and New conversation.",
 				"replacements": [
 					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparedEarlierTests.swift", "function": "aWaitingReviewShowsOnceAtTheTopOfTheNewConversationAndCanBeApproved"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn"}
+					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn"}
 				]
 			},
 			{
@@ -3403,8 +3413,6 @@
 		]
 	},
 	"open": [
-		"B18.05",
-		"A13",
 		"G05"
 	]
 }
