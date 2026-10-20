@@ -7,6 +7,8 @@
 		static let reviewDeleteDirective = "fixture:review-delete"
 		static let reviewRenameDirective = "fixture:review-rename"
 		static let reviewEditDirective = "fixture:review-edit"
+		static let reviewEightDirective = "fixture:review-eight"
+		static let reviewTwentyDirective = "fixture:review-twenty"
 		static let reviewFortyDirective = "fixture:review-forty"
 		static let reviewNotPreparedDirective = "fixture:review-not-prepared"
 		static let reviewNotPreparedReply = "I tried to prepare two reviews at once."
@@ -20,7 +22,8 @@
 			guard
 				[
 					reviewMixedDirective, reviewDeleteDirective, reviewRenameDirective,
-					reviewEditDirective, reviewFortyDirective, reviewNotPreparedDirective,
+					reviewEditDirective, reviewEightDirective, reviewTwentyDirective,
+					reviewFortyDirective, reviewNotPreparedDirective,
 				].contains(text)
 			else { return nil }
 			guard request.offersTrainingTools else {
@@ -33,6 +36,12 @@
 				return prepared(WorkoutReviewFixture.deleteOnly, request, intervals)
 			case reviewEditDirective:
 				return prepared(WorkoutReviewFixture.editOnly, request, intervals)
+			case reviewEightDirective:
+				return prepared(
+					WorkoutReviewFixture.eightWorkouts(today: today), request, intervals)
+			case reviewTwentyDirective:
+				return prepared(
+					WorkoutReviewFixture.strengthSessions(20, today: today), request, intervals)
 			case reviewFortyDirective:
 				return prepared(
 					WorkoutReviewFixture.strengthSessions(40, today: today), request, intervals)
