@@ -1935,9 +1935,24 @@
 			"criteria": ["6.2.1", "8.2.3"]
 		},
 		{
+			"id": "A08",
+			"statement": "Approve the complete mixed example once → apply exactly the four reviewed changes without another approval or a continuation prompt.",
+			"criteria": ["6.2.1", "8.2.3"]
+		},
+		{
+			"id": "B11",
+			"statement": "Change the model's conversational context after review → execute the saved reviewed payload without regenerating the changes at approval.",
+			"criteria": ["6.2.1", "8.2.3"]
+		},
+		{
 			"id": "B21.05",
 			"statement": "Completed and canceled outcomes stay visible and non-actionable: they persist with their confirmed receipts and canceled remaining work, show again after refresh, reopening, reset and relaunch without executable controls, and keep cancellation of pending work apart from confirmed remote effects.",
 			"criteria": ["7.3.1", "7.3.2", "7.3.6", "8.3.1", "8.3.2"]
+		},
+		{
+			"id": "D12",
+			"statement": "Restart after complete success and deliver the old approval again → preserve the completed outcome without additional writes.",
+			"criteria": ["6.2.4", "6.2.5", "6.2.10", "6.2.11", "7.1.5", "7.3.1", "7.3.2", "7.3.6"]
 		},
 		{
 			"id": "D02",
@@ -3389,10 +3404,7 @@
 	},
 	"open": [
 		"B18.05",
-		"A08",
 		"A13",
-		"B11",
-		"D12",
 		"G05"
 	]
 }
