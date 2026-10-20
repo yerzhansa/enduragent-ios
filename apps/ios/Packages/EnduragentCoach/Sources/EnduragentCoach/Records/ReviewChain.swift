@@ -25,6 +25,12 @@ package enum NewestRecord: Sendable, Equatable {
 	}
 }
 
+package enum NewestReview: Sendable {
+	case empty
+	case readable(ULID, WorkoutReview)
+	case unreadable
+}
+
 package enum RecordHead: Hashable, Sendable {
 	case empty
 	case record(ULID)
@@ -52,19 +58,25 @@ extension Ledger {
 	package func reviewHead(chat: ChatID) async throws(LedgerFailure) -> (
 		RecordHead, WorkoutReview?
 	) {
-		let head: AthleteRecord
+		switch try await newestReview(chat: chat) {
+		case .empty: (.empty, nil)
+		case .unreadable: throw LedgerFailure.unavailable
+		case .readable(let head, let review): (.record(head), review)
+		}
+	}
+
+	package func newestReview(chat: ChatID) async throws(LedgerFailure) -> NewestReview {
 		switch try await newest(Self.chain(of: chat)) {
 		case .empty:
-			return (.empty, nil)
+			return .empty
 		case .unreadable:
-			throw LedgerFailure.unavailable
+			return .unreadable
 		case .readable(let record):
-			head = record
+			guard case .deviceLocal(.workoutReview(let body)) = record.body else {
+				throw LedgerFailure.unavailable
+			}
+			return .readable(record.ulid, body.review)
 		}
-		guard case .deviceLocal(.workoutReview(let body)) = head.body else {
-			throw LedgerFailure.unavailable
-		}
-		return (.record(head.ulid), body.review)
 	}
 
 	package func reviewChats() async throws(LedgerFailure) -> Set<ChatID> {

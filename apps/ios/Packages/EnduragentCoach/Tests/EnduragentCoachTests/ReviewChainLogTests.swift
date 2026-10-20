@@ -246,6 +246,29 @@ extension SwiftDataSuites {
 					== .headMoved(unreadable))
 		}
 
+		@Test func aChatWhoseNewestReviewIsUnreadableStillOpensWithoutTheReview() async throws {
+			let directory = try TestTemporaryFolders.make()
+			let local = try ModelContainerHandle.deviceLocal(directory: directory)
+			let log = SwiftDataRecordLog(
+				deviceId: phone,
+				synced: try ModelContainerHandle.withoutCloudKit(
+					storeURL: directory.appending(path: ModelContainerHandle.syncedStoreFileName)),
+				local: local)
+			let approval = try reviewFixture("workout-review-approval")
+			let claimed = try approval.claimed(Claim(id: claimID(1), action: .approve))
+			let writer = ledger(log)
+			let older = try await writer.commit(
+				review: approval, stamp: stamp(approval), after: .empty)
+			let newest = try await writer.commit(
+				review: claimed, stamp: stamp(claimed), after: .record(older.ulid))
+			try makeNewerVersion(newest, in: local)
+			let coach = await ReviewTurns().coach(over: log)
+
+			_ = try await coach.mailbox(for: .main)
+
+			#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
+		}
+
 		@Test func anUnreadableNewestOutcomeStillTakesTheNextOutcome() async throws {
 			let directory = try TestTemporaryFolders.make()
 			let synced = try ModelContainerHandle.withoutCloudKit(
