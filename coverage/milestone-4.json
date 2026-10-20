@@ -25,7 +25,8 @@
 		"9.3": 8,
 		"8.1": 4,
 		"8.2": 5,
-		"8.3": 3
+		"8.3": 3,
+		"8.4": 5
 	},
 	"criteria": [
 		{
@@ -720,9 +721,9 @@
 		},
 		{
 			"id": "4.2.9",
-			"statement": "Eleven minutes and an unrelated turn after the commit, pending returns the waiting review unchanged.",
+			"statement": "Eleven minutes and an unrelated turn after the commit, pending returns the waiting review unchanged, and approving it then completes the review with a saved Receipt and one calendar write for each of its four changes.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn"}
 			]
 		},
 		{
@@ -1476,6 +1477,69 @@
 				{"file": "apps/ios/EnduragentTests/FixtureReviewStageTests.swift", "function": "theNotPreparedDirectiveLeavesTheCouldNotBePreparedNoticeOnItsTurn"},
 				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewNotPreparedProof", "method": "testARefusedPreparationSaysTheReviewCouldNotBePrepared"}
 			]
+		},
+		{
+			"id": "8.4.1",
+			"statement": "The eight-workout review over ten days and the 20- and 40-change reviews each show every card in order, every kept workout and the totals, and offer one approval that runs every change.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionScaleTests.swift", "function": "aLongReviewShowsEveryCardEveryKeptWorkoutAndTheTotalsAndRunsOnOneApproval"},
+				{"file": "apps/ios/EnduragentTests/ConfirmedPreviewLayoutTests.swift", "function": "eachLongFixtureShowsEveryCardAndOffersOneApprovalOnlyAfterTheLast"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLongProofs.swift", "class": "ReviewLongProof", "method": "testEightWorkoutsOverTenDaysShowEveryCardKeptWorkoutTheTotalsAndOneApproval"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLongProofs.swift", "class": "ReviewLongProof", "method": "testTwentyChangesShowEveryCardKeptWorkoutTheTotalsAndOneApproval"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLongProofs.swift", "class": "ReviewLongProof", "method": "testFortyChangesShowEveryCardKeptWorkoutTheTotalsAndOneApproval"}
+			]
+		},
+		{
+			"id": "8.4.2",
+			"statement": "Nothing in the package or the app limits the number of changes in a review: a review of 200 changes keeps every card, arms once and writes every change.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionScaleTests.swift", "function": "nothingCapsTheNumberOfChangesInAReview"}
+			]
+		},
+		{
+			"id": "8.4.3",
+			"statement": "At the largest text size the approve and Cancel buttons of the 40-change review are whole in the visible transcript, enabled, hittable and at least 44 points tall, and Cancel closes the review.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ReviewLongProofs.swift", "class": "ReviewLargestTextFortyProof", "method": "testApproveAndCancelAreHittableOnTheFortyChangeReviewAtTheLargestTextSize"}
+			]
+		},
+		{
+			"id": "8.4.4",
+			"statement": "VoiceOver reads the eight-workout review as its title, each card in order from its title, the kept workouts, the notice, then the totals and the controls, at the default and the largest text size.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ReviewLongProofs.swift", "class": "ReviewVoiceOverProof", "method": "testAtTheDefaultSizeTheTitleEachCardInOrderTheNoticeThenTheControlsAreRead"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLongProofs.swift", "class": "ReviewVoiceOverProof", "method": "testAtTheLargestSizeTheTitleEachCardInOrderTheNoticeThenTheControlsAreRead"}
+			]
+		},
+		{
+			"id": "8.4.5",
+			"statement": "German, Portuguese of Portugal and Traditional Chinese show every review string of 8.1 to 8.3 in the language, including each stage notice, the Already completed box, the card statuses and the outcome note with its closing line, with no English fallback, unresolved placeholder or clipped control.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "everyLineOfAReviewAndItsProgressReadsInTheDisplayLanguage"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "everyStageNoticeFinishedLineAndClosingLineReadsInTheDisplayLanguage"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CatalogCompletenessTests.swift", "function": "everyEnglishKeyHasAValueInEveryLocale"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testEveryReviewStringIsTranslatedAndNoControlIsClipped"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testARefusedChangeAndTryAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testALostAnswerAndCheckAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testASendingReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testARefreshedReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testABlockedReviewItsCancelAndANotPreparedTurnReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testAStalledReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testEveryReviewStringIsTranslatedAndNoControlIsClipped"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testARefusedChangeAndTryAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testALostAnswerAndCheckAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testASendingReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testARefreshedReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testABlockedReviewItsCancelAndANotPreparedTurnReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testAStalledReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testEveryReviewStringIsTranslatedAndNoControlIsClipped"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testARefusedChangeAndTryAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testALostAnswerAndCheckAgainReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testASendingReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testARefreshedReviewReadsInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testABlockedReviewItsCancelAndANotPreparedTurnReadInTheLanguage"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageZhHantProof", "method": "testAStalledReviewReadsInTheLanguage"}
+			]
 		}
 	],
 	"requirements": [
@@ -1825,6 +1889,16 @@
 			"criteria": ["4.2.9", "5.1.3", "9.3.5"]
 		},
 		{
+			"id": "B18.05",
+			"statement": "A valid waiting review has no elapsed-time expiry: it survives unrelated chat and waiting and is approved more than ten minutes later, and validity is checked at approval, so an athlete-local date advance gives a validity refusal, not a timer message.",
+			"criteria": ["4.2.9", "5.1.3"]
+		},
+		{
+			"id": "A13",
+			"statement": "Approve after time passes while all dates and targets remain valid → accept the approval without an elapsed-time expiry.",
+			"criteria": ["4.2.9", "5.1.3"]
+		},
+		{
 			"id": "A17",
 			"statement": "A request that cannot be prepared whole → no partial review, and the athlete is told the review could not be prepared.",
 			"criteria": ["4.2.2", "4.2.3", "4.2.4", "9.3.7"]
@@ -1871,14 +1945,59 @@
 			"criteria": ["6.2.1", "8.2.3"]
 		},
 		{
+			"id": "A08",
+			"statement": "Approve the complete mixed example once → apply exactly the four reviewed changes without another approval or a continuation prompt.",
+			"criteria": ["6.2.1", "8.2.3"]
+		},
+		{
+			"id": "B11",
+			"statement": "Change the model's conversational context after review → execute the saved reviewed payload without regenerating the changes at approval.",
+			"criteria": ["6.2.1", "8.2.3"]
+		},
+		{
 			"id": "B21.05",
 			"statement": "Completed and canceled outcomes stay visible and non-actionable: they persist with their confirmed receipts and canceled remaining work, show again after refresh, reopening, reset and relaunch without executable controls, and keep cancellation of pending work apart from confirmed remote effects.",
 			"criteria": ["7.3.1", "7.3.2", "7.3.6", "8.3.1", "8.3.2"]
 		},
 		{
+			"id": "D12",
+			"statement": "Restart after complete success and deliver the old approval again → preserve the completed outcome without additional writes.",
+			"criteria": ["6.2.4", "6.2.5", "6.2.10", "6.2.11", "7.1.5", "7.3.1", "7.3.2", "7.3.6"]
+		},
+		{
 			"id": "D02",
 			"statement": "Inspect the result of a mixed set stopped after two confirmed successful writes and observe the two successes and each remaining action separately.",
 			"criteria": ["6.1.2", "6.2.3", "6.2.8", "6.2.9", "8.3.1", "8.3.2"]
+		},
+		{
+			"id": "B18.06",
+			"statement": "A review of any size is shown whole with every card, kept workout and total reachable and no fixed cap on the number of changes, and approval is enabled only after that revision was presented completely.",
+			"criteria": ["4.2.11", "4.2.12", "8.2.4", "8.2.5", "8.4.1", "8.4.2", "8.4.3"]
+		},
+		{
+			"id": "A14",
+			"statement": "An eight-workout set over ten days is presented and applied complete, with no seven-day boundary.",
+			"criteria": ["4.2.11", "4.2.12", "8.2.4", "8.2.5", "8.4.1", "8.4.2", "8.4.3"]
+		},
+		{
+			"id": "A15",
+			"statement": "A review longer than one screen shows every action before the one approval of that set is enabled.",
+			"criteria": ["4.2.11", "4.2.12", "8.2.4", "8.2.5", "8.4.1", "8.4.2", "8.4.3"]
+		},
+		{
+			"id": "A16",
+			"statement": "A review whose delivery fails before it is complete stays non-actionable.",
+			"criteria": ["4.2.11", "4.2.12", "8.2.4", "8.2.5", "8.4.1", "8.4.2", "8.4.3"]
+		},
+		{
+			"id": "A18",
+			"statement": "Progressively larger valid sets keep every action and one approval with no fixed workout-count rejection.",
+			"criteria": ["4.2.11", "4.2.12", "8.2.4", "8.2.5", "8.4.1", "8.4.2", "8.4.3"]
+		},
+		{
+			"id": "X06",
+			"statement": "Every review is readable on a phone at large text sizes, with VoiceOver, in a narrow layout and in the athlete's language, and an eight-workout review is approved only when current and complete.",
+			"criteria": ["8.4.1", "8.4.2", "8.4.3", "8.4.4", "8.4.5"]
 		}
 	],
 	"plan": {
@@ -2079,7 +2198,7 @@
 				"replacements": [
 					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewPresentationHandshakeTests.swift", "function": "aFailedPresentationDisarmsAndShowAgainStartsANewDelivery"},
 					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DeliveryTests.swift", "function": "aTokenFromAnEarlierHeadOrDeliveryIsNotAdmitted"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn"}
+					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn"}
 				]
 			},
 			{
@@ -2622,7 +2741,7 @@
 				"statement": "Approving an earlier turn's review runs it with no model request and leaves the current turn alone.",
 				"replacements": [
 					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "approvalAfterAnotherTurnRunsTheSavedReviewWithNoModelRequest"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn"}
+					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn"}
 				]
 			},
 			{
@@ -2952,7 +3071,7 @@
 				"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SingleChangeTurnTests.swift", "function": "numberAndLabelKeepWorkoutReviewPendingUntilExplicitApproval"},
 				"statement": "Answering a numbered choice never approves the waiting review.",
 				"replacements": [
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn"},
+					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn"},
 					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "approvalAfterAnotherTurnRunsTheSavedReviewWithNoModelRequest"}
 				]
 			},
@@ -3068,7 +3187,7 @@
 				"statement": "A waiting review stays across a new message and New conversation.",
 				"replacements": [
 					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparedEarlierTests.swift", "function": "aWaitingReviewShowsOnceAtTheTopOfTheNewConversationAndCanBeApproved"},
-					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn"}
+					{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn"}
 				]
 			},
 			{
@@ -3294,17 +3413,6 @@
 		]
 	},
 	"open": [
-		"B18.05",
-		"B18.06",
-		"A08",
-		"A13",
-		"A14",
-		"A15",
-		"A16",
-		"A18",
-		"B11",
-		"D12",
-		"X06",
 		"G05"
 	]
 }

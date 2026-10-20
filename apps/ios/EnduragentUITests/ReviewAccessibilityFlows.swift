@@ -224,8 +224,9 @@ struct ReviewCardReading {
 		TutorialHarness.wait(
 			until: {
 				let band = TutorialHarness.transcriptBand(run.app)
-				let frame = button.frame
-				if button.exists && frame.minY >= band.minY && frame.maxY <= band.maxY
+				let exists = button.exists
+				let frame = exists ? button.frame : .null
+				if exists && frame.minY >= band.minY && frame.maxY <= band.maxY
 					&& button.isHittable
 				{
 					return true
@@ -233,7 +234,7 @@ struct ReviewCardReading {
 				let reach = band.height * 0.15
 				let upper = CGPoint(x: band.midX, y: band.midY - reach)
 				let lower = CGPoint(x: band.midX, y: band.midY + reach)
-				if frame.midY < band.midY {
+				if exists && frame.midY < band.midY {
 					TutorialHarness.drag(run.app, from: upper, to: lower, pace: .steady)
 				} else {
 					TutorialHarness.drag(run.app, from: lower, to: upper, pace: .steady)

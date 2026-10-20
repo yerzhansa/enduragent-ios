@@ -44,8 +44,13 @@ import Testing
 		#expect(try await turns.view(of: turn, on: coach).reviewNotice == nil)
 	}
 
-	@Test func aWaitingReviewHasNoTimerAndOutlivesAnUnrelatedTurn() async throws {
-		let coach = await turns.coach()
+	@Test func aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn()
+		async throws
+	{
+		let calendar = ScriptedCalendar(turns.intervals)
+		let coach = await makeCoach(
+			transport: turns.transport, intervals: calendar, store: turns.store,
+			clock: turns.clock)
 		let committed = try await turns.committed(ReviewTurns.fourChanges, on: coach)
 		let (head, _) = try await turns.head(of: coach)
 		turns.clock.advance(by: 11 * 60)
@@ -77,6 +82,32 @@ import Testing
 		#expect(after.0 == head)
 		#expect(after.1 == committed)
 		#expect(try await turns.view(of: unrelated, on: coach).reviewNotice == nil)
+		let shown = try #require(try await coach.desk.snapshot(chat: .main))
+		#expect(await coach.desk.decide(.presented(shown.ref)) == .presentationRecorded)
+		guard
+			case .armed(.approveOrCancel, let token) = try #require(
+				try await coach.desk.snapshot(chat: .main)
+			).controls
+		else {
+			Issue.record("the waiting review never armed Approve")
+			return
+		}
+
+		let outcome = await coach.desk.decide(.approve(token))
+
+		guard case .completed(let receipts) = outcome else {
+			Issue.record("approval eleven minutes later ended \(outcome)")
+			return
+		}
+		#expect(receipts.map(\.index) == committed.work.remaining.map(\.position))
+		#expect(
+			receipts.allSatisfy {
+				if case .saved = $0.progress { true } else { false }
+			})
+		#expect(calendar.writes == committed.work.remaining.map(DeskRig.request))
+		let approved = try #require(try await turns.head(of: coach).1)
+		#expect(approved.stage == .completed)
+		#expect(approved.work.finished.count == committed.work.remaining.count)
 	}
 
 	@Test(arguments: [FinishReason.error, .contentFilter])
