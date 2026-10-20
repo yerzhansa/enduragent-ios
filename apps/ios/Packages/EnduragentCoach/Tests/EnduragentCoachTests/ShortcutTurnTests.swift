@@ -49,6 +49,10 @@ import Testing
 		#expect(system.role == .system)
 		#expect(system.content.contains("Profile: FTP 250 W\nWellness 1998-06-13: Fitness 55.2"))
 		#expect(system.content.contains("\n# Cycling Prescription Availability\n"))
+		#expect(
+			system.content.contains(
+				"The /workout command asks for a workout described in your reply, not a calendar change: prepare a review for it only when the athlete then asks to schedule it."
+			))
 		#expect(plain.messages.first == system)
 		#expect(command.tools.contains { $0.name == .intervalsFetchWellness })
 		#expect(command.tools.contains { $0.name == .prepareWorkoutChanges })
