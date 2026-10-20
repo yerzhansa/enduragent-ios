@@ -16,7 +16,11 @@ struct SeedCalendarEntry: Sendable, Equatable {
 	var seconds: Int? { minutes.map { $0 * 60 } }
 
 	func date(seededOn today: CivilDate) -> CivilDate {
-		today.adding(days: dayOffset)
+		let date = today.adding(days: dayOffset)
+		guard LiveCoachPlan.reviewTargetKeys.contains(key),
+			LiveCoachPlan.weekday(date) == LiveCoachPlan.revisedWeekday
+		else { return date }
+		return date.adding(days: 1)
 	}
 
 	func requestBody(seededOn today: CivilDate) -> JSONValue {
