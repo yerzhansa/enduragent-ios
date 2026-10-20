@@ -77,6 +77,7 @@ struct LiveCancelRecord: Sendable {
 
 extension LiveCoachPlan {
 	static let reviewTargetKeys = ["T1", "T2", "K", "coach-race"]
+	static let revisedWeekday = 5
 
 	static func reviews(on calendar: [CalendarEvent], today: CivilDate) -> Result<
 		[LiveScenario], LiveCheckStop
@@ -95,6 +96,10 @@ extension LiveCoachPlan {
 				problems.append("\(entry.key) is dated \(date.rawValue), not after today")
 				continue
 			}
+			guard weekday(date) != revisedWeekday else {
+				problems.append("\(entry.key) is on \(day(date)), the weekday the revision names")
+				continue
+			}
 			targets[entry.key] = LiveSeededTarget(
 				key: entry.key, externalID: entry.externalID, event: event.id,
 				name: event.name ?? entry.name, date: date)
@@ -110,14 +115,15 @@ extension LiveCoachPlan {
 		}
 		let busy = Set(calendar.map { String($0.startDateLocal.prefix(10)) })
 		guard
-			let thursday = (1...28).map({ today.adding(days: $0) }).first(where: {
-				weekday($0) == 5 && !busy.contains($0.rawValue)
+			let thursday = (1...28).map({ today.adding(days: $0) }).first(where: { thursday in
+				weekday(thursday) == revisedWeekday
+					&& [0, 2, 3].allSatisfy { !busy.contains(thursday.adding(days: $0).rawValue) }
 			})
 		else {
 			return .failure(
 				LiveCheckStop(
 					description:
-						"workout reviews: no Thursday in the next four weeks is free of calendar entries"
+						"workout reviews: no Thursday in the next four weeks is free of calendar entries with its Saturday and Sunday"
 				))
 		}
 		let seeded = reviewTargetKeys.compactMap { targets[$0] }

@@ -84,19 +84,59 @@ import Testing
 		#expect(reviews.last?.endsWithCancel == false)
 	}
 
+	@Test(arguments: 0..<7)
+	func onEverySeedWeekdayTheMixedRequestNamesOneThursdayAndAddsOnlyOnFreeDays(offset: Int)
+		throws
+	{
+		let today = try #require(CivilDate(rawValue: "2026-10-17")).adding(days: offset)
+		let calendar = Self.seeded(on: today)
+
+		let plan = try Self.plan(calendar, today: today)
+
+		let reviews = plan.scenarios.filter { $0.setting == .reviewing }
+		let request = try #require(reviews.first?.turns.first?.message)
+		let revised = reviews.first?.turns.dropFirst().first?.expectations.compactMap {
+			expectation -> CivilDate? in
+			guard case .review(.revisesOnly(.add(let date))) = expectation else { return nil }
+			return date
+		}
+		let thursday = try #require(revised?.first)
+		let seededOn = LiveCoachPlan.day(today)
+		#expect(LiveCoachPlan.weekday(thursday) == 5, "seeded on \(seededOn)")
+		#expect(request.contains(LiveCoachPlan.day(thursday)), "seeded on \(seededOn)")
+		#expect(
+			request.components(separatedBy: "Thursday").count == 2,
+			"seeded on \(seededOn): \(request)")
+		let busy = Set(calendar.map { String($0.startDateLocal.prefix(10)) })
+		let adds = reviews.flatMap(\.turns).flatMap(\.expectations).flatMap(Self.addedDays(by:))
+		#expect(!adds.isEmpty, "seeded on \(seededOn)")
+		#expect(
+			adds.filter { busy.contains($0.rawValue) }.map(\.rawValue) == [],
+			"seeded on \(seededOn)")
+	}
+
 	@Test(arguments: [
 		("T2", "a missing T2", "T2 lists 0 times"),
 		("stale", "a seed from eight days ago", "T1 is dated 2026-10-11, not after today"),
+		("Thursday", "a T1 on a Thursday", "T1 is on Thursday 22 October, the weekday"),
 	])
 	func anAccountWithoutItsSeededTargetsPlansNoReviewAndFailsTheRun(
-		removing: String, _: String, names: String
+		breaking: String, _: String, names: String
 	) throws {
 		let today = try #require(CivilDate(rawValue: "2026-10-17"))
+		let seeded = Self.seeded(on: today)
+		let first = LiveSeedCalendar.externalIDPrefix + "T1"
 		let calendar =
-			removing == "stale"
-			? Self.seeded(on: today.adding(days: -8))
-			: Self.seeded(on: today).filter {
-				$0.externalId != LiveSeedCalendar.externalIDPrefix + removing
+			switch breaking {
+			case "stale": Self.seeded(on: today.adding(days: -8))
+			case "Thursday":
+				seeded.map { event in
+					var moved = event
+					if event.externalId == first { moved.startDateLocal = "2026-10-22T00:00:00" }
+					return moved
+				}
+			default:
+				seeded.filter { $0.externalId != LiveSeedCalendar.externalIDPrefix + breaking }
 			}
 
 		let plan = try Self.plan(calendar, today: today)
@@ -226,6 +266,20 @@ import Testing
 				"status-run2.md: the saved file holds the key of enduragent-m3-openrouter-key",
 			])
 		#expect(report.markdown(total: 0, limit: 10).contains("## Key leaks"))
+	}
+
+	static func addedDays(by expectation: LiveExpectation) -> [CivilDate] {
+		guard case .review(let review) = expectation else { return [] }
+		let shapes: [LiveChangeShape] =
+			switch review {
+			case .holds(_, let changes), .replacesWith(let changes): changes
+			case .revisesOnly(let shape): [shape]
+			default: []
+			}
+		return shapes.compactMap { shape in
+			guard case .add(let date) = shape else { return nil }
+			return date
+		}
 	}
 
 	static let incomplete =
