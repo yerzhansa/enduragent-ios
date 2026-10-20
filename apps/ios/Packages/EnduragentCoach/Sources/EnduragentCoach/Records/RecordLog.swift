@@ -293,7 +293,7 @@ extension SwiftDataRecordLog: ReviewChainLog {
 		try handle.chain.withLock { _ in
 			let context = ModelContext(handle.container)
 			context.autosaveEnabled = false
-			let current = RecordHead(try newest(query, in: context).record)
+			let current = try newest(query, in: context).head
 			guard current == head else { throw HeadMoved(current: current) }
 			context.insert(try StoredAthleteRecord(record: record))
 			try context.save()
@@ -310,10 +310,7 @@ extension SwiftDataRecordLog: ReviewChainLog {
 	}
 
 	private func newest(_ query: RecordQuery, in context: ModelContext) throws -> NewestRecord {
-		var skipped: [SkippedRow] = []
-		guard var descriptor = Self.rows(matching: query) else {
-			return NewestRecord(record: nil, skipped: skipped)
-		}
+		guard var descriptor = Self.rows(matching: query) else { return .empty }
 		descriptor.sortBy = [
 			SortDescriptor(\.hlcWallMs, order: .reverse),
 			SortDescriptor(\.hlcLogical, order: .reverse),
@@ -323,15 +320,15 @@ extension SwiftDataRecordLog: ReviewChainLog {
 		while let row = try context.fetch(descriptor).first {
 			switch row.decode() {
 			case .success(let record):
-				if recordMatches(record, query) {
-					return NewestRecord(record: record, skipped: skipped)
-				}
+				if recordMatches(record, query) { return .readable(record) }
 			case .failure(let reason):
-				skipped.append(reason)
+				if query.chatId.map({ $0.rawValue == row.chatId }) ?? true {
+					return .unreadable(reason)
+				}
 			}
 			descriptor.fetchOffset = (descriptor.fetchOffset ?? 0) + 1
 		}
-		return NewestRecord(record: nil, skipped: skipped)
+		return .empty
 	}
 }
 

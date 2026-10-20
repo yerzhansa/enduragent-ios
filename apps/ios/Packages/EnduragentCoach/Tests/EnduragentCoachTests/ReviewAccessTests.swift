@@ -75,7 +75,7 @@ extension DeskRig {
 			current: .unconnected, block: .trainingNotConnected),
 		Authority(
 			testDescription: "disconnected since the review", reviewed: PreflightFixture.account,
-			current: .unconnected, block: .accountChanged),
+			current: .unconnected, block: .trainingNotConnected),
 		Authority(
 			testDescription: "another athlete's key", reviewed: PreflightFixture.account,
 			current: PreflightFixture.otherAthlete, block: .accountChanged),

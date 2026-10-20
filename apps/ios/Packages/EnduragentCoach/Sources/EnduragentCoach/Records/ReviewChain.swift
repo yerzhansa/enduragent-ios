@@ -7,23 +7,34 @@ package protocol ReviewChainLog: RecordLog {
 	func chats(holding scope: RecordQuery.Scope) async throws -> Set<ChatID>
 }
 
-package struct NewestRecord: Sendable, Equatable {
-	package let record: AthleteRecord?
-	package let skipped: [SkippedRow]
+package enum NewestRecord: Sendable, Equatable {
+	case empty
+	case readable(AthleteRecord)
+	case unreadable(SkippedRow)
 
-	package init(record: AthleteRecord?, skipped: [SkippedRow]) {
-		self.record = record
-		self.skipped = skipped
+	package init(_ record: AthleteRecord?) {
+		self = record.map(Self.readable) ?? .empty
 	}
+
+	package var head: RecordHead {
+		switch self {
+		case .empty: .empty
+		case .readable(let record): .record(record.ulid)
+		case .unreadable(let row): .unreadable(row)
+		}
+	}
+}
+
+package enum NewestReview: Sendable {
+	case empty
+	case readable(ULID, WorkoutReview)
+	case unreadable
 }
 
 package enum RecordHead: Hashable, Sendable {
 	case empty
 	case record(ULID)
-
-	package init(_ newest: AthleteRecord?) {
-		self = newest.map { .record($0.ulid) } ?? .empty
-	}
+	case unreadable(SkippedRow)
 }
 
 package struct HeadMoved: Error, Sendable, Equatable {
@@ -47,19 +58,25 @@ extension Ledger {
 	package func reviewHead(chat: ChatID) async throws(LedgerFailure) -> (
 		RecordHead, WorkoutReview?
 	) {
-		try await openIfNeeded()
-		let newest: AthleteRecord?
-		do {
-			newest = try await readable(chain.newest(Self.chain(of: chat)))
-		} catch {
-			throw LedgerFailure.unavailable
+		switch try await newestReview(chat: chat) {
+		case .empty: (.empty, nil)
+		case .unreadable: throw LedgerFailure.unavailable
+		case .readable(let head, let review): (.record(head), review)
 		}
-		guard let newest else { return (.empty, nil) }
-		guard case .deviceLocal(.workoutReview(let body)) = newest.body else {
-			throw LedgerFailure.unavailable
+	}
+
+	package func newestReview(chat: ChatID) async throws(LedgerFailure) -> NewestReview {
+		switch try await newest(Self.chain(of: chat)) {
+		case .empty:
+			return .empty
+		case .unreadable:
+			return .unreadable
+		case .readable(let record):
+			guard case .deviceLocal(.workoutReview(let body)) = record.body else {
+				throw LedgerFailure.unavailable
+			}
+			return .readable(record.ulid, body.review)
 		}
-		fold(newest.hlc)
-		return (.record(newest.ulid), body.review)
 	}
 
 	package func reviewChats() async throws(LedgerFailure) -> Set<ChatID> {
@@ -80,20 +97,23 @@ extension Ledger {
 	}
 
 	package func head(of query: RecordQuery) async throws(LedgerFailure) -> RecordHead {
+		try await newest(query).head
+	}
+
+	private func newest(_ query: RecordQuery) async throws(LedgerFailure) -> NewestRecord {
 		try await openIfNeeded()
-		let newest: AthleteRecord?
+		let newest: NewestRecord
 		do {
-			newest = try await readable(chain.newest(query))
+			newest = try await chain.newest(query)
 		} catch {
 			throw LedgerFailure.unavailable
 		}
-		if let newest { fold(newest.hlc) }
-		return RecordHead(newest)
-	}
-
-	private func readable(_ newest: NewestRecord) -> AthleteRecord? {
-		report(newest.skipped)
-		return newest.record
+		switch newest {
+		case .empty: break
+		case .readable(let record): fold(record.hlc)
+		case .unreadable(let row): report([row])
+		}
+		return newest
 	}
 
 	package func commit(

@@ -28,6 +28,7 @@ final class ShellModel {
 	var newConversationUncertain: Bool { submission.isUncertain(chat?.reset) }
 	private var reviewOutcomeNotice: AthleteNotice?
 	private var presentation: ReviewPresentation?
+	private(set) var decidingReview = false
 
 	let environment: AppEnvironment
 	let lifecycle: AppLifecycle
@@ -310,6 +311,18 @@ final class ShellModel {
 	}
 
 	func decide(_ decision: ReviewDecision) async {
+		switch decision {
+		case .approve, .cancel, .tryAgain, .checkAgain:
+			guard !decidingReview else { return }
+			decidingReview = true
+			defer { decidingReview = false }
+			reviewOutcomeNotice = await send(decision).notice
+		case .presented, .presentationFailed, .showAgain:
+			_ = await send(decision)
+		}
+	}
+
+	private func send(_ decision: ReviewDecision) async -> ReviewOutcome {
 		let outcome = await services.coach.decide(decision, in: .main)
 		#if DEBUG
 			if case .presented(let ref) = decision, outcome == .presentationRecorded,
@@ -319,12 +332,7 @@ final class ShellModel {
 				await driver.refreshIfReady(chat, coach: services.coach, records: fixture.records)
 			}
 		#endif
-		switch decision {
-		case .approve, .cancel, .tryAgain, .checkAgain:
-			reviewOutcomeNotice = outcome.notice
-		case .presented, .presentationFailed, .showAgain:
-			break
-		}
+		return outcome
 	}
 
 	func cardAppeared(_ card: ReviewCard) async {

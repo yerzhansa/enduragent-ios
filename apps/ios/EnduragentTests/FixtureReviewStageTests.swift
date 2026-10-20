@@ -51,6 +51,23 @@ extension FixtureLaunchTests {
 		#expect(model.chat?.review?.notice?.key == row.notice)
 	}
 
+	@Test func aSecondTapWhileTheFirstDecisionRunsIsDroppedAndLeavesNoExpiredNotice()
+		async throws
+	{
+		let model = await model(try services())
+		await model.agreeAndStartChatting()
+		let token = try await presentedReview(on: model)
+
+		async let first: Void = model.decide(.approve(token))
+		async let second: Void = model.decide(.approve(token))
+		_ = await (first, second)
+
+		try await until { model.chat?.notes.isEmpty == false }
+		#expect(model.chat?.review == nil)
+		#expect(model.reviewNotice == nil)
+		#expect(!model.decidingReview)
+	}
+
 	@Test func theNotPreparedDirectiveLeavesTheCouldNotBePreparedNoticeOnItsTurn() async throws {
 		let model = await model(try services())
 		await model.agreeAndStartChatting()

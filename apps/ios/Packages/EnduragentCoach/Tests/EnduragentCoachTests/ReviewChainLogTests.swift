@@ -1,5 +1,6 @@
 import EnduragentCoachFixtures
 import Foundation
+import SwiftData
 import Testing
 
 @testable import EnduragentCoach
@@ -213,6 +214,99 @@ extension SwiftDataSuites {
 				try await phone.reviewPreparing(chat: .main, turn: turn).map(\.attempt) == [
 					AttemptID(ulid: fixedUlid(8))
 				])
+		}
+
+		@Test func anUnreadableNewestReviewStopsTheChainInsteadOfShowingTheOlderReview()
+			async throws
+		{
+			let directory = try TestTemporaryFolders.make()
+			let local = try ModelContainerHandle.deviceLocal(directory: directory)
+			let log = SwiftDataRecordLog(
+				deviceId: phone,
+				synced: try ModelContainerHandle.withoutCloudKit(
+					storeURL: directory.appending(path: ModelContainerHandle.syncedStoreFileName)),
+				local: local)
+			let writer = ledger(log)
+			let approval = try reviewFixture("workout-review-approval")
+			let claimed = try approval.claimed(Claim(id: claimID(1), action: .approve))
+			let older = try await writer.commit(
+				review: approval, stamp: stamp(approval), after: .empty)
+			let newest = try await writer.commit(
+				review: claimed, stamp: stamp(claimed), after: .record(older.ulid))
+			try makeNewerVersion(newest, in: local)
+			let unreadable = RecordHead.unreadable(
+				.newerVersion(kind: "workoutReview", version: 99, ulid: newest.ulid.rawValue))
+			let reader = ledger(log)
+
+			await #expect(throws: LedgerFailure.unavailable) {
+				try await reader.reviewHead(chat: .main)
+			}
+			#expect(
+				await commit(approval, on: reader, after: .record(older.ulid)).failure
+					== .headMoved(unreadable))
+		}
+
+		@Test func aChatWhoseNewestReviewIsUnreadableStillOpensWithoutTheReview() async throws {
+			let directory = try TestTemporaryFolders.make()
+			let local = try ModelContainerHandle.deviceLocal(directory: directory)
+			let log = SwiftDataRecordLog(
+				deviceId: phone,
+				synced: try ModelContainerHandle.withoutCloudKit(
+					storeURL: directory.appending(path: ModelContainerHandle.syncedStoreFileName)),
+				local: local)
+			let approval = try reviewFixture("workout-review-approval")
+			let claimed = try approval.claimed(Claim(id: claimID(1), action: .approve))
+			let writer = ledger(log)
+			let older = try await writer.commit(
+				review: approval, stamp: stamp(approval), after: .empty)
+			let newest = try await writer.commit(
+				review: claimed, stamp: stamp(claimed), after: .record(older.ulid))
+			try makeNewerVersion(newest, in: local)
+			let coach = await ReviewTurns().coach(over: log)
+
+			_ = try await coach.mailbox(for: .main)
+
+			#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
+		}
+
+		@Test func anUnreadableNewestOutcomeStillTakesTheNextOutcome() async throws {
+			let directory = try TestTemporaryFolders.make()
+			let synced = try ModelContainerHandle.withoutCloudKit(
+				storeURL: directory.appending(path: ModelContainerHandle.syncedStoreFileName))
+			let log = SwiftDataRecordLog(
+				deviceId: phone, synced: synced,
+				local: try ModelContainerHandle.deviceLocal(directory: directory))
+			let writer = ledger(log)
+			let review = try reviewFixture("workout-review-completed")
+			let query = RecordQuery(scope: .synced([.reviewOutcome]), chatId: .main)
+			let first = try await writer.commit(
+				synced: [.reviewOutcome(outcomeBody(review, ending: .completed))],
+				stamp: stamp(review))
+			try makeNewerVersion(try #require(first.first), in: synced)
+			let reader = ledger(log)
+			let head = try await reader.head(of: query)
+			guard case .unreadable = head else {
+				Issue.record("The newest outcome was read as \(head)")
+				return
+			}
+
+			try await reader.commit(
+				synced: .reviewOutcome(outcomeBody(review, ending: .canceled)),
+				stamp: stamp(review),
+				after: head, in: query)
+
+			#expect(try await reader.reviewOutcomes(chat: .main).count == 1)
+		}
+
+		func makeNewerVersion(_ record: AthleteRecord, in handle: ModelContainerHandle) throws {
+			let context = ModelContext(handle.container)
+			let ulid = record.ulid.rawValue
+			let row = try #require(
+				try context.fetch(
+					FetchDescriptor<StoredAthleteRecord>(predicate: #Predicate { $0.ulid == ulid })
+				).first)
+			row.bodyVersion = 99
+			try context.save()
 		}
 
 		func outcomeBody(_ review: WorkoutReview, ending: ReviewOutcomeBody.Ending)

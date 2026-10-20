@@ -163,8 +163,8 @@ package actor WorkoutReviewDesk {
 	}
 
 	package func snapshot(chat: ChatID) async throws(LedgerFailure) -> ReviewSnapshot? {
-		let (head, review) = try await ledger.reviewHead(chat: chat)
-		guard let review, case .record(let ulid) = head else { return nil }
+		guard case .readable(let ulid, let review) = try await ledger.newestReview(chat: chat)
+		else { return nil }
 		if try await isPublished(review) { return nil }
 		let delivery =
 			deliveries[chat].flatMap { $0.head == ulid ? $0 : nil }

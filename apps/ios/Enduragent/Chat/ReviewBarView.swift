@@ -69,6 +69,7 @@ struct ReviewBarView: View {
 			) {
 				Task { await model.decide(action.decision) }
 			}
+			.disabled(model.decidingReview)
 		}
 		ForEach(disabledButtons, id: \.rawValue) { button in
 			ReviewBarButton(
