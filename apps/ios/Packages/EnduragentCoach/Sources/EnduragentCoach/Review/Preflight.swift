@@ -68,10 +68,10 @@ package enum Preflight {
 		-> PreflightVerdict
 	{
 		let remaining = review.work.remaining
+		guard reads.account != .unconnected else { return .blocked(.trainingNotConnected) }
 		guard review.account.authority(under: reads.account).permitsWrites else {
 			return .blocked(.accountChanged)
 		}
-		guard reads.account != .unconnected else { return .blocked(.trainingNotConnected) }
 		if remaining.contains(where: { reads.target(of: $0) == .missing }) {
 			return .blocked(.cannotVerify)
 		}
