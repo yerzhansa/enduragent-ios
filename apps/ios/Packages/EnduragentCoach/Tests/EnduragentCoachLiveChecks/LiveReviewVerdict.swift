@@ -11,6 +11,7 @@ enum LiveReviewVerdict {
 		calls: [LiveVerdict.ParsedCall]
 	) -> String? {
 		let preparations = calls.filter { $0.name == prepare }
+		let drafts = preparations.filter { drafted(turn.toolResults[$0.id]) }
 		let before = turn.reviewBefore
 		let after = turn.reviewAfter
 		switch expectation {
@@ -19,18 +20,16 @@ enum LiveReviewVerdict {
 		case .leavesNoReview:
 			return turn.reviewPending || after != nil ? "a workout review is waiting" : nil
 		case .preparesOnce(let kind):
-			let results = turn.toolResults
-			let kinds = preparations.filter { drafted(results[$0.id]) }
-				.map { preparation(of: $0)["kind"]?.stringValue ?? "none" }
+			let kinds = drafts.map { preparation(of: $0)["kind"]?.stringValue ?? "none" }
 			return kinds == [kind.rawValue]
 				? nil
 				: "\(prepare) drafted a review with kinds [\(kinds.joined(separator: ", "))], not once with kind \(kind.rawValue)"
 		case .readsPendingBeforePreparing:
-			guard let first = calls.firstIndex(where: { $0.name == prepare }) else {
-				return "\(prepare) was not called"
-			}
+			guard let draft = drafts.first,
+				let first = calls.firstIndex(where: { $0.id == draft.id })
+			else { return "\(prepare) drafted no review" }
 			return calls[..<first].contains { $0.name == pending }
-				? nil : "\(pending) was not called before \(prepare)"
+				? nil : "\(pending) was not called before \(prepare) drafted a review"
 		case .holds(let revision, let changes):
 			guard let after else { return "no workout review waits" }
 			let shapes = LiveChangeShape.shapes(of: after)
@@ -56,7 +55,7 @@ enum LiveReviewVerdict {
 			guard let before, let after, after.id == before.id else {
 				return "the turn did not replace the waiting review"
 			}
-			let bases = preparations.map { call -> String in
+			let bases = drafts.map { call -> String in
 				let base = preparation(of: call)["base"]?.objectFields ?? [:]
 				return
 					"\(base["setId"]?.stringValue ?? "none")#\(base["revision"]?.numberValue.map { Int($0) } ?? 0)"

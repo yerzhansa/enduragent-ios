@@ -89,7 +89,7 @@ struct ReviewBenchRig {
 				[
 					[Self.complete(all), Self.reply],
 					[
-						Self.read,
+						Self.unreadable("revise", Self.ride(on: thursday, minutes: 40)), Self.read,
 						Self.revise([(thursdayItem, Self.ride(on: thursday, minutes: 40))]),
 						Self.reply,
 					],
@@ -98,7 +98,10 @@ struct ReviewBenchRig {
 			case (.faithful, 1):
 				[
 					[Self.complete(all), Self.reply],
-					[Self.read, Self.replace([Self.ride(on: sunday, minutes: 90)]), Self.reply],
+					[
+						Self.read, Self.unreadable("replace", Self.ride(on: sunday, minutes: 90)),
+						Self.replace([Self.ride(on: sunday, minutes: 90)]), Self.reply,
+					],
 				]
 			case (.faithful, _):
 				[
@@ -111,11 +114,8 @@ struct ReviewBenchRig {
 				[
 					[Self.complete(all), Self.reply],
 					[
-						Self.complete(all), Self.read,
-						Self.revise([
-							(thursdayItem, Self.ride(on: thursday, minutes: 40)),
-							(saturdayItem, Self.strength(on: saturday, minutes: 20)),
-						]), Self.revise([(saturdayItem, Self.strength(on: saturday, minutes: 20))]),
+						Self.complete(all), Self.replaceNamedByRefusal(all), Self.read,
+						Self.revise([(saturdayItem, Self.strength(on: saturday, minutes: 20))]),
 						Self.reply,
 					],
 					[
@@ -174,6 +174,22 @@ struct ReviewBenchRig {
 	private static func replace(_ changes: [String]) -> Step {
 		fromPending { reference, _ in
 			#"{"preparation":{"kind":"replace","base":\#(reference),"changes":[\#(changes.joined(separator: ","))]}}"#
+		}
+	}
+
+	private static func unreadable(_ kind: String, _ change: String) -> Step {
+		call(#"{"preparation":{"kind":"\#(kind)","changes":[\#(change)]}}"#)
+	}
+
+	private static func replaceNamedByRefusal(_ changes: [String]) -> Step {
+		{ request in
+			guard
+				let named = request.toolResults.last?.firstMatch(
+					of: /base setId (\w+) and revision (\d+)/)
+			else { return [.text("No waiting review was named."), .finish(reason: .stop)] }
+			return call(
+				#"{"preparation":{"kind":"replace","base":{"setId":"\#(named.1)","revision":\#(named.2)},"changes":[\#(changes.joined(separator: ","))]}}"#
+			)(request)
 		}
 	}
 

@@ -170,8 +170,8 @@ import Testing
 		let prepare = "prepare_workout_changes"
 		#expect(
 			runs.first?.violations == [
-				"turn 2: get_pending_workout_changes was not called before \(prepare)",
-				"turn 2: \(prepare) drafted a review with kinds [revise, revise], not once with kind revise",
+				"turn 2: get_pending_workout_changes was not called before \(prepare) drafted a review",
+				"turn 2: \(prepare) drafted a review with kinds [replace, revise], not once with kind revise",
 				"turn 2: the revision changed add on \(rig.saturday.rawValue) into add on \(rig.saturday.rawValue), not only the add on \(rig.thursday.rawValue)",
 				"turn 3: \(prepare) was called",
 				"turn 3: the waiting review changed",
