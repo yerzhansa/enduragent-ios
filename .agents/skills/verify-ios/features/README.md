@@ -32,6 +32,7 @@ Open `chat.settings`, then `settings.debug`. Settings exists in every build. Its
 | Leases | `debug.leases` | `leases.row.<n>` and the visible `Refresh` button. See [chat.md](./chat.md). |
 | Fixture counters and prompt text | Rows on Debug itself | `fixture.modelRequestCount`, `fixture.historyHead`, and `fixture.replyLanguage`. |
 | Conversation faults | `fixture.failNextAppend`, `fixture.expire` | A failed record append and expired leases. See [chat.md](./chat.md). |
+| Review and calendar faults | `fixture.failReviewRead`, `fixture.failCalendarRead`, `fixture.lockIntervals`, `fixture.calendarCalls`, `fixture.calendarReadFault` | Fail the next read of the open review, fail the next calendar read for both fixture athletes, lock the fixture keychain, count calendar calls, and show whether the calendar read fault is armed or consumed. No test taps or reads them. |
 | OpenRouter rejection | `fixture.rejectTwoRequests`, `fixture.rejectionFailure` | Two overlapping rejected requests for `OpenRouterRecoveryProof`. |
 | Athlete peers | `fixture.switchAthlete`, `fixture.seedOwnership`, and the other peer rows | See [history.md](./history.md). |
 

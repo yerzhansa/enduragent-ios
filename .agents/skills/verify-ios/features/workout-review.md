@@ -1,6 +1,6 @@
 # Workout review
 
-The coach prepares calendar changes during a turn, and the app commits them as one Workout review when the reply ends. The card appears after the turn that committed it, or at the top of a new conversation marked Prepared earlier, and never during the reply. The athlete approves or cancels the review as one decision. While a decision runs, the bar's buttons are disabled and a second tap is dropped; the hosted `FixtureReviewStageTests.aSecondTapWhileTheFirstDecisionRunsIsDroppedAndLeavesNoExpiredNotice` proves it. A finished review leaves a note box in the transcript: `chat.note` with one line per change, then its closing line in `chat.note.closing`.
+The coach prepares calendar changes during a turn, and the app commits them as one Workout review when the reply ends. The card appears after the turn that committed it, or at the top of a new conversation marked Prepared earlier, and never during the reply. The athlete approves or cancels the review as one decision. While a decision runs, the bar's buttons are disabled and a second tap is dropped; the hosted `FixtureLaunchTests.aSecondTapWhileTheFirstDecisionRunsIsDroppedAndLeavesNoExpiredNotice`, in `FixtureReviewStageTests.swift`, proves it. A finished review leaves a note box in the transcript: `chat.note` with one line per change, then its closing line in `chat.note.closing`.
 
 ## Sub-features
 
