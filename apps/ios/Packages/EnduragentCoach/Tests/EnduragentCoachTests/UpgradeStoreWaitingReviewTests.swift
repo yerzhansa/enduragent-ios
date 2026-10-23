@@ -14,6 +14,10 @@ extension SwiftDataSuites.UpgradeStoreTests {
 		#"{"steps":[{"duration":600,"power":{"units":"%ftp","value":0.00005},"_power":{"value":9007199254740992}},{"duration":600,"hr":{"units":"%lthr","value":1e-9},"cadence":{"units":"rpm","value":1e16}}],"duration":1200,"ftp":250}"#
 	static let reprintedStructure =
 		#"{"steps":[{"_power":{"value":9007199254740992.0},"duration":600,"power":{"units":"%ftp","value":5e-05}},{"cadence":{"units":"rpm","value":1e+16},"duration":600,"hr":{"units":"%lthr","value":1e-09}}]}"#
+	static let longDigitSteps =
+		#"{"steps":[{"duration":600,"power":{"units":"%ftp","value":0.00005},"_power":{"value":9007199254740992}},{"duration":600,"hr":{"units":"%lthr","value":1e-9},"cadence":{"units":"rpm","value":1e16}},{"duration":600,"power":{"units":"%ftp","value":1.2345678901234568e-05},"_power":{"value":1.2345678901234568e+20}}],"duration":1800,"ftp":250}"#
+	static let longDigitStructure =
+		#"{"steps":[{"_power":{"value":9007199254740992.0},"duration":600,"power":{"units":"%ftp","value":5e-05}},{"cadence":{"units":"rpm","value":1e+16},"duration":600,"hr":{"units":"%lthr","value":1e-09}},{"_power":{"value":1.2345678901234568e+20},"duration":600,"power":{"units":"%ftp","value":1.2345678901234568e-05}}]}"#
 	static let milestoneFiveClock = FixedClock(
 		now: "1998-06-15T08:05:00Z", timeZone: "Europe/Ljubljana")
 
@@ -70,9 +74,9 @@ extension SwiftDataSuites.UpgradeStoreTests {
 		let log = try open(
 			"reprinted-numbers", folder: Self.milestoneFourFolder, device: Self.milestoneFourDevice)
 		let review = try #require(try await workoutReviews(in: log).last)
-		let ride = try Self.tempoRide(Self.reprintedSteps)
-		#expect(try Self.reviewedStructure(of: review) == Self.reprintedStructure)
-		#expect(try ride.snapshot.structure != Self.reprintedStructure)
+		let ride = try Self.tempoRide(Self.longDigitSteps)
+		#expect(try Self.reviewedStructure(of: review) == Self.longDigitStructure)
+		#expect(try ride.snapshot.structure != Self.longDigitStructure)
 
 		let calendar = ScriptedCalendar(FakeIntervalsClient(athleteName: "Ada", ftp: 250))
 		calendar.base.events = [ride]
@@ -99,7 +103,7 @@ extension SwiftDataSuites.UpgradeStoreTests {
 		let review = try #require(try await workoutReviews(in: log).last)
 
 		let refusal = try await Self.revise(
-			review, over: log, on: try Self.tempoRide(Self.reprintedSteps),
+			review, over: log, on: try Self.tempoRide(Self.longDigitSteps),
 			to: #"{"kind":"edit","eventId":4101,"patch":{"durationSeconds":3360}}"#)
 
 		#expect(refusal == "unchanged_item")
@@ -142,7 +146,7 @@ extension SwiftDataSuites.UpgradeStoreTests {
 		let calendar = ScriptedCalendar(FakeIntervalsClient(athleteName: "Ada", ftp: 250))
 		calendar.base.events = [
 			try Self.tempoRide(
-				Self.reprintedSteps.replacingOccurrences(of: "0.00005", with: "0.00006"))
+				Self.longDigitSteps.replacingOccurrences(of: "0.00005", with: "0.00006"))
 		]
 
 		guard case .refreshed = try await Self.approve(review, over: log, calendar: calendar)

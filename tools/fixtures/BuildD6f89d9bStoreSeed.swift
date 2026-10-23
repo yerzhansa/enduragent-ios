@@ -10,12 +10,14 @@ import Testing
 		#"{"steps":[{"warmup":true,"duration":600,"power":{"units":"%ftp","start":50,"end":65},"_power":{"start":125,"end":162.5},"cadence":{"units":"rpm","value":90}},{"reps":2,"steps":[{"duration":480,"power":{"units":"%ftp","value":87.5},"_power":{"value":218.75},"hr":{"units":"%lthr","value":88.3}},{"duration":240,"power":{"units":"%ftp","value":55},"_power":{"value":137.5}}]},{"cooldown":true,"duration":600,"power":{"units":"%ftp","value":50},"_power":{"value":168.33333333333334},"text":"Easy spin"}],"duration":3360,"ftp":250}"#
 	static let reprintedDocument =
 		#"{"steps":[{"duration":600,"power":{"units":"%ftp","value":0.00005},"_power":{"value":9007199254740992}},{"duration":600,"hr":{"units":"%lthr","value":1e-9},"cadence":{"units":"rpm","value":1e16}}],"duration":1200,"ftp":250}"#
+	static let longDigitDocument =
+		#"{"steps":[{"duration":600,"power":{"units":"%ftp","value":0.00005},"_power":{"value":9007199254740992}},{"duration":600,"hr":{"units":"%lthr","value":1e-9},"cadence":{"units":"rpm","value":1e16}},{"duration":600,"power":{"units":"%ftp","value":1.2345678901234568e-05},"_power":{"value":1.2345678901234568e+20}}],"duration":1800,"ftp":250}"#
 	static let authoredSteps =
 		#"{"steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":55}},{"type":"interval","duration":{"value":30,"unit":"minutes"},"power":{"kind":"percent_ftp","value":88}}]}"#
 	static let renamePatch = #"{"name":"Tempo 2x8"}"#
 	static let scenarios = [
 		("waiting-review", document, renamePatch),
-		("reprinted-numbers", reprintedDocument, renamePatch),
+		("reprinted-numbers", longDigitDocument, renamePatch),
 		("reprinted-authored-steps", reprintedDocument, #"{"structure":\#(authoredSteps)}"#),
 	]
 
