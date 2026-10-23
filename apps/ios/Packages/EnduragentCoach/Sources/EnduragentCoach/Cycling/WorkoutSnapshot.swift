@@ -27,9 +27,8 @@ package struct WorkoutSnapshot: Equatable, Sendable {
 
 	private static func comparableStructure(_ text: String) -> String {
 		do {
-			return try JSONDecoder().decode(JSONValuePayload.self, from: Data(text.utf8)).value
-				.canonicalDigestInput()
-		} catch {
+			return try JSONValue.parsePrinted(text).canonicalDigestInput()
+		} catch is DecodingError {
 			return text
 		}
 	}

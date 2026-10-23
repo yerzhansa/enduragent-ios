@@ -27,6 +27,18 @@ public enum JSONValue: Sendable, Equatable {
 		}
 	}
 
+	package static func parsePrinted(_ text: String) throws(DecodingError) -> JSONValue {
+		do {
+			return try JSONDecoder().decode(JSONValuePayload.self, from: Data(text.utf8)).value
+		} catch let error as DecodingError {
+			throw error
+		} catch {
+			throw DecodingError.dataCorrupted(
+				.init(codingPath: [], debugDescription: String(describing: error))
+			)
+		}
+	}
+
 	public func canonicalDigestInput() -> String {
 		JSONValue.render(self, pretty: false, depth: 0)
 	}
