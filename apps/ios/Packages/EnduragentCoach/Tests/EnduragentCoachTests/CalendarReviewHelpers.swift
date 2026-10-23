@@ -21,8 +21,7 @@ func makeDesk(
 
 func makeToolOffer(
 	training: TrainingConnection, ledger: Ledger, clock: any EnduragentCoach.Clock,
-	memory: MemoryView = MemoryView(
-		sections: [:], todayNotes: nil, planHeadline: nil, orphanNames: [])
+	memory: MemoryView = MemoryView(sections: [:], todayNotes: nil, orphanNames: [])
 ) -> ToolOffer {
 	ToolOffer(
 		for: TurnReach(

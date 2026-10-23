@@ -145,7 +145,7 @@ import Testing
 			clock: clock,
 			memory: MemoryView(
 				sections: ["notes": "stamp\n- Prefers hill repeats"], todayNotes: nil,
-				planHeadline: nil, orphanNames: []))
+				orphanNames: []))
 	}
 
 	private func wide(_ index: Int) -> String {

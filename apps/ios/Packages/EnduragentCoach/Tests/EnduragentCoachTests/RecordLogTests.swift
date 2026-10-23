@@ -60,8 +60,7 @@ extension SwiftDataSuites {
 						body: .synced(sampleUser(chatId: otherChat, text: "other 15"))),
 					storedRecord(
 						device: phoneA, wall: 13, date: "1998-06-14",
-						body: .deviceLocal(
-							sampleLocal(askedAt: Date(timeIntervalSince1970: 899_164_800)))),
+						body: .deviceLocal(sampleLocal())),
 				]
 			)
 			let messages: RecordQuery.Scope = .synced([.userMessage, .turnSettled])
@@ -99,10 +98,10 @@ extension SwiftDataSuites {
 				.records
 			#expect(writtenByA.map(messageText) == ["main 13", "other 15"])
 
-			let local = try await log.fetch(RecordQuery(scope: .deviceLocal([.workoutDrift])))
+			let local = try await log.fetch(RecordQuery(scope: .deviceLocal([.replyObserved])))
 				.records
 			#expect(local.map(\.deviceId) == [phoneA])
-			#expect(kinds(local) == ["workoutDrift"])
+			#expect(kinds(local) == ["replyObserved"])
 		}
 
 		@Test func legacyRowsComeOnlyWhenAsked() async throws {

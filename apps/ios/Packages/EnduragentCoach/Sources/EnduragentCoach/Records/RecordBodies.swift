@@ -155,37 +155,3 @@ package struct PlanningDeviceBody: Sendable, Equatable {
 	package var planUlid: ULID
 	package var activatedAt: Date
 }
-
-package struct PlanningCommandBody: Sendable, Equatable {
-	package var commandName: PlanningCommandName
-	package var commandId: String
-	package var requestDigest: String
-	package var status: PlanningCommandStatus
-	package var result: JSONValue?
-}
-
-package struct PlanRevisionBody: Sendable, Equatable {
-	package var planUlid: ULID
-	package var version: Int
-	package var status: PlanStatus
-	package var snapshot: JSONValue
-}
-
-package struct MirrorJobBody: Sendable, Equatable {
-	package var planUlid: ULID
-	package var kind: MirrorJobKind
-	package var windowStart: DateKey
-	package var windowEnd: DateKey
-	package var failureCount: Int
-}
-
-package struct WorkoutMatchBody: Sendable, Equatable {
-	package var planWorkoutId: ULID
-	package var activityId: String
-	package var decision: MatchDecision
-}
-
-package struct WorkoutDriftBody: Sendable, Equatable {
-	package var planWorkoutId: ULID
-	package var askedAt: Date
-}

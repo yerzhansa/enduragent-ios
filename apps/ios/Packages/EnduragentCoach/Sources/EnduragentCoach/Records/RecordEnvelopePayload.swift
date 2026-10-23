@@ -12,7 +12,6 @@ enum SyncedPayload: Encodable {
 	case journal(JournalPayload)
 	case provenance(ProvenancePayload)
 	case coachReplyLanguage(CoachReplyLanguagePayload)
-	case planningDevice(PlanningDevicePayload)
 	case reviewOutcome(ReviewOutcomePayload)
 	case sessionSettings(SessionSettingsPayload)
 	case languagePreference(LanguagePreferencePayload)
@@ -76,14 +75,6 @@ enum SyncedPayload: Encodable {
 			)
 		case .coachReplyLanguage(let value):
 			self = .coachReplyLanguage(CoachReplyLanguagePayload(tag: value.tag?.rawValue))
-		case .planningDevice(let value):
-			self = .planningDevice(
-				PlanningDevicePayload(
-					planningDeviceId: value.planningDeviceId.rawValue,
-					planUlid: value.planUlid.rawValue,
-					activatedAt: value.activatedAt.timeIntervalSince1970
-				)
-			)
 		case .reviewOutcome(let value):
 			self = .reviewOutcome(ReviewOutcomePayload(value))
 		case .sessionSettings(let value):
@@ -108,7 +99,6 @@ enum SyncedPayload: Encodable {
 		case .journal(let payload): try payload.encode(to: encoder)
 		case .provenance(let payload): try payload.encode(to: encoder)
 		case .coachReplyLanguage(let payload): try payload.encode(to: encoder)
-		case .planningDevice(let payload): try payload.encode(to: encoder)
 		case .reviewOutcome(let payload): try payload.encode(to: encoder)
 		case .sessionSettings(let payload): try payload.encode(to: encoder)
 		case .languagePreference(let payload): try payload.encode(to: encoder)
@@ -126,11 +116,6 @@ enum DeviceLocalPayload: Encodable {
 	case pendingSettlement(TurnSettledPayload)
 	case flushPending(FlushPendingPayload)
 	case flushSettled(FlushSettledPayload)
-	case planningCommand(PlanningCommandPayload)
-	case planRevision(PlanRevisionPayload)
-	case mirrorJob(MirrorJobPayload)
-	case workoutMatch(WorkoutMatchPayload)
-	case workoutDrift(WorkoutDriftPayload)
 	case workoutReview(ReviewDocument)
 	case reviewPreparing(TurnAttemptPayload)
 
@@ -169,50 +154,6 @@ enum DeviceLocalPayload: Encodable {
 			)
 		case .flushSettled(let value):
 			self = .flushSettled(FlushSettledPayload(value))
-		case .planningCommand(let value):
-			self = .planningCommand(
-				PlanningCommandPayload(
-					commandName: value.commandName.rawValue,
-					commandId: value.commandId,
-					requestDigest: value.requestDigest,
-					status: value.status.rawValue,
-					result: value.result.map(JSONValuePayload.init)
-				)
-			)
-		case .planRevision(let value):
-			self = .planRevision(
-				PlanRevisionPayload(
-					planUlid: value.planUlid.rawValue,
-					version: value.version,
-					status: value.status.rawValue,
-					snapshot: JSONValuePayload(value.snapshot)
-				)
-			)
-		case .mirrorJob(let value):
-			self = .mirrorJob(
-				MirrorJobPayload(
-					planUlid: value.planUlid.rawValue,
-					kind: value.kind.rawValue,
-					windowStart: value.windowStart.rawValue,
-					windowEnd: value.windowEnd.rawValue,
-					failureCount: value.failureCount
-				)
-			)
-		case .workoutMatch(let value):
-			self = .workoutMatch(
-				WorkoutMatchPayload(
-					planWorkoutId: value.planWorkoutId.rawValue,
-					activityId: value.activityId,
-					decision: value.decision.rawValue
-				)
-			)
-		case .workoutDrift(let value):
-			self = .workoutDrift(
-				WorkoutDriftPayload(
-					planWorkoutId: value.planWorkoutId.rawValue,
-					askedAt: value.askedAt.timeIntervalSince1970
-				)
-			)
 		case .workoutReview(let value):
 			self = .workoutReview(ReviewDocument(value.review))
 		case .reviewPreparing(let value):
@@ -235,11 +176,6 @@ enum DeviceLocalPayload: Encodable {
 		case .pendingSettlement(let payload): try payload.encode(to: encoder)
 		case .flushPending(let payload): try payload.encode(to: encoder)
 		case .flushSettled(let payload): try payload.encode(to: encoder)
-		case .planningCommand(let payload): try payload.encode(to: encoder)
-		case .planRevision(let payload): try payload.encode(to: encoder)
-		case .mirrorJob(let payload): try payload.encode(to: encoder)
-		case .workoutMatch(let payload): try payload.encode(to: encoder)
-		case .workoutDrift(let payload): try payload.encode(to: encoder)
 		case .workoutReview(let payload): try payload.encode(to: encoder)
 		case .reviewPreparing(let payload): try payload.encode(to: encoder)
 		}

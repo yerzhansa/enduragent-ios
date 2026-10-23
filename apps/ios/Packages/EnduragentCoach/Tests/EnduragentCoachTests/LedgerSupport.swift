@@ -81,8 +81,11 @@ func legacyReply(chatId: ChatID, text: String) -> RecordBody {
 	)
 }
 
-func sampleLocal(askedAt: Date) -> DeviceLocalRecordBody {
-	.workoutDrift(WorkoutDriftBody(planWorkoutId: fixedUlid(900), askedAt: askedAt))
+func sampleLocal() -> DeviceLocalRecordBody {
+	.replyObserved(
+		ReplyObservedBody(
+			chatId: "debug-sample", turn: TurnID(ulid: fixedUlid(900)),
+			attempt: AttemptID(ulid: fixedUlid(901))))
 }
 
 func messageText(_ record: AthleteRecord) -> String {
