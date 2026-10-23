@@ -149,6 +149,16 @@ enum RecordCodec {
 			return .reviewApplied(
 				try payload(ReviewAppliedPayload.self, version: version, kind: name, data: data)
 					.body())
+		case .planningDevice:
+			let payload = try payload(
+				PlanningDevicePayload.self, version: version, kind: name, data: data)
+			return .planningDevice(
+				PlanningDeviceBody(
+					planningDeviceId: DeviceID(rawValue: payload.planningDeviceId),
+					planUlid: try decodeULID(payload.planUlid),
+					activatedAt: Date(timeIntervalSince1970: payload.activatedAt)
+				)
+			)
 		}
 	}
 
@@ -272,16 +282,6 @@ enum RecordCodec {
 				tag = nil
 			}
 			return .coachReplyLanguage(CoachReplyLanguageBody(tag: tag))
-		case .planningDevice:
-			let payload = try payload(
-				PlanningDevicePayload.self, version: version, kind: name, data: data)
-			return .planningDevice(
-				PlanningDeviceBody(
-					planningDeviceId: DeviceID(rawValue: payload.planningDeviceId),
-					planUlid: try decodeULID(payload.planUlid),
-					activatedAt: Date(timeIntervalSince1970: payload.activatedAt)
-				)
-			)
 		case .sessionSettings:
 			return .sessionSettings(
 				try payload(SessionSettingsPayload.self, version: version, kind: name, data: data)

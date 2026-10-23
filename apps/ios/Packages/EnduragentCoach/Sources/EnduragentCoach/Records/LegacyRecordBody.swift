@@ -9,6 +9,7 @@ package enum LegacyRecordBody: Sendable, Equatable {
 	case reviewWrite(ReviewWriteBody)
 	case reviewCancelledUnknown(ReviewCancelledUnknownBody)
 	case reviewApplied(ReviewAppliedBody)
+	case planningDevice(PlanningDeviceBody)
 
 	package var kind: LegacyKind {
 		switch self {
@@ -20,6 +21,7 @@ package enum LegacyRecordBody: Sendable, Equatable {
 		case .reviewWrite: .reviewWrite
 		case .reviewCancelledUnknown: .reviewCancelledUnknown
 		case .reviewApplied: .reviewApplied
+		case .planningDevice: .planningDevice
 		}
 	}
 
@@ -33,6 +35,7 @@ package enum LegacyRecordBody: Sendable, Equatable {
 		case .reviewWrite(let body): body.chatId
 		case .reviewCancelledUnknown(let body): body.chatId
 		case .reviewApplied(let body): body.chatId
+		case .planningDevice: nil
 		}
 	}
 }

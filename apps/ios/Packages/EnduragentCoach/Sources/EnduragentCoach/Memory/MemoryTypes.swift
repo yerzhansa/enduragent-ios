@@ -15,7 +15,6 @@ package enum LedgerSource: String, Sendable {
 
 package enum JournalOp: String, Sendable {
 	case writeSection = "write-section"
-	case savePlan = "save-plan"
 	case renameSections = "rename-sections"
 }
 
@@ -40,31 +39,12 @@ package struct MemoryHit: Sendable, Equatable {
 package struct MemoryView: Sendable, Equatable {
 	package var sections: [String: String]
 	package var todayNotes: String?
-	package var planHeadline: PlanHeadline?
 	package var orphanNames: [String]
 
-	package init(
-		sections: [String: String], todayNotes: String?, planHeadline: PlanHeadline?,
-		orphanNames: [String]
-	) {
+	package init(sections: [String: String], todayNotes: String?, orphanNames: [String]) {
 		self.sections = sections
 		self.todayNotes = todayNotes
-		self.planHeadline = planHeadline
 		self.orphanNames = orphanNames
-	}
-}
-
-package struct PlanHeadline: Sendable, Equatable {
-	package var name: String
-	package var primaryGoal: String?
-	package var totalWeeks: Int?
-	package var status: PlanStatus?
-
-	package init(name: String, primaryGoal: String?, totalWeeks: Int?, status: PlanStatus?) {
-		self.name = name
-		self.primaryGoal = primaryGoal
-		self.totalWeeks = totalWeeks
-		self.status = status
 	}
 }
 

@@ -234,7 +234,6 @@ DateKey
 DateKey.<(_:_:)
 DateKey.civil
 DateKey.from(_:)
-DateKey.init(rawValue:)
 DateKey.init(year:month:day:)
 DateKey.rawValue
 DisplayDateStyle
