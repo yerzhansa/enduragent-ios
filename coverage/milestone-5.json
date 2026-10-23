@@ -1,6 +1,7 @@
 {
 	"units": {
 		"0.1": 7,
+		"1.1": 8,
 		"2.1": 8,
 		"2.4": 2
 	},
@@ -54,6 +55,66 @@
 			"id": "0.1.7",
 			"statement": "The first coverage/milestone-5.json passes make check-coverage with every requirement, part and agreed difference of the scope in open, a plan for 0.1 and every unit of slices 1 to 8, and no unit but 0.1.",
 			"noAutomatedProof": "This criterion is about the committed table itself. make check-coverage, which CI runs on every pull request, checks it, and the reviewer checked its plan against the Coverage sections of slices 1 to 8."
+		},
+		{
+			"id": "1.1.1",
+			"statement": "Before any deletion, a search of the upgrade seeds and the test fixtures for the five deleted planning kinds, a planningCommand: stamp and a save-plan journal operation, and a read of every committed store for rows of those kinds and save-plan journal rows, finds only the v1 planningDevice row in the v1 record fixture.",
+			"noAutomatedProof": "This criterion is a search run once on the base before the deletion. The pull request body records the rg and sqlite3 commands and their output: no seed, fixture or committed store holds a row of the five kinds, a planningCommand: stamp or a save-plan journal row, and the one planningDevice row is line 16 of the v1 record fixture."
+		},
+		{
+			"id": "1.1.2",
+			"statement": "A stored row of each of the five deleted planning kinds reads as newerKind and never crashes or stops the read.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RemovedPlanningKindsTests.swift", "function": "rowsOfTheDeletedPlanningKindsReadAsNewerKinds"}
+			]
+		},
+		{
+			"id": "1.1.3",
+			"statement": "The v1 planningDevice row decodes as a read-only legacy body, the v1 store still reads 13 synced rows with no skipped row, and encoding a planningDevice legacy body throws, as every legacy kind does.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/EnvelopeMigrationTests.swift", "function": "v1RowsDecodeAsLegacyBodies"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RemovedPlanningKindsTests.swift", "function": "planningDeviceIsReadOnlyAtItsV1Version"}
+			]
+		},
+		{
+			"id": "1.1.4",
+			"statement": "A planningCommand:<ulid> stamp makes its row malformed, as any unknown stored operation does.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RemovedPlanningKindsTests.swift", "function": "aRemovedOperationStampMakesItsRowMalformed"}
+			]
+		},
+		{
+			"id": "1.1.5",
+			"statement": "The debug sample writes and reads a replyObserved row for the chat debug-sample, and the record sync debug view labels it replyObserved. The record log tests pass with the moved sample.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RecordSyncProbeTests.swift", "function": "localSampleIsAReplyObservedRowOnTheDebugSampleChat"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RecordLogTests.swift", "function": "fetchHonoursEveryQueryField"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SwiftDataRecordLogTests.swift", "function": "appendRoutesByLocality"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SwiftDataRecordLogTests.swift", "function": "fetchSyncedIsUnionAndLocalIsThisDevice"}
+			],
+			"checkedByHand": {"part": "The simulator run: in Settings > Debug > Records, Append one device-local record writes the sample and the refreshed list reads it back as a replyObserved row labelled replyObserved. The slice asks for one simulator run of the Records screen, recorded in the pull request, and no UI proof.", "described": ".agents/skills/verify-ios/features/README.md"}
+		},
+		{
+			"id": "1.1.6",
+			"statement": "The prompt of every existing prompt and memory test is unchanged, because the deleted Current Plan branch never rendered.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryTests.swift", "function": "contextInjectsOrphansAndStripsCompaction"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptNamesNoPlanAndNoPlanToolIsOffered"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "rememberedTextSitsInsideTheAthleteDataFenceAfterTheCacheBoundary"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "prefixCarriesTheCyclingSkillsUnderTheTokenCeilings"}
+			]
+		},
+		{
+			"id": "1.1.7",
+			"statement": "A whole-word search of the Swift sources under apps/ios and tools, without generated files, finds none of the deleted planning kinds, PlanningCommandID, the plan headline types, PlanStatus, savePlan or PlanningCommandName, and the public surface lists name none of them.",
+			"noAutomatedProof": "This criterion is a search checked by hand on the final head. The pull request body records the rg command and its empty output; the old stored kind names live only in the removed-planning-records.json fixture that the tests of 1.1.2 and 1.1.4 read."
+		},
+		{
+			"id": "1.1.8",
+			"statement": "coverage/milestone-3.json rows whose tests changed still point at those tests, and row 8.2.4 still holds: the prompt has no plan block and no plan tool is offered.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptNamesNoPlanAndNoPlanToolIsOffered"}
+			]
 		},
 		{
 			"id": "2.1.1",

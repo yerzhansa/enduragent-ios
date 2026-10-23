@@ -132,14 +132,6 @@ package struct DraftKey: Hashable, Sendable {
 	}
 }
 
-package struct PlanningCommandID: Hashable, Sendable {
-	package let rawValue: String
-
-	package init(rawValue: String) {
-		self.rawValue = rawValue
-	}
-}
-
 package struct DebugSampleID: Hashable, Sendable {
 	package let ulid: ULID
 
@@ -299,11 +291,6 @@ enum Weekday: String, Sendable, CaseIterable {
 
 public struct DateKey: Hashable, Sendable, Comparable {
 	public let rawValue: Int
-
-	public init?(rawValue: Int) {
-		guard rawValue >= 1000_01_01, rawValue <= 9999_12_31 else { return nil }
-		self.rawValue = rawValue
-	}
 
 	public init(year: Int, month: Int, day: Int) {
 		self.rawValue = year * 10_000 + month * 100 + day

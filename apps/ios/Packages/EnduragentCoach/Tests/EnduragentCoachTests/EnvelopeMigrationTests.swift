@@ -43,6 +43,14 @@ extension SwiftDataSuites {
 			}
 			#expect(event.date == "1998-06-10")
 			#expect(event.text == "Keep Saturdays free.")
+			#expect(
+				synced.records[12].body
+					== .legacy(
+						.planningDevice(
+							PlanningDeviceBody(
+								planningDeviceId: phoneA,
+								planUlid: store.manifest.question,
+								activatedAt: Date(timeIntervalSince1970: 897_984_000)))))
 			let local = try await log.fetch(RecordQuery(scope: .everyDeviceLocal))
 			#expect(local.skipped.isEmpty)
 			#expect(kinds(local.records) == ["pendingProposal", "proposalCleared", "flushPending"])
