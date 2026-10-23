@@ -239,7 +239,6 @@ package struct Memory: Sendable {
 		return MemoryView(
 			sections: sections,
 			todayNotes: trimmed.isEmpty ? nil : trimmed,
-			planHeadline: nil,
 			orphanNames: snapshot.orphanNames
 		)
 	}
@@ -276,22 +275,6 @@ package struct Memory: Sendable {
 		let daily = injectableDailyLines(snapshot.dailyText(on: today)).joined(separator: "\n")
 		if !memoryTrimEnd(daily).isEmpty {
 			parts.append("## Today's Notes\n" + daily)
-		}
-		if let headline = snapshot.planHeadline {
-			var lines: [String] = []
-			lines.append("- Name: \(headline.name)")
-			if let goal = headline.primaryGoal {
-				lines.append("- Goal: \(goal)")
-			}
-			if let weeks = headline.totalWeeks {
-				lines.append("- Duration: \(weeks) weeks")
-			}
-			if let status = headline.status {
-				lines.append("- Status: \(status.rawValue)")
-			}
-			if !lines.isEmpty {
-				parts.append("## Current Plan\n" + lines.joined(separator: "\n"))
-			}
 		}
 		return parts.joined(separator: "\n\n")
 	}

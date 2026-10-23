@@ -128,7 +128,6 @@ import Testing
 		#expect(!context.contains("## Current Plan"))
 		let view = prompt.view
 		#expect(view.orphanNames == ["random-legacy"])
-		#expect(view.planHeadline == nil)
 	}
 
 	@Test func injectableDailyLinesDropsMarkersAndExitsOnH3() {

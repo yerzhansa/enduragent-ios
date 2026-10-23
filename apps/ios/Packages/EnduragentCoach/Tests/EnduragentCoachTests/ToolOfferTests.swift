@@ -58,7 +58,7 @@ import Testing
 			clock: clock,
 			memory: MemoryView(
 				sections: ["notes": "stamp\n- Prefers hill repeats"], todayNotes: nil,
-				planHeadline: nil, orphanNames: []))
+				orphanNames: []))
 		let pinned = try JSONValue.parse(
 			String(decoding: try fixtureData("offered-tool-parameters"), as: UTF8.self))
 

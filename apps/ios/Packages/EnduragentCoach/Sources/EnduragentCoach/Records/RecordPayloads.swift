@@ -287,18 +287,14 @@ struct CoachReplyLanguagePayload: Codable {
 	var tag: String?
 }
 
-struct PlanningDevicePayload: Codable {
+struct PlanningDevicePayload: Decodable {
 	var planningDeviceId: String
 	var planUlid: String
 	var activatedAt: TimeInterval
 }
 
-struct JSONValuePayload: Codable {
+struct JSONValuePayload: Decodable {
 	var value: JSONValue
-
-	init(_ value: JSONValue) {
-		self.value = value
-	}
 
 	init(from decoder: Decoder) throws {
 		let container = try decoder.singleValueContainer()
@@ -328,56 +324,4 @@ struct JSONValuePayload: Codable {
 		}
 		throw RecordDecodeFailure(reason: "json")
 	}
-
-	func encode(to encoder: Encoder) throws {
-		var container = encoder.singleValueContainer()
-		switch value {
-		case .null:
-			try container.encodeNil()
-		case .bool(let flag):
-			try container.encode(flag)
-		case .number(let number):
-			try container.encode(number)
-		case .string(let string):
-			try container.encode(string)
-		case .array(let items):
-			try container.encode(items.map(JSONValuePayload.init))
-		case .object(let fields):
-			try container.encode(fields.mapValues(JSONValuePayload.init))
-		}
-	}
-}
-
-struct PlanningCommandPayload: Codable {
-	var commandName: String
-	var commandId: String
-	var requestDigest: String
-	var status: String
-	var result: JSONValuePayload?
-}
-
-struct PlanRevisionPayload: Codable {
-	var planUlid: String
-	var version: Int
-	var status: String
-	var snapshot: JSONValuePayload
-}
-
-struct MirrorJobPayload: Codable {
-	var planUlid: String
-	var kind: String
-	var windowStart: Int
-	var windowEnd: Int
-	var failureCount: Int
-}
-
-struct WorkoutMatchPayload: Codable {
-	var planWorkoutId: String
-	var activityId: String
-	var decision: String
-}
-
-struct WorkoutDriftPayload: Codable {
-	var planWorkoutId: String
-	var askedAt: TimeInterval
 }
