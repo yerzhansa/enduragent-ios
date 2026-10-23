@@ -1,7 +1,8 @@
 {
 	"units": {
 		"0.1": 7,
-		"1.1": 8
+		"1.1": 8,
+		"2.1": 8
 	},
 	"criteria": [
 		{
@@ -113,9 +114,75 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptNamesNoPlanAndNoPlanToolIsOffered"}
 			]
+		},
+		{
+			"id": "2.1.1",
+			"statement": "make plan-fixtures NPM=<pinned checkout> writes every fixture file and the manifest under Fixtures/plan, and a second run leaves git status clean.",
+			"noAutomatedProof": "Running the generator needs Node v24.11.1 and the pinned npm checkout, which CI does not have. The pull request records both runs and the clean git status after the second."
+		},
+		{
+			"id": "2.1.2",
+			"statement": "make plan-fixtures-check NPM=<pinned checkout> exits 0 on the committed fixtures and writes nothing tracked. It exits nonzero and names the file after one byte of one fixture changes, and also after that file's sha256 in manifest.json is rewritten to match.",
+			"noAutomatedProof": "The check runs npm, which CI cannot. make test-swift passes a fixture edited together with its manifest sha256, so the pull request's recorded check runs are the proof, and each reviewer of a change to the fixtures or the generator runs the check again."
+		},
+		{
+			"id": "2.1.3",
+			"statement": "Each refusal prints npm-fixtures: <reason>, exits 1 and writes nothing: Node v22.14.0 and v24.21.0, a checkout at another revision, a checkout with local changes, a build that changes a tracked file, a build that fails, a case outside the tool schema, and a case that reaches randomUUID.",
+			"noAutomatedProof": "The refusals need Node binaries, local clones of the npm checkout and its build, which CI does not have. The pull request records each refusal's command, output, exit status and the folder it did not write."
+		},
+		{
+			"id": "2.1.4",
+			"statement": "Every fixture's first line names d192cb974e715e1527645e0acf0d8353ed4d0edc, each case is one line, no file reaches 4,000,000 bytes, and the manifest lists every plan-draft file.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "committedFixturesMatchTheirManifestAndTheGenerator"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "pinChangedInOneFixtureHeaderOnlyIsARevisionProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "twoCasesOnOneLineIsALayoutProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureThatReachesTheSizeCapIsALayoutProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureAddedWithoutTheManifestIsUnlisted"}
+			]
+		},
+		{
+			"id": "2.1.5",
+			"statement": "Every case of total-weeks.json and the plan-draft files carries instant, timeZone, today and weekday, and the zones put today both before and after the UTC date.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "everyDatedCaseCarriesItsClockAndTheZonesFallOnBothSidesOfTheUTCDay"}
+			]
+		},
+		{
+			"id": "2.1.6",
+			"statement": "PlanFixtureProvenanceTests pass on the committed files and fail for one changed fixture byte, a generator file changed without a new run, the pin changed in one place only, and a fixture file added or removed without the manifest. For each file the decoded case count equals the manifest's and is above 0.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "committedFixturesMatchTheirManifestAndTheGenerator"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "oneChangedFixtureByteIsADigestProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "generatorFileChangedWithoutANewRunIsAGeneratorProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "pinChangedInTheManifestOnlyIsARevisionProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "pinChangedInOneFixtureHeaderOnlyIsARevisionProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "pinChangedEverywhereButTheLoaderIsARevisionProblemOfEveryFile"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureAddedWithoutTheManifestIsUnlisted"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureRemovedWithoutTheManifestIsAbsent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "decodedCaseCountThatDiffersFromTheManifestIsACountProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "toolCountThatDiffersFromTheManifestIsACountProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureWithNoCasesIsACountProblemEvenWhenTheManifestAgrees"}
+			]
+		},
+		{
+			"id": "2.1.7",
+			"statement": "The manifest records the sha256 of every file under the dist folders of the six closure packages, and Node v24.11.1.",
+			"noAutomatedProof": "The dist folders exist only in the pinned npm checkout after the generator's build. The pull request records the manifest's dist member, file counts per package and node member, and the generator's run that wrote them."
+		},
+		{
+			"id": "2.1.8",
+			"statement": "make check-source passes over tools/npm-fixtures and the plan fixtures (fixture-date, forbidden-path, unexpected-binary, public-language on the README), and the repository gains no package.json, lockfile, tsx or tsconfig.",
+			"noAutomatedProof": "make check-source runs in CI on every pull request and applies those rules to every tracked file, the new ones included. The pull request lists the tracked files it adds, none of them a package.json, lockfile, tsx or tsconfig."
 		}
 	],
-	"requirements": [],
+	"requirements": [
+		{
+			"id": "X08",
+			"statement": "Fixtures that compare npm and phone outputs are made by a committed generator from npm at d192cb974e715e1527645e0acf0d8353ed4d0edc, refuse any other revision, Node or checkout state, and are checked against their manifest on every make test-swift.",
+			"criteria": ["2.1.1", "2.1.2", "2.1.3", "2.1.4", "2.1.5", "2.1.6", "2.1.7"]
+		}
+	],
 	"plan": {
 		"units": {
 			"0.1": 7,
@@ -170,7 +237,6 @@
 		"B15.05",
 		"B19.03",
 		"G07",
-		"X08",
 		"B14.01/saved-plan",
 		"B12.04/saved-plan",
 		"B16.01/plan-save",
