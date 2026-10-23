@@ -9,6 +9,7 @@ extension SourceCases {
 		"\(records)/ReviewChain.swift", "\(records)/AthleteRecord.swift",
 		"\(records)/ReviewUpgrade.swift",
 		"apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Coach.swift",
+		"\(records)/ChainAppend.swift",
 	]
 	static let reviewOutcomeWrites = [
 		"_ = try await ledger.commit(synced: [.reviewOutcome(summary)], stamp: stamp)",

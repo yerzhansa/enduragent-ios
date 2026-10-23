@@ -2,7 +2,8 @@
 	"units": {
 		"0.1": 7,
 		"1.1": 8,
-		"2.1": 8
+		"2.1": 8,
+		"6.1": 3
 	},
 	"criteria": [
 		{
@@ -174,6 +175,31 @@
 			"id": "2.1.8",
 			"statement": "make check-source passes over tools/npm-fixtures and the plan fixtures (fixture-date, forbidden-path, unexpected-binary, public-language on the README), and the repository gains no package.json, lockfile, tsx or tsconfig.",
 			"noAutomatedProof": "make check-source runs in CI on every pull request and applies those rules to every tracked file, the new ones included. The pull request lists the tracked files it adds, none of them a package.json, lockfile, tsx or tsconfig."
+		},
+		{
+			"id": "6.1.1",
+			"statement": "ChainAppend.swift holds head(of:), newest(_:), append(_:stamp:after:in:) and chats(holding:) on Ledger with RecordHead, NewestRecord, HeadMoved and TransitionFailure, moved from ReviewChain.swift, and Loop/TurnEnding.swift holds TurnEnding, moved from ReviewCommit.swift. The only changed lines that are not moves are the three named edits: commit(_:stamp:after:in:) renamed append, chats(holding:) taking the kind with reviewChats() calling it for .workoutReview, and newest(_:) and append losing private.",
+			"noAutomatedProof": "This criterion is a property of the diff, checked by hand on the final head. The pull request body records git diff -M --stat and lists every changed line that is not a move."
+		},
+		{
+			"id": "6.1.2",
+			"statement": "Every review, record log and turn test passes with no test edited.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "twoWritersAfterOneHeadLandExactlyOneRecord"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "aFailedSaveLeavesTheHeadAndIsAStorageFailure"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "theReviewChatsAreEachChatWithAReviewChainOnce"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "anUnreadableNewestReviewStopsTheChainInsteadOfShowingTheOlderReview"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "anUnreadableNewestOutcomeStillTakesTheNextOutcome"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillBeforeThePreparationMarkerSettlesWithoutAReviewNotice"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillAfterTheCommitFindsTheReviewOnRelaunch"}
+			]
+		},
+		{
+			"id": "6.1.3",
+			"statement": "Under the package's main target, a call append( with stamp: and after: labels, .newest( or an awaited bare newest(, or chats(holding: outside Records/ChainAppend.swift, Records/ReviewChain.swift, Records/RecordLog.swift and Plans/*.swift fails check-source with chain-append-callers, and calls that only share a name or a label pass. review-chain-only and review-outcome-writer still pass and fail their cases with ChainAppend.swift named.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
 		}
 	],
 	"requirements": [

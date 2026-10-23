@@ -88,6 +88,14 @@ extension SourceChecker {
 		#"\.\s*reviewOutcome\s*\((?!\s*(?:let|var)\b)(?!\s*_\s*[,)])"#,
 		#"\bSyncedRecordBody\s*\.\s*reviewOutcome\b(?!\s*\()"#,
 	]
+	static let chainAppendCallers =
+		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/"#
+		+ #"(?:Records\/(?:ChainAppend|ReviewChain|RecordLog)|Plans\/[^/]+)\.swift$"#
+	static let chainAppendCalls = [
+		#"\bappend\s*\(\#(argumentText)*?\bstamp\s*:\#(argumentText)*?\bafter\s*:"#,
+		#"\.\s*newest\s*\(|\bawait\s+newest\s*\("#,
+		#"\bchats\s*\(\s*holding\s*:"#,
+	]
 	static let swiftCopy =
 		#"\b(?:Text|Label|Button|Section|navigationTitle|alert|confirmationDialog"#
 		+ #"|String\(localized:)\s*\(?(?:\s*)"((?:\\.|[^"\\])*)""#
@@ -162,6 +170,9 @@ extension SourceChecker {
 		if try writesReviewOutcomeOutsideTheDesk(file, text) {
 			try findings.report(file, "review-outcome-writer")
 		}
+		if try callsTheChainDoorwayOutsideItsCallers(file, text) {
+			try findings.report(file, "chain-append-callers")
+		}
 		if try file.hasSameUnits(as: Self.mailbox) && hasExposedMailboxState(text) {
 			try findings.report(file, "mailbox-private-state")
 		}
@@ -200,6 +211,15 @@ extension SourceChecker {
 			!Self.reviewOutcomeWriters.contains(where: file.hasSameUnits(as:))
 		else { return false }
 		return try Self.reviewOutcomeBuilt.contains { try patterns.test($0, text) }
+	}
+
+	private func callsTheChainDoorwayOutsideItsCallers(_ file: String, _ text: String) throws
+		-> Bool
+	{
+		guard try patterns.test(Self.coachSource, file),
+			try !patterns.test(Self.chainAppendCallers, file)
+		else { return false }
+		return try Self.chainAppendCalls.contains { try patterns.test($0, text) }
 	}
 
 	private func mintsOutsideItsFile(_ file: String, _ text: String) throws -> Bool {
