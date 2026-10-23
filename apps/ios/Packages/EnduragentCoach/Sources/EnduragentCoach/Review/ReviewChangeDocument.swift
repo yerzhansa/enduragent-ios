@@ -158,7 +158,7 @@ struct PayloadDocument: Codable {
 			date: try decodeCivilDate(date), type: type, name: name, description: description,
 			movingTime: movingTime, trainingLoad: trainingLoad,
 			authoredSteps: try authoredSteps.map { raw in
-				try AuthoredSteps.ride(try JSONValue.parsePrinted(raw))
+				try AuthoredSteps.ride(try JSONValue.parse(raw))
 			})
 	}
 }
@@ -187,10 +187,10 @@ struct PatchDocument: Codable {
 			date: try date.map(decodeCivilDate), name: name, durationSeconds: durationSeconds,
 			description: description, trainingLoad: trainingLoad,
 			workoutDocument: try workoutDocument.map { (raw) throws(DecodingError) in
-				try JSONValue.parsePrinted(raw)
+				try JSONValue.parse(raw)
 			},
 			authoredSteps: try authoredSteps.map { raw in
-				try AuthoredSteps.structure(try JSONValue.parsePrinted(raw))
+				try AuthoredSteps.structure(try JSONValue.parse(raw))
 			})
 	}
 }

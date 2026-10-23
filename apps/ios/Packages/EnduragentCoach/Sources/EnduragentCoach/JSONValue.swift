@@ -11,25 +11,7 @@ public enum JSONValue: Sendable, Equatable {
 
 	public static func parse(_ raw: String) throws(DecodingError) -> JSONValue {
 		do {
-			guard let data = raw.data(using: .utf8) else {
-				throw DecodingError.dataCorrupted(
-					.init(codingPath: [], debugDescription: "invalid JSON")
-				)
-			}
-			let object = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
-			return try JSONValue.fromJSONObject(object)
-		} catch let error as DecodingError {
-			throw error
-		} catch {
-			throw DecodingError.dataCorrupted(
-				.init(codingPath: [], debugDescription: String(describing: error))
-			)
-		}
-	}
-
-	package static func parsePrinted(_ text: String) throws(DecodingError) -> JSONValue {
-		do {
-			return try JSONDecoder().decode(JSONValuePayload.self, from: Data(text.utf8)).value
+			return try JSONDecoder().decode(JSONValuePayload.self, from: Data(raw.utf8)).value
 		} catch let error as DecodingError {
 			throw error
 		} catch {
@@ -41,33 +23,6 @@ public enum JSONValue: Sendable, Equatable {
 
 	public func canonicalDigestInput() -> String {
 		JSONValue.render(self, pretty: false, depth: 0)
-	}
-
-	private static func fromJSONObject(_ object: Any) throws -> JSONValue {
-		switch object {
-		case is NSNull:
-			return .null
-		case let number as NSNumber:
-			if CFGetTypeID(number) == CFBooleanGetTypeID() {
-				return .bool(number.boolValue)
-			}
-			return .number(number.doubleValue)
-		case let string as String:
-			return .string(string)
-		case let array as [Any]:
-			return .array(try array.map { try fromJSONObject($0) })
-		case let dictionary as [String: Any]:
-			var object: [String: JSONValue] = [:]
-			object.reserveCapacity(dictionary.count)
-			for (key, value) in dictionary {
-				object[key] = try fromJSONObject(value)
-			}
-			return .object(object)
-		default:
-			throw DecodingError.dataCorrupted(
-				.init(codingPath: [], debugDescription: "invalid JSON")
-			)
-		}
 	}
 
 	fileprivate static func render(_ value: JSONValue, pretty: Bool, depth: Int) -> String {

@@ -18,6 +18,10 @@ extension SwiftDataSuites.UpgradeStoreTests {
 		#"{"steps":[{"duration":600,"power":{"units":"%ftp","value":0.00005},"_power":{"value":9007199254740992}},{"duration":600,"hr":{"units":"%lthr","value":1e-9},"cadence":{"units":"rpm","value":1e16}},{"duration":600,"power":{"units":"%ftp","value":1.2345678901234568e-05},"_power":{"value":1.2345678901234568e+20}}],"duration":1800,"ftp":250}"#
 	static let longDigitStructure =
 		#"{"steps":[{"_power":{"value":9007199254740992.0},"duration":600,"power":{"units":"%ftp","value":5e-05}},{"cadence":{"units":"rpm","value":1e+16},"duration":600,"hr":{"units":"%lthr","value":1e-09}},{"_power":{"value":1.2345678901234568e+20},"duration":600,"power":{"units":"%ftp","value":1.2345678901234568e-05}}]}"#
+	static let misreadStructure =
+		#"{"steps":[{"_power":{"value":218.75},"duration":600,"power":{"units":"%ftp","value":87.5}},{"_power":{"value":137.5},"duration":600,"hr":{"units":"%lthr","value":0.05185376836363068},"power":{"units":"%ftp","value":55}}]}"#
+	static let misreadEvent =
+		#"{"id":4101,"start_date_local":"1998-06-17T00:00:00","name":"Tempo ride","category":"WORKOUT","external_id":null,"uid":null,"tags":["cycling-coach"],"description":"Two tempo blocks","type":"Ride","moving_time":3360,"icu_training_load":58,"workout_doc":{"steps":[{"duration":600,"power":{"units":"%ftp","value":87.5},"_power":{"value":218.75}},{"duration":600,"power":{"units":"%ftp","value":55},"_power":{"value":137.5},"hr":{"units":"%lthr","value":0.051853768363630676}}],"duration":1200,"ftp":250}}"#
 	static let milestoneFiveClock = FixedClock(
 		now: "1998-06-15T08:05:00Z", timeZone: "Europe/Ljubljana")
 
@@ -166,6 +170,46 @@ extension SwiftDataSuites.UpgradeStoreTests {
 		#expect(calendar.writes.isEmpty)
 	}
 
+	@Test func buildD6f89d9bReviewOfANumberItsReaderMisreadRefreshesOnceAndThenApproves()
+		async throws
+	{
+		let log = try open(
+			"misread-intervals-number", folder: Self.milestoneFourFolder,
+			device: Self.milestoneFourDevice)
+		let review = try #require(try await workoutReviews(in: log).last)
+		#expect(try Self.reviewedStructure(of: review) == Self.misreadStructure)
+		let ride = try await Self.intervalsEvent(Self.misreadEvent)
+		let calendar = ScriptedCalendar(FakeIntervalsClient(athleteName: "Ada", ftp: 250))
+		calendar.base.events = [ride]
+
+		guard case .refreshed = try await Self.approve(review, over: log, calendar: calendar)
+		else {
+			Issue.record("approving over the exact number did not refresh the review")
+			return
+		}
+		let refreshed = try #require(try await workoutReviews(in: log).last)
+		guard case .waiting(.approval(.refreshed(let differences))) = refreshed.stage else {
+			Issue.record("the refreshed review names no differences")
+			return
+		}
+		#expect(differences.map(\.fields) == [[.structure]])
+		#expect(calendar.writes.isEmpty)
+
+		guard case .completed = try await Self.approve(refreshed, over: log, calendar: calendar)
+		else {
+			Issue.record("approving the refreshed review did not complete")
+			return
+		}
+		#expect(try await workoutReviews(in: log).last?.stage == .completed)
+		guard case .update(let written, let patch) = try #require(calendar.writes.first) else {
+			Issue.record("the approval wrote no edit")
+			return
+		}
+		#expect(calendar.writes.count == 1)
+		#expect(written == ride.id)
+		#expect(patch.name == "Tempo 2x8")
+	}
+
 	private static func reviewedStructure(of review: WorkoutReview) throws -> String? {
 		guard case .edit(let edit) = try #require(review.work.remaining.first).action,
 			case .reviewed(_, let stored) = edit.target
@@ -202,6 +246,19 @@ extension SwiftDataSuites.UpgradeStoreTests {
 			throw UnexpectedReview(detail: "the restored review offered no Approve")
 		}
 		return await desk.decide(.approve(token))
+	}
+
+	private static func intervalsEvent(_ text: String) async throws -> CalendarEvent {
+		let read = await CalendarWriterLine.answering(.status(200, text)) { client in
+			do {
+				return Result<CalendarEvent, any Error>.success(
+					try await client.fetchEvent(id: EventID(rawValue: 4101)))
+			} catch {
+				return .failure(error)
+			}
+		}
+		#expect(read.sent.map(\.method) == ["GET"])
+		return try read.result.get()
 	}
 
 	private static func tempoRide(_ steps: String = tempoSteps) throws -> CalendarEvent {

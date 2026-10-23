@@ -79,7 +79,7 @@ struct JournalPreview {
 
 func parseJournalPreview(_ preview: String) -> JournalPreview {
 	do {
-		let parsed = try JSONValue.parsePrinted(preview)
+		let parsed = try JSONValue.parse(preview)
 		let fields = parsed.objectFields
 		return JournalPreview(
 			section: fields["section"]?.stringValue,

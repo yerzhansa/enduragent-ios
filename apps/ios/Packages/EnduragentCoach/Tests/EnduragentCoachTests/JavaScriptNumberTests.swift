@@ -106,7 +106,7 @@ import Testing
 		}
 
 		let printed = JSONValue.array(numbers.map(JSONValue.number)).canonicalDigestInput()
-		let parsed = try #require(try JSONValue.parsePrinted(printed).arrayValue)
+		let parsed = try #require(try JSONValue.parse(printed).arrayValue)
 
 		#expect(parsed.count == numbers.count)
 		#expect(numbers.count > 80_000)
@@ -123,7 +123,7 @@ import Testing
 		]
 
 		let printed = JSONValue.array(strings.map(JSONValue.string)).canonicalDigestInput()
-		let parsed = try #require(try JSONValue.parsePrinted(printed).arrayValue)
+		let parsed = try #require(try JSONValue.parse(printed).arrayValue)
 
 		#expect(
 			parsed.map { $0.stringValue.map { Array($0.unicodeScalars) } }

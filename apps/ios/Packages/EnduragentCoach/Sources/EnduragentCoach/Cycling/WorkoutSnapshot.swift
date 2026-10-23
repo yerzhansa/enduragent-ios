@@ -27,7 +27,7 @@ package struct WorkoutSnapshot: Equatable, Sendable {
 
 	private static func comparableStructure(_ text: String) -> String {
 		do {
-			return try JSONValue.parsePrinted(text).canonicalDigestInput()
+			return try JSONValue.parse(text).canonicalDigestInput()
 		} catch is DecodingError {
 			return text
 		}
