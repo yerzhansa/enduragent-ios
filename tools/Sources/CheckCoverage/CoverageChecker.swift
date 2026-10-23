@@ -73,10 +73,14 @@ struct CoverageChecker {
 			throw CoverageFailure(description: "the carried section is not a group")
 		}
 		if let requirements {
-			try RequirementChecker(
-				requirements: requirements, scope: .milestoneFour, problems: problems,
-				criteria: seen, tested: tested
-			).run(units: milestone.units)
+			if let scope = RequirementScope.of(table: table) {
+				try RequirementChecker(
+					requirements: requirements, scope: scope, problems: problems,
+					criteria: seen, tested: tested
+				).run(units: milestone.units)
+			} else {
+				try problems.report("requirements", "unknown-scope")
+			}
 		}
 		return rows.count
 	}

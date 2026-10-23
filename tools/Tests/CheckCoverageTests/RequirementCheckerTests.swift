@@ -98,6 +98,7 @@ struct RequirementCase: Sendable, CustomTestStringConvertible {
 		.merging(["B17.01": ["1.1.1", "1.1.2"], "A01": ["1.1.1", "2.1.1"]]) { $1 }
 
 	let name: String
+	var path = "coverage/milestone-4.json"
 	var rows = baseRows
 	var open = inScope.filter { $0 != "B17.01" }
 	var criteria = CoverageCase.complete
@@ -322,7 +323,6 @@ struct RequirementCase: Sendable, CustomTestStringConvertible {
 	}
 
 	func check() throws -> [String] {
-		let path = "coverage/milestone-4.json"
 		let plannedRequirements = planned.sorted { $0.key < $1.key }.map { identifier, criteria in
 			"\(Self.quoted(identifier)): [\(criteria.map(Self.quoted).joined(separator: ", "))]"
 		}
