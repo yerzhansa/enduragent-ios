@@ -243,7 +243,17 @@ extension SourceCases {
 						of: "v1-upgrade/history", with: "build-6833d90f/\(scenario)"): sqliteStore
 				])
 		}
-		+ ["build-6833d90f", "build-6833d90f/other"].map { folder in
+		+ [
+			.accepts(
+				"accepts committed build-d6f89d9b SQLite stores in waiting-review",
+				binaries: [
+					upgradeStore.replacingOccurrences(
+						of: "v1-upgrade/history", with: "build-d6f89d9b/waiting-review"):
+						sqliteStore
+				])
+		]
+		+ ["build-6833d90f", "build-6833d90f/other", "build-d6f89d9b", "build-d6f89d9b/other"].map {
+			folder in
 			.rejects(
 				"rejects SQLite stores in \(folder)",
 				binaries: [
