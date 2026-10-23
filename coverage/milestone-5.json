@@ -137,11 +137,16 @@
 		},
 		{
 			"id": "2.2.3",
-			"statement": "Every committed digest is unchanged: the ledger digest table still matches, and the stored structure of each of workout-review-refreshed.json, workout-review-try-again.json and workout-review-try-again-load-only.json is the snapshot of its own steps again.",
+			"statement": "Every committed digest is unchanged: the ledger digest table still matches, and the stored structure of each of workout-review-refreshed.json, workout-review-try-again.json and workout-review-try-again-load-only.json is the snapshot of its own steps again. A Milestone 4 review compares as it did on the build that stored it, for every number: the build-d6f89d9b/reprinted-numbers review, whose stored structure holds 5e-05, 1e-09, 9007199254740992.0 and 1e+16 as d6f89d9b printed them, approves with no refresh and refuses a revision that changes nothing; the build-d6f89d9b/reprinted-authored-steps review refuses the same steps sent again as a workout document; a changed number is still named as a structure change; and a stored structure that does not parse is a change from every other structure.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UnionMergeTests.swift", "function": "ledgerDigestMatchesDesktop"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IdentityTests.swift", "function": "estimateTokensMatchesDesktop"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutSnapshotTests.swift", "function": "aStoredReviewsStructureIsTheSnapshotOfItsOwnStepsAgain"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutSnapshotTests.swift", "function": "aStoredReviewsStructureIsTheSnapshotOfItsOwnStepsAgain"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bReviewOfReprintedNumbersApprovesWithoutARefresh"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bReviewOfReprintedNumbersRefusesARevisionThatChangesNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bAuthoredEditOfReprintedNumbersRefusesTheSameStepsAsAWorkoutDocument"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bReviewOfReprintedNumbersNamesAChangedNumberAsAStructureChange"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChangeTests.swift", "function": "aStructureThatDoesNotParseIsAChangeFromEveryOtherStructure"}
 			]
 		},
 		{

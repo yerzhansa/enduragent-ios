@@ -10,6 +10,13 @@ extension SwiftDataSuites.UpgradeStoreTests {
 	static let tempoSteps =
 		#"{"steps":[{"warmup":true,"duration":600,"power":{"units":"%ftp","start":50,"end":65},"_power":{"start":125,"end":162.5},"cadence":{"units":"rpm","value":90}},{"reps":2,"steps":[{"duration":480,"power":{"units":"%ftp","value":87.5},"_power":{"value":218.75},"hr":{"units":"%lthr","value":88.3}},{"duration":240,"power":{"units":"%ftp","value":55},"_power":{"value":137.5}}]},{"cooldown":true,"duration":600,"power":{"units":"%ftp","value":50},"_power":{"value":168.33333333333334},"text":"Easy spin"}],"duration":3360,"ftp":250}"#
 
+	static let reprintedSteps =
+		#"{"steps":[{"duration":600,"power":{"units":"%ftp","value":0.00005},"_power":{"value":9007199254740992}},{"duration":600,"hr":{"units":"%lthr","value":1e-9},"cadence":{"units":"rpm","value":1e16}}],"duration":1200,"ftp":250}"#
+	static let reprintedStructure =
+		#"{"steps":[{"_power":{"value":9007199254740992.0},"duration":600,"power":{"units":"%ftp","value":5e-05}},{"cadence":{"units":"rpm","value":1e+16},"duration":600,"hr":{"units":"%lthr","value":1e-09}}]}"#
+	static let milestoneFiveClock = FixedClock(
+		now: "1998-06-15T08:05:00Z", timeZone: "Europe/Ljubljana")
+
 	@Test func buildD6f89d9bWaitingReviewKeepsItsDigestAndApprovesWithoutARefresh() async throws {
 		let log = try open(
 			"waiting-review", folder: Self.milestoneFourFolder, device: Self.milestoneFourDevice)
@@ -31,18 +38,8 @@ extension SwiftDataSuites.UpgradeStoreTests {
 
 		let calendar = ScriptedCalendar(FakeIntervalsClient(athleteName: "Ada", ftp: 250))
 		calendar.base.events = [tempoRide]
-		let desk = try Self.desk(for: review.account, over: log, calendar: calendar)
-		let shown = try #require(try await desk.snapshot(chat: .main))
-		#expect(await desk.decide(.presented(shown.ref)) == .presentationRecorded)
-		guard
-			case .armed(.approveOrCancel, let token) = try #require(
-				try await desk.snapshot(chat: .main)
-			).controls
+		guard case .completed = try await Self.approve(review, over: log, calendar: calendar)
 		else {
-			Issue.record("the restored review offered no Approve")
-			return
-		}
-		guard case .completed = await desk.decide(.approve(token)) else {
 			Issue.record("approving the restored review did not complete")
 			return
 		}
@@ -69,12 +66,146 @@ extension SwiftDataSuites.UpgradeStoreTests {
 		#expect(kinds.filter { $0 == SyncedKind.turnSettled.rawValue }.count == 2)
 	}
 
-	private static func tempoRide() throws -> CalendarEvent {
+	@Test func buildD6f89d9bReviewOfReprintedNumbersApprovesWithoutARefresh() async throws {
+		let log = try open(
+			"reprinted-numbers", folder: Self.milestoneFourFolder, device: Self.milestoneFourDevice)
+		let review = try #require(try await workoutReviews(in: log).last)
+		let ride = try Self.tempoRide(Self.reprintedSteps)
+		#expect(try Self.reviewedStructure(of: review) == Self.reprintedStructure)
+		#expect(try ride.snapshot.structure != Self.reprintedStructure)
+
+		let calendar = ScriptedCalendar(FakeIntervalsClient(athleteName: "Ada", ftp: 250))
+		calendar.base.events = [ride]
+		guard case .completed = try await Self.approve(review, over: log, calendar: calendar)
+		else {
+			Issue.record("approving the restored review did not complete")
+			return
+		}
+		#expect(try await workoutReviews(in: log).last?.stage == .completed)
+		guard case .update(let written, let patch) = try #require(calendar.writes.first) else {
+			Issue.record("the approval wrote no edit")
+			return
+		}
+		#expect(calendar.writes.count == 1)
+		#expect(written == ride.id)
+		#expect(patch.name == "Tempo 2x8")
+	}
+
+	@Test func buildD6f89d9bReviewOfReprintedNumbersRefusesARevisionThatChangesNothing()
+		async throws
+	{
+		let log = try open(
+			"reprinted-numbers", folder: Self.milestoneFourFolder, device: Self.milestoneFourDevice)
+		let review = try #require(try await workoutReviews(in: log).last)
+
+		let refusal = try await Self.revise(
+			review, over: log, on: try Self.tempoRide(Self.reprintedSteps),
+			to: #"{"kind":"edit","eventId":4101,"patch":{"durationSeconds":3360}}"#)
+
+		#expect(refusal == "unchanged_item")
+		#expect(try await workoutReviews(in: log).last == review)
+	}
+
+	@Test func buildD6f89d9bAuthoredEditOfReprintedNumbersRefusesTheSameStepsAsAWorkoutDocument()
+		async throws
+	{
+		let log = try open(
+			"reprinted-authored-steps", folder: Self.milestoneFourFolder,
+			device: Self.milestoneFourDevice)
+		let review = try #require(try await workoutReviews(in: log).last)
+		guard case .edit(let edit) = try #require(review.work.remaining.first).action,
+			case .reviewed(_, let stored) = edit.target
+		else {
+			Issue.record("the seed review holds no reviewed edit")
+			return
+		}
+		#expect(edit.patch.authoredSteps?.json == (try JSONValue.parse(ReviewTurns.authoredSteps)))
+		#expect(stored.description == edit.patch.description)
+		#expect(stored.structure == Self.reprintedStructure)
+		var ride = try Self.tempoRide(Self.reprintedSteps)
+		ride.description = edit.patch.description
+
+		let refusal = try await Self.revise(
+			review, over: log, on: ride,
+			to: #"{"kind":"edit","eventId":4101,"patch":{"structure":\#(Self.reprintedSteps)}}"#)
+
+		#expect(refusal == "unchanged_item")
+		#expect(try await workoutReviews(in: log).last == review)
+	}
+
+	@Test func buildD6f89d9bReviewOfReprintedNumbersNamesAChangedNumberAsAStructureChange()
+		async throws
+	{
+		let log = try open(
+			"reprinted-numbers", folder: Self.milestoneFourFolder, device: Self.milestoneFourDevice)
+		let review = try #require(try await workoutReviews(in: log).last)
+		let calendar = ScriptedCalendar(FakeIntervalsClient(athleteName: "Ada", ftp: 250))
+		calendar.base.events = [
+			try Self.tempoRide(
+				Self.reprintedSteps.replacingOccurrences(of: "0.00005", with: "0.00006"))
+		]
+
+		guard case .refreshed = try await Self.approve(review, over: log, calendar: calendar)
+		else {
+			Issue.record("approving after a changed number did not refresh the review")
+			return
+		}
+		guard
+			case .waiting(.approval(.refreshed(let differences))) = try #require(
+				try await workoutReviews(in: log).last
+			).stage
+		else {
+			Issue.record("the refreshed review names no differences")
+			return
+		}
+		#expect(differences.map(\.fields) == [[.structure]])
+		#expect(calendar.writes.isEmpty)
+	}
+
+	private static func reviewedStructure(of review: WorkoutReview) throws -> String? {
+		guard case .edit(let edit) = try #require(review.work.remaining.first).action,
+			case .reviewed(_, let stored) = edit.target
+		else {
+			throw UnexpectedReview(detail: "the seed review holds no reviewed edit")
+		}
+		return stored.structure
+	}
+
+	private static func revise(
+		_ review: WorkoutReview, over log: SwiftDataRecordLog, on ride: CalendarEvent,
+		to change: String
+	) async throws -> String? {
+		let turns = ReviewTurns(clock: milestoneFiveClock)
+		turns.intervals.events = [ride]
+		let coach = await turns.coach(over: log)
+		let item = try #require(review.work.remaining.first)
+		_ = try await turns.reply(
+			after: [turns.prepare(turns.revise(review, [(item.reference, change)]))], on: coach)
+		return try turns.toolData().first?.objectFields["error"]?.stringValue
+	}
+
+	private static func approve(
+		_ review: WorkoutReview, over log: SwiftDataRecordLog, calendar: ScriptedCalendar
+	) async throws -> ReviewOutcome {
+		let desk = try desk(for: review.account, over: log, calendar: calendar)
+		let shown = try #require(try await desk.snapshot(chat: .main))
+		#expect(await desk.decide(.presented(shown.ref)) == .presentationRecorded)
+		guard
+			case .armed(.approveOrCancel, let token) = try #require(
+				try await desk.snapshot(chat: .main)
+			).controls
+		else {
+			throw UnexpectedReview(detail: "the restored review offered no Approve")
+		}
+		return await desk.decide(.approve(token))
+	}
+
+	private static func tempoRide(_ steps: String = tempoSteps) throws -> CalendarEvent {
 		CalendarEvent(
 			description: "Two tempo blocks", type: "Ride", id: EventID(rawValue: 4101),
 			startDateLocal: "1998-06-17T00:00:00", name: "Tempo ride", category: "WORKOUT",
 			externalId: nil, uid: nil, tags: [IntervalsPolicy.coachTag], coachCreated: true,
-			movingTime: 3360, trainingLoad: 58, workoutDocument: try JSONValue.parse(tempoSteps))
+			movingTime: 3360, trainingLoad: 58, workoutDocument: try JSONValue.parse(steps))
 	}
 
 	private static func desk(
@@ -83,7 +214,7 @@ extension SwiftDataSuites.UpgradeStoreTests {
 		guard case .intervals(let connection, let athlete?) = account else {
 			throw UnexpectedReview(detail: "the seed account is not an intervals.icu athlete")
 		}
-		let clock = FixedClock(now: "1998-06-15T08:05:00Z", timeZone: "Europe/Ljubljana")
+		let clock = milestoneFiveClock
 		return WorkoutReviewDesk(
 			ledger: Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock, diagnostics: DiagnosticsLog(clock: clock),

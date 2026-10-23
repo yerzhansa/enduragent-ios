@@ -39,6 +39,15 @@ extension IntervalsRESTClientTests {
 			#expect(Self.reviewed.differences(from: snapshot(name: " Endurance")) == [.name])
 		}
 
+		@Test func aStructureThatDoesNotParseIsAChangeFromEveryOtherStructure() {
+			let unreadable = snapshot(structure: #"{"steps":[{"duration":3600}"#)
+			#expect(unreadable.differences(from: Self.reviewed) == [.structure])
+			#expect(Self.reviewed.differences(from: unreadable) == [.structure])
+			#expect(unreadable.differences(from: snapshot(structure: nil)) == [.structure])
+			#expect(unreadable.differences(from: snapshot(structure: "[")) == [.structure])
+			#expect(unreadable.differences(from: unreadable).isEmpty)
+		}
+
 		@Test func serverMetadataAndAWholeSecondMovingTimeAreNoDifference() async throws {
 			let client = try IntervalsRESTClientTests().makeClient()
 			let body = #"""
