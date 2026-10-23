@@ -9,7 +9,7 @@ One language preference controls both app text and coach replies. Automatic uses
 - `language-automatic` has no saved fixed language. Every reply uses the resolved iPhone language, including bare commands and numbers.
 - `language-same` keeps the selection without adding another preference record when the current row is tapped again.
 - `language-survives` uses the saved language on the first frame after relaunch, including the welcome and composer.
-- `language-save-failed` preserves the current choice and shows `review.saveFailed` if the preference cannot be stored.
+- `language-save-failed` preserves the current choice and shows `Couldn't save your choice on this iPhone, so nothing was changed. Try again.` in `language.saveFailed` if the preference cannot be stored.
 - `language-notices` renders notices and review outcomes through the chosen phrasebook. A notice without a translation uses its English catalog value.
 
 | Order | Choice | Identifier |
@@ -55,9 +55,9 @@ Preconditions:
 | `sim test <run id> TutorialWaitProof` | The shared wait checks a satisfied condition immediately and samples a changing condition again within 0.5 seconds. This protects the snapshot sampling used by the saved-language first-frame proof. |
 | `sim test <run id> FrenchNoticesProof` | The exhausted-credits notice, Buy Credits action, and Send message label use the French catalog values, `notices-french`. |
 
-The existing Debug entry remains at `debug.language`. The unit's proofs cover the athlete's Settings row and command. The hosted `FixtureLaunchTests` language tests exercise both shell intents with store-preserving relaunch and the fixture append fault. `ShellLanguageTests.settingsLanguagePickerPreservesTheNavigationAndConversation` covers the Settings intent without changing the draft or conversation. No new fault hook is needed.
+Debug also opens the picker through `debug.language`. The hosted `FixtureLaunchTests.languageChoiceRewritesTheChatAndTheNextReplyRequest` and `FixtureLaunchTests.aLanguageThatCannotBeSavedKeepsTheCurrentChoice` drive both shell intents with a store-preserving relaunch and the fixture append fault. `ShellLanguageTests.settingsLanguagePickerPreservesTheNavigationAndConversation` covers the Settings intent without changing the draft or conversation.
 
-The real-phone check is `EnduragentPhoneTests/LanguageReplyCheck/testFrenchRepliesAfterFixedAndAutomaticRelaunch`. Follow the [real-phone procedure](../SKILL.md#prove-live-french-replies-after-choosing-a-language) and run `phone-check language` only with the operator present. It asks for its message budget before launch or Send. Live French prose stays pending until that session.
+The real-phone check is `EnduragentPhoneTests/LanguageReplyCheck/testFrenchRepliesAfterFixedAndAutomaticRelaunch`. Follow the [real-phone procedure](../phone.md#prove-live-french-replies-after-choosing-a-language) and run `phone-check language` only with the operator present. It asks for its message budget before launch or Send. Live French prose stays pending until that session.
 
 Run `sim parity <run id> language-picker-auto light --from <attachment>` and the corresponding `language-picker-fr` command when visual parity is in scope. Compare the ordered choices and selected row.
 
@@ -66,7 +66,7 @@ Run `sim parity <run id> language-picker-auto light --from <attachment>` and the
 - The row's selected accessibility trait identifies the choice. Its checkmark is hidden from accessibility.
 - Scroll upward through the list to find the final rows. A downward swipe at the top can dismiss the sheet.
 - Language names stay in their own languages. The title and Automatic translate.
-- Settings, Credits, History, and other chrome now use catalog values. Debug-only labels can remain English.
+- Settings, Credits, History, and other chrome use catalog values. Debug-only labels can remain English.
 - Fixture replies are scripted. `fixture.replyLanguage`, the instruction supplied to the model, proves reply-language selection more reliably than the fixture reply text.
 - `-AppleLanguages` changes the phone language for Automatic. A saved fixed preference overrides it.
 - The language switch timing includes XCUITest settling time. Compare it with the already-selected row tap from the same run.
@@ -76,13 +76,15 @@ Run `sim parity <run id> language-picker-auto light --from <attachment>` and the
 
 `DisplayLocaleProof` launches with independent `-AppleLanguages (ru,fr,en)` and `-AppleLocale en_US` or `fr_FR`. It captures setup, History, Credits and a saved review notice in French. History uses `2026-03-04`; the review uses the existing June 1998 workout fixture. A later English choice keeps the review's regional date format. Run `sim test <run id> DisplayLocaleProof` for both cases.
 
-The hosted `ShellLanguageTests.retainedNumbersAndDatesRefreshWithLocaleNotificationsAndLanguageChoices` covers locale notifications, foreground refresh, retained starter notices, Credits counts and setup wellness quantities. Package `DisplayLocaleTests` covers all six precedence rows, names, numbers, clocks and a 24-hour override. `DisplayCalendarRequestTests` compares actual method, target and body bytes across redisplay and repeated approval.
+The hosted `ShellLanguageTests.retainedNumbersAndDatesRefreshWithLocaleNotificationsAndLanguageChoices` covers locale notifications, foreground refresh, the starter credits line, Credits counts and setup wellness quantities. Package `DisplayLocaleTests` covers all six precedence rows, names, numbers, clocks and a 24-hour override. No current test changes the display language while comparing calendar request bytes; treat that as unproven.
 
-The shared `TutorialHarness.done` expectation now uses `6/16/1998` under its default US region. `LanguagePickerProof`, `AutomaticFrenchPhoneProof` and `LanguageSaveFailureProof` use the resolved reply-language direction.
+The shared `TutorialHarness.done` expectation uses `6/16/1998` under its default US region. `LanguagePickerProof`, `AutomaticFrenchPhoneProof` and `LanguageSaveFailureProof` use the resolved reply-language direction.
 
 ## The 17-language matrix
 
 The `LanguageMatrix` classes prove the retained screens in every supported language. Each language has its own class, so one language failing leaves the other results intact, and each flow is its own test method. `sim suite` runs three languages: `LanguageMatrixDeProof` for German, `LanguageMatrixPtPTProof` for Portuguese of Portugal and `LanguageMatrixZhHantProof` for Traditional Chinese. The other 14 are release sweeps that `sim suite` runs only when they are named: `LanguageMatrixEnSweep`, `LanguageMatrixEsSweep`, `LanguageMatrixFrSweep`, `LanguageMatrixItSweep`, `LanguageMatrixNlSweep`, `LanguageMatrixDaSweep`, `LanguageMatrixSvSweep`, `LanguageMatrixNbSweep`, `LanguageMatrixFiSweep`, `LanguageMatrixPtBRSweep`, `LanguageMatrixPlSweep`, `LanguageMatrixKoSweep`, `LanguageMatrixJaSweep` and `LanguageMatrixZhHansSweep`.
+
+Workout review cards, stage notices, outcome notes and the largest text size in every language are proven on the [workout review page](./workout-review.md).
 
 | Test method | Screens it captures, in order |
 | --- | --- |
@@ -91,7 +93,7 @@ The `LanguageMatrix` classes prove the retained screens in every supported langu
 | `testSettings` | `settings`, `settings-access-method`, `settings-credits`, `settings-session`, `settings-training`, `settings-switch-athlete`, `language-choice-not-saved`. |
 | `testFailureNotices` | `out-of-credits` with Buy Credits and Switch to OpenRouter, `failed-reply`, `locked-iphone`, `secure-storage-unavailable`, `training-storage-unavailable`, `draft-not-sent`. |
 | `testHistory` | `history-empty`, `history-earlier-athlete`, `history-conversation`. |
-| `testUnconfirmedChange` | Opens the build 6833d90f unknown write offline. `review-unconfirmed` with Check again and Cancel, `review-not-saved` with the `workouts.stopped` notice, Add to calendar and Cancel after Check again finds nothing, `review-cancelled` with the change-not-made line. |
+| `testUnconfirmedChange` | Opens the build 6833d90f unknown write offline. `review-unconfirmed` with the `workouts.unconfirmed` notice in `chat.review.notice`, Check again and Cancel, `review-not-saved` with the `workouts.stopped` notice, Add to calendar and Cancel after Check again finds nothing, `review-cancelled` with the change-not-made line. |
 | `testOpenRouter` | `openrouter-blocked-request` with the 403 notice, `settings-openrouter`, `settings-model`. |
 | `testShortcuts` | `shortcut-choices` with the `/workout` and `/status` rows, whose command names stay untranslated beside their catalog titles, `shortcut-working` after `/workout 45 minutes indoors` is sent, `shortcut-reply`. |
 
