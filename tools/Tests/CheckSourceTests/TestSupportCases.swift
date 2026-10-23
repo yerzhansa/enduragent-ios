@@ -243,7 +243,10 @@ extension SourceCases {
 						of: "v1-upgrade/history", with: "build-6833d90f/\(scenario)"): sqliteStore
 				])
 		}
-		+ ["waiting-review", "reprinted-numbers", "reprinted-authored-steps"].map { scenario in
+		+ [
+			"waiting-review", "reprinted-numbers", "reprinted-authored-steps",
+			"misread-intervals-number",
+		].map { scenario in
 			.accepts(
 				"accepts committed build-d6f89d9b SQLite stores in \(scenario)",
 				binaries: [

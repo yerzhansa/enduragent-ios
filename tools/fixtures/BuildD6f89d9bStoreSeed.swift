@@ -12,6 +12,8 @@ import Testing
 		#"{"steps":[{"duration":600,"power":{"units":"%ftp","value":0.00005},"_power":{"value":9007199254740992}},{"duration":600,"hr":{"units":"%lthr","value":1e-9},"cadence":{"units":"rpm","value":1e16}}],"duration":1200,"ftp":250}"#
 	static let longDigitDocument =
 		#"{"steps":[{"duration":600,"power":{"units":"%ftp","value":0.00005},"_power":{"value":9007199254740992}},{"duration":600,"hr":{"units":"%lthr","value":1e-9},"cadence":{"units":"rpm","value":1e16}},{"duration":600,"power":{"units":"%ftp","value":1.2345678901234568e-05},"_power":{"value":1.2345678901234568e+20}}],"duration":1800,"ftp":250}"#
+	static let misreadDocument =
+		#"{"steps":[{"duration":600,"power":{"units":"%ftp","value":87.5},"_power":{"value":218.75}},{"duration":600,"power":{"units":"%ftp","value":55},"_power":{"value":137.5},"hr":{"units":"%lthr","value":0.051853768363630676}}],"duration":1200,"ftp":250}"#
 	static let authoredSteps =
 		#"{"steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":55}},{"type":"interval","duration":{"value":30,"unit":"minutes"},"power":{"kind":"percent_ftp","value":88}}]}"#
 	static let renamePatch = #"{"name":"Tempo 2x8"}"#
@@ -19,6 +21,7 @@ import Testing
 		("waiting-review", document, renamePatch),
 		("reprinted-numbers", longDigitDocument, renamePatch),
 		("reprinted-authored-steps", reprintedDocument, #"{"structure":\#(authoredSteps)}"#),
+		("misread-intervals-number", misreadDocument, renamePatch),
 	]
 
 	@Test(arguments: scenarios)

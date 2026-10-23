@@ -33,7 +33,10 @@ struct UpgradeStoreSeed {
 		UpgradeStoreSeed(
 			fixture: "build-d6f89d9b", commit: "d6f89d9b5ea7cb3ba196bd41bbb9bd9f865ca51f",
 			seed: "BuildD6f89d9bStoreSeed", destinationVariable: "UPGRADE_STORE_DESTINATION",
-			scenarios: ["waiting-review", "reprinted-numbers", "reprinted-authored-steps"],
+			scenarios: [
+				"waiting-review", "reprinted-numbers", "reprinted-authored-steps",
+				"misread-intervals-number",
+			],
 			appFixtures: []),
 	]
 }
