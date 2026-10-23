@@ -1,7 +1,8 @@
 {
 	"units": {
 		"0.1": 7,
-		"2.1": 8
+		"2.1": 8,
+		"2.4": 2
 	},
 	"criteria": [
 		{
@@ -113,6 +114,30 @@
 			"id": "2.1.8",
 			"statement": "make check-source passes over tools/npm-fixtures and the plan fixtures (fixture-date, forbidden-path, unexpected-binary, public-language on the README), and the repository gains no package.json, lockfile, tsx or tsconfig.",
 			"noAutomatedProof": "make check-source runs in CI on every pull request and applies those rules to every tracked file, the new ones included. The pull request lists the tracked files it adds, none of them a package.json, lockfile, tsx or tsconfig."
+		},
+		{
+			"id": "2.4.1",
+			"statement": "CivilDate.weekday gives the Gregorian weekday and days(until:) the signed day count, negative when the other day is earlier, across 1900-02-28 to 1900-03-01, 2000-02-28 to 2000-03-01, year ends and spans in both directions, and adding that count reaches the other day.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "weekdayIsTheGregorianWeekday"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "dayCountIsSignedAndAddingItReachesTheOtherDay"
+				}
+			]
+		},
+		{
+			"id": "2.4.2",
+			"statement": "The weekday of every today recorded in total-weeks.json and the plan-draft files equals npm's recorded weekday, over as many cases as the manifest counts for those files, and more than 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "weekdayOfEveryRecordedTodayIsNpmsWeekday"
+				}
+			]
 		}
 	],
 	"requirements": [

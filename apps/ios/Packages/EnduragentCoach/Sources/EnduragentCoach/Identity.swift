@@ -249,23 +249,52 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 	}
 
 	public func adding(days: Int) -> CivilDate {
+		guard let shifted = Self.utcCalendar.date(byAdding: .day, value: days, to: utcMidnight)
+		else {
+			fatalError("civil date \(rawValue) cannot move by \(days) days")
+		}
+		return CivilDate(date: shifted, timeZone: .gmt)
+	}
+
+	func days(until other: CivilDate) -> Int {
+		guard
+			let count = Self.utcCalendar.dateComponents(
+				[.day], from: utcMidnight, to: other.utcMidnight
+			).day
+		else {
+			fatalError("civil dates \(rawValue) and \(other.rawValue) have no day count")
+		}
+		return count
+	}
+
+	var weekday: Weekday {
+		let sundayFirst = Self.utcCalendar.component(.weekday, from: utcMidnight)
+		return Weekday.allCases[(sundayFirst + 5) % 7]
+	}
+
+	private static let utcCalendar: Calendar = {
 		var calendar = Calendar(identifier: .gregorian)
 		calendar.locale = Locale(identifier: "en_US_POSIX")
 		calendar.timeZone = .gmt
+		return calendar
+	}()
+
+	private var utcMidnight: Date {
 		let parts = rawValue.split(separator: "-")
 		let components = DateComponents(
 			year: Int(parts[0]),
 			month: Int(parts[1]),
 			day: Int(parts[2])
 		)
-		guard
-			let date = calendar.date(from: components),
-			let shifted = calendar.date(byAdding: .day, value: days, to: date)
-		else {
+		guard let date = Self.utcCalendar.date(from: components) else {
 			fatalError("civil date \(rawValue) is not a real day")
 		}
-		return CivilDate(date: shifted, timeZone: .gmt)
+		return date
 	}
+}
+
+enum Weekday: String, Sendable, CaseIterable {
+	case mon, tue, wed, thu, fri, sat, sun
 }
 
 public struct DateKey: Hashable, Sendable, Comparable {
