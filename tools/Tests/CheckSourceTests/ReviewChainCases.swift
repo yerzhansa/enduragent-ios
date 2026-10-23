@@ -7,6 +7,7 @@ extension SourceCases {
 	static let reviewChainOutside = [
 		"\(review)/WorkoutReviewDesk.swift", "\(records)/Ledger.swift",
 		"\(records)/WorkoutReviewBody.swift", "\(review)/WorkoutReviews.swift",
+		"\(records)/ChainAppend.swift",
 	]
 	static let reviewChainBodies = [
 		"let body = WorkoutReviewBody(review: review)",
