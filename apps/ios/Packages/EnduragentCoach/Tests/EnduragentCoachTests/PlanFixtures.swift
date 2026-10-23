@@ -33,6 +33,12 @@ enum PlanFixtures {
 		return try rows.map(Case.init(row:))
 	}
 
+	static func numberTokens(_ file: String) throws -> [[String]] {
+		var scanner = OutputNumberScanner(bytes: Array(try bundledFile(file + ".json")))
+		try scanner.document()
+		return scanner.cases
+	}
+
 	static func manifest() throws -> JSONValue {
 		try JSONValue.parse(String(decoding: try bundledFile(manifestFile), as: UTF8.self))
 	}

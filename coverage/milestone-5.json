@@ -1,7 +1,8 @@
 {
 	"units": {
 		"0.1": 7,
-		"2.1": 8
+		"2.1": 8,
+		"2.2": 5
 	},
 	"criteria": [
 		{
@@ -113,6 +114,55 @@
 			"id": "2.1.8",
 			"statement": "make check-source passes over tools/npm-fixtures and the plan fixtures (fixture-date, forbidden-path, unexpected-binary, public-language on the README), and the repository gains no package.json, lockfile, tsx or tsconfig.",
 			"noAutomatedProof": "make check-source runs in CI on every pull request and applies those rules to every tracked file, the new ones included. The pull request lists the tracked files it adds, none of them a package.json, lockfile, tsx or tsconfig."
+		},
+		{
+			"id": "2.2.1",
+			"statement": "JavaScriptNumber.text of every number token in the outputs of feasibility.json, the plan drafts and headline.json gives the token's own text, over as many cases as the manifest counts and more than 0 tokens. The table cases pass: 1e21, 1e-7, 1e16, -0 and 2^53 + 2 print as JavaScript prints them, fixed(2.25, digits: 1) is 2.3 and fixed(1.005, digits: 2) is 1.00, round(-2.5) is -2 and round(2.5) is 3, roundToTenths(0.25) is 0.3 and roundToTenths(-0.25) is -0.2, and json of a non-finite number is null.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "everyNumberInTheFeasibilityPlanDraftAndHeadlineOutputsPrintsAsJavaScriptWroteIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "textIsJavaScriptsStringOfTheNumber"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "fixedRoundsTheExactBinaryValueAndBreaksATieUpward"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "roundBreaksATieTowardPositiveInfinity"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "roundToTenthsBreaksATieTowardPositiveInfinity"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "jsonOfANonFiniteNumberIsNull"}
+			]
+		},
+		{
+			"id": "2.2.2",
+			"statement": "encodeJSONNumber is gone, and canonicalDigestInput and canonicalJSON print numbers through JavaScriptNumber.json.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "canonicalTextPrintsNumbersAsJavaScript"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IdentityTests.swift", "function": "jsonParseCanonicalSha256AndStringify"}
+			]
+		},
+		{
+			"id": "2.2.3",
+			"statement": "Every committed digest is unchanged: the ledger digest table still matches, and the stored structure of each of workout-review-refreshed.json, workout-review-try-again.json and workout-review-try-again-load-only.json is the snapshot of its own steps again.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UnionMergeTests.swift", "function": "ledgerDigestMatchesDesktop"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IdentityTests.swift", "function": "estimateTokensMatchesDesktop"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutSnapshotTests.swift", "function": "aStoredReviewsStructureIsTheSnapshotOfItsOwnStepsAgain"}
+			]
+		},
+		{
+			"id": "2.2.4",
+			"statement": "The build-d6f89d9b/waiting-review seed opens on this build: its waiting Milestone 4 review restores at revision 1 with the structure this build computes for the same steps, Approve is offered and completes without a refresh, and its memory section, journal row and two settled turns read without a skipped row. The four older seeds pass unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bWaitingReviewKeepsItsDigestAndApprovesWithoutARefresh"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bKeepsItsMemoryJournalAndSettledTurns"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownAddNotFoundIsApprovedAgainUnderTheSameExternalID"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build2bbe2eeKeepsMemoryHistoryAndConsent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "preVaultClaimsStayUnconnectedAndTheNextTurnUsesTheLegacyKey"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "testUpgradeHistory"}
+			]
+		},
+		{
+			"id": "2.2.5",
+			"statement": "The tools' JavaScriptNumber in tools/Sources/ToolSupport/JSONText.swift gives the same text for every table case of 2.2.1 that text and fixedToOneDecimal cover.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/JavaScriptNumberTextTests.swift", "function": "textIsJavaScriptsStringOfTheNumber"},
+				{"file": "tools/Tests/ToolSupportTests/JavaScriptNumberTextTests.swift", "function": "fixedToOneDecimalBreaksATieUpward"}
+			]
 		}
 	],
 	"requirements": [

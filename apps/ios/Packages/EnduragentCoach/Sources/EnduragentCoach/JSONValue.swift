@@ -65,7 +65,7 @@ public enum JSONValue: Sendable, Equatable {
 		case .bool(let flag):
 			return flag ? "true" : "false"
 		case .number(let number):
-			return encodeJSONNumber(number)
+			return JavaScriptNumber.json(number)
 		case .string(let string):
 			return encodeJSONString(string)
 		case .array(let items):
@@ -141,20 +141,6 @@ private func encodeJSONString(_ string: String) -> String {
 	}
 	out += "\""
 	return out
-}
-
-private func encodeJSONNumber(_ value: Double) -> String {
-	if !value.isFinite {
-		return "null"
-	}
-	if value == 0 {
-		return "0"
-	}
-	let maxSafe = 9_007_199_254_740_991.0
-	if abs(value) <= maxSafe, value.rounded(.towardZero) == value {
-		return String(Int64(value))
-	}
-	return String(value)
 }
 
 package func wholeInt(_ value: Double) -> Int? {
