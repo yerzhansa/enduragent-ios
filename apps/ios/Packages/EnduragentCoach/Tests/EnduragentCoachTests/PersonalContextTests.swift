@@ -109,7 +109,7 @@ import Testing
 		await coach.lifecycle(.willTerminate)
 	}
 
-	@Test func promptNamesNoPlanAndThePlanningToolsAreOfferedWithoutPlanSave() async throws {
+	@Test func promptSaysNoPlanIsSavedAndOffersPlanLoadWithoutPlanSave() async throws {
 		let coach = await fixture.open()
 		try await remember(mira.injected + [(.cyclingEquipment, mira.equipment)], using: coach)
 
@@ -117,14 +117,44 @@ import Testing
 
 		let system = try MemoryProbe.systemText(in: request)
 		#expect(system.contains(mira.goals))
-		#expect(!system.contains("## Current Plan"))
+		#expect(system.contains("## Current Plan\nNo plan saved yet."))
 		let offered = request.tools.map(\.name.rawValue)
 		#expect(offered.contains("memory_write"))
 		#expect(
 			Array(offered.drop { $0 != "calculate_zones" }.prefix(4)) == [
 				"calculate_zones", "build_plan_skeleton", "assess_feasibility", "get_sample_week",
 			])
-		#expect(offered.filter { $0.hasPrefix("plan_") }.isEmpty)
+		#expect(offered.filter { $0.hasPrefix("plan_") } == ["plan_load"])
+		#expect(offered.last == "plan_load")
+		await coach.lifecycle(.willTerminate)
+	}
+
+	@Test func everyPromptEndsItsAthleteContextWithThePlanBlock() async throws {
+		let noPlan = "## Current Plan\nNo plan saved yet."
+		let coach = await fixture.open()
+		let empty = try MemoryProbe.athleteData(
+			in: MemoryProbe.systemText(in: try await ask(coach)))
+		try await remember(mira.injected, using: coach)
+		let remembered = try MemoryProbe.athleteData(
+			in: MemoryProbe.systemText(in: try await ask(coach)))
+		try await seed(
+			fixture.store,
+			[
+				storedRecord(
+					device: fixture.store.deviceId, wall: 100, ulid: fixedUlid(100),
+					account: fixture.accountA, body: try SavedPlanRows.body(PlanDocumentTests.base))
+			])
+		let saved = try MemoryProbe.athleteData(
+			in: MemoryProbe.systemText(in: try await ask(coach)))
+
+		#expect(empty == "\n" + noPlan + "\n")
+		#expect(remembered.contains(mira.goals))
+		#expect(remembered.hasSuffix("\n\n" + noPlan + "\n"))
+		#expect(saved.contains(mira.goals))
+		#expect(
+			saved.hasSuffix(
+				"\n\n## Current Plan\n- Name: Base\n- Goal: century\n- Duration: 12 weeks\n"))
+		#expect(!saved.contains(noPlan))
 		await coach.lifecycle(.willTerminate)
 	}
 

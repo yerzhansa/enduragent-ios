@@ -30,12 +30,12 @@ import Testing
 		#expect(
 			offered.first == [
 				.calculateZones, .buildPlanSkeleton, .assessFeasibility, .getSampleWeek,
-				.memoryQuery, .memoryWrite, .ledgerAppend,
+				.memoryQuery, .memoryWrite, .ledgerAppend, .planLoad,
 			])
 		#expect(
 			offered.last == [
 				.calculateZones, .buildPlanSkeleton, .assessFeasibility, .getSampleWeek,
-				.memoryRead, .memoryQuery, .memoryWrite, .ledgerAppend,
+				.memoryRead, .memoryQuery, .memoryWrite, .ledgerAppend, .planLoad,
 			])
 	}
 
@@ -53,7 +53,7 @@ import Testing
 				.intervalsFetchAthlete, .intervalsFetchWellness, .intervalsFetchActivity,
 				.intervalsFetchStreams, .intervalsFetchActivities, .intervalsListEvents,
 				.getPendingWorkoutChanges, .prepareWorkoutChanges, .memoryQuery, .memoryWrite,
-				.ledgerAppend,
+				.ledgerAppend, .planLoad,
 			])
 	}
 
@@ -210,6 +210,62 @@ import Testing
 		#expect(ULID(rawValue: try #require(id)) != nil)
 	}
 
+	@Test func planLoadIsMemoizedUntilAMemoryWriteAndReturnsTheNewestSavedPlanWhole()
+		async throws
+	{
+		let base: JSONValue = .object([
+			"name": .string("Base"), "totalWeeks": .number(8),
+			"phases": .array([.object(["number": .number(1), "focus": .string("base_building")])]),
+		])
+		let build: JSONValue = .object([
+			"name": .string("Build"), "primaryGoal": .string("century"),
+			"status": .string("active"),
+			"phases": .array([
+				.object(["number": .number(1), "focus": .string("aerobic_development")]),
+				.object(["number": .number(2), "focus": .string("taper"), "weeks": .array([])]),
+			]),
+			"extra": .object(["nested": .array([.number(1), .bool(true), .null])]),
+		])
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let offered = makeOfferedTools(intervals: intervals, ledger: ledger, clock: clock)
+		let scope = TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero)
+		let phone = store.deviceId
+		try await seed(
+			store,
+			[
+				storedRecord(
+					device: phone, wall: 10, ulid: fixedUlid(10),
+					body: try SavedPlanRows.body(
+						base, id: 1, confirmation: 2,
+						decided: HybridLogicalClock(wallMs: 5, logical: 0, deviceId: phone)))
+			])
+
+		let first = try await planLoad(offered, scope)
+		try await seed(
+			store,
+			[
+				storedRecord(
+					device: phone, wall: 20, ulid: fixedUlid(20),
+					body: try SavedPlanRows.body(
+						build, id: 3, confirmation: 4,
+						decided: HybridLogicalClock(wallMs: 8, logical: 0, deviceId: phone)))
+			])
+		let memoized = try await planLoad(offered, scope)
+		_ = try await offered.execute(
+			name: .memoryWrite,
+			arguments: .object(["type": .string("daily"), "content": .string("Legs felt fresh.")]),
+			scope: scope)
+		let afterWrite = try await planLoad(offered, scope)
+
+		#expect(first == base)
+		#expect(memoized == base)
+		#expect(afterWrite == build)
+		#expect(
+			try await planLoad(
+				offered, TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero))
+				== build)
+	}
+
 	@Test func memoryReadAfterAWriteInTheSameAttemptSeesTheWrite() async throws {
 		let query = ScriptedEvent.toolCall(
 			name: "memory_query", arguments: #"{"from":"1998-06-13","to":"1998-06-13"}"#)
@@ -233,6 +289,16 @@ import Testing
 		try #require(results.count == 3)
 		#expect(!results[0].contains("Knee felt sore on the climb."))
 		#expect(results[2].contains("Knee felt sore on the climb."))
+	}
+
+	private func planLoad(_ offered: OfferedTools, _ scope: TurnScope) async throws -> JSONValue {
+		let execution = try await offered.execute(
+			name: .planLoad, arguments: .object([:]), scope: scope)
+		guard case .result(let envelope) = execution.outcome else {
+			throw PlanFixtureFailure(description: "plan_load answered \(execution.outcome)")
+		}
+		#expect(envelope.objectFields["untrusted_data"] == .string(UntrustedEnvelope.banner))
+		return try #require(envelope.objectFields["data"])
 	}
 
 	private func unconnectedCoach() async -> Coach {

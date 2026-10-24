@@ -13,11 +13,11 @@ import Testing
 		_ = try await coach.sendAndSettle("What should I ride?")
 		let offered = try #require(transport.requests.first).tools
 		let phone: [String: (description: String?, parameters: JSONValue)] = [
-			"plan_save": (nil, PlanToolSchemas.planSave),
-			"plan_load": (nil, PlanToolSchemas.planLoad),
+			"plan_save": (nil, PlanToolSchemas.planSave)
 		].merging(
 			offered.filter {
-				[.assessFeasibility, .buildPlanSkeleton, .getSampleWeek].contains($0.name)
+				[.assessFeasibility, .buildPlanSkeleton, .getSampleWeek, .planLoad].contains(
+					$0.name)
 			}
 			.map { ($0.name.rawValue, ($0.description, $0.parameters)) }
 		) { _, offered in offered }

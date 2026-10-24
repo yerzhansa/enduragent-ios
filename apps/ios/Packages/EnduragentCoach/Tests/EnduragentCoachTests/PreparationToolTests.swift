@@ -230,7 +230,7 @@ import Testing
 				.intervalsFetchAthlete, .intervalsFetchWellness, .intervalsFetchActivity,
 				.intervalsFetchStreams, .intervalsFetchActivities, .intervalsListEvents,
 				.getPendingWorkoutChanges, .prepareWorkoutChanges, .memoryQuery, .memoryWrite,
-				.ledgerAppend,
+				.ledgerAppend, .planLoad,
 			])
 	}
 

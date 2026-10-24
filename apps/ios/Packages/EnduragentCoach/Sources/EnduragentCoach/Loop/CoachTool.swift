@@ -169,6 +169,7 @@ enum CoachTools {
 		case .memoryWrite: memoryWrite
 		case .ledgerAppend: ledgerAppend
 		case .planSave: nil
+		case .planLoad: planLoad
 		}
 	}
 }

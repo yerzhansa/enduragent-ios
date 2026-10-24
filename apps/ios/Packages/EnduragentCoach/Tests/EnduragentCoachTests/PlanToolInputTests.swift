@@ -7,7 +7,7 @@ import Testing
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	@Test func everyRecordedCallGetsZodsVerdictAndNpmsResult() async throws {
-		let tools: [ToolName] = [.assessFeasibility, .buildPlanSkeleton, .getSampleWeek]
+		let tools: [ToolName] = [.assessFeasibility, .buildPlanSkeleton, .getSampleWeek, .planLoad]
 		let offered = makeOfferedTools(
 			intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250),
 			ledger: Ledger(
@@ -52,6 +52,7 @@ import Testing
 		#expect(
 			notices == [
 				"invalid_input", "invalid_date", "Goal appears achievable within one plan cycle.",
+				"No plan saved yet.",
 			])
 		for tool in tools {
 			let recorded = try PlanFixtures.manifestCount("tool-inputs", tool: tool.rawValue)

@@ -490,7 +490,7 @@ export function toolInputs(): ToolInput[] {
 
   rows.push(...sharedRefusals("plan_load"));
   rows.push(
-    ...[{}, { name: "Base" }, { plan: null }].map((input) => ({ tool: "plan_load" as const, input, executes: false })),
+    ...[{}, { name: "Base" }, { plan: null }].map((input) => ({ tool: "plan_load" as const, input, executes: true })),
   );
   return rows;
 }

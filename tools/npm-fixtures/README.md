@@ -39,6 +39,8 @@ Each fixture file opens with a header line that names the revision and the npm f
 
 `manifest.json` records the Node and ICU versions, the `ai` and `zod` versions, the hash of every file under the `dist` folders the run loads, the seed of the case generator, the hash of the four generator files, and the hash and case count of each fixture file. For `tool-inputs.json` it also counts the cases of each tool.
 
+Each `headline.json` case that saves a plan records `accepted`: whether npm's `plan_save` input schema accepts that plan, the verdict `tool-inputs.json` records for each call. The case with no plan records no verdict.
+
 `PlanFixtureProvenanceTests` checks the committed fixtures against `manifest.json` and the generator files on every `make test-swift`. A fixture edited together with its hash in the manifest passes that test. Only `make plan-fixtures-check` catches it.
 
 ## Change the fixtures
