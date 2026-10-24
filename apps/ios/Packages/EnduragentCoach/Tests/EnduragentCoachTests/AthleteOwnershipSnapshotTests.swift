@@ -234,6 +234,71 @@ extension SwiftDataSuites {
 			await coach.lifecycle(.willTerminate)
 		}
 
+		@Test func theFirstAthletesSavedPlanStaysAwayFromTheSecondAfterAReconnect() async throws {
+			let fixture = try AthleteScopedCoachingFixture(store: InMemoryRecordLog())
+			let plan: JSONValue = .object(["name": .string("A_PLAN"), "totalWeeks": .number(10)])
+			try await seed(
+				fixture.store,
+				[
+					storedRecord(
+						device: fixture.store.deviceId, wall: 10, ulid: fixedUlid(10),
+						account: fixture.accountA, body: try SavedPlanRows.body(plan))
+				])
+			let coach = await fixture.open()
+
+			let forA = try await readPlans(fixture, coach)
+			try await fixture.connect(.athleteB, using: coach)
+			let forB = try await readPlans(fixture, coach)
+
+			#expect(
+				try MemoryProbe.systemText(in: forA).contains(
+					"## Current Plan\n- Name: A_PLAN\n- Duration: 10 weeks"))
+			#expect(try fixture.toolText("memory_query", in: forA).contains("A_PLAN"))
+			#expect(try planLoad(in: forA) == plan)
+			fixture.assertAbsent("A_PLAN", from: forB)
+			#expect(
+				try MemoryProbe.systemText(in: forB).contains("## Current Plan\nNo plan saved yet.")
+			)
+			#expect(try planLoad(in: forB) == .object(["message": .string("No plan saved yet.")]))
+			let memory = Memory(
+				ledger: Ledger(
+					log: fixture.store, clock: fixture.clock,
+					diagnostics: DiagnosticsLog(clock: fixture.clock)),
+				clock: fixture.clock)
+			#expect(
+				try await memory.loadSnapshot(for: fixture.accountA).savedPlans.newest?.value
+					== plan)
+			#expect(try await memory.loadSnapshot(for: fixture.accountB).savedPlans.newest == nil)
+			#expect(
+				try await memory.loadSnapshot(for: testStamp(account: fixture.accountA)).savedPlans
+					.newest?.value == plan)
+			#expect(
+				try await memory.loadSnapshot(for: testStamp(account: fixture.accountB)).savedPlans
+					.newest == nil)
+			await coach.lifecycle(.willTerminate)
+		}
+
+		private func readPlans(_ fixture: AthleteScopedCoachingFixture, _ coach: Coach)
+			async throws -> CompletionRequest
+		{
+			try await MemoryProbe.turn(
+				[
+					.toolCall(name: "plan_load", arguments: "{}"),
+					.toolCall(
+						name: "memory_query", arguments: #"{"from":"1998-06-13","to":"1998-06-13"}"#
+					),
+				], saying: "What is my current plan?", expecting: "Here is your plan.",
+				using: coach, transport: fixture.transport)
+		}
+
+		private func planLoad(in request: CompletionRequest) throws -> JSONValue {
+			let call = try #require(
+				request.messages.flatMap(\.toolCalls).first { $0.name == "plan_load" })
+			return try MemoryProbe.data(
+				in: try #require(
+					request.messages.first { $0.role == .tool && $0.toolCallId == call.id }))
+		}
+
 		private func summary(on coach: Coach, chat: ChatID) async throws
 			-> ArchivedConversationSummary
 		{

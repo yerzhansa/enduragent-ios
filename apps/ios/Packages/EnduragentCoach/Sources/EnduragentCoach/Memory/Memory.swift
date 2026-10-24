@@ -2,7 +2,7 @@ import Foundation
 
 package struct Memory: Sendable {
 	package static let snapshotScope: RecordQuery.Scope = .synced([
-		.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary,
+		.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary, SavedPlans.kind,
 	])
 
 	let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void
@@ -107,6 +107,11 @@ package struct Memory: Sendable {
 			order += 1
 		}
 
+		for hit in planHits(snapshot, from: from, to: to, contains: needle) {
+			collected.append((hit, order))
+			order += 1
+		}
+
 		return collected.sorted { lhs, rhs in
 			if lhs.hit.date != rhs.hit.date {
 				return lhs.hit.date > rhs.hit.date
@@ -124,7 +129,28 @@ package struct Memory: Sendable {
 		context: String, view: MemoryView
 	) {
 		let snapshot = try await loadSnapshot(for: account)
-		return (renderContext(snapshot, excluding: hiddenSections), view(snapshot))
+		return (
+			withPlanState(renderContext(snapshot, excluding: hiddenSections), snapshot),
+			view(snapshot)
+		)
+	}
+
+	private func withPlanState(_ context: String, _ snapshot: MemorySnapshot) -> String {
+		guard snapshot.savedPlans.newest == nil else { return context }
+		return context.isEmpty
+			? SavedPlans.noPlanContext : context + "\n\n" + SavedPlans.noPlanContext
+	}
+
+	private func planHits(
+		_ snapshot: MemorySnapshot, from: CivilDate, to: CivilDate, contains needle: String?
+	) -> [MemoryHit] {
+		snapshot.savedPlans.history(from: from, to: to, contains: needle).map { line in
+			MemoryHit(
+				date: line.date, kind: .journal,
+				text:
+					"\(PlanHistoryLine.label) — was: \(historyBodySummary(line.was, query: needle))"
+					+ " / now: \(historyBodySummary(line.now, query: needle))")
+		}
 	}
 
 	private var hiddenSections: [String] {
@@ -275,6 +301,9 @@ package struct Memory: Sendable {
 		let daily = injectableDailyLines(snapshot.dailyText(on: today)).joined(separator: "\n")
 		if !memoryTrimEnd(daily).isEmpty {
 			parts.append("## Today's Notes\n" + daily)
+		}
+		if let headline = snapshot.savedPlans.headline {
+			parts.append(headline)
 		}
 		return parts.joined(separator: "\n\n")
 	}

@@ -2,29 +2,39 @@ import Foundation
 
 extension Memory {
 	func loadSnapshot(for account: TrainingAccount) async throws -> MemorySnapshot {
-		try await loadSnapshot(for: account, originating: nil)
+		MemorySnapshotReader(
+			records: try await owned(Self.snapshotScope, for: account, originating: nil)
+		).snapshot
 	}
 
 	func loadSnapshot(for stamp: OperationStamp) async throws -> MemorySnapshot {
-		try await loadSnapshot(for: stamp.binding.account, originating: stamp)
+		MemorySnapshotReader(
+			records: try await owned(
+				Self.snapshotScope, for: stamp.binding.account, originating: stamp)
+		).snapshot
 	}
 
-	private func loadSnapshot(for account: TrainingAccount, originating stamp: OperationStamp?)
-		async throws -> MemorySnapshot
-	{
-		let records = try await ledger.read(RecordQuery(scope: Self.snapshotScope)).records
+	func savedPlans(for account: TrainingAccount) async throws -> SavedPlans {
+		SavedPlans(
+			owned: try await owned(.synced([SavedPlans.kind]), for: account, originating: nil))
+	}
+
+	private func owned(
+		_ scope: RecordQuery.Scope, for account: TrainingAccount,
+		originating stamp: OperationStamp?
+	) async throws -> [AthleteRecord] {
+		let records = try await ledger.read(RecordQuery(scope: scope)).records
 		let ownership = try await ledger.informationOwnership()
 		let selected =
 			stamp.map {
 				ownership.extractionReadAccount(for: $0, origin: ledger.deviceId)
 			} ?? account
-		let scope = ownership.scope(for: selected, device: ledger.deviceId)
-		let owned = records.filter {
-			scope.contains(
+		let readScope = ownership.scope(for: selected, device: ledger.deviceId)
+		return records.filter {
+			readScope.contains(
 				ownership.memoryOwner(
 					account: ownership.recoveredMemoryAccount(of: $0), origin: $0.deviceId))
 		}
-		return MemorySnapshotReader(records: owned).snapshot
 	}
 }
 
@@ -49,7 +59,8 @@ private struct MemorySnapshotReader {
 		}
 		return MemorySnapshot(
 			sections: sections, daily: daily, ledgerRecords: UnionMerge.ledger(events),
-			journalRecords: journal, compaction: compaction, orphanNames: orphanNames(in: sections))
+			journalRecords: journal, compaction: compaction, orphanNames: orphanNames(in: sections),
+			savedPlans: SavedPlans(owned: records))
 	}
 
 	private func orphanNames(in sections: [AthleteRecord]) -> [String] {

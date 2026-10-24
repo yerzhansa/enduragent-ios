@@ -57,6 +57,18 @@ struct PlanDocument: Sendable, Equatable {
 		return document
 	}
 
+	var headlineLines: [String] {
+		let fields = value.objectFields
+		return [
+			fields["name"]?.stringValue.map { "- Name: \($0)" },
+			fields["primaryGoal"]?.stringValue.map { "- Goal: \($0)" },
+			fields["totalWeeks"]?.numberValue.map {
+				"- Duration: \(JavaScriptNumber.text($0)) weeks"
+			},
+			fields["status"]?.stringValue.map { "- Status: \($0)" },
+		].compactMap(\.self)
+	}
+
 	var pendingSummary: String {
 		guard let detail = summaryDetail("name") ?? summaryDetail("goal") else {
 			return Self.summaryPhrasebook.say(Catalog.coachProposalSavePlan)

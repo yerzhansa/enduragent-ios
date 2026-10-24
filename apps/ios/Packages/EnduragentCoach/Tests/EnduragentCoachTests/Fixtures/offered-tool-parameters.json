@@ -394,6 +394,10 @@
   ],
   "type": "object"
  },
+ "plan_load": {
+  "properties": {},
+  "type": "object"
+ },
  "prepare_workout_changes": {
   "properties": {
    "preparation": {
