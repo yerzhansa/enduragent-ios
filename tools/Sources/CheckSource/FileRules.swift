@@ -52,7 +52,20 @@ extension SourceChecker {
 				#"\bReviewControlToken\s*(?:\(|\.\s*init\b)"#,
 				#"(?:\.\s*init|\bSelf)\s*\(\s*ref\s*:\#(argumentText)*?\bsecret\s*:"#,
 			]),
+		MintedValue(
+			name: "SavedPlanBody", owner: plansSource + "PlanSave.swift", anywhere: [],
+			elsewhere: [
+				#"\bextension\s+SavedPlanBody\b"#, #"\bSavedPlanBody(?:\s*\.\s*init)?\s*\("#,
+				#"(?:\.\s*init|\bSelf)\s*\(\s*id\s*:\#(argumentText)*?\bconfirmation\s*:"#
+					+ #"\#(argumentText)*?\bdecided\s*:"#,
+			]),
 	]
+	static let plansSource = "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Plans/"
+	static let planRecordOwners =
+		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/(?:Plans\/[^/]+"#
+		+ #"|Records\/(?:AthleteRecord|RecordCodec|RecordEnvelopePayload|DeviceLocalCodec))"#
+		+ #"\.swift$"#
+	static let planRecordNames = #"\.\s*savedPlan\b|\bSavedPlanBody\b"#
 	static let coachSource =
 		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$"#
 	static let reviewChainType = #"(?:WorkoutReviewBody|ReviewPreparingBody)"#
@@ -164,6 +177,9 @@ extension SourceChecker {
 		}
 		if file.hasSameUnits(as: Self.recordModel) { try checkLedgerIndexVersion(file, text) }
 		if try mintsOutsideItsFile(file, text) { try findings.report(file, "minted-in-one-file") }
+		if try namesAPlanRecordOutsideItsOwners(file, text) {
+			try findings.report(file, "plan-records-private")
+		}
 		if try buildsReviewChainBodyOutsideTheChain(file, text) {
 			try findings.report(file, "review-chain-only")
 		}
@@ -220,6 +236,13 @@ extension SourceChecker {
 			try !patterns.test(Self.chainAppendCallers, file)
 		else { return false }
 		return try Self.chainAppendCalls.contains { try patterns.test($0, text) }
+	}
+
+	private func namesAPlanRecordOutsideItsOwners(_ file: String, _ text: String) throws -> Bool {
+		guard try patterns.test(Self.coachPackageSource, file),
+			try !patterns.test(Self.planRecordOwners, file)
+		else { return false }
+		return try patterns.test(Self.planRecordNames, text)
 	}
 
 	private func mintsOutsideItsFile(_ file: String, _ text: String) throws -> Bool {
