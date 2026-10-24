@@ -66,4 +66,44 @@ enum PlanningArguments {
 	private static func refusal(_ details: String) -> ToolInputError {
 		ToolInputError(code: "invalid_input", details: details)
 	}
+
+	static func sampleWeek(_ arguments: JSONValue) throws(ToolInputError) -> SampleWeekRequest {
+		let fields = try object(arguments)
+		let tier = try required(fields, "volumeTier", VolumeTier.self)
+		let scheduleType = try required(fields, "scheduleType", ScheduleType.self)
+		let availableDays = try list(fields, "availableDays", Weekday.self)
+		let keySessionDay = try optional(fields, "keySessionDay", Weekday.self)
+		let sessionsPerWeek = try integer(fields, "sessionsPerWeek")
+		if let sessionsPerWeek, !(3...6).contains(sessionsPerWeek) {
+			throw refusal("sessionsPerWeek must be a whole number from 3 to 6 when given.")
+		}
+		return SampleWeekRequest(
+			tier: tier, scheduleType: scheduleType, availableDays: availableDays,
+			keySessionDay: keySessionDay, sessionsPerWeek: sessionsPerWeek)
+	}
+
+	private static func optional<Choice: RawRepresentable & CaseIterable>(
+		_ fields: [String: JSONValue], _ key: String, _ choices: Choice.Type
+	) throws(ToolInputError) -> Choice? where Choice.RawValue == String {
+		guard fields[key] != nil else { return nil }
+		return try required(fields, key, choices)
+	}
+
+	private static func list<Choice: RawRepresentable & CaseIterable>(
+		_ fields: [String: JSONValue], _ key: String, _ choices: Choice.Type
+	) throws(ToolInputError) -> [Choice]? where Choice.RawValue == String {
+		guard let value = fields[key] else { return nil }
+		guard let items = value.arrayValue else {
+			throw refusal("\(key) must be a list when given.")
+		}
+		var chosen: [Choice] = []
+		for item in items {
+			guard let raw = item.stringValue, let choice = Choice(rawValue: raw) else {
+				let names = Choice.allCases.map(\.rawValue).joined(separator: ", ")
+				throw refusal("Each of \(key) must be one of \(names).")
+			}
+			chosen.append(choice)
+		}
+		return chosen
+	}
 }
