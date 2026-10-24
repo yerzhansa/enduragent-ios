@@ -50,7 +50,7 @@ enum PlanningArguments {
 
 	private static let largestSafeInteger = 9_007_199_254_740_991.0
 
-	private static func object(_ arguments: JSONValue) throws(ToolInputError)
+	static func object(_ arguments: JSONValue) throws(ToolInputError)
 		-> [String: JSONValue]
 	{
 		guard case .object(let fields) = arguments else {

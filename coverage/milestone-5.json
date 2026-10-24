@@ -676,11 +676,11 @@
 		},
 		{
 			"id": "5.2.1",
-			"statement": "For every case of headline.json, a plan PlanDocument.parse accepts is stored as a saved plan, and the prompt's \"## Current Plan\" block and plan_load's result equal npm's, with headline fields present, absent or empty and every totalWeeks npm prints; a plan with an absent, null or ill-typed headline field, or a totalWeeks of 0, 1.5, -1, 1e21 or past 2^53, is refused with invalid_plan, so the phone never holds it. With no plan saved, the block is npm's NO_PLAN_CONTEXT, \"## Current Plan\\nNo plan saved yet.\" (system-prompt.ts:25 at d192cb97), and plan_load answers {\"message\": \"No plan saved yet.\"}. The cases compared equal the manifest's headline.json count, and the saved, refused and no-plan counts are each above 0.",
+			"statement": "For every case of headline.json, the phone saves a plan exactly when the recorded verdict of npm's plan_save input schema (zod 4.5.4) accepts it. An accepted plan is stored as a saved plan, and the prompt's \"## Current Plan\" block and plan_load's result equal npm's, with headline fields present, absent or empty and every totalWeeks npm prints; a refused plan, such as one with an absent, null or ill-typed headline field, or a totalWeeks of 0, 1.5, -1, 1e21 or past 2^53, gets invalid_plan, so the phone never holds it. With no plan saved, the block is npm's NO_PLAN_CONTEXT, \"## Current Plan\\nNo plan saved yet.\" (system-prompt.ts:25 at d192cb97), and plan_load answers {\"message\": \"No plan saved yet.\"}. The cases compared equal the manifest's headline.json count and the sum of the accepted, refused and no-plan cases; the phone's saved and refused counts equal the fixture's accepted and refused counts (20 and 26 at d192cb97), each above 0, and there is one no-plan case.",
 			"tests": [
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanHeadlineParityTests.swift",
-					"function": "everyHeadlineAndPlanLoadResultIsNpmsForEveryPlanThePhoneCanSave"
+					"function": "everyPlanZodAcceptsShowsNpmsHeadlineAndPlanLoadAndEveryPlanZodRefusesIsRefused"
 				}
 			]
 		},
@@ -710,18 +710,26 @@
 		},
 		{
 			"id": "5.2.4",
-			"statement": "memory_query over a range holding a save of plan A and its replacement by plan B returns history: save-plan — was: … / now: … lines with npm's previews, newest date first; the first save's was is empty; a query matches the old or the new plan text; and neither a waiting workout review nor a prepared plan-save confirmation appears.",
+			"statement": "memory_query over a range holding a save of plan A and its replacement by plan B returns history: save-plan — was: … / now: … lines with npm's previews, newest date first; the first save's was is empty; a query matches the old or the new plan text; and neither a waiting workout review nor a prepared plan-save confirmation appears. On one day, save-plan and write-section lines follow the order they happened in, as npm's journal append order does: a save decided before a section write comes before it, and one decided after comes after it.",
 			"tests": [
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryQueryTests.swift",
 					"function": "aSaveAndItsReplacementShowAsHistoryWithNpmsPreviewsAndNoReviewDoes"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryQueryTests.swift",
+					"function": "plansAndSectionWritesOfOneDayShowInTheOrderTheyHappened"
 				}
 			]
 		},
 		{
 			"id": "5.2.5",
-			"statement": "plan_load is offered after ledger_append, where plan_save's slot is, on connected and unconnected turns, with the name, description and parameters of tool-schemas.json; it is memoized within an attempt, evicted by a memory write in the same attempt, and returns the newest owned saved plan whole.",
+			"statement": "plan_load is offered after ledger_append, where plan_save's slot is, on connected and unconnected turns, with the name, description and parameters of tool-schemas.json; it is memoized within an attempt, evicted by a memory write in the same attempt, and returns the newest owned saved plan whole. For every plan_load call of tool-inputs.json, it refuses with invalid_input exactly the arguments zod refuses (null, [], \"plan\" and 7) and answers every accepted call with npm's result; the plan_load cases compared equal the manifest's count, which is above 0.",
 			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolInputTests.swift",
+					"function": "everyRecordedCallGetsZodsVerdictAndNpmsResult"
+				},
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
 					"function": "connectedTurnIsOfferedEveryToolInOneOrder"
@@ -744,7 +752,7 @@
 				},
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanHeadlineParityTests.swift",
-					"function": "everyHeadlineAndPlanLoadResultIsNpmsForEveryPlanThePhoneCanSave"
+					"function": "everyPlanZodAcceptsShowsNpmsHeadlineAndPlanLoadAndEveryPlanZodRefusesIsRefused"
 				}
 			]
 		},

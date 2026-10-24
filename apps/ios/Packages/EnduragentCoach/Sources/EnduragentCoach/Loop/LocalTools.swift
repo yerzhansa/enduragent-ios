@@ -79,8 +79,9 @@ extension CoachTools {
 	static let planLoad = CoachTool.local(
 		.memoryRead(.planLoad), "Load the current active training plan",
 		parameters: PlanToolSchemas.planLoad, rerunWith: nil
-	) { _, reach in
-		.result(try await reach.memory.savedPlans(for: reach.account).loadResult)
+	) { arguments, reach in
+		_ = try PlanningArguments.object(arguments)
+		return .result(try await reach.memory.savedPlans(for: reach.account).loadResult)
 	}
 
 	static let memoryWrite = CoachTool.local(

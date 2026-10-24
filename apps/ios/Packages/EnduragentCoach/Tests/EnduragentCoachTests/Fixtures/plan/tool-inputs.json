@@ -149,7 +149,7 @@
 {"id":"tool-inputs/0148","tool":"plan_load","input":[],"output":{"accepted":false}},
 {"id":"tool-inputs/0149","tool":"plan_load","input":"plan","output":{"accepted":false}},
 {"id":"tool-inputs/0150","tool":"plan_load","input":7,"output":{"accepted":false}},
-{"id":"tool-inputs/0151","tool":"plan_load","input":{},"output":{"accepted":true}},
-{"id":"tool-inputs/0152","tool":"plan_load","input":{"name":"Base"},"output":{"accepted":true}},
-{"id":"tool-inputs/0153","tool":"plan_load","input":{"plan":null},"output":{"accepted":true}}
+{"id":"tool-inputs/0151","tool":"plan_load","input":{},"output":{"accepted":true,"result":{"message":"No plan saved yet."}}},
+{"id":"tool-inputs/0152","tool":"plan_load","input":{"name":"Base"},"output":{"accepted":true,"result":{"message":"No plan saved yet."}}},
+{"id":"tool-inputs/0153","tool":"plan_load","input":{"plan":null},"output":{"accepted":true,"result":{"message":"No plan saved yet."}}}
 ]}

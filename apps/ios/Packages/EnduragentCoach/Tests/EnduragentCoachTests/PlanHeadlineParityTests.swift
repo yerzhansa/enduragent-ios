@@ -9,10 +9,14 @@ import Testing
 
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-	@Test func everyHeadlineAndPlanLoadResultIsNpmsForEveryPlanThePhoneCanSave() async throws {
+	@Test func everyPlanZodAcceptsShowsNpmsHeadlineAndPlanLoadAndEveryPlanZodRefusesIsRefused()
+		async throws
+	{
 		var compared = 0
-		var saved = 0
-		var refused = 0
+		var zodAccepted = 0
+		var zodRefused = 0
+		var phoneSaved = 0
+		var phoneRefused = 0
 		var none = 0
 		var mismatched: [String] = []
 		for item in try PlanFixtures.cases("headline") {
@@ -21,21 +25,34 @@ import Testing
 			let npmContext = try #require(npm["context"]?.stringValue)
 			let npmPlanLoad = try #require(npm["planLoad"])
 			let store = InMemoryRecordLog()
-			if let plan = item.input.objectFields["plan"] {
+			switch (item.input.objectFields["plan"], npm["accepted"]) {
+			case (nil, nil):
+				none += 1
+				if !npmContext.isEmpty { mismatched.append("\(item.id): npm shows a plan") }
+			case (let plan?, .bool(let accepted)?):
+				if accepted { zodAccepted += 1 } else { zodRefused += 1 }
 				switch Result(catching: { () throws(ToolInputError) in
 					try PlanDocument.parse(arguments: item.input)
 				}) {
-				case .success:
-					saved += 1
+				case .success where accepted:
+					phoneSaved += 1
 					try await seed(store, [savedPlanRow(plan, on: store.deviceId)])
+				case .success:
+					phoneSaved += 1
+					mismatched.append("\(item.id): zod refuses the plan the phone saves")
+					continue
 				case .failure(let refusal):
-					refused += 1
-					if refusal.code != "invalid_plan" { mismatched.append(item.id) }
+					phoneRefused += 1
+					if accepted {
+						mismatched.append("\(item.id): zod accepts the plan the phone refuses")
+					} else if refusal.code != "invalid_plan" {
+						mismatched.append("\(item.id): refused with \(refusal.code)")
+					}
 					continue
 				}
-			} else {
-				none += 1
-				if !npmContext.isEmpty { mismatched.append(item.id) }
+			default:
+				mismatched.append("\(item.id): the fixture records no verdict for this plan")
+				continue
 			}
 			let phone = try await read(store)
 			let expectedContext =
@@ -46,10 +63,12 @@ import Testing
 		}
 		#expect(mismatched.isEmpty, "\(mismatched.prefix(3))")
 		#expect(compared == (try PlanFixtures.manifestCount(["headline"])))
-		#expect(compared > 0)
-		#expect(saved > 0)
-		#expect(refused > 0)
-		#expect(none > 0)
+		#expect(compared == zodAccepted + zodRefused + none)
+		#expect(phoneSaved == zodAccepted)
+		#expect(phoneRefused == zodRefused)
+		#expect(zodAccepted > 0)
+		#expect(zodRefused > 0)
+		#expect(none == 1)
 	}
 
 	private func read(_ store: InMemoryRecordLog) async throws -> (

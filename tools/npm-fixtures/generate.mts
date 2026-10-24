@@ -349,12 +349,14 @@ async function headlineRows(npm: Npm, scratch: string, drafts: readonly Json[]):
   const rows: Row[] = [];
   for (const [index, plan] of cases.headline(drafts).entries()) {
     const { memory } = freshMemory(npm, scratch);
+    const tools = planTools(npm, memory);
+    const zod = plan === undefined ? {} : { accepted: (await verdict(npm, tools.plan_save, { plan })).success };
     if (plan !== undefined) await memory.savePlan(plan);
-    const planLoad = await planTools(npm, memory).plan_load.execute({}, EXECUTE_OPTIONS);
+    const planLoad = await tools.plan_load.execute({}, EXECUTE_OPTIONS);
     rows.push({
       id: caseId("headline", index),
       input: plan === undefined ? {} : { plan },
-      output: { context: memory.getContext(), planLoad: plain(planLoad) },
+      output: { ...zod, context: memory.getContext(), planLoad: plain(planLoad) },
     });
   }
   return rows;

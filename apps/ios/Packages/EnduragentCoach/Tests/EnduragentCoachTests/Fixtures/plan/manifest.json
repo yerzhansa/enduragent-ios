@@ -5,7 +5,7 @@
   "ai": "6.0.170",
   "zod": "4.5.4",
   "lcgSeed": "0x5eed",
-  "generatorSHA256": "b712bcf232ba897015bd44f8ad09e32c1dd46feabc9b72012261d9b1f579c4cc",
+  "generatorSHA256": "e17b210fc57b373a9931a22dae78fd0b9200cc5d1e62da2f134c19d83b06270b",
   "dist": {
     "@enduragent/coach-contract": {
       "dist/activity-analysis.d.ts": "4dd237dd61dcf3b3dd1db4f9ca96fe65190288395a968ba3f44913ab9d78d8a0",
@@ -262,7 +262,7 @@
       "cases": 3093
     },
     "tool-inputs.json": {
-      "sha256": "d2fbed9ba43a2966c4b8f70c3ba3783dea56f57a491d3a6142368e9b14bd5544",
+      "sha256": "79a7e8f392edf5682f66faee24f22fad5c4b58b1534fe6e3b1ff574294e7e154",
       "cases": 153,
       "casesByTool": {
         "assess_feasibility": 34,
@@ -277,7 +277,7 @@
       "cases": 5
     },
     "headline.json": {
-      "sha256": "2af92a177d57aab7d7feebd1310ae554b8b7a3a8480a212f800af6fc4293c76b",
+      "sha256": "a093bc9b33927d494c5eebdb19de3024bf2e4922b42a97b43455904977ae1b3d",
       "cases": 47
     },
     "plan-object.json": {
