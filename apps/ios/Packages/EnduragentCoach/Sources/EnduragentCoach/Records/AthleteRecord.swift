@@ -34,6 +34,7 @@ package enum DeviceLocalKind: String, Sendable, CaseIterable {
 	case flushSettled
 	case workoutReview
 	case reviewPreparing
+	case planConfirmation
 }
 
 package enum LegacyKind: String, Sendable, CaseIterable {
@@ -143,6 +144,7 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 	case flushSettled(FlushSettledBody)
 	case workoutReview(WorkoutReviewBody)
 	case reviewPreparing(ReviewPreparingBody)
+	case planConfirmation(PlanConfirmationBody)
 
 	package var kind: DeviceLocalKind {
 		switch self {
@@ -155,6 +157,7 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 		case .flushSettled: .flushSettled
 		case .workoutReview: .workoutReview
 		case .reviewPreparing: .reviewPreparing
+		case .planConfirmation: .planConfirmation
 		}
 	}
 
@@ -167,6 +170,7 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 		case .flushSettled(let body): body.chatId
 		case .workoutReview(let body): body.chatId
 		case .reviewPreparing(let body): body.chatId
+		case .planConfirmation(let body): body.chat
 		case .openRouterKeyRejected, .providerConsent:
 			nil
 		}
@@ -178,6 +182,7 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 		case .replyObserved(let body): body.turn
 		case .pendingSettlement(let body): body.turn
 		case .reviewPreparing(let body): body.turn
+		case .planConfirmation(let body): body.turn
 		case .openRouterKeyRejected, .providerConsent, .flushPending, .flushSettled,
 			.workoutReview:
 			nil

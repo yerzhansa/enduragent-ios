@@ -35,7 +35,7 @@ extension SwiftDataSuites {
 			let directory = try TestTemporaryFolders.make()
 			let log = try makeSwiftDataLog(deviceId: phone, directory: directory)
 			let reviewKinds: Set<String> = ["reviewOutcome", "workoutReview", "reviewPreparing"]
-			let laterKinds: Set<String> = [SavedPlans.kind.rawValue]
+			let laterKinds: Set<String> = [SavedPlans.kind.rawValue, PlanChain.kind.rawValue]
 			let sourceBound = FlushPendingBody(
 				chatId: .main, messageUlids: [fixedUlid(5)], sourceBound: true,
 				process: ProcessID(ulid: fixedUlid(6)))

@@ -79,10 +79,11 @@ extension SourceCases {
 		"let block = ReviewBlock.reviewedBeforeUpgrade",
 		"let tool = ToolName.prepareWorkoutChanges",
 		"let pendingTool = \"get_pending_workout_changes\"",
-		"let prepare = \"prepare_workout_changes\"", "struct PlanSaveConfirmation {}",
+		"let prepare = \"prepare_workout_changes\"",
 		"struct ReviewCardView {}", "let writes = WorkoutReviewsList()",
 		"let key = Catalog.reviewStorageUnavailable", "let stopping = isTurnStopping",
 	].joined(separator: "\n")
+	static let laterPlanType = "struct PlanSaveConfirmation {}"
 
 	static let tokenCases: [SourceCase] =
 		tokenMinted.flatMap { source in
@@ -119,7 +120,10 @@ extension SourceCases {
 	static let keptNameCases: [SourceCase] = [
 		.accepts(
 			"accepts the review types, legacy kinds and later types beside the deleted path",
-			Dictionary(uniqueKeysWithValues: singleChangeFiles.map { ($0, laterTypes) })),
+			Dictionary(
+				uniqueKeysWithValues: singleChangeFiles.map { file in
+					(file, file.hasPrefix(review) ? laterTypes : laterTypes + "\n" + laterPlanType)
+				})),
 		.accepts(
 			"accepts the old tool names where tests prove they are no longer offered",
 			[

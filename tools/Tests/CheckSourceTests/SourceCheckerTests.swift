@@ -34,7 +34,7 @@ enum SourceCases {
 		+ proofHelpers + binaries + ledgerIndexes + contentRules + mailboxState + featureProofs
 		+ fixtureLaunch + recordAccess + secretStores + port + mintedInOneFile + reviewChainOnly
 		+ reviewOutcomeWriter + chainAppendCallerRule + singleChangePathDeleted + planningPure
-		+ planRecordsPrivate
+		+ planRecordsPrivate + planSaveSeparate
 }
 
 enum Link: Sendable {

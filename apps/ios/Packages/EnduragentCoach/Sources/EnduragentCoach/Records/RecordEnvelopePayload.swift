@@ -122,6 +122,7 @@ enum DeviceLocalPayload: Encodable {
 	case flushSettled(FlushSettledPayload)
 	case workoutReview(ReviewDocument)
 	case reviewPreparing(TurnAttemptPayload)
+	case planConfirmation(PlanConfirmationPayload)
 
 	init(_ body: DeviceLocalRecordBody) {
 		switch body {
@@ -168,6 +169,8 @@ enum DeviceLocalPayload: Encodable {
 					attempt: value.attempt.ulid.rawValue
 				)
 			)
+		case .planConfirmation(let value):
+			self = .planConfirmation(PlanConfirmationPayload(value))
 		}
 	}
 
@@ -182,6 +185,7 @@ enum DeviceLocalPayload: Encodable {
 		case .flushSettled(let payload): try payload.encode(to: encoder)
 		case .workoutReview(let payload): try payload.encode(to: encoder)
 		case .reviewPreparing(let payload): try payload.encode(to: encoder)
+		case .planConfirmation(let payload): try payload.encode(to: encoder)
 		}
 	}
 }

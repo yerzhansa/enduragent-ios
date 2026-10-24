@@ -9,6 +9,7 @@ package enum OperationID: Hashable, Sendable {
 	case launchRecovery(LaunchID)
 	case workoutReview(WorkoutReviewID, ReviewRevision)
 	case debugSample(DebugSampleID)
+	case planSave(PlanConfirmationID)
 }
 
 package struct OperationStamp: Hashable, Sendable {
