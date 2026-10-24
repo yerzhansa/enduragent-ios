@@ -95,6 +95,16 @@ import Testing
 		#expect(try copy.problems() == [.caseCount("tool-inputs.json")])
 	}
 
+	@Test func rehashedFixtureWhoseToolsNoLongerMatchTheManifestIsACountProblem() throws {
+		var copy = try FixtureCopy.committed()
+		try #require(try copy.problems().isEmpty)
+		try copy.replace(
+			#""tool":"plan_load""#, with: #""tool":"plan_save""#, in: "tool-inputs.json")
+		try copy.rehash("tool-inputs.json")
+
+		#expect(try copy.problems() == [.caseCount("tool-inputs.json")])
+	}
+
 	@Test func fixtureWithNoCasesIsACountProblemEvenWhenTheManifestAgrees() throws {
 		var copy = try FixtureCopy.committed()
 		let empty =

@@ -163,6 +163,7 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureRemovedWithoutTheManifestIsAbsent"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "decodedCaseCountThatDiffersFromTheManifestIsACountProblem"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "toolCountThatDiffersFromTheManifestIsACountProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "rehashedFixtureWhoseToolsNoLongerMatchTheManifestIsACountProblem"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureWithNoCasesIsACountProblemEvenWhenTheManifestAgrees"}
 			]
 		},
