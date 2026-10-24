@@ -55,6 +55,11 @@ extension SourceChecker {
 	]
 	static let coachSource =
 		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$"#
+	static let planningSource =
+		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/Planning\/.*\.swift$"#
+	static let impurePlanning =
+		#"\b\w*Clock\b|\bDate\s*(?:\(\s*\)|\.\s*now\b)|\bUUID\s*\(\s*\)"#
+		+ #"|\bTimeZone\s*\.\s*current\b|\bLedger\b|\bactor\b"#
 	static let reviewChainType = #"(?:WorkoutReviewBody|ReviewPreparingBody)"#
 	static let bracketed = #"(?:[^()\[\]{}]|\([^()\[\]{}]*\)|\[[^()\[\]{}]*\]|\{[^()\[\]{}]*\})*"#
 	static let argumentText =
@@ -172,6 +177,10 @@ extension SourceChecker {
 		}
 		if try callsTheChainDoorwayOutsideItsCallers(file, text) {
 			try findings.report(file, "chain-append-callers")
+		}
+		if try patterns.test(Self.planningSource, file) && patterns.test(Self.impurePlanning, text)
+		{
+			try findings.report(file, "planning-pure")
 		}
 		if try file.hasSameUnits(as: Self.mailbox) && hasExposedMailboxState(text) {
 			try findings.report(file, "mailbox-private-state")
