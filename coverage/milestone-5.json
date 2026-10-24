@@ -7,6 +7,7 @@
 		"2.3": 4,
 		"2.4": 2,
 		"3.1": 3,
+		"3.2": 4,
 		"3.3": 2,
 		"3.4": 4,
 		"5.1": 9,
@@ -329,6 +330,54 @@
 				{
 					"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift",
 					"function": "givesTheVerdictForATrackedTree"
+				}
+			]
+		},
+		{
+			"id": "3.2.1",
+			"statement": "For every case of total-weeks.json, IntervalsPolicy.today of the case's instant and time zone equals the recorded today, then Planning.totalWeeks of PlanningArguments.profile of the case input equals the recorded output. A race whose date is today or earlier gives 8 weeks. A case the parser refuses is a mismatch.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TotalWeeksParityTests.swift",
+					"function": "everyRecordedGoalGetsNpmsWeekCountOnThePhonesDay"
+				}
+			]
+		},
+		{
+			"id": "3.2.2",
+			"statement": "For every case of the plan-draft files the manifest lists, IntervalsPolicy.today of the case's instant and time zone equals the recorded today, then Planning.draft of PlanningArguments.profile of the case input, with the fixture id and timestamp, as JSON, equals the recorded output. A case recorded as thrown throws, and no case recorded with an output throws or is refused.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDraftParityTests.swift",
+					"function": "everyRecordedProfileGetsNpmsPlanDraftOnThePhonesDay"
+				}
+			]
+		},
+		{
+			"id": "3.2.3",
+			"statement": "The plan draft's zone table holds the names and ranges DisplayZones.table(ftpWatts:) gives, for every FTP from 50 to 600 W, so the package has one zone calculator.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDraftParityTests.swift",
+					"function": "draftZonesAreTheZoneCalculatorsRows"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDraftParityTests.swift",
+					"function": "everyRecordedProfileGetsNpmsPlanDraftOnThePhonesDay"
+				}
+			]
+		},
+		{
+			"id": "3.2.4",
+			"statement": "The numbers of cases compared equal the manifest's counts for total-weeks.json and for the plan-draft files, and each is above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TotalWeeksParityTests.swift",
+					"function": "everyRecordedGoalGetsNpmsWeekCountOnThePhonesDay"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDraftParityTests.swift",
+					"function": "everyRecordedProfileGetsNpmsPlanDraftOnThePhonesDay"
 				}
 			]
 		},
