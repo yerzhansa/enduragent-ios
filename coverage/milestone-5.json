@@ -242,7 +242,8 @@
 			"id": "2.3.1",
 			"statement": "The serializer's refusal messages and its workout description print numbers through JavaScriptNumber.text, the serializer cases of serializer-cases.json pass unchanged, and Serializer.jsString is gone.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SerializerTests.swift", "function": "matchesDesktopCases"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SerializerTests.swift", "function": "matchesDesktopCases"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SerializerRefusalTests.swift", "function": "refusalMessagePrintsNumbersAsJavaScriptDoes"}
 			]
 		},
 		{
