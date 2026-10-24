@@ -168,7 +168,7 @@ enum PlanCardProjection {
 	{
 		let decidedBefore = confirmation.decided.map { !boundary.includes($0.ulid, at: $0.hlc) }
 		return decidedBefore != true
-			&& confirmation.expiry > boundary.clock.wallTime
+			&& confirmation.carriedUntil > boundary.clock.wallTime
 	}
 
 	private static func state(_ phase: ConfirmationPhase, controls: PlanControls?, stalled: Bool)

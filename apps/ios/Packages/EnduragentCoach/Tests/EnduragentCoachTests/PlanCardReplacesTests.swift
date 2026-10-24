@@ -68,6 +68,47 @@ extension PlanConfirmationTests {
 		#expect(cards.map(\.summary.replaces) == [nil, "Threshold Block", "Threshold Block"])
 	}
 
+	@Test func anExpiredCardIgnoresAPlanSavedAfterItReadExpired() async throws {
+		let log = InterleavingChainLog(turns.store)
+		let clock = turns.clock
+		let store = turns.store
+		log.interleave(on: .planChain(of: .main), times: 1) {
+			clock.advance(by: .seconds(2))
+			try await PlanTurns.moveHead(of: store, foreign: 7)
+		}
+		let coach = await turns.coach(over: log)
+		_ = try await turns.reply(after: [[turns.save(PlanTurns.baseBuild)]], on: coach)
+		let prepared = try #require(try await turns.prepared(in: turns.store).first)
+		let step = try #require(
+			try await turns.steps(in: turns.store).first { record in
+				if case .prepared = record.body.step { return true }
+				return false
+			})
+		#expect(step.hlc.wallTime > prepared.expiresAt.addingTimeInterval(-600))
+
+		clock.advance(by: .seconds(598))
+		#expect(clock.now == prepared.expiresAt)
+		let expired = try await turns.cards(on: await turns.coach())
+		#expect(expired.map(\.state) == [.expired])
+		#expect(expired.map(\.summary.replaces) == [nil])
+
+		let pad = DeviceID(rawValue: "plan-pad")
+		let decided = HybridLogicalClock.tick(
+			now: prepared.expiresAt.addingTimeInterval(1), deviceId: pad, last: nil)
+		try await turns.store.append(
+			[
+				storedRecord(
+					device: pad, wall: decided.wallMs, ulid: fixedUlid(3),
+					account: testConnection.account,
+					body: try SavedPlanRows.body(PlanTurns.threshold, decided: decided))
+			], locality: .synced)
+		clock.advance(by: .seconds(5))
+
+		let later = try await turns.cards(on: await turns.coach())
+		#expect(later.map(\.state) == [.expired])
+		#expect(later.map(\.summary.replaces) == [nil])
+	}
+
 	@Test func aCarriedWaitingCardNamesAPlanSavedAfterTheReset() async throws {
 		let coach = await turns.coach()
 		_ = try await turns.prepareAndArm(PlanTurns.baseBuild, on: coach)
