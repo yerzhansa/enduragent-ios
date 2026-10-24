@@ -114,6 +114,22 @@ public struct ReviewRevision: Hashable, Sendable, Comparable {
 	}
 }
 
+public struct PlanConfirmationID: Hashable, Sendable {
+	public let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
+package struct SavedPlanID: Hashable, Sendable {
+	package let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
 package struct ClaimID: Hashable, Sendable {
 	package let ulid: ULID
 

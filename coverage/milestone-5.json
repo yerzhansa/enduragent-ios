@@ -10,6 +10,7 @@
 		"3.2": 4,
 		"3.3": 2,
 		"3.4": 4,
+		"5.1": 9,
 		"6.1": 3
 	},
 	"criteria": [
@@ -455,6 +456,128 @@
 			"noAutomatedProof": "This criterion is a property of the diff, checked on the final head. The pull request body records git diff --stat, which names no fixture, digest, seed store or PublicSurface file, and the full make test-swift run."
 		},
 		{
+			"id": "5.1.1",
+			"statement": "PlanDocument.parse(arguments:) accepts exactly the plan_save arguments zod accepted in tool-inputs.json and plan-object.json, refuses the rest with invalid_plan, and keeps every key of an accepted plan: JSONValue.parse of npm's saved text equals the document's value for every accepted case of plan-object.json, and the arguments' plan for every accepted case of tool-inputs.json. The cases compared equal the manifest's plan-object.json count plus tool-inputs.json's plan_save count, and each is above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanObjectParityTests.swift",
+					"function": "everyPlanSaveVerdictIsZodsAndAnAcceptedPlanKeepsEveryKey"
+				}
+			]
+		},
+		{
+			"id": "5.1.2",
+			"statement": "A document's text is canonicalJSON of its value, so a plan whose keys arrive out of order saves sorted text, and npm's saved text in plan-object.json differs from it only in key order, for every accepted case, more than 0, and at least one case whose npm text is in another order.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanObjectParityTests.swift",
+					"function": "savedTextSortsKeysAndDiffersFromNpmsTextOnlyInKeyOrder"
+				}
+			]
+		},
+		{
+			"id": "5.1.3",
+			"statement": "pendingSummary equals npm's summary for every accepted case of plan-object.json, both the form with a name or goal and the form without one, and the number compared equals the accepted count, above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanObjectParityTests.swift",
+					"function": "pendingSummaryIsNpmsSummaryForEveryAcceptedPlan"
+				}
+			]
+		},
+		{
+			"id": "5.1.4",
+			"statement": "A plan whose plan_load result would not fit ToolResultCap.fits is refused with plan_too_large, and one exactly at the cap is accepted; the runtime returns the accepted plan whole and omits the refused one. The runtime decides with the same ToolResultCap.fits, and ToolResultCapTests pass unchanged.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDocumentTests.swift",
+					"function": "aPlanAtTheToolResultCapIsAcceptedAndOneTokenOverIsRefusedAsTooLarge"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolResultCapTests.swift",
+					"function": "resultsAtOrBelowCapStayIntact"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolResultCapTests.swift",
+					"function": "resultJustAboveCapIsOmitted"
+				}
+			]
+		},
+		{
+			"id": "5.1.5",
+			"statement": "A document's digest is sha256Hex of its value's canonicalDigestInput. PlanDocument.restore(text:digest:) refuses a text whose digest differs or that is not its canonical rendering, so a savedPlan row with a hand-edited document decodes as malformed. Restore does not re-check the size rule.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDocumentTests.swift",
+					"function": "digestIsTheSha256OfTheCanonicalDigestInputAndRestoresTheSameDocument"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDocumentTests.swift",
+					"function": "aSavedPlanRowWhoseDocumentWasEditedByHandIsMalformed"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDocumentTests.swift",
+					"function": "restoreKeepsAStoredPlanThatNoLongerFitsTheCap"
+				}
+			]
+		},
+		{
+			"id": "5.1.6",
+			"statement": "A savedPlan body encodes at body version 7 and round-trips through SwiftDataRecordLog. A savedPlan row at version 8 is skipped as newerVersion. Every other kind keeps its version.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SavedPlanTests.swift",
+					"function": "aSavedPlanIsStoredAtBodyVersion7AndReadsBackWhole"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SavedPlanTests.swift",
+					"function": "aSavedPlanRowFromALaterBodyVersionIsSkippedAsNewer"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SavedPlanTests.swift",
+					"function": "everyOtherKindKeepsTheBodyVersionItWasStoredAt"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SwiftDataRecordLogTests.swift",
+					"function": "bodyRoundTripForEveryKind"
+				}
+			]
+		},
+		{
+			"id": "5.1.7",
+			"statement": "SavedPlans(owned:) orders saves by decided, then by the row's HLC: a save whose decided is older but whose row landed later sits behind the newer decision. A second row with a seen id counts once. newest is the last.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SavedPlanTests.swift",
+					"function": "theSavedPlanIsTheNewestDecisionEvenWhenAnOlderDecisionLandedLater"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SavedPlanTests.swift",
+					"function": "aSecondRowWithAnIdAlreadySeenCountsOnce"
+				}
+			]
+		},
+		{
+			"id": "5.1.8",
+			"statement": "The build-d6f89d9b/waiting-review seed opens on this build with every row as 2.2 found it. A saved plan committed into it reads back whole after the store is closed and opened again, as after a relaunch.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreSavedPlanTests.swift",
+					"function": "buildD6f89d9bKeepsEveryRowAndASavedPlanCommittedIntoItReadsBackAfterARelaunch"
+				}
+			]
+		},
+		{
+			"id": "5.1.9",
+			"statement": "make check-source fails .savedPlan or SavedPlanBody named in the coach package outside Plans/*.swift and the codec files (plan-records-private), and SavedPlanBody built or extended outside Plans/PlanSave.swift (minted-in-one-file). Each has passing and failing cases.",
+			"tests": [
+				{
+					"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift",
+					"function": "givesTheVerdictForATrackedTree"
+				}
+			]
+		},
+		{
 			"id": "6.1.1",
 			"statement": "ChainAppend.swift holds head(of:), newest(_:), append(_:stamp:after:in:) and chats(holding:) on Ledger with RecordHead, NewestRecord, HeadMoved and TransitionFailure, moved from ReviewChain.swift, and Loop/TurnEnding.swift holds TurnEnding, moved from ReviewCommit.swift. The only changed lines that are not moves are the three named edits: commit(_:stamp:after:in:) renamed append, chats(holding:) taking the kind with reviewChats() calling it for .workoutReview, and newest(_:) and append losing private.",
 			"noAutomatedProof": "This criterion is a property of the diff, checked by hand on the final head. The pull request body records git diff -M --stat and lists every changed line that is not a move."
@@ -485,6 +608,26 @@
 			"id": "X08",
 			"statement": "Fixtures that compare npm and phone outputs are made by a committed generator from npm at d192cb974e715e1527645e0acf0d8353ed4d0edc, refuse any other revision, Node or checkout state, and are checked against their manifest on every make test-swift.",
 			"criteria": ["2.1.1", "2.1.2", "2.1.3", "2.1.4", "2.1.5", "2.1.6", "2.1.7"]
+		},
+		{
+			"id": "B07.04/saved-plan",
+			"statement": "A saved plan is retained across installed-app updates: a saved plan committed into a store a Milestone 4 build wrote reads back whole after the store is opened again.",
+			"criteria": ["5.1.8"]
+		},
+		{
+			"id": "X05/saved-plan",
+			"statement": "Versioned storage keeps a saved plan's meaning across an upgrade: a saved plan is stored at body version 7, a later version is skipped rather than misread, and an older build's store opens with every row intact.",
+			"criteria": ["5.1.6", "5.1.8"]
+		},
+		{
+			"id": "B15.05/size",
+			"statement": "plan_save refuses a plan whose plan_load result would not fit the tool-result cap.",
+			"agreedDifference": "ADR-0084 refuses a plan whose plan_load result would not fit the tool-result cap, the same rule the runtime applies to every tool result; npm has no limit. Shown by 5.1.4."
+		},
+		{
+			"id": "B15.05/sorted-keys",
+			"statement": "The saved plan text sorts its keys; npm keeps the order the model sent.",
+			"agreedDifference": "ADR-0084 saves the plan text with sorted keys, where npm keeps the order the model sent; the values are the same. Shown by 5.1.2."
 		}
 	],
 	"plan": {
@@ -547,8 +690,6 @@
 		"B16.01/plan-save",
 		"B09.01/plan-save",
 		"B01.03/saved-plan",
-		"B07.04/saved-plan",
-		"X05/saved-plan",
 		"G03/plans",
 		"D06/plan",
 		"D14/plan",
@@ -558,8 +699,6 @@
 		"B19.03/durable",
 		"B19.03/step-limit",
 		"B15.05/plan-unavailable",
-		"B15.05/size",
-		"B15.05/sorted-keys",
 		"B15.05/two-calls"
 	]
 }

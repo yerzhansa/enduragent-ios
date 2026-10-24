@@ -449,6 +449,10 @@ OpenRouterExchangeFailure.network
 OpenRouterModelChoices
 OpenRouterModelChoices.catalog
 OpenRouterModelChoices.selected
+PlanConfirmationID
+PlanConfirmationID.ulid
+PlanDigest
+PlanDigest.rawValue
 PreferenceWriteFailure
 PreferenceWriteFailure.notSaved
 ProviderConsent
