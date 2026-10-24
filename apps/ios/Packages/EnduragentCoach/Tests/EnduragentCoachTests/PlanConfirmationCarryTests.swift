@@ -95,6 +95,35 @@ extension PlanConfirmationTests {
 		#expect(carried.map(\.placement) == (offset == 0 ? [] : [.preparedEarlier]))
 	}
 
+	@Test func aConfirmationIsCarriedUntilTheTenMinutesFromItsPreparedStepsHLCEnd()
+		async throws
+	{
+		let log = InterleavingChainLog(turns.store)
+		let clock = turns.clock
+		let store = turns.store
+		log.interleave(on: .planChain(of: .main), times: 1) {
+			clock.advance(by: .seconds(2))
+			try await PlanTurns.moveHead(of: store, foreign: 7)
+		}
+		let coach = await turns.coach(over: log)
+		_ = try await turns.reply(after: [[turns.save(PlanTurns.baseBuild)]], on: coach)
+		let prepared = try #require(try await turns.prepared(in: turns.store).first)
+		let step = try #require(
+			try await turns.steps(in: turns.store).first { record in
+				if case .prepared = record.body.step { return true }
+				return false
+			})
+		clock.advance(by: .seconds(599))
+		#expect(prepared.expiresAt < clock.now)
+		#expect(clock.now < step.hlc.wallTime.addingTimeInterval(600))
+
+		_ = await coach.resetAndSettle(in: .main)
+
+		let carried = try await turns.cards(on: coach)
+		#expect(carried.map(\.placement) == [.preparedEarlier])
+		#expect(carried.map(\.state) == [.expired])
+	}
+
 	@Test func saveAndCancelCallNoCalendarAndApprovingAWorkoutReviewSavesNoPlan() async throws {
 		let coach = await turns.coach()
 		let saved = try await turns.prepareAndArm(PlanTurns.threshold, on: coach)

@@ -85,8 +85,9 @@ extension PlanConfirmationTests {
 		let next = try await turns.prepareAndArm(PlanTurns.baseBuild, on: coach)
 		#expect(await coach.decide(.save(next), in: .main) == .saved)
 
-		#expect(
-			try await turns.cards(on: coach).map(\.state) == [.storageUnavailable, .saved])
+		let cards = try await turns.cards(on: coach)
+		#expect(cards.map(\.state) == [.storageUnavailable, .saved])
+		#expect(cards.map(\.summary.replaces) == [nil, nil])
 		#expect(try await turns.savedPlanRows() == 1)
 		#expect(try await turns.planLoad(on: coach) == PlanTurns.baseBuild)
 	}

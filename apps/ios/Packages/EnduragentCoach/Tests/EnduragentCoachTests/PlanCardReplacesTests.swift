@@ -92,13 +92,33 @@ extension PlanConfirmationTests {
 				== [nil, "Threshold Block"] + replacedOnTheWay + [newestBeforeLater])
 	}
 
-	@Test func aCanceledCardNamesAPlanDecidedBeforeItsCancelButWrittenAfterIt() async throws {
+	enum LateRecord: String, CaseIterable, Sendable, CustomTestStringConvertible {
+		case decidedAfterTheSaveHere
+		case decidedBeforeTheSaveHere
+
+		var testDescription: String { rawValue }
+
+		var replaces: [String?] {
+			switch self {
+			case .decidedAfterTheSaveHere: [nil, "Peak Week"]
+			case .decidedBeforeTheSaveHere: ["Peak Week", "Threshold Block"]
+			}
+		}
+	}
+
+	@Test(arguments: LateRecord.allCases)
+	func aCardComparesWhenAPlanWasDecidedNotWhenItsRecordArrived(_ late: LateRecord) async throws {
 		let coach = await turns.coach()
 		let first = try await turns.prepareAndArm(PlanTurns.threshold, on: coach)
+		turns.clock.advance(by: .seconds(1))
+		let decidedBeforeTheSave = Self.decidedElsewhere(at: turns.clock.now)
+		turns.clock.advance(by: .seconds(1))
 		#expect(await coach.decide(.save(first), in: .main) == .saved)
 		let ended = try await turns.prepareAndArm(PlanTurns.baseBuild, on: coach)
 		turns.clock.advance(by: .seconds(1))
-		let decided = Self.decidedElsewhere(at: turns.clock.now)
+		let decided =
+			late == .decidedBeforeTheSaveHere
+			? decidedBeforeTheSave : Self.decidedElsewhere(at: turns.clock.now)
 		turns.clock.advance(by: .seconds(1))
 		#expect(await coach.decide(.cancel(ended), in: .main) == .canceled)
 		turns.clock.advance(by: .seconds(1))
@@ -110,6 +130,20 @@ extension PlanConfirmationTests {
 
 		let cards = try await turns.cards(on: await turns.coach())
 		#expect(cards.map(\.state) == [.saved, .canceled])
+		#expect(cards.map(\.summary.replaces) == late.replaces)
+	}
+
+	@Test func aWaitingCardNamesThePlanSavedOnADeviceWhoseClockRunsAhead() async throws {
+		let coach = await turns.coach()
+		let first = try await turns.prepareAndArm(PlanTurns.threshold, on: coach)
+		#expect(await coach.decide(.save(first), in: .main) == .saved)
+		_ = try await turns.prepareAndArm(PlanTurns.baseBuild, on: coach)
+		let expiresAt = try #require(try await turns.prepared(in: turns.store).last).expiresAt
+		try await saveElsewhere(
+			Self.peakWeek, decided: Self.decidedElsewhere(at: expiresAt.addingTimeInterval(60)))
+
+		let cards = try await turns.cards(on: await turns.coach())
+		#expect(cards.map(\.state) == [.saved, .waiting(.unarmed)])
 		#expect(cards.map(\.summary.replaces) == [nil, "Peak Week"])
 	}
 
@@ -117,11 +151,20 @@ extension PlanConfirmationTests {
 		case decidedJustBefore
 		case decidedAtTheInstant
 		case decidedAtTheInstantAndReplacedAtIt
+		case decidedEarlierInTheMillisecondItExpires
 
 		var testDescription: String { rawValue }
 
+		var preparedPastAMillisecond: Duration {
+			self == .decidedEarlierInTheMillisecondItExpires ? .microseconds(500) : .zero
+		}
 		var decidedAfterExpiryMs: Int64 { self == .decidedJustBefore ? -1 : 0 }
-		var replaces: String { self == .decidedJustBefore ? "Peak Week" : "Threshold Block" }
+		var replaces: String {
+			switch self {
+			case .decidedJustBefore, .decidedEarlierInTheMillisecondItExpires: "Peak Week"
+			case .decidedAtTheInstant, .decidedAtTheInstantAndReplacedAtIt: "Threshold Block"
+			}
+		}
 	}
 
 	@Test(arguments: ExpiryEdge.allCases)
@@ -129,6 +172,7 @@ extension PlanConfirmationTests {
 		let coach = await turns.coach()
 		let first = try await turns.prepareAndArm(PlanTurns.threshold, on: coach)
 		#expect(await coach.decide(.save(first), in: .main) == .saved)
+		turns.clock.advance(by: edge.preparedPastAMillisecond)
 		_ = try await turns.prepareAndArm(PlanTurns.baseBuild, on: coach)
 		let expiresAt = try #require(try await turns.prepared(in: turns.store).last).expiresAt
 		try await turns.clock.waitUntilHeld(.seconds(600))
@@ -136,7 +180,9 @@ extension PlanConfirmationTests {
 		#expect(turns.clock.now == expiresAt)
 
 		let atExpiry = Self.decidedElsewhere(at: expiresAt)
-		#expect(atExpiry.wallTime == expiresAt)
+		let pastTheMillisecond = expiresAt.timeIntervalSince(atExpiry.wallTime)
+		#expect(pastTheMillisecond >= 0 && pastTheMillisecond < 0.001)
+		#expect((pastTheMillisecond > 0) == (edge.preparedPastAMillisecond > .zero))
 		let decided = HybridLogicalClock(
 			wallMs: atExpiry.wallMs + edge.decidedAfterExpiryMs, logical: 0,
 			deviceId: atExpiry.deviceId
@@ -186,11 +232,15 @@ extension PlanConfirmationTests {
 		try await saveElsewhere(
 			PlanTurns.threshold,
 			decided: Self.decidedElsewhere(at: prepared.expiresAt.addingTimeInterval(1)))
-		clock.advance(by: .seconds(5))
+		clock.advance(by: .milliseconds(1500))
+		let reader = await turns.coach()
+		let next = try await turns.prepareAndArm(Self.raceWeek, on: reader)
+		let replacing = try #require(try await turns.steps(in: turns.store).last)
+		#expect(replacing.hlc.wallTime < step.hlc.wallTime.addingTimeInterval(600))
 
-		let later = try await turns.cards(on: await turns.coach())
-		#expect(later.map(\.state) == [.expired])
-		#expect(later.map(\.summary.replaces) == [nil])
+		let later = try await turns.cards(on: reader)
+		#expect(later.map(\.state) == [.expired, .waiting(.armed(next))])
+		#expect(later.map(\.summary.replaces) == [nil, "Threshold Block"])
 	}
 
 	@Test func aCarriedWaitingCardNamesAPlanSavedAfterTheReset() async throws {
