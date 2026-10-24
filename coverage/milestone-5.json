@@ -5,6 +5,7 @@
 		"2.1": 8,
 		"2.2": 5,
 		"2.4": 2,
+		"3.1": 3,
 		"5.1": 9,
 		"6.1": 3
 	},
@@ -259,6 +260,36 @@
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
 					"function": "weekdayOfEveryRecordedTodayIsNpmsWeekday"
+				}
+			]
+		},
+		{
+			"id": "3.1.1",
+			"statement": "For every case of feasibility.json, Planning.feasibility of PlanningArguments.feasibility of the case input, as JSON, equals the recorded output, null where npm returned nothing, with the warning and the ambitious message templates equal as text. A case the parser refuses is a mismatch.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeasibilityParityTests.swift",
+					"function": "everyRecordedGoalGetsNpmsFeasibilityCheck"
+				}
+			]
+		},
+		{
+			"id": "3.1.2",
+			"statement": "The number of feasibility cases compared equals the manifest count for feasibility.json and is above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeasibilityParityTests.swift",
+					"function": "everyRecordedGoalGetsNpmsFeasibilityCheck"
+				}
+			]
+		},
+		{
+			"id": "3.1.3",
+			"statement": "A file under the package Planning folder that names a Clock type, Date(), Date.now, UUID(), TimeZone.current, Ledger or actor fails check-source with planning-pure, and a pure Planning file passes.",
+			"tests": [
+				{
+					"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift",
+					"function": "givesTheVerdictForATrackedTree"
 				}
 			]
 		},
