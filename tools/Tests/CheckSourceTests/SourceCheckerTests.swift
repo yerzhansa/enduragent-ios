@@ -33,7 +33,7 @@ enum SourceCases {
 		links + xcodeSettings + navigationStacks + fixtureFolders + hangGuards + waitDeadlines
 		+ proofHelpers + binaries + ledgerIndexes + contentRules + mailboxState + featureProofs
 		+ fixtureLaunch + recordAccess + secretStores + port + mintedInOneFile + reviewChainOnly
-		+ reviewOutcomeWriter + singleChangePathDeleted
+		+ reviewOutcomeWriter + chainAppendCallerRule + singleChangePathDeleted
 }
 
 enum Link: Sendable {
