@@ -109,7 +109,8 @@ import Testing
 
 		#expect(
 			declared == [
-				.calculateZones: nil, .intervalsFetchAthlete: nil,
+				.calculateZones: nil, .buildPlanSkeleton: nil, .assessFeasibility: nil,
+				.getSampleWeek: nil, .intervalsFetchAthlete: nil,
 				.intervalsFetchWellness: dateRange, .intervalsFetchActivity: nil,
 				.intervalsFetchStreams: "fewer stream types",
 				.intervalsFetchActivities: dateRange, .intervalsListEvents: dateRange,

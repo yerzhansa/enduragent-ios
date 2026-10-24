@@ -6,8 +6,7 @@ import Testing
 
 extension TurnRunnerTests {
 	@Test(arguments: [
-		"build_plan_skeleton", "assess_feasibility", "get_sample_week", "plan_load",
-		"invented_tool", "memory_read", "plan_save", "intervals_create_workout",
+		"plan_load", "invented_tool", "memory_read", "plan_save", "intervals_create_workout",
 		"intervals_create_strength_workout", "intervals_delete_workout", "intervals_update_workout",
 	])
 	func unofferedToolCallsReturnUnknownTool(name: String) async throws {

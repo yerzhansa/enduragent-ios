@@ -27,10 +27,15 @@ import Testing
 		_ = try await coach.sendAndSettle("Thanks")
 
 		let offered = sent(.chatAttempt, by: transport).map { $0.tools.map(\.name) }
-		#expect(offered.first == [.calculateZones, .memoryQuery, .memoryWrite, .ledgerAppend])
+		#expect(
+			offered.first == [
+				.calculateZones, .buildPlanSkeleton, .assessFeasibility, .getSampleWeek,
+				.memoryQuery, .memoryWrite, .ledgerAppend,
+			])
 		#expect(
 			offered.last == [
-				.calculateZones, .memoryRead, .memoryQuery, .memoryWrite, .ledgerAppend,
+				.calculateZones, .buildPlanSkeleton, .assessFeasibility, .getSampleWeek,
+				.memoryRead, .memoryQuery, .memoryWrite, .ledgerAppend,
 			])
 	}
 
@@ -44,10 +49,11 @@ import Testing
 
 		#expect(
 			try #require(transport.requests.first).tools.map(\.name) == [
-				.calculateZones, .intervalsFetchAthlete, .intervalsFetchWellness,
-				.intervalsFetchActivity, .intervalsFetchStreams, .intervalsFetchActivities,
-				.intervalsListEvents, .getPendingWorkoutChanges, .prepareWorkoutChanges,
-				.memoryQuery, .memoryWrite, .ledgerAppend,
+				.calculateZones, .buildPlanSkeleton, .assessFeasibility, .getSampleWeek,
+				.intervalsFetchAthlete, .intervalsFetchWellness, .intervalsFetchActivity,
+				.intervalsFetchStreams, .intervalsFetchActivities, .intervalsListEvents,
+				.getPendingWorkoutChanges, .prepareWorkoutChanges, .memoryQuery, .memoryWrite,
+				.ledgerAppend,
 			])
 	}
 
@@ -177,6 +183,31 @@ import Testing
 		#expect(
 			intervals.calls.filter { $0 == .wellness(oldest: "1998-06-01", newest: "1998-06-05") }
 				.count == 1)
+	}
+
+	@Test func repeatedPlanningCallInOneAttemptRunsTheToolOnce() async throws {
+		let draft = ScriptedEvent.toolCall(
+			name: "build_plan_skeleton",
+			arguments:
+				#"{"experienceLevel":"intermediate","ftpWatts":250,"volumeTier":"medium","scheduleType":"flexible","goalType":"general"}"#
+		)
+		transport.respond = ScriptedReply.sequence(
+			[
+				draft, draft, .finish(reason: .toolCalls), draft, .finish(reason: .toolCalls),
+				.text("Here is your plan."), .finish(reason: .stop),
+			], otherwise: transport.respond)
+		let coach = await makeCoach(
+			transport: transport, intervals: intervals, store: store, clock: clock)
+
+		_ = try await coach.sendAndSettle("Build me a plan")
+
+		let results = try #require(transport.requests.last).messages
+			.filter { $0.role == .tool }.map(\.content)
+		#expect(results.count == 3)
+		#expect(Set(results).count == 1)
+		let first = try #require(results.first)
+		let id = try JSONValue.parse(first).objectFields["data"]?.objectFields["id"]?.stringValue
+		#expect(ULID(rawValue: try #require(id)) != nil)
 	}
 
 	@Test func memoryReadAfterAWriteInTheSameAttemptSeesTheWrite() async throws {

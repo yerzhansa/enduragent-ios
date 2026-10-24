@@ -17,6 +17,9 @@ package struct ChatMessage: Sendable, Equatable {
 
 public enum ToolName: String, Sendable, CaseIterable {
 	case calculateZones = "calculate_zones"
+	case buildPlanSkeleton = "build_plan_skeleton"
+	case assessFeasibility = "assess_feasibility"
+	case getSampleWeek = "get_sample_week"
 	case intervalsFetchAthlete = "intervals_fetch_athlete"
 	case intervalsFetchWellness = "intervals_fetch_wellness"
 	case intervalsFetchActivity = "intervals_fetch_activity"
@@ -48,6 +51,9 @@ package enum ReplayUnsafeToolName: String, Sendable {
 
 enum ReadToolName: Sendable {
 	case calculateZones
+	case buildPlanSkeleton
+	case assessFeasibility
+	case getSampleWeek
 	case intervalsFetchAthlete
 	case intervalsFetchWellness
 	case intervalsFetchActivity
@@ -58,6 +64,9 @@ enum ReadToolName: Sendable {
 	var toolName: ToolName {
 		switch self {
 		case .calculateZones: .calculateZones
+		case .buildPlanSkeleton: .buildPlanSkeleton
+		case .assessFeasibility: .assessFeasibility
+		case .getSampleWeek: .getSampleWeek
 		case .intervalsFetchAthlete: .intervalsFetchAthlete
 		case .intervalsFetchWellness: .intervalsFetchWellness
 		case .intervalsFetchActivity: .intervalsFetchActivity
