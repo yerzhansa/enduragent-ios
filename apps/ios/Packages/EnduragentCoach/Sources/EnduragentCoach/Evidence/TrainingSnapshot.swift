@@ -251,15 +251,8 @@ private enum SnapshotNumber {
 	static let separator = " · "
 
 	static func text(_ value: Double) -> String {
-		if value == value.rounded(.towardZero) {
-			return String(format: "%.0f", value == 0 ? 0 : value)
-		}
-		let quarters = value * 4
-		guard quarters == quarters.rounded(.towardZero) else {
-			return String(format: "%.1f", value)
-		}
-		let tenths = OneDecimal.round(value.magnitude)
-		return String(format: "%.1f", value < 0 ? -tenths : tenths)
+		value == value.rounded(.towardZero)
+			? JavaScriptNumber.text(value) : JavaScriptNumber.fixed(value, digits: 1)
 	}
 
 	static func signed(_ value: Double) -> String {
