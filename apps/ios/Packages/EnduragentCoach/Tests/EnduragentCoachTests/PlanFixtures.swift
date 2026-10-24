@@ -61,6 +61,17 @@ enum PlanFixtures {
 		}
 	}
 
+	static func manifestCount(_ file: String, tool: String) throws -> Int {
+		let listed = try manifest().objectFields["files"]?.objectFields ?? [:]
+		guard
+			let count = listed[file + ".json"]?.objectFields["casesByTool"]?.objectFields[tool]?
+				.intValue()
+		else {
+			throw PlanFixtureFailure(description: "the manifest has no \(tool) count for \(file)")
+		}
+		return count
+	}
+
 	static func planDraftFiles() throws -> [String] {
 		let listed = try manifest().objectFields["files"]?.objectFields ?? [:]
 		return listed.keys.filter { $0.hasPrefix("plan-draft-") }

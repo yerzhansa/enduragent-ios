@@ -21,6 +21,7 @@ package enum SyncedKind: String, Sendable, CaseIterable {
 	case sessionSettings
 	case languagePreference
 	case trainingIdentityObserved
+	case savedPlan
 }
 
 package enum DeviceLocalKind: String, Sendable, CaseIterable {
@@ -81,6 +82,7 @@ package enum SyncedRecordBody: Sendable, Equatable {
 	case sessionSettings(SessionSettingsBody)
 	case languagePreference(LanguagePreferenceBody)
 	case trainingIdentityObserved
+	case savedPlan(SavedPlanBody)
 
 	package var kind: SyncedKind {
 		switch self {
@@ -99,6 +101,7 @@ package enum SyncedRecordBody: Sendable, Equatable {
 		case .sessionSettings: .sessionSettings
 		case .languagePreference: .languagePreference
 		case .trainingIdentityObserved: .trainingIdentityObserved
+		case .savedPlan: .savedPlan
 		}
 	}
 
@@ -111,7 +114,8 @@ package enum SyncedRecordBody: Sendable, Equatable {
 		case .compactionSummary(let body): body.chatId
 		case .reviewOutcome(let body): body.chatId
 		case .memorySection, .dailyNote, .ledgerEvent, .journal, .provenance,
-			.coachReplyLanguage, .sessionSettings, .languagePreference, .trainingIdentityObserved:
+			.coachReplyLanguage, .sessionSettings, .languagePreference, .trainingIdentityObserved,
+			.savedPlan:
 			nil
 		}
 	}
@@ -123,7 +127,7 @@ package enum SyncedRecordBody: Sendable, Equatable {
 		case .turnSettled(let body): body.turn
 		case .windowStart, .compactionSummary, .memorySection, .dailyNote, .ledgerEvent,
 			.journal, .provenance, .coachReplyLanguage, .sessionSettings, .languagePreference,
-			.reviewOutcome, .trainingIdentityObserved:
+			.reviewOutcome, .trainingIdentityObserved, .savedPlan:
 			nil
 		}
 	}
