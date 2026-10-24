@@ -129,14 +129,6 @@ package enum FTPReading: Sendable, Equatable {
 	}
 }
 
-package enum OneDecimal {
-	package static func round(_ value: Double) -> Double {
-		let scaled = value * 10
-		let floor = scaled.rounded(.down)
-		return (scaled - floor >= 0.5 ? floor + 1 : floor) / 10
-	}
-}
-
 package enum ProfileField: String, Hashable, Sendable, CaseIterable {
 	case lthr
 	case maxHeartRate

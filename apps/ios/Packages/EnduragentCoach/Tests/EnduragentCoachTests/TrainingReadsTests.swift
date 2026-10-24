@@ -37,11 +37,6 @@ import Testing
 				== fitness - fatigue)
 	}
 
-	@Test(arguments: [(13.1, 13.1), (7.46, 7.5), (0.25, 0.3), (-0.25, -0.2), (-6.47, -6.5)])
-	func oneDecimalRoundsATieTowardPositiveInfinity(value: Double, rounded: Double) {
-		#expect(OneDecimal.round(value) == rounded)
-	}
-
 	@Test func formNeedsBothFitnessAndFatigue() {
 		#expect(WellnessDay.on("1998-06-13", [.fitness: 42]).form == nil)
 		#expect(WellnessDay.on("1998-06-13", [.fatigue: 49, .reportedFatigue: 2]).form == nil)
