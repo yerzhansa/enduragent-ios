@@ -37,6 +37,7 @@ let package = Package(
 			resources: [.copy("Fixtures")]
 		),
 		.testTarget(name: "SwiftLintRuleTests", dependencies: ["ToolSupport"]),
+		.testTarget(name: "ToolSupportTests", dependencies: ["ToolSupport"]),
 		.executableTarget(name: "UpgradeStores", dependencies: ["ToolSupport"]),
 	],
 	swiftLanguageModes: [.v6]

@@ -32,6 +32,36 @@ extension IntervalsRESTClientTests {
 				])
 		}
 
+		@Test(arguments: [
+			"workout-review-refreshed", "workout-review-try-again",
+			"workout-review-try-again-load-only",
+		])
+		func aStoredReviewsStructureIsTheSnapshotOfItsOwnStepsAgain(_ fixture: String) throws {
+			_ = try reviewFixture(fixture)
+			let stored = Self.structures(
+				in: try JSONValue.parse(String(decoding: try fixtureData(fixture), as: UTF8.self)))
+			#expect(!stored.isEmpty)
+			for structure in stored {
+				let event = CalendarEvent(
+					id: EventID(rawValue: 1), startDateLocal: "1998-07-04T00:00:00", name: nil,
+					category: "WORKOUT", externalId: nil, uid: nil, tags: [], coachCreated: true,
+					workoutDocument: try JSONValue.parse(structure))
+				#expect(try event.snapshot.structure == structure)
+			}
+		}
+
+		private static func structures(in value: JSONValue) -> [String] {
+			switch value {
+			case .object(let fields):
+				fields.flatMap { key, field in
+					key == "structure"
+						? field.stringValue.map { [$0] } ?? [] : structures(in: field)
+				}
+			case .array(let items): items.flatMap(structures)
+			case .null, .bool, .number, .string: []
+			}
+		}
+
 		@Test func anEventWithoutACalendarDateHasNoSnapshot() {
 			let event = CalendarEvent(
 				id: EventID(rawValue: 7), startDateLocal: "soon", name: "Endurance",

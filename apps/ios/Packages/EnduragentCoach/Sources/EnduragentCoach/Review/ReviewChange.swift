@@ -24,7 +24,7 @@ extension WorkoutSnapshot {
 			(.duration, durationSeconds != current.durationSeconds),
 			(.description, !Self.sameDescription(description, current.description)),
 			(.load, load != current.load),
-			(.structure, structure != current.structure),
+			(.structure, !Self.sameStructure(structure, current.structure)),
 		]
 		return Set(changed.filter(\.differs).map(\.field))
 	}
@@ -59,7 +59,7 @@ extension WorkoutPatch {
 	}
 }
 
-package enum ReviewedTarget: Hashable, Sendable {
+package enum ReviewedTarget: Equatable, Sendable {
 	case reviewed(EventID, WorkoutSnapshot)
 	case upgradedWithoutSnapshot(EventID, CivilDate)
 

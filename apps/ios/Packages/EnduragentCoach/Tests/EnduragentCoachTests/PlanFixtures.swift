@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import Synchronization
 
 @testable import EnduragentCoach
 
@@ -26,11 +27,24 @@ enum PlanFixtures {
 	}
 
 	static func cases(in data: Data) throws -> [Case] {
-		let document = try JSONValue.parse(String(decoding: data, as: UTF8.self))
-		guard let rows = document.objectFields["cases"]?.arrayValue else {
-			throw PlanFixtureFailure(description: "the fixture has no cases array")
+		try casesByText.withLock { known in
+			if let cases = known[data] { return cases }
+			let document = try JSONValue.parse(String(decoding: data, as: UTF8.self))
+			guard let rows = document.objectFields["cases"]?.arrayValue else {
+				throw PlanFixtureFailure(description: "the fixture has no cases array")
+			}
+			let cases = try rows.map(Case.init(row:))
+			known[data] = cases
+			return cases
 		}
-		return try rows.map(Case.init(row:))
+	}
+
+	private static let casesByText = Mutex<[Data: [Case]]>([:])
+
+	static func numberTokens(_ file: String) throws -> [[String]] {
+		var scanner = OutputNumberScanner(bytes: Array(try bundledFile(file + ".json")))
+		try scanner.document()
+		return scanner.cases
 	}
 
 	static func manifest() throws -> JSONValue {

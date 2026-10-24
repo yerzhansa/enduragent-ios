@@ -302,10 +302,6 @@ struct JSONValuePayload: Decodable {
 			value = .null
 			return
 		}
-		if let flag = try? container.decode(Bool.self) {
-			value = .bool(flag)
-			return
-		}
 		if let number = try? container.decode(Double.self) {
 			value = .number(number)
 			return
@@ -314,12 +310,16 @@ struct JSONValuePayload: Decodable {
 			value = .string(string)
 			return
 		}
+		if let fields = try? container.decode([String: JSONValuePayload].self) {
+			value = .object(fields.mapValues(\.value))
+			return
+		}
 		if let items = try? container.decode([JSONValuePayload].self) {
 			value = .array(items.map(\.value))
 			return
 		}
-		if let fields = try? container.decode([String: JSONValuePayload].self) {
-			value = .object(fields.mapValues(\.value))
+		if let flag = try? container.decode(Bool.self) {
+			value = .bool(flag)
 			return
 		}
 		throw RecordDecodeFailure(reason: "json")

@@ -1,6 +1,6 @@
 import Foundation
 
-package struct WorkoutSnapshot: Hashable, Sendable {
+package struct WorkoutSnapshot: Equatable, Sendable {
 	package let date: CivilDate
 	package let name: String?
 	package let durationSeconds: Int?
@@ -13,6 +13,25 @@ package struct WorkoutSnapshot: Hashable, Sendable {
 	}
 
 	var hasParsedSteps: Bool { structure != nil }
+
+	package static func == (left: WorkoutSnapshot, right: WorkoutSnapshot) -> Bool {
+		left.date == right.date && left.name == right.name
+			&& left.durationSeconds == right.durationSeconds
+			&& left.description == right.description && left.load == right.load
+			&& sameStructure(left.structure, right.structure)
+	}
+
+	static func sameStructure(_ left: String?, _ right: String?) -> Bool {
+		left == right || left.map(comparableStructure) == right.map(comparableStructure)
+	}
+
+	private static func comparableStructure(_ text: String) -> String {
+		do {
+			return try JSONValue.parse(text).canonicalDigestInput()
+		} catch is DecodingError {
+			return text
+		}
+	}
 
 	static func normalizedStructure(_ document: JSONValue) -> String? {
 		guard let steps = document.objectFields["steps"], steps.arrayValue?.isEmpty == false
