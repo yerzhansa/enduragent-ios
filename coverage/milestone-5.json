@@ -575,6 +575,10 @@
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KnowledgeTopicsTests.swift",
 					"function": "bundledTopicEqualsNpmOnceItsRecordedDifferencesAreApplied"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutAuthorizationTests.swift",
+					"function": "everyRequestHoldsThePrescriptionRules"
 				}
 			]
 		},
