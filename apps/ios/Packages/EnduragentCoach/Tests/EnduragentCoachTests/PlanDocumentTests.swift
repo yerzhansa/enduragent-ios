@@ -49,16 +49,30 @@ import Testing
 
 	@Test func aSavedPlanRowWhoseDocumentWasEditedByHandIsMalformed() throws {
 		let document = try PlanDocument.parse(arguments: .object(["plan": Self.base]))
-		let edits = [
-			document.text.replacingOccurrences(of: "\"century\"", with: "\"gran fondo\""),
-			document.text.replacingOccurrences(of: "\n  ", with: "\n    "),
+		let fieldEdits = [
 			document.text.replacingOccurrences(of: "\"Base\"", with: "12"),
+			document.text.replacingOccurrences(of: "\n  \"name\": \"Base\",", with: ""),
 		]
+		var edits = [
+			(
+				text: document.text.replacingOccurrences(of: "\"century\"", with: "\"gran fondo\""),
+				digest: document.digest.rawValue
+			),
+			(
+				text: document.text.replacingOccurrences(of: "\n  ", with: "\n    "),
+				digest: document.digest.rawValue
+			),
+		]
+		for edited in fieldEdits {
+			let value = try JSONValue.parse(edited)
+			#expect(canonicalJSON(value) == edited)
+			edits.append((text: edited, digest: sha256Hex(value.canonicalDigestInput())))
+		}
 
 		for edited in edits {
-			#expect(edited != document.text)
+			#expect(edited.text != document.text)
 			let row = SavedPlanRows.payload(
-				text: edited, digest: document.digest.rawValue, id: 1, confirmation: 2,
+				text: edited.text, digest: edited.digest, id: 1, confirmation: 2,
 				decided: HybridLogicalClock(
 					wallMs: 1, logical: 0, deviceId: DeviceID(rawValue: "plan-phone")))
 			#expect(
