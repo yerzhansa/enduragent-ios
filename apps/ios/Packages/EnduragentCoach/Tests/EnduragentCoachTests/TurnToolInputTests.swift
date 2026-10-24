@@ -38,12 +38,30 @@ extension TurnRunnerTests {
 				.isEmpty)
 	}
 
-	@Test(arguments: ["1500-02-28", "1582-10-10", "0001-01-01"])
-	func historicalDateKeysReturnInvalidDate(oldest: String) async throws {
+	@Test(arguments: ["1500-02-28", "1582-10-10", "0001-01-01"] as [CivilDate])
+	func historicalDateKeysPassTheDateCheck(day: CivilDate) async throws {
 		let result = try await toolResult(
 			name: "intervals_fetch_activities",
-			arguments: "{\"oldest\":\"\(oldest)\",\"newest\":\"\(oldest)\"}")
-		#expect(result.objectFields["error"] == .string("invalid_date"))
+			arguments: "{\"oldest\":\"\(day)\",\"newest\":\"\(day)\"}")
+		#expect(result.objectFields["error"] == nil, "\(canonicalJSON(result))")
+		#expect(activityLists() == [.activities(oldest: day, newest: day)])
+	}
+
+	@Test func aRangeAcrossYearZeroCountsEveryProlepticDay() async throws {
+		let refused = try await toolResult(
+			name: "intervals_fetch_activities",
+			arguments: #"{"oldest":"0000-01-01","newest":"0001-01-01"}"#)
+		#expect(
+			refused
+				== (try JSONValue.parse(
+					#"{"error":"range_too_wide","details":"Range is 367 days; the maximum is 366. Fetch the range in chunks of at most 366 days."}"#
+				)))
+		#expect(activityLists().isEmpty)
+		let read = try await toolResult(
+			name: "intervals_fetch_activities",
+			arguments: #"{"oldest":"0000-01-02","newest":"0001-01-01"}"#)
+		#expect(read.objectFields["error"] == nil, "\(canonicalJSON(read))")
+		#expect(activityLists() == [.activities(oldest: "0000-01-02", newest: "0001-01-01")])
 	}
 
 	@Test func promptOmitsUnavailableToolsAndKeepsNumberedChoiceSafetyRules() async throws {
@@ -69,6 +87,13 @@ extension TurnRunnerTests {
 			prompt.contains(
 				"short label, one-sentence description, consequence, and recommendation flag"))
 		#expect(prompt.contains("Recommend at most one."))
+	}
+
+	func activityLists() -> [FakeIntervalsCall] {
+		intervals.calls.filter {
+			guard case .activities = $0 else { return false }
+			return true
+		}
 	}
 
 	func toolResult(name: String, arguments: String) async throws -> JSONValue {
