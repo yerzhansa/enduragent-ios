@@ -234,7 +234,7 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 		let year = bytes.prefix(4).reduce(0) { $0 * 10 + Int($1 - UInt8(ascii: "0")) }
 		let month = Int(bytes[5] - UInt8(ascii: "0")) * 10 + Int(bytes[6] - UInt8(ascii: "0"))
 		let day = Int(bytes[8] - UInt8(ascii: "0")) * 10 + Int(bytes[9] - UInt8(ascii: "0"))
-		guard year >= 1583, (1...12).contains(month) else { return false }
+		guard (1...12).contains(month) else { return false }
 		let daysInMonth: Int
 		switch month {
 		case 2:
@@ -257,47 +257,47 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 	}
 
 	public func adding(days: Int) -> CivilDate {
-		guard let shifted = Self.utcCalendar.date(byAdding: .day, value: days, to: utcMidnight)
-		else {
-			fatalError("civil date \(rawValue) cannot move by \(days) days")
-		}
-		return CivilDate(date: shifted, timeZone: .gmt)
+		let (year, month, day) = Self.civil(fromDayNumber: dayNumber &+ days)
+		return CivilDate(year: year, month: month, day: day)
 	}
 
 	func days(until other: CivilDate) -> Int {
-		guard
-			let count = Self.utcCalendar.dateComponents(
-				[.day], from: utcMidnight, to: other.utcMidnight
-			).day
-		else {
-			fatalError("civil dates \(rawValue) and \(other.rawValue) have no day count")
-		}
-		return count
+		other.dayNumber - dayNumber
 	}
 
 	var weekday: Weekday {
-		let sundayFirst = Self.utcCalendar.component(.weekday, from: utcMidnight)
-		return Weekday.allCases[(sundayFirst + 5) % 7]
+		Weekday.allCases[(dayNumber % 7 + 10) % 7]
 	}
 
-	private static let utcCalendar: Calendar = {
-		var calendar = Calendar(identifier: .gregorian)
-		calendar.locale = Locale(identifier: "en_US_POSIX")
-		calendar.timeZone = .gmt
-		return calendar
-	}()
-
-	private var utcMidnight: Date {
-		let parts = rawValue.split(separator: "-")
-		let components = DateComponents(
-			year: Int(parts[0]),
-			month: Int(parts[1]),
-			day: Int(parts[2])
-		)
-		guard let date = Self.utcCalendar.date(from: components) else {
-			fatalError("civil date \(rawValue) is not a real day")
+	private var dayNumber: Int {
+		let parts = rawValue.split(separator: "-", omittingEmptySubsequences: false)
+		guard parts.count >= 3,
+			let year = Int(parts.dropLast(2).joined(separator: "-")),
+			let month = Int(parts[parts.count - 2]),
+			let day = Int(parts[parts.count - 1])
+		else {
+			fatalError("civil date \(rawValue) is not a day")
 		}
-		return date
+		let marchYear = month > 2 ? year : year - 1
+		let era = (marchYear >= 0 ? marchYear : marchYear - 399) / 400
+		let yearOfEra = marchYear - era * 400
+		let dayOfYear = (153 * (month > 2 ? month - 3 : month + 9) + 2) / 5 + day - 1
+		let dayOfEra = yearOfEra * 365 + yearOfEra / 4 - yearOfEra / 100 + dayOfYear
+		return era * 146_097 + dayOfEra - 719_468
+	}
+
+	private static func civil(fromDayNumber dayNumber: Int) -> (year: Int, month: Int, day: Int) {
+		let fromMarchZero = dayNumber &+ 719_468
+		let era = (fromMarchZero >= 0 ? fromMarchZero : fromMarchZero &- 146_096) / 146_097
+		let dayOfEra = fromMarchZero &- era &* 146_097
+		let yearOfEra =
+			(dayOfEra - dayOfEra / 1_460 + dayOfEra / 36_524 - dayOfEra / 146_096) / 365
+		let dayOfYear = dayOfEra - (365 * yearOfEra + yearOfEra / 4 - yearOfEra / 100)
+		let monthFromMarch = (5 * dayOfYear + 2) / 153
+		let day = dayOfYear - (153 * monthFromMarch + 2) / 5 + 1
+		let month = monthFromMarch < 10 ? monthFromMarch + 3 : monthFromMarch - 9
+		let year = yearOfEra &+ era &* 400 &+ (month <= 2 ? 1 : 0)
+		return (year, month, day)
 	}
 }
 
