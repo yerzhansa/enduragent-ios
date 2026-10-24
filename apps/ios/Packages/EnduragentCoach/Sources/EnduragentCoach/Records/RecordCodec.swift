@@ -27,6 +27,8 @@ enum RecordCodec {
 		case .deviceLocal(let local):
 			data = try encoder.encode(DeviceLocalPayload(local))
 			switch local {
+			case .planConfirmation:
+				version = 7
 			case .workoutReview, .reviewPreparing:
 				version = 6
 			case .flushPending(let body) where body.sourceBound:

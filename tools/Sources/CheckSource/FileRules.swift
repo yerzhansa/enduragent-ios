@@ -65,7 +65,20 @@ extension SourceChecker {
 		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/(?:Plans\/[^/]+"#
 		+ #"|Records\/(?:AthleteRecord|RecordCodec|RecordEnvelopePayload|DeviceLocalCodec))"#
 		+ #"\.swift$"#
-	static let planRecordNames = #"\.\s*savedPlan\b|\bSavedPlanBody\b"#
+	static let planRecordNames =
+		#"\.\s*(?:savedPlan|planConfirmation)\b|\b(?:SavedPlanBody|PlanConfirmationBody)\b"#
+	static let coachSourceFolder =
+		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/"#
+	static let separatedNames = [
+		(
+			files: coachSourceFolder + #"Plans\/.*\.swift$"#,
+			names: #"\b(?:Review[A-Z]|WorkoutReview)\w*"#
+		),
+		(
+			files: coachSourceFolder + #"Review\/.*\.swift$"#,
+			names: #"\b(?:Plan\w*Confirmation|SavedPlan|PlanDocument)\w*"#
+		),
+	]
 	static let coachSource =
 		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$"#
 	static let planningSource =
@@ -185,6 +198,9 @@ extension SourceChecker {
 		if try namesAPlanRecordOutsideItsOwners(file, text) {
 			try findings.report(file, "plan-records-private")
 		}
+		if try namesTheOtherConfirmation(file, text) {
+			try findings.report(file, "plan-save-separate")
+		}
 		if try buildsReviewChainBodyOutsideTheChain(file, text) {
 			try findings.report(file, "review-chain-only")
 		}
@@ -252,6 +268,12 @@ extension SourceChecker {
 			try !patterns.test(Self.planRecordOwners, file)
 		else { return false }
 		return try patterns.test(Self.planRecordNames, text)
+	}
+
+	private func namesTheOtherConfirmation(_ file: String, _ text: String) throws -> Bool {
+		try Self.separatedNames.contains { rule in
+			try patterns.test(rule.files, file) && patterns.test(rule.names, text)
+		}
 	}
 
 	private func mintsOutsideItsFile(_ file: String, _ text: String) throws -> Bool {

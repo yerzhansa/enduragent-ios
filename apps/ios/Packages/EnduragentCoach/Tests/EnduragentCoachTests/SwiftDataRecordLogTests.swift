@@ -301,7 +301,13 @@ extension SwiftDataSuites {
 					(
 						kind: SavedPlans.kind.rawValue,
 						body: try SavedPlanRows.body(PlanDocumentTests.base)
-					)
+					),
+					(
+						kind: PlanChain.kind.rawValue,
+						body: try PlanStepRows(confirmation: 1, turn: 2).prepared(
+							PlanDocumentTests.base,
+							expiresAt: Date(timeIntervalSince1970: 899_165_400))
+					),
 				]
 		}
 	}

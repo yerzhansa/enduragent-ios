@@ -10,7 +10,8 @@
 		"3.3": 2,
 		"3.4": 4,
 		"5.1": 9,
-		"6.1": 3
+		"6.1": 3,
+		"6.2": 4
 	},
 	"criteria": [
 		{
@@ -549,6 +550,40 @@
 		{
 			"id": "6.1.3",
 			"statement": "Under the package's main target, a call append( with stamp: and after: labels, .newest( or an awaited bare newest(, or chats(holding: outside Records/ChainAppend.swift, Records/ReviewChain.swift, Records/RecordLog.swift and Plans/*.swift fails check-source with chain-append-callers, and calls that only share a name or a label pass. review-chain-only and review-outcome-writer still pass and fail their cases with ChainAppend.swift named.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.2.1",
+			"statement": "OperationID.planSave(PlanConfirmationID) is stored as planSave:<ulid> and parses back, and a planSave stamp whose tail is not a ULID is malformed: OperationID(storedValue:) refuses it and a stored row carrying it is skipped as malformed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IdentityTests.swift", "function": "aPlanSaveOperationIsStoredAsPlanSaveAndItsULIDAndNoOtherTailParses"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRecordTests.swift", "function": "aPlanSaveStampWhoseTailIsNotAULIDIsSkippedAsMalformed"}
+			]
+		},
+		{
+			"id": "6.2.2",
+			"statement": "Each plan-save confirmation chain step, prepared, claimed, saved and canceled, round-trips at body version 7 through SwiftDataRecordLog with its chat, turn and planSave stamp, and a prepared step whose document was edited by hand is skipped as malformed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRecordTests.swift", "function": "everyChainStepRoundTripsThroughTheStoreAtBodyVersion7"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRecordTests.swift", "function": "aPreparedStepWithAHandEditedDocumentIsSkippedAsMalformed"}
+			]
+		},
+		{
+			"id": "6.2.3",
+			"statement": "PlanChain, built from step records with no store: phase(of:at:) is live one second before expiresAt and expired at exactly expiresAt; replaced when a later confirmation exists; saving, saved and canceled follow the newest step; committed(by:) finds the confirmation an attempt prepared; unfinishedClaims lists every claim with no saved step, two at once included.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanChainTests.swift", "function": "aWaitingConfirmationIsLiveOneSecondBeforeItExpiresAndExpiredAtExactlyItsExpiry"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanChainTests.swift", "function": "aLaterConfirmationInTheConversationReplacesTheOlderOne"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanChainTests.swift", "function": "theNewestStepDecidesSavingSavedAndCanceledPastExpiryAndReplacement"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanChainTests.swift", "function": "committedFindsTheConfirmationTheAttemptPrepared"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanChainTests.swift", "function": "unfinishedClaimsListEveryClaimWithNoSavedStepTwoAtOnceIncluded"}
+			]
+		},
+		{
+			"id": "6.2.4",
+			"statement": "make check-source fails a Review[A-Z] or WorkoutReview type name in the coach package's Plans folder and a Plan...Confirmation, SavedPlan or PlanDocument name in its Review folder (plan-save-separate, which allows ReviewSummary.planSave), and .planConfirmation or PlanConfirmationBody outside Plans/*.swift and the codec files (plan-records-private). Each has passing and failing cases.",
 			"tests": [
 				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
 			]

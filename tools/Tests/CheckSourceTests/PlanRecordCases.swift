@@ -2,7 +2,8 @@ extension SourceCases {
 	static let plans = "\(coachSources)/Plans"
 	static let planSave = "\(plans)/PlanSave.swift"
 	static let planRecordOwners = [
-		"\(plans)/SavedPlans.swift", planSave, "\(records)/AthleteRecord.swift",
+		"\(plans)/SavedPlans.swift", planSave, "\(plans)/PlanConfirmation.swift",
+		"\(records)/AthleteRecord.swift",
 		"\(records)/RecordCodec.swift", "\(records)/RecordEnvelopePayload.swift",
 		"\(records)/DeviceLocalCodec.swift",
 	]
@@ -18,11 +19,18 @@ extension SourceCases {
 		"let kind = SyncedKind . savedPlan",
 		"let body: SavedPlanBody? = nil",
 		"func keep(_ body: SavedPlanBody) {}",
+		"let scope = RecordQuery.Scope.deviceLocal([.planConfirmation])",
+		"guard case .deviceLocal(.planConfirmation(let body)) = record.body else { return }",
+		"let kind = DeviceLocalKind . planConfirmation",
+		"func keep(_ body: PlanConfirmationBody) {}",
 	]
 	static let planRecordLookalikes =
 		"let plans = snapshot.savedPlans\nlet kind = SavedPlans.kind\nlet id: SavedPlanID\n"
 		+ "let payload = SavedPlanPayload(value)\nlet saves = summary.planSaves\n"
-		+ "let savedPlanCount = 1\nlet plan = claim.savedPlanID"
+		+ "let savedPlanCount = 1\nlet plan = claim.savedPlanID\n"
+		+ "let confirmations = summary.planConfirmations\nlet id: PlanConfirmationID\n"
+		+ "let step: PlanConfirmationStep\nlet kind = PlanChain.kind\n"
+		+ "let payload = PlanConfirmationPayload(body)"
 	static let savedPlanMintings = [
 		"let body = SavedPlanBody(id: id, confirmation: c, decided: hlc, document: d)",
 		"let body = SavedPlanBody.init(id: id, confirmation: c, decided: hlc, document: d)",
