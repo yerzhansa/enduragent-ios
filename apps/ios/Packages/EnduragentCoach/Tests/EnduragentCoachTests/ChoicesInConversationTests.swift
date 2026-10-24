@@ -51,4 +51,20 @@ import Testing
 		#expect(request.messages.last?.content.hasPrefix("A new question.\nCurrent time:") == true)
 		#expect(intervals.calls.filter(\.isWrite).isEmpty)
 	}
+
+	@Test func choosingACoachingOptionWhileAPlanCardWaitsSavesNoPlan() async throws {
+		let turns = PlanTurns()
+		let coach = await turns.coach()
+		let token = try await turns.prepareAndArm(PlanTurns.baseBuild, on: coach)
+		turns.script([.text(offer), .finish(reason: .stop)])
+		#expect(replyText(try await coach.sendAndSettle("Offer planning directions.")) == offer)
+
+		turns.script([.text("Endurance it is."), .finish(reason: .stop)])
+		#expect(
+			replyText(try await coach.sendAndSettle("1. Build endurance.")) == "Endurance it is.")
+
+		#expect(try await turns.claims(in: turns.store).isEmpty)
+		#expect(try await turns.savedPlanRows() == 0)
+		#expect(try await turns.cards(on: coach).map(\.state) == [.waiting(.armed(token))])
+	}
 }

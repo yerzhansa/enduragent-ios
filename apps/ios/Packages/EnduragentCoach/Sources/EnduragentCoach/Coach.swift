@@ -35,6 +35,7 @@ public actor Coach {
 	var accessObservation: Task<Void, Never>?
 	var importObservation: Task<Void, Never>?
 	var reviewObservation: Task<Void, Never>?
+	var planObservation: Task<Void, Never>?
 	var pendingImportRefresh: Task<Void, Never>?
 	private let process: ProcessID
 
@@ -43,6 +44,7 @@ public actor Coach {
 		catalogObservation?.cancel()
 		importObservation?.cancel()
 		reviewObservation?.cancel()
+		planObservation?.cancel()
 		pendingImportRefresh?.cancel()
 	}
 
@@ -93,7 +95,11 @@ public actor Coach {
 			},
 			host: ports.host)
 		self.desk = desk
-		let plans = Plans(ledger: ledger, clock: clock, diagnostics: diagnostics)
+		let plans = Plans(
+			ledger: ledger, clock: clock, diagnostics: diagnostics,
+			currentAccount: { () async throws(AccessUnavailable) in
+				try await vault.connectedAccount()
+			})
 		self.plans = plans
 		self.runner = TurnRunner(
 			transport: transport, ledger: ledger, clock: clock,
@@ -134,16 +140,20 @@ public actor Coach {
 			let observation = importObservation
 			let refresh = pendingImportRefresh
 			let reviewing = reviewObservation
+			let planning = planObservation
 			importObservation?.cancel()
 			importObservation = nil
 			reviewObservation?.cancel()
 			reviewObservation = nil
+			planObservation?.cancel()
+			planObservation = nil
 			pendingImportRefresh?.cancel()
 			pendingImportRefresh = nil
 			await access?.value
 			await observation?.value
 			await refresh?.value
 			await reviewing?.value
+			await planning?.value
 			_ = await recovery?.value
 			for mailbox in await openedMailboxes() {
 				await mailbox.cancelInFlight(cause: .appTerminating)
@@ -302,6 +312,7 @@ public actor Coach {
 	{
 		observeImports()
 		observeReviews()
+		observePlans()
 		if let existing = mailboxSlots[chatId]?.mailbox { return existing }
 		guard !lifetime.terminating else { throw .unavailable }
 		_ = snapshotFeed(for: chatId)

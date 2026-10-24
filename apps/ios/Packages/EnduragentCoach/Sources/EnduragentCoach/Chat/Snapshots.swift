@@ -6,6 +6,7 @@ public struct ChatSnapshot: Sendable, Equatable {
 	public let turns: [TurnView]
 	public let activity: ChatActivity
 	public let review: ReviewSnapshot?
+	public let plans: [PlanCard]
 	public let notes: [TurnID?: [TranscriptNote]]
 	public internal(set) var liveReply: LiveReply?
 	public internal(set) var revision: UInt64
@@ -13,7 +14,8 @@ public struct ChatSnapshot: Sendable, Equatable {
 
 	public static func == (lhs: Self, rhs: Self) -> Bool {
 		lhs.chat == rhs.chat && lhs.opening == rhs.opening && lhs.turns == rhs.turns
-			&& lhs.activity == rhs.activity && lhs.review == rhs.review && lhs.notes == rhs.notes
+			&& lhs.activity == rhs.activity && lhs.review == rhs.review && lhs.plans == rhs.plans
+			&& lhs.notes == rhs.notes
 			&& lhs.liveReply == rhs.liveReply && lhs.reset == rhs.reset
 	}
 }
@@ -184,6 +186,7 @@ extension ChatSnapshot {
 		finishedAway: Set<TurnID>,
 		unsavedTurns: Set<TurnID> = [],
 		review: ReviewSnapshot?,
+		plans: [PlanCard] = [],
 		reset: ResetStatus = .idle,
 		resetMemory: MemorySaveResult? = nil,
 		device: DeviceID,
@@ -227,6 +230,7 @@ extension ChatSnapshot {
 			else { return review }
 			return nil
 		}
+		self.plans = plans
 		self.notes = Dictionary(grouping: current.transcriptNotes(among: turns), by: \.after)
 	}
 }

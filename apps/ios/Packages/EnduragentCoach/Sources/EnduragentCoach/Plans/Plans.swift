@@ -3,20 +3,27 @@ import Foundation
 package actor Plans {
 	static let lifetime: Duration = .seconds(600)
 	static let settleAppendAttempts = 3
+	static let tapAdmissions = 2
 
 	private let ledger: Ledger
 	private let clock: any Clock
 	private let diagnostics: DiagnosticsLog
+	private let currentAccount: @Sendable () async throws(AccessUnavailable) -> TrainingAccount
 	private var preparations: [DraftKey: PlanPreparation] = [:]
 	private var deliveries: [ChatID: PlanDelivery] = [:]
+	private var stalled: Set<PlanConfirmationID> = []
 	private var wakes: [ChatID: PlanWake] = [:]
 	nonisolated let changes: AsyncStream<ChatID>
 	private let changed: AsyncStream<ChatID>.Continuation
 
-	package init(ledger: Ledger, clock: any Clock, diagnostics: DiagnosticsLog) {
+	package init(
+		ledger: Ledger, clock: any Clock, diagnostics: DiagnosticsLog,
+		currentAccount: @escaping @Sendable () async throws(AccessUnavailable) -> TrainingAccount
+	) {
 		self.ledger = ledger
 		self.clock = clock
 		self.diagnostics = diagnostics
+		self.currentAccount = currentAccount
 		(changes, changed) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(1))
 	}
 
@@ -84,8 +91,174 @@ package actor Plans {
 			chain: chain,
 			saved: try await Memory(ledger: ledger, clock: clock).savedPlans(
 				for: newest.prepared.account),
-			conversation: try await ledger.conversation(chat), delivery: delivery, at: clock.now)
+			conversation: try await ledger.conversation(chat), delivery: delivery, stalled: stalled,
+			at: clock.now)
 	}
+
+	func decide(_ decision: PlanDecision) async -> PlanDecisionOutcome {
+		switch decision {
+		case .presented(let ref):
+			return presenting(ref)
+		case .save(let token):
+			let current: TrainingAccount
+			do throws(AccessUnavailable) {
+				current = try await currentAccount()
+			} catch {
+				return .storageUnavailable
+			}
+			return await tapping(token, as: .save(current: current))
+		case .cancel(let token):
+			return await tapping(token, as: .cancel)
+		}
+	}
+
+	private func presenting(_ ref: PlanCardRef) -> PlanDecisionOutcome {
+		guard var delivery = deliveries[ref.chat], delivery.ref == ref else {
+			return .notSaved(.notPresented)
+		}
+		delivery.acknowledge()
+		deliveries[ref.chat] = delivery
+		changed.yield(ref.chat)
+		return .presented
+	}
+
+	private func tapping(_ token: PlanSaveToken, as tap: PlanTap) async -> PlanDecisionOutcome {
+		let chat = token.ref.chat
+		for _ in 0..<Self.tapAdmissions {
+			let live: LiveConfirmation
+			do throws(LedgerFailure) {
+				switch PlanAdmission.admit(
+					token, as: tap, delivery: deliveries[chat], chain: try await chain(of: chat),
+					at: clock.now)
+				{
+				case .failure(let refusal): return .notSaved(refusal)
+				case .success(let admitted): live = admitted
+				}
+			} catch {
+				diagnostics.record(.planConfirmationUnavailable(chat, error))
+				return .storageUnavailable
+			}
+			let attempt = AttemptID(ulid: await ledger.nextULID())
+			let step: PlanConfirmationStep
+			switch tap {
+			case .save:
+				step = .claimed(
+					PlanAdmission.claim(
+						live, savedPlan: SavedPlanID(ulid: await ledger.nextULID()),
+						attempt: attempt))
+			case .cancel:
+				step = .canceled
+			}
+			let record: AthleteRecord
+			do throws(TransitionFailure) {
+				record = try await append(
+					step, of: live.confirmation, in: chat,
+					stamp: live.confirmation.tapStamp(attempt: attempt, zone: zone),
+					after: live.head)
+			} catch {
+				switch error {
+				case .headMoved:
+					continue
+				case .storage(let failure):
+					diagnostics.record(.planConfirmationUnavailable(chat, failure))
+					return .storageUnavailable
+				}
+			}
+			changed.yield(chat)
+			guard case .save = tap else { return .canceled }
+			guard let appended = PlanStepRecord(record),
+				let claimed = PlanAdmission.claimed(live, appended: appended)
+			else {
+				return stall(live.confirmation.id, in: chat, .unavailable)
+			}
+			do throws(LedgerFailure) {
+				try await finish(claimed, in: chat)
+			} catch {
+				return stall(claimed.confirmation.id, in: chat, error)
+			}
+			changed.yield(chat)
+			return .saved
+		}
+		return .storageUnavailable
+	}
+
+	private func stall(
+		_ confirmation: PlanConfirmationID, in chat: ChatID, _ failure: LedgerFailure
+	)
+		-> PlanDecisionOutcome
+	{
+		stalled.insert(confirmation)
+		diagnostics.record(.planSaveStalled(confirmation, failure))
+		changed.yield(chat)
+		return .storageUnavailable
+	}
+
+	private func finish(_ claimed: ClaimedSave, in chat: ChatID) async throws(LedgerFailure) {
+		let stamp = claimed.stamp(zone: zone)
+		var wrote = false
+		var moves = 0
+		while moves < Self.settleAppendAttempts {
+			let chain = try await self.chain(of: chat)
+			guard
+				let confirmation = chain.confirmations.first(where: {
+					$0.id == claimed.confirmation.id
+				})
+			else { throw .unavailable }
+			switch SaveStep.next(
+				after: confirmation.latest, stored: try await storedPlan(claimed.claim.savedPlan))
+			{
+			case .done:
+				return
+			case .writeSavedPlan:
+				guard !wrote else { throw .unavailable }
+				_ = try await ledger.commit(synced: [.savedPlan(claimed.savedPlan)], stamp: stamp)
+				wrote = true
+			case .appendSaved:
+				do throws(TransitionFailure) {
+					_ = try await append(
+						.saved(claimed.claim.savedPlan), of: confirmation, in: chat, stamp: stamp,
+						after: chain.head)
+				} catch {
+					switch error {
+					case .headMoved: moves += 1
+					case .storage(let failure): throw failure
+					}
+				}
+			}
+		}
+		throw .unavailable
+	}
+
+	private func storedPlan(_ id: SavedPlanID) async throws(LedgerFailure) -> SavedPlanBody? {
+		try await ledger.read(RecordQuery(scope: .synced([SavedPlans.kind]))).records.lazy
+			.compactMap { record -> SavedPlanBody? in
+				guard case .synced(.savedPlan(let body)) = record.body, body.id == id else {
+					return nil
+				}
+				return body
+			}.first
+	}
+
+	private func append(
+		_ step: PlanConfirmationStep, of confirmation: FoldedConfirmation, in chat: ChatID,
+		stamp: OperationStamp, after head: RecordHead
+	) async throws(TransitionFailure) -> AthleteRecord {
+		try await append(
+			PlanConfirmationBody(
+				chat: chat, confirmation: confirmation.id, origin: confirmation.origin, step: step),
+			stamp: stamp, after: head)
+	}
+
+	private func append(_ body: PlanConfirmationBody, stamp: OperationStamp, after head: RecordHead)
+		async throws(TransitionFailure) -> AthleteRecord
+	{
+		if case .unreadable = head { throw .storage(.unavailable) }
+		return try await ledger.append(
+			.deviceLocal(.planConfirmation(body)), stamp: stamp, after: head,
+			in: .planChain(of: body.chat))
+	}
+
+	private var zone: IANATimeZone { AthleteCalendar(clock: clock).deviceZone }
 
 	private func commit(
 		_ document: PlanDocument, for key: DraftKey, in chat: ChatID, binding: ActionBinding
@@ -102,9 +275,13 @@ package actor Plans {
 			operation: .turn(key.turn), attempt: key.attempt, binding: binding)
 		for _ in 0..<Self.settleAppendAttempts {
 			do throws(TransitionFailure) {
-				let head = try await headForAppend(of: query, in: chat)
-				_ = try await ledger.append(
-					.deviceLocal(.planConfirmation(body)), stamp: stamp, after: head, in: query)
+				let head: RecordHead
+				do throws(LedgerFailure) {
+					head = try await ledger.head(of: query)
+				} catch {
+					throw .storage(error)
+				}
+				_ = try await append(body, stamp: stamp, after: head)
 				wake(chat, at: expiresAt)
 				changed.yield(chat)
 				return .leftWaiting(id)
@@ -119,19 +296,6 @@ package actor Plans {
 			}
 		}
 		return .notPrepared(.notSaved)
-	}
-
-	private func headForAppend(of query: RecordQuery, in chat: ChatID)
-		async throws(TransitionFailure) -> RecordHead
-	{
-		let head: RecordHead
-		do throws(LedgerFailure) {
-			head = try await ledger.head(of: query)
-		} catch {
-			throw .storage(error)
-		}
-		guard case .unreadable = head else { return head }
-		throw .storage(.unavailable)
 	}
 
 	private func settleDeadAttempt(_ key: DraftKey, in chat: ChatID) async -> PlanSettlement {

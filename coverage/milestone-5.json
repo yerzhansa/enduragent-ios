@@ -15,7 +15,8 @@
 		"5.2": 6,
 		"6.1": 3,
 		"6.2": 4,
-		"6.3": 13
+		"6.3": 13,
+		"6.4": 17
 	},
 	"criteria": [
 		{
@@ -933,6 +934,131 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
 			]
+		},
+		{
+			"id": "6.4.1",
+			"statement": "Before .presented, a waiting card is waiting(.unarmed) and no token exists. After .presented(ref) it is waiting(.armed(token)). A token from an older delivery, or for another digest, saves nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "aCardArmsOnlyWhenItsOwnDeliveryIsPresented"}
+			]
+		},
+		{
+			"id": "6.4.2",
+			"statement": "Save plan appends claimed, commits one savedPlan whose id is the claim's, whose decided is the claim record's HLC and whose stamp is .planSave(c) with the claim's attempt and the confirmation's account, then appends saved and answers .saved. plan_load returns that object byte for byte. A second Save, or a Cancel after it, answers .notSaved(.alreadyDecided) and writes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "savePlanClaimsThenCommitsOneSavedPlanStampedForTheConfirmation"}
+			]
+		},
+		{
+			"id": "6.4.3",
+			"statement": "Two Save taps on one card, the second run by InterleavingChainLog between the first tap's chain read and its claim append, leave one claimed step and one raw savedPlan row, and the other tap answers .notSaved(.alreadyDecided).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "twoSaveTapsOnOneCardLeaveOneClaimAndOneSavedPlan"}
+			]
+		},
+		{
+			"id": "6.4.4",
+			"statement": "Cancel appends canceled and writes no plan; the saved plan before it is unchanged. Saving plan B after A makes plan_load return B, and memory_query shows the A to B line.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "cancelWritesNoPlanAndALaterSaveReplacesTheSavedPlanInHistory"}
+			]
+		},
+		{
+			"id": "6.4.5",
+			"statement": "A newer prepared in the same conversation makes the older one .replaced: its card reads Expired with no controls, and Save on it answers .notSaved(.replaced) and writes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "aNewerConfirmationMakesTheOlderCardExpiredAndItsSaveReplaced"}
+			]
+		},
+		{
+			"id": "6.4.6",
+			"statement": "Trace 2's race, both orders, through InterleavingChainLog. When card 1's Save runs between settle's read and its append of card 2, card 1 reads Saved, its plan is the saved plan, and card 2 is waiting. When settle's append of card 2 runs between card 1's read and its claim append, card 1's Save answers .notSaved(.replaced) and no savedPlan row exists.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRaceTests.swift", "function": "aSaveThatClaimsBeforeTheNextSettleAppendsKeepsItsPlanAndTheNewCardWaits"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRaceTests.swift", "function": "aSettleThatAppendsBeforeTheClaimMakesTheSaveReplaced"}
+			]
+		},
+		{
+			"id": "6.4.7",
+			"statement": "With HeldClock, after waitUntilHeld(.seconds(600)) for the settle's wake: advanced 599 seconds, Save saves. In a second run advanced exactly 600 seconds, the wake yields changes, the card reads Expired with no controls, Save answers .notSaved(.expired), and the record count does not change.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRaceTests.swift", "function": "saveWorksUntilTheTenMinutesEndAndTheWakeExpiresTheCardAtThem"}
+			]
+		},
+		{
+			"id": "6.4.8",
+			"statement": "After the phone switches to another athlete, Save answers .notSaved(.athleteChanged) and writes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "savePlanAfterTheAppSwitchesToAnotherAthleteIsRefused"}
+			]
+		},
+		{
+			"id": "6.4.9",
+			"statement": "After New conversation, a waiting card is shown once at the top as preparedEarlier, keeps its armed controls, and Cancel works; it then reads Canceled at the top until the next New conversation. A carried card whose ten minutes end reads Expired at the top until the next New conversation, and is not shown after that. No card is carried for a confirmation saved or canceled before the reset, one whose ten minutes ended before the reset, or one that is not the newest. At the edge, one whose ten minutes end exactly at the reset boundary is not carried, and one prepared a second later is carried.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aWaitingCardIsCarriedArmedToTheTopAndReadsCanceledThereUntilTheNextReset"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aCarriedCardWhoseTenMinutesEndReadsExpiredAtTheTopUntilTheNextReset"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "noCardIsCarriedForAConfirmationThatEndedBeforeTheReset"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "onlyTheNewestConfirmationIsCarried"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aConfirmationWhoseTenMinutesEndAtTheResetIsNotCarriedAndOneASecondYoungerIs"}
+			]
+		},
+		{
+			"id": "6.4.10",
+			"statement": "A storage failure after the claim answers .storageUnavailable, marks that card storageUnavailable, and records planSaveStalled. Meanwhile another confirmation is prepared and saved, and its card reads Saved.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRaceTests.swift", "function": "aSaveStalledByStorageMarksOnlyItsCardWhileAnotherConfirmationSaves"}
+			]
+		},
+		{
+			"id": "6.4.11",
+			"statement": "No step of a save or a cancel calls the calendar. Approving a workout review saves no plan and leaves the saved plan unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "saveAndCancelCallNoCalendarAndApprovingAWorkoutReviewSavesNoPlan"}
+			]
+		},
+		{
+			"id": "6.4.12",
+			"statement": "With HeldClock, a workout review waiting more than ten minutes beside a plan-save confirmation stays approvable after the confirmation expires.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aWorkoutReviewWaitingPastTheConfirmationsTenMinutesStaysApprovable"}
+			]
+		},
+		{
+			"id": "6.4.13",
+			"statement": "A second device that shares the synced store sees the saved plan in its prompt and plan_load, and no card and no control.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationSyncTests.swift", "function": "aSecondDeviceSeesTheSavedPlanInItsPromptAndPlanLoadButNoCard"}
+			]
+		},
+		{
+			"id": "6.4.14",
+			"statement": "Choosing a coaching option while a card waits saves no plan and writes no claim.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChoicesInConversationTests.swift", "function": "choosingACoachingOptionWhileAPlanCardWaitsSavesNoPlan"}
+			]
+		},
+		{
+			"id": "6.4.15",
+			"statement": "With plan A saved, one turn calls build_plan_skeleton twice, a draft and then a revision, and get_sample_week, and replies. Then plan_load returns A byte for byte, the raw savedPlan row count is unchanged, no card and no planConfirmation record exists, and FakeIntervalsClient.calls is empty.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "draftsAndASampleWeekLeaveTheSavedPlanAndTheCalendarAlone"}
+			]
+		},
+		{
+			"id": "6.4.16",
+			"statement": "ChatSnapshot.plans reaches the app through Coach, and the public-surface fixtures list Coach.decide(_: PlanDecision, in:) and ChatSnapshot.plans.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatSnapshotTests.swift", "function": "theObservedSnapshotCarriesThePlanCardAndThenItsArmedControls"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
+			]
+		},
+		{
+			"id": "6.4.17",
+			"statement": "make check-source fails ClaimedSave( outside PlanSave.swift, LiveConfirmation( outside PlanConfirmation.swift and PlanSaveToken( outside PlanCard.swift, each with a passing and a failing case.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
 		}
 	],
 	"requirements": [
@@ -995,6 +1121,26 @@
 			"id": "B15.05/two-calls",
 			"statement": "Two plan_save calls in one step are both refused.",
 			"agreedDifference": "ADR-0084: two plan_save calls in one step both answer concurrent_plan_save and every later plan_save of the attempt is refused, where npm runs each call. Shown by 6.3.3."
+		},
+		{
+			"id": "B16.01/plan-save",
+			"statement": "Choosing a coaching option is never plan-save approval: it saves no plan and writes no claim while a plan-save card waits.",
+			"criteria": ["6.4.14"]
+		},
+		{
+			"id": "G03/plans",
+			"statement": "Across New conversation, a plan-save confirmation follows its own rule: only the newest one with no decision before the reset and whose ten minutes end after it is carried to the top, and it is gone after the next New conversation.",
+			"criteria": ["6.4.9"]
+		},
+		{
+			"id": "D06/plan",
+			"statement": "Each durable plan record follows its own rule across New conversation: the saved plan stays saved, and a carried confirmation keeps its controls until it is decided or its ten minutes end.",
+			"criteria": ["6.4.9"]
+		},
+		{
+			"id": "D14/plan",
+			"statement": "Synced history never grants plan-save approval on another device: a second device sees the saved plan in its prompt and plan_load, and no card and no control.",
+			"criteria": ["6.4.13"]
 		}
 	],
 	"plan": {
@@ -1052,11 +1198,7 @@
 		"B15.05",
 		"B19.03",
 		"G07",
-		"B16.01/plan-save",
 		"B01.03/saved-plan",
-		"G03/plans",
-		"D06/plan",
-		"D14/plan",
 		"B15.01/acknowledgement",
 		"B15.01/arguments",
 		"B19.03/durable"

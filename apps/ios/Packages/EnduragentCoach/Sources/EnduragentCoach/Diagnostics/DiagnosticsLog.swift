@@ -50,6 +50,7 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case settlementUnsaved(TurnID, LedgerFailure)
 	case reviewUnavailable(ChatID, LedgerFailure)
 	case planConfirmationUnavailable(ChatID, LedgerFailure)
+	case planSaveStalled(PlanConfirmationID, LedgerFailure)
 
 	fileprivate func redacted(_ secrets: [String]) -> DiagnosticsEvent {
 		switch self {
@@ -63,7 +64,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 			.recoveryUnavailable, .importsUnavailable,
 			.preferencesUnavailable, .consentUnavailable, .snapshotReadFailed,
 			.snapshotDeadlineMissed, .reviewOutcomeUnsaved,
-			.settlementUnsaved, .reviewUnavailable, .planConfirmationUnavailable:
+			.settlementUnsaved, .reviewUnavailable, .planConfirmationUnavailable,
+			.planSaveStalled:
 			return self
 		}
 	}
