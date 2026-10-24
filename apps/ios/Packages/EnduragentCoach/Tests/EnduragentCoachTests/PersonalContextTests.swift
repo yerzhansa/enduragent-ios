@@ -109,7 +109,7 @@ import Testing
 		await coach.lifecycle(.willTerminate)
 	}
 
-	@Test func promptNamesNoPlanAndNoPlanToolIsOffered() async throws {
+	@Test func promptNamesNoPlanAndThePlanningToolsAreOfferedWithoutPlanSave() async throws {
 		let coach = await fixture.open()
 		try await remember(mira.injected + [(.cyclingEquipment, mira.equipment)], using: coach)
 
@@ -118,11 +118,13 @@ import Testing
 		let system = try MemoryProbe.systemText(in: request)
 		#expect(system.contains(mira.goals))
 		#expect(!system.contains("## Current Plan"))
-		let offered = request.tools.map(\.name)
-		#expect(offered.contains(.memoryWrite))
-		#expect(!offered.contains(.planSave))
-		#expect(offered.allSatisfy { !$0.rawValue.contains("plan") })
-		#expect(!offered.map(\.rawValue).contains("get_sample_week"))
+		let offered = request.tools.map(\.name.rawValue)
+		#expect(offered.contains("memory_write"))
+		#expect(
+			Array(offered.drop { $0 != "calculate_zones" }.prefix(4)) == [
+				"calculate_zones", "build_plan_skeleton", "assess_feasibility", "get_sample_week",
+			])
+		#expect(offered.filter { $0.hasPrefix("plan_") }.isEmpty)
 		await coach.lifecycle(.willTerminate)
 	}
 

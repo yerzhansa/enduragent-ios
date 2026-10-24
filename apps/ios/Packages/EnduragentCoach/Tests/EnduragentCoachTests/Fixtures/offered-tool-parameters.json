@@ -1,4 +1,148 @@
 {
+ "assess_feasibility": {
+  "properties": {
+   "currentFtp": {
+    "maximum": 600,
+    "minimum": 50,
+    "type": "integer"
+   },
+   "currentWeightKg": {
+    "exclusiveMinimum": 0,
+    "type": "number"
+   },
+   "experienceLevel": {
+    "enum": [
+     "beginner",
+     "intermediate",
+     "advanced",
+     "elite"
+    ],
+    "type": "string"
+   },
+   "targetFtp": {
+    "maximum": 9007199254740991,
+    "minimum": -9007199254740991,
+    "type": "integer"
+   },
+   "targetWkg": {
+    "type": "number"
+   }
+  },
+  "required": [
+   "currentFtp",
+   "experienceLevel"
+  ],
+  "type": "object"
+ },
+ "build_plan_skeleton": {
+  "properties": {
+   "availableDays": {
+    "items": {
+     "enum": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+     ],
+     "type": "string"
+    },
+    "type": "array"
+   },
+   "experienceLevel": {
+    "enum": [
+     "beginner",
+     "intermediate",
+     "advanced",
+     "elite"
+    ],
+    "type": "string"
+   },
+   "ftpWatts": {
+    "maximum": 600,
+    "minimum": 50,
+    "type": "integer"
+   },
+   "generalGoal": {
+    "type": "string"
+   },
+   "generalGoalTarget": {
+    "type": "string"
+   },
+   "goalType": {
+    "enum": [
+     "race",
+     "general"
+    ],
+    "type": "string"
+   },
+   "keySessionDay": {
+    "enum": [
+     "mon",
+     "tue",
+     "wed",
+     "thu",
+     "fri",
+     "sat",
+     "sun"
+    ],
+    "type": "string"
+   },
+   "raceDate": {
+    "description": "Target race date, YYYY-MM-DD",
+    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+    "type": "string"
+   },
+   "raceType": {
+    "enum": [
+     "century",
+     "gran_fondo",
+     "criterium",
+     "time_trial",
+     "other"
+    ],
+    "type": "string"
+   },
+   "scheduleType": {
+    "enum": [
+     "fixed",
+     "flexible"
+    ],
+    "type": "string"
+   },
+   "sessionsPerWeek": {
+    "maximum": 6,
+    "minimum": 3,
+    "type": "integer"
+   },
+   "targetTime": {
+    "description": "Goal finish time, e.g. 5:30:00",
+    "type": "string"
+   },
+   "volumeTier": {
+    "enum": [
+     "low",
+     "medium",
+     "high"
+    ],
+    "type": "string"
+   },
+   "weightKg": {
+    "exclusiveMinimum": 0,
+    "type": "number"
+   }
+  },
+  "required": [
+   "experienceLevel",
+   "ftpWatts",
+   "volumeTier",
+   "scheduleType",
+   "goalType"
+  ],
+  "type": "object"
+ },
  "calculate_zones": {
   "properties": {
    "ftpWatts": {
@@ -15,6 +159,62 @@
  },
  "get_pending_workout_changes": {
   "properties": {},
+  "type": "object"
+ },
+ "get_sample_week": {
+  "properties": {
+   "availableDays": {
+    "items": {
+     "enum": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+     ],
+     "type": "string"
+    },
+    "type": "array"
+   },
+   "keySessionDay": {
+    "enum": [
+     "mon",
+     "tue",
+     "wed",
+     "thu",
+     "fri",
+     "sat",
+     "sun"
+    ],
+    "type": "string"
+   },
+   "scheduleType": {
+    "enum": [
+     "fixed",
+     "flexible"
+    ],
+    "type": "string"
+   },
+   "sessionsPerWeek": {
+    "maximum": 6,
+    "minimum": 3,
+    "type": "integer"
+   },
+   "volumeTier": {
+    "enum": [
+     "low",
+     "medium",
+     "high"
+    ],
+    "type": "string"
+   }
+  },
+  "required": [
+   "volumeTier",
+   "scheduleType"
+  ],
   "type": "object"
  },
  "intervals_fetch_activities": {

@@ -153,6 +153,9 @@ enum CoachTools {
 	static func definition(of name: ToolName) -> CoachTool? {
 		switch name {
 		case .calculateZones: calculateZones
+		case .buildPlanSkeleton: buildPlanSkeleton
+		case .assessFeasibility: assessFeasibility
+		case .getSampleWeek: getSampleWeek
 		case .intervalsFetchAthlete: fetchAthlete
 		case .intervalsFetchWellness: fetchWellness
 		case .intervalsFetchActivity: fetchActivity
