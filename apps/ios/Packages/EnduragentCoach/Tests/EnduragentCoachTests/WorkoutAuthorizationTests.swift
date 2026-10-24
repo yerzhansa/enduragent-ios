@@ -20,7 +20,8 @@ import Testing
 				"FTP, availability, equipment, fatigue, goals, race dates, analysis, explanation, "
 					+ "review, and status are context only.",
 				"- Answer the question. Do not propose, recommend, outline, draft, schedule, or "
-					+ "create a workout in prose or with `prepare_workout_changes`.",
+					+ "create a workout in prose or with `build_plan_skeleton`, `get_sample_week`, or "
+					+ "`prepare_workout_changes`.",
 				"Use `prepare_workout_changes` only when the current message asks for calendar "
 					+ "creation, scheduling, pushing, or updating; a prose-only request never "
 					+ "prepares a calendar change.",
