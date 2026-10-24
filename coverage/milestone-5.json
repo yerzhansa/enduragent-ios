@@ -4,9 +4,12 @@
 		"1.1": 8,
 		"2.1": 8,
 		"2.2": 5,
+		"2.3": 4,
 		"2.4": 2,
 		"3.1": 3,
 		"3.2": 4,
+		"3.3": 2,
+		"3.4": 4,
 		"6.1": 3
 	},
 	"criteria": [
@@ -240,6 +243,41 @@
 			]
 		},
 		{
+			"id": "2.3.1",
+			"statement": "The serializer's refusal messages and its workout description print numbers through JavaScriptNumber.text, the serializer cases of serializer-cases.json pass unchanged, and Serializer.jsString is gone.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SerializerTests.swift", "function": "matchesDesktopCases"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SerializerRefusalTests.swift", "function": "refusalMessagePrintsNumbersAsJavaScriptDoes"}
+			]
+		},
+		{
+			"id": "2.3.2",
+			"statement": "SnapshotNumber.text stays the snapshot's one display rule, whole numbers bare and others to one decimal, and prints only through JavaScriptNumber.text and fixed, with the form rounded through JavaScriptNumber.roundToTenths. The training snapshot and npm snapshot parity tests pass unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "negativeValueOnATieRoundsAwayFromZeroLikeJavaScriptToFixed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "turnPromptCarriesBothLinesAndLeavesAbsentFieldsOut"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "latestWellnessRowIsChosenByDateWhateverTheOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotNpmParityTests.swift", "function": "snapshotTextMatchesNpmOutsideTheNamedDifferences"}
+			]
+		},
+		{
+			"id": "2.3.3",
+			"statement": "The wellness readout's form and each stream channel's mean round to tenths through JavaScriptNumber.roundToTenths, the activity, profile and wellness readout tests pass unchanged, and OneDecimal is gone.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "wellnessToolShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamSummaryTests.swift", "function": "customChannelIsAskedForByItsNameAndSummarizedUnderIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "activityListShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityListingTests.swift", "function": "countsAddUpToEveryRowTheSourceReturned"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "profileToolShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "roundToTenthsRoundsToTheNearestTenth"}
+			]
+		},
+		{
+			"id": "2.3.4",
+			"statement": "rg 'jsString|OneDecimal' apps/ios finds nothing.",
+			"noAutomatedProof": "A deleted name is a property of the tree, and the compiler refuses any remaining reference. The pull request body records the search and its empty result."
+		},
+		{
 			"id": "2.4.1",
 			"statement": "CivilDate.weekday gives the Gregorian weekday and days(until:) the signed day count, negative when the other day is earlier, across 1900-02-28 to 1900-03-01, 2000-02-28 to 2000-03-01, year ends and spans in both directions, and adding that count reaches the other day.",
 			"tests": [
@@ -342,6 +380,81 @@
 			]
 		},
 		{
+			"id": "3.3.1",
+			"statement": "For every case of sample-week.json, the hand cases included, Planning.sampleWeek of PlanningArguments.sampleWeek of the case input, as JSON, equals the recorded output, and a low-volume flexible request for six sessions returns three sessions, as npm does. A case the parser refuses is a mismatch.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SampleWeekParityTests.swift",
+					"function": "everyRecordedRequestGetsNpmsSampleWeek"
+				}
+			]
+		},
+		{
+			"id": "3.3.2",
+			"statement": "The number of sample-week cases compared equals the manifest count for sample-week.json and is above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SampleWeekParityTests.swift",
+					"function": "everyRecordedRequestGetsNpmsSampleWeek"
+				}
+			]
+		},
+		{
+			"id": "3.4.1",
+			"statement": "CivilDate.isRealDateKey and CivilDate(rawValue:) give npm's isRealDateKey verdict, confirmed with node, for 0000-01-01, 0000-02-29, 0100-02-29 (refused), 0400-02-29, 1500-02-28, 1582-10-10, 1582-10-15, 0001-01-01, 9999-12-31 and the refusals 2026-02-30, 2026-13-01, 2026-00-10, +0010-01-01 and 0000-1-01.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateValidationTests.swift",
+					"function": "givesNpmsVerdictOnTheProlepticGregorianCalendar"
+				}
+			]
+		},
+		{
+			"id": "3.4.2",
+			"statement": "From 1583-01-01 to 9999-12-31, adding(days:), days(until:) and weekday equal Foundation's Gregorian calendar over every day of 1583, 1600, 1899 to 1901, 1970, 2000, 2024 to 2030 and 9999 and a seeded sample; before 1583 they equal JavaScript's proleptic Gregorian count and weekday, every day of an early year follows the day before, and an intervals.icu range across year 0 counts 367 days as npm does.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "dayArithmeticFrom1583IsFoundationsGregorianCalendar"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "daysBefore1583CountAsJavaScriptDoes"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "everyDayOfAnEarlyYearFollowsTheDayBefore"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "movingPastEitherEndOfTheRangeStillCountsBack"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnToolInputTests.swift",
+					"function": "aRangeAcrossYearZeroCountsEveryProlepticDay"
+				}
+			]
+		},
+		{
+			"id": "3.4.3",
+			"statement": "1500-02-28, 1582-10-10 and 0001-01-01 are real days, and intervals_fetch_activities with each of them as oldest and newest passes the date check and lists that day, as npm does.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateValidationTests.swift",
+					"function": "givesNpmsVerdictOnTheProlepticGregorianCalendar"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnToolInputTests.swift",
+					"function": "historicalDateKeysPassTheDateCheck"
+				}
+			]
+		},
+		{
+			"id": "3.4.4",
+			"statement": "Nothing else changes: every committed digest, fixture, seed store and PublicSurface file stays byte for byte, and every other existing test passes unchanged except that 0000-01-01 leaves the impossible-date list.",
+			"noAutomatedProof": "This criterion is a property of the diff, checked on the final head. The pull request body records git diff --stat, which names no fixture, digest, seed store or PublicSurface file, and the full make test-swift run."
+		},
+		{
 			"id": "6.1.1",
 			"statement": "ChainAppend.swift holds head(of:), newest(_:), append(_:stamp:after:in:) and chats(holding:) on Ledger with RecordHead, NewestRecord, HeadMoved and TransitionFailure, moved from ReviewChain.swift, and Loop/TurnEnding.swift holds TurnEnding, moved from ReviewCommit.swift. The only changed lines that are not moves are the three named edits: commit(_:stamp:after:in:) renamed append, chats(holding:) taking the kind with reviewChats() calling it for .workoutReview, and newest(_:) and append losing private.",
 			"noAutomatedProof": "This criterion is a property of the diff, checked by hand on the final head. The pull request body records git diff -M --stat and lists every changed line that is not a move."
@@ -385,6 +498,7 @@
 			"3.1": 3,
 			"3.2": 4,
 			"3.3": 2,
+			"3.4": 4,
 			"4.1": 7,
 			"4.2": 4,
 			"5.1": 9,
