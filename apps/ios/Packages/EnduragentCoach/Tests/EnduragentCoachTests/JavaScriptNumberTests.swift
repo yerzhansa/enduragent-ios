@@ -77,6 +77,14 @@ import Testing
 		#expect(JavaScriptNumber.roundToTenths(rounding.value) == rounding.rounded)
 	}
 
+	@Test(arguments: [
+		Rounded(value: 13.1, rounded: 13.1), Rounded(value: 7.46, rounded: 7.5),
+		Rounded(value: -6.47, rounded: -6.5),
+	])
+	func roundToTenthsRoundsToTheNearestTenth(_ rounding: Rounded) {
+		#expect(JavaScriptNumber.roundToTenths(rounding.value) == rounding.rounded)
+	}
+
 	@Test(arguments: [Double.nan, .infinity, -.infinity])
 	func jsonOfANonFiniteNumberIsNull(_ value: Double) {
 		#expect(JavaScriptNumber.json(value) == "null")

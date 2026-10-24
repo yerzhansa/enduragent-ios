@@ -40,7 +40,9 @@ enum CoachReadout {
 		let rows = days.sorted { $0.date < $1.date }.map { day in
 			var fields: [String: JSONValue] = ["date": .string(day.date.rawValue)]
 			write(day.readings, to: &fields, units: &units)
-			if let form = day.form { fields["form"] = .number(OneDecimal.round(form)) }
+			if let form = day.form {
+				fields["form"] = .number(JavaScriptNumber.roundToTenths(form))
+			}
 			return JSONValue.object(fields)
 		}
 		var result: [String: JSONValue] = [

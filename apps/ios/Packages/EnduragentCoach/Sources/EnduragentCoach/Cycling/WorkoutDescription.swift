@@ -70,7 +70,7 @@ extension IntervalsSerializer {
 		_ power: PowerTarget, ramp: Bool, display: DisplayLocale?
 	) -> String {
 		let number = { (value: Double) in
-			display?.number(value, precision: .compact) ?? jsString(value)
+			display?.number(value, precision: .compact) ?? JavaScriptNumber.text(value)
 		}
 		if let low = power.low, let high = power.high {
 			switch power.kind {
