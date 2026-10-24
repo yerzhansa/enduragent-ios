@@ -146,14 +146,14 @@ import Testing
 			store,
 			[
 				storedRecord(
-					device: phone, wall: 12, ulid: fixedUlid(12),
+					device: phone, wall: 20, ulid: fixedUlid(20),
+					body: .synced(.journal(JournalBody(op: .writeSection, preview: goals)))),
+				storedRecord(
+					device: phone, wall: 25, ulid: fixedUlid(25),
 					body: try SavedPlanRows.body(
 						.object(["name": .string("Base Block"), "totalWeeks": .number(8)]),
 						id: 1, confirmation: 2,
 						decided: HybridLogicalClock(wallMs: 11, logical: 0, deviceId: phone))),
-				storedRecord(
-					device: phone, wall: 20, ulid: fixedUlid(20),
-					body: .synced(.journal(JournalBody(op: .writeSection, preview: goals)))),
 				storedRecord(
 					device: phone, wall: 32, ulid: fixedUlid(32),
 					body: try SavedPlanRows.body(
