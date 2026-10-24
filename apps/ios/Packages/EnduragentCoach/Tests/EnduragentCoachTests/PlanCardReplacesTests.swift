@@ -11,6 +11,9 @@ extension PlanConfirmationTests {
 	static let peakWeek: JSONValue = .object([
 		"name": .string("Peak Week"), "totalWeeks": .number(1),
 	])
+	static let taper: JSONValue = .object([
+		"name": .string("Taper"), "totalWeeks": .number(1),
+	])
 
 	@Test func eachSavedCardNamesThePlanThatWasNewestBeforeItsSave() async throws {
 		let coach = await turns.coach()
@@ -31,6 +34,7 @@ extension PlanConfirmationTests {
 		case canceled
 		case replaced
 		case replacedThenExpired
+		case replacedByACardThatWasReplacedLater
 		case expired
 
 		var testDescription: String { rawValue }
@@ -44,6 +48,7 @@ extension PlanConfirmationTests {
 		let ended = try await turns.prepareAndArm(PlanTurns.baseBuild, on: coach)
 		var next = coach
 		var newestBeforeLater = "Threshold Block"
+		var replacedOnTheWay: [String?] = []
 		switch ending {
 		case .canceled:
 			#expect(await coach.decide(.cancel(ended), in: .main) == .canceled)
@@ -58,6 +63,11 @@ extension PlanConfirmationTests {
 				} != nil)
 			next = try await savedElsewhereAfterTheEnd()
 			newestBeforeLater = "Peak Week"
+		case .replacedByACardThatWasReplacedLater:
+			_ = try await turns.prepareAndArm(Self.taper, on: coach)
+			next = try await savedElsewhereAfterTheEnd()
+			newestBeforeLater = "Peak Week"
+			replacedOnTheWay = ["Peak Week"]
 		case .replaced, .replacedThenExpired:
 			break
 		}
@@ -73,8 +83,34 @@ extension PlanConfirmationTests {
 		}
 
 		let cards = try await turns.cards(on: reader)
-		#expect(cards.map(\.state) == [.saved, ending == .canceled ? .canceled : .expired, .saved])
-		#expect(cards.map(\.summary.replaces) == [nil, "Threshold Block", newestBeforeLater])
+		let endedState: PlanCardState = ending == .canceled ? .canceled : .expired
+		#expect(
+			cards.map(\.state)
+				== [.saved, endedState] + replacedOnTheWay.map { _ in .expired } + [.saved])
+		#expect(
+			cards.map(\.summary.replaces)
+				== [nil, "Threshold Block"] + replacedOnTheWay + [newestBeforeLater])
+	}
+
+	@Test func aCanceledCardNamesAPlanDecidedBeforeItsCancelButWrittenAfterIt() async throws {
+		let coach = await turns.coach()
+		let first = try await turns.prepareAndArm(PlanTurns.threshold, on: coach)
+		#expect(await coach.decide(.save(first), in: .main) == .saved)
+		let ended = try await turns.prepareAndArm(PlanTurns.baseBuild, on: coach)
+		turns.clock.advance(by: .seconds(1))
+		let decided = Self.decidedElsewhere(at: turns.clock.now)
+		turns.clock.advance(by: .seconds(1))
+		#expect(await coach.decide(.cancel(ended), in: .main) == .canceled)
+		turns.clock.advance(by: .seconds(1))
+		let cancel = try #require(try await turns.steps(in: turns.store).last)
+		#expect(cancel.body.step == .canceled)
+		#expect(decided < cancel.hlc)
+		#expect(cancel.hlc < Self.decidedElsewhere(at: turns.clock.now))
+		try await saveElsewhere(Self.peakWeek, decided: decided, writtenAt: turns.clock.now)
+
+		let cards = try await turns.cards(on: await turns.coach())
+		#expect(cards.map(\.state) == [.saved, .canceled])
+		#expect(cards.map(\.summary.replaces) == [nil, "Peak Week"])
 	}
 
 	enum ExpiryEdge: String, CaseIterable, Sendable, CustomTestStringConvertible {
@@ -189,11 +225,14 @@ extension PlanConfirmationTests {
 		HybridLogicalClock.tick(now: instant, deviceId: DeviceID(rawValue: "plan-pad"), last: nil)
 	}
 
-	private func saveElsewhere(_ plan: JSONValue, decided: HybridLogicalClock) async throws {
+	private func saveElsewhere(
+		_ plan: JSONValue, decided: HybridLogicalClock, writtenAt: Date? = nil
+	) async throws {
+		let written = writtenAt.map { Self.decidedElsewhere(at: $0) } ?? decided
 		try await turns.store.append(
 			[
 				storedRecord(
-					device: decided.deviceId, wall: decided.wallMs, ulid: fixedUlid(3),
+					device: decided.deviceId, wall: written.wallMs, ulid: fixedUlid(3),
 					account: testConnection.account,
 					body: try SavedPlanRows.body(plan, decided: decided))
 			], locality: .synced)
