@@ -98,7 +98,7 @@ package struct WellnessLine: Sendable, Equatable {
 		add(.fitness, "Fitness")
 		add(.fatigue, "Fatigue")
 		if let form = WellnessDay(date: date, readings: shown).form {
-			parts.append("Form \(SnapshotNumber.signed(OneDecimal.round(form)))")
+			parts.append("Form \(SnapshotNumber.signed(JavaScriptNumber.roundToTenths(form)))")
 		}
 		add(.restingHeartRate, "resting HR", unit: " bpm")
 		add(.hrv, "HRV")
