@@ -252,13 +252,12 @@ import Testing
 	@Test func theWakeTenMinutesAfterTheSettleExpiresTheCard() async throws {
 		let coach = await turns.coach()
 		_ = try await turns.reply(after: [[turns.save(PlanTurns.baseBuild)]], on: coach)
-		#expect(try await turns.nextChange(of: coach) == .main)
+		#expect(try await turns.cards(on: coach).map(\.state) == [.waiting(.unarmed)])
 
 		try await turns.clock.waitUntilHeld(.seconds(600))
 		turns.clock.release(.seconds(600))
 
-		#expect(try await turns.nextChange(of: coach) == .main)
-		#expect(try await coach.plans.snapshot(chat: .main).map(\.state) == [.expired])
+		#expect(try await turns.waitForCards(on: coach) { $0.map(\.state) == [.expired] } != nil)
 	}
 
 	@Test func aWaitingCardIsCarriedOnceToTheTopAfterNewConversation() async throws {

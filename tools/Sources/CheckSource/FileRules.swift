@@ -59,6 +59,19 @@ extension SourceChecker {
 				#"(?:\.\s*init|\bSelf)\s*\(\s*id\s*:\#(argumentText)*?\bconfirmation\s*:"#
 					+ #"\#(argumentText)*?\bdecided\s*:"#,
 			]),
+		MintedValue(
+			name: "ClaimedSave", owner: plansSource + "PlanSave.swift", anywhere: [],
+			elsewhere: [#"\bextension\s+ClaimedSave\b"#, #"\bClaimedSave(?:\s*\.\s*init)?\s*\("#]),
+		MintedValue(
+			name: "LiveConfirmation", owner: plansSource + "PlanConfirmation.swift", anywhere: [],
+			elsewhere: [
+				#"\bextension\s+LiveConfirmation\b"#, #"\bLiveConfirmation(?:\s*\.\s*init)?\s*\("#,
+			]),
+		MintedValue(
+			name: "PlanSaveToken", owner: plansSource + "PlanCard.swift", anywhere: [],
+			elsewhere: [
+				#"\bextension\s+PlanSaveToken\b"#, #"\bPlanSaveToken(?:\s*\.\s*init)?\s*\("#,
+			]),
 	]
 	static let plansSource = "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Plans/"
 	static let planRecordOwners =

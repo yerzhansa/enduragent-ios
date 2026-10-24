@@ -59,6 +59,28 @@ public struct PlanCard: Hashable, Sendable, Identifiable {
 	public var id: PlanConfirmationID { ref.confirmation }
 }
 
+public enum PlanDecision: Hashable, Sendable {
+	case presented(PlanCardRef)
+	case save(PlanSaveToken)
+	case cancel(PlanSaveToken)
+}
+
+public enum PlanDecisionOutcome: Hashable, Sendable {
+	case presented
+	case saved
+	case canceled
+	case notSaved(PlanNotSaved)
+	case storageUnavailable
+}
+
+public enum PlanNotSaved: Error, Hashable, Sendable {
+	case expired
+	case replaced
+	case alreadyDecided
+	case athleteChanged
+	case notPresented
+}
+
 struct PlanDelivery: Sendable, Equatable {
 	enum Presence: Sendable, Equatable {
 		case shown
@@ -77,18 +99,27 @@ struct PlanDelivery: Sendable, Equatable {
 			head: confirmation.newest.ulid, presence: .shown)
 	}
 
+	mutating func acknowledge() {
+		guard case .shown = presence else { return }
+		presence = .armed(UUID())
+	}
+
 	var controls: PlanControls {
 		switch presence {
 		case .shown: .unarmed
 		case .armed(let secret): .armed(PlanSaveToken(ref: ref, secret: secret))
 		}
 	}
+
+	func admits(_ token: PlanSaveToken) -> Bool {
+		presence == .armed(token.secret) && ref == token.ref
+	}
 }
 
 enum PlanCardProjection {
 	static func cards(
 		chain: PlanChain, saved: SavedPlans, conversation: Conversation, delivery: PlanDelivery?,
-		at now: Date
+		stalled: Set<PlanConfirmationID>, at now: Date
 	) -> [PlanCard] {
 		guard let delivery else { return [] }
 		let segment = conversation.current
@@ -104,6 +135,7 @@ enum PlanCardProjection {
 			+ current.map { ($0, PlanCardPlacement.afterTurn($0.origin.turn)) }
 		return shown.map { confirmation, placement in
 			let own = delivery.ref.confirmation == confirmation.id
+			let phase = chain.phase(of: confirmation, at: now)
 			return PlanCard(
 				ref: own
 					? delivery.ref
@@ -112,9 +144,22 @@ enum PlanCardProjection {
 						digest: confirmation.prepared.document.digest,
 						delivery: delivery.ref.delivery),
 				placement: placement,
-				summary: confirmation.prepared.document.summary(replacing: saved.newest),
+				summary: confirmation.prepared.document.summary(
+					replacing: replaced(by: confirmation, in: phase, of: chain, saved: saved)),
 				state: state(
-					of: confirmation, in: chain, controls: own ? delivery.controls : nil, at: now))
+					phase, controls: own ? delivery.controls : nil,
+					stalled: stalled.contains(confirmation.id)))
+		}
+	}
+
+	private static func replaced(
+		by confirmation: FoldedConfirmation, in phase: ConfirmationPhase, of chain: PlanChain,
+		saved: SavedPlans
+	) -> PlanDocument? {
+		switch phase {
+		case .live: saved.newest
+		case .saving, .saved, .canceled, .expired, .replaced:
+			saved.newest(decidedBefore: chain.end(of: confirmation))
 		}
 	}
 
@@ -123,19 +168,17 @@ enum PlanCardProjection {
 	{
 		let decidedBefore = confirmation.decided.map { !boundary.includes($0.ulid, at: $0.hlc) }
 		return decidedBefore != true
-			&& confirmation.created.hlc.wallTime.addingTimeInterval(Plans.lifetime / .seconds(1))
-				> boundary.clock.wallTime
+			&& confirmation.carriedUntil > boundary.clock.wallTime
 	}
 
-	private static func state(
-		of confirmation: FoldedConfirmation, in chain: PlanChain, controls: PlanControls?,
-		at now: Date
-	) -> PlanCardState {
-		switch chain.phase(of: confirmation, at: now) {
+	private static func state(_ phase: ConfirmationPhase, controls: PlanControls?, stalled: Bool)
+		-> PlanCardState
+	{
+		switch phase {
 		case .live(let live):
 			if case .unreadable = live.head { return .storageUnavailable }
 			return .waiting(controls ?? .unarmed)
-		case .saving: return .saving
+		case .saving: return stalled ? .storageUnavailable : .saving
 		case .saved: return .saved
 		case .canceled: return .canceled
 		case .expired, .replaced: return .expired

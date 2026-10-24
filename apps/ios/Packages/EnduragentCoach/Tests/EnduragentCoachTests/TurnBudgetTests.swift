@@ -168,7 +168,9 @@ import Testing
 			diagnostics: diagnostics,
 			ladder: ladder,
 			desk: makeDesk(ledger: ledger, clock: clock),
-			plans: Plans(ledger: ledger, clock: clock, diagnostics: diagnostics),
+			plans: Plans(
+				ledger: ledger, clock: clock, diagnostics: diagnostics,
+				currentAccount: { .unconnected }),
 			authorizeInvocation: { _ in }
 		)
 		return try await runner.run(

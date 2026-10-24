@@ -10,6 +10,9 @@ final class ChatRecords {
 	private(set) var review: ReviewSnapshot?
 	private var reviewReads = 0
 	private var shownRead = 0
+	private(set) var planCards: [PlanCard] = []
+	private var planReads = 0
+	private var shownPlanRead = 0
 	private(set) var jobs: [FlushJob] = []
 	private var applied: [ULID: AthleteRecord] = [:]
 	private var pendingSettlements: [ULID: AthleteRecord] = [:]
@@ -75,6 +78,7 @@ final class ChatRecords {
 			conversation = folded
 			self.jobs = jobs
 		}
+		await refreshPlans()
 	}
 
 	func refreshInformationOwnership(isolation: isolated (any Actor)? = #isolation)
@@ -110,6 +114,27 @@ final class ChatRecords {
 			}
 		}
 		return outcome
+	}
+
+	func decide(
+		_ decision: PlanDecision, isolation: isolated (any Actor)? = #isolation
+	) async -> PlanDecisionOutcome {
+		let outcome = await plans.decide(decision)
+		await refreshPlans()
+		return outcome
+	}
+
+	func refreshPlans(isolation: isolated (any Actor)? = #isolation) async {
+		planReads += 1
+		let read = planReads
+		do throws(LedgerFailure) {
+			let cards = try await plans.snapshot(chat: chat)
+			guard read > shownPlanRead else { return }
+			planCards = cards
+			shownPlanRead = read
+		} catch {
+			ledger.report(.planConfirmationUnavailable(chat, error))
+		}
 	}
 
 	func updateReview(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
@@ -179,6 +204,7 @@ final class ChatRecords {
 		let review = await desk.settle(key, in: chat, ending: ending)
 		if case .committed = review { _ = await refreshReview() }
 		let plan = await plans.settle(key, in: chat, ending: ending)
+		if case .leftWaiting = plan { await refreshPlans() }
 		await save(
 			TurnLifecycle.settled(
 				attempt, plan.counted(in: settlement), on: conversation.turn(turn), chat: chat,
