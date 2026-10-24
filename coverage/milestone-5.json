@@ -4,6 +4,7 @@
 		"1.1": 8,
 		"2.1": 8,
 		"2.2": 5,
+		"2.3": 4,
 		"2.4": 2,
 		"6.1": 3
 	},
@@ -236,6 +237,40 @@
 				{"file": "tools/Tests/ToolSupportTests/JavaScriptNumberTextTests.swift", "function": "textIsJavaScriptsStringOfTheNumber"},
 				{"file": "tools/Tests/ToolSupportTests/JavaScriptNumberTextTests.swift", "function": "fixedToOneDecimalBreaksATieUpward"}
 			]
+		},
+		{
+			"id": "2.3.1",
+			"statement": "The serializer's refusal messages and its workout description print numbers through JavaScriptNumber.text, the serializer cases of serializer-cases.json pass unchanged, and Serializer.jsString is gone.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SerializerTests.swift", "function": "matchesDesktopCases"}
+			]
+		},
+		{
+			"id": "2.3.2",
+			"statement": "SnapshotNumber.text stays the snapshot's one display rule, whole numbers bare and others to one decimal, and prints only through JavaScriptNumber.text and fixed, with the form rounded through JavaScriptNumber.roundToTenths. The training snapshot and npm snapshot parity tests pass unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "negativeValueOnATieRoundsAwayFromZeroLikeJavaScriptToFixed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "turnPromptCarriesBothLinesAndLeavesAbsentFieldsOut"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "latestWellnessRowIsChosenByDateWhateverTheOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotNpmParityTests.swift", "function": "snapshotTextMatchesNpmOutsideTheNamedDifferences"}
+			]
+		},
+		{
+			"id": "2.3.3",
+			"statement": "The wellness readout's form and each stream channel's mean round to tenths through JavaScriptNumber.roundToTenths, the activity, profile and wellness readout tests pass unchanged, and OneDecimal is gone.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "wellnessToolShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamSummaryTests.swift", "function": "customChannelIsAskedForByItsNameAndSummarizedUnderIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "activityListShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityListingTests.swift", "function": "countsAddUpToEveryRowTheSourceReturned"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "profileToolShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "roundToTenthsRoundsToTheNearestTenth"}
+			]
+		},
+		{
+			"id": "2.3.4",
+			"statement": "rg 'jsString|OneDecimal' apps/ios finds nothing.",
+			"noAutomatedProof": "A deleted name is a property of the tree, and the compiler refuses any remaining reference. The pull request body records the search and its empty result."
 		},
 		{
 			"id": "2.4.1",
