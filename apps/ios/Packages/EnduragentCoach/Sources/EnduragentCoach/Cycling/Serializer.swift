@@ -135,13 +135,13 @@ package enum IntervalsSerializer {
 			if power.kind == .watts, value > Double(maxWatts) {
 				throw InvalidWorkout(
 					message:
-						"\(path).power.\(name): \(jsString(value))w exceeds sanity bound \(maxWatts)w"
+						"\(path).power.\(name): \(JavaScriptNumber.text(value))w exceeds sanity bound \(maxWatts)w"
 				)
 			}
 			if power.kind == .percentFtp, value > Double(maxPercentFtp) {
 				throw InvalidWorkout(
 					message:
-						"\(path).power.\(name): \(jsString(value))% exceeds sanity bound \(maxPercentFtp)%"
+						"\(path).power.\(name): \(JavaScriptNumber.text(value))% exceeds sanity bound \(maxPercentFtp)%"
 				)
 			}
 		}
@@ -161,7 +161,8 @@ package enum IntervalsSerializer {
 			if low > high {
 				throw InvalidWorkout(
 					message:
-						"\(path): power.low (\(jsString(low))) > power.high (\(jsString(high)))")
+						"\(path): power.low (\(JavaScriptNumber.text(low))) > power.high (\(JavaScriptNumber.text(high)))"
+				)
 			}
 			if power.kind == .zone {
 				try assertZone(low, path: "\(path).power.low")
@@ -223,7 +224,7 @@ package enum IntervalsSerializer {
 		if !integer || value < Double(minZone) || value > Double(maxZone) {
 			throw InvalidWorkout(
 				message:
-					"\(path): zone must be an integer \(minZone)-\(maxZone), got \(jsString(value))"
+					"\(path): zone must be an integer \(minZone)-\(maxZone), got \(JavaScriptNumber.text(value))"
 			)
 		}
 	}
