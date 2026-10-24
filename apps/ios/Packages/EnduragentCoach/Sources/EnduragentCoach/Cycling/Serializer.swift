@@ -324,12 +324,4 @@ package enum IntervalsSerializer {
 			high: fields["high"]?.intValue()
 		)
 	}
-
-	static func jsString(_ value: Double) -> String {
-		if value.isFinite, value.rounded(.towardZero) == value, abs(value) <= 9_007_199_254_740_991
-		{
-			return String(Int64(value))
-		}
-		return String(value)
-	}
 }
