@@ -471,6 +471,7 @@ public enum Catalog {
 	public static let chatPlanReferenceWeekProgress = CatalogKey(rawValue: "chat.planReference.weekProgress")
 	public static let chatPlanReferenceWeekTitle = CatalogKey(rawValue: "chat.planReference.weekTitle")
 	public static let chatPlanReferenceWorkout = CatalogKey(rawValue: "chat.planReference.workout")
+	public static let chatPlanSaveNotPrepared = CatalogKey(rawValue: "chat.planSave.notPrepared")
 	public static let chatQueuedCount = CatalogKey(rawValue: "chat.queued.count")
 	public static let chatQueuedCountOne = CatalogKey(rawValue: "chat.queued.count_one")
 	public static let chatQueuedCountOther = CatalogKey(rawValue: "chat.queued.count_other")

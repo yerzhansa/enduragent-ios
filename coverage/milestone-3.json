@@ -985,7 +985,7 @@
 			"id": "8.2.4",
 			"statement": "The prompt holds the \"## Current Plan\" block, which says \"No plan saved yet.\" until a plan is saved, and the tool list offers build_plan_skeleton, assess_feasibility, get_sample_week and plan_load but not plan_save. Reversed by ADR-0084 in Milestone 5.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptSaysNoPlanIsSavedAndOffersPlanLoadWithoutPlanSave"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad"}
 			]
 		},
 		{

@@ -1494,7 +1494,10 @@
       "signInAgain": "Log ind igen"
     },
     "welcome": "Velkommen til {{product}}!\n\nJeg er din AI-cykeltræner. Jeg kan lave træningsplaner, foreslå træning og følge din fitness med data fra {{service}}.\n\nKommandoer:\n{{commands}}\n\nEller skriv bare til mig om din træning!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "Træningsplanen kunne ikke gøres klar til at blive gemt."
+    }
   },
   "plan": {
     "details": {

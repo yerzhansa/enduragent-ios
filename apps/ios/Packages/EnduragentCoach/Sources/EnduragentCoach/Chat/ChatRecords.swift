@@ -4,6 +4,7 @@ final class ChatRecords {
 	private let chat: ChatID
 	private let ledger: Ledger
 	private let desk: WorkoutReviewDesk
+	private let plans: Plans
 	private let clock: any Clock
 	private(set) var conversation: Conversation
 	private(set) var review: ReviewSnapshot?
@@ -18,11 +19,12 @@ final class ChatRecords {
 	}
 
 	init(
-		chat: ChatID, ledger: Ledger, clock: any Clock, desk: WorkoutReviewDesk
+		chat: ChatID, ledger: Ledger, clock: any Clock, desk: WorkoutReviewDesk, plans: Plans
 	) {
 		self.chat = chat
 		self.ledger = ledger
 		self.desk = desk
+		self.plans = plans
 		self.clock = clock
 		self.conversation = Conversation(chat: chat, segments: [])
 	}
@@ -172,13 +174,16 @@ final class ChatRecords {
 		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, stamp: OperationStamp,
 		isolation: isolated (any Actor)? = #isolation
 	) async {
-		let review = await desk.settle(
-			DraftKey(turn: turn, attempt: attempt), in: chat, ending: TurnEnding(settlement))
+		let key = DraftKey(turn: turn, attempt: attempt)
+		let ending = TurnEnding(settlement)
+		let review = await desk.settle(key, in: chat, ending: ending)
 		if case .committed = review { _ = await refreshReview() }
+		let plan = await plans.settle(key, in: chat, ending: ending)
 		await save(
 			TurnLifecycle.settled(
-				attempt, settlement, on: conversation.turn(turn), chat: chat,
-				reviewNotPrepared: review.notPrepared), stamp: stamp)
+				attempt, plan.counted(in: settlement), on: conversation.turn(turn), chat: chat,
+				reviewNotPrepared: review.notPrepared, planSaveNotPrepared: plan.notPrepared),
+			stamp: stamp)
 	}
 
 	private func save(

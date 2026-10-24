@@ -65,7 +65,7 @@ import Testing
 			try canceledRows.step(canceledRows.canceled(), wall: 4),
 			try savedRows.step(savedRows.prepared(build, expiresAt: expiresAt), wall: 5),
 			try savedRows.step(savedRows.claimed(savedClaim), wall: 6),
-			try savedRows.step(savedRows.saved(savedClaim.savedPlanID), wall: 7),
+			try savedRows.step(savedRows.saved(savedClaim.claim.savedPlan), wall: 7),
 			try waitingRows.step(waitingRows.prepared(build, expiresAt: expiresAt), wall: 8),
 		]
 		let chain = PlanChain(head: .record(fixedUlid(8)), records: records)
@@ -78,7 +78,8 @@ import Testing
 		for now in [expiresAt - 1, expiresAt + 60] {
 			#expect(chain.phase(of: confirmations[0], at: now) == .saving(pendingClaim.claim))
 			#expect(chain.phase(of: confirmations[1], at: now) == .canceled)
-			#expect(chain.phase(of: confirmations[2], at: now) == .saved(savedClaim.savedPlanID))
+			#expect(
+				chain.phase(of: confirmations[2], at: now) == .saved(savedClaim.claim.savedPlan))
 		}
 		#expect(confirmations[2].created == records[4])
 		#expect(confirmations[2].newest == records[6])
@@ -122,7 +123,7 @@ import Testing
 			try first.step(first.claimed(firstClaim), wall: 3),
 			try saved.step(saved.claimed(savedClaim), wall: 4),
 			try second.step(second.prepared(build, expiresAt: expiresAt), wall: 5),
-			try saved.step(saved.saved(savedClaim.savedPlanID), wall: 6),
+			try saved.step(saved.saved(savedClaim.claim.savedPlan), wall: 6),
 			try second.step(second.claimed(secondClaim), wall: 7),
 			try waiting.step(waiting.prepared(base, expiresAt: expiresAt), wall: 8),
 			try canceled.step(canceled.prepared(base, expiresAt: expiresAt), wall: 10),

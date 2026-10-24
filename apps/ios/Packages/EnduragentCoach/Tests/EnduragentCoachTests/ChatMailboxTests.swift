@@ -302,7 +302,7 @@ import Testing
 		let store = InMemoryRecordLog()
 		let failedTurn = TurnID(ulid: fixedUlid(40))
 		let saved = WriteSummary(
-			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+			memorySections: 1, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 0)
 		try await seed(
 			store,
 			[

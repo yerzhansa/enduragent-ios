@@ -652,7 +652,10 @@
     },
     "menu": "Menu",
     "welcome": "Welcome to {{product}}!\n\nI'm your AI cycling coach. I can build training plans, suggest workouts, and track your fitness using {{service}} data.\n\nCommands:\n{{commands}}\n\nOr just chat with me about your training!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "The training plan could not be prepared for saving."
+    }
   },
   "cli": {
     "language": {

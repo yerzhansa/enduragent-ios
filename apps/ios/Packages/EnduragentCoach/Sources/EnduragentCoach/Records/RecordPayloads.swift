@@ -21,6 +21,7 @@ struct TurnSettledPayload: Codable {
 	var attempt: String
 	var settlement: SettlementPayload
 	var reviewNotPrepared: String?
+	var planSaveNotPrepared: String?
 }
 
 extension TurnSettledPayload {
@@ -28,7 +29,8 @@ extension TurnSettledPayload {
 		self.init(
 			chatId: body.chatId.rawValue, turn: body.turn.ulid.rawValue,
 			attempt: body.attempt.ulid.rawValue, settlement: SettlementPayload(body.settlement),
-			reviewNotPrepared: body.reviewNotPrepared?.rawValue)
+			reviewNotPrepared: body.reviewNotPrepared?.rawValue,
+			planSaveNotPrepared: body.planSaveNotPrepared?.rawValue)
 	}
 
 	func body() throws -> TurnSettledBody {
@@ -39,6 +41,12 @@ extension TurnSettledPayload {
 			reviewNotPrepared: try reviewNotPrepared.map { (raw) throws(RecordDecodeFailure) in
 				guard let cause = ReviewNotPrepared(rawValue: raw) else {
 					throw RecordDecodeFailure(reason: "reviewNotPrepared")
+				}
+				return cause
+			},
+			planSaveNotPrepared: try planSaveNotPrepared.map { (raw) throws(RecordDecodeFailure) in
+				guard let cause = PlanSaveNotPrepared(rawValue: raw) else {
+					throw RecordDecodeFailure(reason: "planSaveNotPrepared")
 				}
 				return cause
 			})
@@ -137,7 +145,7 @@ struct WriteSummaryPayload: Codable {
 	init(_ summary: WriteSummary) {
 		memorySections = summary.memorySections
 		ledgerEvents = summary.ledgerEvents
-		planSaves = summary.planSaves
+		planSaves = summary.planConfirmations
 		calendarWrites = summary.calendarWrites
 		unverifiedCalendarWrites = summary.unverifiedCalendarWrites
 	}
@@ -146,7 +154,7 @@ struct WriteSummaryPayload: Codable {
 		WriteSummary(
 			memorySections: memorySections,
 			ledgerEvents: ledgerEvents,
-			planSaves: planSaves,
+			planConfirmations: planSaves,
 			calendarWrites: calendarWrites,
 			unverifiedCalendarWrites: unverifiedCalendarWrites ?? calendarWrites
 		)

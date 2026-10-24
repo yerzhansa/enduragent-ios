@@ -1481,7 +1481,10 @@
       "signInAgain": "再度サインイン"
     },
     "welcome": "{{product}}へようこそ！\n\nAIサイクリングコーチです。{{service}}のデータを使ってトレーニングプランを作成し、ワークアウトを提案し、フィットネスの変化を確認できます。\n\nコマンド:\n{{commands}}\n\nトレーニングについて、気軽に話しかけてください！",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "トレーニングプランの保存を準備できませんでした。"
+    }
   },
   "plan": {
     "details": {

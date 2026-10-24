@@ -46,13 +46,15 @@ struct FoldedConfirmation: Sendable, Equatable {
 	let origin: DraftKey
 	let prepared: PreparedPlanSave
 	let created: PlanStepRecord
+	let decided: PlanStepRecord?
 	let newest: PlanStepRecord
 
 	var latest: PlanConfirmationStep { newest.body.step }
 
 	fileprivate func advanced(to record: PlanStepRecord) -> FoldedConfirmation {
 		FoldedConfirmation(
-			id: id, origin: origin, prepared: prepared, created: created, newest: record)
+			id: id, origin: origin, prepared: prepared, created: created,
+			decided: decided ?? record, newest: record)
 	}
 }
 
@@ -72,7 +74,7 @@ struct PlanChain: Sendable, Equatable {
 				folded.append(
 					FoldedConfirmation(
 						id: id, origin: record.body.origin, prepared: prepared, created: record,
-						newest: record))
+						decided: nil, newest: record))
 			}
 		}
 		self.head = head

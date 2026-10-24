@@ -1494,7 +1494,10 @@
       "signInAgain": "Kirjaudu uudelleen"
     },
     "welcome": "Tervetuloa käyttämään sovellusta {{product}}!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun {{service}} tietojen avulla.\n\nKomennot:\n{{commands}}\n\nVoit myös vain jutella kanssani harjoittelustasi!",
-    "welcomeCommand": "{{command}}: {{description}}"
+    "welcomeCommand": "{{command}}: {{description}}",
+    "planSave": {
+      "notPrepared": "Harjoitussuunnitelmaa ei voitu valmistella tallennettavaksi."
+    }
   },
   "plan": {
     "details": {

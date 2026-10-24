@@ -109,7 +109,7 @@ import Testing
 		await coach.lifecycle(.willTerminate)
 	}
 
-	@Test func promptSaysNoPlanIsSavedAndOffersPlanLoadWithoutPlanSave() async throws {
+	@Test func promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad() async throws {
 		let coach = await fixture.open()
 		try await remember(mira.injected + [(.cyclingEquipment, mira.equipment)], using: coach)
 
@@ -124,7 +124,7 @@ import Testing
 			Array(offered.drop { $0 != "calculate_zones" }.prefix(4)) == [
 				"calculate_zones", "build_plan_skeleton", "assess_feasibility", "get_sample_week",
 			])
-		#expect(offered.filter { $0.hasPrefix("plan_") } == ["plan_load"])
+		#expect(offered.filter { $0.hasPrefix("plan_") } == ["plan_save", "plan_load"])
 		#expect(offered.last == "plan_load")
 		await coach.lifecycle(.willTerminate)
 	}

@@ -27,6 +27,7 @@ func makeToolOffer(
 		for: TurnReach(
 			training: training, memory: memory, chat: .main, ledger: ledger, clock: clock,
 			desk: makeDesk(ledger: ledger, clock: clock),
+			plans: Plans(ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			attempt: DraftKey(
 				turn: TurnID(ulid: fixedUlid(1)), attempt: AttemptID(ulid: fixedUlid(2)))))
 }

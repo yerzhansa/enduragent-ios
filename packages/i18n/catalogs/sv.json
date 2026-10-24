@@ -1494,7 +1494,10 @@
       "signInAgain": "Logga in igen"
     },
     "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{commands}}\n\nDu kan också bara prata med mig om din träning!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "Träningsplanen kunde inte förberedas för att sparas."
+    }
   },
   "training": {
     "export": {

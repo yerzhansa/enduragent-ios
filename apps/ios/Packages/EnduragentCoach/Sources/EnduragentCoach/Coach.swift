@@ -19,6 +19,7 @@ public actor Coach {
 	var catalogObservation: Task<Void, Never>?
 	private let runner: TurnRunner
 	let desk: WorkoutReviewDesk
+	let plans: Plans
 	private var mailboxSlots: [ChatID: MailboxSlot] = [:]
 	var mailboxes: [ChatID: ChatMailbox] { mailboxSlots.compactMapValues(\.mailbox) }
 	let lifetime = Lifetime()
@@ -92,10 +93,12 @@ public actor Coach {
 			},
 			host: ports.host)
 		self.desk = desk
+		let plans = Plans(ledger: ledger, clock: clock, diagnostics: diagnostics)
+		self.plans = plans
 		self.runner = TurnRunner(
 			transport: transport, ledger: ledger, clock: clock,
 			diagnostics: diagnostics, ladder: .npm,
-			desk: desk,
+			desk: desk, plans: plans,
 			watchdogSleep: ports.watchdogSleep,
 			authorizeInvocation: authorizeInvocation
 		)

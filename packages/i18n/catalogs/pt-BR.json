@@ -1494,7 +1494,10 @@
       "signInAgain": "Entrar novamente"
     },
     "welcome": "Boas-vindas ao {{product}}!\n\nSou seu treinador de ciclismo com IA. Posso criar planos de treinamento, sugerir treinos e acompanhar seu condicionamento com os dados de {{service}}.\n\nComandos:\n{{commands}}\n\nOu converse comigo sobre seu treinamento!",
-    "welcomeCommand": "{{command}} : {{description}}"
+    "welcomeCommand": "{{command}} : {{description}}",
+    "planSave": {
+      "notPrepared": "Não foi possível preparar o plano de treinamento para salvar."
+    }
   },
   "plan": {
     "details": {

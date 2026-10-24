@@ -21,10 +21,10 @@ struct PlanDocument: Sendable, Equatable {
 
 	static func parse(arguments: JSONValue) throws(ToolInputError) -> PlanDocument {
 		guard case .object(let fields) = arguments, let plan = fields["plan"] else {
-			throw ToolInputError(code: "invalid_plan", details: "plan must be an object.")
+			throw ToolInputError(code: "invalid_input", details: "plan must be an object.")
 		}
 		if let problem = problem(in: plan) {
-			throw ToolInputError(code: "invalid_plan", details: problem)
+			throw ToolInputError(code: "invalid_input", details: problem)
 		}
 		guard ToolResultCap.fits(plan) else {
 			throw ToolInputError(
@@ -74,6 +74,23 @@ struct PlanDocument: Sendable, Equatable {
 			return Self.summaryPhrasebook.say(Catalog.coachProposalSavePlan)
 		}
 		return Self.summaryPhrasebook.say(Catalog.coachProposalSavePlanDetail, ["detail": detail])
+	}
+
+	func summary(replacing current: PlanDocument?) -> PlanSummary {
+		let fields = value.objectFields
+		return PlanSummary(
+			name: fields["name"]?.stringValue ?? "",
+			goal: fields["primaryGoal"]?.stringValue,
+			weeks: fields["totalWeeks"]?.numberValue.flatMap(wholeInt),
+			phases: (fields["phases"]?.arrayValue ?? []).map { phase in
+				let phase = phase.objectFields
+				return PlanPhaseRow(
+					focus: phase["focus"]?.stringValue,
+					weeks: phase["durationWeeks"]?.numberValue.flatMap(wholeInt),
+					hours: phase["volumeTargets"]?.objectFields["cycling"]?.objectFields[
+						"hoursPerCycle"]?.numberValue)
+			},
+			replaces: current?.value.objectFields["name"]?.stringValue)
 	}
 
 	private func summaryDetail(_ key: String) -> String? {

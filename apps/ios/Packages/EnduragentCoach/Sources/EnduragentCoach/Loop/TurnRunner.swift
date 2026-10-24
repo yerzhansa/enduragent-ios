@@ -58,6 +58,7 @@ package struct TurnRunner: Sendable {
 	let diagnostics: DiagnosticsLog
 	let ladder: RetryLadder
 	let desk: WorkoutReviewDesk
+	let plans: Plans
 	private let snapshots: TrainingSnapshotReader
 
 	package init(
@@ -67,6 +68,7 @@ package struct TurnRunner: Sendable {
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
 		desk: WorkoutReviewDesk,
+		plans: Plans,
 		watchdogSleep: @escaping @Sendable (Duration) async throws(CancellationError) -> Void =
 			SystemClock().sleep,
 		authorizeInvocation: @escaping @Sendable (ModelInvocation) async throws -> Void
@@ -81,6 +83,7 @@ package struct TurnRunner: Sendable {
 		self.snapshots = TrainingSnapshotReader(
 			clock: clock, deadlineSleep: watchdogSleep, diagnostics: diagnostics)
 		self.desk = desk
+		self.plans = plans
 	}
 
 	package func run(
@@ -149,7 +152,9 @@ package struct TurnRunner: Sendable {
 				case .retry(let next, let preparations):
 					counters = next
 					pending = RetryPlan(failure: failure, preparations: preparations)
-					await desk.abandonDraft(DraftKey(turn: attempt.turn, attempt: attempt.attempt))
+					let key = DraftKey(turn: attempt.turn, attempt: attempt.attempt)
+					await desk.abandonDraft(key)
+					_ = await plans.settle(key, in: attempt.chat, ending: .abandoned)
 					await progress(.attemptRestarted)
 				}
 			}
@@ -231,7 +236,7 @@ package struct TurnRunner: Sendable {
 		let offer = ToolOffer(
 			for: TurnReach(
 				training: attempt.training, memory: view, chat: attempt.chat, ledger: ledger,
-				clock: clock, desk: desk,
+				clock: clock, desk: desk, plans: plans,
 				attempt: DraftKey(turn: attempt.turn, attempt: attempt.attempt)))
 		let prefix = PromptAssembly.cyclingPrefix()
 		let snapshot = try await snapshots.snapshot(

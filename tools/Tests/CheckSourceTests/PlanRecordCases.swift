@@ -17,11 +17,17 @@ extension SourceCases {
 		"let scope = RecordQuery.Scope.synced([.savedPlan])",
 		"guard case .synced(.savedPlan(let body)) = record.body else { return }",
 		"let kind = SyncedKind . savedPlan",
+		"let kind = SyncedKind.savedPlan",
+		"switch kind {\ncase .savedPlan: break\ndefault: break\n}",
+		".savedPlan",
 		"let body: SavedPlanBody? = nil",
 		"func keep(_ body: SavedPlanBody) {}",
 		"let scope = RecordQuery.Scope.deviceLocal([.planConfirmation])",
 		"guard case .deviceLocal(.planConfirmation(let body)) = record.body else { return }",
 		"let kind = DeviceLocalKind . planConfirmation",
+		"let kind = DeviceLocalKind.planConfirmation",
+		"let scope = RecordQuery.Scope.local([.planConfirmation])",
+		"switch kind {\ncase .planConfirmation: break\ndefault: break\n}",
 		"func keep(_ body: PlanConfirmationBody) {}",
 	]
 	static let planRecordLookalikes =
@@ -30,7 +36,10 @@ extension SourceCases {
 		+ "let savedPlanCount = 1\nlet plan = claim.savedPlanID\n"
 		+ "let confirmations = summary.planConfirmations\nlet id: PlanConfirmationID\n"
 		+ "let step: PlanConfirmationStep\nlet kind = PlanChain.kind\n"
-		+ "let payload = PlanConfirmationPayload(body)"
+		+ "let payload = PlanConfirmationPayload(body)\nlet plan = claim.savedPlan\n"
+		+ "let plan = claimed.savedPlan\nlet plan = step.claim?.savedPlan\n"
+		+ "let plan = claimed!.savedPlan\nlet plan = claims[0].savedPlan\n"
+		+ "let plan = make().savedPlan\nlet step = x.planConfirmation\n"
 	static let savedPlanMintings = [
 		"let body = SavedPlanBody(id: id, confirmation: c, decided: hlc, document: d)",
 		"let body = SavedPlanBody.init(id: id, confirmation: c, decided: hlc, document: d)",

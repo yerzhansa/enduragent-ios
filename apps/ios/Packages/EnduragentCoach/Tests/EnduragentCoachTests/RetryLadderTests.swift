@@ -131,7 +131,8 @@ import Testing
 		#expect(savedWork.outcome == .savedUnverified)
 		#expect(
 			savedWork.saved
-				== WriteSummary(memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+				== WriteSummary(
+					memorySections: 1, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 0)
 		)
 		#expect(savedWork.notice.key == Catalog.chatNoticeSavedUnverified)
 		#expect(savedWork.notice.actions.isEmpty)
@@ -148,6 +149,32 @@ import Testing
 		}
 		let reopened = await makeCoach()
 		#expect(try #require(await reopened.currentSnapshot(.main)).turns.first?.state == settled)
+	}
+
+	@Test func aHeldPlanSaveIsNotSavedWorkSoAServerErrorRetriesAndDropsIt() async throws {
+		let plan = canonicalJSON(.object(["plan": .object(["name": .string("Base Build")])]))
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "plan_save", arguments: plan),
+				.finish(reason: .toolCalls),
+				.fail(.http(status: 500)),
+				.text("Ready."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
+		let coach = await makeCoach()
+		let turn = try #require(try await coach.send(draft("Save my plan"), to: .main).acceptedTurn)
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(replyText(settled) == "Ready.")
+		#expect(chatRequests() == 3)
+		#expect(try await store.fetch(.planChain(of: .main)).records.isEmpty)
+		let settlement = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.turnSettled]), turn: turn)).records
+				.first)
+		guard case .synced(.turnSettled(let body)) = settlement.body else {
+			Issue.record("expected a settlement, got \(settlement.body)")
+			return
+		}
+		#expect(body.planSaveNotPrepared == nil)
 	}
 
 	@Test func savedWorkReachesTheNextPromptAsTheCoachsReply() async throws {

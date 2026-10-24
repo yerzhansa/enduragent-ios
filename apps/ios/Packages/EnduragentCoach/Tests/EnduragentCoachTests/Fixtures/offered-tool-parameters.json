@@ -398,6 +398,37 @@
   "properties": {},
   "type": "object"
  },
+ "plan_save": {
+  "properties": {
+   "plan": {
+    "description": "The training plan object to save",
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "primaryGoal": {
+      "type": "string"
+     },
+     "status": {
+      "type": "string"
+     },
+     "totalWeeks": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "type": "object"
+   }
+  },
+  "required": [
+   "plan"
+  ],
+  "type": "object"
+ },
  "prepare_workout_changes": {
   "properties": {
    "preparation": {

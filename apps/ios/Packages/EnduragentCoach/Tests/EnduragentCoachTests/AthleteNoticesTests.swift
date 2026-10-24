@@ -10,7 +10,7 @@ private let turn = TurnID(ulid: fixedUlid(1))
 private let attempt = AttemptID(ulid: fixedUlid(2))
 private let failedAt = Date(timeIntervalSince1970: 897_984_000)
 private let memorySaved = WriteSummary(
-	memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+	memorySections: 1, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 0)
 
 private let tryAgain = "Try again"
 private let providerDown = "The model provider is having trouble — try again in a few minutes."

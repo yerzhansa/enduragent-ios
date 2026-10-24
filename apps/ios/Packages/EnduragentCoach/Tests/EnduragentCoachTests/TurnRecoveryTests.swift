@@ -9,7 +9,7 @@ import Testing
 	let transport = FakeModelTransport()
 	let store = InMemoryRecordLog()
 	let memorySaved = WriteSummary(
-		memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+		memorySections: 1, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 0)
 
 	func processBeforeTheKill(coalescing: CoalescingPolicy = quickWindow) async -> (
 		Coach, FaultInjectingRecordLog
@@ -212,7 +212,7 @@ import Testing
 		#expect(
 			TurnRecovery.writes(of: [dead], in: records) == [
 				dead: WriteSummary(
-					memorySections: 1, ledgerEvents: 1, planSaves: 0, calendarWrites: 0)
+					memorySections: 1, ledgerEvents: 1, planConfirmations: 0, calendarWrites: 0)
 			])
 	}
 

@@ -1481,7 +1481,10 @@
       "signInAgain": "다시 로그인"
     },
     "welcome": "{{product}}에 오신 것을 환영합니다!\n\nAI 사이클링 코치입니다. {{service}} 데이터를 바탕으로 훈련 계획을 만들고, 워크아웃을 제안하고, 체력 변화를 살펴볼 수 있습니다.\n\n명령:\n{{commands}}\n\n편하게 훈련 이야기를 나눠도 좋습니다!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "훈련 계획 저장을 준비할 수 없습니다."
+    }
   },
   "plan": {
     "details": {

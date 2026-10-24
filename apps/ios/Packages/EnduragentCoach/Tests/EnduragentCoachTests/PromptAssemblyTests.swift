@@ -29,14 +29,23 @@ import Testing
 		let prefix = PromptAssembly.cyclingPrefix()
 		for retired in [
 			"intervals_create_workout", "intervals_create_strength_workout",
-			"intervals_delete_workout", "intervals_update_workout", "pendingConfirmation",
-			"at most one mutation per turn",
+			"intervals_delete_workout", "intervals_update_workout", "at most one mutation per turn",
 		] {
 			#expect(!prefix.contains(retired), "The prompt still names \(retired)")
 		}
 		#expect(prefix.contains("in one prepare_workout_changes call"))
 		#expect(prefix.contains("call get_pending_workout_changes"))
 		#expect(prefix.contains("Agreement in chat is never approval"))
+	}
+
+	@Test func thePromptHoldsNpmsPlanSaveRuleOnceAndNoOtherPlanSaveSentence() {
+		let prefix = PromptAssembly.cyclingPrefix()
+		let rule =
+			"Plan saving is separate. If plan_save returns pendingConfirmation, say approval is "
+			+ "pending and do not repeat the call."
+		#expect(prefix.components(separatedBy: rule).count == 2)
+		#expect(prefix.components(separatedBy: "plan_save").count == 2)
+		#expect(prefix.components(separatedBy: "pendingConfirmation").count == 2)
 	}
 
 	@Test(arguments: [

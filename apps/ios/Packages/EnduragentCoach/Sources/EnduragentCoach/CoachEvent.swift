@@ -39,13 +39,11 @@ public enum ToolName: String, Sendable, CaseIterable {
 package enum ReplayUnsafeToolName: String, Sendable {
 	case memoryWrite = "memory_write"
 	case ledgerAppend = "ledger_append"
-	case planSave = "plan_save"
 
 	var toolName: ToolName {
 		switch self {
 		case .memoryWrite: .memoryWrite
 		case .ledgerAppend: .ledgerAppend
-		case .planSave: .planSave
 		}
 	}
 }
@@ -81,11 +79,13 @@ enum ReadToolName: Sendable {
 enum PreparationToolName: Sendable {
 	case getPendingWorkoutChanges
 	case prepareWorkoutChanges
+	case planSave
 
 	var toolName: ToolName {
 		switch self {
 		case .getPendingWorkoutChanges: .getPendingWorkoutChanges
 		case .prepareWorkoutChanges: .prepareWorkoutChanges
+		case .planSave: .planSave
 		}
 	}
 }

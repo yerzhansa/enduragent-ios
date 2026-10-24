@@ -137,21 +137,18 @@ extension WriteSummary {
 	package init(_ commits: [CommittedWrite]) {
 		var memorySections = 0
 		var ledgerEvents = 0
-		var planSaves = 0
 		for commit in commits {
 			switch commit.tool {
 			case .memoryWrite:
 				memorySections += 1
 			case .ledgerAppend:
 				ledgerEvents += 1
-			case .planSave:
-				planSaves += 1
 			}
 		}
 		self.init(
 			memorySections: memorySections,
 			ledgerEvents: ledgerEvents,
-			planSaves: planSaves,
+			planConfirmations: 0,
 			calendarWrites: 0,
 			unverifiedCalendarWrites: 0
 		)

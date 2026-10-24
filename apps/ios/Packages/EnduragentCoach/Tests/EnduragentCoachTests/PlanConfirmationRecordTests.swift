@@ -22,7 +22,7 @@ extension SwiftDataSuites {
 			let bodies = [
 				try rows.prepared(PlanDocumentTests.base, account: account, expiresAt: expiresAt),
 				try rows.claimed(claimRow),
-				try rows.saved(claimRow.savedPlanID),
+				try rows.saved(claimRow.claim.savedPlan),
 				try rows.canceled(),
 			]
 			let causes: [RecordCause] =
@@ -55,7 +55,7 @@ extension SwiftDataSuites {
 							document: try PlanDocument.parse(
 								arguments: .object(["plan": PlanDocumentTests.base])),
 							account: account, expiresAt: expiresAt)),
-					.claimed(claimRow.claim), .saved(claimRow.savedPlanID), .canceled,
+					.claimed(claimRow.claim), .saved(claimRow.claim.savedPlan), .canceled,
 				])
 			#expect(read.records.last?.cause == .operation(.planSave(rows.id), decision))
 			let stored = try storedRows(in: root)
