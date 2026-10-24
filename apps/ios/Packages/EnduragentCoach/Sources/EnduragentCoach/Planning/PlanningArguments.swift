@@ -14,6 +14,40 @@ enum PlanningArguments {
 			experience: try required(fields, "experienceLevel", ExperienceLevel.self))
 	}
 
+	static func profile(_ arguments: JSONValue) throws(ToolInputError) -> PlanProfile {
+		let fields = try object(arguments)
+		let experience = try required(fields, "experienceLevel", ExperienceLevel.self)
+		guard let ftpWatts = try integer(fields, "ftpWatts"),
+			IntervalsPolicy.ftpRange.contains(ftpWatts)
+		else {
+			throw refusal("ftpWatts must be a whole number of watts from 50 to 600.")
+		}
+		let sessionsPerWeek = try integer(fields, "sessionsPerWeek")
+		if let sessionsPerWeek, !(3...6).contains(sessionsPerWeek) {
+			throw refusal("sessionsPerWeek must be a whole number from 3 to 6 when given.")
+		}
+		let schedule = ScheduleInput(
+			type: try required(fields, "scheduleType", ScheduleType.self),
+			availableDays: try list(fields, "availableDays", Weekday.self),
+			keySessionDay: try optional(fields, "keySessionDay", Weekday.self),
+			sessionsPerWeek: sessionsPerWeek)
+		let weightKg = try positive(fields, "weightKg")
+		let volumeTier = try required(fields, "volumeTier", VolumeTier.self)
+		let goalType = try required(fields, "goalType", GoalType.self)
+		let raceType = try optional(fields, "raceType", RaceType.self)
+		let raceKey = try dateKey(fields, "raceDate")
+		let targetTime = try string(fields, "targetTime")
+		let generalGoal = try string(fields, "generalGoal")
+		let generalGoalTarget = try string(fields, "generalGoalTarget")
+		return PlanProfile(
+			experience: experience, ftpWatts: ftpWatts, weightKg: weightKg,
+			volumeTier: volumeTier, schedule: schedule,
+			goal: GoalInput(
+				type: goalType, raceType: raceType, raceDate: try raceKey.map(realDay),
+				targetTime: targetTime, generalGoal: generalGoal,
+				generalGoalTarget: generalGoalTarget))
+	}
+
 	private static let largestSafeInteger = 9_007_199_254_740_991.0
 
 	private static func object(_ arguments: JSONValue) throws(ToolInputError)
@@ -51,6 +85,42 @@ enum PlanningArguments {
 		guard let number = try number(fields, key) else { return nil }
 		guard number > 0 else { throw refusal("\(key) must be above 0 when given.") }
 		return number
+	}
+
+	private static func string(_ fields: [String: JSONValue], _ key: String)
+		throws(ToolInputError) -> String?
+	{
+		guard let value = fields[key] else { return nil }
+		guard let text = value.stringValue else {
+			throw refusal("\(key) must be text when given.")
+		}
+		return text
+	}
+
+	private static func dateKey(_ fields: [String: JSONValue], _ key: String)
+		throws(ToolInputError) -> String?
+	{
+		guard let raw = try string(fields, key) else { return nil }
+		let bytes = Array(raw.utf8)
+		let digits = UInt8(ascii: "0")...UInt8(ascii: "9")
+		guard bytes.count == 10,
+			bytes.indices.allSatisfy({ index in
+				index == 4 || index == 7
+					? bytes[index] == UInt8(ascii: "-") : digits.contains(bytes[index])
+			})
+		else {
+			throw refusal("\(key) must be a date written YYYY-MM-DD when given.")
+		}
+		return raw
+	}
+
+	private static func realDay(_ raw: String) throws(ToolInputError) -> CivilDate {
+		guard let day = CivilDate(rawValue: raw) else {
+			throw ToolInputError(
+				code: "invalid_date",
+				details: "\(raw) is not a real calendar date. Use YYYY-MM-DD.")
+		}
+		return day
 	}
 
 	private static func required<Choice: RawRepresentable & CaseIterable>(
