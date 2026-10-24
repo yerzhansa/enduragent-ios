@@ -78,6 +78,7 @@ package struct Memory: Sendable {
 			order += 1
 		}
 
+		var history: [(hit: MemoryHit, at: HybridLogicalClock)] = []
 		for record in snapshot.journalRecords {
 			guard record.civilDate >= from, record.civilDate <= to else { continue }
 			guard case .synced(.journal(let body)) = record.body else { continue }
@@ -94,21 +95,21 @@ package struct Memory: Sendable {
 			let summary = historyBodySummary(section ?? body.op.rawValue, query: needle)
 			let was = historyBodySummary(oldBody, query: needle)
 			let now = historyBodySummary(newBody, query: needle)
-			collected.append(
+			history.append(
 				(
 					MemoryHit(
 						date: record.civilDate,
 						kind: .journal,
 						text: "\(summary) — was: \(was) / now: \(now)"
 					),
-					order
+					record.hlc
 				)
 			)
-			order += 1
 		}
+		history += planHits(snapshot, from: from, to: to, contains: needle)
 
-		for hit in planHits(snapshot, from: from, to: to, contains: needle) {
-			collected.append((hit, order))
+		for entry in history.sorted(by: { $0.at < $1.at }) {
+			collected.append((entry.hit, order))
 			order += 1
 		}
 
@@ -143,13 +144,16 @@ package struct Memory: Sendable {
 
 	private func planHits(
 		_ snapshot: MemorySnapshot, from: CivilDate, to: CivilDate, contains needle: String?
-	) -> [MemoryHit] {
+	) -> [(hit: MemoryHit, at: HybridLogicalClock)] {
 		snapshot.savedPlans.history(from: from, to: to, contains: needle).map { line in
-			MemoryHit(
-				date: line.date, kind: .journal,
-				text:
-					"\(PlanHistoryLine.label) — was: \(historyBodySummary(line.was, query: needle))"
-					+ " / now: \(historyBodySummary(line.now, query: needle))")
+			(
+				MemoryHit(
+					date: line.date, kind: .journal,
+					text:
+						"\(PlanHistoryLine.label) — was: \(historyBodySummary(line.was, query: needle))"
+						+ " / now: \(historyBodySummary(line.now, query: needle))"),
+				line.decided
+			)
 		}
 	}
 

@@ -33,7 +33,8 @@ struct SavedPlans: Sendable, Equatable {
 		zip([nil] + saves.map(Optional.some), saves).compactMap { previous, save in
 			guard save.civilDate >= from, save.civilDate <= to else { return nil }
 			let line = PlanHistoryLine(
-				date: save.civilDate, was: previous?.document.text, now: save.document.text)
+				date: save.civilDate, decided: save.body.decided, was: previous?.document.text,
+				now: save.document.text)
 			guard let needle else { return line }
 			let texts = [line.was, line.now].compactMap(\.self)
 			return texts.contains { $0.lowercased().contains(needle) } ? line : nil
@@ -53,6 +54,7 @@ struct PlanHistoryLine: Sendable, Equatable {
 	static let label = "save-plan"
 
 	let date: CivilDate
+	let decided: HybridLogicalClock
 	let was: String?
 	let now: String
 }

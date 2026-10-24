@@ -132,6 +132,52 @@ import Testing
 		)
 	}
 
+	@Test func plansAndSectionWritesOfOneDayShowInTheOrderTheyHappened() async throws {
+		let store = InMemoryRecordLog()
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let phone = store.deviceId
+		let goals = JSONValue.object([
+			"newBody": .string("Ride a century in June"),
+			"oldBody": .null,
+			"section": .string("goals"),
+			"source": .string("chat"),
+		]).canonicalDigestInput()
+		try await seed(
+			store,
+			[
+				storedRecord(
+					device: phone, wall: 12, ulid: fixedUlid(12),
+					body: try SavedPlanRows.body(
+						.object(["name": .string("Base Block"), "totalWeeks": .number(8)]),
+						id: 1, confirmation: 2,
+						decided: HybridLogicalClock(wallMs: 11, logical: 0, deviceId: phone))),
+				storedRecord(
+					device: phone, wall: 20, ulid: fixedUlid(20),
+					body: .synced(.journal(JournalBody(op: .writeSection, preview: goals)))),
+				storedRecord(
+					device: phone, wall: 32, ulid: fixedUlid(32),
+					body: try SavedPlanRows.body(
+						.object(["name": .string("Build Block"), "totalWeeks": .number(12)]),
+						id: 3, confirmation: 4,
+						decided: HybridLogicalClock(wallMs: 31, logical: 0, deviceId: phone))),
+			])
+		let offered = makeOfferedTools(
+			intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250), ledger: ledger,
+			clock: clock)
+		let baseText = #"{ "name": "Base Block", "totalWeeks": 8 }"#
+		let buildText = #"{ "name": "Build Block", "totalWeeks": 12 }"#
+
+		#expect(
+			try await query(offered, nil) == """
+				Memory query 1998-06-12..1998-06-13
+
+				## 1998-06-13
+				history: save-plan — was:  / now: \(baseText)
+				history: goals — was:  / now: Ride a century in June
+				history: save-plan — was: \(baseText) / now: \(buildText)
+				""")
+	}
+
 	private func query(_ offered: OfferedTools, _ needle: String?) async throws -> String {
 		var arguments: [String: JSONValue] = [
 			"from": .string("1998-06-12"), "to": .string("1998-06-13"),
