@@ -81,7 +81,7 @@ import Testing
 		let interrupted = settled(.interrupted(partial: "so", cause: .athleteStopped, saved: .none))
 		#expect(try claim(retry, on: interrupted).get() == expected)
 		let saved = WriteSummary(
-			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+			memorySections: 1, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 0)
 		let failedAfterSave = settled(
 			.failed(.model(.budgetExhausted(.generateCalls)), saved: saved))
 		#expect(claim(retry, on: failedAfterSave) == .failure(.alreadyAnswered))
@@ -93,7 +93,8 @@ import Testing
 	@Test func settleWritesOneSyncedSettlementForTheClaimedAttempt() {
 		let settlement = Settlement.replied(.model("done"), lineage: nil)
 		let result = TurnLifecycle.settled(
-			attempt, settlement, on: claimed(), chat: .main, reviewNotPrepared: nil)
+			attempt, settlement, on: claimed(), chat: .main, reviewNotPrepared: nil,
+			planSaveNotPrepared: nil)
 		#expect(
 			result
 				== TurnSettledBody(
@@ -104,7 +105,7 @@ import Testing
 		let facts = settled(.replied(.model("done"), lineage: nil))
 		let again = TurnLifecycle.settled(
 			attempt, .failed(.model(.contextOverflow), saved: .none), on: facts, chat: .main,
-			reviewNotPrepared: nil)
+			reviewNotPrepared: nil, planSaveNotPrepared: nil)
 		#expect(again == nil)
 	}
 
@@ -209,7 +210,7 @@ import Testing
 
 	@Test func failedSettlementAfterSavedWorkOffersNoTryAgain() {
 		let saved = WriteSummary(
-			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+			memorySections: 1, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 0)
 		let state = TurnLifecycle.state(
 			of: settled(.failed(.model(.budgetExhausted(.generateCalls)), saved: saved)),
 			live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
@@ -233,7 +234,7 @@ import Testing
 		#expect(interrupted.notice.key == Catalog.chatTurnInterruptedNothingChanged)
 		#expect(interrupted.notice.actions == [.tryAgain(minted)])
 		let saved = WriteSummary(
-			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+			memorySections: 1, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 0)
 		let afterWrite = TurnLifecycle.state(
 			of: settled(.interrupted(partial: "", cause: .athleteStopped, saved: saved)),
 			live: nil, overlay: .notInThisProcess, device: phoneA, process: process)

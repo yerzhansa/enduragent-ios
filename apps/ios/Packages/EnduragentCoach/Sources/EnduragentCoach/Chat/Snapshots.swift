@@ -37,6 +37,7 @@ public struct TurnView: Sendable, Equatable, Identifiable {
 	public let completedInBackground: Bool
 	public let saveFailure: CatalogKey?
 	public let reviewNotice: AthleteNotice?
+	public let planSaveNotice: AthleteNotice?
 }
 
 public enum ChatActivity: Sendable, Equatable {

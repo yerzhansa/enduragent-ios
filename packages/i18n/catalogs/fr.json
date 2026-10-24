@@ -1494,7 +1494,10 @@
       "signInAgain": "Se reconnecter"
     },
     "welcome": "Bienvenue dans {{product}} !\n\nJe suis ton coach de cyclisme IA. Je peux créer des plans d’entraînement, te proposer des entraînements et suivre ta condition physique avec les données de {{service}}.\n\nCommandes :\n{{commands}}\n\nTu peux aussi simplement me parler de ton entraînement !",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "Impossible de préparer le plan d’entraînement pour l’enregistrer."
+    }
   },
   "plan": {
     "details": {

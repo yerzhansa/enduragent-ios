@@ -14,7 +14,7 @@ extension Memory {
 		).snapshot
 	}
 
-	func savedPlans(for account: TrainingAccount) async throws -> SavedPlans {
+	func savedPlans(for account: TrainingAccount) async throws(LedgerFailure) -> SavedPlans {
 		SavedPlans(
 			owned: try await owned(.synced([SavedPlans.kind]), for: account, originating: nil))
 	}
@@ -22,7 +22,7 @@ extension Memory {
 	private func owned(
 		_ scope: RecordQuery.Scope, for account: TrainingAccount,
 		originating stamp: OperationStamp?
-	) async throws -> [AthleteRecord] {
+	) async throws(LedgerFailure) -> [AthleteRecord] {
 		let records = try await ledger.read(RecordQuery(scope: scope)).records
 		let ownership = try await ledger.informationOwnership()
 		let selected =

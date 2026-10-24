@@ -14,7 +14,8 @@
 		"5.1": 9,
 		"5.2": 6,
 		"6.1": 3,
-		"6.2": 4
+		"6.2": 4,
+		"6.3": 13
 	},
 	"criteria": [
 		{
@@ -110,7 +111,7 @@
 			"statement": "The prompt of every existing prompt and memory test is unchanged, because the deleted Current Plan branch never rendered. Unit 5.2 adds the plan block under ADR-0084, so these tests now expect the prompt to hold \"## Current Plan\" with \"No plan saved yet.\"",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryTests.swift", "function": "contextInjectsOrphansAndStripsCompaction"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptSaysNoPlanIsSavedAndOffersPlanLoadWithoutPlanSave"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "rememberedTextSitsInsideTheAthleteDataFenceAfterTheCacheBoundary"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "prefixCarriesTheCyclingSkillsUnderTheTokenCeilings"}
 			]
@@ -124,7 +125,7 @@
 			"id": "1.1.8",
 			"statement": "coverage/milestone-3.json rows whose tests changed still point at those tests, and row 8.2.4 still holds: the prompt has no plan block and no plan tool is offered. Unit 4.1 reverses the offer half under ADR-0084: the three planning tools are offered and plan_save is not. Unit 5.2 reverses the plan-block half: the prompt holds \"## Current Plan\" with \"No plan saved yet.\", and plan_load is offered.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptSaysNoPlanIsSavedAndOffersPlanLoadWithoutPlanSave"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad"}
 			]
 		},
 		{
@@ -548,13 +549,13 @@
 				},
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift",
-					"function": "promptSaysNoPlanIsSavedAndOffersPlanLoadWithoutPlanSave"
+					"function": "promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad"
 				}
 			]
 		},
 		{
 			"id": "5.1.1",
-			"statement": "PlanDocument.parse(arguments:) accepts exactly the plan_save arguments zod accepted in tool-inputs.json and plan-object.json, refuses the rest with invalid_plan, and keeps every key of an accepted plan: JSONValue.parse of npm's saved text equals the document's value for every accepted case of plan-object.json, and the arguments' plan for every accepted case of tool-inputs.json. The cases compared equal the manifest's plan-object.json count plus tool-inputs.json's plan_save count, and each is above 0.",
+			"statement": "PlanDocument.parse(arguments:) accepts exactly the plan_save arguments zod accepted in tool-inputs.json and plan-object.json, refuses the rest with invalid_input, and keeps every key of an accepted plan: JSONValue.parse of npm's saved text equals the document's value for every accepted case of plan-object.json, and the arguments' plan for every accepted case of tool-inputs.json. The cases compared equal the manifest's plan-object.json count plus tool-inputs.json's plan_save count, and each is above 0.",
 			"tests": [
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanObjectParityTests.swift",
@@ -676,7 +677,7 @@
 		},
 		{
 			"id": "5.2.1",
-			"statement": "For every case of headline.json, the phone saves a plan exactly when the recorded verdict of npm's plan_save input schema (zod 4.5.4) accepts it. An accepted plan is stored as a saved plan, and the prompt's \"## Current Plan\" block and plan_load's result equal npm's, with headline fields present, absent or empty and every totalWeeks npm prints; a refused plan, such as one with an absent, null or ill-typed headline field, or a totalWeeks of 0, 1.5, -1, 1e21 or past 2^53, gets invalid_plan, so the phone never holds it. With no plan saved, the block is npm's NO_PLAN_CONTEXT, \"## Current Plan\\nNo plan saved yet.\" (system-prompt.ts:25 at d192cb97), and plan_load answers {\"message\": \"No plan saved yet.\"}. The cases compared equal the manifest's headline.json count and the sum of the accepted, refused and no-plan cases; the phone's saved and refused counts equal the fixture's accepted and refused counts (20 and 26 at d192cb97), each above 0, and there is one no-plan case.",
+			"statement": "For every case of headline.json, the phone saves a plan exactly when the recorded verdict of npm's plan_save input schema (zod 4.5.4) accepts it. An accepted plan is stored as a saved plan, and the prompt's \"## Current Plan\" block and plan_load's result equal npm's, with headline fields present, absent or empty and every totalWeeks npm prints; a refused plan, such as one with an absent, null or ill-typed headline field, or a totalWeeks of 0, 1.5, -1, 1e21 or past 2^53, gets invalid_input, so the phone never holds it. With no plan saved, the block is npm's NO_PLAN_CONTEXT, \"## Current Plan\\nNo plan saved yet.\" (system-prompt.ts:25 at d192cb97), and plan_load answers {\"message\": \"No plan saved yet.\"}. The cases compared equal the manifest's headline.json count and the sum of the accepted, refused and no-plan cases; the phone's saved and refused counts equal the fixture's accepted and refused counts (20 and 26 at d192cb97), each above 0, and there is one no-plan case.",
 			"tests": [
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanHeadlineParityTests.swift",
@@ -770,7 +771,7 @@
 				},
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift",
-					"function": "promptSaysNoPlanIsSavedAndOffersPlanLoadWithoutPlanSave"
+					"function": "promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad"
 				}
 			]
 		},
@@ -832,6 +833,106 @@
 			"tests": [
 				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
 			]
+		},
+		{
+			"id": "6.3.1",
+			"statement": "With HeldClock, a turn calls plan_save and the reply after the call waits 90 seconds before it ends well. The chat's chain then holds one prepared step stamped with the turn's stamp, whose expiresAt is the settle's clock.now plus 600 seconds, the call's instant plus 690 seconds, and the turn settles leftWaiting. The tool answered {pendingConfirmation: true, summary} with npm's summary, no savedPlan row exists, and the training client saw no write.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aReplyThatEndsWellLeavesOneConfirmationThatExpiresTenMinutesAfterTheSettle"}
+			]
+		},
+		{
+			"id": "6.3.2",
+			"statement": "A later plan_save in the same attempt replaces the held plan, and only the last one is prepared.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aLaterPlanSaveInTheSameAttemptReplacesTheHeldPlan"}
+			]
+		},
+		{
+			"id": "6.3.3",
+			"statement": "Two plan_save calls in one step both answer {\"error\": \"concurrent_plan_save\"}, the attempt's later calls are refused, no confirmation is prepared, and the turn records planSaveNotPrepared refused.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "twoPlanSavesInOneStepAreRefusedWithEveryLaterCallOfTheAttempt"}
+			]
+		},
+		{
+			"id": "6.3.4",
+			"statement": "A turn that fails, is stopped, or is retried by the ladder leaves no confirmation; a failed or stopped turn records turnDidNotFinish and shows chat.planSave.notPrepared.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aTurnThatSavesAPlanAndDoesNotFinishLeavesNoConfirmationAndSaysSo"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "aHeldPlanSaveIsNotSavedWorkSoAServerErrorRetriesAndDropsIt"}
+			]
+		},
+		{
+			"id": "6.3.5",
+			"statement": "A turn that reaches the step limit and then replies with its summary keeps its confirmation, also when the summary call returns nothing and the catalog's fallback reply ends the turn.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aStepLimitSummaryReplyKeepsTheConfirmation"}
+			]
+		},
+		{
+			"id": "6.3.6",
+			"statement": "A storage failure on settle's append, an unreadable chain head, or a head moved before each of Plans.settleAppendAttempts appends records planSaveNotPrepared notSaved, and the turn shows planSaveNotice with chat.planSave.notPrepared while the reply still counts as answered. A head moved before Plans.settleAppendAttempts - 1 appends still gets the prepared step on the last attempt and settles leftWaiting.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aConfirmationThatCannotBeStoredIsReportedBesideTheAnsweredReply"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "theSettleRereadsAMovedHeadUpToItsAttemptLimit"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "anUnreadableChainHeadRecordsNotSavedBesideTheAnsweredReply"}
+			]
+		},
+		{
+			"id": "6.3.7",
+			"statement": "A stored turnSettled row without planSaveNotPrepared decodes with it nil, and one with an unknown value is malformed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WriteSummaryCodecTests.swift", "function": "aSettledRowKeepsItsPlanCauseAndAnUnknownCauseMakesItMalformed"}
+			]
+		},
+		{
+			"id": "6.3.8",
+			"statement": "A turn whose process died after its prepared step was appended settles interrupted(processEnded) with planConfirmations 1, and Try again is refused. One whose process died before the append settles with nothing waiting, and Try again is offered.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aKillAfterThePlanConfirmationWasStoredCountsItAndRefusesTryAgain"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aKillBeforeThePlanConfirmationWasStoredLeavesNothingWaitingAndOffersTryAgain"}
+			]
+		},
+		{
+			"id": "6.3.9",
+			"statement": "A Milestone 4 row with planSaves decodes into planConfirmations and encodes back to planSaves. A held plan_save is not saved work, so the ladder's saved-work guard does not stop a server-error retry after it.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WriteSummaryCodecTests.swift", "function": "aMilestone4PlanSavesCountDecodesIntoPlanConfirmationsAndEncodesBack"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "aHeldPlanSaveIsNotSavedWorkSoAServerErrorRetriesAndDropsIt"}
+			]
+		},
+		{
+			"id": "6.3.10",
+			"statement": "An unconnected turn on a device that connected before gets plan_unavailable and nothing is held.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "anUnconnectedTurnOnADeviceThatConnectedBeforeGetsPlanUnavailable"}
+			]
+		},
+		{
+			"id": "6.3.11",
+			"statement": "plan_save is offered in ToolName.allCases order just before plan_load, with npm's description and schema from tool-schemas.json, every recorded plan_save input gets zod's verdict, and every ToolName has a definition.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "connectedTurnIsOfferedEveryToolInOneOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "everyToolIsDefinedUnderTheNameItsEffectCarries"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift", "function": "everyPlanToolSchemaEqualsNpmsAfterTheTwoRecordedStrips"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolInputTests.swift", "function": "everyRecordedCallGetsZodsVerdictAndNpmsResult"}
+			]
+		},
+		{
+			"id": "6.3.12",
+			"statement": "The prompt holds npm's plan rule byte for byte and no other sentence naming plan_save, and the cycling prefix stays under its token ceilings.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "thePromptHoldsNpmsPlanSaveRuleOnceAndNoOtherPlanSaveSentence"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "prefixCarriesTheCyclingSkillsUnderTheTokenCeilings"}
+			]
+		},
+		{
+			"id": "6.3.13",
+			"statement": "The public-surface fixture lists the plan card types, TurnView.planSaveNotice and WriteSummary.planConfirmations.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
+			]
 		}
 	],
 	"requirements": [
@@ -874,6 +975,26 @@
 			"id": "B15.03/phone-day",
 			"statement": "The phone's day in the phone's time zone decides a plan draft's week count.",
 			"agreedDifference": "ADR-0083 and ADR-0084: build_plan_skeleton counts weeks to the race from the phone's day in the phone's time zone, where npm counts from the time zone its host passes to the tool. Shown by 4.1.5."
+		},
+		{
+			"id": "B09.01/plan-save",
+			"statement": "A turn that committed plan-save work is never replayed: a prepared confirmation counts as saved work, so Try again is refused after it, and a held plan_save that was never stored does not stop a retry.",
+			"criteria": ["6.3.8", "6.3.9"]
+		},
+		{
+			"id": "B19.03/step-limit",
+			"statement": "A step-limit summary reply keeps its plan-save confirmation.",
+			"agreedDifference": "ADR-0084: a turn that reaches the step limit and then replies with its summary, or with the catalog's fallback when the summary is empty, ends well and keeps its confirmation. Shown by 6.3.5."
+		},
+		{
+			"id": "B15.05/plan-unavailable",
+			"statement": "No plan is saved for a turn with no usable athlete on this device.",
+			"agreedDifference": "ADR-0084: plan_save answers plan_unavailable and holds nothing for an unconnected turn on a device that connected before, where npm saves for whatever athlete its host passes. Shown by 6.3.10."
+		},
+		{
+			"id": "B15.05/two-calls",
+			"statement": "Two plan_save calls in one step are both refused.",
+			"agreedDifference": "ADR-0084: two plan_save calls in one step both answer concurrent_plan_save and every later plan_save of the attempt is refused, where npm runs each call. Shown by 6.3.3."
 		}
 	],
 	"plan": {
@@ -932,16 +1053,12 @@
 		"B19.03",
 		"G07",
 		"B16.01/plan-save",
-		"B09.01/plan-save",
 		"B01.03/saved-plan",
 		"G03/plans",
 		"D06/plan",
 		"D14/plan",
 		"B15.01/acknowledgement",
 		"B15.01/arguments",
-		"B19.03/durable",
-		"B19.03/step-limit",
-		"B15.05/plan-unavailable",
-		"B15.05/two-calls"
+		"B19.03/durable"
 	]
 }

@@ -68,15 +68,14 @@ struct PlanStepRows {
 }
 
 struct PlanClaimRow {
-	let savedPlanID: SavedPlanID
 	let claim: SaveClaim
 	let payload: JSONValue
 
 	init(savedPlan: Int, attempt: Int, for plan: JSONValue) throws {
 		let digest = try PlanDocument.parse(arguments: .object(["plan": plan])).digest
-		savedPlanID = SavedPlanID(ulid: fixedUlid(savedPlan))
 		claim = SaveClaim(
-			savedPlan: savedPlanID, attempt: AttemptID(ulid: fixedUlid(attempt)), digest: digest)
+			savedPlan: SavedPlanID(ulid: fixedUlid(savedPlan)),
+			attempt: AttemptID(ulid: fixedUlid(attempt)), digest: digest)
 		payload = .object([
 			"savedPlan": .string(fixedUlid(savedPlan).rawValue),
 			"attempt": .string(fixedUlid(attempt).rawValue), "digest": .string(digest.rawValue),

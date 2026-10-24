@@ -28,7 +28,7 @@ import Testing
 					mismatched.append(verdict.id)
 				}
 			case .failure(let refusal):
-				if verdict.accepted || refusal.code != "invalid_plan" {
+				if verdict.accepted || refusal.code != "invalid_input" {
 					mismatched.append(verdict.id)
 				}
 			}

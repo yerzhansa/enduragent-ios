@@ -1494,7 +1494,10 @@
       "signInAgain": "Logg inn igjen"
     },
     "welcome": "Velkommen til {{product}}!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra {{service}}.\n\nKommandoer:\n{{commands}}\n\nDu kan også bare prate med meg om treningen din!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "Treningsplanen kunne ikke klargjøres for lagring."
+    }
   },
   "plan": {
     "details": {

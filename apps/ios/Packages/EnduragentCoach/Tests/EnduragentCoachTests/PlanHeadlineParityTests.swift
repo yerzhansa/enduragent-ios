@@ -45,7 +45,7 @@ import Testing
 					phoneRefused += 1
 					if accepted {
 						mismatched.append("\(item.id): zod accepts the plan the phone refuses")
-					} else if refusal.code != "invalid_plan" {
+					} else if refusal.code != "invalid_input" {
 						mismatched.append("\(item.id): refused with \(refusal.code)")
 					}
 					continue

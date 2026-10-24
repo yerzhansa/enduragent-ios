@@ -1494,7 +1494,10 @@
       "signInAgain": "Opnieuw inloggen"
     },
     "welcome": "Welkom bij {{product}}!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van {{service}}.\n\nOpdrachten:\n{{commands}}\n\nJe kunt ook gewoon met me praten over je training!",
-    "welcomeCommand": "{{command}} : {{description}}"
+    "welcomeCommand": "{{command}} : {{description}}",
+    "planSave": {
+      "notPrepared": "Het trainingsschema kon niet worden voorbereid om op te slaan."
+    }
   },
   "plan": {
     "details": {

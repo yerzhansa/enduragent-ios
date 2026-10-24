@@ -48,7 +48,7 @@ package actor ChatMailbox {
 		self.feed = feed
 		self.lifecycle = MailboxLifecycle(host: host, chat: chatId, lifetime: lifetime)
 		self.records = ChatRecords(
-			chat: chatId, ledger: ledger, clock: clock, desk: runner.desk)
+			chat: chatId, ledger: ledger, clock: clock, desk: runner.desk, plans: runner.plans)
 		try await records.refresh(recoveryRecords: recoveryRecords)
 		publish()
 	}

@@ -70,7 +70,8 @@ extension Conversation {
 					SettledAttempt(
 						ulid: record.ulid, hlc: record.hlc, attempt: body.attempt,
 						settlement: body.settlement, origin: record.deviceId,
-						account: record.account, reviewNotPrepared: body.reviewNotPrepared))
+						account: record.account, reviewNotPrepared: body.reviewNotPrepared,
+						planSaveNotPrepared: body.planSaveNotPrepared))
 			case .legacy(.assistantMessage(let body)):
 				guard
 					let turn = legacyTurns.last(where: {

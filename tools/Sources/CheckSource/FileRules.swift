@@ -66,7 +66,9 @@ extension SourceChecker {
 		+ #"|Records\/(?:AthleteRecord|RecordCodec|RecordEnvelopePayload|DeviceLocalCodec))"#
 		+ #"\.swift$"#
 	static let planRecordNames =
-		#"\.\s*(?:savedPlan|planConfirmation)\b|\b(?:SavedPlanBody|PlanConfirmationBody)\b"#
+		#"(?:^|[^\w)\]?!])\.\s*(?:savedPlan|planConfirmation)\b"#
+		+ #"|\b(?:SyncedKind|DeviceLocalKind)\s*\.\s*(?:savedPlan|planConfirmation)\b"#
+		+ #"|\b(?:SavedPlanBody|PlanConfirmationBody)\b"#
 	static let coachSourceFolder =
 		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/"#
 	static let separatedNames = [

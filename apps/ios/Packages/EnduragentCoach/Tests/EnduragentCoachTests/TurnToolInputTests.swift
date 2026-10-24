@@ -6,7 +6,7 @@ import Testing
 
 extension TurnRunnerTests {
 	@Test(arguments: [
-		"invented_tool", "memory_read", "plan_save", "intervals_create_workout",
+		"invented_tool", "memory_read", "intervals_create_workout",
 		"intervals_create_strength_workout", "intervals_delete_workout", "intervals_update_workout",
 	])
 	func unofferedToolCallsReturnUnknownTool(name: String) async throws {
@@ -70,7 +70,6 @@ extension TurnRunnerTests {
 		#expect(replyText(settled) == "Ready.")
 		let request = try #require(transport.requests.first)
 		let everyMessage = request.messages.map(\.content).joined(separator: "\n")
-		#expect(!everyMessage.contains("plan_save"))
 		#expect(!everyMessage.contains("request_user_decision"))
 		let prompt = try #require(request.messages.first { $0.role == .system }?.content)
 		#expect(

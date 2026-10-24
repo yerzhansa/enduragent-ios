@@ -190,7 +190,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		let now = Date(timeIntervalSince1970: 1_790_000_000)
 		let wall = milliseconds(now)
 		let saved = WriteSummary(
-			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+			memorySections: 1, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 0)
 		#expect(
 			RetryWaits.wait(
 				of: facts(

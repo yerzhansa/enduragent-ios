@@ -1494,7 +1494,10 @@
       "signInAgain": "Erneut anmelden"
     },
     "welcome": "Willkommen bei {{product}}!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von {{service}}-Daten verfolgen.\n\nBefehle:\n{{commands}}\n\nOder sprich einfach mit mir über dein Training!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "Der Trainingsplan konnte nicht zum Speichern vorbereitet werden."
+    }
   },
   "plan": {
     "details": {

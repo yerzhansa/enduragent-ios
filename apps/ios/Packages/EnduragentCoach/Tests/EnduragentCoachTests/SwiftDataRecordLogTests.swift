@@ -115,7 +115,7 @@ extension SwiftDataSuites {
 			let ulid = ULID.generate(at: Date(timeIntervalSince1970: 899_164_800))
 			let turn = TurnID(ulid: ulid)
 			let saved = WriteSummary(
-				memorySections: 1, ledgerEvents: 2, planSaves: 0, calendarWrites: 0)
+				memorySections: 1, ledgerEvents: 2, planConfirmations: 0, calendarWrites: 0)
 			let bodies: [SyncedRecordBody] = [
 				.turnSettled(
 					TurnSettledBody(

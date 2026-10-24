@@ -7,7 +7,9 @@ import Testing
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	@Test func everyRecordedCallGetsZodsVerdictAndNpmsResult() async throws {
-		let tools: [ToolName] = [.assessFeasibility, .buildPlanSkeleton, .getSampleWeek, .planLoad]
+		let tools: [ToolName] = [
+			.assessFeasibility, .buildPlanSkeleton, .getSampleWeek, .planLoad, .planSave,
+		]
 		let offered = makeOfferedTools(
 			intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250),
 			ledger: Ledger(
@@ -31,6 +33,9 @@ import Testing
 					answer.objectFields["error"] == .string("invalid_input")
 				case (.bool(true), let npm?):
 					answer == npm
+				case (.bool(true), nil) where tool == .planSave:
+					answer.objectFields["error"] == nil
+						&& answer.objectFields["pendingConfirmation"] == .bool(true)
 				case (.bool(true), nil):
 					tool == .buildPlanSkeleton && answer.objectFields["error"] == nil
 						&& answer.objectFields["status"] == .string("draft")

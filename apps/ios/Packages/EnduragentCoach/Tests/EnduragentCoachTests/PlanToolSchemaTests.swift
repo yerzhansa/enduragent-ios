@@ -12,15 +12,12 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		_ = try await coach.sendAndSettle("What should I ride?")
 		let offered = try #require(transport.requests.first).tools
-		let phone: [String: (description: String?, parameters: JSONValue)] = [
-			"plan_save": (nil, PlanToolSchemas.planSave)
-		].merging(
-			offered.filter {
-				[.assessFeasibility, .buildPlanSkeleton, .getSampleWeek, .planLoad].contains(
-					$0.name)
+		let phone = Dictionary(
+			uniqueKeysWithValues: offered.filter {
+				[.assessFeasibility, .buildPlanSkeleton, .getSampleWeek, .planSave, .planLoad]
+					.contains($0.name)
 			}
-			.map { ($0.name.rawValue, ($0.description, $0.parameters)) }
-		) { _, offered in offered }
+			.map { ($0.name.rawValue, (description: $0.description, parameters: $0.parameters)) })
 
 		var compared: [String] = []
 		for item in try PlanFixtures.cases("tool-schemas") {
@@ -30,9 +27,7 @@ import Testing
 			compared.append(name)
 			let parameters = try #require(npm["parameters"])
 			#expect(schema.parameters == stripped(parameters), "\(name)")
-			if let description = schema.description {
-				#expect(.string(description) == npm["description"], "\(name)")
-			}
+			#expect(.string(schema.description) == npm["description"], "\(name)")
 		}
 
 		#expect(

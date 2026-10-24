@@ -30,12 +30,12 @@ import Testing
 		#expect(
 			offered.first == [
 				.calculateZones, .buildPlanSkeleton, .assessFeasibility, .getSampleWeek,
-				.memoryQuery, .memoryWrite, .ledgerAppend, .planLoad,
+				.memoryQuery, .memoryWrite, .ledgerAppend, .planSave, .planLoad,
 			])
 		#expect(
 			offered.last == [
 				.calculateZones, .buildPlanSkeleton, .assessFeasibility, .getSampleWeek,
-				.memoryRead, .memoryQuery, .memoryWrite, .ledgerAppend, .planLoad,
+				.memoryRead, .memoryQuery, .memoryWrite, .ledgerAppend, .planSave, .planLoad,
 			])
 	}
 
@@ -53,7 +53,7 @@ import Testing
 				.intervalsFetchAthlete, .intervalsFetchWellness, .intervalsFetchActivity,
 				.intervalsFetchStreams, .intervalsFetchActivities, .intervalsListEvents,
 				.getPendingWorkoutChanges, .prepareWorkoutChanges, .memoryQuery, .memoryWrite,
-				.ledgerAppend, .planLoad,
+				.ledgerAppend, .planSave, .planLoad,
 			])
 	}
 
@@ -80,7 +80,7 @@ import Testing
 			CoachTools.definition(of: name).map { (name: name, effect: $0.effect) }
 		}
 
-		#expect(defined.map(\.name) == ToolName.allCases.filter { $0 != .planSave })
+		#expect(defined.map(\.name) == ToolName.allCases)
 		for (name, effect) in defined {
 			#expect(effect.name == name, "\(name)")
 		}
@@ -103,7 +103,7 @@ import Testing
 	@Test(arguments: [
 		ToolName.intervalsFetchAthlete, .intervalsFetchWellness, .intervalsFetchActivity,
 		.intervalsFetchStreams, .intervalsFetchActivities, .intervalsListEvents,
-		.getPendingWorkoutChanges, .prepareWorkoutChanges, .memoryRead, .planSave,
+		.getPendingWorkoutChanges, .prepareWorkoutChanges, .memoryRead,
 	])
 	func unconnectedCallToAnUnofferedToolReturnsUnknownToolAndReachesNoClient(name: ToolName)
 		async throws
