@@ -51,6 +51,8 @@ struct FoldedConfirmation: Sendable, Equatable {
 
 	var latest: PlanConfirmationStep { newest.body.step }
 
+	var expiry: Date { created.hlc.wallTime.addingTimeInterval(Plans.lifetime / .seconds(1)) }
+
 	fileprivate func advanced(to record: PlanStepRecord) -> FoldedConfirmation {
 		FoldedConfirmation(
 			id: id, origin: origin, prepared: prepared, created: created,
@@ -106,6 +108,29 @@ struct PlanChain: Sendable, Equatable {
 			if now >= confirmation.prepared.expiresAt { return .expired }
 			guard newest?.id == confirmation.id else { return .replaced }
 			return .live(LiveConfirmation(confirmation: confirmation, head: head))
+		}
+	}
+
+	func end(of confirmation: FoldedConfirmation) -> ConfirmationEnd {
+		if let decided = confirmation.decided { return .step(decided.hlc) }
+		let expiry = ConfirmationEnd.expiry(confirmation.expiry)
+		guard
+			let replacing = confirmations.drop(while: { $0.id != confirmation.id }).dropFirst()
+				.first,
+			expiry.comesAfter(replacing.created.hlc)
+		else { return expiry }
+		return .step(replacing.created.hlc)
+	}
+}
+
+enum ConfirmationEnd: Sendable, Equatable {
+	case step(HybridLogicalClock)
+	case expiry(Date)
+
+	func comesAfter(_ clock: HybridLogicalClock) -> Bool {
+		switch self {
+		case .step(let step): clock < step
+		case .expiry(let instant): clock.wallTime < instant
 		}
 	}
 }

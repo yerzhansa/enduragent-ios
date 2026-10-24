@@ -21,6 +21,10 @@ struct SavedPlans: Sendable, Equatable {
 
 	var newest: PlanDocument? { saves.last?.document }
 
+	func newest(decidedBefore end: ConfirmationEnd) -> PlanDocument? {
+		saves.last { end.comesAfter($0.body.decided) }?.document
+	}
+
 	var headline: String? {
 		newest.map { ([Self.heading] + $0.headlineLines).joined(separator: "\n") }
 	}
