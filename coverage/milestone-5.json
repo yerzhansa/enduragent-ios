@@ -7,6 +7,7 @@
 		"2.3": 4,
 		"2.4": 2,
 		"3.1": 3,
+		"3.3": 2,
 		"3.4": 4,
 		"6.1": 3
 	},
@@ -326,6 +327,26 @@
 				{
 					"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift",
 					"function": "givesTheVerdictForATrackedTree"
+				}
+			]
+		},
+		{
+			"id": "3.3.1",
+			"statement": "For every case of sample-week.json, the hand cases included, Planning.sampleWeek of PlanningArguments.sampleWeek of the case input, as JSON, equals the recorded output, and a low-volume flexible request for six sessions returns three sessions, as npm does. A case the parser refuses is a mismatch.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SampleWeekParityTests.swift",
+					"function": "everyRecordedRequestGetsNpmsSampleWeek"
+				}
+			]
+		},
+		{
+			"id": "3.3.2",
+			"statement": "The number of sample-week cases compared equals the manifest count for sample-week.json and is above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SampleWeekParityTests.swift",
+					"function": "everyRecordedRequestGetsNpmsSampleWeek"
 				}
 			]
 		},
