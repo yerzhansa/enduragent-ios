@@ -109,6 +109,7 @@ extension OperationID {
 		case .workoutReview(let id, let revision):
 			"workoutChangeSet:\(id.ulid.rawValue):\(revision.rawValue)"
 		case .debugSample(let id): "debugSample:\(id.ulid.rawValue)"
+		case .planSave(let id): "planSave:\(id.ulid.rawValue)"
 		}
 	}
 
@@ -135,6 +136,7 @@ extension OperationID {
 		case "credentialChange": self = .credentialChange(CredentialChangeID(ulid: ulid))
 		case "launchRecovery": self = .launchRecovery(LaunchID(ulid: ulid))
 		case "debugSample": self = .debugSample(DebugSampleID(ulid: ulid))
+		case "planSave": self = .planSave(PlanConfirmationID(ulid: ulid))
 		default: return nil
 		}
 	}

@@ -60,7 +60,8 @@ extension SwiftDataSuites {
 
 		@Test func everyOtherKindKeepsTheBodyVersionItWasStoredAt() throws {
 			let expected: [String: Int] = [
-				"savedPlan": 7, "reviewOutcome": 6, "workoutReview": 6, "reviewPreparing": 6,
+				"savedPlan": 7, "planConfirmation": 7, "reviewOutcome": 6, "workoutReview": 6,
+				"reviewPreparing": 6,
 				"attemptQuestion": 5, "trainingIdentityObserved": 4, "userMessage": 4,
 				"turnSettled": 4, "windowStart": 4, "compactionSummary": 4, "memorySection": 2,
 				"dailyNote": 2, "ledgerEvent": 2, "journal": 2, "provenance": 2,

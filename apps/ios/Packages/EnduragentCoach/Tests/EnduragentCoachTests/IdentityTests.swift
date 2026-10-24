@@ -80,6 +80,20 @@ import Testing
 		#expect(quotes == "[\"say \\\"hi\\\"\",\"a\\\\b\",\"line\\n\"]")
 	}
 
+	@Test func aPlanSaveOperationIsStoredAsPlanSaveAndItsULIDAndNoOtherTailParses() throws {
+		let ulid = try #require(ULID(rawValue: "01ARZ3NDEKTSV4RRFFQ69G5FAV"))
+		let operation = OperationID.planSave(PlanConfirmationID(ulid: ulid))
+
+		#expect(operation.storedValue == "planSave:01ARZ3NDEKTSV4RRFFQ69G5FAV")
+		#expect(OperationID(storedValue: operation.storedValue) == operation)
+		for malformed in [
+			"planSave:not-a-ulid", "planSave:", "planSave:01ARZ3NDEKTSV4RRFFQ69G5FAV:1",
+			"planSaves:01ARZ3NDEKTSV4RRFFQ69G5FAV",
+		] {
+			#expect(OperationID(storedValue: malformed) == nil)
+		}
+	}
+
 	@Test func estimateTokensMatchesDesktop() throws {
 		let rows = try loadLedgerDigestTable()
 		for row in rows {

@@ -82,6 +82,11 @@ extension RecordCodec {
 					attempt: AttemptID(ulid: try decodeULID(payload.attempt))
 				)
 			)
+		case .planConfirmation:
+			return .planConfirmation(
+				try PlanConfirmationBody.decode(
+					try payload(
+						PlanConfirmationPayload.self, version: version, kind: name, data: data)))
 		}
 	}
 }
