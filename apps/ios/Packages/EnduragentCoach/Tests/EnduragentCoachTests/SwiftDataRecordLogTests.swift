@@ -297,6 +297,12 @@ extension SwiftDataSuites {
 			return try reviewRecordSamples([.completed]).map { ($0.kind, $0) }
 				+ synced.map { (kind: $0.kind.rawValue, body: RecordBody.synced($0)) }
 				+ local.map { (kind: $0.kind.rawValue, body: RecordBody.deviceLocal($0)) }
+				+ [
+					(
+						kind: SavedPlans.kind.rawValue,
+						body: try SavedPlanRows.body(PlanDocumentTests.base)
+					)
+				]
 		}
 	}
 }

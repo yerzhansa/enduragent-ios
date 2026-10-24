@@ -35,12 +35,13 @@ extension SwiftDataSuites {
 			let directory = try TestTemporaryFolders.make()
 			let log = try makeSwiftDataLog(deviceId: phone, directory: directory)
 			let reviewKinds: Set<String> = ["reviewOutcome", "workoutReview", "reviewPreparing"]
+			let laterKinds: Set<String> = [SavedPlans.kind.rawValue]
 			let sourceBound = FlushPendingBody(
 				chatId: .main, messageUlids: [fixedUlid(5)], sourceBound: true,
 				process: ProcessID(ulid: fixedUlid(6)))
 			let earlier =
 				try SwiftDataRecordLogTests().sampleBodies().map(\.body)
-				.filter { !reviewKinds.contains($0.kind) } + [
+				.filter { !reviewKinds.contains($0.kind) && !laterKinds.contains($0.kind) } + [
 					.deviceLocal(.flushPending(sourceBound))
 				]
 			#expect(
@@ -49,7 +50,7 @@ extension SwiftDataSuites {
 						SyncedKind.allCases.map(\.rawValue)
 							+ DeviceLocalKind.allCases.map(\.rawValue)
 					)
-					.subtracting(reviewKinds))
+					.subtracting(reviewKinds).subtracting(laterKinds))
 			let bodies = try reviewBodies() + earlier
 			for (index, body) in bodies.enumerated() {
 				try await log.append(

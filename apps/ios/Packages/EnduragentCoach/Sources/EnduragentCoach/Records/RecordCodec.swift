@@ -1,7 +1,7 @@
 import Foundation
 
 enum RecordCodec {
-	static let currentBodyVersion = 6
+	static let currentBodyVersion = 7
 
 	static func encode(_ body: RecordBody) throws -> (version: Int, data: Data) {
 		let encoder = JSONEncoder()
@@ -12,6 +12,8 @@ enum RecordCodec {
 		case .synced(let synced):
 			data = try encoder.encode(SyncedPayload(synced))
 			switch synced {
+			case .savedPlan:
+				version = 7
 			case .reviewOutcome:
 				version = 6
 			case .attemptQuestion:
@@ -292,6 +294,10 @@ enum RecordCodec {
 					LanguagePreferencePayload.self, version: version, kind: name, data: data
 				)
 				.body())
+		case .savedPlan:
+			return .savedPlan(
+				try SavedPlanBody.decode(
+					try payload(SavedPlanPayload.self, version: version, kind: name, data: data)))
 		}
 	}
 
