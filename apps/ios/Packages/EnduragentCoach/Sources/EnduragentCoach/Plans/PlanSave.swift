@@ -103,6 +103,12 @@ enum PlanAdmission {
 		else { return nil }
 		return ClaimedSave(confirmation: live.confirmation, claim: claim, decided: record.hlc)
 	}
+
+	static func resumed(_ chain: PlanChain) -> [ClaimedSave] {
+		chain.unfinishedClaims.map { confirmation, record, claim in
+			ClaimedSave(confirmation: confirmation, claim: claim, decided: record.hlc)
+		}
+	}
 }
 
 enum PlanTap: Sendable, Equatable {

@@ -130,6 +130,7 @@ public actor Coach {
 			await refreshDisplayLocale()
 			await recoverOnce()
 			await recoverReviews()
+			await recoverPlans()
 		case .willTerminate:
 			await catalogs.cancelRefresh()
 			catalogObservation?.cancel()
