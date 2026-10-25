@@ -35,6 +35,7 @@ final class ShellModel {
 	let trainingSettings: TrainingSettingsModel
 	let accessSettings: AccessSettingsModel
 	let sessionSettings: SessionSettingsModel
+	let planDecisions: PlanDecisions
 	private let submission: ChatSubmission
 	var drafts: DraftStore { submission.drafts }
 	private let onboarding: OnboardingModel
@@ -55,6 +56,7 @@ final class ShellModel {
 		self.trainingSettings = TrainingSettingsModel(coach: environment.services.coach)
 		self.accessSettings = AccessSettingsModel(environment: environment)
 		self.sessionSettings = SessionSettingsModel(coach: environment.services.coach)
+		self.planDecisions = PlanDecisions(services: environment.services)
 		self.onboarding = OnboardingModel(environment: environment)
 		self.credits = CreditsModel(services: environment.services)
 		self.archive = HistoryModel(coach: environment.services.coach)

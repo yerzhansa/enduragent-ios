@@ -45,14 +45,45 @@ extension TutorialHarness {
 	}
 
 	static func transcriptBand(_ app: XCUIApplication) -> CGRect {
-		let top = app.navigationBars.firstMatch.frame.maxY
-		let bar = named(app, "chat.review.bar")
-		let closingTheReview = named(app, "chat.transcript").descendants(matching: .any)
-			.matching(identifier: "chat.review.bar").firstMatch
-		let docked =
-			bar.exists && !closingTheReview.exists ? bar : named(app, "chat.composer.container")
-		let bottom = docked.frame.minY
-		return CGRect(x: app.frame.minX, y: top, width: app.frame.width, height: bottom - top)
+		MainActor.assumeIsolated {
+			do {
+				return transcriptBand(on: try app.snapshot())
+			} catch {
+				XCTFail("The screen could not be read for the transcript band: \(error)")
+				return .zero
+			}
+		}
+	}
+
+	@MainActor
+	private static func transcriptBand(on screen: any XCUIElementSnapshot) -> CGRect {
+		guard let navigation = first(in: screen, where: { $0.elementType == .navigationBar }),
+			let composer = first(in: screen, where: { $0.identifier == "chat.composer.container" })
+		else {
+			XCTFail("The screen lacks the navigation bar or the composer that bound the transcript")
+			return .zero
+		}
+		let top = navigation.frame.maxY
+		let bottom = dockedBars(in: screen).reduce(composer.frame.minY) { min($0, $1.minY) }
+		return CGRect(x: screen.frame.minX, y: top, width: screen.frame.width, height: bottom - top)
+	}
+
+	@MainActor
+	private static func dockedBars(in element: any XCUIElementSnapshot) -> [CGRect] {
+		guard element.identifier != "chat.transcript" else { return [] }
+		let bar = ["chat.review.bar", "chat.planSave.bar"].contains(element.identifier)
+		return (bar ? [element.frame] : []) + element.children.flatMap { dockedBars(in: $0) }
+	}
+
+	@MainActor
+	private static func first(
+		in element: any XCUIElementSnapshot, where matches: (any XCUIElementSnapshot) -> Bool
+	) -> (any XCUIElementSnapshot)? {
+		if matches(element) { return element }
+		for child in element.children {
+			if let found = first(in: child, where: matches) { return found }
+		}
+		return nil
 	}
 
 	static func drag(
@@ -80,10 +111,12 @@ extension TutorialHarness {
 			until: {
 				let band = transcriptBand(app)
 				let frame = element.frame
-				let floor = band.minY + band.height * topShare
-				if frame.minY >= band.minY && frame.maxY <= floor { return true }
+				let share = band.height * topShare
+				let lowestTop =
+					band.minY + (frame.height > share ? share / 2 : share - frame.height)
+				if frame.minY >= band.minY && frame.minY <= lowestTop { return true }
 				let above = frame.minY < band.minY
-				let remaining = above ? band.minY - frame.minY : frame.maxY - floor
+				let remaining = above ? band.minY - frame.minY : frame.minY - lowestTop
 				let far = remaining > band.height
 				let reach = band.height * (far ? 0.35 : 0.1)
 				let upper = CGPoint(x: band.midX, y: band.midY - reach)

@@ -1496,7 +1496,36 @@
     "welcome": "Welkom bij {{product}}!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van {{service}}.\n\nOpdrachten:\n{{commands}}\n\nJe kunt ook gewoon met me praten over je training!",
     "welcomeCommand": "{{command}} : {{description}}",
     "planSave": {
-      "notPrepared": "Het trainingsschema kon niet worden voorbereid om op te slaan."
+      "notPrepared": "Het trainingsschema kon niet worden voorbereid om op te slaan.",
+      "title": "Dit trainingsschema opslaan?",
+      "phase": "Fase {{number}}",
+      "focusLabel": "Focus",
+      "weeklyHours": "Uren per week",
+      "replaces": "Vervangt je opgeslagen schema: {{name}}",
+      "save": "Schema opslaan",
+      "saving": "Schema wordt opgeslagen…",
+      "saved": "Opgeslagen. Dit is nu je trainingsschema.",
+      "canceled": "Geannuleerd. Dit schema is niet opgeslagen.",
+      "expired": "Verlopen. Vraag de coach opnieuw om dit schema op te slaan.",
+      "storageUnavailable": "Dit schema kon niet worden opgeslagen omdat de opslag van deze iPhone niet beschikbaar is.",
+      "notSaved": {
+        "expired": "Niet opgeslagen: de tien minuten om dit schema op te slaan zijn voorbij.",
+        "replaced": "Niet opgeslagen: er wacht een nieuwer schema om opgeslagen te worden.",
+        "alreadyDecided": "Dit schema is al opgeslagen of geannuleerd.",
+        "athleteChanged": "Niet opgeslagen: dit schema is voorbereid voor een andere atleet op {{service}}.",
+        "notPresented": "Nog niet opgeslagen. Scroll naar het schema en tik dan opnieuw op Schema opslaan."
+      },
+      "focus": {
+        "baseBuilding": "Basisopbouw",
+        "aerobicDevelopment": "Aerobe ontwikkeling",
+        "threshold": "Drempel",
+        "vo2max": "VO2max",
+        "racePrep": "Wedstrijdvoorbereiding",
+        "taper": "Taperen",
+        "recovery": "Herstel",
+        "maintenance": "Onderhoud",
+        "generalFitness": "Algemene fitheid"
+      }
     }
   },
   "plan": {

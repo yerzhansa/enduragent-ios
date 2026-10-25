@@ -13,7 +13,8 @@ import Testing
 			clock: "1998-06-16T07:00:00Z", onboarded: true,
 			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
 			recordReadFault: .failAfterPresentedOnce, presentationFault: .failLastCardOnce,
-			reviewStage: .partial, resetFault: .failBoundary,
+			reviewStage: .partial, planSaveStage: .saving, planTap: .replaced,
+			resetFault: .failBoundary,
 			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
 			credentialWriteFault: .failOnce, accessMethod: .openRouterNeedsCredits,
 			creditsOutcome: .provisioningFailed, signInOutcome: .held,
@@ -53,6 +54,8 @@ import Testing
 		#expect(parsed.recordReadFault == expected.recordReadFault)
 		#expect(parsed.presentationFault == expected.presentationFault)
 		#expect(parsed.reviewStage == expected.reviewStage)
+		#expect(parsed.planSaveStage == expected.planSaveStage)
+		#expect(parsed.planTap == expected.planTap)
 		#expect(parsed.resetFault == expected.resetFault)
 		#expect(parsed.replyParserFault == expected.replyParserFault)
 		#expect(parsed.trainingDisplay == expected.trainingDisplay)
@@ -72,7 +75,8 @@ import Testing
 	@Test(arguments: [
 		FixtureLaunch.calendarSaveArgumentKey, FixtureLaunch.calendarReadArgumentKey,
 		FixtureLaunch.recordReadArgumentKey, FixtureLaunch.presentationArgumentKey,
-		FixtureLaunch.reviewStageArgumentKey, FixtureLaunch.signInArgumentKey,
+		FixtureLaunch.reviewStageArgumentKey, FixtureLaunch.planSaveArgumentKey,
+		FixtureLaunch.planTapArgumentKey, FixtureLaunch.signInArgumentKey,
 		FixtureLaunch.catalogArgumentKey,
 		FixtureLaunch.resetArgumentKey,
 		FixtureLaunch.replyParserArgumentKey,

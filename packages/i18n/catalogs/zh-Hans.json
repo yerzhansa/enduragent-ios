@@ -1483,7 +1483,36 @@
     "welcome": "欢迎使用 {{product}}！\n\n我是 AI 骑行教练，可以使用 {{service}} 数据制定训练计划、推荐训练课程并追踪体能。\n\n命令：\n{{commands}}\n\n也可以直接和我聊聊训练！",
     "welcomeCommand": "{{command}} — {{description}}",
     "planSave": {
-      "notPrepared": "无法准备保存训练计划。"
+      "notPrepared": "无法准备保存训练计划。",
+      "title": "保存此训练计划？",
+      "phase": "第 {{number}} 阶段",
+      "focusLabel": "重点",
+      "weeklyHours": "每周小时数",
+      "replaces": "将替换你已保存的计划：{{name}}",
+      "save": "保存计划",
+      "saving": "正在保存计划…",
+      "saved": "已保存。现在这就是你的训练计划。",
+      "canceled": "已取消。此计划未保存。",
+      "expired": "已过期。请再次让教练保存此计划。",
+      "storageUnavailable": "由于此 iPhone 的存储空间不可用，无法保存此计划。",
+      "notSaved": {
+        "expired": "未保存：保存此计划的十分钟已经过去。",
+        "replaced": "未保存：有一个更新的计划正在等待保存。",
+        "alreadyDecided": "此计划已经保存或取消。",
+        "athleteChanged": "未保存：此计划是为 {{service}} 上的另一位运动员准备的。",
+        "notPresented": "尚未保存。请滚动到该计划，然后再次轻点“保存计划”。"
+      },
+      "focus": {
+        "baseBuilding": "基础建立",
+        "aerobicDevelopment": "有氧能力发展",
+        "threshold": "阈值",
+        "vo2max": "最大摄氧量",
+        "racePrep": "赛前准备",
+        "taper": "减量",
+        "recovery": "恢复",
+        "maintenance": "保持",
+        "generalFitness": "综合体能"
+      }
     }
   },
   "plan": {

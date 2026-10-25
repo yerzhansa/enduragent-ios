@@ -41,6 +41,7 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 | [Conversation](./chat.md) | Send, working and notice states, Try again, Stop, relaunch, memory work, New conversation, overnight continuity, and Debug settings. |
 | [Language](./language.md) | All language rows, fixed language, Automatic on a French phone, saved-language first frame, and notice language. |
 | [Workout review](./workout-preview.md) | One card per change, kept workouts, totals and the approval bar, reviews of 8, 20 and 40 changes, the largest text size, VoiceOver order, review languages, approve or cancel, durable outcomes, account changes and upgraded reviews. |
+| [Plan-save card](./plan-save-card.md) | The card a plan save ends with, its fields and "replaces" line, arming, Save plan and Cancel, every state and refused tap, carried cards, the largest text size, VoiceOver order, three languages and a waiting review beside it. |
 | [Settings](./settings.md) | Toolbar navigation, Credits and the model picker under Model access, intervals.icu connection and calendar guidance, Session, draft and setup continuity, and French icon actions. |
 | [History](./history.md) | Archived conversations, close reasons, read-only content, upgrade, and open-time probes. |
 | [Credits](./credits.md) | Credit count, disabled packs, unavailable notice, recovery links from a turn, and Access method in Settings. |

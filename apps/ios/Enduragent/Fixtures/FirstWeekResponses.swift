@@ -39,6 +39,9 @@
 					if let review = reviewReply(request, intervals: intervals) {
 						return review
 					}
+					if let plan = planSaveReply(request) {
+						return plan
+					}
 					let slowTool = request.text == toolProgressDirective && !request.retry
 					if request.step == 0 {
 						intervals.delay(

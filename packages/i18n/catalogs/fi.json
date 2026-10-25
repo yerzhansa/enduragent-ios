@@ -1496,7 +1496,36 @@
     "welcome": "Tervetuloa käyttämään sovellusta {{product}}!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun {{service}} tietojen avulla.\n\nKomennot:\n{{commands}}\n\nVoit myös vain jutella kanssani harjoittelustasi!",
     "welcomeCommand": "{{command}}: {{description}}",
     "planSave": {
-      "notPrepared": "Harjoitussuunnitelmaa ei voitu valmistella tallennettavaksi."
+      "notPrepared": "Harjoitussuunnitelmaa ei voitu valmistella tallennettavaksi.",
+      "title": "Tallennetaanko tämä harjoitussuunnitelma?",
+      "phase": "Vaihe {{number}}",
+      "focusLabel": "Painopiste",
+      "weeklyHours": "Tunteja viikossa",
+      "replaces": "Korvaa tallennetun suunnitelmasi: {{name}}",
+      "save": "Tallenna suunnitelma",
+      "saving": "Suunnitelmaa tallennetaan…",
+      "saved": "Tallennettu. Tämä on nyt harjoitussuunnitelmasi.",
+      "canceled": "Peruttu. Tätä suunnitelmaa ei tallennettu.",
+      "expired": "Vanhentunut. Pyydä valmentajaa tallentamaan tämä suunnitelma uudelleen.",
+      "storageUnavailable": "Tätä suunnitelmaa ei voitu tallentaa, koska tämän iPhonen tallennustila ei ole käytettävissä.",
+      "notSaved": {
+        "expired": "Ei tallennettu: tämän suunnitelman tallentamiseen varatut kymmenen minuuttia ovat kuluneet.",
+        "replaced": "Ei tallennettu: uudempi suunnitelma odottaa tallentamista.",
+        "alreadyDecided": "Tämä suunnitelma on jo tallennettu tai peruttu.",
+        "athleteChanged": "Ei tallennettu: tämä suunnitelma valmisteltiin toiselle urheilijalle palvelussa {{service}}.",
+        "notPresented": "Ei vielä tallennettu. Vieritä suunnitelman kohdalle ja napauta sitten uudelleen Tallenna suunnitelma."
+      },
+      "focus": {
+        "baseBuilding": "Peruskunnon rakentaminen",
+        "aerobicDevelopment": "Aerobinen kehitys",
+        "threshold": "Kynnys",
+        "vo2max": "VO2max",
+        "racePrep": "Kilpailuun valmistautuminen",
+        "taper": "Kevennys",
+        "recovery": "Palautuminen",
+        "maintenance": "Ylläpito",
+        "generalFitness": "Yleiskunto"
+      }
     }
   },
   "plan": {

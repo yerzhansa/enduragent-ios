@@ -20,6 +20,7 @@
 		let signInOutcome: FixtureSignInOutcome
 		let replyParser: ReplyParser
 		let reviewProofDriver: FixtureReviewProofDriver?
+		let planTapDriver: FixturePlanTapDriver?
 		let presentationFault: FixturePresentationFault?
 	}
 
@@ -47,6 +48,7 @@
 				unreadable: launch.store == .unreadable)
 			let records = fixture.faults
 			try launch.reviewStage.map { try $0.install(on: intervals, records: records) }
+			try launch.planSaveStage.map { try $0.install(on: records) }
 			if launch.resetFault == .failBoundary { try records.failAppends(ofKind: "windowStart") }
 			records.failRecoveryReads = launch.recovery == .unreadable
 			let (secrets, backing, native) = try fixtureSecrets(launch)
@@ -127,6 +129,9 @@
 					replyParser: launch.replyParserFault == .fail ? .failing : .foundation,
 					reviewProofDriver: launch.recordReadFault == .failAfterPresentedOnce
 						? FixtureReviewProofDriver() : nil,
+					planTapDriver: launch.planTap.map {
+						FixturePlanTapDriver(tap: $0, calendar: clock.calendar)
+					},
 					presentationFault: launch.presentationFault)
 			)
 		}
@@ -178,6 +183,17 @@
 			return (fixture.store, fixture.backing, nil)
 		}
 	}
+	extension FixturePlanSaveStage {
+		static let savedPlanKind = "savedPlan"
+
+		func install(on records: RecordFaults) throws {
+			switch self {
+			case .saving: try records.holdAppends(ofKind: Self.savedPlanKind)
+			case .storage: try records.failAppends(ofKind: Self.savedPlanKind)
+			}
+		}
+	}
+
 	extension FixtureReviewStage {
 		static let sendingHeldWrite = 2
 		static let storageStallAfter = 3

@@ -1496,7 +1496,36 @@
     "welcome": "¡Te doy la bienvenida a {{product}}!\n\nSoy tu entrenador de ciclismo con IA. Puedo crear planes de entrenamiento, sugerir entrenamientos y seguir tu condición física con los datos de {{service}}.\n\nComandos:\n{{commands}}\n\n¡También puedes hablar conmigo sobre tu entrenamiento!",
     "welcomeCommand": "{{command}}: {{description}}",
     "planSave": {
-      "notPrepared": "No se pudo preparar el plan de entrenamiento para guardarlo."
+      "notPrepared": "No se pudo preparar el plan de entrenamiento para guardarlo.",
+      "title": "¿Guardar este plan de entrenamiento?",
+      "phase": "Fase {{number}}",
+      "focusLabel": "Enfoque",
+      "weeklyHours": "Horas por semana",
+      "replaces": "Sustituye a tu plan guardado: {{name}}",
+      "save": "Guardar plan",
+      "saving": "Guardando el plan…",
+      "saved": "Guardado. Ahora este es tu plan de entrenamiento.",
+      "canceled": "Cancelado. Este plan no se guardó.",
+      "expired": "Caducado. Pide de nuevo al entrenador que guarde este plan.",
+      "storageUnavailable": "No se pudo guardar este plan porque el almacenamiento de este iPhone no está disponible.",
+      "notSaved": {
+        "expired": "No se guardó: ya pasaron los diez minutos para guardar este plan.",
+        "replaced": "No se guardó: hay un plan más reciente esperando a guardarse.",
+        "alreadyDecided": "Este plan ya se guardó o se canceló.",
+        "athleteChanged": "No se guardó: este plan se preparó para otro atleta de {{service}}.",
+        "notPresented": "Aún no se ha guardado. Desplázate hasta el plan y vuelve a tocar Guardar plan."
+      },
+      "focus": {
+        "baseBuilding": "Construcción de base",
+        "aerobicDevelopment": "Desarrollo aeróbico",
+        "threshold": "Umbral",
+        "vo2max": "VO2máx",
+        "racePrep": "Preparación para la carrera",
+        "taper": "Puesta a punto",
+        "recovery": "Recuperación",
+        "maintenance": "Mantenimiento",
+        "generalFitness": "Forma física general"
+      }
     }
   },
   "plan": {
