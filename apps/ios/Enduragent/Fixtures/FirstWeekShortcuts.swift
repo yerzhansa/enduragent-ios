@@ -11,6 +11,9 @@
 		static let workoutShortcutReply =
 			"Ride 45 minutes at an easy endurance pace today. Keep the effort conversational and spin a high cadence. Nothing is on your calendar yet."
 
+		static let planShortcutReply =
+			"To build your training plan I need your current FTP, the hours you can ride each week, and the date of your event."
+
 		static let statusShortcutReply =
 			"On 1998-06-15 your Fitness is 42 with Fatigue at 49 and Form at -7. You are carrying some fatigue from the weekend."
 
@@ -19,6 +22,7 @@
 			let finished: String
 			switch SlashRouting.parse(typed) {
 			case .workout: finished = workoutShortcutReply
+			case .plan: finished = planShortcutReply
 			case .status: finished = statusShortcutReply
 			case .start, .review, .language, nil: return nil
 			}

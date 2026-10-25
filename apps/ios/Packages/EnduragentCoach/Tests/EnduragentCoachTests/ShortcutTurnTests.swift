@@ -10,6 +10,8 @@ import Testing
 		("/status how is my Form this week", .status),
 		("/workout", .workout),
 		("/workout 45 minutes indoors", .workout),
+		("/plan", .plan),
+		("/plan for my gran fondo in June", .plan),
 	])
 	func shortcutReachesTheCoachOnceWithAllItsText(text: String, command: SlashCommand)
 		async throws
@@ -65,6 +67,59 @@ import Testing
 			plain.messages.dropFirst().map(\.content) == [ordinary + "\n" + ShortcutBench.timeLine])
 		#expect(try await asked.storedMessages().map(\.athleteText) == [ordinary])
 		#expect(try await asked.storedMessages().map(\.slash) == [nil])
+	}
+
+	@Test func planShortcutOffersThePlanningToolsAndThePromptOfThePlainMessage() async throws {
+		let shortcut = "/plan for my gran fondo in June"
+		let ordinary = "Build me a training plan for my gran fondo in June"
+		let typed = ShortcutBench()
+		let asked = ShortcutBench()
+
+		let command = try await typed.onlyRequest(after: shortcut, to: try await typed.coach())
+		let plain = try await asked.onlyRequest(after: ordinary, to: try await asked.coach())
+
+		let offered = Set(command.tools.map(\.name))
+		#expect(offered.isSuperset(of: [.buildPlanSkeleton, .assessFeasibility, .getSampleWeek]))
+		#expect(plain.tools == command.tools)
+		#expect(command.messages.first?.role == .system)
+		#expect(plain.messages.first == command.messages.first)
+		#expect(
+			command.messages.dropFirst().map(\.content) == [
+				shortcut + "\n" + ShortcutBench.timeLine
+			])
+		#expect(
+			plain.messages.dropFirst().map(\.content) == [ordinary + "\n" + ShortcutBench.timeLine])
+		#expect(try await typed.storedMessages().map(\.slash) == [.plan])
+		#expect(try await asked.storedMessages().map(\.slash) == [nil])
+	}
+
+	@Test(arguments: AccessRefusal.allCases)
+	func planWithNoUsableModelAccessEndsWithTheAccessNoticeAndNoCard(refusal: AccessRefusal)
+		async throws
+	{
+		let bench = ShortcutBench()
+		let coach = try await bench.coach(refusal: refusal)
+
+		let turn = try #require(
+			try await coach.send(draft("/plan for my gran fondo in June"), to: .main).acceptedTurn)
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+
+		#expect(failure(settled) == .model(.accessUnavailable(refusal.unavailable)))
+		#expect(turnNotice(of: settled)?.actions == refusal.actions(for: turn))
+		#expect(replyText(settled) == nil)
+		#expect(bench.transport.requests.isEmpty)
+		let snapshot = try #require(await coach.currentSnapshot(.main))
+		#expect(snapshot.turns.map(\.athleteText) == ["/plan for my gran fondo in June"])
+		#expect(snapshot.turns.map(\.state) == [settled])
+		#expect(snapshot.plans.isEmpty)
+		#expect(snapshot.liveReply == nil)
+		#expect(snapshot.activity == .idle)
+		let confirmations = try await bench.store.fetch(
+			RecordQuery(scope: .deviceLocal([PlanChain.kind])))
+		#expect(confirmations.records.isEmpty)
+		#expect(
+			try await bench.store.fetch(RecordQuery(scope: .synced([SavedPlans.kind]))).records
+				.isEmpty)
 	}
 
 	@Test(arguments: ["1998-06-13", "1998-06-10"])
@@ -219,6 +274,25 @@ import Testing
 	}
 }
 
+enum AccessRefusal: CaseIterable {
+	case missingKey
+	case lockedKeychain
+
+	var unavailable: AccessUnavailable {
+		switch self {
+		case .missingKey: .notConfigured(.credits)
+		case .lockedKeychain: .secureStorageLocked
+		}
+	}
+
+	func actions(for turn: TurnID) -> [RecoveryAction] {
+		switch self {
+		case .missingKey: [.chooseAccessMethod]
+		case .lockedKeychain: [.tryAgain(turn)]
+		}
+	}
+}
+
 enum MissingWellness: CaseIterable {
 	case noRowInSevenDays
 	case readFailed
@@ -256,18 +330,22 @@ struct ShortcutBench {
 	}
 
 	func coach(
-		connected: Bool = true,
+		connected: Bool = true, refusal: AccessRefusal? = nil,
 		replying script: [ScriptedEvent] = [.text(reply), .finish(reason: .stop)]
 	) async throws -> Coach {
 		transport.respond = ScriptedReply.sequence(
 			script, for: .chat, otherwise: transport.respond)
-		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
-		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
+		let backing = FixtureSecretStoreBacking()
+		let secrets = ICloudKeychainStore(backing: backing)
+		if refusal != .missingKey {
+			try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
+		}
 		if connected { try secrets.storeIntervalsConnection(testConnection) }
 		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock,
 			secrets: secrets)
 		_ = try await coach.vault.trainingConnection()
+		if refusal == .lockedKeychain { backing.locked = true }
 		return coach
 	}
 

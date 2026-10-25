@@ -83,24 +83,6 @@ final class CreditsProof: XCTestCase {
 	}
 }
 
-final class SlashListNoPlanProof: XCTestCase {
-	func testSlashListHidesPlan() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		let composer = TutorialHarness.named(app, "chat.composer")
-		composer.tap()
-		composer.typeText("/")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.slash.review"))
-		XCTAssertTrue(TutorialHarness.named(app, "chat.slash.start").exists)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.slash.status").exists)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.slash.workout").exists)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.slash.language").exists)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.slash.plan").exists)
-		TutorialHarness.attach(self, name: "slash-list-no-plan", app: app)
-	}
-}
-
 final class HistoryListProof: XCTestCase {
 	func testHistoryList() {
 		let app = XCUIApplication()

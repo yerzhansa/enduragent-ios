@@ -14,6 +14,8 @@ enum RecordCodec {
 			switch synced {
 			case .savedPlan:
 				version = 7
+			case .userMessage(let message) where message.slash == .plan:
+				version = 7
 			case .reviewOutcome:
 				version = 6
 			case .attemptQuestion:
