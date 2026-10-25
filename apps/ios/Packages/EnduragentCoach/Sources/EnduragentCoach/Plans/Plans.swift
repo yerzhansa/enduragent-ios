@@ -13,6 +13,7 @@ package actor Plans {
 	private var deliveries: [ChatID: PlanDelivery] = [:]
 	private var stalled: Set<PlanConfirmationID> = []
 	private var wakes: [ChatID: PlanWake] = [:]
+	private let effects = Turnstile()
 	nonisolated let changes: AsyncStream<ChatID>
 	private let changed: AsyncStream<ChatID>.Continuation
 
@@ -169,12 +170,16 @@ package actor Plans {
 			guard let appended = PlanStepRecord(record),
 				let claimed = PlanAdmission.claimed(live, appended: appended)
 			else {
-				return stall(live.confirmation.id, in: chat, .unavailable)
+				stall(live.confirmation.id, in: chat, .unavailable)
+				return .storageUnavailable
 			}
 			do throws(LedgerFailure) {
-				try await finish(claimed, in: chat)
+				try await effects.pass { () throws(LedgerFailure) in
+					try await finish(claimed, in: chat)
+				}
 			} catch {
-				return stall(claimed.confirmation.id, in: chat, error)
+				stall(claimed.confirmation.id, in: chat, error)
+				return .storageUnavailable
 			}
 			changed.yield(chat)
 			return .saved
@@ -182,15 +187,45 @@ package actor Plans {
 		return .storageUnavailable
 	}
 
+	func recover() async {
+		await effects.pass {
+			do throws(LedgerFailure) {
+				let chats = try await ledger.chats(holding: PlanChain.kind)
+				for chat in chats.sorted(by: { $0.rawValue < $1.rawValue }) { await resume(chat) }
+			} catch {
+				diagnostics.record(.recoveryUnavailable(error))
+			}
+		}
+	}
+
+	private func resume(_ chat: ChatID) async {
+		let chain: PlanChain
+		do throws(LedgerFailure) {
+			chain = try await self.chain(of: chat)
+		} catch {
+			diagnostics.record(.planConfirmationUnavailable(chat, error))
+			return
+		}
+		for claimed in PlanAdmission.resumed(chain) {
+			do throws(LedgerFailure) {
+				try await finish(claimed, in: chat)
+				stalled.remove(claimed.confirmation.id)
+				changed.yield(chat)
+			} catch {
+				stall(claimed.confirmation.id, in: chat, error)
+			}
+		}
+		if let newest = chain.newest, case .live = chain.phase(of: newest, at: clock.now) {
+			wake(chat, at: newest.prepared.expiresAt)
+		}
+	}
+
 	private func stall(
 		_ confirmation: PlanConfirmationID, in chat: ChatID, _ failure: LedgerFailure
-	)
-		-> PlanDecisionOutcome
-	{
+	) {
 		stalled.insert(confirmation)
 		diagnostics.record(.planSaveStalled(confirmation, failure))
 		changed.yield(chat)
-		return .storageUnavailable
 	}
 
 	private func finish(_ claimed: ClaimedSave, in chat: ChatID) async throws(LedgerFailure) {
@@ -347,35 +382,6 @@ private enum PlanPreparation: Sendable, Equatable {
 private struct PlanWake {
 	let at: Date
 	let task: Task<Void, Never>
-}
-
-enum PlanSettlement: Sendable, Equatable {
-	case nothingWaiting
-	case leftWaiting(PlanConfirmationID)
-	case notPrepared(PlanSaveNotPrepared)
-
-	func counted(in settlement: Settlement) -> Settlement {
-		guard case .leftWaiting = self,
-			case .interrupted(let partial, .processEnded, let saved) = settlement
-		else { return settlement }
-		return .interrupted(
-			partial: partial, cause: .processEnded,
-			saved: WriteSummary(
-				memorySections: saved.memorySections, ledgerEvents: saved.ledgerEvents,
-				planConfirmations: 1, calendarWrites: saved.calendarWrites,
-				unverifiedCalendarWrites: saved.unverifiedCalendarWrites))
-	}
-
-	var notPrepared: PlanSaveNotPrepared? {
-		guard case .notPrepared(let cause) = self else { return nil }
-		return cause
-	}
-}
-
-package enum PlanSaveNotPrepared: String, Equatable, Sendable {
-	case refused
-	case notSaved
-	case turnDidNotFinish
 }
 
 extension CoachTools {
