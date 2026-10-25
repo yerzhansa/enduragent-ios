@@ -93,7 +93,7 @@ extension SwiftDataSuites {
 				await coach.lifecycle(.becameActive)
 				recovered.raise()
 			}
-			let deadline = ContinuousClock.now + .seconds(2)
+			let deadline = ContinuousClock.now + TestWaitLimit.subject(.seconds(2)).duration
 			while !recovered.raised, ContinuousClock.now < deadline {
 				try await Task.sleep(for: .milliseconds(10))
 			}
