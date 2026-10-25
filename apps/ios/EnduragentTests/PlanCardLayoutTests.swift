@@ -177,6 +177,30 @@ extension FixtureLaunchTests {
 		#expect(text.answer == nil)
 	}
 
+	@Test func aSavedCardShowsNoStorageAnswerLeftFromTheTapThatStalled() async throws {
+		let model = try await preparing(FirstWeekFixture.planSaveDirective, launch: launch)
+		_ = try await settledTurn(model)
+		try await save(model)
+		try await until { model.chat?.plans.first?.state == .saved }
+		let text = PlanCardText(
+			try #require(model.chat?.plans.first), answer: .storageUnavailable,
+			in: model.displayLocale)
+		#expect(text.state == "Saved. This is now your training plan.")
+		#expect(text.answer == nil)
+	}
+
+	@Test func aCanceledCardShowsNoRefusalLeftFromAnEarlierTap() async throws {
+		let model = try await preparing(FirstWeekFixture.planSaveDirective, launch: launch)
+		await model.planDecisions.present(try #require(model.chat?.plans.first).ref)
+		await model.planDecisions.decide(.cancel(try await armed(model)))
+		try await until { model.chat?.plans.first?.state == .canceled }
+		let text = PlanCardText(
+			try #require(model.chat?.plans.first), answer: .notSaved(.athleteChanged),
+			in: model.displayLocale)
+		#expect(text.state == "Canceled. This plan was not saved.")
+		#expect(text.answer == nil)
+	}
+
 	@Test func twoPlanSavesInOneStepShowTheNotPreparedNoticeAndNoCard() async throws {
 		let model = await model(try services())
 		await model.agreeAndStartChatting()
