@@ -11,6 +11,7 @@
 		"3.3": 2,
 		"3.4": 4,
 		"4.1": 7,
+		"4.2": 4,
 		"5.1": 9,
 		"5.2": 6,
 		"6.1": 3,
@@ -551,6 +552,54 @@
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift",
 					"function": "promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad"
+				}
+			]
+		},
+		{
+			"id": "4.2.1",
+			"statement": "cycling-periodization and cycling-race-prep equal npm's bytes at d192cb974e715e1527645e0acf0d8353ed4d0edc, their recorded npmSHA256, with both build_plan_skeleton passages, \"and let the tool supply the exact figures\" and \"## Taper Length by Race Type\" restored and no \"## Per-phase emphasis\" heading, and they leave topicsThatDifferFromNpm. The npm copies of the two topics are deleted, and no npmSHA256 or npmRevision changes.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KnowledgeTopicsTests.swift",
+					"function": "bundledTopicEqualsNpmOnceItsRecordedDifferencesAreApplied"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KnowledgeTopicsTests.swift",
+					"function": "requestHoldsEveryBundledTopicWholeUnderItsOwnHeading"
+				}
+			]
+		},
+		{
+			"id": "4.2.2",
+			"statement": "cycling-prescription-posture names build_plan_skeleton and get_sample_week as npm's does and records exactly its two intervals_create_workout differences, and no recorded difference of any topic changes how often it names build_plan_skeleton, assess_feasibility or get_sample_week. cycling-intervals-icu and cycling-review are unchanged.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KnowledgeTopicsTests.swift",
+					"function": "bundledTopicEqualsNpmOnceItsRecordedDifferencesAreApplied"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutAuthorizationTests.swift",
+					"function": "everyRequestHoldsThePrescriptionRules"
+				}
+			]
+		},
+		{
+			"id": "4.2.3",
+			"statement": "The cycling prefix with the restored passages stays under the 13,600-token ceiling: 11,582 tokens before the change and 11,928 after.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift",
+					"function": "prefixCarriesTheCyclingSkillsUnderTheTokenCeilings"
+				}
+			]
+		},
+		{
+			"id": "4.2.4",
+			"statement": "make check-source passes: no shipped .md names intervals_create_workout, the restored topics included.",
+			"tests": [
+				{
+					"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift",
+					"function": "givesTheVerdictForATrackedTree"
 				}
 			]
 		},

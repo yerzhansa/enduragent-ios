@@ -7,9 +7,9 @@ import Testing
 
 @Suite struct KnowledgeTopicsTests {
 	static let topicsThatDifferFromNpm: Set<String> = [
-		"cycling-intervals-icu", "cycling-periodization", "cycling-prescription-posture",
-		"cycling-race-prep", "cycling-review",
+		"cycling-intervals-icu", "cycling-prescription-posture", "cycling-review",
 	]
+	static let planningTools: [ToolName] = [.buildPlanSkeleton, .assessFeasibility, .getSampleWeek]
 
 	let transport = FakeModelTransport()
 	let store = InMemoryRecordLog()
@@ -51,6 +51,12 @@ import Testing
 		var expected = try #require(try npmCopies()[key])
 		#expect(sha256(expected) == record.npmSHA256)
 		for difference in record.differences {
+			for tool in Self.planningTools {
+				#expect(
+					difference.phone.components(separatedBy: tool.rawValue).count
+						== difference.npm.components(separatedBy: tool.rawValue).count,
+					"a recorded difference in \(key) changes how often it names \(tool.rawValue)")
+			}
 			let parts = expected.components(separatedBy: difference.npm)
 			try #require(
 				parts.count == 2,
