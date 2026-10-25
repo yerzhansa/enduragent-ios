@@ -14,6 +14,8 @@ enum PlanToolSchemas {
 						"maximum": .number(largestSafeInteger),
 					]),
 					"status": .object(["type": .string("string")]),
+					"phases": array(of: draftPhase),
+					"zoneTables": array(of: draftZoneTable),
 				]),
 				"required": .array([.string("name")]),
 			])
@@ -107,6 +109,38 @@ enum PlanToolSchemas {
 		"type": .string("array"),
 		"items": choices(Weekday.self),
 	])
+
+	private static let text: JSONValue = .object(["type": .string("string")])
+
+	private static let wholeNumber: JSONValue = .object(["type": .string("integer")])
+
+	private static let draftPhase = object([
+		"number": wholeNumber,
+		"name": text,
+		"durationWeeks": wholeNumber,
+		"durationCycles": wholeNumber,
+		"focus": text,
+		"volumeTargets": object([
+			"cycling": object([
+				"sessionsPerCycle": wholeNumber,
+				"hoursPerCycle": .object(["type": .string("number")]),
+			])
+		]),
+		"keyAdditions": array(of: text),
+	])
+
+	private static let draftZoneTable = object([
+		"sport": text,
+		"zones": array(of: object(["name": text, "range": text, "description": text])),
+	])
+
+	private static func object(_ properties: [String: JSONValue]) -> JSONValue {
+		.object(["type": .string("object"), "properties": .object(properties)])
+	}
+
+	private static func array(of items: JSONValue) -> JSONValue {
+		.object(["type": .string("array"), "items": items])
+	}
 
 	private static func choices<Choice: RawRepresentable & CaseIterable>(_ choices: Choice.Type)
 		-> JSONValue where Choice.RawValue == String

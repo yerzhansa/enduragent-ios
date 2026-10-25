@@ -477,11 +477,11 @@
 		},
 		{
 			"id": "4.1.2",
-			"statement": "The name, description and parameters of build_plan_skeleton, assess_feasibility and get_sample_week as a turn offers them, and PlanToolSchemas.planSave and PlanToolSchemas.planLoad, equal tool-schemas.json once $schema and every additionalProperties are stripped. Five schemas are compared, the manifest's count for tool-schemas.json.",
+			"statement": "The name, description and parameters of build_plan_skeleton, assess_feasibility and get_sample_week as a turn offers them, and PlanToolSchemas.planSave and PlanToolSchemas.planLoad, equal tool-schemas.json once $schema and every additionalProperties are stripped, except that planSave's plan adds the draft's phases and zoneTables (B15.05/plan-schema). Five schemas are compared, the manifest's count for tool-schemas.json.",
 			"tests": [
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift",
-					"function": "everyPlanToolSchemaEqualsNpmsAfterTheTwoRecordedStrips"
+					"function": "everyPlanToolSchemaEqualsNpmsAndPlanSaveAddsOnlyTheDraftsPhasesAndZoneTables"
 				}
 			]
 		},
@@ -803,7 +803,7 @@
 				},
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift",
-					"function": "everyPlanToolSchemaEqualsNpmsAfterTheTwoRecordedStrips"
+					"function": "everyPlanToolSchemaEqualsNpmsAndPlanSaveAddsOnlyTheDraftsPhasesAndZoneTables"
 				},
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanHeadlineParityTests.swift",
@@ -965,19 +965,20 @@
 		},
 		{
 			"id": "6.3.11",
-			"statement": "plan_save is offered in ToolName.allCases order just before plan_load, with npm's description and schema from tool-schemas.json, every recorded plan_save input gets zod's verdict, and every ToolName has a definition.",
+			"statement": "plan_save is offered in ToolName.allCases order just before plan_load, with npm's description and schema from tool-schemas.json, except that plan_save's plan also types the draft's phases and zoneTables (B15.05/plan-schema), every recorded plan_save input gets zod's verdict, and every ToolName has a definition.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "connectedTurnIsOfferedEveryToolInOneOrder"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "everyToolIsDefinedUnderTheNameItsEffectCarries"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift", "function": "everyPlanToolSchemaEqualsNpmsAfterTheTwoRecordedStrips"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift", "function": "everyPlanToolSchemaEqualsNpmsAndPlanSaveAddsOnlyTheDraftsPhasesAndZoneTables"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift", "function": "planSaveTypesEveryKeyAnNpmDraftWritesIntoAPhaseOrAZoneTable"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolInputTests.swift", "function": "everyRecordedCallGetsZodsVerdictAndNpmsResult"}
 			]
 		},
 		{
 			"id": "6.3.12",
-			"statement": "The prompt holds npm's plan rule byte for byte and no other sentence naming plan_save, and the cycling prefix stays under its token ceilings.",
+			"statement": "The prompt holds npm's plan rule byte for byte, then one sentence saying the athlete saves the plan by tapping Save plan on the plan card (B15.05/save-plan-sentence), and no other sentence naming plan_save or the plan card, and the cycling prefix stays under its token ceilings.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "thePromptHoldsNpmsPlanSaveRuleOnceAndNoOtherPlanSaveSentence"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "thePromptHoldsNpmsPlanSaveRuleThenTheSavePlanSentenceAndNoOtherPlanSaveSentence"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "prefixCarriesTheCyclingSkillsUnderTheTokenCeilings"}
 			]
 		},
@@ -1638,6 +1639,16 @@
 			"id": "B15.05/two-calls",
 			"statement": "Two plan_save calls in one step are both refused.",
 			"agreedDifference": "ADR-0084: two plan_save calls in one step both answer concurrent_plan_save and every later plan_save of the attempt is refused, where npm runs each call. Shown by 6.3.3."
+		},
+		{
+			"id": "B15.05/plan-schema",
+			"statement": "plan_save's schema types the draft's phases and zone tables, so the coach can send the plan it showed.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-25 (gate PARKED-8.1): plan_save's plan schema adds phases and zoneTables, typed in the shape build_plan_skeleton returns, where npm's lists only name, primaryGoal, totalWeeks and status. name stays the only required key. Shown by 6.3.11."
+		},
+		{
+			"id": "B15.05/save-plan-sentence",
+			"statement": "The prompt tells the coach that the athlete saves the plan by tapping Save plan on the plan card.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-25 (gate PARKED-8.1): right after npm's plan rule, kept byte for byte, the prompt adds one sentence saying the athlete saves the plan by tapping Save plan on the plan card, where npm's prompt names no button. Shown by 6.3.12."
 		},
 		{
 			"id": "B16.01/plan-save",

@@ -406,6 +406,51 @@
      "name": {
       "type": "string"
      },
+     "phases": {
+      "items": {
+       "properties": {
+        "durationCycles": {
+         "type": "integer"
+        },
+        "durationWeeks": {
+         "type": "integer"
+        },
+        "focus": {
+         "type": "string"
+        },
+        "keyAdditions": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "name": {
+         "type": "string"
+        },
+        "number": {
+         "type": "integer"
+        },
+        "volumeTargets": {
+         "properties": {
+          "cycling": {
+           "properties": {
+            "hoursPerCycle": {
+             "type": "number"
+            },
+            "sessionsPerCycle": {
+             "type": "integer"
+            }
+           },
+           "type": "object"
+          }
+         },
+         "type": "object"
+        }
+       },
+       "type": "object"
+      },
+      "type": "array"
+     },
      "primaryGoal": {
       "type": "string"
      },
@@ -416,6 +461,34 @@
       "exclusiveMinimum": 0,
       "maximum": 9007199254740991,
       "type": "integer"
+     },
+     "zoneTables": {
+      "items": {
+       "properties": {
+        "sport": {
+         "type": "string"
+        },
+        "zones": {
+         "items": {
+          "properties": {
+           "description": {
+            "type": "string"
+           },
+           "name": {
+            "type": "string"
+           },
+           "range": {
+            "type": "string"
+           }
+          },
+          "type": "object"
+         },
+         "type": "array"
+        }
+       },
+       "type": "object"
+      },
+      "type": "array"
      }
     },
     "required": [
