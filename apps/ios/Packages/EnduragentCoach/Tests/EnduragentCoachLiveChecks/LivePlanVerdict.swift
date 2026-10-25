@@ -48,18 +48,25 @@ enum LivePlanVerdict {
 		let saves = calls.filter { $0.name == save }
 		switch expectation {
 		case .keepsNumbers(let tool, let fields):
-			guard let result = turn.results(of: tool).last else {
-				return "\(tool.rawValue) gave no result this turn"
-			}
+			let results = turn.results(of: tool)
+			guard !results.isEmpty else { return "\(tool.rawValue) gave no result this turn" }
 			let shown = Set(numberTokens(in: reply))
-			let problems = fields.compactMap { field -> String? in
-				let numbers = numbers(at: field, in: result)
-				guard !numbers.isEmpty else { return "\(tool.rawValue) gave no \(field)" }
-				let dropped = numbers.filter { !shown.contains($0) }
-				return dropped.isEmpty
-					? nil : "the reply drops \(field) \(dropped.joined(separator: ", "))"
+			let problems = results.map { result in
+				fields.compactMap { field -> String? in
+					let numbers = numbers(at: field, in: result)
+					guard !numbers.isEmpty else { return "\(tool.rawValue) gave no \(field)" }
+					let dropped = numbers.filter { !shown.contains($0) }
+					return dropped.isEmpty
+						? nil : "the reply drops \(field) \(dropped.joined(separator: ", "))"
+				}
 			}
-			return problems.isEmpty ? nil : problems.joined(separator: "; ")
+			if problems.contains(where: \.isEmpty) { return nil }
+			if let only = problems.first, problems.count == 1 {
+				return only.joined(separator: "; ")
+			}
+			return problems.enumerated().map { index, found in
+				"\(tool.rawValue) result \(index + 1): \(found.joined(separator: "; "))"
+			}.joined(separator: "; ")
 		case .savesOnce:
 			guard let only = saves.first, saves.count == 1 else {
 				return "\(save) was called \(saves.count) times, not once"

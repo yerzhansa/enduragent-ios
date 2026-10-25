@@ -17,6 +17,8 @@ import Testing
 		let saveAndLoad = try #require(runs.last)
 		#expect(saveAndLoad.turns.map { $0.tap?.saved } == [nil, true, nil, nil])
 		let saved = try #require(saveAndLoad.turns.dropFirst().first?.savedAfter)
+		let draft = try #require(saveAndLoad.turns.dropFirst().first?.draft)
+		#expect(saved.value == draft)
 		#expect(saveAndLoad.turns.first?.savedAfter == nil)
 		#expect(
 			saveAndLoad.turns.dropFirst(2).map(\.savedAfter?.digest) == [
@@ -56,6 +58,62 @@ import Testing
 				"turn 2: the reply does not mention Save plan",
 				#"turn 3: the reply does not hold the saved plan's name "\#(name)""#,
 				"turn 4: plan_save was called; a plan card waits",
+			])
+	}
+
+	@Test func aFeasibilityReplyKeepsNumbersWhenTheFirstResultCarriesThemAndALaterOneDoesNot()
+		async throws
+	{
+		let rig = PlanBenchRig()
+		let scenario = try #require(rig.scenarios.first)
+
+		let run = try await rig.run(scenario) { _ in
+			[
+				LivePlanScenarios.feasibility: [
+					Self.feasibilityCalls([
+						PlanCoachSteps.feasibilityArguments, Self.profileFtpWithoutTarget,
+					]),
+					{ request in
+						[
+							.text(
+								PlanCoachSteps.feasible(
+									request.toolResults.first.flatMap(LivePlanVerdict.data)
+										?? .null)), .finish(reason: .stop),
+						]
+					},
+				]
+			]
+		}
+
+		#expect(scenario.name == "feasibility")
+		#expect(run.turns.first?.results(of: .assessFeasibility).count == 2)
+		#expect(run.violations == [])
+	}
+
+	@Test func aFeasibilityReplyFailsKeepsNumbersAndNamesEachResultWhenNoResultCarriesTheFields()
+		async throws
+	{
+		let rig = PlanBenchRig()
+		let scenario = try #require(rig.scenarios.first)
+
+		let run = try await rig.run(scenario) { _ in
+			[
+				LivePlanScenarios.feasibility: [
+					Self.feasibilityCalls([
+						#"{"currentFtp":200,"experienceLevel":"intermediate"}"#,
+						Self.profileFtpWithoutTarget,
+					]),
+					PlanCoachSteps.reply("Your goal appears achievable within one plan cycle."),
+				]
+			]
+		}
+
+		let lacks = ["gapPercentage", "realisticMilestone", "estimatedCycles"].map {
+			"assess_feasibility gave no \($0)"
+		}.joined(separator: "; ")
+		#expect(
+			run.violations == [
+				"turn 1: assess_feasibility result 1: \(lacks); assess_feasibility result 2: \(lacks)"
 			])
 	}
 
@@ -189,6 +247,16 @@ import Testing
 		#expect(LiveCheck.plan.spend?.limit == 5)
 		#expect(LiveCheck.coach.spend?.milestone == .m4)
 		#expect(LiveCheck.coach.spend?.limit == 10)
+	}
+
+	private static let profileFtpWithoutTarget =
+		#"{"currentFtp":250,"experienceLevel":"intermediate"}"#
+
+	private static func feasibilityCalls(_ arguments: [String]) -> PlanScript.Step {
+		{ _ in
+			arguments.map { .toolCall(name: ToolName.assessFeasibility.rawValue, arguments: $0) }
+				+ [.finish(reason: .toolCalls)]
+		}
 	}
 }
 
