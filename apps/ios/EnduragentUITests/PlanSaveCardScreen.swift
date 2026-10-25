@@ -142,6 +142,7 @@ struct PlanSaveCardScreen {
 	}
 
 	func expectBar(under plan: PlanFixture, _ screen: String) {
+		if size == .largest { ReviewCardReading(run: run).reach(Self.save) }
 		let bar = run.named(Self.bar)
 		TutorialHarness.wait(bar, within: .turn)
 		let inTranscript = run.named("chat.transcript").descendants(matching: .any)
@@ -158,7 +159,9 @@ struct PlanSaveCardScreen {
 			XCTAssertTrue(
 				inTranscript.exists,
 				"\(name(screen)): at the largest text size the bar is not in the transcript")
-			ReviewCardReading(run: run).reach(Self.save)
+			XCTAssertEqual(
+				run.app.descendants(matching: .any).matching(identifier: Self.bar).count, 1,
+				"\(name(screen)): at the largest text size a bar is also docked above the composer")
 			let card = card(plan)
 			XCTAssertTrue(
 				card.exists && ReviewCardReading.follows(card.frame, inTranscript.frame)
@@ -240,6 +243,7 @@ struct PlanSaveCardScreen {
 	}
 
 	func expectReadingOrder(_ plan: PlanFixture, _ expected: [Expected], _ screen: String) {
+		revealTitle(of: plan)
 		guard let title = title(of: plan) else {
 			XCTFail("\(name(screen)): the card's title is not in the transcript")
 			return
@@ -265,6 +269,21 @@ struct PlanSaveCardScreen {
 			XCTAssertEqual(
 				line.label, label, "\(name(screen)): \(wanted.identifier) reads wrong: \(order)")
 		}
+	}
+
+	func revealTitle(of plan: PlanFixture) {
+		TutorialHarness.wait(
+			until: {
+				if title(of: plan) != nil { return true }
+				let band = TutorialHarness.transcriptBand(run.app)
+				let reach = band.height * 0.3
+				TutorialHarness.drag(
+					run.app, from: CGPoint(x: band.midX, y: band.midY - reach),
+					to: CGPoint(x: band.midX, y: band.midY + reach), pace: .steady)
+				return false
+			}, within: .bulk,
+			message: "\(name("title")): the card's title never came into the transcript"
+		)
 	}
 
 	func expectValuesUnderLabels(of plan: PlanFixture, _ screen: String) {

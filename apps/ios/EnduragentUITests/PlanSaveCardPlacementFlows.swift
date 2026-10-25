@@ -10,19 +10,19 @@ extension PlanSaveCard {
 		screen.show()
 		screen.waitForCard(first)
 		screen.expectOpening(first, newest: nil, "carried")
-		expectDrawnOnceAtTheTop(screen, "carried")
+		expectDrawnOnceAtTheTop(screen, first, "carried")
 		screen.expectControls(true, of: first, "carried")
 		screen.expectBar(under: first, "carried")
 		screen.expectReadingOrder(
 			first, screen.expected(first, preparedEarlier: true), "carried")
 		screen.expectWholeButtons("carried")
 		screen.expectDisclaimerLast("carried")
-		screen.audit("carried")
 		screen.capture("carried")
+		screen.audit("carried")
 		tap(PlanSaveCardScreen.cancel, on: screen)
 		screen.expectControls(false, of: first, "carried-canceled")
 		screen.expectState(Catalog.chatPlanSaveCanceled, of: first, "carried-canceled")
-		expectDrawnOnceAtTheTop(screen, "carried-canceled")
+		expectDrawnOnceAtTheTop(screen, first, "carried-canceled")
 		screen.capture("carried-canceled")
 
 		let second = PlanFixture.weeks(10)
@@ -31,7 +31,7 @@ extension PlanSaveCard {
 		TutorialHarness.startNewConversation(screen.run.app, language: language)
 		screen.relaunch(at: size, clock: PlanFixture.laterClock)
 		screen.waitForCard(second)
-		expectDrawnOnceAtTheTop(screen, "carried-expired")
+		expectDrawnOnceAtTheTop(screen, second, "carried-expired")
 		screen.expectState(Catalog.chatPlanSaveExpired, of: second, "carried-expired")
 		screen.expectControls(false, of: second, "carried-expired")
 		screen.capture("carried-expired")
@@ -154,7 +154,10 @@ extension PlanSaveCard {
 		return [calendar, model]
 	}
 
-	private static func expectDrawnOnceAtTheTop(_ screen: PlanSaveCardScreen, _ name: String) {
+	private static func expectDrawnOnceAtTheTop(
+		_ screen: PlanSaveCardScreen, _ plan: PlanFixture, _ name: String
+	) {
+		screen.revealTitle(of: plan)
 		let transcript = screen.run.named("chat.transcript")
 		XCTAssertEqual(
 			transcript.descendants(matching: .any).matching(identifier: "chat.planSave.title")

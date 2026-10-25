@@ -18,8 +18,8 @@ enum PlanSaveCard {
 		screen.expectValuesUnderLabels(of: first, "waiting")
 		screen.expectWholeButtons("waiting")
 		screen.expectDisclaimerLast("waiting")
-		screen.audit("waiting")
 		screen.capture("waiting")
+		screen.audit("waiting")
 		tap(PlanSaveCardScreen.save, on: screen)
 		screen.expectControls(false, of: first, "saved")
 		screen.expectState(Catalog.chatPlanSaveSaved, of: first, "saved")
@@ -81,8 +81,8 @@ enum PlanSaveCard {
 		screen.expectState(Catalog.chatPlanSaveStorageUnavailable, of: plan, "storage")
 		screen.expectAnswer(nil, of: plan, "storage")
 		screen.expectControls(false, of: plan, "storage")
-		screen.audit("storage")
 		screen.capture("storage")
+		screen.audit("storage")
 	}
 
 	static func refusedAsExpired(
@@ -95,8 +95,8 @@ enum PlanSaveCard {
 		screen.expectState(Catalog.chatPlanSaveExpired, of: plan, "refused-expired")
 		screen.expectAnswer(Catalog.chatPlanSaveNotSavedExpired, of: plan, "refused-expired")
 		screen.expectControls(false, of: plan, "refused-expired")
-		screen.audit("refused-expired")
 		screen.capture("refused-expired")
+		screen.audit("refused-expired")
 	}
 
 	static func refusedAsReplaced(
@@ -107,13 +107,13 @@ enum PlanSaveCard {
 		let (screen, plan) = waiting(test, language, size, arguments: arguments)
 		tap(PlanSaveCardScreen.save, on: screen)
 		let newer = PlanFixture.weeks(10)
-		screen.waitForCard(newer)
+		screen.waitForCard(newer, from: .up)
 		screen.expectControls(true, of: newer, "refused-replaced-newer")
 		screen.waitForCard(plan)
 		screen.expectState(Catalog.chatPlanSaveExpired, of: plan, "refused-replaced")
 		screen.expectAnswer(Catalog.chatPlanSaveNotSavedReplaced, of: plan, "refused-replaced")
-		screen.audit("refused-replaced")
 		screen.capture("refused-replaced")
+		screen.audit("refused-replaced")
 	}
 
 	static func athleteChanged(_ test: XCTestCase, _ language: LanguageTag, _ size: PlanCardSize) {
@@ -128,12 +128,13 @@ enum PlanSaveCard {
 		screen.expectAnswer(
 			Catalog.chatPlanSaveNotSavedAthleteChanged, ["service": "intervals.icu"], of: plan,
 			"athlete-changed")
+		screen.expectControls(true, of: plan, "athlete-changed")
+		let state = screen.part("chat.planSave.state", of: plan)
 		XCTAssertFalse(
-			screen.part("chat.planSave.state", of: plan).label
-				== screen.run.say(Catalog.chatPlanSaveSaved),
+			state.exists && state.label == screen.run.say(Catalog.chatPlanSaveSaved),
 			"\(screen.name("athlete-changed")): the plan was saved for another athlete")
-		screen.audit("athlete-changed")
 		screen.capture("athlete-changed")
+		screen.audit("athlete-changed")
 	}
 
 	static func longName(_ test: XCTestCase, _ language: LanguageTag, _ size: PlanCardSize) {
@@ -148,8 +149,8 @@ enum PlanSaveCard {
 		screen.expectValuesUnderLabels(of: plan, "long")
 		screen.expectReadingOrder(plan, screen.expected(plan), "long")
 		screen.expectWholeButtons("long")
-		screen.audit("long")
 		screen.capture("long")
+		screen.audit("long")
 	}
 
 	static func notPrepared(_ test: XCTestCase, _ language: LanguageTag, _ size: PlanCardSize) {
@@ -165,8 +166,8 @@ enum PlanSaveCard {
 		XCTAssertFalse(
 			screen.run.named("chat.planSave.title").exists,
 			"\(screen.name("not-prepared")): a card was drawn for a plan that was not prepared")
-		screen.audit("not-prepared")
 		screen.capture("not-prepared")
+		screen.audit("not-prepared")
 	}
 
 	static func waiting(
