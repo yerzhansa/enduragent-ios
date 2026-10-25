@@ -1483,7 +1483,36 @@
     "welcome": "{{product}}へようこそ！\n\nAIサイクリングコーチです。{{service}}のデータを使ってトレーニングプランを作成し、ワークアウトを提案し、フィットネスの変化を確認できます。\n\nコマンド:\n{{commands}}\n\nトレーニングについて、気軽に話しかけてください！",
     "welcomeCommand": "{{command}} — {{description}}",
     "planSave": {
-      "notPrepared": "トレーニングプランの保存を準備できませんでした。"
+      "notPrepared": "トレーニングプランの保存を準備できませんでした。",
+      "title": "このトレーニングプランを保存しますか？",
+      "phase": "フェーズ{{number}}",
+      "focusLabel": "重点",
+      "weeklyHours": "週あたりの時間",
+      "replaces": "保存済みのプランを置き換えます：{{name}}",
+      "save": "プランを保存",
+      "saving": "プランを保存中…",
+      "saved": "保存しました。これが現在のトレーニングプランです。",
+      "canceled": "キャンセルしました。このプランは保存されていません。",
+      "expired": "期限切れです。このプランを保存するよう、もう一度コーチに依頼してください。",
+      "storageUnavailable": "このiPhoneのストレージを利用できないため、このプランを保存できませんでした。",
+      "notSaved": {
+        "expired": "保存されていません：このプランを保存できる10分間が過ぎました。",
+        "replaced": "保存されていません：新しいプランが保存を待っています。",
+        "alreadyDecided": "このプランはすでに保存またはキャンセルされています。",
+        "athleteChanged": "保存されていません：このプランは{{service}}の別のアスリート向けに準備されました。",
+        "notPresented": "まだ保存されていません。プランまでスクロールしてから、もう一度「プランを保存」をタップしてください。"
+      },
+      "focus": {
+        "baseBuilding": "ベースづくり",
+        "aerobicDevelopment": "有酸素能力の向上",
+        "threshold": "閾値",
+        "vo2max": "VO2max",
+        "racePrep": "レース準備",
+        "taper": "テーパリング",
+        "recovery": "回復",
+        "maintenance": "維持",
+        "generalFitness": "全般的なフィットネス"
+      }
     }
   },
   "plan": {

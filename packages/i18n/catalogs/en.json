@@ -654,7 +654,36 @@
     "welcome": "Welcome to {{product}}!\n\nI'm your AI cycling coach. I can build training plans, suggest workouts, and track your fitness using {{service}} data.\n\nCommands:\n{{commands}}\n\nOr just chat with me about your training!",
     "welcomeCommand": "{{command}} — {{description}}",
     "planSave": {
-      "notPrepared": "The training plan could not be prepared for saving."
+      "notPrepared": "The training plan could not be prepared for saving.",
+      "title": "Save this training plan?",
+      "phase": "Phase {{number}}",
+      "focusLabel": "Focus",
+      "weeklyHours": "Hours per week",
+      "replaces": "Replaces your saved plan: {{name}}",
+      "save": "Save plan",
+      "saving": "Saving the plan…",
+      "saved": "Saved. This is now your training plan.",
+      "canceled": "Canceled. This plan was not saved.",
+      "expired": "Expired. Ask the coach again to save this plan.",
+      "storageUnavailable": "This plan could not be saved because storage on this iPhone is unavailable.",
+      "notSaved": {
+        "expired": "Not saved: the ten minutes to save this plan have passed.",
+        "replaced": "Not saved: a newer plan is waiting to be saved.",
+        "alreadyDecided": "This plan was already saved or canceled.",
+        "athleteChanged": "Not saved: this plan was prepared for a different {{service}} athlete.",
+        "notPresented": "Not saved yet. Scroll to the plan, then tap Save plan again."
+      },
+      "focus": {
+        "baseBuilding": "Base building",
+        "aerobicDevelopment": "Aerobic development",
+        "threshold": "Threshold",
+        "vo2max": "VO2max",
+        "racePrep": "Race preparation",
+        "taper": "Taper",
+        "recovery": "Recovery",
+        "maintenance": "Maintenance",
+        "generalFitness": "General fitness"
+      }
     }
   },
   "cli": {

@@ -45,6 +45,9 @@ fr	chat.planReference.date	Date	French noun for a calendar date; shared with Eng
 da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.planReference.minutes	{{minutes}} min	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
 de,fr	chat.planReference.phase	Phase	German and French noun for a phase; shared spelling.
 da,de,nb,nl,pl,pt-BR,sv	chat.planReference.status	Status	Established status noun in these locales; shared spelling.
+da,de,fi,fr,it,ja,ko,nl,pl,sv	chat.planSave.focus.vo2max	VO2max	Uses the standard cycling metric name (VO2max).
+it,nl	chat.planSave.focusLabel	Focus	Italian and Dutch use the loanword focus; shared spelling.
+de,fr	chat.planSave.phase	Phase {{number}}	German and French noun for a phase; shared spelling; the rest is a substituted value.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.spend.belowAmount	<{{amount}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 fr	chat.supportingEvent.role.important	Important	French adjective for an important event; shared spelling.
 de,nl	chat.supportingEvent.role.training	Training	Established German and Dutch loanword for training.

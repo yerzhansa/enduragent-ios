@@ -102,6 +102,17 @@
 		case storage
 	}
 
+	enum FixturePlanSaveStage: String, CaseIterable {
+		case saving
+		case storage
+	}
+
+	enum FixturePlanTap: String, CaseIterable {
+		case expired
+		case replaced
+		case twice
+	}
+
 	enum FixturePresentationFault: String {
 		case failLastCardOnce = "fail-last-card-once"
 	}
@@ -148,6 +159,8 @@
 		var recordReadFault: FixtureRecordReadFault?
 		var presentationFault: FixturePresentationFault?
 		var reviewStage: FixtureReviewStage?
+		var planSaveStage: FixturePlanSaveStage?
+		var planTap: FixturePlanTap?
 		var resetFault: FixtureResetFault?
 		var replyParserFault: FixtureReplyParserFault?
 		var trainingDisplay: FixtureTrainingDisplay?
@@ -186,6 +199,10 @@
 			if let reviewStage {
 				values += ["-EnduragentFixtureReviewStage", reviewStage.rawValue]
 			}
+			if let planSaveStage {
+				values += ["-EnduragentFixturePlanSave", planSaveStage.rawValue]
+			}
+			if let planTap { values += ["-EnduragentFixturePlanTap", planTap.rawValue] }
 			if let resetFault { values += ["-EnduragentFixtureReset", resetFault.rawValue] }
 			if let replyParserFault {
 				values += ["-EnduragentFixtureReplyParser", replyParserFault.rawValue]
@@ -234,6 +251,8 @@
 			recordReadFault = try policy(values, "-EnduragentFixtureRecordRead")
 			presentationFault = try policy(values, "-EnduragentFixturePresentation")
 			reviewStage = try policy(values, "-EnduragentFixtureReviewStage")
+			planSaveStage = try policy(values, "-EnduragentFixturePlanSave")
+			planTap = try policy(values, "-EnduragentFixturePlanTap")
 			resetFault = try policy(values, "-EnduragentFixtureReset")
 			replyParserFault = try policy(values, "-EnduragentFixtureReplyParser")
 			trainingDisplay = try policy(values, "-EnduragentFixtureTrainingDisplay")

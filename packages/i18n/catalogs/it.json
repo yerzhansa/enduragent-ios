@@ -1496,7 +1496,36 @@
     "welcome": "Ti do il benvenuto su {{product}}!\n\nSono il tuo coach di ciclismo con IA. Posso creare piani di allenamento, suggerire allenamenti e seguire il tuo fitness con i dati di {{service}}.\n\nComandi:\n{{commands}}\n\nOppure parlami del tuo allenamento!",
     "welcomeCommand": "{{command}} — {{description}}",
     "planSave": {
-      "notPrepared": "Impossibile preparare il piano di allenamento per il salvataggio."
+      "notPrepared": "Impossibile preparare il piano di allenamento per il salvataggio.",
+      "title": "Salvare questo piano di allenamento?",
+      "phase": "Fase {{number}}",
+      "focusLabel": "Focus",
+      "weeklyHours": "Ore a settimana",
+      "replaces": "Sostituisce il tuo piano salvato: {{name}}",
+      "save": "Salva piano",
+      "saving": "Salvataggio del piano…",
+      "saved": "Salvato. Ora questo è il tuo piano di allenamento.",
+      "canceled": "Annullato. Questo piano non è stato salvato.",
+      "expired": "Scaduto. Chiedi di nuovo al coach di salvare questo piano.",
+      "storageUnavailable": "Impossibile salvare questo piano perché lo spazio di archiviazione di questo iPhone non è disponibile.",
+      "notSaved": {
+        "expired": "Non salvato: i dieci minuti per salvare questo piano sono scaduti.",
+        "replaced": "Non salvato: un piano più recente è in attesa di essere salvato.",
+        "alreadyDecided": "Questo piano è già stato salvato o annullato.",
+        "athleteChanged": "Non salvato: questo piano è stato preparato per un altro atleta su {{service}}.",
+        "notPresented": "Non ancora salvato. Scorri fino al piano, poi tocca di nuovo Salva piano."
+      },
+      "focus": {
+        "baseBuilding": "Costruzione della base",
+        "aerobicDevelopment": "Sviluppo aerobico",
+        "threshold": "Soglia",
+        "vo2max": "VO2max",
+        "racePrep": "Preparazione alla gara",
+        "taper": "Scarico pre-gara",
+        "recovery": "Recupero",
+        "maintenance": "Mantenimento",
+        "generalFitness": "Forma fisica generale"
+      }
     }
   },
   "plan": {
