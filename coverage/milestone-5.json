@@ -20,7 +20,8 @@
 		"6.4": 17,
 		"6.5": 5,
 		"7.1": 13,
-		"7.2": 5
+		"7.2": 5,
+		"8.2": 4
 	},
 	"criteria": [
 		{
@@ -1524,6 +1525,48 @@
 			"statement": "/plan with no usable model access settles with the existing access failure and its notice, makes no model request, and shows no card, confirmation or saved plan.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "planWithNoUsableModelAccessEndsWithTheAccessNoticeAndNoCard"}
+			]
+		},
+		{
+			"id": "8.2.1",
+			"statement": "PlanPhoneRun holds steps 1 to 7 of the phone session, each starting from the state the step before it left, with 12 Sends and one New conversation, each counted through one spendMessage, and exactly one calendar Approve, in step 5.",
+			"phoneSession": "PlanPhoneRun runs only on the operator's iPhone in the phone session, never on a simulator. The reviewer reads it against the session's seven steps."
+		},
+		{
+			"id": "8.2.2",
+			"statement": "phone-check plan refuses before build with a budget below the planned count, with a budget that would take the milestone past 30, and with a messages.tsv row it cannot read. Each refusal launches nothing.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theWholeSessionPlansTwelveSendsAndOneNewConversation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "stepsOutsideTheSessionAreRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "stepSixRunsAlone"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetBelowTheStepsPlannedCountIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "anAnswerThatIsNotABudgetIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetThatWouldTakeTheMilestonePastThirtyIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRowThatCannotBeReadRefusesTheInvocation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aFileWithoutItsHeaderRefusesTheInvocation"}
+			]
+		},
+		{
+			"id": "8.2.3",
+			"statement": "After a run, messages.tsv gains one row whose count equals the runner's message actions, or the whole budget when the log cannot be read.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunAddsOneRowCountingTheRunnersMessageActions"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunWhoseLogCannotBeReadRecordsTheWholeBudget"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theActionsLogIsTheOneAttachmentNamedForIt"}
+			]
+		},
+		{
+			"id": "8.2.4",
+			"statement": "make test-tools passes a PlanPhoneBudget case for each refusal of 8.2.2 and for the count of 8.2.3, with no phone.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetBelowTheStepsPlannedCountIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "anAnswerThatIsNotABudgetIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetThatWouldTakeTheMilestonePastThirtyIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRowThatCannotBeReadRefusesTheInvocation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aFileWithoutItsHeaderRefusesTheInvocation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunAddsOneRowCountingTheRunnersMessageActions"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunWhoseLogCannotBeReadRecordsTheWholeBudget"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theActionsLogIsTheOneAttachmentNamedForIt"}
 			]
 		}
 	],
