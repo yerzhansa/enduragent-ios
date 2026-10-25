@@ -1496,7 +1496,36 @@
     "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{commands}}\n\nDu kan också bara prata med mig om din träning!",
     "welcomeCommand": "{{command}} — {{description}}",
     "planSave": {
-      "notPrepared": "Träningsplanen kunde inte förberedas för att sparas."
+      "notPrepared": "Träningsplanen kunde inte förberedas för att sparas.",
+      "title": "Spara den här träningsplanen?",
+      "phase": "Fas {{number}}",
+      "focusLabel": "Fokus",
+      "weeklyHours": "Timmar per vecka",
+      "replaces": "Ersätter din sparade plan: {{name}}",
+      "save": "Spara plan",
+      "saving": "Sparar planen…",
+      "saved": "Sparad. Det här är nu din träningsplan.",
+      "canceled": "Avbruten. Den här planen sparades inte.",
+      "expired": "Har gått ut. Be coachen igen att spara den här planen.",
+      "storageUnavailable": "Den här planen kunde inte sparas eftersom lagringen på den här iPhonen inte är tillgänglig.",
+      "notSaved": {
+        "expired": "Inte sparad: De tio minuterna för att spara den här planen har gått.",
+        "replaced": "Inte sparad: En nyare plan väntar på att sparas.",
+        "alreadyDecided": "Den här planen har redan sparats eller avbrutits.",
+        "athleteChanged": "Inte sparad: Den här planen förbereddes för en annan idrottare på {{service}}.",
+        "notPresented": "Inte sparad än. Rulla till planen och tryck sedan på Spara plan igen."
+      },
+      "focus": {
+        "baseBuilding": "Grunduppbyggnad",
+        "aerobicDevelopment": "Aerob utveckling",
+        "threshold": "Tröskel",
+        "vo2max": "VO2max",
+        "racePrep": "Tävlingsförberedelse",
+        "taper": "Nedtrappning",
+        "recovery": "Återhämtning",
+        "maintenance": "Underhåll",
+        "generalFitness": "Allmän kondition"
+      }
     }
   },
   "training": {

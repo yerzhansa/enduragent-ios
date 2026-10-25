@@ -1496,7 +1496,36 @@
     "welcome": "Willkommen bei {{product}}!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von {{service}}-Daten verfolgen.\n\nBefehle:\n{{commands}}\n\nOder sprich einfach mit mir über dein Training!",
     "welcomeCommand": "{{command}} — {{description}}",
     "planSave": {
-      "notPrepared": "Der Trainingsplan konnte nicht zum Speichern vorbereitet werden."
+      "notPrepared": "Der Trainingsplan konnte nicht zum Speichern vorbereitet werden.",
+      "title": "Diesen Trainingsplan speichern?",
+      "phase": "Phase {{number}}",
+      "focusLabel": "Schwerpunkt",
+      "weeklyHours": "Stunden pro Woche",
+      "replaces": "Ersetzt deinen gespeicherten Plan: {{name}}",
+      "save": "Plan speichern",
+      "saving": "Plan wird gespeichert…",
+      "saved": "Gespeichert. Das ist jetzt dein Trainingsplan.",
+      "canceled": "Abgebrochen. Dieser Plan wurde nicht gespeichert.",
+      "expired": "Abgelaufen. Bitte den Coach erneut, diesen Plan zu speichern.",
+      "storageUnavailable": "Dieser Plan konnte nicht gespeichert werden, weil der Speicher dieses iPhones nicht verfügbar ist.",
+      "notSaved": {
+        "expired": "Nicht gespeichert: Die zehn Minuten zum Speichern dieses Plans sind abgelaufen.",
+        "replaced": "Nicht gespeichert: Ein neuerer Plan wartet darauf, gespeichert zu werden.",
+        "alreadyDecided": "Dieser Plan wurde bereits gespeichert oder abgebrochen.",
+        "athleteChanged": "Nicht gespeichert: Dieser Plan wurde für einen anderen Athleten bei {{service}} vorbereitet.",
+        "notPresented": "Noch nicht gespeichert. Scrolle zum Plan und tippe dann erneut auf „Plan speichern“."
+      },
+      "focus": {
+        "baseBuilding": "Grundlagenaufbau",
+        "aerobicDevelopment": "Aerobe Entwicklung",
+        "threshold": "Schwelle",
+        "vo2max": "VO2max",
+        "racePrep": "Wettkampfvorbereitung",
+        "taper": "Tapering",
+        "recovery": "Erholung",
+        "maintenance": "Erhaltung",
+        "generalFitness": "Allgemeine Fitness"
+      }
     }
   },
   "plan": {

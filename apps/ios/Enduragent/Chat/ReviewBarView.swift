@@ -85,7 +85,7 @@ struct ReviewBarView: View {
 	}
 }
 
-private struct ReviewBarButton: View {
+struct ReviewBarButton: View {
 	var title: String
 	var prominent: Bool
 	var identifier: String

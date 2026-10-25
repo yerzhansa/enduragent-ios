@@ -56,6 +56,8 @@
 		static let recordReadArgumentKey = "EnduragentFixtureRecordRead"
 		static let presentationArgumentKey = "EnduragentFixturePresentation"
 		static let reviewStageArgumentKey = "EnduragentFixtureReviewStage"
+		static let planSaveArgumentKey = "EnduragentFixturePlanSave"
+		static let planTapArgumentKey = "EnduragentFixturePlanTap"
 		static let replyParserArgumentKey = "EnduragentFixtureReplyParser"
 		static let trainingDisplayArgumentKey = "EnduragentFixtureTrainingDisplay"
 		static let credentialWriteArgumentKey = "EnduragentFixtureCredentialWrite"
@@ -83,6 +85,8 @@
 		var recordReadFault: FixtureRecordReadFault?
 		var presentationFault: FixturePresentationFault?
 		var reviewStage: FixtureReviewStage?
+		var planSaveStage: FixturePlanSaveStage?
+		var planTap: FixturePlanTap?
 		var resetFault: FixtureResetFault?
 		var replyParserFault: FixtureReplyParserFault?
 		var trainingDisplay: FixtureTrainingDisplay?
@@ -110,6 +114,8 @@
 				recordReadFault: try policy(arguments, key: recordReadArgumentKey),
 				presentationFault: try policy(arguments, key: presentationArgumentKey),
 				reviewStage: try policy(arguments, key: reviewStageArgumentKey),
+				planSaveStage: try policy(arguments, key: planSaveArgumentKey),
+				planTap: try policy(arguments, key: planTapArgumentKey),
 				resetFault: try policy(arguments, key: resetArgumentKey),
 				replyParserFault: try policy(arguments, key: replyParserArgumentKey),
 				trainingDisplay: try policy(arguments, key: trainingDisplayArgumentKey),

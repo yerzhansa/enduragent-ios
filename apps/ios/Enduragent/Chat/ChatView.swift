@@ -18,6 +18,17 @@ struct ChatView: View {
 								.padding(.bottom, 8)
 								.background(Color(.systemBackground))
 						}
+						if ChromePlacement(dynamicTypeSize) == .pinned,
+							let token = model.chat?.plans.lazy.compactMap(\.armedToken).first
+						{
+							PlanBarView(
+								decisions: model.planDecisions, phrasebook: model.phrasebook,
+								token: token
+							)
+							.padding(.horizontal, 12)
+							.padding(.bottom, 8)
+							.background(Color(.systemBackground))
+						}
 						ComposerView(model: model)
 					}
 				}
