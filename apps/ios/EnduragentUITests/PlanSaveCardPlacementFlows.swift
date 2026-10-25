@@ -44,9 +44,10 @@ extension PlanSaveCard {
 		let plan = PlanFixture.weeks(12)
 		screen.exchange(PlanFixture.directive)
 		TutorialHarness.startNewConversation(screen.run.app, language: language)
-		TutorialHarness.sendLong(screen.run.app)
+		for _ in 1...3 { screen.exchange(TutorialHarness.weekQuestion) }
+		screen.exchange(TutorialHarness.remember)
 		screen.relaunch(at: size)
-		let newest = TutorialHarness.text(screen.run.app, containing: "Day 100. This week has")
+		let newest = TutorialHarness.text(screen.run.app, containing: TutorialHarness.rememberReply)
 		TutorialHarness.wait(newest, within: .turn)
 		TutorialHarness.wait(
 			until: {

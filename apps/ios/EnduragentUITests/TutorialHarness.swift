@@ -336,9 +336,7 @@ enum TutorialHarness {
 
 	static func openDebug(_ app: XCUIApplication) {
 		openSettings(app)
-		let debug = named(app, "settings.debug")
-		wait(debug, until: .hittable)
-		debug.tap()
+		debugRow(app, "settings.debug").tap()
 		_ = debugRow(app, "debug.records")
 	}
 
