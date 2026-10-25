@@ -174,7 +174,7 @@ The generator archives the frozen package and its unchanged `FirstWeekFixture` i
 
 ## Verify on the real phone
 
-[phone.md](phone.md) holds every physical-iPhone check: the scripted phone run, OpenRouter sign-in, recovery and model picking, native Keychain persistence, two-phone reconnect, live French replies, the no-banner check, and choices in conversation. Each runs only with the operator present.
+[phone.md](phone.md) holds every physical-iPhone check: the scripted phone run, OpenRouter sign-in, recovery and model picking, native Keychain persistence, two-phone reconnect, live French replies, the no-banner check, choices in conversation, and Milestone 5's plan phone session. Each runs only with the operator present.
 
 ## States fixture hooks cannot reach
 
@@ -255,7 +255,7 @@ Never run `simctl delete all`, `simctl shutdown all`, or `simctl erase`. Never q
 
 ## Helpers
 
-`sim` and `phone-check` are executables of the Swift package in `tools/`. They depend only on Apple frameworks and the package's own `ToolSupport` target. Every `sim` command prints what it did and exits non-zero on failure. `phone-check` runs the three operator-attended real-phone checks in [phone.md](phone.md), `choices`, `language` and `openrouter`, and refuses to start without an operator terminal.
+`sim` and `phone-check` are executables of the Swift package in `tools/`. They depend only on Apple frameworks and the package's own `ToolSupport` target. Every `sim` command prints what it did and exits non-zero on failure. `phone-check` runs the four operator-attended real-phone checks in [phone.md](phone.md), `choices`, `language`, `openrouter` and `plan`, and refuses to start without an operator terminal.
 
 | Command | Does |
 | --- | --- |
