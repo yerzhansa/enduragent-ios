@@ -12,6 +12,15 @@ extension Coach {
 		return await mailbox.decide(decision)
 	}
 
+	func recoverPlans() async {
+		guard !lifetime.terminating else { return }
+		observePlans()
+		await plans.recover()
+		for mailbox in mailboxes.values {
+			await mailbox.plansChanged()
+		}
+	}
+
 	func observePlans() {
 		guard planObservation == nil, !lifetime.terminating else { return }
 		planObservation = Task { [weak self, changes = plans.changes] in

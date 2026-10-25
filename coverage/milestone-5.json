@@ -18,6 +18,7 @@
 		"6.2": 4,
 		"6.3": 13,
 		"6.4": 17,
+		"6.5": 5,
 		"7.2": 5
 	},
 	"criteria": [
@@ -1126,6 +1127,41 @@
 			]
 		},
 		{
+			"id": "6.5.1",
+			"statement": "A turn leaves a waiting confirmation, the process stops, and a new Coach opens over the same store at +5 minutes. The card is waiting(.unarmed), .presented arms it, and Save answers .saved and writes the plan once. The same stop, relaunched at +11 minutes, reads Expired, and Save answers .notSaved(.expired) and writes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanRecoveryTests.swift", "function": "aWaitingConfirmationSurvivesTheAppBeingEndedUntilItsTenMinutesEnd"}
+			]
+		},
+		{
+			"id": "6.5.2",
+			"statement": "PlanSaveCrashTests run one case per PlanCrashPoint. Each case asserts, after the relaunch and before recover(), then after the first and after the second becameActive: the card's state, whether Try again is offered for the turn, and the raw count of synced savedPlan rows with the claim's id, which is exactly 0 or 1. S0 no card and Try again offered; S1 and S2 the card waiting and unarmed, and Try again refused; S3 Saving before recover(), then Saved with one row; S4 and S4a Saved with one row, never two; S5 Saved with one row; E1 Expired with nothing written; C1 waiting, as S1; C2 Canceled with no row. The second becameActive changes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveCrashTests.swift", "function": "everyCrashPointConvergesAfterTheRelaunchAndAgainOnTheSecondBecameActive"}
+			]
+		},
+		{
+			"id": "6.5.3",
+			"statement": "S6: card 1's claim lands and its synced commit fails, card 2 is prepared and saved in the same process, and the process stops with card 1's save unfinished. After the relaunch, recover() lands card 1's plan, card 2's plan is still the saved plan because it was decided later, and history reads s0, s1, s2.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveCrashTests.swift", "function": "aClaimLeftUnfinishedBesideALaterSaveLandsBehindItAfterTheRelaunch"}
+			]
+		},
+		{
+			"id": "6.5.4",
+			"statement": "In one process, a save stalled by storage lands on the next recover(), behind the newer save by decided, and history reads s0, s1, s2.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanRecoveryTests.swift", "function": "aStalledSaveLandsOnTheNextRecoverBehindTheNewerSave"}
+			]
+		},
+		{
+			"id": "6.5.5",
+			"statement": "After Save, a new Coach over the same stores, as after a relaunch, shows the saved plan in the prompt and the card as Saved.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanRecoveryTests.swift", "function": "aSavedPlanIsInThePromptAndItsCardReadsSavedAfterTheRelaunch"}
+			]
+		},
+		{
 			"id": "7.2.1",
 			"statement": "SlashRouting.parse(\"/plan for my gran fondo in June\") is .plan and its route is .modelTurn, and the slash list and the welcome list /plan after /workout with \"Generate a training plan\" in every catalog language.",
 			"tests": [
@@ -1250,6 +1286,16 @@
 			"criteria": ["6.4.13"]
 		},
 		{
+			"id": "B01.03/saved-plan",
+			"statement": "A saved plan is retained across relaunch: after a real Save, a new Coach over the same stores shows the plan in its prompt and its card as Saved, and a plan committed into a store reads back whole after the store is opened again.",
+			"criteria": ["5.1.8", "6.5.5"]
+		},
+		{
+			"id": "B19.03/durable",
+			"statement": "A plan-save confirmation survives the app being ended within its ten minutes, and every save the end interrupted converges on the next launch.",
+			"agreedDifference": "ADR-0084: the confirmation is a durable device-local record that survives suspension and the app being ended within its ten minutes, and the next launch finishes every save that was claimed, where npm keeps its confirmation in the process. Shown by 6.5.1 and 6.5.2."
+		},
+		{
 			"id": "B15.01/acknowledgement",
 			"statement": "/plan shows no separate acknowledgement: npm's Telegram reply \"Analyzing your data and building a plan...\" has no phone counterpart, and the transcript shows only the athlete's message, the coach's progress and the reply.",
 			"agreedDifference": "ADR-0084 returns /plan as Generate a training plan with no acknowledgement shown; 7.2.2 shows the transcript with none."
@@ -1314,8 +1360,6 @@
 		"B15.04",
 		"B15.05",
 		"B19.03",
-		"G07",
-		"B01.03/saved-plan",
-		"B19.03/durable"
+		"G07"
 	]
 }
