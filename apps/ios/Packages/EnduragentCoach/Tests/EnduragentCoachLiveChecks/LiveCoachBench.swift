@@ -106,8 +106,10 @@ struct LiveCoachBench: Sendable {
 		let requests = LiveCalendarRequests()
 		let coach = try await coach(for: scenario.setting, log: log, requests: requests)
 		var turns: [LiveTurnRecord] = []
+		var latestDraft: JSONValue?
 		for plan in scenario.turns {
 			let before = try await coach.ledger.reviewHead(chat: .main).1
+			let savedBefore = try await savedPlan(of: coach)
 			let state: TurnState?
 			let outcome: String
 			var accepted: TurnID?
@@ -127,13 +129,18 @@ struct LiveCoachBench: Sendable {
 				outcome = "refused: \(error)"
 			}
 			let snapshot = await coach.currentSnapshot(.main)
-			let record = LiveTurnRecord(
+			var record = LiveTurnRecord(
 				message: plan.message, exchanges: log.drain(),
 				reply: state.flatMap(replyText), outcome: outcome,
 				reviewPending: try await coach.desk.snapshot(chat: .main) != nil,
 				calendarWrites: requests.writes,
 				reviewBefore: before, reviewAfter: try await coach.ledger.reviewHead(chat: .main).1,
-				notice: snapshot?.turns.first { $0.id == accepted }?.reviewNotice?.key)
+				notice: snapshot?.turns.first { $0.id == accepted }?.reviewNotice?.key,
+				plans: snapshot?.plans ?? [], savedBefore: savedBefore)
+			latestDraft = record.results(of: .buildPlanSkeleton).last ?? latestDraft
+			record.draft = latestDraft
+			if plan.tapsSavePlan { record.tap = await tapSavePlan(on: coach) }
+			record.savedAfter = try await savedPlan(of: coach)
 			turns.append(record)
 			if record.reply == nil { break }
 		}
@@ -144,6 +151,11 @@ struct LiveCoachBench: Sendable {
 		for (number, pair) in zip(turns, scenario.turns).enumerated() {
 			violations += LiveVerdict.violations(of: pair.0, against: pair.1.expectations).map {
 				"turn \(number + 1): \($0)"
+			}
+			if pair.1.tapsSavePlan {
+				violations += LivePlanVerdict.violations(ofTap: pair.0.tap).map {
+					"turn \(number + 1) tap: \($0)"
+				}
 			}
 		}
 		if turns.count < scenario.turns.count {
@@ -184,6 +196,27 @@ struct LiveCoachBench: Sendable {
 		return LiveCancelRecord(
 			outcome: "\(outcome)", canceled: canceled, calendarRequests: made,
 			waitingAfter: try await coach.desk.snapshot(chat: .main) != nil)
+	}
+
+	private func savedPlan(of coach: Coach) async throws -> PlanDocument? {
+		try await coach.memory.savedPlans(for: try await coach.vault.connectedAccount()).newest
+	}
+
+	private func tapSavePlan(on coach: Coach) async -> LivePlanTap? {
+		let waiting = LiveTurnRecord.waiting
+		guard let shown = await coach.currentSnapshot(.main)?.plans.last(where: waiting) else {
+			return nil
+		}
+		let presented = await coach.decide(.presented(shown.ref), in: .main)
+		guard
+			case .waiting(.armed(let token))? = await coach.currentSnapshot(.main)?.plans.first(
+				where: { $0.id == shown.id })?.state
+		else {
+			return LivePlanTap(
+				outcome: "never armed: the presentation answered \(presented)", saved: false)
+		}
+		let outcome = await coach.decide(.save(token), in: .main)
+		return LivePlanTap(outcome: "\(outcome)", saved: outcome == .saved)
 	}
 
 	static func outcome(of state: TurnState) -> String {

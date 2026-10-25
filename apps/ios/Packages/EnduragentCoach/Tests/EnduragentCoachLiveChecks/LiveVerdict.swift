@@ -93,6 +93,8 @@ enum LiveVerdict {
 				? nil : "the reply does not mention \(missing.joined(separator: ", "))"
 		case .review(let expectation):
 			return LiveReviewVerdict.check(expectation, on: turn, calls: calls)
+		case .plan(let expectation):
+			return LivePlanVerdict.check(expectation, on: turn, calls: calls, reply: reply)
 		}
 	}
 }

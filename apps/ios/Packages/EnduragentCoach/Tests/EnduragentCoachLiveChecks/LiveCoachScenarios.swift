@@ -37,11 +37,13 @@ enum LiveExpectation: Sendable, Equatable {
 	case promptLacks(String)
 	case replyMentions([String])
 	case review(LiveReviewExpectation)
+	case plan(LivePlanExpectation)
 }
 
 struct LiveTurnPlan: Sendable {
 	let message: String
 	let expectations: [LiveExpectation]
+	var tapsSavePlan = false
 }
 
 struct LiveScenario: Sendable {
@@ -60,7 +62,9 @@ struct LiveScenario: Sendable {
 		self.targets = targets
 		self.endsWithCancel = endsWithCancel
 		self.turns = turns.map {
-			LiveTurnPlan(message: $0.message, expectations: setting.standing + $0.expectations)
+			LiveTurnPlan(
+				message: $0.message, expectations: setting.standing + $0.expectations,
+				tapsSavePlan: $0.tapsSavePlan)
 		}
 	}
 }
@@ -75,6 +79,11 @@ struct LiveTurnRecord: Sendable {
 	var reviewBefore: WorkoutReview?
 	var reviewAfter: WorkoutReview?
 	var notice: CatalogKey?
+	var plans: [PlanCard] = []
+	var draft: JSONValue?
+	var savedBefore: PlanDocument?
+	var savedAfter: PlanDocument?
+	var tap: LivePlanTap?
 
 	var chat: [LiveExchange] {
 		exchanges.filter { [.chatAttempt, .stepRecovery].contains($0.request.charge) }

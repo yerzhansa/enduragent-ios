@@ -265,7 +265,9 @@ import Testing
 				"raw/answer.json: the saved file holds the key of enduragent-m3-intervals-api-key",
 				"status-run2.md: the saved file holds the key of enduragent-m3-openrouter-key",
 			])
-		#expect(report.markdown(total: 0, limit: 10).contains("## Key leaks"))
+		#expect(
+			report.markdown(title: "Live coach suite", milestone: .m4, total: 0, limit: 10)
+				.contains("## Key leaks"))
 	}
 
 	static func addedDays(by expectation: LiveExpectation) -> [CivilDate] {

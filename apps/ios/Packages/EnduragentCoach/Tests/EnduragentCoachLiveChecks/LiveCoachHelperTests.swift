@@ -263,7 +263,8 @@ import Testing
 			intervalsKey: "synthetic-intervals-key", openRouterKey: "synthetic-model-key",
 			athlete: nil, model: try LiveCoachBench.builtInModel(),
 			ledger: try LiveSpendLedger(
-				file: try TestTemporaryFolders.make().appending(path: "spend.tsv"), limit: 10),
+				file: try TestTemporaryFolders.make().appending(path: "spend.tsv"), milestone: .m4,
+				limit: 10),
 			today: today, modelTransport: { _ in model },
 			accountReads: { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) })
 		let plan = try Self.planForAnEmptyAccount()
@@ -280,16 +281,17 @@ import Testing
 		throws
 	{
 		let file = try TestTemporaryFolders.make().appending(path: "spend.tsv")
-		let first = try LiveSpendLedger(file: file, limit: 2.5)
+		let first = try LiveSpendLedger(file: file, milestone: .m4, limit: 2.5)
 		try first.charge(
 			model: testModel, usage: Usage(inputTokens: 900, outputTokens: 80, cost: 2.4), bound: 1,
 			at: Date(timeIntervalSince1970: 899_164_800))
-		let second = try LiveSpendLedger(file: file, limit: 2.5)
+		let second = try LiveSpendLedger(file: file, milestone: .m4, limit: 2.5)
 
-		#expect(second.statement == "Model spend total: $2.400000 of $2.50.")
+		#expect(second.statement == "Model spend total for m4: $2.400000 of $2.50.")
 		#expect(throws: ProviderFailure.accessExhausted) { try second.admit(0.5) }
 		#expect(
-			second.statement == "Model spend total: $2.400000 of $2.50; the cap stopped the suite."
+			second.statement
+				== "Model spend total for m4: $2.400000 of $2.50; the cap stopped the suite."
 		)
 	}
 }

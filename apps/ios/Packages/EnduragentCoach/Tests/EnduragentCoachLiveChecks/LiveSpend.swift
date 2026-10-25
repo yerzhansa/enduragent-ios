@@ -38,10 +38,17 @@ enum LiveSpendEstimate {
 	}
 }
 
+enum LiveMilestone: String, Sendable {
+	case m4
+	case m5
+}
+
 final class LiveSpendLedger: Sendable {
-	static let unitLimit = 10.0
-	static let header =
+	static let earlierHeader =
 		"stamp\tscenario\tmodel\tinput_tokens\toutput_tokens\tcost_usd\tbasis\ttotal_usd"
+	static let header = earlierHeader + "\tmilestone"
+	static let earlierMilestone = LiveMilestone.m4
+	static let backupSuffix = ".before-m5"
 
 	private struct State {
 		var total: Double
@@ -50,11 +57,13 @@ final class LiveSpendLedger: Sendable {
 	}
 
 	let file: URL
+	let milestone: LiveMilestone
 	let limit: Double
 	private let state: Mutex<State>
 
-	init(file: URL, limit: Double) throws {
+	init(file: URL, milestone: LiveMilestone, limit: Double) throws {
 		self.file = file
+		self.milestone = milestone
 		self.limit = limit
 		let manager = FileManager.default
 		if !manager.fileExists(atPath: file.path) {
@@ -62,16 +71,72 @@ final class LiveSpendLedger: Sendable {
 				at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
 			try Data((Self.header + "\n").utf8).write(to: file)
 		}
-		let rows = try String(contentsOf: file, encoding: .utf8).split(separator: "\n").dropFirst()
-		let total = try rows.reduce(0.0) { sum, row in
-			let columns = row.split(separator: "\t", omittingEmptySubsequences: false)
-			guard columns.count == 8, let cost = Double(columns[5]) else {
-				throw LiveCheckStop(
-					description: "\(file.path) has a row that is not a spend row: \(row)")
-			}
-			return sum + cost
+		let total = try Self.rows(of: file).reduce(0.0) { sum, row in
+			row.milestone == milestone ? sum + row.cost : sum
 		}
 		self.state = Mutex(State(total: total))
+	}
+
+	static func backup(of file: URL) -> URL {
+		file.deletingLastPathComponent().appending(path: file.lastPathComponent + backupSuffix)
+	}
+
+	private static func rows(of file: URL) throws -> [(cost: Double, milestone: LiveMilestone)] {
+		var lines = try String(contentsOf: file, encoding: .utf8).split(
+			separator: "\n", omittingEmptySubsequences: false)
+		if lines.last?.isEmpty == true { lines.removeLast() }
+		switch lines.first {
+		case header?:
+			return try spendRows(lines, of: file, width: 9) { columns in
+				LiveMilestone(rawValue: String(columns[8]))
+			}
+		case earlierHeader?:
+			let rows = try spendRows(lines, of: file, width: 8) { _ in earlierMilestone }
+			try migrate(file, lines: lines)
+			return rows
+		default:
+			throw LiveCheckStop(
+				description:
+					"\(file.path) line 1 is not a spend header: \(lines.first.map(String.init) ?? "")"
+			)
+		}
+	}
+
+	private static func spendRows(
+		_ lines: [Substring], of file: URL, width: Int,
+		milestone: ([Substring]) -> LiveMilestone?
+	) throws -> [(cost: Double, milestone: LiveMilestone)] {
+		try lines.enumerated().dropFirst().map { number, row in
+			let columns = row.split(separator: "\t", omittingEmptySubsequences: false)
+			guard columns.count == width, let cost = Double(columns[5]),
+				let milestone = milestone(columns)
+			else {
+				throw LiveCheckStop(
+					description: "\(file.path) line \(number + 1) is not a spend row: \(row)")
+			}
+			return (cost, milestone)
+		}
+	}
+
+	private static func migrate(_ file: URL, lines: [Substring]) throws {
+		let manager = FileManager.default
+		let copy = backup(of: file)
+		if manager.fileExists(atPath: copy.path) {
+			guard try Data(contentsOf: copy) == Data(contentsOf: file) else {
+				throw LiveCheckStop(
+					description:
+						"\(copy.path) exists and differs from \(file.path), so \(file.path) was not migrated."
+				)
+			}
+		} else {
+			try manager.copyItem(at: file, to: copy)
+		}
+		let migrated =
+			[header] + lines.dropFirst().map { String($0) + "\t" + earlierMilestone.rawValue }
+		let staged = file.deletingLastPathComponent().appending(
+			path: file.lastPathComponent + ".migrating")
+		try Data((migrated.joined(separator: "\n") + "\n").utf8).write(to: staged)
+		_ = try manager.replaceItemAt(file, withItemAt: staged)
 	}
 
 	var total: Double { state.withLock { $0.total } }
@@ -79,7 +144,8 @@ final class LiveSpendLedger: Sendable {
 
 	var statement: String {
 		let (total, capReached) = state.withLock { ($0.total, $0.capReached) }
-		return String(format: "Model spend total: $%.6f of $%.2f", total, limit)
+		return "Model spend total for \(milestone.rawValue): "
+			+ String(format: "$%.6f of $%.2f", total, limit)
 			+ (capReached ? "; the cap stopped the suite." : ".")
 	}
 
@@ -104,7 +170,7 @@ final class LiveSpendLedger: Sendable {
 				ISO8601DateFormatter().string(from: stamp), state.scenario, model.rawValue,
 				String(usage?.inputTokens ?? 0), String(usage?.outputTokens ?? 0),
 				String(format: "%.6f", dollars), basis.rawValue,
-				String(format: "%.6f", state.total),
+				String(format: "%.6f", state.total), milestone.rawValue,
 			].joined(separator: "\t")
 			do {
 				let handle = try FileHandle(forWritingTo: file)

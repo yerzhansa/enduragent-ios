@@ -15,7 +15,7 @@ LIVE_LOGS ?= $(HOME)/Library/Logs/enduragent-m3/LIVE
 LIVE_CHECK := env -u OPENROUTER_API_KEY -u INTERVALS_API_KEY ENDURAGENT_LIVE_LOGS="$(LIVE_LOGS)"
 IPHONE_SIMULATOR := xcodebuild -project $(APP_PROJECT) -scheme Enduragent -showdestinations | awk '/Available destinations for/ { available = 1; next } /Ineligible destinations for/ { available = 0 } available && /platform:iOS Simulator/ && /name:iPhone/ { sub(/^.*id:/, ""); sub(/,.*/, ""); print; exit }'
 
-.PHONY: project generate-catalogs check-catalogs check-source check-coverage lint-swift format-swift check-format test-tools test-swift test-app plan-fixtures plan-fixtures-check live-reads live-calendar live-coach live-seed live-unseed
+.PHONY: project generate-catalogs check-catalogs check-source check-coverage lint-swift format-swift check-format test-tools test-swift test-app plan-fixtures plan-fixtures-check live-reads live-calendar live-coach live-plan live-seed live-unseed
 
 project:
 	$(AT_ROOT) xcodegen generate --spec apps/ios/project.yml
@@ -64,6 +64,9 @@ live-calendar:
 
 live-coach:
 	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=coach swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LiveCoachCheck $(ARGS)
+
+live-plan:
+	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=plan swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LivePlanCheck $(ARGS)
 
 live-seed:
 	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=seed swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LiveSeedCheck $(ARGS)

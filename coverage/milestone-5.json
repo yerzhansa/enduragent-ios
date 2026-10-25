@@ -19,7 +19,8 @@
 		"6.3": 13,
 		"6.4": 17,
 		"6.5": 5,
-		"7.2": 5
+		"7.2": 5,
+		"8.1": 7
 	},
 	"criteria": [
 		{
@@ -1202,6 +1203,56 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "planWithNoUsableModelAccessEndsWithTheAccessNoticeAndNoCard"}
 			]
+		},
+		{
+			"id": "8.1.1",
+			"statement": "Opening an 8-column spend.tsv copies it byte for byte to spend.tsv.before-m5, then rewrites it once with a ninth column m4 on every row, keeps every other byte of each row, and leaves make live-coach's total unchanged. A second open changes nothing, the copy included. A row of any other width stops the check, names the file and the row, and changes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCheckHelperTests.swift", "function": "anEightColumnSpendFileIsCopiedThenTaggedM4OnceAndKeepsTheCoachTotal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCheckHelperTests.swift", "function": "aSpendRowOfAnotherWidthStopsTheCheckNamingTheFileAndTheRow"}
+			]
+		},
+		{
+			"id": "8.1.2",
+			"statement": "A ledger for m5 totals and admits only m5 rows: with $9.60 of m4 rows, an m5 call bounded at $4 is admitted, and one that would take m5 past $5 is refused and stops the run. A ledger for m4 ignores m5 rows.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCheckHelperTests.swift", "function": "eachMilestoneLedgerTotalsAndAdmitsOnlyItsOwnRows"}
+			]
+		},
+		{
+			"id": "8.1.3",
+			"statement": "LiveCheck.plan.spend is (.m5, 5.0) and LiveCheck.coach.spend is (.m4, 10.0). LiveCoachSuite.run for .plan, driven through FakeModelTransport at no cost with a priced fake model, tags every new row m5, prints \"Model spend total for m5: $x of $5.00\" before the first scenario and again at the end, and refuses the call that would pass $5 before it is sent.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "thePlanSuiteRefusesTheCallThatWouldTakeM5PastFiveDollarsBeforeSendingIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "thePlanSuiteRerunsAFailedScenarioAndReportsItsM5SpendBeforeAndAfter"}
+			]
+		},
+		{
+			"id": "8.1.4",
+			"statement": "make live-plan runs the planning set against the built-in model with billed calls, writes each run's transcript and summary.md under LIVE_LOGS/plan/<stamp>, and prints the m5 statement before and after. The summary's title is \"Live planning suite\" and its spend line names m5.",
+			"noAutomatedProof": "make live-plan makes billed OpenRouter calls with the Keychain keys, which CI does not have. The pull request records the one approved run: its printed m5 statements, the files of its LIVE_LOGS/plan/<stamp> folder and its summary.md."
+		},
+		{
+			"id": "8.1.5",
+			"statement": "Each LivePlanExpectation passes the reply it describes and fails one that breaks it, through FakeModelTransport at no cost: a reply that drops or rounds a field's number, a turn that calls plan_save twice, a plan_save whose phases differ from the draft, a reply that says \"Your plan is saved\" before the tap, a turn with no plan_save that leaves a card, a turn that changes the saved plan, and a plan_load reply without the plan's name.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aCoachThatFollowsThePlanningSetPassesAndSavesTheDraftItShowed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aCoachThatStraysFromThePlanningSetFailsEachExpectationItBreaks"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aTurnThatChangesTheSavedPlanOrLeavesACardWithoutPlanSaveFailsItsCheck"}
+			]
+		},
+		{
+			"id": "8.1.6",
+			"statement": "A failed scenario runs once more while the cap allows, and the summary marks it pass, flaky or failed. A run file holding either key fails the check.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "thePlanSuiteRerunsAFailedScenarioAndReportsItsM5SpendBeforeAndAfter"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aRunFolderFileThatHoldsEitherKeyFailsTheCoachRun"}
+			]
+		},
+		{
+			"id": "8.1.7",
+			"statement": "The planning set passes against the real model, with a flaky scenario allowed only when its second run passed, and the pull request carries the summary and the m5 total.",
+			"noAutomatedProof": "The planning set runs only through make live-plan with billed OpenRouter calls, which CI does not have. The pull request carries the summary.md of the one approved run and the m5 total it printed."
 		}
 	],
 	"requirements": [
@@ -1304,6 +1355,31 @@
 			"id": "B15.01/arguments",
 			"statement": "Text typed after /plan reaches the coach: npm's Telegram /plan sends the literal \"/plan\", while the phone stores and sends the whole message as typed.",
 			"agreedDifference": "ADR-0084 and D09 forward the text after /plan; 7.2.2 shows the message stored and sent unchanged."
+		},
+		{
+			"id": "B15.01",
+			"statement": "A plan request through /plan or ordinary words reaches the planning tools, missing inputs are asked for with no claimed result, and a drafted plan neither writes the calendar nor overwrites the saved plan.",
+			"criteria": ["4.1.3", "4.1.7", "6.4.15", "7.2.1", "7.2.2", "7.2.4", "7.2.5", "8.1.7"]
+		},
+		{
+			"id": "B15.02",
+			"statement": "The feasibility check matches npm's results for FTP and W/kg targets, experience levels, boundaries and invalid input, and a conversational feasibility question uses the registered result and keeps its numbers.",
+			"criteria": ["3.1.1", "3.1.2", "4.1.1", "8.1.5", "8.1.7"]
+		},
+		{
+			"id": "B15.03",
+			"statement": "The plan draft matches npm's builder across goals, volume tiers, schedules, available days, race kinds and race dates, its schema holds npm's inputs, the draft values the coach shows come from the structured result, and drafting or revising saves no plan and changes no calendar.",
+			"criteria": ["3.2.1", "3.2.2", "3.2.3", "3.2.4", "4.1.2", "4.1.6", "6.4.15", "8.1.5", "8.1.7"]
+		},
+		{
+			"id": "B15.04",
+			"statement": "The sample week matches npm's templates across volume tiers, session counts, schedules and key days, refuses unsupported input as npm does, and asking for one neither replaces the saved plan nor writes the calendar.",
+			"criteria": ["3.3.1", "3.3.2", "4.1.1", "4.1.6", "6.4.15", "8.1.7"]
+		},
+		{
+			"id": "G07",
+			"statement": "An athlete gives goal and schedule inputs, sees the plan's phases and a sample week, saves the plan through the separate plan-save confirmation, loads it again, and no calendar write happens.",
+			"criteria": ["6.4.2", "6.4.11", "6.4.15", "8.1.7"]
 		}
 	],
 	"plan": {
@@ -1354,12 +1430,7 @@
 		}
 	},
 	"open": [
-		"B15.01",
-		"B15.02",
-		"B15.03",
-		"B15.04",
 		"B15.05",
-		"B19.03",
-		"G07"
+		"B19.03"
 	]
 }

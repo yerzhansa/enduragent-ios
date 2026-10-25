@@ -49,6 +49,9 @@ enum LiveTranscript {
 			lines += ["", "### Reply", "", turn.reply ?? "(no reply)"]
 			lines += ["", "### Workout review after the turn", "", review(turn.reviewAfter)]
 			if let notice = turn.notice { lines += ["", "Review notice: \(notice.rawValue)"] }
+			lines += ["", "### Plan cards after the turn", "", plans(turn.plans)]
+			if let tap = turn.tap { lines += ["", "Save plan: \(tap.outcome)"] }
+			lines += ["", "Saved plan after the turn: \(saved(turn.savedAfter))"]
 		}
 		if let cancel {
 			lines += [
@@ -67,6 +70,17 @@ enum LiveTranscript {
 		return
 			(["Review \(review.id.ulid.rawValue), revision \(review.revision.rawValue):"]
 			+ changes).joined(separator: "\n")
+	}
+
+	private static func plans(_ cards: [PlanCard]) -> String {
+		guard !cards.isEmpty else { return "None." }
+		return cards.map { "- \($0.summary.name): \($0.state)" }.joined(separator: "\n")
+	}
+
+	private static func saved(_ plan: PlanDocument?) -> String {
+		guard let plan else { return "none" }
+		return
+			"\(plan.value.objectFields["name"]?.stringValue ?? "unnamed"), digest \(plan.digest.rawValue)"
 	}
 
 	private static func render(_ message: WireMessage) -> [String] {
