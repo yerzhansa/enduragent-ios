@@ -35,6 +35,7 @@ extension PlanConfirmationTests {
 		case replaced
 		case replacedThenExpired
 		case replacedByACardThatWasReplacedLater
+		case replacedByACardThatWasSavedAfterItExpired
 		case expired
 
 		var testDescription: String { rawValue }
@@ -48,7 +49,7 @@ extension PlanConfirmationTests {
 		let ended = try await turns.prepareAndArm(PlanTurns.baseBuild, on: coach)
 		var next = coach
 		var newestBeforeLater = "Threshold Block"
-		var replacedOnTheWay: [String?] = []
+		var onTheWay: [(state: PlanCardState, replaces: String?)] = []
 		switch ending {
 		case .canceled:
 			#expect(await coach.decide(.cancel(ended), in: .main) == .canceled)
@@ -67,7 +68,34 @@ extension PlanConfirmationTests {
 			_ = try await turns.prepareAndArm(Self.taper, on: coach)
 			next = try await savedElsewhereAfterTheEnd()
 			newestBeforeLater = "Peak Week"
-			replacedOnTheWay = ["Peak Week"]
+			onTheWay = [(.expired, "Peak Week")]
+		case .replacedByACardThatWasSavedAfterItExpired:
+			let expiresAt = try #require(try await turns.prepared(in: turns.store).last).expiresAt
+			turns.clock.advance(by: .seconds(60))
+			let replacing = try await turns.prepareAndArm(Self.taper, on: coach)
+			turns.clock.advance(by: .seconds(1))
+			let peakWeek = Self.decidedElsewhere(at: turns.clock.now)
+			try await saveElsewhere(Self.peakWeek, decided: peakWeek)
+			turns.clock.advance(by: .seconds(559))
+			#expect(await coach.decide(.save(replacing), in: .main) == .saved)
+			let steps = try await turns.steps(in: turns.store)
+			let prepared = try #require(
+				steps.last { record in
+					if case .prepared = record.body.step { return true }
+					return false
+				})
+			let claimed = try #require(
+				steps.last { record in
+					if case .claimed = record.body.step { return true }
+					return false
+				})
+			#expect(prepared.hlc < peakWeek)
+			#expect(peakWeek.wallTime < expiresAt)
+			#expect(expiresAt < claimed.hlc.wallTime)
+			#expect(claimed.hlc.wallTime < prepared.hlc.wallTime.addingTimeInterval(600))
+			next = await turns.coach()
+			newestBeforeLater = "Taper"
+			onTheWay = [(.saved, "Peak Week")]
 		case .replaced, .replacedThenExpired:
 			break
 		}
@@ -86,10 +114,10 @@ extension PlanConfirmationTests {
 		let endedState: PlanCardState = ending == .canceled ? .canceled : .expired
 		#expect(
 			cards.map(\.state)
-				== [.saved, endedState] + replacedOnTheWay.map { _ in .expired } + [.saved])
+				== [.saved, endedState] + onTheWay.map(\.state) + [.saved])
 		#expect(
 			cards.map(\.summary.replaces)
-				== [nil, "Threshold Block"] + replacedOnTheWay + [newestBeforeLater])
+				== [nil, "Threshold Block"] + onTheWay.map(\.replaces) + [newestBeforeLater])
 	}
 
 	enum LateRecord: String, CaseIterable, Sendable, CustomTestStringConvertible {
