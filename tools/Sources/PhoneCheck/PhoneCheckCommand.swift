@@ -18,8 +18,11 @@ struct PhoneCheckCommand {
 				try phone.language(Array(arguments.dropFirst()))
 			case "openrouter":
 				try phone.openRouter(Array(arguments.dropFirst()))
+			case "plan":
+				try phone.plan(Array(arguments.dropFirst()))
 			default:
-				try Console.complain("Usage: phone-check <choices|language|openrouter> [arguments]")
+				try Console.complain(
+					"Usage: phone-check <choices|language|openrouter|plan> [arguments]")
 				exit(2)
 			}
 		} catch {
