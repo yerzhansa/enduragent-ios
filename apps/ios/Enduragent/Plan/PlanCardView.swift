@@ -4,7 +4,6 @@ import SwiftUI
 struct PlanCardView: View {
 	var model: ShellModel
 	var card: PlanCard
-	var titleLaidOut: () -> Void
 	@Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
 	var body: some View {
@@ -13,7 +12,6 @@ struct PlanCardView: View {
 		PlanTitleRow(text: text)
 			.reportsPresentation(of: card, to: model.planDecisions)
 			.id(Self.titleRow(of: card))
-			.onAppear(perform: titleLaidOut)
 		PlanDetailsRow(text: text)
 		if ChromePlacement(dynamicTypeSize) == .inTranscript, let token = card.armedToken {
 			PlanBarView(decisions: model.planDecisions, phrasebook: model.phrasebook, token: token)

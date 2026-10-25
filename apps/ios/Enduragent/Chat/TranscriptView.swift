@@ -24,13 +24,13 @@ struct TranscriptView: View {
 						}
 					}
 					reviewCard(at: .preparedEarlier, proxy: proxy)
-					planCards(at: .preparedEarlier, proxy: proxy)
+					planCards(at: .preparedEarlier)
 					notes(after: nil)
 					ForEach(model.chat?.turns ?? []) { turn in
 						TurnRowView(model: model, turn: turn)
 						notes(after: turn.id)
 						reviewCard(at: .afterTurn(turn.id), proxy: proxy)
-						planCards(at: .afterTurn(turn.id), proxy: proxy)
+						planCards(at: .afterTurn(turn.id))
 					}
 					if case .waiting? = model.chat?.reset {
 						Text(model.phrasebook.say(Catalog.chatNoticeStartingNewConversation, [:]))
@@ -93,14 +93,22 @@ struct TranscriptView: View {
 			.environment(\.transcriptViewport, viewport)
 			.buttonStyle(.borderless)
 			.onChange(of: model.chat?.revision, initial: true) {
-				if let plan = waitingPlanEndingTranscript {
-					approachPlan(plan, proxy)
-					reveal()
-				} else if reviewEndsTranscript {
+				if waitingPlanEndingTranscript != nil || reviewEndsTranscript {
 					reveal()
 				} else {
 					scrollToEnd(proxy)
 				}
+			}
+			.onChange(of: openingPlan?.id, initial: true) {
+				aimAtOpeningPlan(proxy)
+			}
+			.onScrollGeometryChange(for: CGFloat.self) {
+				$0.contentSize.height
+			} action: { _, _ in
+				aimAtOpeningPlan(proxy)
+			}
+			.onScrollPhaseChange { _, phase in
+				if phase == .interacting { endOpening() }
 			}
 			.onChange(of: shownRound, initial: true) { old, new in
 				guard let new else { return }
@@ -117,18 +125,18 @@ struct TranscriptView: View {
 				scrollToEnd(proxy)
 			}
 			.onChange(of: model.slashListVisible) {
-				proxy.scrollTo("transcript.tail", anchor: .bottom)
+				scrollToTail(proxy)
 			}
 			.onChange(of: model.status.access.attention) {
-				proxy.scrollTo("transcript.tail", anchor: .bottom)
+				scrollToTail(proxy)
 			}
 			.onChange(of: model.reviewNotice) {
-				proxy.scrollTo("transcript.tail", anchor: .bottom)
+				scrollToTail(proxy)
 			}
 			.onReceive(
 				NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)
 			) { _ in
-				proxy.scrollTo("transcript.tail", anchor: .bottom)
+				scrollToTail(proxy)
 			}
 		}
 	}
@@ -157,15 +165,18 @@ struct TranscriptView: View {
 		}
 	}
 
-	private func approachPlan(_ plan: PlanCard, _ proxy: ScrollViewProxy) {
-		guard openedPlan != plan.id else { return }
+	private var openingPlan: PlanCard? {
+		guard let plan = waitingPlanEndingTranscript, plan.id != openedPlan else { return nil }
+		return plan
+	}
+
+	private func aimAtOpeningPlan(_ proxy: ScrollViewProxy) {
+		guard let plan = openingPlan else { return }
 		proxy.scrollTo(PlanCardView.titleRow(of: plan), anchor: .center)
 	}
 
-	private func openPlan(_ plan: PlanCard, _ proxy: ScrollViewProxy) {
-		guard waitingPlanEndingTranscript?.id == plan.id, openedPlan != plan.id else { return }
-		openedPlan = plan.id
-		proxy.scrollTo(PlanCardView.titleRow(of: plan), anchor: .center)
+	private func endOpening() {
+		if let plan = openingPlan { openedPlan = plan.id }
 	}
 
 	private func approachReview(_ review: ReviewSnapshot, _ proxy: ScrollViewProxy) {
@@ -182,8 +193,13 @@ struct TranscriptView: View {
 	}
 
 	private func scrollToEnd(_ proxy: ScrollViewProxy) {
-		proxy.scrollTo("transcript.tail", anchor: .bottom)
+		scrollToTail(proxy)
 		reveal()
+	}
+
+	private func scrollToTail(_ proxy: ScrollViewProxy) {
+		endOpening()
+		proxy.scrollTo("transcript.tail", anchor: .bottom)
 	}
 
 	private func reveal() {
@@ -211,9 +227,9 @@ struct TranscriptView: View {
 		}
 	}
 
-	private func planCards(at placement: PlanCardPlacement, proxy: ScrollViewProxy) -> some View {
+	private func planCards(at placement: PlanCardPlacement) -> some View {
 		ForEach((model.chat?.plans ?? []).filter { $0.placement == placement }) { plan in
-			PlanCardView(model: model, card: plan, titleLaidOut: { openPlan(plan, proxy) })
+			PlanCardView(model: model, card: plan)
 		}
 	}
 
