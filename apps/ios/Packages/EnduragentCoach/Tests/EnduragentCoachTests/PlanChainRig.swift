@@ -176,12 +176,4 @@ struct PlanTurns {
 					body: try rows.canceled())
 			], locality: .deviceLocal)
 	}
-
-	func nextChange(of coach: Coach) async throws -> ChatID? {
-		let changes = await coach.plans.changes
-		return try await beforeDeadline(within: .hangGuard) {
-			var iterator = changes.makeAsyncIterator()
-			return await iterator.next()
-		} ?? nil
-	}
 }

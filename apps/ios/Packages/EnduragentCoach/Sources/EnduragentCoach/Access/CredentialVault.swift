@@ -51,6 +51,10 @@ package actor CredentialVault {
 				client: display.client(for: active)))
 	}
 
+	package func connectedAccount() throws(AccessUnavailable) -> TrainingAccount {
+		try activeConnection()?.account ?? .unconnected
+	}
+
 	package func invalidateTrainingIdentity() {
 		trainingIdentity = nil
 	}

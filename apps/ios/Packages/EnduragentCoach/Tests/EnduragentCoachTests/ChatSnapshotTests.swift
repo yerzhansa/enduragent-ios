@@ -31,4 +31,25 @@ struct ChatSnapshotTests {
 		#expect(snapshot.notes[second]?.map(\.id) == [fixedUlid(6)])
 	}
 
+	@Test func theObservedSnapshotCarriesThePlanCardAndThenItsArmedControls() async throws {
+		let turns = PlanTurns()
+		let coach = await turns.coach()
+		let observed = await coach.observe(.main)
+
+		_ = try await turns.reply(after: [[turns.save(PlanTurns.baseBuild)]], on: coach)
+
+		let waiting = try #require(
+			try await firstSnapshot(in: observed, within: .hangGuard) {
+				$0.plans.map(\.state) == [.waiting(.unarmed)]
+			})
+		let card = try #require(waiting.plans.first)
+		#expect(card.summary.name == "Base Build")
+		#expect(await coach.decide(.presented(card.ref), in: .main) == .presented)
+		let armed = try #require(
+			try await firstSnapshot(in: observed, within: .hangGuard) {
+				PlanTurns.token(of: $0.plans.first) != nil
+			})
+		#expect(armed.plans.map(\.ref) == [card.ref])
+		#expect(armed != waiting)
+	}
 }

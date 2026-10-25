@@ -88,6 +88,7 @@ final class MailboxResets {
 		_ = await records.refreshJobs(from: work.flushes)
 		let result = await work.run(
 			reset, archiving: records.conversation, jobs: records.jobs, access: access)
+		await records.refreshPlans()
 		records.apply(result.boundary)
 		_ = await records.refreshReview()
 		if case .waiting(let current) = progress, current.id == reset.id {
