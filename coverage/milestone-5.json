@@ -18,7 +18,8 @@
 		"6.2": 4,
 		"6.3": 13,
 		"6.4": 17,
-		"6.5": 5
+		"6.5": 5,
+		"7.2": 5
 	},
 	"criteria": [
 		{
@@ -1159,6 +1160,48 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanRecoveryTests.swift", "function": "aSavedPlanIsInThePromptAndItsCardReadsSavedAfterTheRelaunch"}
 			]
+		},
+		{
+			"id": "7.2.1",
+			"statement": "SlashRouting.parse(\"/plan for my gran fondo in June\") is .plan and its route is .modelTurn, and the slash list and the welcome list /plan after /workout with \"Generate a training plan\" in every catalog language.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "parseReadsLeadingToken"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "startRoutesToResetAndPlanIsAModelTurn"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "welcomeListsPlanAfterWorkoutWithItsTitle"},
+				{"file": "apps/ios/EnduragentTests/SlashListTests.swift", "function": "startIsListedWithItsMenuTitleAndPlanFollowsWorkout"},
+				{"file": "apps/ios/EnduragentUITests/ShortcutProofs.swift", "class": "PlanShortcutProof", "method": "testSlashListShowsPlanAfterWorkout"}
+			]
+		},
+		{
+			"id": "7.2.2",
+			"statement": "Sending /plan for my gran fondo in June stores and sends that text unchanged, and the transcript shows the athlete's message and the coach's progress with no acknowledgement row.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "shortcutReachesTheCoachOnceWithAllItsText"},
+				{"file": "apps/ios/EnduragentTests/FixtureShortcutTests.swift", "function": "pickedShortcutFillsTheComposerAndSendsNothing"},
+				{"file": "apps/ios/EnduragentTests/FixtureShortcutTests.swift", "function": "sentShortcutShowsItsTextAndWorksUntilTheReplyInText"},
+				{"file": "apps/ios/EnduragentUITests/ShortcutProofs.swift", "class": "PlanShortcutProof", "method": "testPlanForwardsItsTextWithNoAcknowledgement"}
+			]
+		},
+		{
+			"id": "7.2.3",
+			"statement": "A user message whose command is /plan is stored at body version 7, above the version 6 a Milestone 4 build reads, so that build skips it as newerVersion, and every other user message keeps version 4.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RecordCodecVersionTests.swift", "function": "aPlanMessageIsStoredAtVersion7AndEveryOtherUserMessageAtVersion4"}
+			]
+		},
+		{
+			"id": "7.2.4",
+			"statement": "A fixture-transport /plan turn offers build_plan_skeleton, assess_feasibility and get_sample_week, and its system prompt and tools equal those of the same turn sent as plain text.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "planShortcutOffersThePlanningToolsAndThePromptOfThePlainMessage"}
+			]
+		},
+		{
+			"id": "7.2.5",
+			"statement": "/plan with no usable model access settles with the existing access failure and its notice, makes no model request, and shows no card, confirmation or saved plan.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "planWithNoUsableModelAccessEndsWithTheAccessNoticeAndNoCard"}
+			]
 		}
 	],
 	"requirements": [
@@ -1251,6 +1294,16 @@
 			"id": "B19.03/durable",
 			"statement": "A plan-save confirmation survives the app being ended within its ten minutes, and every save the end interrupted converges on the next launch.",
 			"agreedDifference": "ADR-0084: the confirmation is a durable device-local record that survives suspension and the app being ended within its ten minutes, and the next launch finishes every save that was claimed, where npm keeps its confirmation in the process. Shown by 6.5.1 and 6.5.2."
+		},
+		{
+			"id": "B15.01/acknowledgement",
+			"statement": "/plan shows no separate acknowledgement: npm's Telegram reply \"Analyzing your data and building a plan...\" has no phone counterpart, and the transcript shows only the athlete's message, the coach's progress and the reply.",
+			"agreedDifference": "ADR-0084 returns /plan as Generate a training plan with no acknowledgement shown; 7.2.2 shows the transcript with none."
+		},
+		{
+			"id": "B15.01/arguments",
+			"statement": "Text typed after /plan reaches the coach: npm's Telegram /plan sends the literal \"/plan\", while the phone stores and sends the whole message as typed.",
+			"agreedDifference": "ADR-0084 and D09 forward the text after /plan; 7.2.2 shows the message stored and sent unchanged."
 		}
 	],
 	"plan": {
@@ -1307,8 +1360,6 @@
 		"B15.04",
 		"B15.05",
 		"B19.03",
-		"G07",
-		"B15.01/acknowledgement",
-		"B15.01/arguments"
+		"G07"
 	]
 }

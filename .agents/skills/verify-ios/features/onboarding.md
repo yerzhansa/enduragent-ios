@@ -37,7 +37,7 @@ Preconditions:
 | `sim test <run id> StarterCreditsProof` | `starter.credits` and `starter.start`, `03-starter-credits`. |
 | `sim test <run id> OpenRouterConsentProof` | First sign-in names the built-in model and provider. Another device's synced selection names its model and provider before any model request. Decline and relaunch keep requests at zero. Attachments start with `openrouter-consent-` and end with `light`. |
 | `sim test <run id> ProviderConsentProof` | Consent before chat, decline without opening chat, consent on relaunch, a deferred consent screen without starter Credits, and one saved consent after one Agree tap, `provider-consent`, `provider-consent-deferred`, and `provider-consent-deferred-accepted`. |
-| `sim test <run id> WelcomeAfterSkipProof` | Welcome lists `/start`, `/workout`, `/status`, `/review`, and `/language` with localized titles whether or not intervals.icu is connected, `welcome-after-skip`. |
+| `sim test <run id> WelcomeAfterSkipProof` | Welcome lists `/start`, `/workout`, `/plan`, `/status`, `/review`, and `/language` with localized titles whether or not intervals.icu is connected, `welcome-after-skip`. |
 | `sim test <run id> FirstConversationProof` | Onboarding reaches the composer and two complete turns, `04-first-conversation`. |
 | `sim test <run id> UpgradeConnectionProof` | An existing pre-vault connection reaches the next turn, `upgrade-item`. The proof copies the bundled pre-vault store and its `secrets.json` at launch; a missing store fails it. |
 | `sim test <run id> LockedKeychainProof` | The kept conversation remains visible with the unlock notice, `locked-keychain`. |

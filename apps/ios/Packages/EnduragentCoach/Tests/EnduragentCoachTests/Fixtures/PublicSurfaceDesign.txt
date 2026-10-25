@@ -780,6 +780,7 @@ SignInFailure.presentationUnavailable
 SlashCommand
 SlashCommand.language
 SlashCommand.menuTitle
+SlashCommand.plan
 SlashCommand.review
 SlashCommand.start
 SlashCommand.status

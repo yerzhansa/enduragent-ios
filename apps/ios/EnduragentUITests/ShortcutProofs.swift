@@ -40,16 +40,51 @@ final class ShortcutProof: XCTestCase {
 	}
 }
 
+final class PlanShortcutProof: XCTestCase {
+	func testSlashListShowsPlanAfterWorkout() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		ShortcutScreen.openList(app)
+		let rows = ["start", "workout", "plan", "status", "review", "language"].map {
+			TutorialHarness.named(app, "chat.slash.\($0)")
+		}
+		for row in rows { TutorialHarness.wait(row) }
+		let tops = rows.map { $0.frame.minY }
+		XCTAssertEqual(tops, tops.sorted())
+		XCTAssertEqual(Set(tops).count, rows.count)
+		TutorialHarness.attach(self, name: "slash-list-plan", app: app)
+	}
+
+	func testPlanForwardsItsTextWithNoAcknowledgement() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		ShortcutScreen.openList(app)
+		ShortcutScreen.pick(.plan, in: app, settledTurns: 0)
+		ShortcutScreen.sendAndRead(
+			self, app, .plan, adding: ShortcutScreen.planRequest,
+			reply: ShortcutScreen.planReply, turn: 1)
+		XCTAssertFalse(
+			TutorialHarness.text(app, containing: ShortcutScreen.planAcknowledgement).exists)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
+	}
+}
+
 enum ShortcutScreen {
 	static let workoutRequest = "45 minutes indoors"
 	static let workoutMessage = "/workout " + workoutRequest
 	static let workoutReply = "Ride 45 minutes at an easy endurance pace today."
+	static let planRequest = "for my gran fondo in June"
+	static let planReply = "the hours you can ride each week"
+	static let planAcknowledgement = CatalogPhrasebook(tag: .en).say(Catalog.telegramPlanWorking)
 	static let statusReply = "your Fitness is 42 with Fatigue at 49 and Form at -7"
 	static let lostOpening = "Ride 45 minutes"
 	static let reviewTitle = "Workout review"
 
 	private static let titles: [SlashCommand: String] = [
 		.workout: "Get today's workout",
+		.plan: "Generate a training plan",
 		.status: "Check current fitness, fatigue, and form",
 	]
 

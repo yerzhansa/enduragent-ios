@@ -3,6 +3,7 @@ import Foundation
 public enum SlashCommand: String, Sendable, CaseIterable {
 	case start = "/start"
 	case workout = "/workout"
+	case plan = "/plan"
 	case status = "/status"
 	case review = "/review"
 	case language = "/language"
@@ -11,6 +12,7 @@ public enum SlashCommand: String, Sendable, CaseIterable {
 		switch self {
 		case .start: Catalog.telegramMenuStart
 		case .workout: Catalog.telegramMenuWorkout
+		case .plan: Catalog.telegramMenuPlan
 		case .status: Catalog.telegramMenuStatus
 		case .review: Catalog.telegramMenuReview
 		case .language: Catalog.telegramLanguageChoose
@@ -21,7 +23,7 @@ public enum SlashCommand: String, Sendable, CaseIterable {
 		switch self {
 		case .start: .resetConversation
 		case .language: .languagePicker
-		case .workout, .status, .review: .modelTurn
+		case .workout, .plan, .status, .review: .modelTurn
 		}
 	}
 }
