@@ -890,9 +890,14 @@
 		},
 		{
 			"id": "6.3.1",
-			"statement": "With HeldClock, a turn calls plan_save and the reply after the call waits 90 seconds before it ends well. The chat's chain then holds one prepared step stamped with the turn's stamp, whose expiresAt is the settle's clock.now plus 600 seconds, the call's instant plus 690 seconds, and the turn settles leftWaiting. The tool answered {pendingConfirmation: true, summary} with npm's summary, no savedPlan row exists, and the training client saw no write.",
+			"statement": "With HeldClock, a turn calls plan_save and the reply after the call waits 90 seconds before it ends well. The chat's chain then holds one prepared step stamped with the turn's stamp, whose expiresAt is the settle's clock.now plus 600 seconds, the call's instant plus 690 seconds, and the turn settles leftWaiting. The tool answered {pendingConfirmation: true, summary} with npm's summary, no savedPlan row exists, and the training client saw no write. When the conversation holds a build_plan_skeleton draft, from an earlier step of the attempt or an earlier finished turn since the last New conversation, the prepared plan keeps the coach's name, primaryGoal, status and every other key it sent and takes totalWeeks, phases and zoneTables from the newest successful draft; a failed build_plan_skeleton call is no draft, and with no draft the plan is prepared as sent (B15.05/save-draft). The card, its summary, the tool's answer and the plan Save plan saves all come from the prepared plan.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aReplyThatEndsWellLeavesOneConfirmationThatExpiresTenMinutesAfterTheSettle"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aReplyThatEndsWellLeavesOneConfirmationThatExpiresTenMinutesAfterTheSettle"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aSaveAfterADraftInAnEarlierTurnPreparesAndSavesTheDraftsWeeksPhasesAndZones"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "theNewestOfTwoDraftsIsTheOneSaved"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aDraftFromAnEarlierStepOfTheSameTurnIsSaved"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aDraftFromBeforeNewConversationIsNotSavedAndTheCoachsPlanIsSavedAsSent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aFailedDraftIsNotADraft"}
 			]
 		},
 		{
@@ -1651,6 +1656,11 @@
 			"id": "B15.05/save-plan-sentence",
 			"statement": "The prompt tells the coach that the athlete saves the plan by tapping Save plan on the plan card.",
 			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-25 (gate PARKED-8.1): right after npm's plan rule, kept byte for byte, the prompt adds one sentence saying the athlete saves the plan by tapping Save plan on the plan card, where npm's prompt names no button. Shown by 6.3.12."
+		},
+		{
+			"id": "B15.05/save-draft",
+			"statement": "When the conversation holds a plan draft, plan_save saves the newest draft's weeks, phases and zones under the coach's name, goal and status.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-26 (gate PARKED-8.1-DRAFT): npm saves the object the coach sends, while the phone, when the conversation since its last New conversation holds a successful build_plan_skeleton result, saves the newest draft's totalWeeks, phases and zoneTables with the coach's name, primaryGoal, status and other keys. With no draft it saves the object the coach sends, as npm does. Shown by 6.3.1."
 		},
 		{
 			"id": "B16.01/plan-save",

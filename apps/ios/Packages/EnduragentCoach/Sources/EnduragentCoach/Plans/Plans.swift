@@ -10,6 +10,7 @@ package actor Plans {
 	private let diagnostics: DiagnosticsLog
 	private let currentAccount: @Sendable () async throws(AccessUnavailable) -> TrainingAccount
 	private var preparations: [DraftKey: PlanPreparation] = [:]
+	private var drafts = PlanDrafts()
 	private var deliveries: [ChatID: PlanDelivery] = [:]
 	private var stalled: Set<PlanConfirmationID> = []
 	private var wakes: [ChatID: PlanWake] = [:]
@@ -34,15 +35,16 @@ package actor Plans {
 		}
 	}
 
-	fileprivate func prepare(_ arguments: JSONValue, for key: DraftKey, binding: ActionBinding)
-		async throws -> ToolExecution
-	{
+	fileprivate func prepare(
+		_ arguments: JSONValue, for key: DraftKey, chat: ChatID, binding: ActionBinding
+	) async throws -> ToolExecution {
 		if preparations[key] == .refused {
 			throw ToolInputError(
 				code: "concurrent_plan_save",
 				details: "Call plan_save once per step. Nothing was prepared.")
 		}
-		let document = try PlanDocument.parse(arguments: arguments)
+		let document = try PlanDocument.parse(
+			arguments: try await drafts.applied(to: arguments, for: key, in: chat, ledger: ledger))
 		let ownership = try await ledger.informationOwnership()
 		if case .unavailable = ownership.scope(for: binding.account, device: ledger.deviceId) {
 			throw ToolInputError(
@@ -62,8 +64,13 @@ package actor Plans {
 		preparations[key] = .refused
 	}
 
+	func drafted(_ draft: PlanDraftStructure, for key: DraftKey) {
+		drafts.record(draft, for: key)
+	}
+
 	func settle(_ key: DraftKey, in chat: ChatID, ending: TurnEnding) async -> PlanSettlement {
 		let preparing = preparations.removeValue(forKey: key)
+		drafts.settle(key, in: chat, ending: ending)
 		switch (ending, preparing) {
 		case (.processEnded, _):
 			return await settleDeadAttempt(key, in: chat)
@@ -374,16 +381,6 @@ package actor Plans {
 	}
 }
 
-private enum PlanPreparation: Sendable, Equatable {
-	case held(PlanDocument, ActionBinding)
-	case refused
-}
-
-private struct PlanWake {
-	let at: Date
-	let task: Task<Void, Never>
-}
-
 extension CoachTools {
 	static let planSave = CoachTool.local(
 		.preparation(.planSave),
@@ -394,6 +391,6 @@ extension CoachTools {
 		rerunWith: nil
 	) { arguments, reach in
 		try await reach.plans.prepare(
-			arguments, for: reach.attempt, binding: reach.scope.stamp.binding)
+			arguments, for: reach.attempt, chat: reach.chat, binding: reach.scope.stamp.binding)
 	}
 }

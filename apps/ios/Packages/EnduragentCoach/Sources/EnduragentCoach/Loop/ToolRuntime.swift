@@ -124,4 +124,8 @@ package enum UntrustedEnvelope {
 			"data": sanitizeJSONValue(data),
 		])
 	}
+
+	static func data(in envelope: JSONValue) -> JSONValue? {
+		envelope.objectFields["data"]
+	}
 }

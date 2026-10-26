@@ -139,7 +139,7 @@ import Testing
 			[
 				base: [steps.build, steps.save(), PlanCoachSteps.reply(PlanCoachSteps.showsCard)],
 				other: [
-					steps.save(changing: PlanCoachSteps.droppingLastPhase),
+					steps.save(changing: Self.renamed),
 					PlanCoachSteps.reply(PlanCoachSteps.showsCard),
 				],
 				waiting: [steps.save(), PlanCoachSteps.reply(PlanCoachSteps.showsCard)],
@@ -247,6 +247,12 @@ import Testing
 		#expect(LiveCheck.plan.spend?.limit == 5)
 		#expect(LiveCheck.coach.spend?.milestone == .m4)
 		#expect(LiveCheck.coach.spend?.limit == 10)
+	}
+
+	private static func renamed(_ plan: JSONValue) -> JSONValue {
+		var fields = plan.objectFields
+		fields["name"] = .string("Threshold Block")
+		return .object(fields)
 	}
 
 	private static let profileFtpWithoutTarget =
