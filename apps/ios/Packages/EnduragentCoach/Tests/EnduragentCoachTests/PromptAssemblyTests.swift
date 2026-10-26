@@ -43,8 +43,8 @@ import Testing
 		let rule =
 			"Plan saving is separate. If plan_save returns pendingConfirmation, say approval is "
 			+ "pending and do not repeat the call."
-		let savePlan = "The athlete saves the plan by tapping Save plan on the plan card."
-		#expect(prefix.components(separatedBy: rule + " " + savePlan).count == 2)
+		let saveSentence = "The athlete saves the plan by tapping Save plan on the plan card."
+		#expect(prefix.components(separatedBy: rule + " " + saveSentence).count == 2)
 		for named in ["plan_save", "pendingConfirmation", "Save plan", "plan card"] {
 			#expect(prefix.components(separatedBy: named).count == 2, "\(named)")
 		}
