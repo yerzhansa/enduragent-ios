@@ -8,6 +8,7 @@ The athlete's Credits screen shows available Credits, the two packs, and the tes
 - `credits-packs` shows 500 and 2000 credits, with disabled Buy buttons, in `credits.pack.icu.enduragent.credits.small` and `credits.pack.icu.enduragent.credits.large`.
 - `credits-note` shows `Testers cannot buy packs yet.` in `credits.note`.
 - `credits-unavailable` shows `Credits are unavailable right now. Try again later.` in `credits.notice` when loading fails. At zero Credits the same element shows the out-of-Credits sentence.
+- `credits-switch` offers Switch to OpenRouter in `credits.switchToOpenRouter`, which opens the Access method screen without selecting a method.
 - `credits-recovery` opens Credits from the turn's `chat.turn.buyCredits` or `chat.turn.restorePurchases` action without replacing the conversation.
 - `credits-language` renders the title, amounts, pack rows, Buy, tester notice, and failure notice through the current language preference.
 
@@ -27,9 +28,9 @@ Preconditions:
 | Action and command | Observable result and attachment |
 | --- | --- |
 | `sim test <run id> CreditsProof` | `chat.settings`, then `settings.credits` under Model access, opens 200 credits, both packs, and the tester note, `06-credits`. |
-| `sim test <run id> NoticeCopyProof` | `fixture:fail 402` offers Buy Credits; `fixture:fail 401` offers Restore purchases. Both actions open `credits.balance` and return to the conversation after one Back, `notice-copy-buy-credits-opens-credits`, `notice-copy-restore-purchases-opens-credits`. |
+| `sim test <run id> NoticeCopyProof` | `fixture:fail 402` offers Buy Credits; `fixture:fail 401` offers Restore purchases. Both actions open `credits.balance`, `notice-copy-buy-credits-opens-credits`, `notice-copy-restore-purchases-opens-credits`. The proof returns with `TutorialHarness.returnToChat`; `BillingIdentityProof` and the hosted `FixtureLaunchTests.creditsNoticeReturnsToConversationAfterOneBack` hold the single Back. |
 
-Interactively, inspect both Buy buttons as disabled and capture `sim shot <run id> credits-buy-disabled`. For fixed French, choose it through `/language` before opening `settings.credits` and capture `credits-french`. `BillingIdentityProof` and `AccessSettingsProof` assert that both Buy buttons are disabled, and `LanguageMatrixFrSweep` opens Credits in French when it is named. The hosted app tests `creditsFailuresShowCatalogNotices` and `AccessSettingsTests.creditsResultsDiscardStaleSuccess` cover failed reads and clearing an earlier successful amount. The launch argument `-EnduragentFixtureCredits unavailable` scripts a failed Credits read.
+Interactively, inspect both Buy buttons as disabled and capture `sim shot <run id> credits-buy-disabled`. For fixed French, choose it through `/language` before opening `settings.credits` and capture `credits-french`. `BillingIdentityProof` and `AccessSettingsProof` assert that both Buy buttons are disabled, and `LanguageMatrixFrSweep` opens Credits in French when it is named. The hosted app tests `FixtureLaunchTests.creditsFailuresShowCatalogNotices` and `AccessSettingsTests.creditsResultsDiscardStaleSuccess` cover failed reads and clearing an earlier successful amount. The launch argument `-EnduragentFixtureCredits unavailable` scripts a failed Credits read.
 
 ## Gotchas
 
@@ -40,7 +41,7 @@ Interactively, inspect both Buy buttons as disabled and capture `sim shot <run i
 
 ## Access method in Settings
 
-`AccessSettingsProof` covers the two choices, their saved marks, successful first sign-in with named model consent, cancelled sign-in, rejected callback, exchange failure, two taps joining held sign-in, failed choice and credential writes, starter provisioning, relaunch, recovery destinations, depleted Credits and unavailable reads. Attachments are named `access-settings-<result>-light` and capture each result. `AccessNoticeProof.testNotConfiguredOpensAccessMethod` covers the missing-access notice destination.
+`AccessSettingsProof` covers the two choices, their saved marks, successful first sign-in with named model consent, cancelled sign-in, rejected callback, exchange failure, two taps joining held sign-in, failed choice and credential writes, starter provisioning, relaunch, recovery destinations, depleted Credits and unavailable reads. Attachments are named `access-settings-<result>` and capture each result. `AccessNoticeProof.testNotConfiguredOpensAccessMethod` covers the missing-access notice destination.
 
 - `settings.accessMethod` opens the Access method screen under Model access.
 - `access.credits` chooses Credits after starter setup persists its credential.
