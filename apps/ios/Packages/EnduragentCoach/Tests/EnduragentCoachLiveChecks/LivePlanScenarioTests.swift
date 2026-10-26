@@ -53,12 +53,41 @@ import Testing
 		#expect(
 			runs.last?.violations == [
 				"turn 2: plan_save was called 2 times, not once",
-				"turn 2: the plan sent to plan_save differs from the draft in phases",
 				#"turn 2: the reply claims a save: "is saved""#,
 				"turn 2: the reply does not mention Save plan",
 				#"turn 3: the reply does not hold the saved plan's name "\#(name)""#,
 				"turn 4: plan_save was called; a plan card waits",
 			])
+		let saves = try #require(runs.last?.turns.dropFirst().first)
+		let draftPhases = try #require(saves.draft?.objectFields["phases"]?.arrayValue)
+		let sent = try #require(
+			saves.toolCalls.last { $0.name == ToolName.planSave.rawValue }?.arguments)
+		#expect(
+			try JSONValue.parse(sent).objectFields["plan"]?.objectFields["phases"]?.arrayValue
+				== Array(draftPhases.dropLast()))
+		#expect(saves.prepared?.value.objectFields["phases"] == .array(draftPhases))
+		#expect(saves.savedAfter == saves.prepared)
+	}
+
+	@Test func aSaveWithNoDraftInTheScenarioFailsSavesDraft() async throws {
+		let rig = PlanBenchRig()
+		let ask = "Save a base plan."
+		let scenario = LiveScenario(
+			name: "save-without-draft", setting: .connected,
+			turns: [LiveTurnPlan(message: ask, expectations: [.plan(.savesDraft)])])
+
+		let run = try await rig.run(scenario) { _ in
+			[
+				ask: [
+					PlanCoachSteps.call(
+						.planSave, canonicalJSON(.object(["plan": Self.basePlan]))),
+					PlanCoachSteps.reply(PlanCoachSteps.showsCard),
+				]
+			]
+		}
+
+		#expect(run.turns.first?.prepared?.value == Self.basePlan)
+		#expect(run.violations == ["turn 1: build_plan_skeleton gave no draft before plan_save"])
 	}
 
 	@Test func aFeasibilityReplyKeepsNumbersWhenTheFirstResultCarriesThemAndALaterOneDoesNot()
@@ -248,6 +277,10 @@ import Testing
 		#expect(LiveCheck.coach.spend?.milestone == .m4)
 		#expect(LiveCheck.coach.spend?.limit == 10)
 	}
+
+	private static let basePlan: JSONValue = .object([
+		"name": .string("Base Build"), "totalWeeks": .number(8),
+	])
 
 	private static func renamed(_ plan: JSONValue) -> JSONValue {
 		var fields = plan.objectFields

@@ -1563,13 +1563,14 @@
 		},
 		{
 			"id": "8.1.5",
-			"statement": "Each LivePlanExpectation passes the reply it describes and fails one that breaks it, through FakeModelTransport at no cost: keepsNumbers passes when one result of the tool in the turn carries every named field and the reply keeps all their numbers, and fails naming each result when none does; a reply that drops or rounds a field's number, a turn that calls plan_save twice, a plan_save whose phases differ from the draft, a reply that says \"Your plan is saved\" before the tap, a turn with no plan_save that leaves a card, a turn that changes the saved plan, and a plan_load reply without the plan's name.",
+			"statement": "Each LivePlanExpectation passes the reply it describes and fails one that breaks it, through FakeModelTransport at no cost: keepsNumbers passes when one result of the tool in the turn carries every named field and the reply keeps all their numbers, and fails naming each result when none does; savesDraft passes when the plan the waiting card holds has the scenario's last draft's totalWeeks, phases and zoneTables and the Save plan tap saved that plan, also when the coach's plan_save sent other phases (B15.05/save-draft); a reply that drops or rounds a field's number, a turn that calls plan_save twice, a save with no draft in the scenario, a reply that says \"Your plan is saved\" before the tap, a turn with no plan_save that leaves a card, a turn that changes the saved plan, and a plan_load reply without the plan's name.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aCoachThatFollowsThePlanningSetPassesAndSavesTheDraftItShowed"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aCoachThatStraysFromThePlanningSetFailsEachExpectationItBreaks"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aFeasibilityReplyKeepsNumbersWhenTheFirstResultCarriesThemAndALaterOneDoesNot"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aFeasibilityReplyFailsKeepsNumbersAndNamesEachResultWhenNoResultCarriesTheFields"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aTurnThatChangesTheSavedPlanOrLeavesACardWithoutPlanSaveFailsItsCheck"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aTurnThatChangesTheSavedPlanOrLeavesACardWithoutPlanSaveFailsItsCheck"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aSaveWithNoDraftInTheScenarioFailsSavesDraft"}
 			]
 		},
 		{

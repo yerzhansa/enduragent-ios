@@ -139,6 +139,7 @@ struct LiveCoachBench: Sendable {
 				plans: snapshot?.plans ?? [], savedBefore: savedBefore)
 			latestDraft = record.results(of: .buildPlanSkeleton).last ?? latestDraft
 			record.draft = latestDraft
+			record.prepared = try await preparedPlan(of: coach, for: record.waitingPlans.last)
 			if plan.tapsSavePlan { record.tap = await tapSavePlan(on: coach) }
 			record.savedAfter = try await savedPlan(of: coach)
 			turns.append(record)
@@ -200,6 +201,16 @@ struct LiveCoachBench: Sendable {
 
 	private func savedPlan(of coach: Coach) async throws -> PlanDocument? {
 		try await coach.memory.savedPlans(for: try await coach.vault.connectedAccount()).newest
+	}
+
+	private func preparedPlan(of coach: Coach, for card: PlanCard?) async throws -> PlanDocument? {
+		guard let card else { return nil }
+		let steps = try await coach.ledger.read(.planChain(of: .main)).records.compactMap(
+			PlanStepRecord.init)
+		for step in steps where step.body.confirmation == card.id {
+			if case .prepared(let prepared) = step.body.step { return prepared.document }
+		}
+		return nil
 	}
 
 	private func tapSavePlan(on coach: Coach) async -> LivePlanTap? {

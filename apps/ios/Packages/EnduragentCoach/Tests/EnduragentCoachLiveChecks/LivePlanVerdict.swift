@@ -82,14 +82,19 @@ enum LivePlanVerdict {
 				return "build_plan_skeleton gave no draft before \(save)"
 			}
 			guard !saves.isEmpty else { return "\(save) was not called" }
-			let differing = draftFields.filter { field in
-				saves.contains {
-					$0.arguments?["plan"]?.objectFields[field] != draft.objectFields[field]
-				}
+			guard let prepared = turn.prepared else {
+				return "no waiting plan card holds the plan \(save) prepared"
 			}
-			return differing.isEmpty
-				? nil
-				: "the plan sent to \(save) differs from the draft in \(differing.joined(separator: ", "))"
+			let differing = draftFields.filter {
+				prepared.value.objectFields[$0] != draft.objectFields[$0]
+			}
+			if !differing.isEmpty {
+				return
+					"the plan \(save) prepared differs from the draft in \(differing.joined(separator: ", "))"
+			}
+			guard turn.tap?.saved == true else { return nil }
+			return turn.savedAfter == prepared
+				? nil : "the plan Save plan saved differs from the plan \(save) prepared"
 		case .claimsNoSave:
 			let lowered = reply.lowercased()
 			let claims = saveClaims.filter { lowered.contains($0) }

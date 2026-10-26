@@ -81,6 +81,7 @@ struct LiveTurnRecord: Sendable {
 	var notice: CatalogKey?
 	var plans: [PlanCard] = []
 	var draft: JSONValue?
+	var prepared: PlanDocument?
 	var savedBefore: PlanDocument?
 	var savedAfter: PlanDocument?
 	var tap: LivePlanTap?
