@@ -90,6 +90,32 @@ import Testing
 		#expect(run.violations == ["turn 1: build_plan_skeleton gave no draft before plan_save"])
 	}
 
+	@Test func aPreparedPlanThatDiffersFromTheScenariosDraftFailsSavesDraftInPhases() async throws {
+		let rig = PlanBenchRig()
+		let ask = "Draft a plan and save it."
+		let scenario = LiveScenario(
+			name: "save-after-retried-draft", setting: .connected,
+			turns: [LiveTurnPlan(message: ask, expectations: [.plan(.savesDraft)])])
+
+		let run = try await rig.run(scenario) { steps in
+			[
+				ask: [
+					steps.build, { _ in [.fail(.http(status: 503))] },
+					steps.save(changing: PlanCoachSteps.droppingLastPhase),
+					PlanCoachSteps.reply(PlanCoachSteps.showsCard),
+				]
+			]
+		}
+
+		let turn = try #require(run.turns.first)
+		let draft = try #require(turn.draft)
+		#expect(turn.prepared?.value == PlanCoachSteps.droppingLastPhase(draft))
+		#expect(
+			run.violations == [
+				"turn 1: the plan plan_save prepared differs from the draft in phases"
+			])
+	}
+
 	@Test func aFeasibilityReplyKeepsNumbersWhenTheFirstResultCarriesThemAndALaterOneDoesNot()
 		async throws
 	{

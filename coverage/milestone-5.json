@@ -891,12 +891,13 @@
 		},
 		{
 			"id": "6.3.1",
-			"statement": "With HeldClock, a turn calls plan_save and the reply after the call waits 90 seconds before it ends well. The chat's chain then holds one prepared step stamped with the turn's stamp, whose expiresAt is the settle's clock.now plus 600 seconds, the call's instant plus 690 seconds, and the turn settles leftWaiting. The tool answered {pendingConfirmation: true, summary} with npm's summary, no savedPlan row exists, and the training client saw no write. When the conversation holds a build_plan_skeleton draft, from an earlier step of the attempt or an earlier finished turn since the last New conversation, the prepared plan keeps the coach's name, primaryGoal, status and every other key it sent and takes totalWeeks, phases and zoneTables from the newest successful draft; a failed build_plan_skeleton call is no draft, and with no draft the plan is prepared as sent (B15.05/save-draft). The card, its summary, the tool's answer and the plan Save plan saves all come from the prepared plan.",
+			"statement": "With HeldClock, a turn calls plan_save and the reply after the call waits 90 seconds before it ends well. The chat's chain then holds one prepared step stamped with the turn's stamp, whose expiresAt is the settle's clock.now plus 600 seconds, the call's instant plus 690 seconds, and the turn settles leftWaiting. The tool answered {pendingConfirmation: true, summary} with npm's summary, no savedPlan row exists, and the training client saw no write. When the conversation holds a build_plan_skeleton draft, from an earlier step of the attempt or an earlier finished turn since the last New conversation, the prepared plan keeps the coach's name, primaryGoal, status and every other key it sent and takes totalWeeks, phases and zoneTables from the newest successful draft, which within one turn is its last draft even after an earlier turn's draft; a failed build_plan_skeleton call is no draft, and with no draft the plan is prepared as sent (B15.05/save-draft). The card, its summary, the tool's answer and the plan Save plan saves all come from the prepared plan.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aReplyThatEndsWellLeavesOneConfirmationThatExpiresTenMinutesAfterTheSettle"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aSaveAfterADraftInAnEarlierTurnPreparesAndSavesTheDraftsWeeksPhasesAndZones"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "theNewestOfTwoDraftsIsTheOneSaved"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aDraftFromAnEarlierStepOfTheSameTurnIsSaved"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aTurnThatDraftsTwiceSavesItsSecondDraftOverTheEarlierTurnsDraft"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aDraftFromBeforeNewConversationIsNotSavedAndTheCoachsPlanIsSavedAsSent"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aFailedDraftIsNotADraft"}
 			]
@@ -1561,18 +1562,19 @@
 		{
 			"id": "8.1.4",
 			"statement": "make live-plan runs the planning set against the built-in model with billed calls, writes each run's transcript and summary.md under LIVE_LOGS/plan/<stamp>, and prints the m5 statement before and after. The summary's title is \"Live planning suite\" and its spend line names m5.",
-			"noAutomatedProof": "make live-plan makes billed OpenRouter calls with the Keychain keys, which CI does not have. The pull request records the one approved run: its printed m5 statements, the files of its LIVE_LOGS/plan/<stamp> folder and its summary.md."
+			"noAutomatedProof": "make live-plan makes billed OpenRouter calls with the Keychain keys, which CI does not have. The pull request records every approved run: its printed m5 statements, the files of its LIVE_LOGS/plan/<stamp> folder and its summary.md."
 		},
 		{
 			"id": "8.1.5",
-			"statement": "Each LivePlanExpectation passes the reply it describes and fails one that breaks it, through FakeModelTransport at no cost: keepsNumbers passes when one result of the tool in the turn carries every named field and the reply keeps all their numbers, and fails naming each result when none does; savesDraft passes when the plan the waiting card holds has the scenario's last draft's totalWeeks, phases and zoneTables and the Save plan tap saved that plan, also when the coach's plan_save sent other phases (B15.05/save-draft); a reply that drops or rounds a field's number, a turn that calls plan_save twice, a save with no draft in the scenario, a reply that says \"Your plan is saved\" before the tap, a turn with no plan_save that leaves a card, a turn that changes the saved plan, and a plan_load reply without the plan's name.",
+			"statement": "Each LivePlanExpectation passes the reply it describes and fails one that breaks it, through FakeModelTransport at no cost: keepsNumbers passes when one result of the tool in the turn carries every named field and the reply keeps all their numbers, and fails naming each result when none does; savesDraft passes when the plan the waiting card holds has the scenario's last draft's totalWeeks, phases and zoneTables and the Save plan tap saved that plan, also when the coach's plan_save sent other phases (B15.05/save-draft); a reply that drops or rounds a field's number, a turn that calls plan_save twice, a save with no draft in the scenario, a prepared plan whose phases differ from the scenario's draft because a retried attempt dropped that draft, a reply that says \"Your plan is saved\" before the tap, a turn with no plan_save that leaves a card, a turn that changes the saved plan, and a plan_load reply without the plan's name.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aCoachThatFollowsThePlanningSetPassesAndSavesTheDraftItShowed"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aCoachThatStraysFromThePlanningSetFailsEachExpectationItBreaks"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aFeasibilityReplyKeepsNumbersWhenTheFirstResultCarriesThemAndALaterOneDoesNot"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aFeasibilityReplyFailsKeepsNumbersAndNamesEachResultWhenNoResultCarriesTheFields"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aTurnThatChangesTheSavedPlanOrLeavesACardWithoutPlanSaveFailsItsCheck"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aSaveWithNoDraftInTheScenarioFailsSavesDraft"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aSaveWithNoDraftInTheScenarioFailsSavesDraft"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aPreparedPlanThatDiffersFromTheScenariosDraftFailsSavesDraftInPhases"}
 			]
 		},
 		{
@@ -1586,7 +1588,7 @@
 		{
 			"id": "8.1.7",
 			"statement": "The planning set passes against the real model, with a flaky scenario allowed only when its second run passed, and the pull request carries the summary and the m5 total.",
-			"noAutomatedProof": "The planning set runs only through make live-plan with billed OpenRouter calls, which CI does not have. The pull request carries the summary.md of the one approved run and the m5 total it printed."
+			"noAutomatedProof": "The planning set runs only through make live-plan with billed OpenRouter calls, which CI does not have. The pull request carries the summary.md of every approved run and the m5 total each printed."
 		},
 		{
 			"id": "8.2.1",

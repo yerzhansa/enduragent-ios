@@ -10,6 +10,7 @@ import Testing
 	static let profile =
 		#"{"experienceLevel":"intermediate","ftpWatts":250,"volumeTier":"medium","scheduleType":"flexible","goalType":"race","raceType":"gran_fondo","raceDate":"1998-08-09"}"#
 	static let highVolume = profile.replacingOccurrences(of: #""medium""#, with: #""high""#)
+	static let lowVolume = profile.replacingOccurrences(of: #""medium""#, with: #""low""#)
 	static let coachPlan: JSONValue = .object([
 		"name": .string("Gran Fondo Build"), "primaryGoal": .string("Finish the gran fondo strong"),
 		"status": .string("active"), "notes": .string("Ride easy on Mondays."),
@@ -82,6 +83,29 @@ import Testing
 			try await turns.prepared(in: turns.store).map(\.document) == [
 				try Self.merged(Self.coachPlan, newest)
 			])
+	}
+
+	@Test func aTurnThatDraftsTwiceSavesItsSecondDraftOverTheEarlierTurnsDraft() async throws {
+		let coach = await turns.coach()
+		let earlier = try await draft(Self.profile, on: coach)
+
+		_ = try await turns.reply(
+			after: [
+				[.toolCall(name: "build_plan_skeleton", arguments: Self.highVolume)],
+				[.toolCall(name: "build_plan_skeleton", arguments: Self.lowVolume)],
+				[turns.save(Self.coachPlan)],
+			], on: coach)
+
+		let drafts = try turns.toolData()
+		let first = try #require(drafts.first)
+		let newest = try #require(drafts.dropFirst().first)
+		let phases = [earlier, first, newest].map { $0.objectFields["phases"] }
+		#expect(phases[0] != phases[1] && phases[1] != phases[2] && phases[0] != phases[2])
+		let expected = try Self.merged(Self.coachPlan, newest)
+		#expect(try await turns.prepared(in: turns.store).map(\.document) == [expected])
+		let token = try await turns.armedToken(on: coach)
+		#expect(await coach.decide(.save(token), in: .main) == .saved)
+		#expect(try await turns.planLoad(on: coach) == expected.value)
 	}
 
 	@Test func aDraftFromAnEarlierStepOfTheSameTurnIsSaved() async throws {
