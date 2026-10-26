@@ -63,8 +63,7 @@ struct PlanCardText: Equatable {
 		}
 		state = Self.stateKey(card.state).map { display.say($0) }
 		self.answer = answer.flatMap { answer in
-			if answer == .storageUnavailable, card.state == .storageUnavailable { return nil }
-			return display.say(answer.key, answer.vars)
+			answer.describes(card.state) ? display.say(answer.key, answer.vars) : nil
 		}
 	}
 
@@ -119,6 +118,15 @@ enum PlanAnswer: Equatable {
 		case .presented, .saved, .canceled: return nil
 		case .notSaved(let reason): self = .notSaved(reason)
 		case .storageUnavailable: self = .storageUnavailable
+		}
+	}
+
+	fileprivate func describes(_ state: PlanCardState) -> Bool {
+		switch self {
+		case .notSaved(.athleteChanged), .notSaved(.notPresented), .storageUnavailable:
+			if case .waiting = state { true } else { false }
+		case .notSaved(.alreadyDecided): [.saving, .saved, .canceled].contains(state)
+		case .notSaved(.expired), .notSaved(.replaced): state == .expired
 		}
 	}
 

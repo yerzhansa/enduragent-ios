@@ -1180,6 +1180,8 @@
 				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "eachRefusedTapFixtureLeavesItsAnswerOnTheCard"},
 				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "theReplacedTapFixtureRefusesTheOlderCardAndLeavesTheNewerOneWaiting"},
 				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "theStorageStageShowsOneStorageLineAndNoControls"},
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aSavedCardShowsNoStorageAnswerLeftFromTheTapThatStalled"},
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aCanceledCardShowsNoRefusalLeftFromAnEarlierTap"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
