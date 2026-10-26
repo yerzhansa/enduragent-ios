@@ -21,7 +21,8 @@
 		"6.5": 5,
 		"7.1": 13,
 		"7.2": 5,
-		"8.1": 7
+		"8.1": 7,
+		"8.2": 4
 	},
 	"criteria": [
 		{
@@ -1585,6 +1586,48 @@
 			"id": "8.1.7",
 			"statement": "The planning set passes against the real model, with a flaky scenario allowed only when its second run passed, and the pull request carries the summary and the m5 total.",
 			"noAutomatedProof": "The planning set runs only through make live-plan with billed OpenRouter calls, which CI does not have. The pull request carries the summary.md of the one approved run and the m5 total it printed."
+		},
+		{
+			"id": "8.2.1",
+			"statement": "PlanPhoneRun holds steps 1 to 7 of the phone session, each starting from the state the step before it left, with 12 Sends and one New conversation, each counted through one spendMessage, and exactly one calendar Approve, in step 5.",
+			"phoneSession": "PlanPhoneRun runs only on the operator's iPhone in the phone session, never on a simulator. The reviewer reads it against the session's seven steps."
+		},
+		{
+			"id": "8.2.2",
+			"statement": "phone-check plan refuses before build with a budget below the planned count, with a budget that would take the milestone past 30, and with a messages.tsv row it cannot read. Each refusal launches nothing.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theWholeSessionPlansTwelveSendsAndOneNewConversation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "stepsOutsideTheSessionAreRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "stepSixRunsAlone"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetBelowTheStepsPlannedCountIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "anAnswerThatIsNotABudgetIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetThatWouldTakeTheMilestonePastThirtyIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRowThatCannotBeReadRefusesTheInvocation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aFileWithoutItsHeaderRefusesTheInvocation"}
+			]
+		},
+		{
+			"id": "8.2.3",
+			"statement": "After a run, messages.tsv gains one row whose count equals the runner's message actions, or the whole budget when the log cannot be read.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunAddsOneRowCountingTheRunnersMessageActions"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunWhoseLogCannotBeReadRecordsTheWholeBudget"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theActionsLogIsTheOneAttachmentNamedForIt"}
+			]
+		},
+		{
+			"id": "8.2.4",
+			"statement": "make test-tools passes a PlanPhoneBudget case for each refusal of 8.2.2 and for the count of 8.2.3, with no phone.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetBelowTheStepsPlannedCountIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "anAnswerThatIsNotABudgetIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetThatWouldTakeTheMilestonePastThirtyIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRowThatCannotBeReadRefusesTheInvocation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aFileWithoutItsHeaderRefusesTheInvocation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunAddsOneRowCountingTheRunnersMessageActions"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunWhoseLogCannotBeReadRecordsTheWholeBudget"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theActionsLogIsTheOneAttachmentNamedForIt"}
+			]
 		}
 	],
 	"requirements": [
@@ -1649,21 +1692,6 @@
 			"agreedDifference": "ADR-0084: two plan_save calls in one step both answer concurrent_plan_save and every later plan_save of the attempt is refused, where npm runs each call. Shown by 6.3.3."
 		},
 		{
-			"id": "B15.05/plan-schema",
-			"statement": "plan_save's schema types the draft's phases and zone tables, so the coach can send the plan it showed.",
-			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-25 (gate PARKED-8.1): plan_save's plan schema adds phases and zoneTables, typed in the shape build_plan_skeleton returns, where npm's lists only name, primaryGoal, totalWeeks and status. name stays the only required key. Shown by 6.3.11."
-		},
-		{
-			"id": "B15.05/save-plan-sentence",
-			"statement": "The prompt tells the coach that the athlete saves the plan by tapping Save plan on the plan card.",
-			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-25 (gate PARKED-8.1): right after npm's plan rule, kept byte for byte, the prompt adds one sentence saying the athlete saves the plan by tapping Save plan on the plan card, where npm's prompt names no button. Shown by 6.3.12."
-		},
-		{
-			"id": "B15.05/save-draft",
-			"statement": "When the conversation holds a plan draft, plan_save saves the newest draft's weeks, phases and zones under the coach's name, goal and status.",
-			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-26 (gate PARKED-8.1-DRAFT): npm saves the object the coach sends, while the phone, when the conversation since its last New conversation holds a successful build_plan_skeleton result, saves the newest draft's totalWeeks, phases and zoneTables with the coach's name, primaryGoal, status and other keys. With no draft it saves the object the coach sends, as npm does. Shown by 6.3.1."
-		},
-		{
 			"id": "B16.01/plan-save",
 			"statement": "Choosing a coaching option is never plan-save approval: it saves no plan and writes no claim while a plan-save card waits.",
 			"criteria": ["6.4.14"]
@@ -1707,6 +1735,21 @@
 			"id": "B19.03",
 			"statement": "Saving a plan has its own confirm control, Save plan on the plan-save card, and never uses the calendar approval component.",
 			"criteria": ["6.1.3", "6.2.4", "6.4.2", "6.4.4", "6.4.5", "6.4.6", "6.4.7", "6.4.11", "6.4.12", "6.4.17", "7.1.1", "7.1.4", "7.1.10", "7.1.13"]
+		},
+		{
+			"id": "B15.05/plan-schema",
+			"statement": "plan_save's schema types the draft's phases and zone tables, so the coach can send the plan it showed.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-25 (gate PARKED-8.1): plan_save's plan schema adds phases and zoneTables, typed in the shape build_plan_skeleton returns, where npm's lists only name, primaryGoal, totalWeeks and status. name stays the only required key. Shown by 6.3.11."
+		},
+		{
+			"id": "B15.05/save-plan-sentence",
+			"statement": "The prompt tells the coach that the athlete saves the plan by tapping Save plan on the plan card.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-25 (gate PARKED-8.1): right after npm's plan rule, kept byte for byte, the prompt adds one sentence saying the athlete saves the plan by tapping Save plan on the plan card, where npm's prompt names no button. Shown by 6.3.12."
+		},
+		{
+			"id": "B15.05/save-draft",
+			"statement": "When the conversation holds a plan draft, plan_save saves the newest draft's weeks, phases and zones under the coach's name, goal and status.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-26 (gate PARKED-8.1-DRAFT): npm saves the object the coach sends, while the phone, when the conversation since its last New conversation holds a successful build_plan_skeleton result, saves the newest draft's totalWeeks, phases and zoneTables with the coach's name, primaryGoal, status and other keys. With no draft it saves the object the coach sends, as npm does. Shown by 6.3.1."
 		},
 		{
 			"id": "B15.01",

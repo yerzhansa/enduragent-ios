@@ -24,12 +24,19 @@ Open `chat.settings`, then `settings.debug`. Settings exists in every build. Its
 
 | Entry | Handle | What to inspect |
 | --- | --- | --- |
-| Credits | `debug.credits` | Developer grant, balance, identity, and purchase diagnostics. Athlete Credits is `settings.credits`. |
-| Credential fixture controls | `fixture.connection`, `fixture.failCredentialWrite`, `fixture.toggleKeychainLock` | Connection identity, failed write and lock/unlock hooks only. Product connection actions are Settings > intervals.icu. See [settings.md](./settings.md). |
+| Access model | `debug.accessModel` | The saved model ID, or `unavailable`. |
+| Credits | `debug.credits` | Developer grant, balance, identity, and purchase diagnostics, with `debug.credits.claimStarter` and `debug.credits.starterNotice`. Athlete Credits is `settings.credits`. |
+| Credential fixture controls | `fixture.connection`, `fixture.failCredentialWrite`, `fixture.toggleKeychainLock`, `fixture.restoreSecureStorage`, `fixture.corruptIntervals` | Connection identity, failed write, lock/unlock, secure-storage and malformed-key hooks only. Product connection actions are Settings > intervals.icu. See [settings.md](./settings.md). |
 | Records | `debug.records` | `records.count.<kind>`, `records.row.<id>`, and `records.refresh`. A refresh reads new records. |
 | Language | `debug.language` | The same language choices opened by `/language`. See [language.md](./language.md). |
 | Leases | `debug.leases` | `leases.row.<n>` and the visible `Refresh` button. See [chat.md](./chat.md). |
 | Fixture counters and prompt text | Rows on Debug itself | `fixture.modelRequestCount`, `fixture.historyHead`, and `fixture.replyLanguage`. |
+| Conversation faults | `fixture.failNextAppend`, `fixture.expire` | A failed record append and expired leases. See [chat.md](./chat.md). |
+| Review and calendar faults | `fixture.failReviewRead`, `fixture.failCalendarRead`, `fixture.lockIntervals`, `fixture.calendarCalls`, `fixture.calendarReadFault` | Fail the next read of the open review, fail the next calendar read for both fixture athletes, lock the fixture keychain, count calendar calls, and show whether the calendar read fault is armed or consumed. No test taps or reads them. |
+| OpenRouter rejection | `fixture.rejectTwoRequests`, `fixture.rejectionFailure` | Two overlapping rejected requests for `OpenRouterRecoveryProof`. |
+| Athlete peers | `fixture.switchAthlete`, `fixture.seedOwnership`, and the other peer rows | See [history.md](./history.md). |
+
+Other fixture-only rows sit on the screens they serve: `fixture.signInCount` and `fixture.completeSignIn` on Access method, `consent.modelRequestCount` on consent, and `fixture.catalogState` in the model picker. `fixture.nativeKeychain` appears only with `-EnduragentFixtureKeychain native-proof`, which the device proofs in [phone.md](../phone.md) use.
 
 The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settled count>`. Existing proofs use `TutorialHarness.exchange` to wait for a whole turn to settle.
 
@@ -39,8 +46,8 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 | --- | --- |
 | [Onboarding](./onboarding.md) | Health notice, intervals.icu connection, starter Credits, and storage availability. |
 | [Conversation](./chat.md) | Send, working and notice states, Try again, Stop, relaunch, memory work, New conversation, overnight continuity, and Debug settings. |
-| [Language](./language.md) | All language rows, fixed language, Automatic on a French phone, saved-language first frame, and notice language. |
-| [Workout review](./workout-preview.md) | One card per change, kept workouts, totals and the approval bar, reviews of 8, 20 and 40 changes, the largest text size, VoiceOver order, review languages, approve or cancel, durable outcomes, account changes and upgraded reviews. |
+| [Language](./language.md) | All language rows, fixed language, Automatic on a French phone, saved-language first frame, notice language, regional formats, and the 17-language screen matrix. |
+| [Workout review](./workout-review.md) | One card per change, kept workouts, totals and the approval bar, reviews of 8, 20 and 40 changes, the largest text size, VoiceOver order, review languages, approve or cancel, durable outcomes, account changes and upgraded reviews. |
 | [Plan-save card](./plan-save-card.md) | The card a plan save ends with, its fields and "replaces" line, arming, Save plan and Cancel, every state and refused tap, carried cards, the largest text size, VoiceOver order, three languages and a waiting review beside it. |
 | [Settings](./settings.md) | Toolbar navigation, Credits and the model picker under Model access, intervals.icu connection and calendar guidance, Session, draft and setup continuity, and French icon actions. |
 | [History](./history.md) | Archived conversations, close reasons, read-only content, upgrade, and open-time probes. |
@@ -50,6 +57,6 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 
 Every feature file has `Sub-features`, `How to get to it (user POV)`, `Driving it with sim and XCUITest`, and `Gotchas`, in that order. Keep stable feature IDs and document uncovered paths as gaps.
 
-Cross-check the class names against `apps/ios/EnduragentUITests/`. Every XCTestCase class, including latency probes, must appear in a feature file, and every named proof or probe must exist. Run `make check-source` for the cross-check and keep its output in the sweep report. It checks names and selected methods without launching the app. It does not establish that a proof passed.
+Cross-check the class names against `apps/ios/EnduragentUITests/`. Every XCTestCase class, including latency probes, must appear in a feature file, and every named proof or probe must exist. Run `make check-source` for the cross-check and keep its output in the sweep report. It reads only the feature files, and in them only class names ending in `Proof`, `Probe` or `Sweep` and `Class/testMethod` selectors. It does not check `SKILL.md`, `phone.md`, hosted test names such as `FixtureLaunchTests.<case>`, attachment names, identifiers, strings or launch arguments; check those by hand against the source. It does not establish that a proof passed.
 
 Reach every Debug list row through `TutorialHarness.debugRow` before tapping it or reading its label. The helper scrolls with a deadline. Use `direction: .down` when returning from fixture counters to a row above them. Leave Settings and its destinations with `TutorialHarness.returnToChat`.
