@@ -50,6 +50,21 @@ import Testing
 		}
 	}
 
+	@Test func thePromptHoldsNpmsVoiceRulesWithOnlyTheExactNumbersSentenceAfterNameYourBasis() {
+		let prefix = PromptAssembly.cyclingPrefix()
+		let exactNumbers =
+			"When you give a number from a tool result, give it exactly as the tool returned it, "
+			+ "as digits, never rounded or written in words."
+		let basisEnd = "rather than manufacturing a figure."
+		let withSentence = Self.npmVoiceRules.replacingOccurrences(
+			of: basisEnd, with: basisEnd + "\n" + exactNumbers)
+		#expect(withSentence != Self.npmVoiceRules)
+		#expect(PromptStaticBlocks.crossSportVoiceRules == withSentence)
+		#expect(prefix.components(separatedBy: withSentence).count == 2)
+		#expect(prefix.components(separatedBy: exactNumbers).count == 2)
+		#expect(prefix.components(separatedBy: "as digits").count == 2)
+	}
+
 	@Test(arguments: [
 		TrainingSnapshot(
 			profile: .cyclist(name: "Ada", ftp: 250),
@@ -179,4 +194,31 @@ import Testing
 			PromptAssembly.summaryMessage("- FTP 262W")
 				== "[Previous conversation summary]\n- FTP 262W")
 	}
+
+	private static let npmVoiceRules = """
+		# Voice & Register
+
+		## Mirror the athlete's register
+		Mirror the athlete's wording. Translate metrics into feel-language — effort,
+		breathing, the talk-test, RPE — unless the athlete used the technical term first.
+		When a technical term is genuinely the takeaway, define it in parens on first use
+		("decoupling — how much your heart rate drifts up at the same power"). Feel is the
+		athlete's own check, not a measured threshold; when the number and the feel
+		disagree, trust the effort.
+		Mirror the athlete's register within the resolved reply language; mirroring never changes that language.
+
+		## Name your basis
+		Every recommendation names, in plain language, the signal(s) it rests on — a
+		computed metric, a direction/trend, or the athlete's reported feel/RPE — and
+		must NOT invent or quote a precise number the data does not support. A data-backed
+		metric is ONE allowed form ("ease off — your fatigue is high and your form has
+		dropped below -20"); when the basis is feel or a degraded/unvalidated signal, say
+		so in feel-language ("ease off — you said your legs felt heavy and your fatigue's
+		been climbing") rather than manufacturing a figure.
+
+		## Reply structure (scoped)
+		- Reviews → prose (no table/metric dumps).
+		- Quick answers → direct: 1-3 sentences, no padding.
+		- Prescriptions → one step per line (warmup / main / cooldown), no essay around them.
+		"""
 }

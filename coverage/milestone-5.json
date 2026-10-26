@@ -982,9 +982,10 @@
 		},
 		{
 			"id": "6.3.12",
-			"statement": "The prompt holds npm's plan rule byte for byte, then one sentence saying the athlete saves the plan by tapping Save plan on the plan card (B15.05/save-plan-sentence), and no other sentence naming plan_save or the plan card, and the cycling prefix stays under its token ceilings.",
+			"statement": "The prompt holds npm's plan rule byte for byte, then one sentence saying the athlete saves the plan by tapping Save plan on the plan card (B15.05/save-plan-sentence), and no other sentence naming plan_save or the plan card; its \"Name your basis\" rule holds npm's text byte for byte, then one sentence telling the coach to give a number from a tool result exactly as the tool returned it, as digits (B15.02/exact-numbers), which appears nowhere else; and the cycling prefix stays under its token ceilings.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "thePromptHoldsNpmsPlanSaveRuleThenTheSavePlanSentenceAndNoOtherPlanSaveSentence"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "thePromptHoldsNpmsVoiceRulesWithOnlyTheExactNumbersSentenceAfterNameYourBasis"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "prefixCarriesTheCyclingSkillsUnderTheTokenCeilings"}
 			]
 		},
@@ -1750,6 +1751,11 @@
 			"id": "B15.05/save-draft",
 			"statement": "When the conversation holds a plan draft, plan_save saves the newest draft's weeks, phases and zones under the coach's name, goal and status.",
 			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-26 (gate PARKED-8.1-DRAFT): npm saves the object the coach sends, while the phone, when the conversation since its last New conversation holds a successful build_plan_skeleton result, saves the newest draft's totalWeeks, phases and zoneTables with the coach's name, primaryGoal, status and other keys. With no draft it saves the object the coach sends, as npm does. Shown by 6.3.1."
+		},
+		{
+			"id": "B15.02/exact-numbers",
+			"statement": "The prompt tells the coach to give a tool's numbers exactly as the tool returned them, as digits.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-26 (gate PARKED-8.1-FEASIBILITY): right after npm's \"Name your basis\" rule, kept byte for byte, the prompt adds one sentence telling the coach to give a number from a tool result exactly as the tool returned it, as digits, never rounded or written in words, where npm's prompt has no such rule. Shown by 6.3.12."
 		},
 		{
 			"id": "B15.01",

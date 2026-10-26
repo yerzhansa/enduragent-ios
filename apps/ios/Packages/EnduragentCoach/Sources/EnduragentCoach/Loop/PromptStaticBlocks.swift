@@ -51,6 +51,7 @@ package enum PromptStaticBlocks {
 		dropped below -20"); when the basis is feel or a degraded/unvalidated signal, say
 		so in feel-language ("ease off — you said your legs felt heavy and your fatigue's
 		been climbing") rather than manufacturing a figure.
+		When you give a number from a tool result, give it exactly as the tool returned it, as digits, never rounded or written in words.
 
 		## Reply structure (scoped)
 		- Reviews → prose (no table/metric dumps).
