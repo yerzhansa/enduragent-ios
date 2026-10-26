@@ -40,6 +40,7 @@ enum LivePlanVerdict {
 	static let saveClaims = [
 		"is saved", "has been saved", "have saved", "saved your plan", "plan saved", "now saved",
 	]
+	static let denials: Set = ["nothing", "not", "no"]
 
 	static func check(
 		_ expectation: LivePlanExpectation, on turn: LiveTurnRecord,
@@ -97,7 +98,11 @@ enum LivePlanVerdict {
 				? nil : "the plan Save plan saved differs from the plan \(save) prepared"
 		case .claimsNoSave:
 			let lowered = reply.lowercased()
-			let claims = saveClaims.filter { lowered.contains($0) }
+			let claims = saveClaims.filter { phrase in
+				lowered.ranges(of: phrase).contains {
+					!denials.contains(word(before: $0, in: lowered))
+				}
+			}
 			return claims.isEmpty
 				? nil
 				: "the reply claims a save: \(claims.map { "\"\($0)\"" }.joined(separator: ", "))"
@@ -127,6 +132,15 @@ enum LivePlanVerdict {
 	static func violations(ofTap tap: LivePlanTap?) -> [String] {
 		guard let tap else { return ["no plan card waited to save"] }
 		return tap.saved ? [] : ["Save plan answered \(tap.outcome)"]
+	}
+
+	static func word(before claim: Range<String.Index>, in text: String) -> String {
+		let head = text[..<claim.lowerBound]
+		let gap = head.reversed().prefix { $0.isWhitespace || $0 == "*" || $0 == "_" }.count
+		guard gap > 0 else { return "" }
+		let end = head.index(head.endIndex, offsetBy: -gap)
+		let letters = head[..<end].reversed().prefix(while: \.isLetter).count
+		return String(head[head.index(end, offsetBy: -letters)..<end])
 	}
 
 	static func data(_ result: String) -> JSONValue? {

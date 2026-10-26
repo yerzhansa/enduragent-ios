@@ -5,7 +5,7 @@ import Foundation
 enum LivePlanScenarios {
 	static let title = "Live planning suite"
 	static let raceDays = 84
-	static let feasibility = "I'm an intermediate rider at 200 W. Can I get to 280 W?"
+	static let feasibility = "I'm an intermediate rider at 250 W. Can I get to 350 W?"
 	static let save = "That looks right. Save that plan."
 	static let load = "What is my current plan? Load it and list its phases."
 	static let revision =

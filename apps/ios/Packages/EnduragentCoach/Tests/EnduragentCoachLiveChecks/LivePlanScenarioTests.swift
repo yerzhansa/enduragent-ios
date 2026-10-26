@@ -33,7 +33,7 @@ import Testing
 
 		#expect(
 			runs.first?.violations == [
-				"turn 1: the reply drops realisticMilestone 240; the reply drops estimatedCycles 2"
+				"turn 1: the reply drops realisticMilestone 300; the reply drops estimatedCycles 2"
 			])
 		#expect(
 			runs.dropFirst().first?.violations == [
@@ -88,6 +88,33 @@ import Testing
 
 		#expect(run.turns.first?.prepared?.value == Self.basePlan)
 		#expect(run.violations == ["turn 1: build_plan_skeleton gave no draft before plan_save"])
+	}
+
+	@Test(arguments: [
+		("Nothing is saved yet", [String]()),
+		("No plan saved yet", []),
+		("I have not saved your plan.", []),
+		("**Nothing** is saved yet.", []),
+		("Your plan is saved", [Self.claimsIsSaved]),
+		(
+			"Nothing is saved yet. Tap Save plan, and then your plan is saved.",
+			[Self.claimsIsSaved]
+		),
+		("The casino is saved", [Self.claimsIsSaved]),
+		("No, plan saved.", [#"turn 1: the reply claims a save: "plan saved""#]),
+	])
+	func claimsNoSaveSkipsAPhraseRightAfterNothingNotOrNoAndCountsEveryOtherOccurrence(
+		reply: String, violations: [String]
+	) async throws {
+		let rig = PlanBenchRig()
+		let ask = "Show me the plan without saving it."
+		let scenario = LiveScenario(
+			name: "claims-no-save", setting: .connected,
+			turns: [LiveTurnPlan(message: ask, expectations: [.plan(.claimsNoSave)])])
+
+		let run = try await rig.run(scenario) { _ in [ask: [PlanCoachSteps.reply(reply)]] }
+
+		#expect(run.violations == violations)
 	}
 
 	@Test func aPreparedPlanThatDiffersFromTheScenariosDraftFailsSavesDraftInPhases() async throws {
@@ -314,6 +341,8 @@ import Testing
 		return .object(fields)
 	}
 
+	private static let claimsIsSaved = #"turn 1: the reply claims a save: "is saved""#
+
 	private static let profileFtpWithoutTarget =
 		#"{"currentFtp":250,"experienceLevel":"intermediate"}"#
 
@@ -322,57 +351,5 @@ import Testing
 			arguments.map { .toolCall(name: ToolName.assessFeasibility.rawValue, arguments: $0) }
 				+ [.finish(reason: .toolCalls)]
 		}
-	}
-}
-
-final class PlanSuiteRig: Sendable {
-	let rig = PlanBenchRig()
-	let price: Double
-	let logs: URL
-	let model = FakeModelTransport()
-	private let lines = Mutex<[String]>([])
-
-	init(price: Double) throws {
-		self.price = price
-		logs = try TestTemporaryFolders.make()
-		model.finishUsage = Usage(inputTokens: 900, outputTokens: 80, cost: price)
-	}
-
-	var spend: URL { logs.appending(path: "spend.tsv") }
-	var said: [String] { lines.withLock { $0 } }
-
-	func seed(_ rows: [String]) throws {
-		try FileManager.default.createDirectory(at: logs, withIntermediateDirectories: true)
-		try Data(rows.map { $0 + "\n" }.joined().utf8).write(to: spend)
-	}
-
-	func rows() throws -> [String] {
-		try String(contentsOf: spend, encoding: .utf8).split(separator: "\n").dropFirst().map(
-			String.init)
-	}
-
-	func run(_ turns: (PlanCoachSteps) -> [String: [[PlanScript.Step]]]) async throws
-		-> LiveSuiteRun
-	{
-		let drafts = PlanDrafts()
-		model.respond =
-			PlanScript(turns(PlanCoachSteps(today: rig.today, drafts: drafts)), drafts: drafts)
-			.respond
-		let (logs, model, account) = (logs, model, rig.account)
-		let suite = LiveCoachSuite(
-			lookUp: { key in
-				KeychainLookup(
-					status: 0,
-					output: Data(
-						(key == .intervals ? "synthetic-intervals-key" : "synthetic-openrouter-key")
-							.utf8))
-			},
-			folder: { check, started in
-				try LiveRunFolder(logs: logs, kind: check, startedAt: started)
-			},
-			modelTransport: { _ in model }, accountReads: { _, _ in account },
-			say: { [self] line in lines.withLock { $0.append(line) } })
-		return try await suite.run(
-			LivePlanScenarios.planned, check: .plan, title: LivePlanScenarios.title)
 	}
 }

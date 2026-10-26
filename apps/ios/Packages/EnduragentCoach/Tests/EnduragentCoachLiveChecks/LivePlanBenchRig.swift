@@ -54,7 +54,7 @@ struct PlanCoachSteps {
 	typealias Step = PlanScript.Step
 
 	static let feasibilityArguments =
-		#"{"currentFtp":200,"targetFtp":280,"experienceLevel":"intermediate"}"#
+		#"{"currentFtp":250,"targetFtp":350,"experienceLevel":"intermediate"}"#
 	static let sampleWeekArguments =
 		#"{"volumeTier":"medium","scheduleType":"fixed","sessionsPerWeek":4}"#
 	static let showsCard = "Here it is to keep. Tap Save plan on the card below."
@@ -70,7 +70,7 @@ struct PlanCoachSteps {
 	var roundsFeasibility: [Step] {
 		[
 			Self.call(.assessFeasibility, Self.feasibilityArguments),
-			Self.reply("That is a 40% gap. Aim for 245 W first."),
+			Self.reply("That is a 40% gap. Aim for 295 W first."),
 		]
 	}
 
@@ -268,5 +268,57 @@ struct PlanBenchRig {
 				LivePlanScenarios.revision: steps.revisionSaved,
 			]
 		}
+	}
+}
+
+final class PlanSuiteRig: Sendable {
+	let rig = PlanBenchRig()
+	let price: Double
+	let logs: URL
+	let model = FakeModelTransport()
+	private let lines = Mutex<[String]>([])
+
+	init(price: Double) throws {
+		self.price = price
+		logs = try TestTemporaryFolders.make()
+		model.finishUsage = Usage(inputTokens: 900, outputTokens: 80, cost: price)
+	}
+
+	var spend: URL { logs.appending(path: "spend.tsv") }
+	var said: [String] { lines.withLock { $0 } }
+
+	func seed(_ rows: [String]) throws {
+		try FileManager.default.createDirectory(at: logs, withIntermediateDirectories: true)
+		try Data(rows.map { $0 + "\n" }.joined().utf8).write(to: spend)
+	}
+
+	func rows() throws -> [String] {
+		try String(contentsOf: spend, encoding: .utf8).split(separator: "\n").dropFirst().map(
+			String.init)
+	}
+
+	func run(_ turns: (PlanCoachSteps) -> [String: [[PlanScript.Step]]]) async throws
+		-> LiveSuiteRun
+	{
+		let drafts = PlanDrafts()
+		model.respond =
+			PlanScript(turns(PlanCoachSteps(today: rig.today, drafts: drafts)), drafts: drafts)
+			.respond
+		let (logs, model, account) = (logs, model, rig.account)
+		let suite = LiveCoachSuite(
+			lookUp: { key in
+				KeychainLookup(
+					status: 0,
+					output: Data(
+						(key == .intervals ? "synthetic-intervals-key" : "synthetic-openrouter-key")
+							.utf8))
+			},
+			folder: { check, started in
+				try LiveRunFolder(logs: logs, kind: check, startedAt: started)
+			},
+			modelTransport: { _ in model }, accountReads: { _, _ in account },
+			say: { [self] line in lines.withLock { $0.append(line) } })
+		return try await suite.run(
+			LivePlanScenarios.planned, check: .plan, title: LivePlanScenarios.title)
 	}
 }
