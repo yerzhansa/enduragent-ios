@@ -65,6 +65,12 @@ extension TurnRunner {
 			}
 			let outcomes = try await runTools(calls, scope: scope)
 			for (call, outcome) in outcomes {
+				if call.name == ToolName.buildPlanSkeleton.rawValue,
+					let draft = PlanDraftStructure(outcome)
+				{
+					await plans.drafted(
+						draft, for: DraftKey(turn: attempt.turn, attempt: attempt.attempt))
+				}
 				wire.append(
 					WireMessage(
 						role: .tool,

@@ -28,3 +28,13 @@ package enum PlanSaveNotPrepared: String, Equatable, Sendable {
 	case notSaved
 	case turnDidNotFinish
 }
+
+enum PlanPreparation: Sendable, Equatable {
+	case held(PlanDocument, ActionBinding)
+	case refused
+}
+
+struct PlanWake {
+	let at: Date
+	let task: Task<Void, Never>
+}

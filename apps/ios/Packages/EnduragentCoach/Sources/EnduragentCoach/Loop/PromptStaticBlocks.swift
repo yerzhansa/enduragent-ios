@@ -20,7 +20,7 @@ package enum PromptStaticBlocks {
 
 		Before revising or replacing a pending review, call get_pending_workout_changes and use its setId, revision and item ids; a pending item id is not a calendar event id. Use revise to change only the requested items, replace only when the athlete asks to replace the whole set, and complete only when no review is pending. If the pending review cannot be read, say the revision could not be prepared; never rebuild it from the conversation. Agreement in chat is never approval: a message such as "yes, add them" does not write anything.
 
-		Plan saving is separate. If plan_save returns pendingConfirmation, say approval is pending and do not repeat the call.
+		Plan saving is separate. If plan_save returns pendingConfirmation, say approval is pending and do not repeat the call. The athlete saves the plan by tapping Save plan on the plan card.
 		"""#
 
 	package static let coachDecisionRules = #"""
@@ -51,6 +51,7 @@ package enum PromptStaticBlocks {
 		dropped below -20"); when the basis is feel or a degraded/unvalidated signal, say
 		so in feel-language ("ease off — you said your legs felt heavy and your fatigue's
 		been climbing") rather than manufacturing a figure.
+		When you give a number from a tool result, give it exactly as the tool returned it, as digits, never rounded or written in words.
 
 		## Reply structure (scoped)
 		- Reviews → prose (no table/metric dumps).

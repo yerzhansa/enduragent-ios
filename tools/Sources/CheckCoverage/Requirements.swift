@@ -31,7 +31,8 @@ struct RequirementScope {
 		agreedDifferences: [
 			"B15.01/acknowledgement", "B15.01/arguments", "B15.03/phone-day", "B19.03/durable",
 			"B19.03/step-limit", "B15.05/plan-unavailable", "B15.05/size", "B15.05/sorted-keys",
-			"B15.05/two-calls",
+			"B15.05/two-calls", "B15.05/plan-schema", "B15.05/save-plan-sentence",
+			"B15.05/save-draft", "B15.02/exact-numbers",
 		],
 		decisionRecords: ["ADR-0083", "ADR-0084"])
 

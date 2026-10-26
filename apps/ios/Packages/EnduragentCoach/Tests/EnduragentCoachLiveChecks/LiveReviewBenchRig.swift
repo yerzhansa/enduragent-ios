@@ -62,7 +62,8 @@ struct ReviewBenchRig {
 				intervalsKey: "synthetic-intervals-key", openRouterKey: "synthetic-model-key",
 				athlete: nil, model: try LiveCoachBench.builtInModel(),
 				ledger: try LiveSpendLedger(
-					file: try TestTemporaryFolders.make().appending(path: "spend.tsv"), limit: 100
+					file: try TestTemporaryFolders.make().appending(path: "spend.tsv"),
+					milestone: .m4, limit: 100
 				),
 				today: today, modelTransport: { _ in model }, accountReads: { _, _ in account })
 			runs.append(try await bench.run(scenario, attempt: 1))

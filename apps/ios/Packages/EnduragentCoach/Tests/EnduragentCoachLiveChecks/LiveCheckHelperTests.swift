@@ -40,7 +40,7 @@ import Testing
 
 	@Test func theLedgerRefusesACallThatWouldPassTheLimitAndKeepsItsTotalAcrossRuns() throws {
 		let file = try TestTemporaryFolders.make().appending(path: "spend.tsv")
-		let ledger = try LiveSpendLedger(file: file, limit: 10)
+		let ledger = try LiveSpendLedger(file: file, milestone: .m4, limit: 10)
 		ledger.label("status#1")
 		try ledger.charge(
 			model: testModel, usage: Usage(inputTokens: 900, outputTokens: 80, cost: 9.6), bound: 1,
@@ -51,7 +51,7 @@ import Testing
 		#expect(throws: ProviderFailure.accessExhausted) { try ledger.admit(0.41) }
 		#expect(ledger.capReached)
 		#expect(throws: ProviderFailure.accessExhausted) { try ledger.admit(0) }
-		let reopened = try LiveSpendLedger(file: file, limit: 10)
+		let reopened = try LiveSpendLedger(file: file, milestone: .m4, limit: 10)
 		#expect(abs(reopened.total - 9.6) < 1e-9)
 		let rows = try String(contentsOf: file, encoding: .utf8).split(separator: "\n")
 		#expect(rows.first.map(String.init) == LiveSpendLedger.header)
@@ -59,13 +59,103 @@ import Testing
 			rows.dropFirst().map { $0.split(separator: "\t").dropFirst().map(String.init) } == [
 				[
 					"status#1", testModel.rawValue, "900", "80", "9.600000", "reported", "9.600000",
+					"m4",
 				]
 			])
 	}
 
+	@Test func anEightColumnSpendFileIsCopiedThenTaggedM4OnceAndKeepsTheCoachTotal() throws {
+		let rows = [
+			"1998-06-12T08:00:00Z\tstatus#1\tmodel-a\t900\t80\t2.500000\treported\t2.500000",
+			"1998-06-13T08:00:00Z\tzones#2\tmodel-a\t0\t0\t7.100000\tbound\t9.600000",
+		]
+		let file = try Self.spendFile(holding: [LiveSpendLedger.earlierHeader] + rows)
+		let original = try Data(contentsOf: file)
+		let backup = LiveSpendLedger.backup(of: file)
+
+		let coach = try LiveSpendLedger(file: file, milestone: .m4, limit: 10)
+
+		#expect(abs(coach.total - 9.6) < 1e-9)
+		#expect(backup.lastPathComponent == "spend.tsv.before-m5")
+		#expect(try Data(contentsOf: backup) == original)
+		let migrated = try Data(contentsOf: file)
+		#expect(
+			String(decoding: migrated, as: UTF8.self)
+				== ([LiveSpendLedger.header] + rows.map { $0 + "\tm4" }).map { $0 + "\n" }.joined())
+
+		let plan = try LiveSpendLedger(file: file, milestone: .m5, limit: 5)
+
+		#expect(plan.total == 0)
+		#expect(try Data(contentsOf: file) == migrated)
+		#expect(try Data(contentsOf: backup) == original)
+		#expect(abs(try LiveSpendLedger(file: file, milestone: .m4, limit: 10).total - 9.6) < 1e-9)
+	}
+
+	@Test(arguments: [
+		(
+			LiveSpendLedger.earlierHeader,
+			"1998-06-12T08:00:00Z\tstatus#1\tmodel-a\t900\t80\t2.500000\treported"
+		),
+		(
+			LiveSpendLedger.header,
+			"1998-06-12T08:00:00Z\tstatus#1\tmodel-a\t900\t80\t2.500000\treported\t2.500000\tm4\tm5"
+		),
+	])
+	func aSpendRowOfAnotherWidthStopsTheCheckNamingTheFileAndTheRow(header: String, row: String)
+		throws
+	{
+		let good = "1998-06-12T07:00:00Z\tstatus#1\tmodel-a\t1\t1\t0.100000\treported\t0.100000"
+		let current = header == LiveSpendLedger.header
+		let file = try Self.spendFile(holding: [header, current ? good + "\tm4" : good, row])
+		let original = try Data(contentsOf: file)
+
+		let stop = #expect(throws: LiveCheckStop.self) {
+			try LiveSpendLedger(file: file, milestone: .m4, limit: 10)
+		}
+
+		#expect(stop?.description == "\(file.path) line 3 is not a spend row: \(row)")
+		#expect(try Data(contentsOf: file) == original)
+		#expect(!FileManager.default.fileExists(atPath: LiveSpendLedger.backup(of: file).path))
+	}
+
+	@Test func eachMilestoneLedgerTotalsAndAdmitsOnlyItsOwnRows() throws {
+		let file = try TestTemporaryFolders.make().appending(path: "spend.tsv")
+		let stamp = Date(timeIntervalSince1970: 899_164_800)
+		try LiveSpendLedger(file: file, milestone: .m4, limit: 10).charge(
+			model: testModel, usage: Usage(inputTokens: 900, outputTokens: 80, cost: 9.6), bound: 1,
+			at: stamp)
+
+		let plan = try LiveSpendLedger(file: file, milestone: .m5, limit: 5)
+
+		#expect(plan.total == 0)
+		#expect(throws: Never.self) { try plan.admit(4) }
+		try plan.charge(
+			model: testModel, usage: Usage(inputTokens: 900, outputTokens: 80, cost: 4), bound: 4,
+			at: stamp)
+		#expect(abs(plan.total - 4) < 1e-9 && !plan.capReached)
+		#expect(throws: ProviderFailure.accessExhausted) { try plan.admit(1.01) }
+		#expect(plan.capReached)
+		#expect(throws: ProviderFailure.accessExhausted) { try plan.admit(0) }
+		#expect(abs(try LiveSpendLedger(file: file, milestone: .m4, limit: 10).total - 9.6) < 1e-9)
+		#expect(abs(try LiveSpendLedger(file: file, milestone: .m5, limit: 5).total - 4) < 1e-9)
+		let rows = try String(contentsOf: file, encoding: .utf8).split(separator: "\n").dropFirst()
+		#expect(
+			rows.map { $0.split(separator: "\t").suffix(2).map(String.init) } == [
+				["9.600000", "m4"], ["4.000000", "m5"],
+			])
+	}
+
+	static func spendFile(holding lines: [String]) throws -> URL {
+		let folder = try TestTemporaryFolders.make()
+		try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+		let file = folder.appending(path: "spend.tsv")
+		try Data(lines.map { $0 + "\n" }.joined().utf8).write(to: file)
+		return file
+	}
+
 	@Test func aCallWithoutAReportedCostIsChargedByTokensOrByItsBound() throws {
 		let file = try TestTemporaryFolders.make().appending(path: "spend.tsv")
-		let ledger = try LiveSpendLedger(file: file, limit: 10)
+		let ledger = try LiveSpendLedger(file: file, milestone: .m4, limit: 10)
 
 		try ledger.charge(
 			model: testModel, usage: Usage(inputTokens: 1_000, outputTokens: 100, cost: nil),
@@ -75,8 +165,8 @@ import Testing
 
 		let rows = try String(contentsOf: file, encoding: .utf8).split(separator: "\n").dropFirst()
 		#expect(
-			rows.map { $0.split(separator: "\t").suffix(3).map(String.init) } == [
-				["0.007500", "tokens", "0.007500"], ["0.420000", "bound", "0.427500"],
+			rows.map { $0.split(separator: "\t").suffix(4).map(String.init) } == [
+				["0.007500", "tokens", "0.007500", "m4"], ["0.420000", "bound", "0.427500", "m4"],
 			])
 	}
 
@@ -84,7 +174,7 @@ import Testing
 		async throws
 	{
 		let file = try TestTemporaryFolders.make().appending(path: "spend.tsv")
-		let ledger = try LiveSpendLedger(file: file, limit: 10)
+		let ledger = try LiveSpendLedger(file: file, milestone: .m4, limit: 10)
 		let model = FakeModelTransport { _ in ScriptedReply([.text("ok"), .finish(reason: .stop)]) }
 		model.finishUsage = Usage(inputTokens: 12, outputTokens: 3, cost: 0.25)
 		let log = LiveExchangeLog()
@@ -178,7 +268,7 @@ import Testing
 
 	@Test func aFinishedCallWithNoUsageBlockIsChargedItsBound() async throws {
 		let file = try TestTemporaryFolders.make().appending(path: "spend.tsv")
-		let ledger = try LiveSpendLedger(file: file, limit: 10)
+		let ledger = try LiveSpendLedger(file: file, milestone: .m4, limit: 10)
 		let model = FakeModelTransport { _ in ScriptedReply([.text("ok"), .finish(reason: .stop)]) }
 		let metered = LiveMeteredTransport(inner: model, ledger: ledger, log: LiveExchangeLog())
 		let request = testRequest([WireMessage(role: .user, content: "/status", toolCalls: [])])
@@ -189,12 +279,12 @@ import Testing
 		#expect(abs(ledger.total - bound) < 1e-9)
 		let rows = try String(contentsOf: file, encoding: .utf8).split(separator: "\n").dropFirst()
 		#expect(
-			rows.map { $0.split(separator: "\t").suffix(2).first.map(String.init) } == ["bound"])
+			rows.map { $0.split(separator: "\t").suffix(3).first.map(String.init) } == ["bound"])
 	}
 
 	@Test func aCallThatFailsMidStreamIsChargedItsBound() async throws {
 		let file = try TestTemporaryFolders.make().appending(path: "spend.tsv")
-		let ledger = try LiveSpendLedger(file: file, limit: 10)
+		let ledger = try LiveSpendLedger(file: file, milestone: .m4, limit: 10)
 		let model = FakeModelTransport { _ in
 			ScriptedReply([.text("Fitness is"), .fail(.connection(.networkConnectionLost))])
 		}
@@ -209,7 +299,7 @@ import Testing
 		#expect(abs(ledger.total - bound) < 1e-9)
 		let rows = try String(contentsOf: file, encoding: .utf8).split(separator: "\n").dropFirst()
 		#expect(
-			rows.map { $0.split(separator: "\t").suffix(2).first.map(String.init) } == ["bound"])
+			rows.map { $0.split(separator: "\t").suffix(3).first.map(String.init) } == ["bound"])
 		#expect(log.drain().map { $0.failure != nil } == [true])
 	}
 

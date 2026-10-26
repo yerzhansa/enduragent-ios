@@ -21,6 +21,7 @@
 		"6.5": 5,
 		"7.1": 13,
 		"7.2": 5,
+		"8.1": 7,
 		"8.2": 4
 	},
 	"criteria": [
@@ -477,11 +478,11 @@
 		},
 		{
 			"id": "4.1.2",
-			"statement": "The name, description and parameters of build_plan_skeleton, assess_feasibility and get_sample_week as a turn offers them, and PlanToolSchemas.planSave and PlanToolSchemas.planLoad, equal tool-schemas.json once $schema and every additionalProperties are stripped. Five schemas are compared, the manifest's count for tool-schemas.json.",
+			"statement": "The name, description and parameters of build_plan_skeleton, assess_feasibility and get_sample_week as a turn offers them, and PlanToolSchemas.planSave and PlanToolSchemas.planLoad, equal tool-schemas.json once $schema and every additionalProperties are stripped, except that planSave's plan adds the draft's phases and zoneTables (B15.05/plan-schema). Five schemas are compared, the manifest's count for tool-schemas.json.",
 			"tests": [
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift",
-					"function": "everyPlanToolSchemaEqualsNpmsAfterTheTwoRecordedStrips"
+					"function": "everyPlanToolSchemaEqualsNpmsAndPlanSaveAddsOnlyTheDraftsPhasesAndZoneTables"
 				}
 			]
 		},
@@ -803,7 +804,7 @@
 				},
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift",
-					"function": "everyPlanToolSchemaEqualsNpmsAfterTheTwoRecordedStrips"
+					"function": "everyPlanToolSchemaEqualsNpmsAndPlanSaveAddsOnlyTheDraftsPhasesAndZoneTables"
 				},
 				{
 					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanHeadlineParityTests.swift",
@@ -890,9 +891,15 @@
 		},
 		{
 			"id": "6.3.1",
-			"statement": "With HeldClock, a turn calls plan_save and the reply after the call waits 90 seconds before it ends well. The chat's chain then holds one prepared step stamped with the turn's stamp, whose expiresAt is the settle's clock.now plus 600 seconds, the call's instant plus 690 seconds, and the turn settles leftWaiting. The tool answered {pendingConfirmation: true, summary} with npm's summary, no savedPlan row exists, and the training client saw no write.",
+			"statement": "With HeldClock, a turn calls plan_save and the reply after the call waits 90 seconds before it ends well. The chat's chain then holds one prepared step stamped with the turn's stamp, whose expiresAt is the settle's clock.now plus 600 seconds, the call's instant plus 690 seconds, and the turn settles leftWaiting. The tool answered {pendingConfirmation: true, summary} with npm's summary, no savedPlan row exists, and the training client saw no write. When the conversation holds a build_plan_skeleton draft, from an earlier step of the attempt or an earlier finished turn since the last New conversation, the prepared plan keeps the coach's name, primaryGoal, status and every other key it sent and takes totalWeeks, phases and zoneTables from the newest successful draft, which within one turn is its last draft even after an earlier turn's draft; a failed build_plan_skeleton call is no draft, and with no draft the plan is prepared as sent (B15.05/save-draft). The card, its summary, the tool's answer and the plan Save plan saves all come from the prepared plan.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aReplyThatEndsWellLeavesOneConfirmationThatExpiresTenMinutesAfterTheSettle"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aReplyThatEndsWellLeavesOneConfirmationThatExpiresTenMinutesAfterTheSettle"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aSaveAfterADraftInAnEarlierTurnPreparesAndSavesTheDraftsWeeksPhasesAndZones"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "theNewestOfTwoDraftsIsTheOneSaved"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aDraftFromAnEarlierStepOfTheSameTurnIsSaved"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aTurnThatDraftsTwiceSavesItsSecondDraftOverTheEarlierTurnsDraft"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aDraftFromBeforeNewConversationIsNotSavedAndTheCoachsPlanIsSavedAsSent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aFailedDraftIsNotADraft"}
 			]
 		},
 		{
@@ -965,19 +972,21 @@
 		},
 		{
 			"id": "6.3.11",
-			"statement": "plan_save is offered in ToolName.allCases order just before plan_load, with npm's description and schema from tool-schemas.json, every recorded plan_save input gets zod's verdict, and every ToolName has a definition.",
+			"statement": "plan_save is offered in ToolName.allCases order just before plan_load, with npm's description and schema from tool-schemas.json, except that plan_save's plan also types the draft's phases and zoneTables (B15.05/plan-schema), every recorded plan_save input gets zod's verdict, and every ToolName has a definition.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "connectedTurnIsOfferedEveryToolInOneOrder"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "everyToolIsDefinedUnderTheNameItsEffectCarries"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift", "function": "everyPlanToolSchemaEqualsNpmsAfterTheTwoRecordedStrips"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift", "function": "everyPlanToolSchemaEqualsNpmsAndPlanSaveAddsOnlyTheDraftsPhasesAndZoneTables"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift", "function": "planSaveTypesEveryKeyAnNpmDraftWritesIntoAPhaseOrAZoneTable"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolInputTests.swift", "function": "everyRecordedCallGetsZodsVerdictAndNpmsResult"}
 			]
 		},
 		{
 			"id": "6.3.12",
-			"statement": "The prompt holds npm's plan rule byte for byte and no other sentence naming plan_save, and the cycling prefix stays under its token ceilings.",
+			"statement": "The prompt holds npm's plan rule byte for byte, then one sentence saying the athlete saves the plan by tapping Save plan on the plan card (B15.05/save-plan-sentence), and no other sentence naming plan_save or the plan card; its \"Name your basis\" rule holds npm's text byte for byte, then one sentence telling the coach to give a number from a tool result exactly as the tool returned it, as digits (B15.02/exact-numbers), which appears nowhere else; and the cycling prefix stays under its token ceilings.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "thePromptHoldsNpmsPlanSaveRuleOnceAndNoOtherPlanSaveSentence"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "thePromptHoldsNpmsPlanSaveRuleThenTheSavePlanSentenceAndNoOtherPlanSaveSentence"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "thePromptHoldsNpmsVoiceRulesWithOnlyTheExactNumbersSentenceAfterNameYourBasis"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "prefixCarriesTheCyclingSkillsUnderTheTokenCeilings"}
 			]
 		},
@@ -1530,6 +1539,61 @@
 			]
 		},
 		{
+			"id": "8.1.1",
+			"statement": "Opening an 8-column spend.tsv copies it byte for byte to spend.tsv.before-m5, then rewrites it once with a ninth column m4 on every row, keeps every other byte of each row, and leaves make live-coach's total unchanged. A second open changes nothing, the copy included. A row of any other width stops the check, names the file and the row, and changes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCheckHelperTests.swift", "function": "anEightColumnSpendFileIsCopiedThenTaggedM4OnceAndKeepsTheCoachTotal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCheckHelperTests.swift", "function": "aSpendRowOfAnotherWidthStopsTheCheckNamingTheFileAndTheRow"}
+			]
+		},
+		{
+			"id": "8.1.2",
+			"statement": "A ledger for m5 totals and admits only m5 rows: with $9.60 of m4 rows, an m5 call bounded at $4 is admitted, and one that would take m5 past $5 is refused and stops the run. A ledger for m4 ignores m5 rows.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCheckHelperTests.swift", "function": "eachMilestoneLedgerTotalsAndAdmitsOnlyItsOwnRows"}
+			]
+		},
+		{
+			"id": "8.1.3",
+			"statement": "LiveCheck.plan.spend is (.m5, 5.0) and LiveCheck.coach.spend is (.m4, 10.0). LiveCoachSuite.run for .plan, driven through FakeModelTransport at no cost with a priced fake model, tags every new row m5, prints \"Model spend total for m5: $x of $5.00\" before the first scenario and again at the end, and refuses the call that would pass $5 before it is sent.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "thePlanSuiteRefusesTheCallThatWouldTakeM5PastFiveDollarsBeforeSendingIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "thePlanSuiteRerunsAFailedScenarioAndReportsItsM5SpendBeforeAndAfter"}
+			]
+		},
+		{
+			"id": "8.1.4",
+			"statement": "make live-plan runs the planning set against the built-in model with billed calls, writes each run's transcript and summary.md under LIVE_LOGS/plan/<stamp>, and prints the m5 statement before and after. The summary's title is \"Live planning suite\" and its spend line names m5.",
+			"noAutomatedProof": "make live-plan makes billed OpenRouter calls with the Keychain keys, which CI does not have. The pull request records every approved run: its printed m5 statements, the files of its LIVE_LOGS/plan/<stamp> folder and its summary.md. The fifth approved run, at 44f856e1 on 2026-10-26 (LIVE_LOGS/plan/20261026T134100), passed every scenario on its first run for $0.0546 and printed \"Model spend total for m5: $0.180076 of $5.00.\" before and \"Model spend total for m5: $0.234707 of $5.00.\" after."
+		},
+		{
+			"id": "8.1.5",
+			"statement": "Each LivePlanExpectation passes the reply it describes and fails one that breaks it, through FakeModelTransport at no cost: keepsNumbers passes when one result of the tool in the turn carries every named field and the reply keeps all their numbers, and fails naming each result when none does; savesDraft passes when the plan the waiting card holds has the scenario's last draft's totalWeeks, phases and zoneTables and the Save plan tap saved that plan, also when the coach's plan_save sent other phases (B15.05/save-draft); claimsNoSave skips an occurrence of a save phrase whose whole word right before it is \"nothing\", \"not\" or \"no\", so \"Nothing is saved yet\" and \"No plan saved yet\" pass, and counts every other occurrence, so \"The casino is saved\" fails and a reply that denies a save and then claims one fails; a reply that drops or rounds a field's number, a turn that calls plan_save twice, a save with no draft in the scenario, a prepared plan whose phases differ from the scenario's draft because a retried attempt dropped that draft, a reply that says \"Your plan is saved\" before the tap, a turn with no plan_save that leaves a card, a turn that changes the saved plan, and a plan_load reply without the plan's name.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aCoachThatFollowsThePlanningSetPassesAndSavesTheDraftItShowed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aCoachThatStraysFromThePlanningSetFailsEachExpectationItBreaks"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aFeasibilityReplyKeepsNumbersWhenTheFirstResultCarriesThemAndALaterOneDoesNot"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aFeasibilityReplyFailsKeepsNumbersAndNamesEachResultWhenNoResultCarriesTheFields"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aTurnThatChangesTheSavedPlanOrLeavesACardWithoutPlanSaveFailsItsCheck"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aSaveWithNoDraftInTheScenarioFailsSavesDraft"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aPreparedPlanThatDiffersFromTheScenariosDraftFailsSavesDraftInPhases"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "claimsNoSaveSkipsAPhraseRightAfterNothingNotOrNoAndCountsEveryOtherOccurrence"}
+			]
+		},
+		{
+			"id": "8.1.6",
+			"statement": "A failed scenario runs once more while the cap allows, and the summary marks it pass, flaky or failed. A run file holding either key fails the check.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "thePlanSuiteRerunsAFailedScenarioAndReportsItsM5SpendBeforeAndAfter"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aRunFolderFileThatHoldsEitherKeyFailsTheCoachRun"}
+			]
+		},
+		{
+			"id": "8.1.7",
+			"statement": "The planning set passes against the real model, with a flaky scenario allowed only when its second run passed, and the pull request carries the summary and the m5 total.",
+			"noAutomatedProof": "The planning set runs only through make live-plan with billed OpenRouter calls, which CI does not have. The pull request carries the summary.md of every approved run and the m5 total each printed. The fifth approved run, at 44f856e1 on 2026-10-26 (LIVE_LOGS/plan/20261026T134100), passed every scenario on its first run for $0.0546 and printed \"Model spend total for m5: $0.180076 of $5.00.\" before and \"Model spend total for m5: $0.234707 of $5.00.\" after."
+		},
+		{
 			"id": "8.2.1",
 			"statement": "PlanPhoneRun holds steps 1 to 7 of the phone session, each starting from the state the step before it left, with 12 Sends and one New conversation, each counted through one spendMessage, and exactly one calendar Approve, in step 5.",
 			"phoneSession": "PlanPhoneRun runs only on the operator's iPhone in the phone session, never on a simulator. The reviewer reads it against the session's seven steps."
@@ -1677,6 +1741,56 @@
 			"id": "B19.03",
 			"statement": "Saving a plan has its own confirm control, Save plan on the plan-save card, and never uses the calendar approval component.",
 			"criteria": ["6.1.3", "6.2.4", "6.4.2", "6.4.4", "6.4.5", "6.4.6", "6.4.7", "6.4.11", "6.4.12", "6.4.17", "7.1.1", "7.1.4", "7.1.10", "7.1.13"]
+		},
+		{
+			"id": "B15.05/plan-schema",
+			"statement": "plan_save's schema types the draft's phases and zone tables, so the coach can send the plan it showed.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-25 (gate PARKED-8.1): plan_save's plan schema adds phases and zoneTables, typed in the shape build_plan_skeleton returns, where npm's lists only name, primaryGoal, totalWeeks and status. name stays the only required key. Shown by 6.3.11."
+		},
+		{
+			"id": "B15.05/save-plan-sentence",
+			"statement": "The prompt tells the coach that the athlete saves the plan by tapping Save plan on the plan card.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-25 (gate PARKED-8.1): right after npm's plan rule, kept byte for byte, the prompt adds one sentence saying the athlete saves the plan by tapping Save plan on the plan card, where npm's prompt names no button. Shown by 6.3.12."
+		},
+		{
+			"id": "B15.05/save-draft",
+			"statement": "When the conversation holds a plan draft, plan_save saves the newest draft's weeks, phases and zones under the coach's name, goal and status.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-26 (gate PARKED-8.1-DRAFT): npm saves the object the coach sends, while the phone, when the conversation since its last New conversation holds a successful build_plan_skeleton result, saves the newest draft's totalWeeks, phases and zoneTables with the coach's name, primaryGoal, status and other keys. With no draft it saves the object the coach sends, as npm does. Shown by 6.3.1."
+		},
+		{
+			"id": "B15.02/exact-numbers",
+			"statement": "The prompt tells the coach to give a tool's numbers exactly as the tool returned them, as digits.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-26 (gate PARKED-8.1-FEASIBILITY): right after npm's \"Name your basis\" rule, kept byte for byte, the prompt adds one sentence telling the coach to give a number from a tool result exactly as the tool returned it, as digits, never rounded or written in words, where npm's prompt has no such rule. Shown by 6.3.12."
+		},
+		{
+			"id": "B15.01",
+			"statement": "A plan request through /plan or ordinary words reaches the planning tools, missing inputs are asked for with no claimed result, and a drafted plan neither writes the calendar nor overwrites the saved plan.",
+			"criteria": ["4.1.3", "4.1.7", "6.4.15", "7.2.1", "7.2.2", "7.2.4", "7.2.5", "8.1.7"]
+		},
+		{
+			"id": "B15.02",
+			"statement": "The feasibility check matches npm's results for FTP and W/kg targets, experience levels, boundaries and invalid input, and a conversational feasibility question uses the registered result and keeps its numbers.",
+			"criteria": ["3.1.1", "3.1.2", "4.1.1", "8.1.5", "8.1.7"]
+		},
+		{
+			"id": "B15.03",
+			"statement": "The plan draft matches npm's builder across goals, volume tiers, schedules, available days, race kinds and race dates, its schema holds npm's inputs, the draft values the coach shows come from the structured result, and drafting or revising saves no plan and changes no calendar.",
+			"criteria": ["3.2.1", "3.2.2", "3.2.3", "3.2.4", "4.1.2", "4.1.6", "6.4.15", "8.1.5", "8.1.7"]
+		},
+		{
+			"id": "B15.04",
+			"statement": "The sample week matches npm's templates across volume tiers, session counts, schedules and key days, refuses unsupported input as npm does, and asking for one neither replaces the saved plan nor writes the calendar.",
+			"criteria": ["3.3.1", "3.3.2", "4.1.1", "4.1.6", "6.4.15", "8.1.7"]
+		},
+		{
+			"id": "B15.05",
+			"statement": "A complete plan is saved or replaced only after its separate plan-save confirmation, the exact saved object survives relaunch and loads in later conversations, saves and replacements reach history, a canceled, refused, expired or failed save leaves the saved plan unchanged and the reply reports the actual result, plan storage and calendar approval stay separate, and the real model calls plan_save once only when asked, saves the draft it showed, and never claims a save the athlete has not confirmed.",
+			"criteria": ["1.1.6", "1.1.7", "5.1.1", "5.1.5", "5.1.8", "5.2.4", "5.2.5", "6.3.1", "6.3.6", "6.3.11", "6.4.2", "6.4.4", "6.4.5", "6.4.6", "6.4.7", "6.4.8", "6.4.10", "6.4.11", "6.5.2", "6.5.3", "6.5.5", "7.1.2", "8.1.5", "8.1.7"]
+		},
+		{
+			"id": "G07",
+			"statement": "An athlete gives goal and schedule inputs, sees the plan's phases and a sample week, saves the plan through the separate plan-save confirmation, loads it again, and no calendar write happens.",
+			"criteria": ["6.4.2", "6.4.11", "6.4.15", "8.1.7"]
 		}
 	],
 	"plan": {
@@ -1726,12 +1840,5 @@
 			"D14/plan": ["6.4.13"]
 		}
 	},
-	"open": [
-		"B15.01",
-		"B15.02",
-		"B15.03",
-		"B15.04",
-		"B15.05",
-		"G07"
-	]
+	"open": []
 }
