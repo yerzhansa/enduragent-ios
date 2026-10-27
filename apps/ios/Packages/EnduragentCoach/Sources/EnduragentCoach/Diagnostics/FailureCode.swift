@@ -94,6 +94,7 @@ package enum PackageErrorType: String, Sendable, CaseIterable {
 	case consentWriteFailure = "ConsentWriteFailure"
 	case credentialFailure = "CredentialFailure"
 	case creditsFailure = "CreditsFailure"
+	case feedbackRefusal = "FeedbackRefusal"
 	case headMoved = "HeadMoved"
 	case historyUnavailable = "HistoryUnavailable"
 	case intervalsError = "IntervalsError"

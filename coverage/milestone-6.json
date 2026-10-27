@@ -2,6 +2,7 @@
 	"units": {
 		"1.1": 7,
 		"1.2": 8,
+		"1.3": 8,
 		"8.1": 6,
 		"8.2": 6
 	},
@@ -122,6 +123,74 @@
 			"statement": "One value of every DiagnosticsEvent case projects to a ProblemLine that encodes and decodes back equal, and only skippedRecord carries a SkippedRowText.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProblemProjectionTests.swift", "function": "everyEventProjectsToALineThatDecodesBack"}
+			]
+		},
+		{
+			"id": "1.3.1",
+			"statement": "FeedbackText(validating:) trims as JavaScript trim() does, including U+FEFF and line terminators, then refuses .empty, then .containsNul, then .tooLong(units:), in that order. 4,000 UTF-16 units pass and 4,001 are refused. An emoji counts as two units.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "textIsTrimmedAsJavaScriptTrims"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "aTextOfFourThousandUnitsPasses"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "aRefusedTextNamesItsFirstReason"}
+			]
+		},
+		{
+			"id": "1.3.2",
+			"statement": "FeedbackID mints lowercase UUID v4 strings that match the worker's pattern. Decoding a stored id that does not match throws.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "mintedIdsAreLowercaseVersionFourUUIDs"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "aStoredIdOnTheWorkerPatternDecodes"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "aStoredIdOffTheWorkerPatternIsRefused"}
+			]
+		},
+		{
+			"id": "1.3.3",
+			"statement": "FeedbackNote.revised(to:) returns the same note, with its id, for the same text, and a new id for different text. Decoding a kept note runs the text checks again.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "revisingToTheSameTextKeepsTheNoteAndItsId"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "revisingToAnotherTextMintsAnotherId"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "decodingAKeptNoteRunsTheTextChecksAgain"}
+			]
+		},
+		{
+			"id": "1.3.4",
+			"statement": "FeedbackBody encodes to exactly the keys channel, id and text, with channel ios.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "theBodyHoldsExactlyChannelIdAndText"}
+			]
+		},
+		{
+			"id": "1.3.5",
+			"statement": "AttemptAnswer(status:) over 200, 201, 204, 299, 300, 302, 399, 400, 404, 429, 500, 502, 503 and 599 gives stored for 204, unavailable for 503, limited for 429, redirected for 300 to 399, mayHaveLeft(.serverStatus) for any other 5xx and refused for every other status. Leg.of(_:) puts each listed URLError code on its side and an unlisted code on may have left. A thrown URLError(.cannotFindHost), URLError(.timedOut) and CocoaError(.fileReadUnknown) give neverLeft, mayHaveLeft(.transport) and mayHaveLeft(.otherError) with its FailureCode, each retried.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "answerOfAStatus"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aCodeBeforeTheConnectionNeverLeft"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aListedOrUnlistedLaterCodeMayHaveLeft"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "answerOfAThrownError"}
+			]
+		},
+		{
+			"id": "1.3.6",
+			"statement": "retried is true for unavailable, redirected, neverLeft, mayHaveLeft(.transport) and mayHaveLeft(.otherError), and false for stored, limited, refused and mayHaveLeft(.serverStatus). shouldRetry(after:) is false once two answers exist.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "retriedFollowsNpmsRetrySet"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "shouldRetryStopsAtTwoAnswers"}
+			]
+		},
+		{
+			"id": "1.3.7",
+			"statement": "FeedbackDelivery.settle(prior:answers:) over every prior phase and every one- and two-answer list: any stored gives received; else any may have left, or a prior of sending or notConfirmed, gives notConfirmed; else notSent with the newest answer's reason. Two lost answers give notConfirmed. redirected gives notSent(.refused).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "settleFoldsEveryOneAndTwoAnswerList"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aNamedFoldSettlesAsWritten"}
+			]
+		},
+		{
+			"id": "1.3.8",
+			"statement": "KeptPhase.afterRelaunch maps ready to notSent(.stopped) and sending to notConfirmed, and leaves the rest. A KeptNote encodes and decodes back equal.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aRelaunchSettlesAnInterruptedSend"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aKeptNoteDecodesBackEqual"}
 			]
 		},
 		{
