@@ -14,6 +14,8 @@ struct PhoneCheckCommand {
 			switch arguments.first {
 			case "choices":
 				try phone.choices(Array(arguments.dropFirst()))
+			case "m4":
+				try phone.m4(Array(arguments.dropFirst()))
 			case "language":
 				try phone.language(Array(arguments.dropFirst()))
 			case "openrouter":
@@ -22,7 +24,7 @@ struct PhoneCheckCommand {
 				try phone.plan(Array(arguments.dropFirst()))
 			default:
 				try Console.complain(
-					"Usage: phone-check <choices|language|openrouter|plan> [arguments]")
+					"Usage: phone-check <choices|language|m4|openrouter|plan> [arguments]")
 				exit(2)
 			}
 		} catch {
@@ -52,6 +54,35 @@ struct PhoneCheck {
 			throw PhoneFailure(description: "The operator terminal closed. Stop.")
 		}
 		return answer
+	}
+
+	func session(_ name: String) throws -> PhoneSessionPlan {
+		try PhoneSessionPlan.load(path: PhoneSessionPlan.path(root: try root, name: name))
+	}
+
+	func ledgerFile(of plan: PhoneSessionPlan) -> String {
+		NodePath.join(NSHomeDirectory(), "Library/Logs", plan.ledger)
+	}
+
+	func readLedger(at path: String, of plan: PhoneSessionPlan) throws -> PhoneLedger {
+		try PhoneLedger(
+			text: FileManager.default.fileExists(atPath: path)
+				? String(decoding: try FileSystem.read(path), as: UTF8.self) : nil, plan: plan)
+	}
+
+	func book(_ ledger: PhoneLedger, at path: String) throws {
+		try FileManager.default.createDirectory(
+			atPath: NodePath.dirname(path), withIntermediateDirectories: true)
+		try write(ledger.text, to: path)
+	}
+
+	func say(_ steps: PhoneSteps, of plan: PhoneSessionPlan) throws {
+		for step in plan.steps where steps.ids.contains(step.id) {
+			try Console.say("\(step.id) plans \(step.planned) message actions.")
+			for setup in step.setup { try Console.say("  Setup: \(setup)") }
+			for check in step.checks { try Console.say("  Check \(check.look): \(check.pass)") }
+			try Console.say("  Ends with: \(step.endsWith)")
+		}
 	}
 
 	func resolve(_ path: String) -> String {

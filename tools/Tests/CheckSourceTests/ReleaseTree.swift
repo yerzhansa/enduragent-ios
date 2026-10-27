@@ -31,6 +31,9 @@ struct ReleaseTree {
 	var creditsBase = "https://enduragent-credits-testflight.yerzhan-st.workers.dev"
 	var properties = ["CreditsWorkerBase: $(CREDITS_WORKER_BASE)"]
 	var packages = ["EnduragentCoach"]
+	var phoneTestSettings = ["GENERATE_INFOPLIST_FILE: YES"]
+	var phoneTestDependencies = ["package: EnduragentCoach"]
+	var phoneSchemeTargets = ["EnduragentPhoneTests: [test]"]
 	var packageArguments = targetPackages
 	var tracking = false
 	var accessed = [defaults, bootTime]
@@ -79,6 +82,11 @@ struct ReleaseTree {
 			+ properties.map { "        \($0)\n" }.joined() + "    dependencies:\n"
 			+ packages.map { "      - package: \($0)\n" }.joined()
 			+ "      - package: EnduragentCoach\n        product: EnduragentCoachFixtures\n"
+			+ "  EnduragentPhoneTests:\n    type: bundle.ui-testing\n    settings:\n      base:\n"
+			+ phoneTestSettings.map { "        \($0)\n" }.joined() + "    dependencies:\n"
+			+ phoneTestDependencies.map { "      - \($0)\n" }.joined()
+			+ "schemes:\n  EnduragentPhone:\n    build:\n      targets:\n"
+			+ phoneSchemeTargets.map { "        \($0)\n" }.joined()
 	}
 
 	private var manifestText: String {
