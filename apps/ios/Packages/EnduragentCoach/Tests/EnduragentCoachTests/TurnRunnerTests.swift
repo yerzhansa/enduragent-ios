@@ -191,7 +191,7 @@ import Testing
 		}
 		#expect(
 			coach.diagnostics.entries.map(\.event) == [
-				.providerFailure(attempt, .timeout(.firstToken), detail: "")
+				.providerFailure(attempt, .timeout(.firstToken), detail: .none)
 			])
 	}
 

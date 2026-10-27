@@ -36,7 +36,7 @@ struct ModelCall: Sendable {
 					if let kind = await watchdog.fired() {
 						let failure = ProviderFailure.timeout(kind)
 						self.diagnostics.record(
-							.providerFailure(request.attempt, failure, detail: ""))
+							.providerFailure(request.attempt, failure, detail: .none))
 						throw failure
 					}
 					throw CancellationError()

@@ -1,9 +1,62 @@
 {
 	"units": {
+		"1.1": 7,
 		"8.1": 6,
 		"8.2": 6
 	},
 	"criteria": [
+		{
+			"id": "1.1.1",
+			"statement": "FailureCode(_:) gives the named case for one value of each of LedgerFailure, AttemptFailure, ProviderFailure, AccessUnavailable, KeychainStoreError, URLError (its code), CocoaError (its code), a DecodingError and an EncodingError.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FailureCodeTests.swift", "function": "aFailureTheSitesCatchKeepsItsOwnCase"}
+			]
+		},
+		{
+			"id": "1.1.2",
+			"statement": "For every case of PackageErrorType, a value of that type gives .type with that case, so no package error type reaches .unclassified.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FailureCodeTests.swift", "function": "everyPackageErrorTypeIsNamedByItsCase"}
+			]
+		},
+		{
+			"id": "1.1.3",
+			"statement": "A foreign error whose description holds a key, a bearer token and athlete text gives .unclassified with only its reflected type name; Wrapper<Int>.Failure gives EnduragentCoachTests.WrapperSwift.Int.Failure; a 70-character reflected name gives its first 64.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FailureCodeTests.swift", "function": "aForeignErrorIsNamedByItsTypeOnly"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FailureCodeTests.swift", "function": "aGenericErrorIsNamedWithItsArguments"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FailureCodeTests.swift", "function": "aLongTypeNameIsCutToItsFirstSixtyFourCharacters"}
+			]
+		},
+		{
+			"id": "1.1.4",
+			"statement": "ProviderDetail.parse gives .http(status: 402, openRouter: .code(402)) for an OpenRouter error body with code 402; a body with no error.code, a string code, an HTML page and an empty body each give .unparsed, and no case holds text from the body.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProviderDetailTests.swift", "function": "anOpenRouterErrorGivesItsStatusAndNumericCode"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProviderDetailTests.swift", "function": "aBodyWithoutANumericErrorCodeIsUnparsed"}
+			]
+		},
+		{
+			"id": "1.1.5",
+			"statement": "providerFailure, memoryFlushFailed, compactionFailed and replyObservedUnsaved hold codes: a transport failure whose body quotes athlete text leaves none of it in the log, the watchdog timeout records .none, and a flush that returned records its FlushEnding.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "providerBodyLeavesOnlyItsStatusAndCodeInTheLog"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "flushFailureIsRecordedNotDropped"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRunnerTests.swift", "function": "watchdogFireIsATimeoutThatRetriesOnce"}
+			]
+		},
+		{
+			"id": "1.1.6",
+			"statement": "failure-code-covers-errors reports a package file that declares struct NewFailure: Error with no matching case, passes when PackageErrorType names it, and reports a nested enum Failure: Error inside struct Outer as Outer.Failure.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "1.1.7",
+			"statement": "failure-code-covers-errors passes on the package as committed.",
+			"noAutomatedProof": "make check-source runs in CI on every pull request and applies failure-code-covers-errors to every Swift source of the package. The pull request records that the rule finds the 36 non-private error types committed today and that check-source reports no violation."
+		},
 		{
 			"id": "8.1.1",
 			"statement": "On a specification-shaped fixture, the extract gives the work items with their milestones, a package in two milestones giving both, the X, G and D ids, and the MOB ids from cross_cutting mobile_ids, each once, in a stable order.",

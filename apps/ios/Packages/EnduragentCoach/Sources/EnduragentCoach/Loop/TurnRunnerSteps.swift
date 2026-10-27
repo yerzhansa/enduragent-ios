@@ -193,9 +193,7 @@ extension TurnRunner {
 			} catch is CancellationError {
 				throw CancellationError()
 			} catch {
-				diagnostics.record(
-					.compactionFailed(attempt.chat, detail: String(describing: error)),
-					redacting: [attempt.access.credential.secret])
+				diagnostics.record(.compactionFailed(attempt.chat, FailureCode(error)))
 			}
 		}
 		if prompt.overBudget {

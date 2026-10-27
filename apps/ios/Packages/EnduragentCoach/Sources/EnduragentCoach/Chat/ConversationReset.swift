@@ -68,14 +68,14 @@ package struct ConversationReset: Sendable {
 		} catch .providerConsentRequired {
 			return .failed(.model(.accessUnavailable(.providerConsentRequired)))
 		} catch {
-			flushes.diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
+			flushes.diagnostics.record(.memoryFlushFailed(chat, FailureCode(error)))
 			return nil
 		}
 		do {
 			return try await flushes.extract(
 				messages: messages, access: resolved, scope: nil, stamp: stamp)
 		} catch {
-			flushes.diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
+			flushes.diagnostics.record(.memoryFlushFailed(chat, FailureCode(error)))
 			return nil
 		}
 	}

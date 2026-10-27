@@ -3,7 +3,6 @@ import Synchronization
 
 package final class DiagnosticsLog: Sendable {
 	package static let capacity = 200
-	package static let detailLimit = 2_000
 
 	private let clock: any Clock
 	private let ring = Mutex<[DiagnosticsEntry]>([])
@@ -16,8 +15,8 @@ package final class DiagnosticsLog: Sendable {
 		ring.withLock { $0 }
 	}
 
-	package func record(_ event: DiagnosticsEvent, redacting secrets: [String] = []) {
-		let entry = DiagnosticsEntry(at: clock.now, event: event.redacted(secrets))
+	package func record(_ event: DiagnosticsEvent) {
+		let entry = DiagnosticsEntry(at: clock.now, event: event)
 		ring.withLock { entries in
 			entries.append(entry)
 			if entries.count > Self.capacity {
@@ -33,11 +32,11 @@ package struct DiagnosticsEntry: Sendable, Equatable {
 }
 
 package enum DiagnosticsEvent: Sendable, Equatable {
-	case providerFailure(AttemptID, ProviderFailure, detail: String)
+	case providerFailure(AttemptID, ProviderFailure, detail: ProviderDetail)
 	case toolFailed(AttemptID, ToolName, failure: ToolFault)
-	case memoryFlushFailed(ChatID, detail: String)
-	case compactionFailed(ChatID, detail: String)
-	case replyObservedUnsaved(AttemptID, detail: String)
+	case memoryFlushFailed(ChatID, FailureCode)
+	case compactionFailed(ChatID, FailureCode)
+	case replyObservedUnsaved(AttemptID, FailureCode)
 	case skippedRecord(SkippedRow)
 	case recoveryUnavailable(LedgerFailure)
 	case importsUnavailable(ChatID, LedgerFailure)
@@ -51,36 +50,4 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case reviewUnavailable(ChatID, LedgerFailure)
 	case planConfirmationUnavailable(ChatID, LedgerFailure)
 	case planSaveStalled(PlanConfirmationID, LedgerFailure)
-
-	fileprivate func redacted(_ secrets: [String]) -> DiagnosticsEvent {
-		switch self {
-		case .providerFailure(let attempt, let failure, let detail):
-			return .providerFailure(attempt, failure, detail: Redaction.clean(detail, secrets))
-		case .memoryFlushFailed(let chat, let detail):
-			return .memoryFlushFailed(chat, detail: Redaction.clean(detail, secrets))
-		case .compactionFailed(let chat, let detail):
-			return .compactionFailed(chat, detail: Redaction.clean(detail, secrets))
-		case .secureStorageFailed, .toolFailed, .replyObservedUnsaved, .skippedRecord,
-			.recoveryUnavailable, .importsUnavailable,
-			.preferencesUnavailable, .consentUnavailable, .snapshotReadFailed,
-			.snapshotDeadlineMissed, .reviewOutcomeUnsaved,
-			.settlementUnsaved, .reviewUnavailable, .planConfirmationUnavailable,
-			.planSaveStalled:
-			return self
-		}
-	}
-}
-
-private enum Redaction {
-	static let marker = "[redacted]"
-
-	static func clean(_ text: String, _ secrets: [String]) -> String {
-		var clean = text
-		for secret in secrets where !secret.isEmpty {
-			clean = clean.replacingOccurrences(of: secret, with: marker)
-		}
-		clean = clean.replacing(/\bsk-[A-Za-z0-9_\-]{6,}/, with: marker)
-		clean = clean.replacing(/(?i)\bbearer\s+[^\s"',;]+/, with: "Bearer \(marker)")
-		return String(clean.prefix(DiagnosticsLog.detailLimit))
-	}
 }

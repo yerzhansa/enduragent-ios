@@ -205,7 +205,7 @@ package struct TurnRunner: Sendable {
 		do {
 			jobs = try await flushes.open(covering: rows, stamp: scope.stamp)
 		} catch {
-			diagnostics.record(.memoryFlushFailed(attempt.chat, detail: String(describing: error)))
+			diagnostics.record(.memoryFlushFailed(attempt.chat, FailureCode(error)))
 			return
 		}
 		for job in jobs {
@@ -275,9 +275,7 @@ package struct TurnRunner: Sendable {
 			} catch is CancellationError {
 				throw CancellationError()
 			} catch {
-				diagnostics.record(
-					.compactionFailed(chatId, detail: String(describing: error)),
-					redacting: [attempt.access.credential.secret])
+				diagnostics.record(.compactionFailed(chatId, FailureCode(error)))
 				kept = past
 			}
 		} else if !transcript.flushPending,
