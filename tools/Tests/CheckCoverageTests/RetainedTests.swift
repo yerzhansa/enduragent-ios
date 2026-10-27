@@ -176,17 +176,17 @@ struct RetainedTests {
 		return try String(contentsOf: fixtures.appendingPathComponent(name), encoding: .utf8)
 	}
 
-	private static func committed() throws -> RetainedRequirements {
+	static func committed() throws -> RetainedRequirements {
 		try #require(try RetainedRequirements.load(root: repository.path))
 	}
 
-	private static func committedText() throws -> String {
+	static func committedText() throws -> String {
 		try String(
 			contentsOf: repository.appendingPathComponent(RetainedRequirements.path),
 			encoding: .utf8)
 	}
 
-	private static var repository: URL {
+	static var repository: URL {
 		URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
 			.deletingLastPathComponent().deletingLastPathComponent()
 	}

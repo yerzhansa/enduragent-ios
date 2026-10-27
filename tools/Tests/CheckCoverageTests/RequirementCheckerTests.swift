@@ -54,6 +54,35 @@ struct RequirementCheckerTests {
 		#expect(problems == requirementCase.problems)
 	}
 
+	@Test(.timeLimit(.minutes(1)), arguments: RequirementCase.sixReaches)
+	func differenceWhoseParentIsNoRetainedIdNamesTheRetainedIdsItReaches(
+		_ requirementCase: RequirementCase
+	) throws {
+		#expect(try requirementCase.check() == requirementCase.problems)
+	}
+
+	@Test(.timeLimit(.minutes(1)), arguments: RequirementCase.sixAgreed)
+	func deletingAnAgreedDifferenceRowFromTheCommittedTableFails(_ identifier: String) throws {
+		let table = "coverage/milestone-6.json"
+		let lines = try String(
+			contentsOf: RetainedTests.repository.appendingPathComponent(table), encoding: .utf8
+		).components(separatedBy: "\n")
+		let start = try #require(lines.firstIndex(of: "\t\t\t\"id\": \"\(identifier)\",")) - 1
+		let end = try #require(lines[start...].firstIndex { $0.hasPrefix("\t\t}") })
+		var kept = Array(lines[..<start] + lines[(end + 1)...])
+		if lines[end] == "\t\t}" { kept[start - 1] = "\t\t}" }
+		let root = try FileSystem.realPath(RetainedTests.repository.path)
+		let problems = try Scratch(files: [table: kept.joined(separator: "\n")]).inRoot { scratch in
+			let collected = Lines()
+			_ = try CoverageChecker(
+				root: root, table: NodePath.resolve(scratch, table),
+				problems: Problems { collected.lines.append($0) }
+			).run()
+			return collected.lines
+		}
+		#expect(problems == ["\(identifier) [missing-agreed-difference]"])
+	}
+
 	@Test(
 		.timeLimit(.minutes(1)),
 		arguments: [
@@ -106,6 +135,7 @@ struct RequirementCase: Sendable, CustomTestStringConvertible {
 	var plannedUnits = #"{"1.1": 2, "1.2": 1, "2.1": 1}"#
 	var planned = basePlan
 	var problems: [String] = []
+	var readsRetained = false
 
 	var testDescription: String { name }
 
@@ -332,7 +362,10 @@ struct RequirementCase: Sendable, CustomTestStringConvertible {
 			"plan": {"units": \(plannedUnits), "requirements": {\(plannedRequirements.joined(separator: ", "))}},
 			"open": [\(open.map(Self.quoted).joined(separator: ", "))]}
 			"""
-		return try Scratch(files: CoverageCase.sources.merging([path: table]) { $1 }).inRoot {
+		let retained =
+			readsRetained ? [RetainedRequirements.path: try RetainedTests.committedText()] : [:]
+		let files = CoverageCase.sources.merging(retained) { $1 }.merging([path: table]) { $1 }
+		return try Scratch(files: files).inRoot {
 			root in
 			let lines = Lines()
 			let problems = Problems { lines.lines.append($0) }

@@ -73,7 +73,9 @@ struct CoverageChecker {
 			throw CoverageFailure(description: "the carried section is not a group")
 		}
 		if let requirements {
-			if let scope = RequirementScope.of(table: table) {
+			if let scope = try RequirementScope.of(
+				table: table, retained: RetainedRequirements.load(root: root))
+			{
 				try RequirementChecker(
 					requirements: requirements, scope: scope, problems: problems,
 					criteria: seen, tested: tested
