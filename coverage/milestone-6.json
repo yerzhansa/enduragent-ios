@@ -1,6 +1,7 @@
 {
 	"units": {
 		"1.1": 7,
+		"1.2": 8,
 		"8.1": 6,
 		"8.2": 6
 	},
@@ -56,6 +57,71 @@
 			"id": "1.1.7",
 			"statement": "failure-code-covers-errors passes on the package as committed.",
 			"noAutomatedProof": "make check-source runs in CI on every pull request and applies failure-code-covers-errors to every Swift source of the package. The pull request records that the rule finds the 36 non-private error types committed today and that check-source reports no violation."
+		},
+		{
+			"id": "1.2.1",
+			"statement": "Every JournalLine case encodes to one JSON object with no newline and decodes back equal.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "everyJournalLineCaseEncodesToOneObjectAndDecodesBackEqual"}
+			]
+		},
+		{
+			"id": "1.2.2",
+			"statement": "Decoding refuses a problem line with an unknown kind, and one whose code has a character outside its closed set; each throws a DecodingError and nothing crashes.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "decodingRefusesAProblemLineWithAnUnknownKind"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "decodingRefusesACodeWithACharacterOutsideItsSet"}
+			]
+		},
+		{
+			"id": "1.2.3",
+			"statement": "Scrub runs npm's redaction table in npm's order (URLs, Bearer and Basic credentials, sk- keys, ghp_, gho_, ghu_, ghs_ and ghr_ tokens and github_pat_ tokens), removes NUL and cuts to Scrub.limit; decoding a stored skipped row whose kind is sk-or-v1-abc and whose ulid is Bearer xyz gives [redacted] in both fields, and encoding it again holds neither token.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ScrubTests.swift", "function": "npmRedactionTableInNpmOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ScrubTests.swift", "function": "githubTokensAreRedacted"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ScrubTests.swift", "function": "nulIsRemovedBeforeThePatternsRun"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ScrubTests.swift", "function": "textIsCutToTheLimitInUTF16Units"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "decodingAStoredSkippedRowScrubsItAgain"}
+			]
+		},
+		{
+			"id": "1.2.4",
+			"statement": "JournalPrune.kept drops lines whose own at is more than 14 days before now, keeps lines dated after now, and reads no file date.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalPruneTests.swift", "function": "linesOlderThanFourteenDaysByTheirOwnTimeAreDroppedAndLaterLinesKept"}
+			]
+		},
+		{
+			"id": "1.2.5",
+			"statement": "When the kept lines encode to more than 1 MiB, JournalPrune.kept drops the oldest until they encode to at most 768 KiB.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalPruneTests.swift", "function": "aLogOverOneMiBLosesItsOldestLinesUntilItIsAtMost768KiB"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalPruneTests.swift", "function": "aLogAtOneMiBIsKeptWhole"}
+			]
+		},
+		{
+			"id": "1.2.6",
+			"statement": "FailureCode.code gives ledger.unavailable for a ledger failure, url(-1009) for a URL error, type.signInFailure for a .type case, and unclassified.<name> for .unclassified.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "aFailureCodeProjectsToItsProblemCode"}
+			]
+		},
+		{
+			"id": "1.2.7",
+			"statement": "FileJournalStorage.replace(with:) writes diagnostics.jsonl.next and renames it over diagnostics.jsonl, removeLeftover() deletes a .next, and read() of a missing file is nil.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FileJournalStorageTests.swift", "function": "replaceRenamesTheNextFileOverTheJournal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FileJournalStorageTests.swift", "function": "aReplaceThatCannotWriteTheNextFileLeavesTheJournalAsItWas"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FileJournalStorageTests.swift", "function": "removeLeftoverDeletesANextFileAndAcceptsNone"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FileJournalStorageTests.swift", "function": "readingAMissingJournalIsNil"}
+			]
+		},
+		{
+			"id": "1.2.8",
+			"statement": "One value of every DiagnosticsEvent case projects to a ProblemLine that encodes and decodes back equal, and only skippedRecord carries a SkippedRowText.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProblemProjectionTests.swift", "function": "everyEventProjectsToALineThatDecodesBack"}
+			]
 		},
 		{
 			"id": "8.1.1",
