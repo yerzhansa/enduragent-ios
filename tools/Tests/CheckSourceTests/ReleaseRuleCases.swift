@@ -37,6 +37,10 @@ extension SourceCases {
 			release.changed { $0.accessed = [(ReleaseTree.defaults.0, []), ReleaseTree.bootTime] },
 			ReleaseTree.manifestFile, "privacy-manifest", ReleaseTree.defaults.0),
 		rejectsRelease(
+			"privacy-manifest rejects a manifest without the UserDefaults entry the code needs",
+			release.changed { $0.accessed = [ReleaseTree.bootTime] },
+			ReleaseTree.manifestFile, "privacy-manifest", ReleaseTree.defaults.0),
+		rejectsRelease(
 			"privacy-manifest rejects a third accessed API type",
 			release.changed {
 				$0.accessed.append(("NSPrivacyAccessedAPICategoryFileTimestamp", ["C617.1"]))
