@@ -3,6 +3,7 @@
 		"1.1": 7,
 		"1.2": 8,
 		"1.3": 8,
+		"2.1": 8,
 		"6.1": 9,
 		"8.1": 6,
 		"8.2": 6
@@ -192,6 +193,62 @@
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aRelaunchSettlesAnInterruptedSend"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aKeptNoteDecodesBackEqual"}
+			]
+		},
+		{
+			"id": "2.1.1",
+			"statement": "Over FileJournalStorage in a temporary folder, an appended line is one line in diagnostics.jsonl when append returns, and a new Journal over the same folder returns it from window(endingAt:).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "anAppendedLineSurvivesANewJournal"}
+			]
+		},
+		{
+			"id": "2.1.2",
+			"statement": "A real file whose last line is cut mid-object opens with openings [.linesDropped(1)], and the file then holds only whole lines.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "aTornLastLineIsDroppedAndTheFileRewritten"}
+			]
+		},
+		{
+			"id": "2.1.3",
+			"statement": "Over MemoryJournalStorage with failReads, the journal opens empty with openings [.restarted(.unreadable)], and the next append replaces the file.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "anUnreadableFileRestartsTheJournal"}
+			]
+		},
+		{
+			"id": "2.1.4",
+			"statement": "After failNextWrites(1), health is notSaving(since: t, firstCause: .appendFailed) with the time of the failure. The next successful append rewrites every kept line and sets saving.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "aFailedAppendStopsSavingUntilTheNextWrite"}
+			]
+		},
+		{
+			"id": "2.1.5",
+			"statement": "With three whole lines in diagnostics.jsonl and half a line in diagnostics.jsonl.next, opening deletes .next, window returns the three lines, and openings is empty.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "aLeftoverNextIsDeletedAndTheOldFileKept"}
+			]
+		},
+		{
+			"id": "2.1.6",
+			"statement": "A file with lines older than 14 days and more than 1 MiB of lines opens to only what JournalPrune.kept keeps, and the file is written back.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "openingPrunesByAgeAndSize"}
+			]
+		},
+		{
+			"id": "2.1.7",
+			"statement": "With lines appended at t0 and at t0 + 13 days, window(endingAt:) at t0 + 14 days + 1 second holds only the second line, and a line dated after now is still returned.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "windowHoldsOnlyTheLast14Days"}
+			]
+		},
+		{
+			"id": "2.1.8",
+			"statement": "Over FileJournalStorage, when the append whose line takes the encoded sum past 1,048,576 bytes returns, the file is at most 786,432 bytes, the newest line is in it, and the oldest is not.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "aLongSessionStaysUnderOneMebibyte"}
 			]
 		},
 		{
