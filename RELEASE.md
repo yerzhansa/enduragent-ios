@@ -18,6 +18,16 @@ Display name is `Enduragent`.
 The first upload is from the operator Mac with Xcode automatic signing.
 Do not merge a GitHub Actions upload workflow until the operator approves that specific workflow PR.
 
+## CloudKit schema to Production
+
+Do this before every archive whose build changes the record types, and before the first TestFlight upload.
+
+1. Open the CloudKit Console with the developer-only Apple ID and pick the container `iCloud.icu.enduragent.ios`.
+2. Open the Development schema and choose Deploy Schema Changes.
+3. Check that the listed record types and fields are the ones the build reads and writes, then deploy them to Production.
+
+If the Production deploy fails, stop and report. Never upload a TestFlight build against a Development-only schema.
+
 ## Archive on the operator Mac
 
 ```sh
@@ -41,6 +51,8 @@ The IPA must embed an App Store profile: `get-task-allow` false, no device list,
 
 Create the app record named `Enduragent` with bundle id `icu.enduragent.app` before the first upload.
 Use the developer-only Apple ID.
+
+Fill the App Privacy label from `release/app-privacy.json`. It lists the same collected data types as `apps/ios/Enduragent/PrivacyInfo.xcprivacy`, and `make check-source` keeps the two equal.
 
 Upload with an App Store Connect API key. Put `AuthKey_<KEYID>.p8` in `~/.appstoreconnect/private_keys/`. Never commit the key.
 
