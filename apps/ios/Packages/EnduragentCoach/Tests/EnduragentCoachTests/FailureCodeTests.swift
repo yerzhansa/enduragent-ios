@@ -70,6 +70,7 @@ import Testing
 		case .consentWriteFailure: ConsentWriteFailure.notSaved
 		case .credentialFailure: CredentialFailure.signIn(.canceled)
 		case .creditsFailure: CreditsFailure.banned
+		case .feedbackRefusal: FeedbackRefusal.tooLong(units: 4_001)
 		case .headMoved: HeadMoved(current: .empty)
 		case .historyUnavailable: HistoryUnavailable.storageUnavailable
 		case .intervalsError: IntervalsError(code: "server_error", details: "busy", status: 503)
