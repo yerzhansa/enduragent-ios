@@ -71,7 +71,7 @@ package struct FlushWork: Sendable {
 		} catch is CancellationError {
 			throw CancellationError()
 		} catch {
-			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
+			diagnostics.record(.memoryFlushFailed(chat, FailureCode(error)))
 			return .failed(.local(.recordStorage))
 		}
 	}
@@ -136,9 +136,7 @@ package struct FlushWork: Sendable {
 			ladder: ladder, stamp: stamp, scope: scope)
 		switch outcome {
 		case .partial, .failed:
-			diagnostics.record(
-				.memoryFlushFailed(chat, detail: "\(outcome)"),
-				redacting: [access.credential.secret])
+			diagnostics.record(.memoryFlushFailed(chat, .flush(FlushEnding(outcome))))
 		case .saved, .nothingToSave:
 			break
 		}
@@ -158,7 +156,7 @@ package struct FlushWork: Sendable {
 				],
 				stamp: stamp)
 		} catch {
-			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
+			diagnostics.record(.memoryFlushFailed(chat, FailureCode(error)))
 		}
 	}
 
@@ -166,7 +164,7 @@ package struct FlushWork: Sendable {
 		do {
 			return .success(try await ledger.flushJobs(in: conversation))
 		} catch {
-			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
+			diagnostics.record(.memoryFlushFailed(chat, FailureCode(error)))
 			return .failure(error)
 		}
 	}
@@ -187,7 +185,7 @@ package struct FlushWork: Sendable {
 				job, rows: conversation.flushRows(for: job), access: try await access(),
 				scope: nil)
 		} catch {
-			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
+			diagnostics.record(.memoryFlushFailed(chat, FailureCode(error)))
 		}
 	}
 }

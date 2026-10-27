@@ -305,7 +305,7 @@ final class ChatRecords {
 			{
 				applied[record.ulid] = record
 			}
-			ledger.report(.replyObservedUnsaved(stamp.attempt, detail: "\(error)"))
+			ledger.report(.replyObservedUnsaved(stamp.attempt, FailureCode(error)))
 		}
 	}
 }

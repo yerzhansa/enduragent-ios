@@ -68,10 +68,12 @@ struct SourceChecker {
 		let tracked = TrackedFiles(files.map { NodePath.resolve(root, $0) })
 		var featureProofSources: [SourceFile] = []
 		var appNavigationSources: [SourceFile] = []
+		var coachSources: [SourceFile] = []
 		for file in files {
 			guard let text = try readableText(file, tracked: tracked) else { continue }
 			let source = SourceFile(file: file, text: text)
 			if try patterns.test(Self.appSource, file) { appNavigationSources.append(source) }
+			if try patterns.test(Self.coachSource, file) { coachSources.append(source) }
 			try checkTestRules(source)
 			if try patterns.test(Self.proofFile, file) || patterns.test(Self.featureFile, file) {
 				featureProofSources.append(source)
@@ -85,6 +87,7 @@ struct SourceChecker {
 		}
 		try checkFeatureProofs(featureProofSources)
 		try checkNavigationStacks(appNavigationSources)
+		try checkFailureCodes(coachSources)
 		return files.count
 	}
 
