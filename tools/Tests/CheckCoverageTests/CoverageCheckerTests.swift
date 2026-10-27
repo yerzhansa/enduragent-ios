@@ -53,6 +53,14 @@ struct CoverageCheckerTests {
 	}
 
 	@Test(.timeLimit(.minutes(1)))
+	func theCommittedMilestoneSixTablePasses() throws {
+		let root = try FileSystem.realPath(RetainedTests.repository.path)
+		let result = try Scratch.command(["--root", root, "coverage/milestone-6.json"], in: root)
+		#expect(result.errors == [])
+		#expect(result.status == 0)
+	}
+
+	@Test(.timeLimit(.minutes(1)))
 	func commandWithoutATableShowsItsUsage() throws {
 		let result = try Scratch(files: [:]).runCommand(tables: [])
 		#expect(result.status == 2)

@@ -8,6 +8,13 @@ extension RequirementCheckerTests {
 		#expect(try requirementCase.check() == requirementCase.problems)
 	}
 
+	@Test(.timeLimit(.minutes(1)), arguments: RequirementCase.sixPlacement)
+	func milestoneSixPlacesOnlyAnAgreedDifferenceUnderAnUnlistedParent(
+		_ requirementCase: RequirementCase
+	) throws {
+		#expect(try requirementCase.check() == requirementCase.problems)
+	}
+
 	@Test(.timeLimit(.minutes(1)), arguments: RequirementCase.decisionRecords)
 	func agreedDifferenceNamesADecisionRecordOfItsScope(_ requirementCase: RequirementCase) throws {
 		#expect(try requirementCase.check() == requirementCase.problems)
@@ -67,12 +74,57 @@ extension RequirementCase {
 			problems: ["B17.01 [unknown-requirement]"]),
 		RequirementCase(
 			name: "a table of no known milestone lists requirements",
-			path: "coverage/milestone-6.json",
+			path: "coverage/milestone-7.json",
 			problems: ["requirements [unknown-scope]"]),
 		RequirementCase(
 			name: "a table named for no milestone lists requirements",
 			path: "coverage/sample.json",
 			problems: ["requirements [unknown-scope]"]),
+	]
+
+	static let sixListed = [
+		"B01.01", "B01.02", "B01.03", "B01.04", "B05.01", "B05.02", "B05.03", "B05.04",
+		"B10.01", "B10.02", "B10.03", "B10.04", "B11.01", "B11.02",
+	]
+	static let sixAgreed = [
+		"B10.02/no-snapshot", "B10.03/no-snapshot", "B10.01/one-file", "B10.01/one-severity",
+		"B01.02/store-notes", "B01.04/no-notice", "B01.03/no-update-state", "B11/three-outcomes",
+		"G09/no-refresh",
+	]
+	static let sixRows = sixAgreed.map { identifier in
+		identifier == "B11/three-outcomes"
+			? sixDifference(identifier, #""reaches": ["B11.01"]"#) : sixDifference(identifier)
+	}
+
+	static let sixPlacement = [
+		milestoneSix("the first Milestone 6 table records every agreed difference"),
+		milestoneSix(
+			"a sub-id of B11 that is no agreed difference is open",
+			open: sixListed + ["B11/other"],
+			problems: ["B11/other [unknown-parent]"]),
+		milestoneSix(
+			"a sub-id of B11 that is no agreed difference carries one",
+			rows: sixRows + [sixDifference("B11/other", #""reaches": ["B11.01"]"#)],
+			problems: ["B11/other [unknown-parent]"]),
+	]
+
+	static let sixReaches = [
+		milestoneSix(
+			"B11/three-outcomes reaches B11.01 and G09/no-refresh, under a retained id, reaches nothing"
+		),
+		milestoneSix(
+			"B11/three-outcomes names no retained id it reaches",
+			rows: sixRows.map {
+				$0.contains("B11/three-outcomes") ? sixDifference("B11/three-outcomes") : $0
+			},
+			problems: ["B11/three-outcomes [difference-reach-missing]"]),
+		milestoneSix(
+			"B11/three-outcomes reaches an id that is not retained",
+			rows: sixRows.map {
+				$0.contains("B11/three-outcomes")
+					? sixDifference("B11/three-outcomes", #""reaches": ["B11.03"]"#) : $0
+			},
+			problems: ["B11/three-outcomes [unknown-reach] B11.03"]),
 	]
 
 	static let decisionRecords = [
@@ -115,6 +167,22 @@ extension RequirementCase {
 			open: inScope.filter { $0 != "B17.01" } + ["B14.01/saved-plan"],
 			problems: ["B14.01/saved-plan [unknown-parent]"]),
 	]
+
+	static func sixDifference(_ identifier: String, _ members: String...) -> String {
+		proof(
+			identifier,
+			([#""agreedDifference": "ADR-0085 records it.""#] + members).joined(separator: ", "))
+	}
+
+	static func milestoneSix(
+		_ name: String, rows: [String] = sixRows, open: [String] = sixListed,
+		problems: [String] = []
+	) -> RequirementCase {
+		RequirementCase(
+			name: name, path: "coverage/milestone-6.json", rows: rows, open: open,
+			planned: Dictionary(uniqueKeysWithValues: sixListed.map { ($0, ["2.1.1"]) }),
+			problems: problems, readsRetained: true)
+	}
 
 	static func milestoneFive(
 		_ name: String, rows: [String] = [], open: [String] = fiveOpen, problems: [String] = []

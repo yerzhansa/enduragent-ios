@@ -1,0 +1,202 @@
+{
+	"units": {
+		"8.1": 6,
+		"8.2": 6
+	},
+	"criteria": [
+		{
+			"id": "8.1.1",
+			"statement": "On a specification-shaped fixture, the extract gives the work items with their milestones, a package in two milestones giving both, the X, G and D ids, and the MOB ids from cross_cutting mobile_ids, each once, in a stable order.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "extractGivesEveryRetainedIdOnceWithItsMilestonesInAStableOrder"}
+			]
+		},
+		{
+			"id": "8.1.2",
+			"statement": "On an ADR excerpt, the agreed differences are the backticked sub-ids that start the list items of \"Agreed differences from npm\", each with ADR-0085; an item naming two sub-ids gives both, other sections are ignored, and a decision without the section is refused.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "agreedDifferencesAreTheBacktickedSubIdsThatStartTheItemsOfTheirSection"},
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "aDecisionWithoutTheAgreedDifferencesSectionIsRefused"}
+			]
+		},
+		{
+			"id": "8.1.3",
+			"statement": "The approvals are the 51 A, B, C and D ids, and a test fails when they differ from those listed by the Milestone 4 scope.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "approvalsAreTheApprovalIdsOfMilestoneFour"}
+			]
+		},
+		{
+			"id": "8.1.4",
+			"statement": "The digest is the SHA-256 of the canonical text of the three lists: check-coverage over a copy of retained.json with one id changed exits 1 with retained-digest-mismatch, and the unedited copy passes.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "aHandEditFailsCheckCoverage"},
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "theCommittedListPassesCheckCoverageUnedited"}
+			]
+		},
+		{
+			"id": "8.1.5",
+			"statement": "--retained-drift reports added, removed, moved, difference-added and difference-removed, one line each, and exits 1 on any; it reports nothing and exits 0 against the sources the list was written from.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "driftReportsEachChangeOnItsOwnLineAndFails"},
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "noDriftAfterWritingFromTheSameSources"}
+			]
+		},
+		{
+			"id": "8.1.6",
+			"statement": "The committed retained.json has 138 requirements, 9 differences and 51 approvals, the specification's SHA-256, and a digest that matches.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "committedListHoldsTheRetainedIdsOfTheSpecification"}
+			]
+		},
+		{
+			"id": "8.2.1",
+			"statement": "A table named milestone-6.json is checked against a scope built from retained.json: its listed ids are the 14 retained ids of Milestone 6, its agreed differences the nine of ADR-0085, and its decision record ADR-0085; without retained.json the table cannot be read.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeTests.swift", "function": "milestoneSixScopeIsTheRetainedIdsOfMilestoneSixAndTheDifferencesOfADR0085"},
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeTests.swift", "function": "milestoneSixTableWithoutTheRetainedListCannotBeRead"}
+			]
+		},
+		{
+			"id": "8.2.2",
+			"statement": "A table named milestone-7.json, or named for no milestone, that lists requirements fails with unknown-scope.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeCases.swift", "function": "tableIsCheckedAgainstTheScopeItsFileNameNames"}
+			]
+		},
+		{
+			"id": "8.2.3",
+			"statement": "B11/three-outcomes places as a part though B11 is not a listed id, because it is an agreed difference; B11/other still fails with unknown-parent.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeTests.swift", "function": "agreedDifferencePlacesAsAPartThoughItsParentIsNotListed"},
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeCases.swift", "function": "milestoneSixPlacesOnlyAnAgreedDifferenceUnderAnUnlistedParent"}
+			]
+		},
+		{
+			"id": "8.2.4",
+			"statement": "An agreed difference whose parent is neither a listed nor a retained id names the retained ids it reaches: B11/three-outcomes without reaches fails with difference-reach-missing, with B11.03 fails with unknown-reach, and with B11.01 passes; G09/no-refresh, whose parent G09 is retained, passes without reaches.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "differenceWhoseParentIsNoRetainedIdNamesTheRetainedIdsItReaches"}
+			]
+		},
+		{
+			"id": "8.2.5",
+			"statement": "Deleting any one of the nine agreed-difference rows from the committed milestone-6.json fails with missing-agreed-difference for that row.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "deletingAnAgreedDifferenceRowFromTheCommittedTableFails"}
+			]
+		},
+		{
+			"id": "8.2.6",
+			"statement": "check-coverage passes on the committed milestone-6.json.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CoverageCheckerTests.swift", "function": "theCommittedMilestoneSixTablePasses"}
+			]
+		}
+	],
+	"requirements": [
+		{
+			"id": "B10.02/no-snapshot",
+			"statement": "The phone exports no full Reference snapshot and offers no export help.",
+			"agreedDifference": "ADR-0085 records it: the phone keeps no Reference snapshot (ADR-0082), so there is nothing like npm's /snapshot raw to export."
+		},
+		{
+			"id": "B10.03/no-snapshot",
+			"statement": "The phone exports no per-section snapshot.",
+			"agreedDifference": "ADR-0085 records it: the phone keeps no Reference snapshot (ADR-0082), so there is no section to export."
+		},
+		{
+			"id": "B10.01/one-file",
+			"statement": "Usage lines live in the diagnostics file as their own event kind.",
+			"agreedDifference": "ADR-0085 records it: one diagnostics file holds the usage lines, in place of the separate usage ledger with 10 MiB rotation the specification asks for."
+		},
+		{
+			"id": "B10.01/one-severity",
+			"statement": "The diagnostics log has one severity, because every recorded event is a failure.",
+			"agreedDifference": "ADR-0085 records it: the athlete cannot set a log level on a phone, in place of the selectable severity the specification asks for."
+		},
+		{
+			"id": "B01.02/store-notes",
+			"statement": "The app shows no release notes and has no /whatsnew.",
+			"agreedDifference": "ADR-0085 records it: TestFlight and the App Store show each version's notes."
+		},
+		{
+			"id": "B01.04/no-notice",
+			"statement": "The app makes no update check, shows no update notice, keeps no opt-out or once-per-version rule, sends no telemetry and has no /update.",
+			"agreedDifference": "ADR-0085 records it: iOS installs updates."
+		},
+		{
+			"id": "B01.03/no-update-state",
+			"statement": "The app gives no current, available, unavailable or failed update guidance; preserved state across an update stays required.",
+			"agreedDifference": "ADR-0085 records it: iOS exposes no update state to the app."
+		},
+		{
+			"id": "B11/three-outcomes",
+			"statement": "A feedback note ends received, not sent or not confirmed, so the app claims neither success nor non-delivery when the answer is lost.",
+			"agreedDifference": "ADR-0085 records it: the three outcomes replace npm's one failure sentence, as the specification proposes for B11.01.",
+			"reaches": ["B11.01"]
+		},
+		{
+			"id": "G09/no-refresh",
+			"statement": "Journey G09 has no refresh half.",
+			"agreedDifference": "ADR-0085 records it: the refresh went with the Reference snapshot (ADR-0082)."
+		}
+	],
+	"plan": {
+		"units": {
+			"1.1": 7,
+			"1.2": 8,
+			"1.3": 8,
+			"1.4": 5,
+			"2.1": 8,
+			"2.2": 8,
+			"2.3": 6,
+			"3.1": 10,
+			"4.1": 12,
+			"5.1": 11,
+			"5.2": 7,
+			"5.3": 8,
+			"6.1": 9,
+			"7.1": 6,
+			"8.1": 6,
+			"8.2": 6,
+			"8.3": 8,
+			"8.4": 6,
+			"9.1": 9,
+			"9.2": 9,
+			"10.1": 3
+		},
+		"requirements": {
+			"B01.01": ["8.4.2", "10.1.1"],
+			"B01.02": ["3.1.1", "5.1.8", "5.2.6"],
+			"B01.03": ["9.2.8", "10.1.1"],
+			"B01.04": ["6.1.5"],
+			"B05.01": ["7.1.4", "10.1.2"],
+			"B05.02": ["7.1.1", "7.1.2", "7.1.3"],
+			"B05.03": ["7.1.5"],
+			"B05.04": ["7.1.6"],
+			"B10.01": ["1.1.5", "1.2.3", "1.2.4", "1.2.5", "2.1.1", "2.1.2", "2.1.4", "2.1.7", "2.1.8", "2.2.1", "2.2.4", "2.3.1", "2.3.6"],
+			"B10.02": ["1.4.2", "3.1.2", "3.1.9"],
+			"B10.03": ["1.4.1", "1.4.2"],
+			"B10.04": ["1.4.3", "3.1.3", "5.1.6", "5.1.11", "10.1.3"],
+			"B11.01": ["1.3.1", "4.1.3", "4.1.8", "5.1.2", "5.2.4", "5.2.7"],
+			"B11.02": ["1.3.4", "1.3.7", "4.1.1", "4.1.4", "5.1.3"]
+		}
+	},
+	"open": [
+		"B01.01",
+		"B01.02",
+		"B01.03",
+		"B01.04",
+		"B05.01",
+		"B05.02",
+		"B05.03",
+		"B05.04",
+		"B10.01",
+		"B10.02",
+		"B10.03",
+		"B10.04",
+		"B11.01",
+		"B11.02"
+	]
+}

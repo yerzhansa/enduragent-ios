@@ -86,6 +86,10 @@ struct RetainedRequirements: Sendable, Equatable {
 		return try RetainedRequirements(declaredIn: JSONValue.parse(text))
 	}
 
+	func ids(inMilestone milestone: Int) -> [String] {
+		requirements.filter { $0.milestones.contains(milestone) }.map(\.id)
+	}
+
 	var summary: String {
 		"\(requirements.count) requirements, \(differences.count) differences, \(approvals.count) approvals"
 	}
