@@ -37,7 +37,7 @@ The saved intervals.icu key and the athlete it belongs to. It lets the coach rea
 _Avoid_: Integration, link, intervals account
 
 **Training snapshot**:
-The athlete's profile and latest wellness, read from intervals.icu for each turn and given to the coach.
+The athlete's profile and latest wellness, read from intervals.icu for each turn and given to the coach. It is never saved, so no file the athlete shares holds one.
 _Avoid_: Reference, cache, sync
 
 **Activity**:
@@ -75,7 +75,7 @@ A sentence the app shows when something could not be done or needs the athlete, 
 _Avoid_: Error, alert, banner, warning
 
 **Try again**:
-The action that repeats something that did not finish. For a turn, it answers the turn again and is offered only when nothing from the turn was saved; otherwise the notice asks for a new message.
+The action that repeats something that did not finish. For a turn, it answers the turn again and is offered only when nothing from the turn was saved; otherwise the notice asks for a new message. For feedback, it sends the same note again, and the feedback service keeps one copy.
 _Avoid_: Retry, resend
 
 **New conversation**:
@@ -149,3 +149,29 @@ _Avoid_: Goal assessment, readiness, prediction
 **Plan-save confirmation**:
 The card that asks the athlete to save one exact training plan, with Save plan and Cancel. It shows the plan's name, goal, length and phases, and the saved plan it would replace. It is separate from a workout review. It appears when the coach's reply ends well, expires ten minutes after that, and a newer one replaces it. Saving it never changes the calendar.
 _Avoid_: Proposal, plan approval, plan review
+
+### The app and support
+
+**Support**:
+The Settings section with Feedback, Diagnostics and About.
+_Avoid_: Help, Help and feedback, Info
+
+**Version**:
+The app's version and build number, such as "0.1.0 (3)", read from the installed app. About shows it.
+_Avoid_: Release, build (alone), app version number
+
+**App update**:
+Installing a newer version from TestFlight or the App Store, which also show its notes. It keeps the conversation, memory, the saved plan, waiting workout reviews and plan-save confirmations, receipts, keys and the language preference, and never repeats a calendar change. The app never checks for updates or announces them.
+_Avoid_: Upgrade (in athlete text), self-update, update notice, What's new
+
+**About**:
+The screen in Settings, under Support, that shows the app's name and version and links to the privacy policy. `/version` opens it.
+_Avoid_: Info, app info, credits, licenses
+
+**Feedback**:
+A short note the athlete writes to the Enduragent authors, from Settings or with `/feedback`. It goes on its own, with no conversation, memory, training data or diagnostics. The app says it was received only when the feedback service confirms it, says it was not sent when it never left the phone or was refused, and says it was not confirmed when it left but no answer came. It keeps the note until it is received.
+_Avoid_: Bug report, support request, ticket, message, report
+
+**Diagnostics file**:
+A file the athlete makes in Settings, under Support, and shares on purpose. It holds the version, the phone model and iOS version, the access method kind, the connection state, the language preference, counts of what the app has saved, and the last 14 days of the app's problems and model usage, with no keys, no message text and no training data. Nothing leaves the phone until the athlete shares it.
+_Avoid_: Logs, snapshot, export, debug dump, crash report
