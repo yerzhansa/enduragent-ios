@@ -1,7 +1,7 @@
 import ToolSupport
 
 extension SourceChecker {
-	private func readPlist(_ path: String) throws -> JSONValue {
+	func readPlist(_ path: String) throws -> JSONValue {
 		try JSONValue.parse(
 			Subprocess().printed("plutil", ["-convert", "json", "-o", "-", "--", path]))
 	}

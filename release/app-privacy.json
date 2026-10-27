@@ -1,0 +1,53 @@
+{
+	"tracking": false,
+	"collected": [
+		{
+			"type": "NSPrivacyCollectedDataTypeHealth",
+			"label": "Health",
+			"data": "Wellness values from intervals.icu that a coaching turn on the Credits path sends.",
+			"linked": true,
+			"tracking": false,
+			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+		},
+		{
+			"type": "NSPrivacyCollectedDataTypeFitness",
+			"label": "Fitness",
+			"data": "Activities, workouts and the training calendar from intervals.icu that a coaching turn on the Credits path sends.",
+			"linked": true,
+			"tracking": false,
+			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+		},
+		{
+			"type": "NSPrivacyCollectedDataTypeOtherUserContent",
+			"label": "Other User Content",
+			"data": "The athlete's messages and the coach's memory that a coaching turn on the Credits path sends.",
+			"linked": true,
+			"tracking": false,
+			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+		},
+		{
+			"type": "NSPrivacyCollectedDataTypeUserID",
+			"label": "User ID",
+			"data": "The athlete id the Credits service creates and keeps.",
+			"linked": true,
+			"tracking": false,
+			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+		},
+		{
+			"type": "NSPrivacyCollectedDataTypePurchaseHistory",
+			"label": "Purchase History",
+			"data": "Credits purchases the Credits service keeps for the athlete id.",
+			"linked": true,
+			"tracking": false,
+			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+		},
+		{
+			"type": "NSPrivacyCollectedDataTypeCustomerSupport",
+			"label": "Customer Support",
+			"data": "A feedback note, sent with the channel ios and a random id, and no athlete id.",
+			"linked": false,
+			"tracking": false,
+			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+		}
+	]
+}

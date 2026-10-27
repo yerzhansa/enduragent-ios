@@ -4,6 +4,7 @@
 		"1.2": 8,
 		"1.3": 8,
 		"2.1": 8,
+		"6.1": 9,
 		"8.1": 6,
 		"8.2": 6
 	},
@@ -251,6 +252,67 @@
 			]
 		},
 		{
+			"id": "6.1.1",
+			"statement": "privacy-manifest reports a missing manifest, one under the app target's excludes, one declaring tracking true, one declaring UserDefaults without CA92.1, and one with a third accessed API type; it reports a product file holding .modificationDate or volumeAvailableCapacity, and a manifest declaring UserDefaults over sources with no UserDefaults; it accepts a test file holding .creationDate. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.2",
+			"statement": "privacy-label-sheet reports a type in the manifest missing from the sheet, a type in the sheet missing from the manifest, a linked value that differs, tracking true in the sheet only, a purpose NSPrivacyCollectedDataTypePurposeAnalytics in the manifest only, and a sheet that says the app tracks. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.3",
+			"statement": "export-options reports a method other than app-store-connect, a signingStyle other than automatic, and a teamID other than the app target's DEVELOPMENT_TEAM. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.4",
+			"statement": "no-app-package-dependency reports a second package in project.yml, a package-level dependencies argument and a .package( call in the coach package's Package.swift, and accepts target-level dependencies. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.5",
+			"statement": "known-hosts reports a product Swift file with https://itunes.apple.com/lookup, one setting URLComponents' host to \"itunes.apple.com\", one with \"http://example.com\", an Info property UpdateURL: https://itunes.apple.com/lookup in project.yml, and an Info property whose build setting names an unlisted host; it accepts the Credits worker base and hosts in debug views, fixtures and tests. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.6",
+			"statement": "The app bundle built by the xcodebuild command holds PrivacyInfo.xcprivacy as a readable property list.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/PrivacyManifestTests.swift", "function": "theAppBundleHoldsThePrivacyManifest"}
+			]
+		},
+		{
+			"id": "6.1.7",
+			"statement": "notice-iphone-line reports a NOTICE.md without the iPhone line, a file under apps/ that names fit-file-parser, and a file under packages/ that names pi-ai. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.8",
+			"statement": "RELEASE.md has, before the archive step, the step that deploys the CloudKit schema to Production with its stop-and-report line, and the line that the App Privacy label is filled from release/app-privacy.json.",
+			"noAutomatedProof": "The reviewer reads RELEASE.md and checks that the CloudKit Production step, with its stop-and-report line, comes before the archive step, and that the App Store Connect section fills the label from release/app-privacy.json."
+		},
+		{
+			"id": "6.1.9",
+			"statement": "supported-devices reports a project.yml with deployment target 25.0, one with TARGETED_DEVICE_FAMILY \"1,2\", and one that adds a landscape orientation. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
 			"id": "8.1.1",
 			"statement": "On a specification-shaped fixture, the extract gives the work items with their milestones, a package in two milestones giving both, the X, G and D ids, and the MOB ids from cross_cutting mobile_ids, each once, in a stable order.",
 			"tests": [
@@ -386,6 +448,11 @@
 			"id": "G09/no-refresh",
 			"statement": "Journey G09 has no refresh half.",
 			"agreedDifference": "ADR-0085 records it: the refresh went with the Reference snapshot (ADR-0082)."
+		},
+		{
+			"id": "B01.04",
+			"statement": "The app has no update check and no host it does not need: known-hosts fails on any URL or host name in product Swift or the app's Info properties that is not listed with its reason, so no update or App Store lookup can creep in.",
+			"criteria": ["6.1.5"]
 		}
 	],
 	"plan": {
@@ -433,7 +500,6 @@
 		"B01.01",
 		"B01.02",
 		"B01.03",
-		"B01.04",
 		"B05.01",
 		"B05.02",
 		"B05.03",
