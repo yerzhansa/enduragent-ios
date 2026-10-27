@@ -386,10 +386,10 @@ import Testing
 				return false
 			} != nil)
 		let stale = ReviewRef(
-			chat: .main, set: ChangeSetID(ulid: fixedUlid(1)),
-			revision: ChangeSetRevision(rawValue: 1),
+			chat: .main, review: WorkoutReviewID(ulid: fixedUlid(1)),
+			revision: ReviewRevision(rawValue: 1),
 			delivery: UUID())
-		#expect(await coach.decide(.presented(stale), in: .main) == .staleControl)
+		#expect(await coach.decide(.presented(stale), in: .main) == .staleControl(newer: nil))
 		await coach.stop(.main)
 	}
 }

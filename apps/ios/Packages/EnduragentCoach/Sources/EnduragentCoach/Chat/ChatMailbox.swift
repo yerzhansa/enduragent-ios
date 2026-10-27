@@ -32,7 +32,6 @@ package actor ChatMailbox {
 		coalescing: CoalescingPolicy,
 		coalescingSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
 		environment: EnvironmentResolver,
-		reviews: any WorkoutReviews,
 		process: ProcessID,
 		host: any ExecutionHost, lifetime: Coach.Lifetime, feed: SnapshotFeed<ChatSnapshot>,
 		recoveryRecords: [AthleteRecord]?
@@ -48,7 +47,8 @@ package actor ChatMailbox {
 		self.process = process
 		self.feed = feed
 		self.lifecycle = MailboxLifecycle(host: host, chat: chatId, lifetime: lifetime)
-		self.records = ChatRecords(chat: chatId, ledger: ledger, clock: clock, reviews: reviews)
+		self.records = ChatRecords(
+			chat: chatId, ledger: ledger, clock: clock, desk: runner.desk)
 		try await records.refresh(recoveryRecords: recoveryRecords)
 		publish()
 	}
@@ -57,8 +57,8 @@ package actor ChatMailbox {
 	var jobs: [FlushJob] { records.jobs }
 
 	package func hasLocalWork() async throws(LedgerFailure) -> Bool {
-		let stored = try await ledger.hasLocalWork(in: chatId, now: clock.now)
-		return await records.hasLocalWork() || stored || work.phase.running != nil
+		let stored = try await ledger.hasLocalWork(in: chatId)
+		return records.hasLocalWork || stored || work.phase.running != nil
 			|| work.phase.cause != nil
 			|| work.window != nil || !work.isEmpty || door.held
 	}
@@ -161,23 +161,14 @@ package actor ChatMailbox {
 		await lifecycle.recover(plan, records: records, work: work, on: self)
 	}
 
-	package var reviewReadUnavailable: Bool { records.review?.notice?.kind == .storageUnavailable }
-
-	package func reviewChanged(_ ref: ReviewRef? = nil) async -> ReviewOutcome {
+	package func reviewChanged() async -> ReviewOutcome {
 		defer { publish() }
-		return await records.refreshReview(ref)
+		return await records.refreshReview()
 	}
 
 	package func decide(_ decision: ReviewDecision) async -> ReviewOutcome {
 		defer { publish() }
-		return await records.decide(decision, scope: reviewScope) { () throws(LedgerFailure) in
-			try await self.updateReview()
-		}
-	}
-
-	private func updateReview() async throws(LedgerFailure) {
-		defer { publish() }
-		try await records.updateReview()
+		return await records.decide(decision)
 	}
 
 	package func refreshImports() async throws(LedgerFailure) {
@@ -190,8 +181,6 @@ package actor ChatMailbox {
 			closeWindow()
 		}
 	}
-
-	package var reviewScope: TurnScope? { work.phase.running?.attempt?.scope }
 
 	func stamp(for turn: TurnID) async -> OperationStamp {
 		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)

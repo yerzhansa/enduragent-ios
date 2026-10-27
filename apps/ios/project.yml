@@ -35,6 +35,9 @@ targets:
       - path: Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/pre-vault-5de5c782
         type: folder
         buildPhase: resources
+      - path: Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/build-6833d90f
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.app
@@ -60,7 +63,7 @@ targets:
           INFOPLIST_KEY_CFBundleDisplayName: Enduragent Keychain Proof
           CODE_SIGN_ENTITLEMENTS: Enduragent/KeychainProof.entitlements
         Release:
-          EXCLUDED_SOURCE_FILE_NAMES: $(inherited) *EnduragentCoachFixtures* v1-upgrade pre-vault-5de5c782
+          EXCLUDED_SOURCE_FILE_NAMES: $(inherited) *EnduragentCoachFixtures* v1-upgrade pre-vault-5de5c782 build-6833d90f
     info:
       path: Enduragent/Info.plist
       properties:

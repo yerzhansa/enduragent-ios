@@ -130,7 +130,8 @@ import Testing
 	}
 
 	private static let approvedSentences = [
-		"review.cancelledUnknown": CancelUnknownSaveTests.sentence,
+		"review.cancelledUnknown":
+			"Cancelled. This workout may still have been saved. Check your calendar.",
 		"review.storageUnavailable":
 			"Couldn't read the saved workout review. Its buttons are temporarily disabled.",
 		"review.saveFailed":

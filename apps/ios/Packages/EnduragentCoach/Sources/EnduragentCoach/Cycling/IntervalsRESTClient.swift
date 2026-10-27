@@ -5,11 +5,10 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private let session: URLSession
 	private let baseURL: URL
 	let athletePath: String
-	private let clock: any Clock
 
 	package init(
 		credential: IntervalsCredential, athlete: AthleteSelection = .keyOwner,
-		session: URLSession? = nil, clock: any Clock = SystemClock(),
+		session: URLSession? = nil,
 		baseURL: URL = IntervalsPolicy.baseURL
 	) {
 		self.credential = credential
@@ -20,7 +19,6 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		case .athlete(let id):
 			self.athletePath = id.rawValue
 		}
-		self.clock = clock
 		self.session =
 			session
 			?? ephemeralSession(
@@ -41,78 +39,49 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		return try rows.map(Self.calendarEvent(from:))
 	}
 
-	package func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
-		guard draft.writeID != nil else {
-			throw IntervalsError(
-				code: "missing_write_identity",
-				details: "Calendar approval needs a durable identity")
+	package func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer {
+		let eventsPath = ["athlete", athletePath, "events"]
+		let answer: IntervalsAnswer
+		do {
+			switch write {
+			case .create(let payload, let identity):
+				answer = try await exchange(
+					method: "POST", path: eventsPath + ["bulk"],
+					query: [
+						URLQueryItem(name: "upsert", value: "true"),
+						URLQueryItem(name: "upsertOnUid", value: "false"),
+						URLQueryItem(name: "updatePlanApplied", value: "false"),
+					],
+					body: .json(.array([payload.requestBody(identity)])))
+			case .update(let id, let patch):
+				answer = try await exchange(
+					method: "PUT", path: eventsPath + [String(id.rawValue)],
+					body: .json(patch.requestBody))
+			case .delete(let id):
+				answer = try await exchange(
+					method: "DELETE", path: eventsPath + [String(id.rawValue)])
+			}
+		} catch let error as URLError where error.code == .cancelled {
+			return .lost(.canceled)
+		} catch {
+			return .lost(.transport)
 		}
-		let json = try await sendJSON(
-			method: "POST",
-			path: ["athlete", athletePath, "events"],
-			query: [URLQueryItem(name: "upsertOnUid", value: "true")],
-			body: IntervalsPolicy.chatCreateBody(draft)
-		)
-		let event = try Self.calendarEvent(from: json)
-		guard event.uid == draft.writeID?.uid, draft.matches(event) else {
-			throw IntervalsError(
-				code: "invalid_json", details: "Created event does not match the approval")
+		guard (200..<300).contains(answer.status) else { return .httpStatus(answer.status) }
+		do {
+			switch write {
+			case .create:
+				guard let rows = try parseJSON(answer.body).arrayValue, rows.count == 1,
+					let row = rows.first
+				else { return .lost(.unreadableBody) }
+				return .saved(try Self.calendarEvent(from: row))
+			case .update:
+				return .saved(try Self.calendarEvent(from: try parseJSON(answer.body)))
+			case .delete:
+				return .saved(nil)
+			}
+		} catch {
+			return .lost(.unreadableBody)
 		}
-		return event
-	}
-
-	package func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
-		async throws -> CalendarEvent
-	{
-		let existing = try await fetchEvent(id: id)
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		try IntervalsPolicy.refuseMutableEvent(
-			existing,
-			today: today,
-			eventId: id,
-			action: "update",
-			nextDate: date
-		)
-		var fields: [String: JSONValue] = [:]
-		if let name {
-			fields["name"] = .string(name)
-		}
-		if let description {
-			fields["description"] = .string(description)
-		}
-		if let date {
-			fields["start_date_local"] = .string("\(date.rawValue)T00:00:00")
-		}
-		let json = try await sendJSON(
-			method: "PUT",
-			path: ["athlete", athletePath, "events", String(id.rawValue)],
-			body: .object(fields)
-		)
-		let event = try Self.calendarEvent(from: json)
-		guard event.id == id, name.map({ $0 == event.name }) ?? true,
-			description.map({ $0 == event.description }) ?? true,
-			date.map({ "\($0.rawValue)T00:00:00" == event.startDateLocal }) ?? true
-		else {
-			throw IntervalsError(
-				code: "invalid_json", details: "Updated event does not match the approval")
-		}
-		return event
-	}
-
-	package func deleteEvent(id: EventID) async throws {
-		let existing = try await fetchEvent(id: id)
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		try IntervalsPolicy.refuseMutableEvent(
-			existing,
-			today: today,
-			eventId: id,
-			action: "delete",
-			nextDate: nil
-		)
-		_ = try await send(
-			method: "DELETE",
-			path: ["athlete", athletePath, "events", String(id.rawValue)]
-		)
 	}
 
 	private var authorization: String {
@@ -131,27 +100,8 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 	}
 
 	func getJSON(path: [String], query: [URLQueryItem] = []) async throws -> JSONValue {
-		try parseJSON(try await send(method: "GET", path: path, query: query))
-	}
-
-	private func sendJSON(
-		method: String,
-		path: [String],
-		query: [URLQueryItem] = [],
-		body: JSONValue
-	) async throws -> JSONValue {
-		try parseJSON(try await send(method: method, path: path, query: query, body: body))
-	}
-
-	private func send(
-		method: String,
-		path: [String],
-		query: [URLQueryItem] = [],
-		body: JSONValue? = nil
-	) async throws -> Data {
-		try Self.accepted(
-			try await exchange(
-				method: method, path: path, query: query, body: body.map(IntervalsBody.json)))
+		try parseJSON(
+			try Self.accepted(try await exchange(method: "GET", path: path, query: query)))
 	}
 
 	static func accepted(_ answer: IntervalsAnswer) throws(IntervalsError) -> Data {
@@ -214,7 +164,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		}
 	}
 
-	private static func calendarEvent(from json: JSONValue) throws -> CalendarEvent {
+	static func calendarEvent(from json: JSONValue) throws -> CalendarEvent {
 		let data = Data(json.canonicalDigestInput().utf8)
 		let payload = try JSONDecoder().decode(CalendarEventPayload.self, from: data)
 		guard CivilDate(rawValue: String(payload.start.prefix(10))) != nil else {
@@ -227,7 +177,9 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 			name: payload.name, category: payload.category,
 			externalId: payload.externalID, uid: payload.uid, tags: payload.tags ?? [],
 			coachCreated: IntervalsPolicy.isCoachOwned(
-				externalId: payload.externalID, tags: payload.tags ?? []))
+				externalId: payload.externalID, tags: payload.tags ?? []),
+			movingTime: payload.movingTime, trainingLoad: payload.trainingLoad,
+			workoutDocument: payload.workoutDocument?.value)
 	}
 
 }

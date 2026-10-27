@@ -36,6 +36,7 @@ public struct TurnView: Sendable, Equatable, Identifiable {
 	public let state: TurnState
 	public let completedInBackground: Bool
 	public let saveFailure: CatalogKey?
+	public let reviewNotice: AthleteNotice?
 }
 
 public enum ChatActivity: Sendable, Equatable {
@@ -219,7 +220,12 @@ extension ChatSnapshot {
 		} else {
 			self.activity = .idle
 		}
-		self.review = review
+		self.review = review.flatMap { [turns] review in
+			guard case .afterTurn(let turn) = review.placement,
+				let view = turns.first(where: { $0.id == turn }), !view.state.isSettled
+			else { return review }
+			return nil
+		}
 		self.notes = Dictionary(grouping: current.transcriptNotes(among: turns), by: \.after)
 	}
 }
@@ -256,7 +262,8 @@ public struct TranscriptNote: Sendable, Equatable, Identifiable {
 
 	public enum Content: Sendable, Equatable {
 		case applied(ReviewSummary)
-		case cancelledUnknown(CancelledUnknownReview)
+		case cancelledUnknown
+		case outcome(ReviewOutcomeNote)
 	}
 
 	public func sentence(in display: DisplayLocale) -> String {
@@ -267,6 +274,13 @@ public struct TranscriptNote: Sendable, Equatable, Identifiable {
 			)
 		case .cancelledUnknown:
 			display.say(Catalog.reviewCancelledUnknown)
+		case .outcome(let note):
+			note.sentence(in: display)
 		}
+	}
+
+	public func closing(in display: DisplayLocale) -> String? {
+		guard case .outcome(let note) = content else { return nil }
+		return note.closing(in: display)
 	}
 }

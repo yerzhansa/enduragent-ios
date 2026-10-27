@@ -61,7 +61,21 @@ struct TurnProjection {
 				state: TurnLifecycle.state(
 					of: facts, live: live, overlay: overlay, device: device, process: process),
 				completedInBackground: completedInBackground,
-				saveFailure: unsaved ? Catalog.chatNoticeReplyUnsaved : nil)
+				saveFailure: unsaved ? Catalog.chatNoticeReplyUnsaved : nil,
+				reviewNotice: facts.latestSettlement.flatMap { settled in
+					settled.reviewNotPrepared.map { _ in
+						AthleteNotices.notice(forUnpreparedReview: settled.settlement.summary)
+					}
+				})
+		}
+	}
+}
+
+extension Settlement {
+	fileprivate var summary: WriteSummary {
+		switch self {
+		case .replied: .none
+		case .savedWork(_, let saved), .failed(_, let saved), .interrupted(_, _, let saved): saved
 		}
 	}
 }

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import Synchronization
 
 extension ModelContainerHandle {
 	package static let cloudKitContainerIdentifier = "iCloud.icu.enduragent.ios"
@@ -27,12 +28,18 @@ extension ModelContainerHandle {
 	}
 
 	package static func deviceLocal(directory: URL) throws -> ModelContainerHandle {
-		try make(
-			name: "local-records",
-			storeURL: directory.appending(path: localStoreFileName),
-			cloudKitDatabase: .none
-		)
+		let storeURL = directory.appending(path: localStoreFileName).standardizedFileURL
+			.resolvingSymlinksInPath()
+		return try deviceLocalHandles.withLock { handles in
+			if let handle = handles[storeURL]?.handle { return handle }
+			let handle = try make(
+				name: "local-records", storeURL: storeURL, cloudKitDatabase: .none)
+			handles[storeURL] = HeldHandle(handle)
+			return handle
+		}
 	}
+
+	private static let deviceLocalHandles = Mutex<[URL: HeldHandle]>([:])
 
 	package static func withoutCloudKit(storeURL: URL) throws -> ModelContainerHandle {
 		try make(
@@ -58,5 +65,13 @@ extension ModelContainerHandle {
 		)
 		return ModelContainerHandle(
 			container: try ModelContainer(for: schema, configurations: [configuration]))
+	}
+}
+
+private final class HeldHandle {
+	weak var handle: ModelContainerHandle?
+
+	init(_ handle: ModelContainerHandle) {
+		self.handle = handle
 	}
 }

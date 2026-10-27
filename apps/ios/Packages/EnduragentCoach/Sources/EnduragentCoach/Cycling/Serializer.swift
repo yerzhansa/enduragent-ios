@@ -43,15 +43,6 @@ package enum IntervalsSerializer {
 		return seconds == 0 ? "\(minutes)m" : "\(minutes)m\(String(format: "%.0f", seconds))"
 	}
 
-	package static func slug(date: CivilDate, name: String) -> String {
-		_ = date
-		return ChatExternalID.slugify(name: name)
-	}
-
-	package static func chatExternalId(date: CivilDate, name: String) -> ChatExternalID {
-		ChatExternalID(date: date, slug: slug(date: date, name: name))
-	}
-
 	package static func parseWorkout(_ json: JSONValue) throws(InvalidWorkout)
 		-> IntervalsWorkoutInput
 	{
@@ -59,13 +50,23 @@ package enum IntervalsSerializer {
 		guard let name = fields["name"]?.stringValue else {
 			throw InvalidWorkout(message: "name: Required")
 		}
-		guard let stepsJSON = fields["steps"]?.arrayValue else {
+		return IntervalsWorkoutInput(name: name, steps: try parseSteps(fields["steps"]))
+	}
+
+	package static func parseStructuredSteps(_ json: JSONValue) throws(InvalidWorkout)
+		-> IntervalsWorkoutInput
+	{
+		IntervalsWorkoutInput(
+			name: "Structured workout", steps: try parseSteps(json.objectFields["steps"]))
+	}
+
+	private static func parseSteps(_ json: JSONValue?) throws(InvalidWorkout) -> [WorkoutStep] {
+		guard let stepsJSON = json?.arrayValue else {
 			throw InvalidWorkout(message: "steps: Required")
 		}
-		let steps = try stepsJSON.enumerated().map { (index, value) throws(InvalidWorkout) in
+		return try stepsJSON.enumerated().map { (index, value) throws(InvalidWorkout) in
 			try parseStep(value, path: "steps[\(index)]")
 		}
-		return IntervalsWorkoutInput(name: name, steps: steps)
 	}
 
 	private static func validateSchema(_ workout: IntervalsWorkoutInput) throws(InvalidWorkout) {

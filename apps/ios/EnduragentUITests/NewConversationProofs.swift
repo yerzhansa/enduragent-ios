@@ -32,16 +32,15 @@ final class ResetKeepsReviewProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, "Workout review")
 		TutorialHarness.startNewConversation(app)
 		TutorialHarness.waitForLabel(app, TutorialHarness.newConversationStarted)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.preview.add").exists)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.preview.cancel").exists)
+		ReviewCardScreen.assertButtons(app, .approveOrCancel)
 		TutorialHarness.waitForLabel(app, "Workout review")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.preparedEarlier"))
 		TutorialHarness.attach(self, name: "reset-keeps-review", app: app)
 		TutorialHarness.openRecords(app)
-		XCTAssertEqual(TutorialHarness.recordCount(app, "pendingProposal"), "pendingProposal 1")
-		XCTAssertNil(TutorialHarness.recordCount(app, "proposalCleared"))
+		XCTAssertNotNil(TutorialHarness.recordCount(app, "workoutReview"))
+		XCTAssertNil(TutorialHarness.recordCount(app, "reviewOutcome"))
 		XCTAssertEqual(TutorialHarness.recordCount(app, "windowStart"), "windowStart 1")
 		TutorialHarness.attach(self, name: "reset-keeps-review-records", app: app)
-		XCTAssertEqual(TutorialHarness.recordCount(app, "pendingProposal"), "pendingProposal 1")
 	}
 }
 

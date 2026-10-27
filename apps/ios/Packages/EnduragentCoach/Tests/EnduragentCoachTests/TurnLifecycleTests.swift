@@ -92,7 +92,8 @@ import Testing
 
 	@Test func settleWritesOneSyncedSettlementForTheClaimedAttempt() {
 		let settlement = Settlement.replied(.model("done"), lineage: nil)
-		let result = TurnLifecycle.settled(attempt, settlement, on: claimed(), chat: .main)
+		let result = TurnLifecycle.settled(
+			attempt, settlement, on: claimed(), chat: .main, reviewNotPrepared: nil)
 		#expect(
 			result
 				== TurnSettledBody(
@@ -102,7 +103,8 @@ import Testing
 	@Test func settleOfSettledAttemptWritesNothing() {
 		let facts = settled(.replied(.model("done"), lineage: nil))
 		let again = TurnLifecycle.settled(
-			attempt, .failed(.model(.contextOverflow), saved: .none), on: facts, chat: .main)
+			attempt, .failed(.model(.contextOverflow), saved: .none), on: facts, chat: .main,
+			reviewNotPrepared: nil)
 		#expect(again == nil)
 	}
 

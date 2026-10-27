@@ -6,25 +6,6 @@ import Testing
 @testable import EnduragentCoach
 
 extension CredentialVaultTests {
-	@Test func unverifiableReplacementCannotExecuteOldWorkoutReview() async throws {
-		let secrets = keyedSecrets()
-		let coach = await coach(secrets)
-		let pending = try await proposeRide(on: coach)
-		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
-		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
-		_ = await coach.changeTraining(.replace(apiKey: "icu-offline", athlete: .keyOwner))
-		#expect(try secrets.intervalsConnection()?.resolvedAthlete == nil)
-		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
-		#expect(
-			await coach.currentSnapshot(.main)?.review?.notice?.key == Catalog.reviewCannotVerify)
-		#expect(await coach.decide(.approve(token), in: .main) == .blocked(.cannotVerify))
-		#expect(
-			!offline.calls.contains {
-				if case .createEvent = $0 { return true }
-				return false
-			})
-	}
-
 	@Test func blockedMigrationIsNotOverwrittenByATrainingReplacement() async throws {
 		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		let previous = CreditsAccount(appAccountToken: token, key: "test-old-credits-key")

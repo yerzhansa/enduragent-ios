@@ -13,55 +13,8 @@
   ],
   "type": "object"
  },
- "intervals_create_strength_workout": {
-  "properties": {
-   "date": {
-    "description": "Session date (YYYY-MM-DD)",
-    "type": "string"
-   },
-   "description": {
-    "description": "Free-text session content",
-    "type": "string"
-   },
-   "name": {
-    "description": "Calendar card title",
-    "type": "string"
-   }
-  },
-  "required": [
-   "date",
-   "name",
-   "description"
-  ],
-  "type": "object"
- },
- "intervals_create_workout": {
-  "properties": {
-   "date": {
-    "description": "Workout date (YYYY-MM-DD)",
-    "type": "string"
-   },
-   "workout": {
-    "description": "Structured workout with name and steps",
-    "type": "object"
-   }
-  },
-  "required": [
-   "date",
-   "workout"
-  ],
-  "type": "object"
- },
- "intervals_delete_workout": {
-  "properties": {
-   "eventId": {
-    "description": "Event ID from intervals_list_events",
-    "type": "integer"
-   }
-  },
-  "required": [
-   "eventId"
-  ],
+ "get_pending_workout_changes": {
+  "properties": {},
   "type": "object"
  },
  "intervals_fetch_activities": {
@@ -148,30 +101,6 @@
   },
   "required": [
    "oldest"
-  ],
-  "type": "object"
- },
- "intervals_update_workout": {
-  "properties": {
-   "date": {
-    "description": "New workout date (YYYY-MM-DD)",
-    "type": "string"
-   },
-   "description": {
-    "description": "New description",
-    "type": "string"
-   },
-   "eventId": {
-    "description": "Event ID from intervals_list_events",
-    "type": "integer"
-   },
-   "name": {
-    "description": "New calendar title",
-    "type": "string"
-   }
-  },
-  "required": [
-   "eventId"
   ],
   "type": "object"
  },
@@ -262,6 +191,79 @@
   "required": [
    "type",
    "content"
+  ],
+  "type": "object"
+ },
+ "prepare_workout_changes": {
+  "properties": {
+   "preparation": {
+    "description": "kind complete with changes; replace with base and changes; revise with base and replacements [{id, change}]; or incomplete with reason. A change is {kind: add-cycling, date, workout, trainingLoad?}, {kind: add-strength, date, name, durationMinutes, effort, description, trainingLoad?}, {kind: edit, eventId, patch} or {kind: delete, eventId}. base is {setId, revision} from get_pending_workout_changes.",
+    "properties": {
+     "base": {
+      "properties": {
+       "revision": {
+        "description": "The pending review's revision",
+        "minimum": 1,
+        "type": "integer"
+       },
+       "setId": {
+        "description": "The pending review's setId",
+        "type": "string"
+       }
+      },
+      "required": [
+       "setId",
+       "revision"
+      ],
+      "type": "object"
+     },
+     "changes": {
+      "items": {
+       "type": "object"
+      },
+      "type": "array"
+     },
+     "kind": {
+      "enum": [
+       "complete",
+       "replace",
+       "revise",
+       "incomplete"
+      ],
+      "type": "string"
+     },
+     "reason": {
+      "description": "Why the requested set cannot be prepared",
+      "type": "string"
+     },
+     "replacements": {
+      "items": {
+       "properties": {
+        "change": {
+         "type": "object"
+        },
+        "id": {
+         "description": "A pending item id",
+         "type": "string"
+        }
+       },
+       "required": [
+        "id",
+        "change"
+       ],
+       "type": "object"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "kind"
+    ],
+    "type": "object"
+   }
+  },
+  "required": [
+   "preparation"
   ],
   "type": "object"
  }

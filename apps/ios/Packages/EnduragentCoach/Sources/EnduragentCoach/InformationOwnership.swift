@@ -25,11 +25,9 @@ package struct InformationOwnership: Sendable, Equatable {
 		[
 			.trainingIdentityObserved, .userMessage, .attemptQuestion, .turnSettled, .windowStart,
 			.compactionSummary, .memorySection, .dailyNote, .ledgerEvent, .journal,
-			.reviewApplied, .reviewWrite,
-		], includeLegacy: [.userMessage, .assistantMessage])
-	package static let localScope: RecordQuery.Scope = .deviceLocal([
-		.turnClaim, .pendingSettlement, .flushPending, .pendingProposal,
-	])
+		], includeLegacy: [.userMessage, .assistantMessage, .reviewApplied, .reviewWrite])
+	package static let localScope: RecordQuery.Scope = .deviceLocal(
+		[.turnClaim, .pendingSettlement, .flushPending], includeLegacy: [.pendingProposal])
 
 	private let records: [ULID: AthleteRecord]
 	private let connections: [ConnectionID: Set<IntervalsAthleteID>]

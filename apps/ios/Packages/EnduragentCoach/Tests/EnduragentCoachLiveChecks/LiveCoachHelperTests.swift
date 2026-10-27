@@ -11,7 +11,7 @@ import Testing
 			listing: ActivityListing(
 				range: try ReadRange(oldest: today.adding(days: -29), newest: today, today: today),
 				rows: []),
-			today: today)
+			calendar: [], today: today)
 	}
 
 	@Test func theVerdictNamesMissedToolCallsCalendarCallsAndAUTCStart() throws {
@@ -51,6 +51,7 @@ import Testing
 			.listsActivitiesCovering(tenth, today: today),
 			.offersNoTrainingTools,
 			.promptHolds("Training data is not connected."),
+			.review(.preparesNothing), .review(.leavesNoReview),
 		]
 
 		let good = turn(
@@ -60,7 +61,7 @@ import Testing
 
 		let bad = turn(
 			[
-				("intervals_create_workout", "{}"), ("intervals_fetch_streams", "not json"),
+				("prepare_workout_changes", "{}"), ("intervals_fetch_streams", "not json"),
 				("intervals_fetch_activities", #"{"oldest":"1998-06-11","newest":"1998-06-12"}"#),
 			],
 			reply: "The ride started at 08:00 UTC.", sent: "/review the ride",
@@ -69,8 +70,6 @@ import Testing
 			LiveVerdict.violations(of: bad, against: expectations + unmet) == [
 				"the coach did not receive the athlete's message unchanged",
 				"the reply labels a time UTC",
-				"calendar tools were called: intervals_create_workout",
-				"a workout review is waiting",
 				"intervals_fetch_streams was called with arguments that are not JSON",
 				#"intervals_fetch_streams was not called with activityId "i5501""#,
 				"the reply does not mention Fitness",
@@ -78,6 +77,8 @@ import Testing
 				"no activity list covered 1998-06-10",
 				"training tools were offered: intervals_fetch_athlete",
 				"the prompt does not hold \"Training data is not connected.\"",
+				"workout changes were prepared",
+				"a workout review is waiting",
 			])
 	}
 
@@ -86,7 +87,7 @@ import Testing
 
 		let report = LiveCoachReport(unavailable: plan.unavailable, spentBefore: 0)
 
-		#expect(plan.unavailable.count == 3)
+		#expect(plan.unavailable.count == 4)
 		#expect(
 			report.failures(capReached: false)
 				== plan.unavailable.map { "not available, so not covered: \($0)" })
@@ -107,7 +108,7 @@ import Testing
 			),
 			(
 				"workout",
-				[run(1, ["calendar tools were called: intervals_create_workout"]), run(2, [])]
+				[run(1, ["workout changes were prepared"]), run(2, [])]
 			),
 			("zones", [run(1, [])]),
 			("review-brief", [run(1, ["intervals_fetch_activity was not called"])]),
@@ -179,7 +180,7 @@ import Testing
 			listing: ActivityListing(
 				range: try ReadRange(oldest: today.adding(days: -29), newest: today, today: today),
 				rows: sample.activities.map(ActivityRow.activity)),
-			today: today)
+			calendar: [], today: today)
 
 		let scenario = plan.scenarios.first { $0.name == "review-ambiguous" }
 
@@ -225,29 +226,29 @@ import Testing
 
 	@Test func theReadOnlyTrainingRefusesEveryWriteWithoutReachingTheAccount() async throws {
 		let account = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		let writes = LiveCalendarWrites()
-		let training = LiveReadOnlyTraining(inner: account, writes: writes)
-		let refused = IntervalsError(
-			code: "live_check_read_only", details: "The live check never writes the calendar.")
-		let draft = ChatCalendarCreate(
-			date: "1998-06-14", name: "Z2 Endurance 60min", description: "- 60m 65%", type: .ride,
-			externalId: IntervalsSerializer.chatExternalId(
-				date: "1998-06-14", name: "Z2 Endurance 60min"),
-			tags: [IntervalsPolicy.coachTag])
+		let requests = LiveCalendarRequests()
+		let training = LiveReadOnlyTraining(inner: account, requests: requests)
+		let ride = CalendarPayload(
+			date: "1998-06-14", type: .ride, name: "Z2 Endurance 60min",
+			description: "- 60m 65%", movingTime: 3600, trainingLoad: nil,
+			authoredSteps: nil)
+		let patch = WorkoutPatch(
+			date: nil, name: "Z2", durationSeconds: nil, description: nil, trainingLoad: nil,
+			workoutDocument: nil, authoredSteps: nil)
 
-		await #expect(throws: refused) { _ = try await training.createChatEvent(draft) }
-		await #expect(throws: refused) {
-			_ = try await training.updateEvent(
-				id: EventID(rawValue: 7), name: "Z2", description: nil, date: nil)
+		for write in [
+			CalendarWrite.create(ride, identity: CalendarWriteID()),
+			.update(EventID(rawValue: 7), patch), .delete(EventID(rawValue: 7)),
+		] {
+			#expect(await training.write(write) == .httpStatus(403))
 		}
-		await #expect(throws: refused) { try await training.deleteEvent(id: EventID(rawValue: 7)) }
 
-		#expect(writes.total == 3)
+		#expect(requests.writes == 3)
 		#expect(account.calls.isEmpty)
 		#expect(account.events.isEmpty)
 		let written = LiveTurnRecord(
 			message: "/status", exchanges: [], reply: "Done.", outcome: "completed",
-			reviewPending: false, calendarWrites: writes.total)
+			reviewPending: false, calendarWrites: requests.writes)
 		#expect(
 			LiveVerdict.violations(of: written, against: []).contains("the calendar was written"))
 	}
@@ -264,7 +265,7 @@ import Testing
 			ledger: try LiveSpendLedger(
 				file: try TestTemporaryFolders.make().appending(path: "spend.tsv"), limit: 10),
 			today: today, modelTransport: { _ in model },
-			accountReads: { _, _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) })
+			accountReads: { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) })
 		let plan = try Self.planForAnEmptyAccount()
 		let scenario = try #require(plan.scenarios.first { $0.setting == .readsFailing })
 

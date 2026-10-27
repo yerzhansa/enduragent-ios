@@ -6,37 +6,6 @@ import Testing
 @testable import EnduragentCoach
 
 extension CredentialVaultTests {
-	@Test func legacyProposalAppliesOnAnotherDevice() async throws {
-		let legacy = Data(#"{"apiKey":{"_0":"icu-test-key"}}"#.utf8)
-		let phoneBacking = legacyIntervalsBacking(legacy)
-		let padBacking = legacyIntervalsBacking(legacy)
-		let phone = ICloudKeychainStore(backing: phoneBacking)
-		let pad = ICloudKeychainStore(backing: padBacking)
-		let phoneConnection = try #require(try phone.intervalsConnection())
-		let padConnection = try #require(try pad.intervalsConnection())
-		#expect(phoneConnection.id == padConnection.id)
-		let pending = try await proposeRide(on: coach(phone))
-		let peer = await coach(pad)
-		let review = try #require(await peer.currentSnapshot(.main)?.review)
-		#expect(review.ref.set == pending.ref.set)
-		#expect(await peer.decide(.presented(review.ref), in: .main) == .presentationRecorded)
-		let token = try #require(await peer.currentSnapshot(.main)?.review?.token)
-		#expect(
-			await peer.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
-		#expect(
-			ada.calls.contains {
-				if case .createEvent = $0 { return true }
-				return false
-			})
-		for store in [phone, pad] {
-			let resolved = try #require(try store.intervalsConnection())
-			#expect(resolved.id == phoneConnection.id)
-			#expect(resolved.credential == phoneConnection.credential)
-			#expect(resolved.resolvedAthlete == testConnection.resolvedAthlete)
-		}
-	}
-
 	@Test func legacyTrainingStaysConnectedWhenWritesFail() async throws {
 		let legacy = Data(#"{"apiKey":{"_0":"icu-test-key"}}"#.utf8)
 		let backing = legacyIntervalsBacking(legacy)
@@ -82,7 +51,7 @@ extension KeychainStoreTests {
 	}
 }
 
-private func legacyIntervalsBacking(_ legacy: Data) -> FixtureSecretStoreBacking {
+func legacyIntervalsBacking(_ legacy: Data) -> FixtureSecretStoreBacking {
 	FixtureSecretStoreBacking(items: [
 		CredentialSlot.creditsAccount.rawValue: Data(
 			#"{"appAccountToken":"11111111-2222-4333-8444-555555555555","key":"sk-or-test-credits-key"}"#

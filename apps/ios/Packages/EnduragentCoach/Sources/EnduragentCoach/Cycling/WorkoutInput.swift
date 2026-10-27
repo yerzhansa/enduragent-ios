@@ -73,3 +73,21 @@ package struct SerializedWorkout: Sendable, Equatable {
 package struct InvalidWorkout: Error, Sendable, Equatable {
 	package var message: String
 }
+
+package struct AuthoredSteps: Sendable, Equatable {
+	package let json: JSONValue
+	package let workout: IntervalsWorkoutInput
+
+	private init(json: JSONValue, workout: IntervalsWorkoutInput) {
+		self.json = json
+		self.workout = workout
+	}
+
+	package static func ride(_ json: JSONValue) throws(InvalidWorkout) -> AuthoredSteps {
+		AuthoredSteps(json: json, workout: try IntervalsSerializer.parseWorkout(json))
+	}
+
+	package static func structure(_ json: JSONValue) throws(InvalidWorkout) -> AuthoredSteps {
+		AuthoredSteps(json: json, workout: try IntervalsSerializer.parseStructuredSteps(json))
+	}
+}

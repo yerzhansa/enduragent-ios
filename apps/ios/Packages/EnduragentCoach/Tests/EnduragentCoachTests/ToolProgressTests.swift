@@ -22,7 +22,7 @@ import Testing
 				.toolCall(
 					name: "intervals_fetch_activities", arguments: #"{"oldest":"1998-06-07"}"#),
 				.finish(reason: .toolCalls),
-			] + workoutProposal + [.text(completion), .finish(reason: .stop)],
+			] + workoutPreparation + [.text(completion), .finish(reason: .stop)],
 			requestDelay: .seconds(10))
 	}
 
@@ -59,17 +59,15 @@ import Testing
 		try await modelClock.waitUntilHeld(.seconds(10))
 		modelClock.release(.seconds(10))
 		try await modelClock.waitUntilHeld(.seconds(10))
-		let finishing = try #require(
-			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
-				$0.review != nil
-			})
+		let finishing = try await snapshot(coach)
+		#expect(finishing.review == nil)
 		#expect(finishing.activity == .working(label: Catalog.chatNoticeWorking))
 		#expect(finishing.turns.first?.state.isSettled == false)
 		#expect(finishing.liveReply?.text == introduction)
 		modelClock.release(.seconds(10))
 		let finished = try #require(
 			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
-				$0.turns.first?.state.isSettled == true && $0.activity == .idle
+				$0.turns.first?.state.isSettled == true && $0.activity == .idle && $0.review != nil
 			})
 		try assertCompleted(finished, turn: turn)
 	}
@@ -128,7 +126,7 @@ import Testing
 		let review = try #require(snapshot.review)
 		#expect(review.ref.chat == .main)
 		#expect(
-			review.cards.map { $0.name.sentence(in: displayLocale()) } == ["Endurance"])
+			review.cards.map { $0.name.sentence(in: displayLocale()) } == ["Threshold 2x2"])
 		#expect(review.cards.map(\.date) == ["1998-06-14"])
 		#expect(review.totals.additions == 1)
 	}

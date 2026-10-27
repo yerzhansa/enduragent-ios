@@ -27,6 +27,8 @@ final class ShellModel {
 	private(set) var status: CoachStatus
 	var newConversationUncertain: Bool { submission.isUncertain(chat?.reset) }
 	private var reviewOutcomeNotice: AthleteNotice?
+	private var presentation: ReviewPresentation?
+	private(set) var decidingReview = false
 
 	let environment: AppEnvironment
 	let lifecycle: AppLifecycle
@@ -106,15 +108,22 @@ final class ShellModel {
 	}
 
 	var reviewNotice: AthleteNotice? {
-		guard let reviewOutcomeNotice else { return nil }
-		if let cardNotice = chat?.review?.notice,
-			cardNotice.kind == .storageUnavailable
-				|| (cardNotice.key == reviewOutcomeNotice.key
-					&& cardNotice.vars.mapValues(CatalogArgument.text) == reviewOutcomeNotice.vars)
-		{
-			return nil
-		}
+		guard let reviewOutcomeNotice, chat?.review?.notice?.kind != .storageUnavailable,
+			!reviewNoticeRepeatsCard(reviewOutcomeNotice) || !reviewOutcomeNotice.actions.isEmpty
+		else { return nil }
 		return reviewOutcomeNotice
+	}
+
+	func reviewNoticeRepeatsCard(_ notice: AthleteNotice) -> Bool {
+		guard let cardNotice = chat?.review?.notice else { return false }
+		return cardNotice.key == notice.key
+			&& cardNotice.vars.mapValues(CatalogArgument.text) == notice.vars
+	}
+
+	var reviewPresentation: ReviewPresentation? {
+		guard let review = chat?.review else { return nil }
+		if let presentation, presentation.belongs(to: review) { return presentation }
+		return ReviewPresentation(of: review)
 	}
 
 	var languageNotSavedLine: String? {
@@ -302,6 +311,18 @@ final class ShellModel {
 	}
 
 	func decide(_ decision: ReviewDecision) async {
+		switch decision {
+		case .approve, .cancel, .tryAgain, .checkAgain:
+			guard !decidingReview else { return }
+			decidingReview = true
+			defer { decidingReview = false }
+			reviewOutcomeNotice = await send(decision).notice
+		case .presented, .presentationFailed, .showAgain:
+			_ = await send(decision)
+		}
+	}
+
+	private func send(_ decision: ReviewDecision) async -> ReviewOutcome {
 		let outcome = await services.coach.decide(decision, in: .main)
 		#if DEBUG
 			if case .presented(let ref) = decision, outcome == .presentationRecorded,
@@ -311,12 +332,41 @@ final class ShellModel {
 				await driver.refreshIfReady(chat, coach: services.coach, records: fixture.records)
 			}
 		#endif
-		switch decision {
-		case .approve, .cancel, .retryRemaining, .checkAgain:
-			reviewOutcomeNotice = outcome.notice
-		case .presented, .presentationFailed, .showAgain:
-			break
-		}
+		return outcome
+	}
+
+	func cardAppeared(_ card: ReviewCard) async {
+		guard let review = chat?.review, var shown = reviewPresentation else { return }
+		let decision =
+			presentationFails(card, of: review, round: shown.round)
+			? shown.failed(card, of: review) : shown.appeared(card, of: review, in: displayLocale)
+		presentation = shown
+		if let decision { await decide(decision) }
+	}
+
+	func showReviewAgain() async {
+		guard let review = chat?.review, var shown = reviewPresentation else { return }
+		let decision = shown.showAgain(review)
+		presentation = shown
+		await decide(decision)
+	}
+
+	private func presentDelivered() async {
+		guard let review = chat?.review, var shown = reviewPresentation else { return }
+		let decision = shown.delivered(review)
+		presentation = shown
+		if let decision { await decide(decision) }
+	}
+
+	private func presentationFails(_ card: ReviewCard, of review: ReviewSnapshot, round: Int)
+		-> Bool
+	{
+		#if DEBUG
+			return services.fixture?.presentationFault == .failLastCardOnce && round == 0
+				&& card.index == review.cards.last?.index
+		#else
+			return false
+		#endif
 	}
 
 	private func observeChat() {
@@ -326,6 +376,7 @@ final class ShellModel {
 			for await snapshot in await coach.observe(.main) {
 				guard let self, !Task.isCancelled else { return }
 				self.chat = snapshot
+				await self.presentDelivered()
 				#if DEBUG
 					if let fixture = services.fixture, let driver = fixture.reviewProofDriver {
 						await driver.refreshIfReady(

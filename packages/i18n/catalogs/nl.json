@@ -2936,22 +2936,16 @@
     "accountChanged": "Deze training is voorbereid voor een andere atleet op {{service}}. Vraag me opnieuw om deze voor de verbonden atleet voor te bereiden.",
     "add": "Toevoegen aan kalender",
     "cannotVerify": "Ik kon je verbinding met {{service}} niet controleren, dus er is niets gewijzigd. Probeer het zo opnieuw.",
-    "turnStopping": "Dit antwoord wordt gestopt. Daarna kun je de trainingsbeoordeling goedkeuren of annuleren.",
-    "earlierVersion": "Deze trainingsbeoordeling komt uit een eerdere versie van de app en kan niet meer worden toegepast.",
     "cancelledUnknown": "Geannuleerd. Deze training is mogelijk toch opgeslagen. Controleer je kalender.",
     "saveFailed": "Je keuze kon niet op deze iPhone worden opgeslagen, dus er is niets gewijzigd. Probeer het opnieuw.",
     "storageUnavailable": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. De knoppen zijn tijdelijk uitgeschakeld.",
     "title": "Training controleren",
-    "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt.",
     "workout": {
       "warmup": "Warming-up",
       "mainSet": "Hoofdblok",
       "cooldown": "Cooling-down",
       "ramp": "oplopend"
-    },
-    "writePending": "Deze training is mogelijk opgeslagen. Controleer de kalender voordat je verdergaat.",
-    "writeReadFailed": "De kalender kon niet worden gecontroleerd. Je goedgekeurde training wacht nog op bevestiging.",
-    "saveApprovedAgain": "Goedgekeurde training opnieuw opslaan"
+    }
   },
   "credits": {
     "buy": "Kopen",
@@ -3037,5 +3031,102 @@
       "waiting": "Atletenprofiel lezen…"
     },
     "missing": "intervals.icu is niet verbonden. Maak verbinding om trainingen aan je kalender toe te voegen."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Deze training is beoordeeld voordat de app werd bijgewerkt. Vraag het de coach opnieuw.",
+      "missing": "Een training in deze controle staat niet meer in je {{service}}-kalender, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw.",
+      "pastProtected": "Een training in deze controle ligt nu in het verleden, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw.",
+      "coachOnly": "Een training in deze controle is niet door de coach toegevoegd, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw.",
+      "workoutOnly": "Een item in deze controle is geen training, dus de controle kan niet verdergaan. Annuleer hem en vraag het de coach opnieuw."
+    },
+    "refreshed": {
+      "nothingChanged": "Trainingen in deze controle zijn in {{service}} gewijzigd nadat je ze hebt gecontroleerd, dus er is niets gewijzigd. Controleer ze opnieuw voordat je goedkeurt.",
+      "nothingElseChanged": "Trainingen in deze controle zijn in {{service}} gewijzigd nadat je ze hebt gecontroleerd, dus er is verder niets gewijzigd. Controleer ze opnieuw voordat je goedkeurt.",
+      "date": "{{workout}}: datum gewijzigd van {{from}} naar {{to}}.",
+      "name": "{{workout}}: naam gewijzigd in {{to}}.",
+      "duration": "{{workout}}: duur gewijzigd van {{from}} naar {{to}} minuten.",
+      "description": "{{workout}}: beschrijving gewijzigd.",
+      "load": "{{workout}}: trainingsbelasting gewijzigd van {{from}} naar {{to}}.",
+      "structure": "{{workout}}: trainingsstappen gewijzigd."
+    },
+    "notPrepared": "De trainingsbeoordeling kon niet worden voorbereid.",
+    "notPreparedInformationSaved": "Je gegevens zijn opgeslagen, maar de trainingsbeoordeling kon niet worden voorbereid.",
+    "stopped": "De trainingsbeoordeling is gestopt voordat alle wijzigingen waren doorgevoerd. Wijzigingen die al zijn doorgevoerd, blijven behouden.",
+    "sending": "De gecontroleerde wijzigingen worden doorgevoerd in je {{service}}-kalender…",
+    "partial": "{{service}} heeft een wijziging geweigerd, dus de resterende wijzigingen zijn gestopt. Wijzigingen die al zijn doorgevoerd, blijven behouden. Controleer de rest voordat je het opnieuw probeert.",
+    "unconfirmed": "Een wijziging is mogelijk opgeslagen in je {{service}}-kalender. Controleer het opnieuw voordat er iets anders wordt gewijzigd.",
+    "completed": "Alle gecontroleerde wijzigingen zijn voltooid.",
+    "canceled": "De resterende wijzigingen zijn geannuleerd.",
+    "finishedTitle": "Al voltooid",
+    "outcome": {
+      "closedAtUpgrade": "Deze trainingsbeoordeling is voorbereid voordat de app werd bijgewerkt. Vraag het de coach opnieuw.",
+      "saved": "{{workout}}, {{date}}: wijziging opgeslagen.",
+      "seenOnCalendar": "{{workout}}, {{date}}: wijziging gezien in de kalender.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: staat niet meer in de kalender.",
+      "givenUp": "{{workout}}, {{date}}: wijziging niet doorgevoerd.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: wijziging is mogelijk opgeslagen. Controleer je kalender."
+    },
+    "preparedEarlier": "Eerder voorbereid",
+    "approve": "Wijzigingen toepassen",
+    "card": {
+      "add": "Toevoegen",
+      "edit": "Bewerken",
+      "delete": "Verwijderen",
+      "heading": "{{action}} · {{position}} van {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "duur onbekend",
+      "unknown": "onbekend",
+      "load": "Geschatte trainingsbelasting: {{load}}",
+      "removed": "Deze training wordt uit de kalender verwijderd.",
+      "changed": {
+        "date": "Datum: {{from}} → {{to}}",
+        "name": "Naam: {{from}} → {{to}}",
+        "duration": "Duur: {{from}} → {{to}}",
+        "load": "Geschatte trainingsbelasting: {{from}} → {{to}}",
+        "description": "De beschrijving verandert.",
+        "steps": "De trainingsstappen veranderen."
+      },
+      "progress": {
+        "sending": "Verzenden…",
+        "refused": "Niet opgeslagen",
+        "mayHaveBeenSaved": "Mogelijk opgeslagen",
+        "notRemoved": "Niet verwijderd",
+        "mayHaveBeenRemoved": "Mogelijk verwijderd"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Procent van FTP",
+      "watts": "Vermogen in watt"
+    },
+    "totals": {
+      "additions_one": "{{count}} toevoeging",
+      "additions_other": "{{count}} toevoegingen",
+      "edits_one": "{{count}} wijziging",
+      "edits_other": "{{count}} wijzigingen",
+      "deletions_one": "{{count}} verwijdering",
+      "deletions_other": "{{count}} verwijderingen",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} voor toegevoegde of gewijzigde trainingen",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · totale duur onbekend"
+    },
+    "kept": {
+      "title": "Bestaande trainingen die blijven",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Deze training aan je kalender toevoegen?",
+        "add_other": "Deze trainingen aan je kalender toevoegen?",
+        "edit_one": "Deze training in je kalender bijwerken?",
+        "edit_other": "Deze trainingen in je kalender bijwerken?",
+        "delete_one": "Deze training uit je kalender verwijderen?",
+        "delete_other": "Deze trainingen uit je kalender verwijderen?",
+        "mixed": "Alle gecontroleerde wijzigingen toepassen?"
+      },
+      "approveEdits": "Kalender bijwerken",
+      "approveDeletions": "Uit kalender verwijderen",
+      "unseen": "Scrol door alle kaarten om verder te gaan.",
+      "cardFailed": "Kaart {{position}} van {{count}} kon niet worden getoond. Er is niets gewijzigd.",
+      "showAgain": "Opnieuw tonen"
+    }
   }
 }

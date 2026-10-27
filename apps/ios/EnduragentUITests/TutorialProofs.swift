@@ -261,24 +261,30 @@ final class RecordsClockOrderProof: XCTestCase {
 		XCTAssertTrue(
 			rows.allSatisfy {
 				$0.count == 4
-					|| (["turnSettled", "turnClaim", "proposalCleared"].contains($0.first)
-						&& $0.count > 4)
+					|| (["turnSettled", "turnClaim"].contains($0.first) && $0.count > 4)
 			},
-			"every row shows kind, device, HLC, account, and any settlement, lease, or clear outcome: \(labels)"
+			"every row shows kind, device, HLC, account, and any settlement or lease: \(labels)"
 		)
 		let clocks = rows.compactMap { $0.dropLast().last }
 		XCTAssertEqual(Set(clocks).count, clocks.count, "no two rows share an HLC: \(labels)")
-		let causal = rows.compactMap(\.first).filter {
-			["userMessage", "turnClaim", "turnSettled", "pendingProposal", "proposalCleared"]
-				.contains($0)
+		let kinds = rows.compactMap(\.first)
+		let causal = kinds.filter {
+			["userMessage", "turnClaim", "turnSettled", "reviewOutcome"].contains($0)
 		}
 		XCTAssertEqual(
 			causal,
 			[
 				"userMessage", "turnClaim", "turnSettled", "userMessage", "turnClaim",
-				"pendingProposal", "turnSettled", "proposalCleared",
+				"turnSettled", "reviewOutcome",
 			],
 			"rows in HLC order follow the order the app wrote them: \(labels)")
+		let claims = kinds.indices.filter { kinds[$0] == "turnClaim" }
+		let reviews = kinds.indices.filter { kinds[$0] == "workoutReview" }
+		let outcome = kinds.firstIndex(of: "reviewOutcome")
+		XCTAssertFalse(reviews.isEmpty, "the review wrote no workoutReview row: \(labels)")
+		XCTAssertTrue(
+			claims.count == 2 && reviews.allSatisfy { $0 > claims[1] && $0 < (outcome ?? 0) },
+			"the review rows fall between the second turn's claim and the outcome: \(labels)")
 	}
 }
 

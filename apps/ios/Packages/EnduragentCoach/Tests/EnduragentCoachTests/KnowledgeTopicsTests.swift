@@ -7,8 +7,8 @@ import Testing
 
 @Suite struct KnowledgeTopicsTests {
 	static let topicsThatDifferFromNpm: Set<String> = [
-		"cycling-periodization", "cycling-prescription-posture", "cycling-race-prep",
-		"cycling-review",
+		"cycling-intervals-icu", "cycling-periodization", "cycling-prescription-posture",
+		"cycling-race-prep", "cycling-review",
 	]
 
 	let transport = FakeModelTransport()

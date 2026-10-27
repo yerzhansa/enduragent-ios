@@ -20,20 +20,28 @@ struct TurnSettledPayload: Codable {
 	var turn: String
 	var attempt: String
 	var settlement: SettlementPayload
+	var reviewNotPrepared: String?
 }
 
 extension TurnSettledPayload {
 	init(_ body: TurnSettledBody) {
 		self.init(
 			chatId: body.chatId.rawValue, turn: body.turn.ulid.rawValue,
-			attempt: body.attempt.ulid.rawValue, settlement: SettlementPayload(body.settlement))
+			attempt: body.attempt.ulid.rawValue, settlement: SettlementPayload(body.settlement),
+			reviewNotPrepared: body.reviewNotPrepared?.rawValue)
 	}
 
 	func body() throws -> TurnSettledBody {
 		TurnSettledBody(
 			chatId: try decodeChatID(chatId), turn: TurnID(ulid: try decodeULID(turn)),
 			attempt: AttemptID(ulid: try decodeULID(attempt)),
-			settlement: try settlement.settlement())
+			settlement: try settlement.settlement(),
+			reviewNotPrepared: try reviewNotPrepared.map { (raw) throws(RecordDecodeFailure) in
+				guard let cause = ReviewNotPrepared(rawValue: raw) else {
+					throw RecordDecodeFailure(reason: "reviewNotPrepared")
+				}
+				return cause
+			})
 	}
 }
 
@@ -227,23 +235,6 @@ struct ProvenancePayload: Codable {
 	var nonGarmin: Bool
 	var unknown: Bool
 	var contentSha256: String
-}
-
-struct ProposalPayload: Codable {
-	var writeID: UUID? = nil
-	var chatId: String
-	var nonce: UUID
-	var tool: String
-	var toolInput: GatedToolInputPayload
-	var summary: String
-	var description: String
-	var expiresAt: TimeInterval
-}
-
-struct ProposalClearedPayload: Codable {
-	var chatId: String
-	var nonce: UUID
-	var reason: String
 }
 
 struct FlushPendingPayload: Codable {

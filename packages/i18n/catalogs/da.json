@@ -2936,22 +2936,16 @@
     "accountChanged": "Dette træningspas blev forberedt til en anden atlet på {{service}}. Bed mig igen om at forberede det til den tilsluttede atlet.",
     "add": "Føj til kalender",
     "cannotVerify": "Jeg kunne ikke kontrollere din forbindelse til {{service}}, så intet blev ændret. Prøv igen om lidt.",
-    "turnStopping": "Dette svar er ved at stoppe. Når det er stoppet, kan du godkende eller annullere gennemgangen af træningspasset.",
-    "earlierVersion": "Denne træningsgennemgang er fra en tidligere version af appen og kan ikke længere anvendes.",
     "cancelledUnknown": "Annulleret. Denne træning kan stadig være blevet gemt. Tjek din kalender.",
     "saveFailed": "Dit valg kunne ikke gemmes på denne iPhone, så intet blev ændret. Prøv igen.",
     "storageUnavailable": "Kunne ikke læse den gemte træningsgennemgang. Knapperne er midlertidigt deaktiveret.",
     "title": "Gennemgang af træningspas",
-    "uncertain": "Jeg kunne ikke bekræfte, om dette nåede frem til din kalender på {{service}}. Tjek din kalender, før du spørger igen.",
     "workout": {
       "warmup": "Opvarmning",
       "mainSet": "Hoveddel",
       "cooldown": "Nedkøling",
       "ramp": "gradvis stigning"
-    },
-    "writePending": "Denne træning er muligvis blevet gemt. Tjek kalenderen, før du fortsætter.",
-    "writeReadFailed": "Kalenderen kunne ikke kontrolleres. Din godkendte træning afventer stadig.",
-    "saveApprovedAgain": "Gem den godkendte træning igen"
+    }
   },
   "credits": {
     "buy": "Køb",
@@ -3037,5 +3031,102 @@
       "waiting": "Læser atletprofil…"
     },
     "missing": "intervals.icu er ikke tilsluttet. Opret forbindelse for at føje træningspas til din kalender."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Denne træning blev gennemgået, før appen blev opdateret. Spørg træneren igen.",
+      "missing": "Et træningspas i denne gennemgang er ikke længere i din kalender på {{service}}, så gennemgangen kan ikke fortsætte. Annuller den, og spørg træneren igen.",
+      "pastProtected": "Et træningspas i denne gennemgang ligger nu i fortiden, så gennemgangen kan ikke fortsætte. Annuller den, og spørg træneren igen.",
+      "coachOnly": "Et træningspas i denne gennemgang blev ikke tilføjet af træneren, så gennemgangen kan ikke fortsætte. Annuller den, og spørg træneren igen.",
+      "workoutOnly": "En post i denne gennemgang er ikke et træningspas, så gennemgangen kan ikke fortsætte. Annuller den, og spørg træneren igen."
+    },
+    "refreshed": {
+      "nothingChanged": "Træningspas i denne gennemgang blev ændret i {{service}}, efter du gennemgik dem, så intet blev ændret. Tjek dem igen, før du godkender.",
+      "nothingElseChanged": "Træningspas i denne gennemgang blev ændret i {{service}}, efter du gennemgik dem, så intet andet blev ændret. Tjek dem igen, før du godkender.",
+      "date": "{{workout}}: datoen blev ændret fra {{from}} til {{to}}.",
+      "name": "{{workout}}: navnet blev ændret til {{to}}.",
+      "duration": "{{workout}}: varigheden blev ændret fra {{from}} til {{to}} minutter.",
+      "description": "{{workout}}: beskrivelsen blev ændret.",
+      "load": "{{workout}}: træningsbelastningen blev ændret fra {{from}} til {{to}}.",
+      "structure": "{{workout}}: træningstrinene blev ændret."
+    },
+    "notPrepared": "Træningsgennemgangen kunne ikke forberedes.",
+    "notPreparedInformationSaved": "Dine oplysninger blev gemt, men træningsgennemgangen kunne ikke forberedes.",
+    "stopped": "Træningsgennemgangen stoppede, før alle ændringer blev foretaget. Ændringer, der allerede er foretaget, bevares.",
+    "sending": "Foretager de gennemgåede ændringer i din kalender på {{service}} …",
+    "partial": "{{service}} afviste en ændring, så de resterende ændringer blev stoppet. Ændringer, der allerede er foretaget, bevares. Tjek resten, før du prøver igen.",
+    "unconfirmed": "En ændring kan være blevet gemt i din kalender på {{service}}. Kontrollér igen for at finde ud af det, før noget andet ændres.",
+    "completed": "Alle gennemgåede ændringer er gennemført.",
+    "canceled": "De resterende ændringer blev annulleret.",
+    "finishedTitle": "Allerede gennemført",
+    "outcome": {
+      "closedAtUpgrade": "Denne træningsgennemgang blev forberedt, før appen blev opdateret. Spørg træneren igen.",
+      "saved": "{{workout}}, {{date}}: ændringen er gemt.",
+      "seenOnCalendar": "{{workout}}, {{date}}: ændringen ses i kalenderen.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: er ikke længere i kalenderen.",
+      "givenUp": "{{workout}}, {{date}}: ændringen blev ikke foretaget.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: ændringen er muligvis gemt. Tjek din kalender."
+    },
+    "preparedEarlier": "Forberedt tidligere",
+    "approve": "Anvend ændringer",
+    "card": {
+      "add": "Tilføj",
+      "edit": "Rediger",
+      "delete": "Slet",
+      "heading": "{{action}} · {{position}} af {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "varighed ukendt",
+      "unknown": "ukendt",
+      "load": "Anslået træningsbelastning: {{load}}",
+      "removed": "Dette træningspas bliver fjernet fra kalenderen.",
+      "changed": {
+        "date": "Dato: {{from}} → {{to}}",
+        "name": "Navn: {{from}} → {{to}}",
+        "duration": "Varighed: {{from}} → {{to}}",
+        "load": "Anslået træningsbelastning: {{from}} → {{to}}",
+        "description": "Beskrivelsen ændres.",
+        "steps": "Træningstrinene ændres."
+      },
+      "progress": {
+        "sending": "Sender …",
+        "refused": "Ikke gemt",
+        "mayHaveBeenSaved": "Måske gemt",
+        "notRemoved": "Ikke fjernet",
+        "mayHaveBeenRemoved": "Måske fjernet"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Procent af FTP",
+      "watts": "Effekt i watt"
+    },
+    "totals": {
+      "additions_one": "{{count}} tilføjelse",
+      "additions_other": "{{count}} tilføjelser",
+      "edits_one": "{{count}} ændring",
+      "edits_other": "{{count}} ændringer",
+      "deletions_one": "{{count}} sletning",
+      "deletions_other": "{{count}} sletninger",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} for tilføjede eller ændrede træningspas",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · samlet varighed ukendt"
+    },
+    "kept": {
+      "title": "Eksisterende træningspas, der beholdes",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Vil du føje dette træningspas til din kalender?",
+        "add_other": "Vil du føje disse træningspas til din kalender?",
+        "edit_one": "Vil du opdatere dette træningspas i din kalender?",
+        "edit_other": "Vil du opdatere disse træningspas i din kalender?",
+        "delete_one": "Vil du fjerne dette træningspas fra din kalender?",
+        "delete_other": "Vil du fjerne disse træningspas fra din kalender?",
+        "mixed": "Vil du anvende alle gennemgåede ændringer?"
+      },
+      "approveEdits": "Opdater kalender",
+      "approveDeletions": "Fjern fra kalender",
+      "unseen": "Rul gennem alle kort for at fortsætte.",
+      "cardFailed": "Kort {{position}} af {{count}} kunne ikke vises. Intet blev ændret.",
+      "showAgain": "Vis igen"
+    }
   }
 }

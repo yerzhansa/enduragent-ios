@@ -16,7 +16,7 @@ import Testing
 		name: "memory_write",
 		arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#)
 
-	func relaunched(over log: (any RecordLog)? = nil) async -> Coach {
+	func relaunched(over log: (any ReviewChainLog)? = nil) async -> Coach {
 		let coach = await makeCoach(transport: transport, store: log ?? store, clock: clock)
 		await coach.lifecycle(.becameActive)
 		return coach

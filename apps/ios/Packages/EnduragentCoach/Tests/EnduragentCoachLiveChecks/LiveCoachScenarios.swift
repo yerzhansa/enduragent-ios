@@ -7,15 +7,21 @@ enum LiveSetting: String, Sendable {
 	case notConnected = "not connected"
 	case readsFailing = "both snapshot reads failing"
 	case implausibleFTP = "FTP of 720 W"
+	case reviewing = "connected, preparing workout reviews"
+
+	private static let preparesNothing: [LiveExpectation] = [
+		.review(.preparesNothing), .review(.leavesNoReview),
+	]
 
 	var standing: [LiveExpectation] {
+		let connected: [LiveExpectation] = [
+			.promptHolds(PromptStaticBlocks.snapshotHeading),
+			.promptLacks(PromptStaticBlocks.snapshotFallback),
+		]
 		switch self {
-		case .connected:
-			[
-				.promptHolds(PromptStaticBlocks.snapshotHeading),
-				.promptLacks(PromptStaticBlocks.snapshotFallback),
-			]
-		case .notConnected, .readsFailing, .implausibleFTP: []
+		case .connected: return connected + Self.preparesNothing
+		case .reviewing: return connected
+		case .notConnected, .readsFailing, .implausibleFTP: return Self.preparesNothing
 		}
 	}
 }
@@ -30,6 +36,7 @@ enum LiveExpectation: Sendable, Equatable {
 	case promptHolds(String)
 	case promptLacks(String)
 	case replyMentions([String])
+	case review(LiveReviewExpectation)
 }
 
 struct LiveTurnPlan: Sendable {
@@ -41,10 +48,17 @@ struct LiveScenario: Sendable {
 	let name: String
 	let setting: LiveSetting
 	let turns: [LiveTurnPlan]
+	let targets: [LiveSeededTarget]
+	let endsWithCancel: Bool
 
-	init(name: String, setting: LiveSetting, turns: [LiveTurnPlan]) {
+	init(
+		name: String, setting: LiveSetting, turns: [LiveTurnPlan],
+		targets: [LiveSeededTarget] = [], endsWithCancel: Bool = false
+	) {
 		self.name = name
 		self.setting = setting
+		self.targets = targets
+		self.endsWithCancel = endsWithCancel
 		self.turns = turns.map {
 			LiveTurnPlan(message: $0.message, expectations: setting.standing + $0.expectations)
 		}
@@ -58,6 +72,9 @@ struct LiveTurnRecord: Sendable {
 	let outcome: String
 	let reviewPending: Bool
 	let calendarWrites: Int
+	var reviewBefore: WorkoutReview?
+	var reviewAfter: WorkoutReview?
+	var notice: CatalogKey?
 
 	var chat: [LiveExchange] {
 		exchanges.filter { [.chatAttempt, .stepRecovery].contains($0.request.charge) }
@@ -74,6 +91,14 @@ struct LiveTurnRecord: Sendable {
 
 	var offeredTools: Set<String> {
 		Set(chat.flatMap { $0.request.tools.map(\.name.rawValue) })
+	}
+
+	var toolResults: [String: String] {
+		var results: [String: String] = [:]
+		for message in chat.flatMap(\.request.messages) where message.role == .tool {
+			if let id = message.toolCallId { results[id] = message.content }
+		}
+		return results
 	}
 
 	var systemPrompt: String {
@@ -94,7 +119,7 @@ struct LiveCoachPlan: Sendable {
 	let scenarios: [LiveScenario]
 	let unavailable: [String]
 
-	init(listing: ActivityListing, today: CivilDate) {
+	init(listing: ActivityListing, calendar: [CalendarEvent], today: CivilDate) {
 		let newest = listing.activities.sorted { $0.start > $1.start }
 		let week = newest.filter { $0.start.date >= today.adding(days: -6) }
 		var scenarios = Self.shortcuts + Self.guidance
@@ -124,6 +149,10 @@ struct LiveCoachPlan: Sendable {
 		} else {
 			unavailable.append(
 				"two activities close together: no pair within 30 minutes in 30 days")
+		}
+		switch Self.reviews(on: calendar, today: today) {
+		case .success(let reviews): scenarios += reviews
+		case .failure(let missing): unavailable.append(missing.description)
 		}
 		self.scenarios = scenarios + Self.staged
 		self.unavailable = unavailable

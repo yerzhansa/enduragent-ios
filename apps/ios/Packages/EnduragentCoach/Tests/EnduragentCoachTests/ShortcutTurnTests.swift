@@ -49,9 +49,13 @@ import Testing
 		#expect(system.role == .system)
 		#expect(system.content.contains("Profile: FTP 250 W\nWellness 1998-06-13: Fitness 55.2"))
 		#expect(system.content.contains("\n# Cycling Prescription Availability\n"))
+		#expect(
+			system.content.contains(
+				"The /workout command asks for a workout described in your reply, not a calendar change: prepare a review for it only when the athlete then asks to schedule it."
+			))
 		#expect(plain.messages.first == system)
 		#expect(command.tools.contains { $0.name == .intervalsFetchWellness })
-		#expect(command.tools.contains { $0.name == .intervalsCreateWorkout })
+		#expect(command.tools.contains { $0.name == .prepareWorkoutChanges })
 		#expect(plain.tools == command.tools)
 		#expect(
 			command.messages.dropFirst().map(\.content) == [
@@ -155,36 +159,8 @@ import Testing
 		_ = try await bench.onlyRequest(after: text, to: coach)
 
 		#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
-		#expect(try await bench.savedProposals() == 0)
+		#expect(try await bench.savedReviews() == 0)
 		#expect(bench.intervals.calls.filter(\.isCalendarCall).isEmpty)
-		#expect(bench.intervals.events.isEmpty)
-	}
-
-	@Test func workoutToolCalledFromStatusWaitsForTheAthleteAndWritesNothing() async throws {
-		let bench = ShortcutBench()
-		let coach = try await bench.coach(replying: [
-			.toolCall(
-				name: "intervals_create_workout",
-				arguments:
-					#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-			), .finish(reason: .toolCalls),
-			.text("Your Form is fresh. I drafted a ride for tomorrow."), .finish(reason: .stop),
-		])
-
-		let settled = try await coach.sendAndSettle("/status")
-
-		#expect(replyText(settled) == "Your Form is fresh. I drafted a ride for tomorrow.")
-		#expect(bench.transport.requests.count == 2)
-		let review = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(review.cards.map(\.action) == [.add])
-		#expect(review.cards.map(\.date) == ["1998-06-14"])
-		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
-		guard case .approveOrCancel = await coach.currentSnapshot(.main)?.review?.controls else {
-			Issue.record("the review is not waiting for the athlete's approval")
-			return
-		}
-		#expect(try await bench.savedProposals() == 1)
-		#expect(bench.intervals.calls.filter(\.isWrite).isEmpty)
 		#expect(bench.intervals.events.isEmpty)
 	}
 
@@ -237,7 +213,7 @@ import Testing
 		#expect(snapshot.liveReply == nil)
 		#expect(snapshot.activity == .idle)
 		#expect(snapshot.review == nil)
-		#expect(try await bench.savedProposals() == 0)
+		#expect(try await bench.savedReviews() == 0)
 		#expect(bench.intervals.calls.filter(\.isCalendarCall).isEmpty)
 		#expect(bench.intervals.events.isEmpty)
 	}
@@ -315,7 +291,7 @@ struct ShortcutBench {
 		}
 	}
 
-	func savedProposals() async throws -> Int {
-		try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records.count
+	func savedReviews() async throws -> Int {
+		try await store.fetch(RecordQuery(scope: .deviceLocal([.workoutReview]))).records.count
 	}
 }

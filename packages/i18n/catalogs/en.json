@@ -1658,22 +1658,16 @@
     "accountChanged": "This workout was prepared for a different {{service}} athlete. Ask me again to prepare it for the connected athlete.",
     "add": "Add to calendar",
     "cannotVerify": "Couldn't check your {{service}} connection, so nothing was changed. Try again in a moment.",
-    "turnStopping": "This reply is stopping. You can approve or cancel the workout review once it stops.",
-    "earlierVersion": "This workout review is from an earlier version of the app and can no longer be applied.",
     "cancelledUnknown": "Cancelled. This workout may still have been saved. Check your calendar.",
     "saveFailed": "Couldn't save your choice on this iPhone, so nothing was changed. Try again.",
     "storageUnavailable": "Couldn't read the saved workout review. Its buttons are temporarily disabled.",
     "title": "Workout review",
-    "uncertain": "Couldn't confirm whether this reached your {{service}} calendar. Check your calendar before asking again.",
     "workout": {
       "warmup": "Warmup",
       "mainSet": "Main set",
       "cooldown": "Cooldown",
       "ramp": "ramp"
-    },
-    "writePending": "This workout may have been saved. Check the calendar before continuing.",
-    "writeReadFailed": "The calendar could not be checked. Your approved workout is still pending.",
-    "saveApprovedAgain": "Save approved workout again"
+    }
   },
   "settings": {
     "appearance": {
@@ -3036,6 +3030,103 @@
       "week": "Week",
       "weeklySummary": "Weekly summary",
       "weekRange": "{{start}}–{{end}}"
+    }
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "This workout was reviewed before the app was updated. Ask the coach again.",
+      "missing": "A workout in this review is no longer on your {{service}} calendar, so this review can't continue. Cancel it and ask the coach again.",
+      "pastProtected": "A workout in this review is now in the past, so this review can't continue. Cancel it and ask the coach again.",
+      "coachOnly": "A workout in this review wasn't added by the coach, so this review can't continue. Cancel it and ask the coach again.",
+      "workoutOnly": "An entry in this review isn't a workout, so this review can't continue. Cancel it and ask the coach again."
+    },
+    "refreshed": {
+      "nothingChanged": "Workouts in this review changed in {{service}} after you reviewed them, so nothing was changed. Check them again before you approve.",
+      "nothingElseChanged": "Workouts in this review changed in {{service}} after you reviewed them, so nothing else was changed. Check them again before you approve.",
+      "date": "{{workout}}: date changed from {{from}} to {{to}}.",
+      "name": "{{workout}}: name changed to {{to}}.",
+      "duration": "{{workout}}: duration changed from {{from}} to {{to}} minutes.",
+      "description": "{{workout}}: description changed.",
+      "load": "{{workout}}: training load changed from {{from}} to {{to}}.",
+      "structure": "{{workout}}: workout steps changed."
+    },
+    "notPrepared": "The workout review could not be prepared.",
+    "notPreparedInformationSaved": "Your information was saved, but the workout review could not be prepared.",
+    "stopped": "This workout review stopped before every change was made. Changes already made are kept.",
+    "sending": "Making the reviewed changes on your {{service}} calendar…",
+    "partial": "{{service}} refused a change, so the remaining changes were stopped. Changes already made are kept. Check the rest before you try again.",
+    "unconfirmed": "A change may have been saved to your {{service}} calendar. Check again to find out before anything else is changed.",
+    "completed": "All reviewed changes are complete.",
+    "canceled": "The remaining changes were canceled.",
+    "finishedTitle": "Already completed",
+    "outcome": {
+      "closedAtUpgrade": "This review was prepared before the app was updated. Ask the coach again.",
+      "saved": "{{workout}}, {{date}}: change saved.",
+      "seenOnCalendar": "{{workout}}, {{date}}: change seen on the calendar.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: no longer on the calendar.",
+      "givenUp": "{{workout}}, {{date}}: change not made.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: change may have been saved. Check your calendar."
+    },
+    "preparedEarlier": "Prepared earlier",
+    "approve": "Apply changes",
+    "card": {
+      "add": "Add",
+      "edit": "Edit",
+      "delete": "Delete",
+      "heading": "{{action}} · {{position}} of {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "duration unknown",
+      "unknown": "unknown",
+      "load": "Estimated training load: {{load}}",
+      "removed": "This workout will be removed from the calendar.",
+      "changed": {
+        "date": "Date: {{from}} → {{to}}",
+        "name": "Name: {{from}} → {{to}}",
+        "duration": "Duration: {{from}} → {{to}}",
+        "load": "Estimated training load: {{from}} → {{to}}",
+        "description": "The description changes.",
+        "steps": "The workout steps change."
+      },
+      "progress": {
+        "sending": "Sending…",
+        "refused": "Not saved",
+        "mayHaveBeenSaved": "May have been saved",
+        "notRemoved": "Not removed",
+        "mayHaveBeenRemoved": "May have been removed"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Percent of FTP",
+      "watts": "Power in watts"
+    },
+    "totals": {
+      "additions_one": "{{count}} addition",
+      "additions_other": "{{count}} additions",
+      "edits_one": "{{count}} edit",
+      "edits_other": "{{count}} edits",
+      "deletions_one": "{{count}} deletion",
+      "deletions_other": "{{count}} deletions",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} for added or edited workouts",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · total duration unknown"
+    },
+    "kept": {
+      "title": "Existing workouts kept",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Add this workout to your calendar?",
+        "add_other": "Add these workouts to your calendar?",
+        "edit_one": "Update this workout on your calendar?",
+        "edit_other": "Update these workouts on your calendar?",
+        "delete_one": "Remove this workout from your calendar?",
+        "delete_other": "Remove these workouts from your calendar?",
+        "mixed": "Apply all reviewed changes?"
+      },
+      "approveEdits": "Update calendar",
+      "approveDeletions": "Remove from calendar",
+      "unseen": "Scroll through every card to continue.",
+      "cardFailed": "Card {{position}} of {{count}} could not be shown. Nothing was changed.",
+      "showAgain": "Show again"
     }
   }
 }

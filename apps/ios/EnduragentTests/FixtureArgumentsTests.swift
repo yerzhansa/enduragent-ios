@@ -12,7 +12,8 @@ import Testing
 			recovery: "unreadable", host: "expire-after 3", language: "de", locale: "de_DE",
 			clock: "1998-06-16T07:00:00Z", onboarded: true,
 			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
-			recordReadFault: .failAfterPresentedOnce, resetFault: .failBoundary,
+			recordReadFault: .failAfterPresentedOnce, presentationFault: .failLastCardOnce,
+			reviewStage: .partial, resetFault: .failBoundary,
 			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
 			credentialWriteFault: .failOnce, accessMethod: .openRouterNeedsCredits,
 			creditsOutcome: .provisioningFailed, signInOutcome: .held,
@@ -50,6 +51,8 @@ import Testing
 		#expect(parsed.calendarSaveFault == expected.calendarSaveFault)
 		#expect(parsed.calendarReadFault == expected.calendarReadFault)
 		#expect(parsed.recordReadFault == expected.recordReadFault)
+		#expect(parsed.presentationFault == expected.presentationFault)
+		#expect(parsed.reviewStage == expected.reviewStage)
 		#expect(parsed.resetFault == expected.resetFault)
 		#expect(parsed.replyParserFault == expected.replyParserFault)
 		#expect(parsed.trainingDisplay == expected.trainingDisplay)
@@ -68,7 +71,8 @@ import Testing
 
 	@Test(arguments: [
 		FixtureLaunch.calendarSaveArgumentKey, FixtureLaunch.calendarReadArgumentKey,
-		FixtureLaunch.recordReadArgumentKey, FixtureLaunch.signInArgumentKey,
+		FixtureLaunch.recordReadArgumentKey, FixtureLaunch.presentationArgumentKey,
+		FixtureLaunch.reviewStageArgumentKey, FixtureLaunch.signInArgumentKey,
 		FixtureLaunch.catalogArgumentKey,
 		FixtureLaunch.resetArgumentKey,
 		FixtureLaunch.replyParserArgumentKey,
@@ -94,7 +98,8 @@ import Testing
 		let expected = FixtureArguments()
 		var restored = FixtureArguments(
 			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
-			recordReadFault: .failAfterPresentedOnce, resetFault: .failBoundary,
+			recordReadFault: .failAfterPresentedOnce, presentationFault: .failLastCardOnce,
+			reviewStage: .partial, resetFault: .failBoundary,
 			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
 			credentialWriteFault: .failOnce, textSize: .accessibilityXXXL)
 		try restored.update(from: expected.launchArguments)
@@ -107,6 +112,8 @@ import Testing
 		#expect(parsed.calendarSaveFault == nil)
 		#expect(parsed.calendarReadFault == nil)
 		#expect(parsed.recordReadFault == nil)
+		#expect(parsed.presentationFault == nil)
+		#expect(parsed.reviewStage == nil)
 		#expect(parsed.resetFault == nil)
 		#expect(parsed.replyParserFault == nil)
 		#expect(parsed.trainingDisplay == nil)

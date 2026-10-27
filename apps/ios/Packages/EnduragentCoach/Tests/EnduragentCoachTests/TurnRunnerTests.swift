@@ -318,3 +318,14 @@ import Testing
 
 private let english = CatalogPhrasebook(tag: .en)
 private let earlierSummary = "## Athlete Profile\n- Rides Saturdays with a group"
+
+extension TurnRunnerTests {
+	func makeCoach(
+		secrets: any SecretStore = keyedSecrets(),
+		displayLocale: @escaping DisplayLocaleResolver = testDisplayLocale
+	) async -> Coach {
+		await EnduragentCoachTests.makeCoach(
+			transport: transport, intervals: intervals, store: store, clock: clock,
+			secrets: secrets, displayLocale: displayLocale)
+	}
+}

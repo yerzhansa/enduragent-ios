@@ -26,12 +26,17 @@ package struct TurnSettledBody: Sendable, Equatable {
 	package var turn: TurnID
 	package var attempt: AttemptID
 	package var settlement: Settlement
+	package var reviewNotPrepared: ReviewNotPrepared?
 
-	package init(chatId: ChatID, turn: TurnID, attempt: AttemptID, settlement: Settlement) {
+	package init(
+		chatId: ChatID, turn: TurnID, attempt: AttemptID, settlement: Settlement,
+		reviewNotPrepared: ReviewNotPrepared? = nil
+	) {
 		self.chatId = chatId
 		self.turn = turn
 		self.attempt = attempt
 		self.settlement = settlement
+		self.reviewNotPrepared = reviewNotPrepared
 	}
 }
 
@@ -107,30 +112,6 @@ package struct ProvenanceBody: Sendable, Equatable {
 	package var nonGarmin: Bool
 	package var unknown: Bool
 	package var contentSha256: String
-}
-
-package struct ProposalBody: Sendable, Equatable {
-	package var writeID: CalendarWriteID? = nil
-	package var chatId: ChatID
-	package var nonce: Nonce
-	package var tool: GatedToolName
-	package var toolInput: GatedToolInput
-	package var summary: String
-	package var description: String
-	package var expiresAt: Date
-}
-
-package struct ProposalClearedBody: Sendable, Equatable {
-	package var chatId: ChatID
-	package var nonce: Nonce
-	package var reason: ProposalClearReason
-}
-
-package enum ProposalClearReason: String, Sendable {
-	case executed
-	case replaced
-	case expired
-	case canceled
 }
 
 package struct ReviewAppliedBody: Sendable, Equatable {

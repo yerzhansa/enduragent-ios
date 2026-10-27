@@ -21,6 +21,7 @@ extension TurnRunner {
 		var steps = 0
 		var lastText = ""
 		var lastReason: FinishReason = .stop
+		var answered = false
 		stepLoop: while steps < scope.policy.maxStepsPerInvocation {
 			try Task.checkCancellation()
 			await progress(.activity(.generating(step: steps + 1)))
@@ -42,6 +43,7 @@ extension TurnRunner {
 			}
 			if step.toolCalls.isEmpty {
 				try step.checkFinish()
+				answered = true
 				break stepLoop
 			}
 			wire.append(
@@ -53,11 +55,12 @@ extension TurnRunner {
 				(call, prompt.offer.tool(named: call.name))
 			}
 			await progress(.activity(.runningTools(calls.compactMap { $0.1?.name })))
+			if calls.count(where: { $0.1?.name == .prepareWorkoutChanges }) > 1 {
+				await desk.refuseConcurrentPreparations(
+					DraftKey(turn: attempt.turn, attempt: attempt.attempt))
+			}
 			let outcomes = try await runTools(calls, scope: scope)
 			for (call, outcome) in outcomes {
-				if case .pending(let proposal) = outcome {
-					await progress(.proposalPending(proposal))
-				}
 				wire.append(
 					WireMessage(
 						role: .tool,
@@ -67,6 +70,9 @@ extension TurnRunner {
 					)
 				)
 			}
+		}
+		if !answered {
+			await desk.abandonDraft(DraftKey(turn: attempt.turn, attempt: attempt.attempt))
 		}
 
 		var assistantText = lastText
@@ -95,10 +101,6 @@ extension TurnRunner {
 			)
 			assistantText = recovery.text
 		}
-		if let outcome = try await scope.savedReviewWork() {
-			return .savedWork(outcome, saved: await scope.summary)
-		}
-
 		let reply: ReplyText =
 			assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 			? .catalog(Catalog.coachFallbackStepLimit) : .model(assistantText)
@@ -142,8 +144,6 @@ extension TurnRunner {
 						outcome = try await ToolRuntime.execute(
 							tool, arguments: arguments, scope: scope
 						).outcome
-					} catch let saved as SavedWorkReached {
-						throw saved
 					} catch is CancellationError {
 						throw CancellationError()
 					} catch  where Task.isCancelled {
@@ -198,11 +198,6 @@ func encodeToolOutcome(_ outcome: ToolOutcome) -> String {
 	switch outcome {
 	case .result(let json):
 		return json.canonicalDigestInput()
-	case .pending(let proposal):
-		return JSONValue.object([
-			"pendingConfirmation": .bool(true),
-			"summary": .string(proposal.summary),
-		]).canonicalDigestInput()
 	case .truncated(let notice, let tokens, let omittedRecords):
 		return JSONValue.object([
 			"truncated": .bool(true),

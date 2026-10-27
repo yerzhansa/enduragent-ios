@@ -2936,22 +2936,16 @@
     "accountChanged": "Denne treningsøkten ble klargjort for en annen utøver på {{service}}. Be meg på nytt om å klargjøre den for den tilkoblede utøveren.",
     "add": "Legg til i kalender",
     "cannotVerify": "Jeg kunne ikke kontrollere tilkoblingen din til {{service}}, så ingenting ble endret. Prøv igjen om litt.",
-    "turnStopping": "Dette svaret er i ferd med å stoppe. Når det har stoppet, kan du godkjenne eller avbryte gjennomgangen av treningsøkten.",
-    "earlierVersion": "Denne treningsgjennomgangen er fra en tidligere versjon av appen og kan ikke lenger brukes.",
     "cancelledUnknown": "Avbrutt. Denne treningsøkten kan likevel ha blitt lagret. Sjekk kalenderen din.",
     "saveFailed": "Kunne ikke lagre valget ditt på denne iPhonen, så ingenting ble endret. Prøv igjen.",
     "storageUnavailable": "Kunne ikke lese den lagrede gjennomgangen av treningsøkten. Knappene er midlertidig deaktivert.",
     "title": "Gjennomgang av treningsøkt",
-    "uncertain": "Jeg kunne ikke bekrefte om dette nådde kalenderen din på {{service}}. Sjekk kalenderen før du spør igjen.",
     "workout": {
       "warmup": "Oppvarming",
       "mainSet": "Hoveddel",
       "cooldown": "Nedtrapping",
       "ramp": "gradvis økning"
-    },
-    "writePending": "Denne treningsøkten kan ha blitt lagret. Sjekk kalenderen før du fortsetter.",
-    "writeReadFailed": "Kalenderen kunne ikke kontrolleres. Den godkjente treningsøkten din venter fortsatt.",
-    "saveApprovedAgain": "Lagre den godkjente treningsøkten på nytt"
+    }
   },
   "credits": {
     "buy": "Kjøp",
@@ -3037,5 +3031,102 @@
       "waiting": "Leser utøverprofil…"
     },
     "missing": "intervals.icu er ikke tilkoblet. Koble til for å legge treningsøkter i kalenderen."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Denne økten ble gjennomgått før appen ble oppdatert. Spør treneren på nytt.",
+      "missing": "En treningsøkt i denne gjennomgangen er ikke lenger i kalenderen din på {{service}}, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt.",
+      "pastProtected": "En treningsøkt i denne gjennomgangen ligger nå i fortiden, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt.",
+      "coachOnly": "En treningsøkt i denne gjennomgangen ble ikke lagt til av treneren, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt.",
+      "workoutOnly": "En oppføring i denne gjennomgangen er ikke en treningsøkt, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt."
+    },
+    "refreshed": {
+      "nothingChanged": "Treningsøkter i denne gjennomgangen ble endret i {{service}} etter at du gjennomgikk dem, så ingenting ble endret. Sjekk dem igjen før du godkjenner.",
+      "nothingElseChanged": "Treningsøkter i denne gjennomgangen ble endret i {{service}} etter at du gjennomgikk dem, så ingenting annet ble endret. Sjekk dem igjen før du godkjenner.",
+      "date": "{{workout}}: datoen ble endret fra {{from}} til {{to}}.",
+      "name": "{{workout}}: navnet ble endret til {{to}}.",
+      "duration": "{{workout}}: varigheten ble endret fra {{from}} til {{to}} minutter.",
+      "description": "{{workout}}: beskrivelsen ble endret.",
+      "load": "{{workout}}: treningsbelastningen ble endret fra {{from}} til {{to}}.",
+      "structure": "{{workout}}: treningstrinnene ble endret."
+    },
+    "notPrepared": "Gjennomgangen av treningsøkten kunne ikke klargjøres.",
+    "notPreparedInformationSaved": "Informasjonen din ble lagret, men gjennomgangen av treningsøkten kunne ikke klargjøres.",
+    "stopped": "Gjennomgangen av treningsøkten stoppet før alle endringene ble gjort. Endringer som allerede er gjort, beholdes.",
+    "sending": "Gjør de gjennomgåtte endringene i kalenderen din på {{service}} …",
+    "partial": "{{service}} avviste en endring, så de gjenværende endringene ble stoppet. Endringer som allerede er gjort, beholdes. Sjekk resten før du prøver igjen.",
+    "unconfirmed": "En endring kan ha blitt lagret i kalenderen din på {{service}}. Sjekk igjen før noe annet endres.",
+    "completed": "Alle gjennomgåtte endringer er fullført.",
+    "canceled": "De gjenværende endringene ble avbrutt.",
+    "finishedTitle": "Allerede fullført",
+    "outcome": {
+      "closedAtUpgrade": "Denne gjennomgangen av treningsøkten ble forberedt før appen ble oppdatert. Spør treneren på nytt.",
+      "saved": "{{workout}}, {{date}}: endringen er lagret.",
+      "seenOnCalendar": "{{workout}}, {{date}}: endringen vises i kalenderen.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: er ikke lenger i kalenderen.",
+      "givenUp": "{{workout}}, {{date}}: endringen ble ikke gjort.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: endringen kan ha blitt lagret. Sjekk kalenderen din."
+    },
+    "preparedEarlier": "Forberedt tidligere",
+    "approve": "Bruk endringene",
+    "card": {
+      "add": "Legg til",
+      "edit": "Rediger",
+      "delete": "Slett",
+      "heading": "{{action}} · {{position}} av {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "varighet ukjent",
+      "unknown": "ukjent",
+      "load": "Anslått treningsbelastning: {{load}}",
+      "removed": "Denne treningsøkten blir fjernet fra kalenderen.",
+      "changed": {
+        "date": "Dato: {{from}} → {{to}}",
+        "name": "Navn: {{from}} → {{to}}",
+        "duration": "Varighet: {{from}} → {{to}}",
+        "load": "Anslått treningsbelastning: {{from}} → {{to}}",
+        "description": "Beskrivelsen endres.",
+        "steps": "Treningstrinnene endres."
+      },
+      "progress": {
+        "sending": "Sender …",
+        "refused": "Ikke lagret",
+        "mayHaveBeenSaved": "Kanskje lagret",
+        "notRemoved": "Ikke fjernet",
+        "mayHaveBeenRemoved": "Kanskje fjernet"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Prosent av FTP",
+      "watts": "Effekt i watt"
+    },
+    "totals": {
+      "additions_one": "{{count}} tillegg",
+      "additions_other": "{{count}} tillegg",
+      "edits_one": "{{count}} endring",
+      "edits_other": "{{count}} endringer",
+      "deletions_one": "{{count}} sletting",
+      "deletions_other": "{{count}} slettinger",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} for treningsøkter som legges til eller endres",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · total varighet ukjent"
+    },
+    "kept": {
+      "title": "Eksisterende treningsøkter som beholdes",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Vil du legge til denne treningsøkten i kalenderen?",
+        "add_other": "Vil du legge til disse treningsøktene i kalenderen?",
+        "edit_one": "Vil du oppdatere denne treningsøkten i kalenderen?",
+        "edit_other": "Vil du oppdatere disse treningsøktene i kalenderen?",
+        "delete_one": "Vil du fjerne denne treningsøkten fra kalenderen?",
+        "delete_other": "Vil du fjerne disse treningsøktene fra kalenderen?",
+        "mixed": "Vil du bruke alle de gjennomgåtte endringene?"
+      },
+      "approveEdits": "Oppdater kalender",
+      "approveDeletions": "Fjern fra kalender",
+      "unseen": "Bla gjennom alle kortene for å fortsette.",
+      "cardFailed": "Kort {{position}} av {{count}} kunne ikke vises. Ingenting ble endret.",
+      "showAgain": "Vis igjen"
+    }
   }
 }

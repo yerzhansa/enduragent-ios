@@ -1,0 +1,45 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000318",
+  "chat": "main",
+  "finished": [],
+  "id": "00T47DW5000000000000000118",
+  "kept": [],
+  "remaining": [
+    {
+      "action": {
+        "delete": {
+          "target": {
+            "reviewed": {
+              "event": 121,
+              "snapshot": {
+                "date": "1998-07-19",
+                "durationSeconds": 3600,
+                "load": 40,
+                "name": "Easy spin"
+              }
+            }
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000428",
+      "position": 0
+    }
+  ],
+  "revision": 1,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "tryAgain": {
+          "_0": {
+            "refused": {
+              "change": "00T47DW5000000000000000428",
+              "status": 404
+            }
+          }
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000218"
+}

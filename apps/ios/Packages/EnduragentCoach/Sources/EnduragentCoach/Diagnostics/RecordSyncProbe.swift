@@ -3,10 +3,12 @@
 
 	public struct RecordSyncProbe: Sendable {
 		private let ledger: Ledger
+		private let clock: any Clock
 		private let calendar: AthleteCalendar
 
 		package init(ledger: Ledger, clock: any Clock) {
 			self.ledger = ledger
+			self.clock = clock
 			self.calendar = AthleteCalendar(clock: clock)
 		}
 
@@ -62,8 +64,8 @@
 			let stamp = await sampleStamp()
 			_ = try await ledger.commit(
 				local: [
-					.proposalCleared(
-						ProposalClearedBody(chatId: .main, nonce: Nonce(), reason: .expired))
+					.workoutDrift(
+						WorkoutDriftBody(planWorkoutId: stamp.attempt.ulid, askedAt: clock.now))
 				],
 				stamp: stamp
 			)
@@ -80,8 +82,8 @@
 		}
 
 		private func detail(_ body: RecordBody) -> String {
-			if case .deviceLocal(.proposalCleared(let cleared)) = body {
-				return cleared.reason.rawValue
+			if case .deviceLocal(.workoutDrift) = body {
+				return "workoutDrift"
 			}
 			if case .deviceLocal(.turnClaim(let claim)) = body {
 				return claim.lease.rawValue

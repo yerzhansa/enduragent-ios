@@ -80,101 +80,7 @@ import Testing
 		#expect(status.trainingAccount?.athlete == "i2002")
 	}
 
-	@Test(arguments: UnavailablePeerState.allCases)
-	func unavailableIdentityRetainsReviewWithoutWriting(_ state: UnavailablePeerState) async throws
-	{
-		let coach = await open()
-		let review = try await fixture.proposeRide(on: coach)
-		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
-		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
-		let statuses = await coach.observeStatus()
-		switch state {
-		case .deleted: try peer.delete()
-		case .rejected: try peer.replace(.rejected)
-		case .unavailable: try peer.replace(.unavailable)
-		case .locked: backing.locked = true
-		case .revoked:
-			fixture.ada.fail(
-				.profile,
-				with: IntervalsError(code: "http", details: "Revoked fixture key", status: 401))
-		}
-		let block: ReviewBlock = state == .deleted ? .accountChanged : .cannotVerify
-		#expect(await coach.decide(.approve(token), in: .main) == .blocked(block))
-		let retained = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(retained.ref.set == review.ref.set)
-		#expect(retained.cards == review.cards)
-		#expect(retained.controls == .none)
-		#expect(
-			retained.notice?.key
-				== (state == .deleted ? Catalog.reviewAccountChanged : Catalog.reviewCannotVerify))
-		#expect(fixture.ada.calls.allSatisfy { !$0.isWrite })
-		#expect(peer.athleteB.calls.allSatisfy { !$0.isWrite })
-		let status = try #require(try await statuses.status { state.matches($0.training) })
-		#expect(state.matches(status.training))
-		if state == .rejected || state == .unavailable {
-			let saved = try #require(try secrets.intervalsConnection())
-			#expect(
-				saved.credential
-					== .apiKey(
-						state == .rejected
-							? FixtureTrainingPeer.Key.rejected.secret
-							: FixtureTrainingPeer.Key.unavailable.secret))
-		}
-		let cleared = try await fixture.records.fetch(
-			RecordQuery(scope: .deviceLocal([.proposalCleared]), chatId: "main"))
-		#expect(cleared.records.isEmpty)
-	}
-
-	@Test func sameAthletePeerRotationKeepsOriginalReviewOwner() async throws {
-		let coach = await open()
-		let review = try await fixture.proposeRide(on: coach)
-		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
-		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
-		let original = try await fixture.records.fetch(
-			RecordQuery(scope: .deviceLocal([.pendingProposal]), chatId: "main"))
-		try peer.replace(.rotatedA)
-		await coach.lifecycle(.becameActive)
-		let rotated = try #require(try secrets.intervalsConnection())
-		#expect(testConnection.account.authority(under: rotated.account) == .sameAthlete)
-		#expect(fixture.ada.count(of: .profile) >= 2)
-		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
-		#expect(
-			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
-		#expect(fixture.ada.events.count == 1)
-		#expect(peer.athleteB.events.isEmpty)
-		let retained = try await fixture.records.fetch(
-			RecordQuery(scope: .deviceLocal([.pendingProposal]), chatId: "main"))
-		#expect(retained.records == original.records)
-	}
-
-	@Test(arguments: [false, true])
-	func verifiedPeerIdentityOwnsApprovalWhenResolutionCannotBeSaved(reusesConnectionID: Bool)
-		async throws
-	{
-		let coach = await open()
-		let review = try await fixture.proposeRide(on: coach)
-		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
-		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
-		let replacement = IntervalsConnection(
-			id: reusesConnectionID ? testConnection.id : ConnectionID(),
-			credential: .apiKey(FixtureTrainingPeer.Key.athleteB.secret),
-			selection: .keyOwner, resolvedAthlete: testConnection.resolvedAthlete)
-		try backing.store().storeIntervalsConnection(replacement)
-		backing.failWrites(CredentialSlot.intervalsConnection.rawValue, with: errSecNotAvailable)
-		#expect(await coach.decide(.approve(token), in: .main) == .blocked(.accountChanged))
-		#expect(await coach.currentSnapshot(.main)?.review?.ref.set == review.ref.set)
-		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
-		try await assertTurnUsesBo(coach)
-		let status = try await coach.observedStatus()
-		#expect(status.trainingAccount?.athlete == "i2002")
-		#expect(status.training.summary?.athleteName == "Bo Lind")
-		#expect(try secrets.intervalsConnection() == replacement)
-		#expect(fixture.ada.calls.allSatisfy { !$0.isWrite })
-		#expect(peer.athleteB.calls.allSatisfy { !$0.isWrite })
-	}
-
-	private func open() async -> Coach {
+	func open() async -> Coach {
 		await consentingCoach(
 			Coach(
 				sport: .cycling,
@@ -187,7 +93,7 @@ import Testing
 				builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow))
 	}
 
-	private func assertTurnUsesBo(_ coach: Coach) async throws {
+	func assertTurnUsesBo(_ coach: Coach) async throws {
 		fixture.transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(name: ToolName.intervalsFetchAthlete.rawValue, arguments: "{}"),
@@ -205,34 +111,15 @@ import Testing
 	}
 }
 
-enum UnavailablePeerState: CaseIterable, Sendable {
-	case deleted
-	case rejected
-	case unavailable
-	case locked
-	case revoked
-
-	func matches(_ training: TrainingStatus) -> Bool {
-		switch (self, training) {
-		case (.deleted, .unconnected), (.locked, .unavailable(.secureStorageLocked)): true
-		case (.rejected, .connected(let summary, _)), (.revoked, .connected(let summary, _)):
-			summary.profile == .failed(.credentialRejected)
-		case (.unavailable, .connected(let summary, _)):
-			summary.profile == .failed(.temporarilyUnavailable)
-		default: false
-		}
-	}
-}
-
 extension TrainingAccount {
-	fileprivate var athlete: String? {
+	var athlete: String? {
 		guard case .intervals(_, let athlete) = self else { return nil }
 		return athlete?.rawValue
 	}
 }
 
 extension TrainingStatus {
-	fileprivate var summary: IntervalsSummary? {
+	var summary: IntervalsSummary? {
 		guard case .connected(let summary, _) = self else { return nil }
 		return summary
 	}

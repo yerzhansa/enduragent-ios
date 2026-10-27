@@ -19,8 +19,25 @@ struct IntervalsSeedAccount: SeedAccount {
 				session: ephemeralSession(requestTimeout: Self.writeTimeout, resourceTimeout: 300)))
 	}
 
+	var calendar: any IntervalsClient { client }
+
 	func athleteID() async throws -> String {
 		try await client.profile().id
+	}
+
+	func addCalendarEntries(_ bodies: [JSONValue]) async throws -> [CalendarEvent] {
+		let answer = try await write(
+			"POST", ["athlete", IntervalsPolicy.athletePath, "events", "bulk"],
+			query: [
+				URLQueryItem(name: "upsert", value: "true"),
+				URLQueryItem(name: "upsertOnUid", value: "false"),
+				URLQueryItem(name: "updatePlanApplied", value: "false"),
+			],
+			body: .json(.array(bodies)))
+		guard let rows = try client.parseJSON(answer).arrayValue else {
+			throw LiveCheckStop(description: "The bulk calendar answer was not a list.")
+		}
+		return try rows.map(IntervalsRESTClient.calendarEvent(from:))
 	}
 
 	func activities(oldest: CivilDate, newest: CivilDate) async throws -> [SeedListing] {

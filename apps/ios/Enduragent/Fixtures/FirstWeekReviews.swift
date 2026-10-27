@@ -1,0 +1,114 @@
+#if DEBUG
+	import EnduragentCoach
+	import EnduragentCoachFixtures
+
+	extension FirstWeekFixture {
+		static let reviewMixedDirective = "fixture:review-mixed"
+		static let reviewDeleteDirective = "fixture:review-delete"
+		static let reviewRenameDirective = "fixture:review-rename"
+		static let reviewEditDirective = "fixture:review-edit"
+		static let reviewEightDirective = "fixture:review-eight"
+		static let reviewTwentyDirective = "fixture:review-twenty"
+		static let reviewFortyDirective = "fixture:review-forty"
+		static let reviewNotPreparedDirective = "fixture:review-not-prepared"
+		static let reviewNotPreparedReply = "I tried to prepare two reviews at once."
+		static let reviewPreparedReply = "I've prepared the changes. Check each card first."
+		static let reviewRenamedReply = "I renamed the edited workout. Check the cards again."
+
+		static func reviewReply(
+			_ request: ScriptedRequest, intervals: FakeIntervalsClient
+		) -> ScriptedReply? {
+			let text = request.text.trimmingCharacters(in: .whitespacesAndNewlines)
+			guard
+				[
+					reviewMixedDirective, reviewDeleteDirective, reviewRenameDirective,
+					reviewEditDirective, reviewEightDirective, reviewTwentyDirective,
+					reviewFortyDirective, reviewNotPreparedDirective,
+				].contains(text)
+			else { return nil }
+			guard request.offersTrainingTools else {
+				return ScriptedReply([.text(trainingDataMissing), .finish(reason: .stop)])
+			}
+			switch text {
+			case reviewMixedDirective:
+				return prepared(WorkoutReviewFixture.mixed(today: today), request, intervals)
+			case reviewDeleteDirective:
+				return prepared(WorkoutReviewFixture.deleteOnly, request, intervals)
+			case reviewEditDirective:
+				return prepared(WorkoutReviewFixture.editOnly, request, intervals)
+			case reviewEightDirective:
+				return prepared(
+					WorkoutReviewFixture.eightWorkouts(today: today), request, intervals)
+			case reviewTwentyDirective:
+				return prepared(
+					WorkoutReviewFixture.strengthSessions(20, today: today), request, intervals)
+			case reviewFortyDirective:
+				return prepared(
+					WorkoutReviewFixture.strengthSessions(40, today: today), request, intervals)
+			case reviewNotPreparedDirective:
+				return preparedTwice(WorkoutReviewFixture.mixed(today: today), request, intervals)
+			default:
+				return renamed(request)
+			}
+		}
+
+		private static func prepared(
+			_ arguments: String, _ request: ScriptedRequest, _ intervals: FakeIntervalsClient
+		) -> ScriptedReply {
+			if request.step == 0 {
+				WorkoutReviewFixture.seed(intervals, today: today)
+			}
+			return ScriptedReply([
+				.toolCall(name: ToolName.prepareWorkoutChanges.rawValue, arguments: arguments),
+				.finish(reason: .toolCalls), .text(reviewPreparedReply), .finish(reason: .stop),
+			]).step(request.step)
+		}
+
+		private static func preparedTwice(
+			_ arguments: String, _ request: ScriptedRequest, _ intervals: FakeIntervalsClient
+		) -> ScriptedReply {
+			if request.step == 0 {
+				WorkoutReviewFixture.seed(intervals, today: today)
+			}
+			let prepare = ToolName.prepareWorkoutChanges.rawValue
+			return ScriptedReply([
+				.toolCall(name: prepare, arguments: arguments),
+				.toolCall(name: prepare, arguments: arguments),
+				.finish(reason: .toolCalls), .text(reviewNotPreparedReply), .finish(reason: .stop),
+			]).step(request.step)
+		}
+
+		private static func renamed(_ request: ScriptedRequest) -> ScriptedReply {
+			switch request.step {
+			case 0:
+				return ScriptedReply([
+					.toolCall(name: ToolName.getPendingWorkoutChanges.rawValue, arguments: "{}"),
+					.finish(reason: .toolCalls),
+				])
+			case 1:
+				do {
+					guard
+						let arguments = try WorkoutReviewFixture.rename(after: request.toolResults)
+					else {
+						return ScriptedReply([
+							.text("Review fixture found no pending edit to rename."),
+							.finish(reason: .stop),
+						])
+					}
+					return ScriptedReply([
+						.toolCall(
+							name: ToolName.prepareWorkoutChanges.rawValue, arguments: arguments),
+						.finish(reason: .toolCalls),
+					])
+				} catch {
+					return ScriptedReply([
+						.text("Review fixture could not decode its tool results: \(error)"),
+						.finish(reason: .stop),
+					])
+				}
+			default:
+				return ScriptedReply([.text(reviewRenamedReply), .finish(reason: .stop)])
+			}
+		}
+	}
+#endif

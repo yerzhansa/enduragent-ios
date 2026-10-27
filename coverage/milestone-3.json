@@ -205,7 +205,9 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "repeatedReadInOneAttemptReachesTheClientOnceAndStaysEnveloped"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "memoryReadAfterAWriteInTheSameAttemptSeesTheWrite"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolResultCapTests.swift", "function": "resultJustAboveCapIsOmitted"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FirstTurnTests.swift", "function": "calendarWriteBecomesAReview"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationToolTests.swift", "function": "aMixedRequestIsPreparedWithoutACalendarWriteOrAnOldProposal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aPreparedTurnCommitsRevisionOneOnlyWhenItsReplyEnds"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "cardsFollowPositionAcrossFinishedWorkTheUnconfirmedChangeAndTheRemainingWork"}
 			]
 		},
 		{
@@ -844,7 +846,8 @@
 			"statement": "A status turn that ends in text leaves no workout review and makes no calendar call, and a workout tool called from it waits for the athlete.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "shortcutEndingInTextLeavesNoReviewAndMakesNoCalendarCall"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "workoutToolCalledFromStatusWaitsForTheAthleteAndWritesNothing"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationToolTests.swift", "function": "aMixedRequestIsPreparedWithoutACalendarWriteOrAnOldProposal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aPreparedTurnCommitsRevisionOneOnlyWhenItsReplyEnds"}
 			]
 		},
 		{
@@ -1059,8 +1062,9 @@
 			"id": "8.4.5",
 			"statement": "A later request to schedule makes one workout review that waits for the athlete, with no calendar write before approval, for the create, update, delete and strength tools.",
 			"tests": [
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutAuthorizationTests.swift", "function": "schedulingAfterAProseWorkoutMakesOneReviewThatWaitsAndWritesNothing"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FirstTurnTests.swift", "function": "calendarWriteBecomesAReview"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationToolTests.swift", "function": "aMixedRequestIsPreparedWithoutACalendarWriteOrAnOldProposal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aPreparedTurnCommitsRevisionOneOnlyWhenItsReplyEnds"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "cardsFollowPositionAcrossFinishedWorkTheUnconfirmedChangeAndTheRemainingWork"}
 			]
 		},
 		{

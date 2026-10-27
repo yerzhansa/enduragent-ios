@@ -1,0 +1,75 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000311",
+  "chat": "main",
+  "finished": [
+    {
+      "change": {
+        "action": {
+          "add": {
+            "identity": "1B4E28BA-2FA1-11D2-883F-0016D3CCA427",
+            "payload": {
+              "date": "1998-07-08",
+              "description": "Easy\n- 30m Z2",
+              "movingTime": 3000,
+              "name": "Tempo ride",
+              "trainingLoad": 55,
+              "type": "Ride"
+            }
+          }
+        },
+        "id": "00T47DW5000000000000000417",
+        "position": 0
+      },
+      "result": {
+        "saved": {
+          "receipt": {
+            "answeredAt": 897984200,
+            "event": 303
+          }
+        }
+      }
+    }
+  ],
+  "id": "00T47DW5000000000000000111",
+  "kept": [],
+  "remaining": [
+    {
+      "action": {
+        "edit": {
+          "patch": {
+            "durationSeconds": 5400
+          },
+          "target": {
+            "reviewed": {
+              "event": 113,
+              "snapshot": {
+                "date": "1998-07-09",
+                "durationSeconds": 3600,
+                "load": 50,
+                "name": "Endurance"
+              }
+            }
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000418",
+      "position": 1
+    }
+  ],
+  "revision": 1,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "tryAgain": {
+          "_0": {
+            "notSaved": {
+              "change": "00T47DW5000000000000000418"
+            }
+          }
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000211"
+}

@@ -7,7 +7,7 @@ package enum OperationID: Hashable, Sendable {
 	case preferenceChange(PreferenceChangeID)
 	case credentialChange(CredentialChangeID)
 	case launchRecovery(LaunchID)
-	case workoutChangeSet(ChangeSetID, ChangeSetRevision)
+	case workoutReview(WorkoutReviewID, ReviewRevision)
 	case planningCommand(PlanningCommandID)
 	case debugSample(DebugSampleID)
 }
@@ -103,6 +103,13 @@ public enum AccountAuthority: Sendable, Equatable {
 	case sameAthlete
 	case changed
 	case unverifiable
+
+	package var permitsWrites: Bool {
+		switch self {
+		case .same, .sameAthlete: true
+		case .changed, .unverifiable: false
+		}
+	}
 }
 
 package struct AthleteTime: Hashable, Sendable {

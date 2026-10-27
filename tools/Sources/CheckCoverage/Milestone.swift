@@ -12,9 +12,9 @@ struct Milestone {
 
 	let units: [Unit]
 
-	init(declaredIn table: JSONValue) throws {
-		guard case .object(let members) = try table.member("units"), !members.isEmpty else {
-			throw CoverageFailure(description: "the table declares no units")
+	init(units declared: JSONValue, of owner: String) throws {
+		guard case .object(let members) = declared, !members.isEmpty else {
+			throw CoverageFailure(description: "\(owner) declares no units")
 		}
 		units = try members.map { member in
 			guard !member.key.isEmpty, let count = member.value.number,

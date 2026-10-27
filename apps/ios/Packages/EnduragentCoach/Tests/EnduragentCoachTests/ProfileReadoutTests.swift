@@ -59,7 +59,7 @@ extension IntervalsRESTClientTests {
 			let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 			let coach = await makeCoach(
 				transport: transport,
-				intervals: try IntervalsRESTClientTests().makeClient(clock: clock),
+				intervals: try IntervalsRESTClientTests().makeClient(),
 				store: InMemoryRecordLog(), clock: clock)
 
 			let settled = try await coach.sendAndSettle("How old am I?")
@@ -76,7 +76,7 @@ extension IntervalsRESTClientTests {
 
 		private func readout(of response: JSONValue, now: String) async throws -> JSONValue {
 			let clock = FixedClock(now: now, timeZone: "Europe/Amsterdam")
-			let client = try IntervalsRESTClientTests().makeClient(clock: clock)
+			let client = try IntervalsRESTClientTests().makeClient()
 			let body = Data(canonicalJSON(response).utf8)
 			IntervalsURLProtocolStub.handler = { _ in (200, body) }
 			let outcome = try await makeOfferedTools(

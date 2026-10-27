@@ -1,0 +1,45 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000307",
+  "chat": "main",
+  "finished": [],
+  "id": "00T47DW5000000000000000107",
+  "kept": [],
+  "remaining": [
+    {
+      "action": {
+        "edit": {
+          "patch": {
+            "name": "Threshold intervals"
+          },
+          "target": {
+            "reviewed": {
+              "event": 109,
+              "snapshot": {
+                "date": "1998-07-01",
+                "durationSeconds": 3600,
+                "load": 80,
+                "name": "Threshold"
+              }
+            }
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000412",
+      "position": 0
+    }
+  ],
+  "revision": 2,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "approval": {
+          "_0": {
+            "revised": {}
+          }
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000207"
+}

@@ -9,7 +9,7 @@ import Testing
 	let transport = FakeModelTransport()
 	let store = InMemoryRecordLog()
 
-	func coach(over log: (any RecordLog)? = nil) async -> Coach {
+	func coach(over log: (any ReviewChainLog)? = nil) async -> Coach {
 		await makeCoach(transport: transport, store: log ?? store, clock: clock)
 	}
 
@@ -68,28 +68,6 @@ import Testing
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 		#expect(try await count(.synced([.windowStart])) == 0)
 		#expect(try await coach.history().isEmpty)
-	}
-
-	@Test func resetLeavesWorkoutReviewUntouched() async throws {
-		let nonce = Nonce()
-		let proposal = sampleProposal(
-			chatId: .main, nonce: nonce, expiresAt: clock.now.addingTimeInterval(300))
-		try await seed(
-			store,
-			[
-				seededRecord(
-					store, at: clock.now.addingTimeInterval(-10),
-					ulid: ULID.generate(at: clock.now.addingTimeInterval(-10)),
-					body: .deviceLocal(.pendingProposal(proposal)))
-			])
-		let coach = await coach()
-		answer("Here is Thursday.")
-		_ = try await coach.sendAndSettle("Plan Thursday")
-		let review = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
-		#expect(await coach.currentSnapshot(.main)?.review?.ref == review.ref)
-		#expect(try await count(.deviceLocal([.proposalCleared])) == 0)
-		#expect(await self.coach().currentSnapshot(.main)?.review?.ref.set == review.ref.set)
 	}
 
 	@Test func resetWithPartialFlushReportsPartiallySaved() async throws {

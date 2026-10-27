@@ -2,7 +2,7 @@ import Foundation
 
 public struct TrainingService: Sendable {
 	package typealias ClientFactory =
-		@Sendable (IntervalsCredential, AthleteSelection, any Clock) -> any TrainingClient
+		@Sendable (IntervalsCredential, AthleteSelection) -> any TrainingClient
 
 	package let makeClient: ClientFactory
 
@@ -13,9 +13,8 @@ public struct TrainingService: Sendable {
 	public static let intervalsREST = rest(session: nil)
 
 	package static func rest(session: URLSession?) -> TrainingService {
-		TrainingService { credential, athlete, clock in
-			IntervalsRESTClient(
-				credential: credential, athlete: athlete, session: session, clock: clock)
+		TrainingService { credential, athlete in
+			IntervalsRESTClient(credential: credential, athlete: athlete, session: session)
 		}
 	}
 }

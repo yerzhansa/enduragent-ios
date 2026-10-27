@@ -46,7 +46,12 @@ extension TutorialHarness {
 
 	static func transcriptBand(_ app: XCUIApplication) -> CGRect {
 		let top = app.navigationBars.firstMatch.frame.maxY
-		let bottom = named(app, "chat.composer.container").frame.minY
+		let bar = named(app, "chat.review.bar")
+		let closingTheReview = named(app, "chat.transcript").descendants(matching: .any)
+			.matching(identifier: "chat.review.bar").firstMatch
+		let docked =
+			bar.exists && !closingTheReview.exists ? bar : named(app, "chat.composer.container")
+		let bottom = docked.frame.minY
 		return CGRect(x: app.frame.minX, y: top, width: app.frame.width, height: bottom - top)
 	}
 

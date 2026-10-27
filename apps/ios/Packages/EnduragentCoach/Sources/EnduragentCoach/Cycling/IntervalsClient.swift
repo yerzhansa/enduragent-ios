@@ -21,51 +21,15 @@ public struct EventID: Hashable, Sendable {
 	public init(rawValue: Int) { self.rawValue = rawValue }
 }
 
-public struct ChatExternalID: Hashable, Sendable {
-	public var date: CivilDate
-	public var slug: String
-
-	public var rawValue: String {
-		"cycling-coach:\(date):\(slug)"
-	}
-
-	public static func slugify(name: String) -> String {
-		var characters: [Character] = []
-		var pendingDash = false
-		for character in name.lowercased() {
-			guard let ascii = character.asciiValue else {
-				pendingDash = true
-				continue
-			}
-			let isDigit = ascii >= 48 && ascii <= 57
-			let isLetter = ascii >= 97 && ascii <= 122
-			if isDigit || isLetter {
-				if pendingDash, !characters.isEmpty {
-					characters.append("-")
-				}
-				characters.append(character)
-				pendingDash = false
-			} else {
-				pendingDash = true
-			}
-		}
-		var slug = String(characters)
-		if slug.count > 40 {
-			slug = String(slug.prefix(40))
-			while slug.hasSuffix("-") {
-				slug.removeLast()
-			}
-		}
-		return slug.isEmpty ? "workout" : slug
-	}
-}
-
 public struct CalendarEvent: Sendable, Equatable {
 	package var description: String? = nil
 	package var type: String? = nil
+	package var movingTime: Int?
+	package var trainingLoad: Int?
+	package var workoutDocument: JSONValue?
 	public var id: EventID
 	public var startDateLocal: String
-	public var name: String
+	public var name: String?
 	public var category: String
 	public var externalId: String?
 	public var uid: String?
@@ -74,11 +38,15 @@ public struct CalendarEvent: Sendable, Equatable {
 
 	package init(
 		description: String? = nil, type: String? = nil,
-		id: EventID, startDateLocal: String, name: String, category: String, externalId: String?,
-		uid: String?, tags: [String], coachCreated: Bool
+		id: EventID, startDateLocal: String, name: String?, category: String, externalId: String?,
+		uid: String?, tags: [String], coachCreated: Bool,
+		movingTime: Int? = nil, trainingLoad: Int? = nil, workoutDocument: JSONValue? = nil
 	) {
 		self.description = description
 		self.type = type
+		self.movingTime = movingTime
+		self.trainingLoad = trainingLoad
+		self.workoutDocument = workoutDocument
 		self.id = id
 		self.startDateLocal = startDateLocal
 		self.name = name
@@ -90,28 +58,36 @@ public struct CalendarEvent: Sendable, Equatable {
 	}
 }
 
-public struct ChatCalendarCreate: Sendable, Equatable {
-	package var writeID: CalendarWriteID? = nil
-	public var date: CivilDate
-	public var name: String
-	public var description: String
-	public var type: CalendarEventType
-	public var externalId: ChatExternalID
-	public var tags: [String]
-}
-
 public enum CalendarEventType: String, Sendable {
 	case ride = "Ride"
 	case weightTraining = "WeightTraining"
 }
 
-package protocol IntervalsClient: Sendable {
+package protocol CalendarReads: Sendable {
 	func fetchEvent(id: EventID) async throws -> CalendarEvent
 	func listEvents(in range: ReadRange) async throws -> [CalendarEvent]
-	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent
-	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
-		async throws -> CalendarEvent
-	func deleteEvent(id: EventID) async throws
+}
+
+package protocol IntervalsClient: CalendarReads {
+	func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer
+}
+
+package enum CalendarWrite: Sendable, Equatable {
+	case create(CalendarPayload, identity: CalendarWriteID)
+	case update(EventID, WorkoutPatch)
+	case delete(EventID)
+}
+
+public enum IntervalsWriteAnswer: Sendable, Equatable {
+	case saved(CalendarEvent?)
+	case httpStatus(Int)
+	case lost(ClientLoss)
+}
+
+public enum ClientLoss: Sendable, Equatable {
+	case transport
+	case unreadableBody
+	case canceled
 }
 
 public struct IntervalsError: Error, Sendable, Equatable {
@@ -161,20 +137,6 @@ package enum IntervalsPolicy {
 	package static let requestTimeout: TimeInterval = 30
 	package static let streamRequestLimit = 3
 
-	package static func chatCreateBody(_ draft: ChatCalendarCreate) -> JSONValue {
-		var fields: [String: JSONValue] = [
-			"start_date_local": .string("\(draft.date.rawValue)T00:00:00"),
-			"category": .string("WORKOUT"),
-			"type": .string(draft.type.rawValue),
-			"name": .string(draft.name),
-			"description": .string(draft.description),
-			"external_id": .string(draft.writeID?.externalID ?? draft.externalId.rawValue),
-			"tags": .array(draft.tags.map { .string($0) }),
-		]
-		if let writeID = draft.writeID { fields["uid"] = .string(writeID.uid) }
-		return .object(fields)
-	}
-
 	package static func today(now: Date, timeZone: TimeZone) -> CivilDate {
 		CivilDate(date: now, timeZone: timeZone)
 	}
@@ -205,7 +167,7 @@ package enum IntervalsPolicy {
 	package static func rejectPastCreationDate(_ date: CivilDate, today: CivilDate)
 		throws(ToolInputError)
 	{
-		if date < today {
+		if Eligibility.refusal(ofAddOn: date, today: today) != nil {
 			throw ToolInputError(
 				code: "past_date_refused",
 				details:
@@ -222,34 +184,33 @@ package enum IntervalsPolicy {
 		nextDate: CivilDate?
 	) throws {
 		let verb = action == "delete" ? "deleted" : "updated"
-		if event.category != "WORKOUT" {
+		switch Eligibility.refusal(of: event, destination: nextDate, today: today) {
+		case nil:
+			return
+		case .notAWorkout:
 			throw IntervalsError(
 				code: "not_a_workout",
 				details:
 					"Event \(eventId.rawValue) is category \(event.category.isEmpty ? "unknown" : event.category), not a scheduled workout. Races, notes, plans, and other calendar entries cannot be \(verb) by the coach."
 			)
-		}
-		if !isCoachOwned(externalId: event.externalId, tags: event.tags) {
+		case .notCoachCreated:
 			let athleteAction = action == "delete" ? "remove" : "change"
 			throw IntervalsError(
 				code: "not_coach_created",
 				details:
 					"This workout was not created by this coach (no provenance marker) — it may be athlete-added, from another app, or created before provenance markers shipped. It will not be \(verb); the athlete can \(athleteAction) it directly on intervals.icu."
 			)
-		}
-		let eventDate = String(event.startDateLocal.prefix(10))
-		if eventDate < today.rawValue {
+		case .pastWorkout:
 			throw IntervalsError(
 				code: "past_workout_protected",
 				details:
-					"Cannot \(action) workout dated \(eventDate) — it's before today (\(today.rawValue))."
+					"Cannot \(action) workout dated \(event.startDateLocal.prefix(10)) — it's before today (\(today.rawValue))."
 			)
-		}
-		if let nextDate, nextDate.rawValue < today.rawValue {
+		case .pastDate(let destination):
 			throw IntervalsError(
 				code: "past_workout_destination",
 				details:
-					"Cannot move workout to \(nextDate.rawValue) — it's before today (\(today.rawValue))."
+					"Cannot move workout to \(destination.rawValue) — it's before today (\(today.rawValue))."
 			)
 		}
 	}

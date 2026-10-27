@@ -16,7 +16,7 @@ func makeCoach(
 ) -> Coach {
 	var ports = CoachPorts(
 		records: records, secrets: secrets, models: models,
-		training: TrainingService { _, _, _ in intervals }, credits: .fake(FakeCreditsClient()),
+		training: TrainingService { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
 		host: ImmediateExecutionHost(), clock: clock, openRouterSignIn: openRouterSignIn)
 	if let watchdogClock { ports.watchdogSleep = watchdogClock.sleep }
 	return Coach(

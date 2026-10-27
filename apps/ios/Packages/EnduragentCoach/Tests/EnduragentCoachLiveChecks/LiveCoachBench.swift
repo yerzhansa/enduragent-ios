@@ -4,21 +4,26 @@ import Synchronization
 
 @testable import EnduragentCoach
 
-final class LiveCalendarWrites: Sendable {
-	private let count = Mutex(0)
+final class LiveCalendarRequests: Sendable {
+	private let counts = Mutex((reads: 0, writes: 0))
 
-	var total: Int { count.withLock { $0 } }
+	var reads: Int { counts.withLock { $0.reads } }
+	var writes: Int { counts.withLock { $0.writes } }
+	var total: Int { counts.withLock { $0.reads + $0.writes } }
 
-	func refuse() -> IntervalsError {
-		count.withLock { $0 += 1 }
-		return IntervalsError(
-			code: "live_check_read_only", details: "The live check never writes the calendar.")
+	func read() {
+		counts.withLock { $0.reads += 1 }
+	}
+
+	func refuse() -> IntervalsWriteAnswer {
+		counts.withLock { $0.writes += 1 }
+		return .httpStatus(403)
 	}
 }
 
 struct LiveReadOnlyTraining: TrainingReads, IntervalsClient {
 	let inner: any TrainingClient
-	let writes: LiveCalendarWrites
+	let requests: LiveCalendarRequests
 
 	func profile() async throws -> AthleteProfile { try await inner.profile() }
 
@@ -39,31 +44,24 @@ struct LiveReadOnlyTraining: TrainingReads, IntervalsClient {
 	}
 
 	func fetchEvent(id: EventID) async throws -> CalendarEvent {
-		try await inner.fetchEvent(id: id)
+		requests.read()
+		return try await inner.fetchEvent(id: id)
 	}
 
 	func listEvents(in range: ReadRange) async throws -> [CalendarEvent] {
-		try await inner.listEvents(in: range)
+		requests.read()
+		return try await inner.listEvents(in: range)
 	}
 
-	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
-		throw writes.refuse()
-	}
-
-	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
-		async throws -> CalendarEvent
-	{
-		throw writes.refuse()
-	}
-
-	func deleteEvent(id: EventID) async throws {
-		throw writes.refuse()
+	func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer {
+		requests.refuse()
 	}
 }
 
 struct LiveScenarioRun: Sendable {
 	let attempt: Int
 	let turns: [LiveTurnRecord]
+	var cancel: LiveCancelRecord?
 	let violations: [String]
 	let transcript: String
 
@@ -97,16 +95,26 @@ struct LiveCoachBench: Sendable {
 
 	func run(_ scenario: LiveScenario, attempt: Int) async throws -> LiveScenarioRun {
 		ledger.label("\(scenario.name)#\(attempt)")
+		let missing = try await missingTargets(of: scenario)
+		guard missing.isEmpty else {
+			return LiveScenarioRun(
+				attempt: attempt, turns: [], violations: missing,
+				transcript: LiveTranscript.markdown(
+					scenario, attempt: attempt, turns: [], cancel: nil, violations: missing))
+		}
 		let log = LiveExchangeLog()
-		let writes = LiveCalendarWrites()
-		let coach = try await coach(for: scenario.setting, log: log, writes: writes)
+		let requests = LiveCalendarRequests()
+		let coach = try await coach(for: scenario.setting, log: log, requests: requests)
 		var turns: [LiveTurnRecord] = []
 		for plan in scenario.turns {
+			let before = try await coach.ledger.reviewHead(chat: .main).1
 			let state: TurnState?
 			let outcome: String
+			var accepted: TurnID?
 			do {
 				let sent = try await coach.send(draft(plan.message), to: .main)
-				if let turn = sent.acceptedTurn {
+				accepted = sent.acceptedTurn
+				if let turn = accepted {
 					state = await coach.settledState(
 						of: turn, in: .main, within: .subject(.seconds(300)))
 					outcome = state.map(Self.outcome) ?? "unsettled after 300 seconds"
@@ -122,10 +130,15 @@ struct LiveCoachBench: Sendable {
 			let record = LiveTurnRecord(
 				message: plan.message, exchanges: log.drain(),
 				reply: state.flatMap(replyText), outcome: outcome,
-				reviewPending: snapshot?.review != nil, calendarWrites: writes.total)
+				reviewPending: try await coach.desk.snapshot(chat: .main) != nil,
+				calendarWrites: requests.writes,
+				reviewBefore: before, reviewAfter: try await coach.ledger.reviewHead(chat: .main).1,
+				notice: snapshot?.turns.first { $0.id == accepted }?.reviewNotice?.key)
 			turns.append(record)
 			if record.reply == nil { break }
 		}
+		let cancel =
+			scenario.endsWithCancel ? try await cancelWaitingReview(of: coach, requests) : nil
 		await coach.lifecycle(.willTerminate)
 		var violations: [String] = []
 		for (number, pair) in zip(turns, scenario.turns).enumerated() {
@@ -136,10 +149,41 @@ struct LiveCoachBench: Sendable {
 		if turns.count < scenario.turns.count {
 			violations.append("the scenario stopped after turn \(turns.count)")
 		}
+		if scenario.endsWithCancel {
+			violations += LiveVerdict.violations(ofCancel: cancel).map { "cancel: \($0)" }
+		}
 		let transcript = LiveTranscript.markdown(
-			scenario, attempt: attempt, turns: turns, violations: violations)
+			scenario, attempt: attempt, turns: turns, cancel: cancel, violations: violations)
 		return LiveScenarioRun(
-			attempt: attempt, turns: turns, violations: violations, transcript: transcript)
+			attempt: attempt, turns: turns, cancel: cancel, violations: violations,
+			transcript: transcript)
+	}
+
+	private func missingTargets(of scenario: LiveScenario) async throws -> [String] {
+		guard !scenario.targets.isEmpty else { return [] }
+		let calendar = try await accountReads(.apiKey(intervalsKey), .keyOwner).listEvents(
+			in: try LiveSeedCalendar.window(around: today))
+		return scenario.targets.compactMap { $0.presence(in: calendar) }
+	}
+
+	private func cancelWaitingReview(of coach: Coach, _ requests: LiveCalendarRequests)
+		async throws -> LiveCancelRecord?
+	{
+		guard let shown = try await coach.desk.snapshot(chat: .main) else { return nil }
+		let presented = await coach.decide(.presented(shown.ref), in: .main)
+		guard case .armed(_, let token)? = try await coach.desk.snapshot(chat: .main)?.controls
+		else {
+			return LiveCancelRecord(
+				outcome: "never armed: the presentation answered \(presented)", canceled: false,
+				calendarRequests: 0, waitingAfter: true)
+		}
+		let sent = requests.total
+		let outcome = await coach.decide(.cancel(token), in: .main)
+		let made = requests.total - sent
+		let canceled = if case .canceled = outcome { true } else { false }
+		return LiveCancelRecord(
+			outcome: "\(outcome)", canceled: canceled, calendarRequests: made,
+			waitingAfter: try await coach.desk.snapshot(chat: .main) != nil)
 	}
 
 	static func outcome(of state: TurnState) -> String {
@@ -152,15 +196,15 @@ struct LiveCoachBench: Sendable {
 		}
 	}
 
-	private func coach(for setting: LiveSetting, log: LiveExchangeLog, writes: LiveCalendarWrites)
-		async throws -> Coach
-	{
+	private func coach(
+		for setting: LiveSetting, log: LiveExchangeLog, requests: LiveCalendarRequests
+	) async throws -> Coach {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: openRouterKey))
 		let reads: TrainingService.ClientFactory
 		var snapshotFailing: FakeIntervalsClient?
 		switch setting {
-		case .connected:
+		case .connected, .reviewing:
 			try secrets.storeIntervalsConnection(
 				IntervalsConnection(
 					id: ConnectionID(), credential: .apiKey(intervalsKey), selection: .keyOwner,
@@ -168,18 +212,18 @@ struct LiveCoachBench: Sendable {
 			reads = accountReads
 		case .notConnected:
 			let unused = FakeIntervalsClient(athleteName: "Unconnected athlete", ftp: 250)
-			reads = { _, _, _ in unused }
+			reads = { _, _ in unused }
 		case .readsFailing:
 			try secrets.storeIntervalsConnection(testConnection)
 			let failing = FakeIntervalsClient(athleteName: "Live check athlete", ftp: 250)
 			snapshotFailing = failing
-			reads = { _, _, _ in failing }
+			reads = { _, _ in failing }
 		case .implausibleFTP:
 			try secrets.storeIntervalsConnection(testConnection)
 			let athlete = FakeIntervalsClient(
 				athleteName: "Live check athlete", ftp: LiveCoachPlan.implausibleFTP)
 			athlete.wellness = [.on(today, [.fitness: 48, .fatigue: 52])]
-			reads = { _, _, _ in athlete }
+			reads = { _, _ in athlete }
 		}
 		let ledger = self.ledger
 		let coach = Coach(
@@ -190,8 +234,8 @@ struct LiveCoachBench: Sendable {
 					LiveMeteredTransport(
 						inner: modelTransport(diagnostics), ledger: ledger, log: log)
 				},
-				training: TrainingService { credential, selection, clock in
-					LiveReadOnlyTraining(inner: reads(credential, selection, clock), writes: writes)
+				training: TrainingService { credential, selection in
+					LiveReadOnlyTraining(inner: reads(credential, selection), requests: requests)
 				},
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
 				clock: SystemClock()),

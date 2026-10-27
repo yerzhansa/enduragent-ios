@@ -27,13 +27,13 @@ private enum AthleteOwnershipScreen {
 		XCTAssertEqual(seedResult.label, "seeded")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, TutorialHarness.workout)
-		ReviewRecoveryScreen.assertButtons(app, .approval, enabled: true)
+		ReviewCardScreen.assertButtons(app, .approveOrCancel)
 		assertExcludedCopy(in: TutorialHarness.named(app, "chat.transcript"))
 		capture(test, app, stage: "before-change-conversation-review")
 		assertHistory(test, app, changed: false, stage: "before-change")
 		TutorialHarness.fixtureControl(app, "fixture.switchAthlete")
 		TutorialHarness.exchange(app, "Read the connected athlete's week")
-		assertBlockedReview(app)
+		approveForTheOtherAthlete(app)
 		capture(test, app, stage: "after-change-conversation-review")
 		assertHistory(test, app, changed: true, stage: "after-change")
 		TutorialHarness.relaunchKeepingStore(app)
@@ -42,13 +42,25 @@ private enum AthleteOwnershipScreen {
 		assertHistory(test, app, changed: true, stage: "relaunched")
 	}
 
-	private static func assertBlockedReview(_ app: XCUIApplication) {
+	private static func approveForTheOtherAthlete(_ app: XCUIApplication) {
 		let transcript = TutorialHarness.named(app, "chat.transcript")
-		let notice = transcript.staticTexts.matching(identifier: "chat.preview.notice").firstMatch
+		let add = ReviewCardScreen.bar(app).buttons.matching(identifier: "chat.preview.add")
+			.firstMatch
+		TutorialHarness.scroll(app, to: add)
+		add.tap()
+		let notice = transcript.staticTexts.matching(identifier: "chat.review.notice").firstMatch
 		TutorialHarness.scroll(app, to: notice)
 		XCTAssertEqual(notice.label, reviewNotice)
-		XCTAssertEqual(transcript.staticTexts.matching(identifier: "chat.preview.notice").count, 1)
-		ReviewRecoveryScreen.assertButtons(transcript, .none, enabled: true)
+		XCTAssertEqual(transcript.staticTexts.matching(identifier: "chat.review.notice").count, 1)
+		assertBlockedReview(app)
+	}
+
+	private static func assertBlockedReview(_ app: XCUIApplication) {
+		let transcript = TutorialHarness.named(app, "chat.transcript")
+		let cancel = ReviewCardScreen.bar(app).buttons.matching(identifier: "chat.preview.cancel")
+			.firstMatch
+		TutorialHarness.wait(cancel, until: .hittable)
+		ReviewCardScreen.assertButtons(ReviewCardScreen.bar(app), .cancelOnly)
 		assertExcludedCopy(in: transcript)
 		XCTAssertFalse(
 			transcript.staticTexts.containing(

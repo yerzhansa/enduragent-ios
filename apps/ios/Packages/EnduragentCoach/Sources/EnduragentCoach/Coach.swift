@@ -18,7 +18,7 @@ public actor Coach {
 	let catalogs: ModelCatalogOwner
 	var catalogObservation: Task<Void, Never>?
 	private let runner: TurnRunner
-	private let reviews: SingleProposalReviews
+	let desk: WorkoutReviewDesk
 	private var mailboxSlots: [ChatID: MailboxSlot] = [:]
 	var mailboxes: [ChatID: ChatMailbox] { mailboxSlots.compactMapValues(\.mailbox) }
 	let lifetime = Lifetime()
@@ -33,6 +33,7 @@ public actor Coach {
 	var trainingGeneration: UInt64 = 0
 	var accessObservation: Task<Void, Never>?
 	var importObservation: Task<Void, Never>?
+	var reviewObservation: Task<Void, Never>?
 	var pendingImportRefresh: Task<Void, Never>?
 	private let process: ProcessID
 
@@ -40,6 +41,7 @@ public actor Coach {
 		accessObservation?.cancel()
 		catalogObservation?.cancel()
 		importObservation?.cancel()
+		reviewObservation?.cancel()
 		pendingImportRefresh?.cancel()
 	}
 
@@ -53,7 +55,9 @@ public actor Coach {
 		let clock = ports.clock
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let transport = ports.models.makeTransport(diagnostics)
-		let ledger = Ledger(log: ports.records.log, clock: clock, diagnostics: diagnostics)
+		let ledger = Ledger(
+			log: ports.records.log, chain: ports.records.chain, clock: clock,
+			diagnostics: diagnostics)
 		let vault = CredentialVault(
 			store: ports.secrets, training: ports.training, clock: clock, ledger: ledger,
 			diagnostics: diagnostics,
@@ -81,17 +85,18 @@ public actor Coach {
 		self.memory = Memory(
 			ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep,
 			authorizeInvocation: authorizeInvocation)
-		let reviews = SingleProposalReviews(
+		let desk = WorkoutReviewDesk(
 			ledger: ledger, clock: clock, diagnostics: diagnostics,
 			training: { (recheck: Bool) async throws(AccessUnavailable) in
 				try await vault.trainingConnection(recheck: recheck)
-			}
-		)
-		self.reviews = reviews
+			},
+			host: ports.host)
+		self.desk = desk
 		self.runner = TurnRunner(
 			transport: transport, ledger: ledger, clock: clock,
 			diagnostics: diagnostics, ladder: .npm,
-			reviews: reviews, watchdogSleep: ports.watchdogSleep,
+			desk: desk,
+			watchdogSleep: ports.watchdogSleep,
 			authorizeInvocation: authorizeInvocation
 		)
 		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
@@ -115,6 +120,7 @@ public actor Coach {
 			await catalogs.refresh()
 			await refreshDisplayLocale()
 			await recoverOnce()
+			await recoverReviews()
 		case .willTerminate:
 			await catalogs.cancelRefresh()
 			catalogObservation?.cancel()
@@ -124,13 +130,17 @@ public actor Coach {
 			accessObservation = nil
 			let observation = importObservation
 			let refresh = pendingImportRefresh
+			let reviewing = reviewObservation
 			importObservation?.cancel()
 			importObservation = nil
+			reviewObservation?.cancel()
+			reviewObservation = nil
 			pendingImportRefresh?.cancel()
 			pendingImportRefresh = nil
 			await access?.value
 			await observation?.value
 			await refresh?.value
+			await reviewing?.value
 			_ = await recovery?.value
 			for mailbox in await openedMailboxes() {
 				await mailbox.cancelInFlight(cause: .appTerminating)
@@ -151,10 +161,7 @@ public actor Coach {
 			mailbox = try await self.mailbox(for: chat)
 		} catch {
 			diagnostics.record(.recoveryUnavailable(error))
-			return await reviews.unresolved(.unknown(.readFailed))
-		}
-		if case .checkAgain(let ref) = decision, await mailbox.reviewReadUnavailable {
-			return await mailbox.reviewChanged(ref)
+			return .storageUnavailable
 		}
 		let outcome = await mailbox.decide(decision)
 		await publishStatus()
@@ -166,8 +173,7 @@ public actor Coach {
 	{
 		invalidateTrainingDisplay()
 		let generation = trainingGeneration
-		let clock = self.clock
-		let outcome = await vault.change(change) { await self.holdsBoundWork(now: clock.now) }
+		let outcome = await vault.change(change) { await self.holdsBoundWork() }
 		let stored = await vault.storedTrainingStatus()
 		guard generation == trainingGeneration else { return outcome }
 		if case .connected(let saved, let account) = stored {
@@ -292,6 +298,7 @@ public actor Coach {
 		async throws(LedgerFailure) -> ChatMailbox
 	{
 		observeImports()
+		observeReviews()
 		if let existing = mailboxSlots[chatId]?.mailbox { return existing }
 		guard !lifetime.terminating else { throw .unavailable }
 		_ = snapshotFeed(for: chatId)
@@ -337,7 +344,6 @@ public actor Coach {
 						await self?.publishStatus()
 						return try resolved.get()
 					}, displayLocale: resolveDisplayLocale),
-				reviews: reviews,
 				process: process,
 				host: host,
 				lifetime: lifetime, feed: snapshotFeed(for: chatId),

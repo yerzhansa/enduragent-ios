@@ -46,9 +46,8 @@ import Testing
 			try #require(transport.requests.first).tools.map(\.name) == [
 				.calculateZones, .intervalsFetchAthlete, .intervalsFetchWellness,
 				.intervalsFetchActivity, .intervalsFetchStreams, .intervalsFetchActivities,
-				.intervalsListEvents, .intervalsCreateWorkout, .intervalsCreateStrengthWorkout,
-				.intervalsDeleteWorkout, .intervalsUpdateWorkout, .memoryQuery, .memoryWrite,
-				.ledgerAppend,
+				.intervalsListEvents, .getPendingWorkoutChanges, .prepareWorkoutChanges,
+				.memoryQuery, .memoryWrite, .ledgerAppend,
 			])
 	}
 
@@ -70,16 +69,14 @@ import Testing
 			) == pinned)
 	}
 
-	@Test func everyToolIsDefinedUnderTheNameItsEffectCarriesAndOnlyGatedToolsPropose() {
+	@Test func everyToolIsDefinedUnderTheNameItsEffectCarries() {
 		let defined = ToolName.allCases.compactMap { name in
 			CoachTools.definition(of: name).map { (name: name, effect: $0.effect) }
 		}
 
 		#expect(defined.map(\.name) == ToolName.allCases.filter { $0 != .planSave })
 		for (name, effect) in defined {
-			#expect(effect.name == name)
-			let proposes = if case .proposal = effect { true } else { false }
-			#expect(proposes == (GatedToolName(rawValue: name.rawValue) != nil), "\(name)")
+			#expect(effect.name == name, "\(name)")
 		}
 	}
 
@@ -100,8 +97,7 @@ import Testing
 	@Test(arguments: [
 		ToolName.intervalsFetchAthlete, .intervalsFetchWellness, .intervalsFetchActivity,
 		.intervalsFetchStreams, .intervalsFetchActivities, .intervalsListEvents,
-		.intervalsCreateWorkout, .intervalsCreateStrengthWorkout, .intervalsDeleteWorkout,
-		.intervalsUpdateWorkout, .memoryRead, .planSave,
+		.getPendingWorkoutChanges, .prepareWorkoutChanges, .memoryRead, .planSave,
 	])
 	func unconnectedCallToAnUnofferedToolReturnsUnknownToolAndReachesNoClient(name: ToolName)
 		async throws
@@ -133,7 +129,7 @@ import Testing
 			#expect(intervals.count(of: read) == 0)
 		}
 		#expect(
-			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.workoutReview]))).records
 				.isEmpty)
 	}
 

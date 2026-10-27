@@ -15,9 +15,7 @@ public final class RecordFaults: Sendable {
 					synced: try ModelContainerHandle.withoutCloudKit(
 						storeURL: directory.appending(
 							path: ModelContainerHandle.syncedStoreFileName)),
-					local: try ModelContainerHandle.withoutCloudKit(
-						storeURL: directory.appending(path: ModelContainerHandle.localStoreFileName)
-					)),
+					local: try ModelContainerHandle.deviceLocal(directory: directory)),
 				release: release)
 		}
 	}
@@ -48,7 +46,11 @@ public final class RecordFaults: Sendable {
 
 	#if DEBUG
 		public func failNextReviewRead() {
-			log.failNextFetch(in: .synced([.reviewWrite, .reviewCancelledUnknown]))
+			log.failNextFetch(in: .deviceLocal([.workoutReview]))
+		}
+
+		public func failReviewAppend(after appends: Int) throws {
+			try log.failAppend(ofKind: DeviceLocalKind.workoutReview.rawValue, skipping: appends)
 		}
 	#endif
 }

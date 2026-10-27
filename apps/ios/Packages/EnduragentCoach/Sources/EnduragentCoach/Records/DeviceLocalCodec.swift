@@ -49,37 +49,6 @@ extension RecordCodec {
 			return .pendingSettlement(
 				try payload(TurnSettledPayload.self, version: version, kind: name, data: data)
 					.body())
-		case .pendingProposal:
-			let payload = try payload(
-				ProposalPayload.self, version: version, kind: name, data: data)
-			guard let tool = GatedToolName(rawValue: payload.tool) else {
-				throw RecordDecodeFailure(reason: "tool")
-			}
-			return .pendingProposal(
-				ProposalBody(
-					writeID: payload.writeID.map(CalendarWriteID.init(rawValue:)),
-					chatId: try decodeChatID(payload.chatId),
-					nonce: Nonce(rawValue: payload.nonce),
-					tool: tool,
-					toolInput: try payload.toolInput.gatedToolInput(),
-					summary: payload.summary,
-					description: payload.description,
-					expiresAt: Date(timeIntervalSince1970: payload.expiresAt)
-				)
-			)
-		case .proposalCleared:
-			let payload = try payload(
-				ProposalClearedPayload.self, version: version, kind: name, data: data)
-			guard let reason = ProposalClearReason(rawValue: payload.reason) else {
-				throw RecordDecodeFailure(reason: "clear")
-			}
-			return .proposalCleared(
-				ProposalClearedBody(
-					chatId: try decodeChatID(payload.chatId),
-					nonce: Nonce(rawValue: payload.nonce),
-					reason: reason
-				)
-			)
 		case .flushPending:
 			let payload = try payload(
 				FlushPendingPayload.self, version: version, kind: name, data: data)
@@ -170,6 +139,18 @@ extension RecordCodec {
 				WorkoutDriftBody(
 					planWorkoutId: try decodeULID(payload.planWorkoutId),
 					askedAt: Date(timeIntervalSince1970: payload.askedAt)
+				)
+			)
+		case .workoutReview:
+			return .workoutReview(WorkoutReviewBody(review: try WorkoutReviewPayload.decode(data)))
+		case .reviewPreparing:
+			let payload = try payload(
+				TurnAttemptPayload.self, version: version, kind: name, data: data)
+			return .reviewPreparing(
+				ReviewPreparingBody(
+					chatId: try decodeChatID(payload.chatId),
+					turn: TurnID(ulid: try decodeULID(payload.turn)),
+					attempt: AttemptID(ulid: try decodeULID(payload.attempt))
 				)
 			)
 		}

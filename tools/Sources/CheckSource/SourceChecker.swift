@@ -42,7 +42,8 @@ struct SourceChecker {
 		#"^apps\/ios\/Enduragent\/Assets\.xcassets\/AppIcon\.appiconset\/AppIcon\.png$"#
 	static let upgradeStore =
 		#"^apps\/ios\/Packages\/EnduragentCoach\/Tests\/EnduragentCoachTests\/Fixtures\/"#
-		+ #"(?:v1-upgrade\/(?:history|review)|pre-vault-5de5c782|build-2bbe2ee)\/"#
+		+ #"(?:v1-upgrade\/(?:history|review)|pre-vault-5de5c782|build-2bbe2ee"#
+		+ #"|build-6833d90f\/(?:open-review|unknown-write|completed))\/"#
 		+ #"(?:synced|local)-records\.store$"#
 	static let proofFile = #"^apps\/ios\/EnduragentUITests\/[^/]+\.swift$"#
 	static let featureFile = #"^\.agents\/skills\/verify-ios\/features\/[^/]+\.md$"#
@@ -74,6 +75,7 @@ struct SourceChecker {
 				featureProofSources.append(source)
 			}
 			try checkContentRules(source)
+			try checkSingleChangePath(source)
 		}
 		let generatedProject = NodePath.resolve(root, Self.xcodeProject)
 		if FileManager.default.fileExists(atPath: generatedProject) {

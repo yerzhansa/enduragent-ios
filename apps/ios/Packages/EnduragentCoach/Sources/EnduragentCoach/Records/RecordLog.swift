@@ -1,19 +1,29 @@
 import CoreData
 import Foundation
 import SwiftData
+import Synchronization
 
 package struct RecordQuery: Sendable, Equatable {
 	package enum Scope: Sendable, Equatable {
 		case synced(Set<SyncedKind>, includeLegacy: Set<LegacyKind>)
-		case deviceLocal(Set<DeviceLocalKind>)
+		case deviceLocal(Set<DeviceLocalKind>, includeLegacy: Set<LegacyKind>)
 
 		package static func synced(_ kinds: Set<SyncedKind>) -> Scope {
 			.synced(kinds, includeLegacy: [])
 		}
 
+		package static func deviceLocal(_ kinds: Set<DeviceLocalKind>) -> Scope {
+			.deviceLocal(kinds, includeLegacy: [])
+		}
+
 		package static let everySynced: Scope = .synced(
-			Set(SyncedKind.allCases), includeLegacy: Set(LegacyKind.allCases))
-		package static let everyDeviceLocal: Scope = .deviceLocal(Set(DeviceLocalKind.allCases))
+			Set(SyncedKind.allCases), includeLegacy: legacyKinds(.synced))
+		package static let everyDeviceLocal: Scope = .deviceLocal(
+			Set(DeviceLocalKind.allCases), includeLegacy: legacyKinds(.deviceLocal))
+
+		private static func legacyKinds(_ locality: RecordLocality) -> Set<LegacyKind> {
+			Set(LegacyKind.allCases.filter { $0.locality == locality })
+		}
 
 		var locality: RecordLocality {
 			switch self {
@@ -26,9 +36,10 @@ package struct RecordQuery: Sendable, Equatable {
 			switch self {
 			case .synced(let kinds, let legacy):
 				kinds.count == SyncedKind.allCases.count
-					&& legacy.count == LegacyKind.allCases.count
-			case .deviceLocal(let kinds):
+					&& legacy == Self.legacyKinds(.synced)
+			case .deviceLocal(let kinds, let legacy):
 				kinds.count == DeviceLocalKind.allCases.count
+					&& legacy == Self.legacyKinds(.deviceLocal)
 			}
 		}
 
@@ -36,8 +47,8 @@ package struct RecordQuery: Sendable, Equatable {
 			switch self {
 			case .synced(let kinds, let legacy):
 				Set(kinds.map(\.rawValue)).union(legacy.map(\.rawValue))
-			case .deviceLocal(let kinds):
-				Set(kinds.map(\.rawValue))
+			case .deviceLocal(let kinds, let legacy):
+				Set(kinds.map(\.rawValue)).union(legacy.map(\.rawValue))
 			}
 		}
 
@@ -45,10 +56,11 @@ package struct RecordQuery: Sendable, Equatable {
 			switch (self, body) {
 			case (.synced(let kinds, _), .synced(let synced)):
 				kinds.contains(synced.kind)
-			case (.synced(_, let legacy), .legacy(let body)):
-				legacy.contains(body.kind)
-			case (.deviceLocal(let kinds), .deviceLocal(let local)):
+			case (.deviceLocal(let kinds, _), .deviceLocal(let local)):
 				kinds.contains(local.kind)
+			case (.synced(_, let legacy), .legacy(let body)),
+				(.deviceLocal(_, let legacy), .legacy(let body)):
+				legacy.contains(body.kind) && body.kind.locality == locality
 			default:
 				false
 			}
@@ -131,13 +143,13 @@ package struct RecordDecodeFailure: Error, Sendable, Equatable {
 
 package struct SwiftDataRecordLog: RecordLog {
 	package let deviceId: DeviceID
-	private let synced: ModelContainer
-	private let local: ModelContainer
+	private let synced: ModelContainerHandle
+	private let local: ModelContainerHandle
 
 	package init(deviceId: DeviceID, synced: ModelContainerHandle, local: ModelContainerHandle) {
 		self.deviceId = deviceId
-		self.synced = synced.container
-		self.local = local.container
+		self.synced = synced
+		self.local = local
 	}
 
 	package func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
@@ -187,10 +199,10 @@ package struct SwiftDataRecordLog: RecordLog {
 		return nil
 	}
 
-	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
+	private static func rows(matching query: RecordQuery) -> FetchDescriptor<StoredAthleteRecord>? {
 		let kinds = query.scope.isExhaustive ? [] : Array(query.scope.kindNames)
 		if kinds.isEmpty, !query.scope.isExhaustive {
-			return RecordPage(records: [], skipped: [])
+			return nil
 		}
 		let anyKind = kinds.isEmpty
 		let anyChat = query.chatId == nil
@@ -199,14 +211,21 @@ package struct SwiftDataRecordLog: RecordLog {
 		let turns: [String?] = query.turns?.map { $0.ulid.rawValue } ?? []
 		let anyDevice = query.writtenBy == nil
 		let deviceId = query.writtenBy?.rawValue ?? ""
-		let predicate = #Predicate<StoredAthleteRecord> { row in
-			(anyKind || kinds.contains(row.kind))
-				&& (anyChat || row.chatId == chatId || row.chatId == nil)
-				&& (anyTurn || turns.contains(row.turn))
-				&& (anyDevice || row.deviceId == deviceId)
+		return FetchDescriptor<StoredAthleteRecord>(
+			predicate: #Predicate<StoredAthleteRecord> { row in
+				(anyKind || kinds.contains(row.kind))
+					&& (anyChat || row.chatId == chatId || row.chatId == nil)
+					&& (anyTurn || turns.contains(row.turn))
+					&& (anyDevice || row.deviceId == deviceId)
+			})
+	}
+
+	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		guard let descriptor = Self.rows(matching: query) else {
+			return RecordPage(records: [], skipped: [])
 		}
 		let context = ModelContext(container(for: query.scope.locality))
-		let rows = try context.fetch(FetchDescriptor<StoredAthleteRecord>(predicate: predicate))
+		let rows = try context.fetch(descriptor)
 		var records: [AthleteRecord] = []
 		var skipped: [SkippedRow] = []
 		for row in rows {
@@ -224,7 +243,7 @@ package struct SwiftDataRecordLog: RecordLog {
 
 	package var imports: AsyncStream<Void> {
 		AsyncStream { continuation in
-			let urls = Set(synced.configurations.map(\.url))
+			let urls = Set(synced.container.configurations.map(\.url))
 			let changes = NotificationCenter.default.notifications(
 				named: NSPersistentCloudKitContainer.eventChangedNotification)
 			let task = Task {
@@ -251,6 +270,10 @@ package struct SwiftDataRecordLog: RecordLog {
 	}
 
 	private func container(for locality: RecordLocality) -> ModelContainer {
+		handle(for: locality).container
+	}
+
+	private func handle(for locality: RecordLocality) -> ModelContainerHandle {
 		switch locality {
 		case .synced: synced
 		case .deviceLocal: local
@@ -258,8 +281,64 @@ package struct SwiftDataRecordLog: RecordLog {
 	}
 }
 
-package struct ModelContainerHandle: Sendable {
+extension SwiftDataRecordLog: ReviewChainLog {
+	package func newest(_ query: RecordQuery) async throws -> NewestRecord {
+		try newest(query, in: ModelContext(container(for: query.scope.locality)))
+	}
+
+	package func append(_ record: AthleteRecord, after head: RecordHead, in query: RecordQuery)
+		async throws
+	{
+		let handle = handle(for: record.locality)
+		try handle.chain.withLock { _ in
+			let context = ModelContext(handle.container)
+			context.autosaveEnabled = false
+			let current = try newest(query, in: context).head
+			guard current == head else { throw HeadMoved(current: current) }
+			context.insert(try StoredAthleteRecord(record: record))
+			try context.save()
+		}
+	}
+
+	package func chats(holding scope: RecordQuery.Scope) async throws -> Set<ChatID> {
+		guard var descriptor = Self.rows(matching: RecordQuery(scope: scope)) else { return [] }
+		descriptor.propertiesToFetch = [\.chatId]
+		return Set(
+			try ModelContext(container(for: scope.locality)).fetch(descriptor).compactMap {
+				$0.chatId.flatMap(ChatID.init(rawValue:))
+			})
+	}
+
+	private func newest(_ query: RecordQuery, in context: ModelContext) throws -> NewestRecord {
+		guard var descriptor = Self.rows(matching: query) else { return .empty }
+		descriptor.sortBy = [
+			SortDescriptor(\.hlcWallMs, order: .reverse),
+			SortDescriptor(\.hlcLogical, order: .reverse),
+			SortDescriptor(\.hlcDeviceId, comparator: .lexical, order: .reverse),
+		]
+		descriptor.fetchLimit = 1
+		while let row = try context.fetch(descriptor).first {
+			switch row.decode() {
+			case .success(let record):
+				if recordMatches(record, query) { return .readable(record) }
+			case .failure(let reason):
+				if query.chatId.map({ $0.rawValue == row.chatId }) ?? true {
+					return .unreadable(reason)
+				}
+			}
+			descriptor.fetchOffset = (descriptor.fetchOffset ?? 0) + 1
+		}
+		return .empty
+	}
+}
+
+package final class ModelContainerHandle: Sendable {
 	let container: ModelContainer
+	let chain = Mutex(())
+
+	init(container: ModelContainer) {
+		self.container = container
+	}
 }
 
 package func recordMatches(_ record: AthleteRecord, _ query: RecordQuery) -> Bool {

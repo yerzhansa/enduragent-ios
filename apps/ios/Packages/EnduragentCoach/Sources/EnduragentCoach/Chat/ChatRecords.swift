@@ -3,10 +3,12 @@ import Foundation
 final class ChatRecords {
 	private let chat: ChatID
 	private let ledger: Ledger
-	private let reviews: any WorkoutReviews
+	private let desk: WorkoutReviewDesk
 	private let clock: any Clock
 	private(set) var conversation: Conversation
 	private(set) var review: ReviewSnapshot?
+	private var reviewReads = 0
+	private var shownRead = 0
 	private(set) var jobs: [FlushJob] = []
 	private var applied: [ULID: AthleteRecord] = [:]
 	private var pendingSettlements: [ULID: AthleteRecord] = [:]
@@ -15,10 +17,12 @@ final class ChatRecords {
 		Set(pendingSettlements.values.compactMap { $0.body.turn })
 	}
 
-	init(chat: ChatID, ledger: Ledger, clock: any Clock, reviews: any WorkoutReviews) {
+	init(
+		chat: ChatID, ledger: Ledger, clock: any Clock, desk: WorkoutReviewDesk
+	) {
 		self.chat = chat
 		self.ledger = ledger
-		self.reviews = reviews
+		self.desk = desk
 		self.clock = clock
 		self.conversation = Conversation(chat: chat, segments: [])
 	}
@@ -64,11 +68,10 @@ final class ChatRecords {
 			} else {
 				jobs = try await ledger.flushJobs(in: folded)
 			}
-			let snapshot = try await reviews.snapshot(chat: chat, records: imported)
+			try await readReview()
 			folded.apply(Array(applied.values), device: ledger.deviceId)
 			conversation = folded
 			self.jobs = jobs
-			return ((), snapshot)
 		}
 	}
 
@@ -82,15 +85,9 @@ final class ChatRecords {
 		)
 	}
 
-	func hasLocalWork(isolation: isolated (any Actor)? = #isolation) async -> Bool {
-		let reviewing = await reviews.isExecuting(in: chat)
-		return reviewing || conversation.hasLocalWork(on: ledger.deviceId)
-	}
+	var hasLocalWork: Bool { conversation.hasLocalWork(on: ledger.deviceId) }
 
-	func refreshReview(
-		_ ref: ReviewRef? = nil, isolation: isolated (any Actor)? = #isolation
-	) async -> ReviewOutcome {
-		if let ref, review?.ref != ref { return .staleControl }
+	func refreshReview(isolation: isolated (any Actor)? = #isolation) async -> ReviewOutcome {
 		do {
 			try await updateReview()
 			return .presentationRecorded
@@ -100,51 +97,45 @@ final class ChatRecords {
 	}
 
 	func decide(
-		_ decision: ReviewDecision, scope: TurnScope?,
-		changed: @escaping @Sendable () async throws(LedgerFailure) -> Void,
-		isolation: isolated (any Actor)? = #isolation
+		_ decision: ReviewDecision, isolation: isolated (any Actor)? = #isolation
 	) async -> ReviewOutcome {
-		var outcome = ReviewOutcome.storageUnavailable
+		let outcome = await desk.decide(decision)
 		do {
-			try await readingReview { () throws(LedgerFailure) in
-				outcome = try await reviews.decide(
-					decision, chat: chat, scope: scope, changed: changed)
-				return (outcome, try await savedReview())
-			}
+			try await updateReview()
 		} catch {
-			return outcome
+			switch error {
+			case .unavailable, .rejectedBatch: return outcome
+			}
 		}
 		return outcome
 	}
 
 	func updateReview(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
 		try await readingReview { () throws(LedgerFailure) in
-			return ((), try await savedReview())
+			try await refreshNotes()
+			try await readReview()
 		}
 	}
 
-	private func savedReview(isolation: isolated (any Actor)? = #isolation)
-		async throws(LedgerFailure) -> ReviewSnapshot?
+	private func readReview(isolation: isolated (any Actor)? = #isolation)
+		async throws(LedgerFailure)
 	{
-		try await refreshNotes()
-		return try await reviews.snapshot(chat: chat, records: nil)
+		reviewReads += 1
+		let read = reviewReads
+		let snapshot = try await desk.snapshot(chat: chat)
+		guard read > shownRead else { return }
+		review = snapshot
+		shownRead = read
 	}
 
-	private func readingReview<Value>(
+	private func readingReview(
 		isolation: isolated (any Actor)? = #isolation,
-		_ read: nonisolated(nonsending) () async throws(LedgerFailure) -> (Value, ReviewSnapshot?)
-	) async throws(LedgerFailure) -> Value {
-		let retained = review
+		_ read: nonisolated(nonsending) () async throws(LedgerFailure) -> Void
+	) async throws(LedgerFailure) {
 		do {
-			let (value, snapshot) = try await read()
-			if case .cancelledUnknown? = snapshot?.state {
-				review = nil
-			} else {
-				review = snapshot
-			}
-			return value
+			try await read()
 		} catch {
-			review = (review?.ref == retained?.ref ? retained : review)?.disablingButtons()
+			review = review?.disablingButtons()
 			ledger.report(.reviewUnavailable(chat, error))
 			throw error
 		}
@@ -170,12 +161,27 @@ final class ChatRecords {
 	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
 		let notes = try await ledger.read(
 			RecordQuery(
-				scope: .synced([.reviewApplied, .reviewWrite, .reviewCancelledUnknown]),
+				scope: .synced(
+					[.reviewOutcome],
+					includeLegacy: [.reviewApplied, .reviewWrite, .reviewCancelledUnknown]),
 				chatId: chat))
 		apply(notes.records)
 	}
 
 	func settle(
+		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, stamp: OperationStamp,
+		isolation: isolated (any Actor)? = #isolation
+	) async {
+		let review = await desk.settle(
+			DraftKey(turn: turn, attempt: attempt), in: chat, ending: TurnEnding(settlement))
+		if case .committed = review { _ = await refreshReview() }
+		await save(
+			TurnLifecycle.settled(
+				attempt, settlement, on: conversation.turn(turn), chat: chat,
+				reviewNotPrepared: review.notPrepared), stamp: stamp)
+	}
+
+	private func save(
 		_ settled: TurnSettledBody?, stamp: OperationStamp,
 		isolation: isolated (any Actor)? = #isolation
 	) async {
@@ -200,7 +206,7 @@ final class ChatRecords {
 			let stopped = TurnLifecycle.stopBeforeStart(
 				stamp.attempt, on: conversation.turn(turn), chat: chat)
 			guard case .success(let settled) = stopped else { continue }
-			await settle(settled, stamp: stamp)
+			await save(settled, stamp: stamp)
 		}
 	}
 
@@ -212,10 +218,8 @@ final class ChatRecords {
 			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock).bound(
 				to: account)
 			await settle(
-				TurnLifecycle.settled(
-					dead.attempt,
-					.interrupted(partial: "", cause: .processEnded, saved: dead.saved),
-					on: conversation.turn(dead.turn), chat: chat), stamp: stamp)
+				dead.turn, attempt: dead.attempt,
+				.interrupted(partial: "", cause: .processEnded, saved: dead.saved), stamp: stamp)
 		}
 	}
 

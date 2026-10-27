@@ -24,7 +24,6 @@ package enum AttemptProgress: Sendable, Equatable {
 	case textDelta(String)
 	case attemptRestarted
 	case activity(TurnActivity)
-	case proposalPending(PendingProposal)
 }
 
 package enum AttemptResult: Sendable, Equatable {
@@ -58,7 +57,7 @@ package struct TurnRunner: Sendable {
 	let watchdogSleep: @Sendable (Duration) async throws(CancellationError) -> Void
 	let diagnostics: DiagnosticsLog
 	let ladder: RetryLadder
-	let reviews: SingleProposalReviews
+	let desk: WorkoutReviewDesk
 	private let snapshots: TrainingSnapshotReader
 
 	package init(
@@ -67,7 +66,7 @@ package struct TurnRunner: Sendable {
 		clock: any Clock,
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
-		reviews: SingleProposalReviews,
+		desk: WorkoutReviewDesk,
 		watchdogSleep: @escaping @Sendable (Duration) async throws(CancellationError) -> Void =
 			SystemClock().sleep,
 		authorizeInvocation: @escaping @Sendable (ModelInvocation) async throws -> Void
@@ -81,7 +80,7 @@ package struct TurnRunner: Sendable {
 		self.ladder = ladder
 		self.snapshots = TrainingSnapshotReader(
 			clock: clock, deadlineSleep: watchdogSleep, diagnostics: diagnostics)
-		self.reviews = reviews
+		self.desk = desk
 	}
 
 	package func run(
@@ -130,12 +129,10 @@ package struct TurnRunner: Sendable {
 				pending = nil
 				return try await generate(
 					attempt, prompt: &prompt, scope: scope, progress: observed.watching(progress))
-			} catch let saved as SavedWorkReached {
-				return .savedWork(saved.outcome, saved: await scope.summary)
 			} catch {
 				let failure = try AttemptFailure(caught: error)
 				let situation = AttemptSituation(
-					committed: try await scope.resolvedWrites(),
+					committed: await scope.written,
 					observedText: observed.seen,
 					promptTokens: prompt.estimatedTokens,
 					effectiveWindow: prompt.window,
@@ -152,6 +149,7 @@ package struct TurnRunner: Sendable {
 				case .retry(let next, let preparations):
 					counters = next
 					pending = RetryPlan(failure: failure, preparations: preparations)
+					await desk.abandonDraft(DraftKey(turn: attempt.turn, attempt: attempt.attempt))
 					await progress(.attemptRestarted)
 				}
 			}
@@ -186,7 +184,7 @@ package struct TurnRunner: Sendable {
 				try await scope.checkDeadline(uptime: clock.uptime)
 			}
 		}
-		return try await scope.savedWork()
+		return await scope.savedWork()
 	}
 
 	func flushOnce(
@@ -233,8 +231,9 @@ package struct TurnRunner: Sendable {
 		let offer = ToolOffer(
 			for: TurnReach(
 				training: attempt.training, memory: view, chat: attempt.chat, ledger: ledger,
-				clock: clock, reviews: reviews))
-		let prefix = PromptAssembly.cyclingPrefix(gated: true)
+				clock: clock, desk: desk,
+				attempt: DraftKey(turn: attempt.turn, attempt: attempt.attempt)))
+		let prefix = PromptAssembly.cyclingPrefix()
 		let snapshot = try await snapshots.snapshot(
 			for: attempt.training, attempt: attempt.attempt)
 		let zone = clock.timeZone

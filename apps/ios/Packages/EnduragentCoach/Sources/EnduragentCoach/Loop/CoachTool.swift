@@ -6,18 +6,20 @@ package struct TurnReach: Sendable {
 	package let chat: ChatID
 	package let ledger: Ledger
 	package let clock: any Clock
-	package let reviews: SingleProposalReviews
+	package let desk: WorkoutReviewDesk
+	package let attempt: DraftKey
 
 	package init(
 		training: TrainingConnection, memory: MemoryView, chat: ChatID, ledger: Ledger,
-		clock: any Clock, reviews: SingleProposalReviews
+		clock: any Clock, desk: WorkoutReviewDesk, attempt: DraftKey
 	) {
 		self.training = training
 		self.memory = memory
 		self.chat = chat
 		self.ledger = ledger
 		self.clock = clock
-		self.reviews = reviews
+		self.desk = desk
+		self.attempt = attempt
 	}
 }
 
@@ -26,14 +28,16 @@ struct LocalReach: Sendable {
 	let scope: TurnScope
 	let ledger: Ledger
 	let clock: any Clock
-	let reviews: SingleProposalReviews
+	let desk: WorkoutReviewDesk
+	let attempt: DraftKey
 
 	fileprivate init(_ turn: TurnReach, scope: TurnScope) {
 		self.chat = turn.chat
 		self.scope = scope
 		self.ledger = turn.ledger
 		self.clock = turn.clock
-		self.reviews = turn.reviews
+		self.desk = turn.desk
+		self.attempt = turn.attempt
 	}
 
 	var today: CivilDate {
@@ -55,14 +59,14 @@ enum ToolEffect: Sendable, Equatable {
 	case read(ReadToolName)
 	case memoryRead(MemoryReadToolName)
 	case write(ReplayUnsafeToolName)
-	case proposal(GatedToolName)
+	case preparation(PreparationToolName)
 
 	var name: ToolName {
 		switch self {
 		case .read(let name): name.toolName
 		case .memoryRead(let name): name.toolName
 		case .write(let name): name.toolName
-		case .proposal(let name): name.toolName
+		case .preparation(let name): name.toolName
 		}
 	}
 }
@@ -155,10 +159,8 @@ enum CoachTools {
 		case .intervalsFetchStreams: fetchStreams
 		case .intervalsFetchActivities: fetchActivities
 		case .intervalsListEvents: listEvents
-		case .intervalsCreateWorkout: createWorkout
-		case .intervalsCreateStrengthWorkout: createStrengthWorkout
-		case .intervalsDeleteWorkout: deleteWorkout
-		case .intervalsUpdateWorkout: updateWorkout
+		case .getPendingWorkoutChanges: getPendingWorkoutChanges
+		case .prepareWorkoutChanges: prepareWorkoutChanges
 		case .memoryRead: memoryRead
 		case .memoryQuery: memoryQuery
 		case .memoryWrite: memoryWrite
@@ -172,7 +174,8 @@ package struct ToolOffer: Sendable {
 	private let bound: [BoundTool]
 
 	package init(for turn: TurnReach) {
-		bound = ToolName.allCases.compactMap { CoachTools.definition(of: $0)?.bound(to: turn) }
+		bound = ToolName.allCases.compactMap(CoachTools.definition(of:))
+			.compactMap { $0.bound(to: turn) }
 	}
 
 	package var schemas: [ToolSchema] {

@@ -2900,22 +2900,16 @@
     "accountChanged": "このワークアウトは、{{service}}の別のアスリート向けに準備されました。接続中のアスリート向けに準備するよう、もう一度依頼してください。",
     "add": "カレンダーに追加",
     "cannotVerify": "{{service}}への接続を確認できなかったため、何も変更していません。少し待ってから、もう一度お試しください。",
-    "turnStopping": "この返信を停止しています。停止したら、ワークアウトの確認内容を承認またはキャンセルできます。",
-    "earlierVersion": "このワークアウトの確認内容は以前のバージョンのアプリで作成されたため、適用できなくなりました。",
     "cancelledUnknown": "キャンセルしました。このワークアウトは保存されている可能性があります。カレンダーを確認してください。",
     "saveFailed": "このiPhoneに選択内容を保存できなかったため、何も変更されていません。もう一度お試しください。",
     "storageUnavailable": "保存されたワークアウトの確認内容を読み取れませんでした。ボタンは一時的に無効になっています。",
     "title": "ワークアウトの確認",
-    "uncertain": "この変更が{{service}}のカレンダーに反映されたか確認できませんでした。再度依頼する前に、カレンダーを確認してください。",
     "workout": {
       "warmup": "ウォームアップ",
       "mainSet": "メインセット",
       "cooldown": "クールダウン",
       "ramp": "ランプ"
-    },
-    "writePending": "このワークアウトは保存された可能性があります。続行する前にカレンダーを確認してください。",
-    "writeReadFailed": "カレンダーを確認できませんでした。承認したワークアウトは引き続き確認待ちです。",
-    "saveApprovedAgain": "承認したワークアウトをもう一度保存"
+    }
   },
   "credits": {
     "buy": "購入",
@@ -2997,5 +2991,96 @@
       "waiting": "アスリートプロフィールを読み取り中…"
     },
     "missing": "intervals.icuに接続されていません。ワークアウトをカレンダーに追加するには接続してください。"
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "このワークアウトはアプリのアップデート前に確認されたものです。もう一度コーチに依頼してください。",
+      "missing": "この確認のワークアウトが{{service}}のカレンダーにもうないため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。",
+      "pastProtected": "この確認のワークアウトはすでに過去の日付のため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。",
+      "coachOnly": "この確認のワークアウトはコーチが追加したものではないため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。",
+      "workoutOnly": "この確認の項目はワークアウトではないため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。"
+    },
+    "refreshed": {
+      "nothingChanged": "確認後に{{service}}でこの確認のワークアウトが変更されたため、何も変更していません。承認する前にもう一度確認してください。",
+      "nothingElseChanged": "確認後に{{service}}でこの確認のワークアウトが変更されたため、これ以上は何も変更していません。承認する前にもう一度確認してください。",
+      "date": "{{workout}}：日付が{{from}}から{{to}}に変更されました。",
+      "name": "{{workout}}：名前が{{to}}に変更されました。",
+      "duration": "{{workout}}：時間が{{from}}分から{{to}}分に変更されました。",
+      "description": "{{workout}}：説明が変更されました。",
+      "load": "{{workout}}：トレーニング負荷が{{from}}から{{to}}に変更されました。",
+      "structure": "{{workout}}：ワークアウトのステップが変更されました。"
+    },
+    "notPrepared": "ワークアウトの確認内容を準備できませんでした。",
+    "notPreparedInformationSaved": "情報は保存されましたが、ワークアウトの確認内容を準備できませんでした。",
+    "stopped": "すべての変更が完了する前に、ワークアウトの確認が停止しました。すでに行われた変更はそのまま残ります。",
+    "sending": "確認した変更を{{service}}のカレンダーに反映しています…",
+    "partial": "{{service}}が変更を拒否したため、残りの変更を停止しました。すでに行われた変更はそのまま残ります。再試行する前に残りを確認してください。",
+    "unconfirmed": "変更が{{service}}のカレンダーに保存された可能性があります。ほかの変更を行う前に再確認してください。",
+    "completed": "確認したすべての変更が完了しました。",
+    "canceled": "残りの変更はキャンセルされました。",
+    "finishedTitle": "完了済み",
+    "outcome": {
+      "closedAtUpgrade": "このワークアウトの確認はアプリのアップデート前に準備されたものです。もう一度コーチに依頼してください。",
+      "saved": "{{workout}}（{{date}}）：変更を保存しました。",
+      "seenOnCalendar": "{{workout}}（{{date}}）：変更がカレンダーで確認されました。",
+      "noLongerOnCalendar": "{{workout}}（{{date}}）：カレンダーにはもうありません。",
+      "givenUp": "{{workout}}（{{date}}）：変更は行われませんでした。",
+      "mayHaveBeenSaved": "{{workout}}（{{date}}）：変更が保存された可能性があります。カレンダーを確認してください。"
+    },
+    "preparedEarlier": "以前に準備済み",
+    "approve": "変更を適用",
+    "card": {
+      "add": "追加",
+      "edit": "編集",
+      "delete": "削除",
+      "heading": "{{action}} · {{position}}/{{count}}件目 · {{date}} · {{duration}}",
+      "durationUnknown": "時間不明",
+      "unknown": "不明",
+      "load": "推定トレーニング負荷：{{load}}",
+      "removed": "このワークアウトはカレンダーから削除されます。",
+      "changed": {
+        "date": "日付：{{from}} → {{to}}",
+        "name": "名前：{{from}} → {{to}}",
+        "duration": "時間：{{from}} → {{to}}",
+        "load": "推定トレーニング負荷：{{from}} → {{to}}",
+        "description": "説明が変わります。",
+        "steps": "ワークアウトのステップが変わります。"
+      },
+      "progress": {
+        "sending": "送信中…",
+        "refused": "未保存",
+        "mayHaveBeenSaved": "保存された可能性があります",
+        "notRemoved": "未削除",
+        "mayHaveBeenRemoved": "削除された可能性があります"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "FTPに対する割合",
+      "watts": "パワー（ワット）"
+    },
+    "totals": {
+      "additions_other": "追加 {{count}} 件",
+      "edits_other": "編集 {{count}} 件",
+      "deletions_other": "削除 {{count}} 件",
+      "line": "{{additions}}、{{edits}}、{{deletions}} · 追加または編集したワークアウトで {{duration}}",
+      "lineDurationUnknown": "{{additions}}、{{edits}}、{{deletions}} · 合計時間は不明"
+    },
+    "kept": {
+      "title": "そのまま残る既存のワークアウト",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_other": "ワークアウトをカレンダーに追加しますか？",
+        "edit_other": "カレンダーのワークアウトを更新しますか？",
+        "delete_other": "ワークアウトをカレンダーから削除しますか？",
+        "mixed": "確認したすべての変更を適用しますか？"
+      },
+      "approveEdits": "カレンダーを更新",
+      "approveDeletions": "カレンダーから削除",
+      "unseen": "続けるには、すべてのカードをスクロールしてください。",
+      "cardFailed": "カード {{position}}/{{count}} を表示できませんでした。何も変更されていません。",
+      "showAgain": "もう一度表示"
+    }
   }
 }

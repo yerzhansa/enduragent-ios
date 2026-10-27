@@ -36,7 +36,7 @@ func testVault(
 func makeCoach(
 	transport: FakeModelTransport,
 	intervals: any TrainingClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
-	store: any RecordLog,
+	store: any ReviewChainLog,
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 	coalescing: CoalescingPolicy = quickWindow,
 	secrets: any SecretStore = keyedSecrets(),
@@ -48,7 +48,7 @@ func makeCoach(
 ) async -> Coach {
 	var ports = CoachPorts(
 		records: RecordStore(log: store), secrets: secrets, models: .scripted(transport),
-		training: TrainingService { _, _, _ in intervals }, credits: .fake(FakeCreditsClient()),
+		training: TrainingService { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
 		host: host, clock: clock)
 	ports.watchdogSleep = watchdogClock.sleep
 	if let coalescingClock { ports.coalescingSleep = coalescingClock.sleep }
@@ -223,7 +223,7 @@ func systemTokens(clock: any Clock) -> Int {
 		timeZoneName: clock.timeZone.identifier,
 		displayLocale: testDisplayLocale(.automatic)
 	)
-	return estimateTokens(PromptAssembly.cyclingPrefix(gated: true) + "\n\n" + volatile)
+	return estimateTokens(PromptAssembly.cyclingPrefix() + "\n\n" + volatile)
 }
 
 func historyBudget(clock: any Clock) -> Int {

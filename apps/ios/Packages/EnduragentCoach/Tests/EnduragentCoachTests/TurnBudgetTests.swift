@@ -167,7 +167,7 @@ import Testing
 			clock: clock,
 			diagnostics: diagnostics,
 			ladder: ladder,
-			reviews: makeReviews(ledger: ledger, clock: clock),
+			desk: makeDesk(ledger: ledger, clock: clock),
 			authorizeInvocation: { _ in }
 		)
 		return try await runner.run(

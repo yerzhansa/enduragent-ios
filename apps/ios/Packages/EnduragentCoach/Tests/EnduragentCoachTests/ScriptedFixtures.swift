@@ -12,11 +12,11 @@ extension ScriptedEvent {
 		arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#)
 }
 
-let workoutProposal: [ScriptedEvent] = [
+let workoutPreparation: [ScriptedEvent] = [
 	.toolCall(
-		name: "intervals_create_workout",
+		name: "prepare_workout_changes",
 		arguments:
-			#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
+			#"{"preparation":{"kind":"complete","changes":[\#(PreparationFixture.ride(on: "1998-06-14"))]}}"#
 	),
 	.finish(reason: .toolCalls),
 ]

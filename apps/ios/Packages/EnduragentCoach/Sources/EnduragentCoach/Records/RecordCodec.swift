@@ -1,7 +1,7 @@
 import Foundation
 
 enum RecordCodec {
-	static let currentBodyVersion = 5
+	static let currentBodyVersion = 6
 
 	static func encode(_ body: RecordBody) throws -> (version: Int, data: Data) {
 		let encoder = JSONEncoder()
@@ -12,6 +12,8 @@ enum RecordCodec {
 		case .synced(let synced):
 			data = try encoder.encode(SyncedPayload(synced))
 			switch synced {
+			case .reviewOutcome:
+				version = 6
 			case .attemptQuestion:
 				version = 5
 			case .trainingIdentityObserved, .userMessage, .turnSettled, .windowStart,
@@ -22,9 +24,12 @@ enum RecordCodec {
 			}
 		case .deviceLocal(let local):
 			data = try encoder.encode(DeviceLocalPayload(local))
-			if case .flushPending(let body) = local, body.sourceBound {
+			switch local {
+			case .workoutReview, .reviewPreparing:
+				version = 6
+			case .flushPending(let body) where body.sourceBound:
 				version = 5
-			} else {
+			default:
 				version = 2
 			}
 		case .legacy(let legacy):
@@ -53,7 +58,9 @@ enum RecordCodec {
 					.deviceLocal(try deviceLocalBody(local, version: version, data: data)))
 			}
 			if let legacy = LegacyKind(rawValue: kind) {
-				guard version == 1, let body = try legacyBody(legacy, data: data) else {
+				guard version <= legacy.lastStoredVersion,
+					let body = try legacyBody(legacy, version: version, data: data)
+				else {
 					return .failure(.newerVersion(kind: kind, version: version, ulid: ulid))
 				}
 				return .success(.legacy(body))
@@ -81,19 +88,22 @@ enum RecordCodec {
 	private static func legacyBody(_ kind: SyncedKind, data: Data) throws -> LegacyRecordBody? {
 		switch kind {
 		case .userMessage:
-			return try legacyBody(LegacyKind.userMessage, data: data)
+			return try legacyBody(LegacyKind.userMessage, version: 1, data: data)
 		case .windowStart:
-			return try legacyBody(LegacyKind.windowStart, data: data)
+			return try legacyBody(LegacyKind.windowStart, version: 1, data: data)
 		default:
 			return nil
 		}
 	}
 
-	private static func legacyBody(_ kind: LegacyKind, data: Data) throws -> LegacyRecordBody? {
+	private static func legacyBody(_ kind: LegacyKind, version: Int, data: Data) throws
+		-> LegacyRecordBody?
+	{
+		let name = kind.rawValue
 		switch kind {
 		case .userMessage:
 			let payload = try payload(
-				UserMessageV1Payload.self, version: 1, kind: kind.rawValue, data: data)
+				UserMessageV1Payload.self, version: 1, kind: name, data: data)
 			return .userMessageV1(
 				chatId: try decodeChatID(payload.chatId),
 				athleteText: payload.athleteText,
@@ -101,7 +111,7 @@ enum RecordCodec {
 			)
 		case .assistantMessage:
 			let payload = try payload(
-				AssistantMessagePayload.self, version: 1, kind: kind.rawValue, data: data)
+				AssistantMessagePayload.self, version: 1, kind: name, data: data)
 			return .assistantMessage(
 				AssistantMessageBody(
 					chatId: try decodeChatID(payload.chatId),
@@ -112,11 +122,33 @@ enum RecordCodec {
 			)
 		case .windowStart:
 			let payload = try payload(
-				WindowStartV1Payload.self, version: 1, kind: kind.rawValue, data: data)
+				WindowStartV1Payload.self, version: 1, kind: name, data: data)
 			return .windowStartV1(
 				chatId: try decodeChatID(payload.chatId),
 				firstIncludedUlid: try decodeULID(payload.firstIncludedUlid)
 			)
+		case .pendingProposal:
+			return .pendingProposal(
+				try payload(ProposalPayload.self, version: version, kind: name, data: data).body())
+		case .proposalCleared:
+			let payload = try payload(
+				ProposalClearedPayload.self, version: version, kind: name, data: data)
+			return .proposalCleared(
+				chatId: try decodeChatID(payload.chatId), nonce: Nonce(rawValue: payload.nonce))
+		case .reviewWrite:
+			return .reviewWrite(
+				try payload(ReviewWritePayload.self, version: version, kind: name, data: data)
+					.body())
+		case .reviewCancelledUnknown:
+			return .reviewCancelledUnknown(
+				try payload(
+					ReviewCancelledUnknownPayload.self, version: version, kind: name, data: data
+				)
+				.body())
+		case .reviewApplied:
+			return .reviewApplied(
+				try payload(ReviewAppliedPayload.self, version: version, kind: name, data: data)
+					.body())
 		}
 	}
 
@@ -177,20 +209,10 @@ enum RecordCodec {
 				CompactionSummaryBody(
 					chatId: try decodeChatID(payload.chatId), markdown: payload.markdown)
 			)
-		case .reviewWrite:
-			let payload = try payload(
-				ReviewWritePayload.self, version: version, kind: name, data: data)
-			return .reviewWrite(try payload.body())
-		case .reviewCancelledUnknown:
-			return .reviewCancelledUnknown(
-				try payload(
-					ReviewCancelledUnknownPayload.self, version: version, kind: name, data: data
-				)
-				.body())
-		case .reviewApplied:
-			let payload = try payload(
-				ReviewAppliedPayload.self, version: version, kind: name, data: data)
-			return .reviewApplied(try payload.body())
+		case .reviewOutcome:
+			return .reviewOutcome(
+				try payload(ReviewOutcomePayload.self, version: version, kind: name, data: data)
+					.body())
 		case .memorySection:
 			let payload = try payload(
 				MemorySectionPayload.self, version: version, kind: name, data: data)

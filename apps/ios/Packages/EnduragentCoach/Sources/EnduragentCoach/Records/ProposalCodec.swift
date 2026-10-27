@@ -1,24 +1,105 @@
 import Foundation
 
-struct DurationPayload: Codable {
+package struct LegacyProposalBody: Sendable, Equatable {
+	package let chatId: ChatID
+	package let nonce: Nonce
+	package let writeID: CalendarWriteID?
+	package let change: LegacyCalendarChange
+	package let expiresAt: Date
+
+	package init(
+		chatId: ChatID, nonce: Nonce, writeID: CalendarWriteID?, change: LegacyCalendarChange,
+		expiresAt: Date
+	) {
+		self.chatId = chatId
+		self.nonce = nonce
+		self.writeID = writeID
+		self.change = change
+		self.expiresAt = expiresAt
+	}
+}
+
+package enum LegacyCalendarChange: Sendable, Equatable {
+	case add(CalendarPayload, ride: IntervalsWorkoutInput?)
+	case edit(EventID, WorkoutPatch)
+	case delete(EventID)
+}
+
+struct ProposalPayload: Decodable {
+	var writeID: UUID?
+	var chatId: String
+	var nonce: UUID
+	var toolInput: ProposalInputPayload
+	var expiresAt: TimeInterval
+
+	func body() throws -> LegacyProposalBody {
+		LegacyProposalBody(
+			chatId: try decodeChatID(chatId), nonce: Nonce(rawValue: nonce),
+			writeID: writeID.map(CalendarWriteID.init(rawValue:)), change: try toolInput.change(),
+			expiresAt: Date(timeIntervalSince1970: expiresAt))
+	}
+}
+
+struct ProposalClearedPayload: Decodable {
+	var chatId: String
+	var nonce: UUID
+}
+
+enum ProposalInputPayload: Decodable {
+	case createWorkout(date: String, workout: WorkoutPayload)
+	case createStrengthWorkout(date: String, name: String, description: String)
+	case deleteWorkout(eventId: Int)
+	case updateWorkout(eventId: Int, date: String?, name: String?, description: String?)
+
+	func change() throws -> LegacyCalendarChange {
+		switch self {
+		case .createWorkout(let date, let workout):
+			let ride = try workout.workout()
+			return .add(
+				CalendarPayload(
+					date: try decodeCivilDate(date), type: .ride, name: ride.name,
+					description: try IntervalsSerializer.serialize(ride).description,
+					movingTime: nil, trainingLoad: nil, authoredSteps: nil),
+				ride: ride)
+		case .createStrengthWorkout(let date, let name, let description):
+			return .add(
+				CalendarPayload(
+					date: try decodeCivilDate(date), type: .weightTraining, name: name,
+					description: description, movingTime: nil, trainingLoad: nil,
+					authoredSteps: nil),
+				ride: nil)
+		case .deleteWorkout(let eventId):
+			return .delete(EventID(rawValue: eventId))
+		case .updateWorkout(let eventId, let date, let name, let description):
+			return .edit(
+				EventID(rawValue: eventId),
+				WorkoutPatch(
+					date: try date.map(decodeCivilDate), name: name, durationSeconds: nil,
+					description: description, trainingLoad: nil, workoutDocument: nil,
+					authoredSteps: nil))
+		}
+	}
+}
+
+struct DurationPayload: Decodable {
 	var value: Double
 	var unit: String
 }
 
-struct PowerPayload: Codable {
+struct PowerPayload: Decodable {
 	var kind: String
 	var value: Double?
 	var low: Double?
 	var high: Double?
 }
 
-struct CadencePayload: Codable {
+struct CadencePayload: Decodable {
 	var value: Int?
 	var low: Int?
 	var high: Int?
 }
 
-struct SimpleStepPayload: Codable {
+struct SimpleStepPayload: Decodable {
 	var type: String
 	var duration: DurationPayload
 	var power: PowerPayload?
@@ -26,98 +107,23 @@ struct SimpleStepPayload: Codable {
 	var label: String?
 }
 
-struct SetStepPayload: Codable {
+struct SetStepPayload: Decodable {
 	var repeatCount: Int
 	var interval: SimpleStepPayload
 	var recovery: SimpleStepPayload
 }
 
-enum StepPayload: Codable {
+enum StepPayload: Decodable {
 	case simple(SimpleStepPayload)
 	case set(SetStepPayload)
 }
 
-struct WorkoutPayload: Codable {
+struct WorkoutPayload: Decodable {
 	var name: String
 	var steps: [StepPayload]
 }
 
-enum GatedToolInputPayload: Codable {
-	case createWorkout(date: String, workout: WorkoutPayload)
-	case createStrengthWorkout(date: String, name: String, description: String)
-	case deleteWorkout(eventId: Int)
-	case updateWorkout(eventId: Int, date: String?, name: String?, description: String?)
-	case planSave(name: String, primaryGoal: String?, totalWeeks: Int?, status: String?)
-}
-
-extension GatedToolInputPayload {
-	init(_ input: GatedToolInput) {
-		switch input {
-		case .createWorkout(let date, let workout):
-			self = .createWorkout(date: date.rawValue, workout: WorkoutPayload(workout))
-		case .createStrengthWorkout(let date, let name, let description):
-			self = .createStrengthWorkout(date: date.rawValue, name: name, description: description)
-		case .deleteWorkout(let eventId):
-			self = .deleteWorkout(eventId: eventId.rawValue)
-		case .updateWorkout(let input):
-			self = .updateWorkout(
-				eventId: input.eventId.rawValue,
-				date: input.date?.rawValue,
-				name: input.name,
-				description: input.description
-			)
-		case .planSave(let headline):
-			self = .planSave(
-				name: headline.name,
-				primaryGoal: headline.primaryGoal,
-				totalWeeks: headline.totalWeeks,
-				status: headline.status?.rawValue
-			)
-		}
-	}
-
-	func gatedToolInput() throws -> GatedToolInput {
-		switch self {
-		case .createWorkout(let date, let workout):
-			return .createWorkout(date: try decodeCivilDate(date), workout: try workout.workout())
-		case .createStrengthWorkout(let date, let name, let description):
-			return .createStrengthWorkout(
-				date: try decodeCivilDate(date), name: name, description: description)
-		case .deleteWorkout(let eventId):
-			return .deleteWorkout(eventId: EventID(rawValue: eventId))
-		case .updateWorkout(let eventId, let date, let name, let description):
-			return .updateWorkout(
-				UpdateWorkoutInput(
-					eventId: EventID(rawValue: eventId),
-					date: try date.map(decodeCivilDate),
-					name: name,
-					description: description
-				)
-			)
-		case .planSave(let name, let primaryGoal, let totalWeeks, let status):
-			let parsedStatus: PlanStatus?
-			if let status {
-				guard let value = PlanStatus(rawValue: status) else {
-					throw RecordDecodeFailure(reason: "planSave")
-				}
-				parsedStatus = value
-			} else {
-				parsedStatus = nil
-			}
-			return .planSave(
-				PlanHeadline(
-					name: name, primaryGoal: primaryGoal, totalWeeks: totalWeeks,
-					status: parsedStatus)
-			)
-		}
-	}
-}
-
 extension WorkoutPayload {
-	init(_ workout: IntervalsWorkoutInput) {
-		self.init(name: workout.name, steps: workout.steps.map(StepPayload.init))
-	}
-
 	func workout() throws -> IntervalsWorkoutInput {
 		let workout = IntervalsWorkoutInput(name: name, steps: try steps.map { try $0.step() })
 		try IntervalsSerializer.validate(workout)
@@ -126,15 +132,6 @@ extension WorkoutPayload {
 }
 
 extension StepPayload {
-	init(_ step: WorkoutStep) {
-		switch step {
-		case .simple(let simple):
-			self = .simple(SimpleStepPayload(simple))
-		case .set(let set):
-			self = .set(SetStepPayload(set))
-		}
-	}
-
 	func step() throws -> WorkoutStep {
 		switch self {
 		case .simple(let payload):
@@ -146,21 +143,6 @@ extension StepPayload {
 }
 
 extension SimpleStepPayload {
-	init(_ step: SimpleStep) {
-		self.init(
-			type: step.type.rawValue,
-			duration: DurationPayload(
-				value: step.duration.value, unit: step.duration.unit.rawValue),
-			power: step.power.map {
-				PowerPayload(kind: $0.kind.rawValue, value: $0.value, low: $0.low, high: $0.high)
-			},
-			cadence: step.cadence.map {
-				CadencePayload(value: $0.value, low: $0.low, high: $0.high)
-			},
-			label: step.label
-		)
-	}
-
 	func simpleStep() throws -> SimpleStep {
 		guard let type = StepType(rawValue: type),
 			let unit = DurationInput.Unit(rawValue: duration.unit)
@@ -188,14 +170,6 @@ extension SimpleStepPayload {
 }
 
 extension SetStepPayload {
-	init(_ step: SetStep) {
-		self.init(
-			repeatCount: step.repeatCount,
-			interval: SimpleStepPayload(step.interval),
-			recovery: SimpleStepPayload(step.recovery)
-		)
-	}
-
 	func setStep() throws -> SetStep {
 		SetStep(
 			repeatCount: repeatCount, interval: try interval.simpleStep(),

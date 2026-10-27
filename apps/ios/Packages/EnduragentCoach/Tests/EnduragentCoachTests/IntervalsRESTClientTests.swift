@@ -62,6 +62,28 @@ struct IntervalsRESTClientTests {
 		#expect(!events[1].coachCreated)
 	}
 
+	@Test func listEventsDecodesDurationLoadAndDocumentAndReadsAnUnnamedEntry() async throws {
+		let client = try makeClient()
+		let body = """
+			[
+			{"id":1,"start_date_local":"1998-06-14T00:00:00","name":"Endurance","category":"WORKOUT","moving_time":3600,"icu_training_load":52,"workout_doc":{"steps":[{"duration":3600}]}},
+			{"id":2,"start_date_local":"1998-06-15T00:00:00","name":"Opener","category":"WORKOUT","moving_time":0,"icu_training_load":0,"workout_doc":null},
+			{"id":3,"start_date_local":"1998-06-16T00:00:00","name":"Spin","category":"WORKOUT","moving_time":null,"icu_training_load":null},
+			{"id":4,"start_date_local":"1998-06-17T00:00:00","category":"RACE_A"}
+			]
+			"""
+		IntervalsURLProtocolStub.handler = { _ in (200, Data(body.utf8)) }
+		let events = try await client.listEvents(
+			in: ReadRange(oldest: "1998-06-14", newest: "1998-06-20", today: "1998-06-13"))
+		#expect(events.map(\.movingTime) == [3600, 0, nil, nil])
+		#expect(events.map(\.trainingLoad) == [52, 0, nil, nil])
+		#expect(
+			events.map(\.workoutDocument)
+				== [try JSONValue.parse(#"{"steps":[{"duration":3600}]}"#), nil, nil, nil])
+		#expect(events.map(\.name) == ["Endurance", "Opener", "Spin", nil])
+		#expect(events[3].category == "RACE_A")
+	}
+
 	@Test func listEventsAsksForTheRangeFromItsOldestToItsNewestDay() async throws {
 		_ = try await makeClient().listEvents(
 			in: ReadRange(oldest: "1998-06-14", newest: "1998-06-20", today: "1998-06-13"))
@@ -72,45 +94,6 @@ struct IntervalsRESTClientTests {
 		#expect(request.path == "/api/v1/athlete/0/events")
 		#expect(items.filter { $0.name == "oldest" }.map(\.value) == ["1998-06-14"])
 		#expect(items.filter { $0.name == "newest" }.map(\.value) == ["1998-06-20"])
-	}
-
-	@Test func createChatEventPostsSnakeCaseBodyWithoutForbiddenFields() async throws {
-		let client = try makeClient(
-			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-		)
-		var draft = try CyclingTools.parseCreateWorkoutInput(
-			try JSONValue.parse(
-				#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}"#
-			),
-			today: "1998-06-13"
-		).draft
-		draft.writeID = CalendarWriteID()
-		let event = try await client.createChatEvent(draft)
-		let request = try #require(IntervalsURLProtocolStub.lastRequest)
-		#expect(request.httpMethod == "POST")
-		#expect(request.url?.path.hasSuffix("/athlete/0/events") == true)
-		#expect(request.url?.query == "upsertOnUid=true")
-		let data = try #require(IntervalsURLProtocolStub.lastBody)
-		let body = try #require(String(data: data, encoding: .utf8))
-		#expect(body.contains("\"start_date_local\""))
-		#expect(body.contains("\"external_id\""))
-		#expect(!body.contains("moving_time"))
-		#expect(!body.contains("icu_training_load"))
-		#expect(body.contains("\"uid\""))
-		#expect(!body.contains("workout_doc"))
-		#expect(event.name == "Endurance")
-	}
-
-	@Test func deleteRefusesRaceCategory() async throws {
-		let client = try makeClient(
-			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-		)
-		do {
-			try await client.deleteEvent(id: EventID(rawValue: 43))
-			Issue.record("expected not_a_workout")
-		} catch let error as IntervalsError {
-			#expect(error.code == "not_a_workout")
-		}
 	}
 
 	@Test func selectedAthleteGoesIntoEveryAthletePath() async throws {
@@ -165,13 +148,30 @@ struct IntervalsRESTClientTests {
 		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002")
 	}
 
+	@Test(arguments: [
+		"null",
+		"{}",
+		"[null]",
+		"[{}]",
+		#"[{"id":1,"name":"Ride","category":"WORKOUT"}]"#,
+		#"[{"id":1,"name":"Ride","category":"WORKOUT","start_date_local":"invalid"}]"#,
+		#"[{"id":1,"name":"Ride","category":"WORKOUT","start_date_local":"1998-06-14T00:00:00","tags":[42]}]"#,
+		#"[{"id":1,"name":"Ride","category":"WORKOUT","start_date_local":"1998-06-14T00:00:00"},{}]"#,
+	])
+	func aMalformedCalendarListIsAFailedReadAndNeverAnEmptyDay(_ body: String) async throws {
+		let client = try makeClient()
+		IntervalsURLProtocolStub.handler = { _ in (200, Data(body.utf8)) }
+
+		await #expect(throws: (any Error).self) {
+			_ = try await client.listEvents(in: .day("1998-06-14"))
+		}
+	}
+
 	func makeClient(
 		credential: IntervalsCredential = .apiKey("test-key"),
-		athlete: AthleteSelection = .keyOwner,
-		clock: any Clock = SystemClock()
+		athlete: AthleteSelection = .keyOwner
 	) throws -> IntervalsRESTClient {
-		IntervalsRESTClient(
-			credential: credential, athlete: athlete, session: try stubSession(), clock: clock)
+		IntervalsRESTClient(credential: credential, athlete: athlete, session: try stubSession())
 	}
 
 	func stubSession() throws -> URLSession {
@@ -188,6 +188,17 @@ struct IntervalsRESTClientTests {
 			if path.contains("/activities") {
 				return (200, try fixtureData("intervals-activities"))
 			}
+			if method == "POST", path.hasSuffix("/events/bulk") {
+				let data = try #require(IntervalsURLProtocolStub.lastBody)
+				let sent =
+					try JSONValue.parse(String(decoding: data, as: UTF8.self)).arrayValue ?? []
+				let saved = sent.enumerated().map { index, event in
+					var fields = event.objectFields
+					fields["id"] = .number(Double(index + 1))
+					return JSONValue.object(fields)
+				}
+				return (200, Data(JSONValue.array(saved).canonicalDigestInput().utf8))
+			}
 			if path.contains("/events/") {
 				if path.hasSuffix("/43") {
 					let race = """
@@ -201,13 +212,6 @@ struct IntervalsRESTClientTests {
 				return (200, Data(owned.utf8))
 			}
 			if path.contains("/events") {
-				if method == "POST" {
-					let data = try #require(IntervalsURLProtocolStub.lastBody)
-					var fields = try JSONValue.parse(String(decoding: data, as: UTF8.self))
-						.objectFields
-					fields["id"] = .number(1)
-					return (200, Data(JSONValue.object(fields).canonicalDigestInput().utf8))
-				}
 				return (200, try fixtureData("intervals-events"))
 			}
 			if path.contains("/activity/") {

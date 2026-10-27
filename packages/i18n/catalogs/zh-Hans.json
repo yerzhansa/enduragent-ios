@@ -2900,22 +2900,16 @@
     "accountChanged": "这项训练是为 {{service}} 上的另一位运动员准备的。请再次提出请求，让我为当前连接的运动员准备训练。",
     "add": "添加到日历",
     "cannotVerify": "无法检查你的 {{service}} 连接，因此未作任何更改。请稍后重试。",
-    "turnStopping": "正在停止此回复。停止后，你可以批准或取消训练审核。",
-    "earlierVersion": "此训练审核来自旧版应用，其中的变更已无法执行。",
     "cancelledUnknown": "已取消。此训练可能仍已保存。请检查你的日历。",
     "saveFailed": "无法在此 iPhone 上保存你的选择，因此未做任何更改。请重试。",
     "storageUnavailable": "无法读取已保存的训练审核内容。其按钮已暂时禁用。",
     "title": "训练审核",
-    "uncertain": "无法确认此更改是否已同步到你的 {{service}} 日历。再次提出请求前，请先检查日历。",
     "workout": {
       "warmup": "热身",
       "mainSet": "主训练",
       "cooldown": "放松",
       "ramp": "渐增"
-    },
-    "writePending": "此训练可能已保存。请先检查日历再继续。",
-    "writeReadFailed": "无法检查日历。你已批准的训练仍在等待确认。",
-    "saveApprovedAgain": "重新保存已批准的训练"
+    }
   },
   "credits": {
     "buy": "购买",
@@ -2997,5 +2991,96 @@
       "waiting": "正在读取运动员资料…"
     },
     "missing": "尚未连接 intervals.icu。连接后可将训练添加到日历。"
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "此训练是在应用更新前审核的。请重新询问教练。",
+      "missing": "此审核中的一项训练已不在你的 {{service}} 日历中，因此无法继续审核。请取消审核并重新询问教练。",
+      "pastProtected": "此审核中的一项训练现已成为过去，因此无法继续审核。请取消审核并重新询问教练。",
+      "coachOnly": "此审核中的一项训练并非由教练添加，因此无法继续审核。请取消审核并重新询问教练。",
+      "workoutOnly": "此审核中的一项内容不是训练，因此无法继续审核。请取消审核并重新询问教练。"
+    },
+    "refreshed": {
+      "nothingChanged": "你审核后，此审核中的训练在 {{service}} 中被更改，因此未做任何更改。请在批准前再次检查。",
+      "nothingElseChanged": "你审核后，此审核中的训练在 {{service}} 中被更改，因此未再做其他更改。请在批准前再次检查。",
+      "date": "{{workout}}：日期从 {{from}} 改为 {{to}}。",
+      "name": "{{workout}}：名称改为 {{to}}。",
+      "duration": "{{workout}}：时长从 {{from}} 分钟改为 {{to}} 分钟。",
+      "description": "{{workout}}：描述已更改。",
+      "load": "{{workout}}：训练负荷从 {{from}} 改为 {{to}}。",
+      "structure": "{{workout}}：训练步骤已更改。"
+    },
+    "notPrepared": "无法准备训练审核内容。",
+    "notPreparedInformationSaved": "你的信息已保存，但无法准备训练审核内容。",
+    "stopped": "训练审核在完成所有更改之前已停止。已完成的更改会保留。",
+    "sending": "正在将已审核的更改应用到你的 {{service}} 日历…",
+    "partial": "{{service}} 拒绝了一项更改，因此其余更改已停止。已完成的更改会保留。重试前请检查其余更改。",
+    "unconfirmed": "一项更改可能已保存到你的 {{service}} 日历。在进行其他更改前，请重新检查。",
+    "completed": "所有已审核的更改均已完成。",
+    "canceled": "其余更改已取消。",
+    "finishedTitle": "已完成",
+    "outcome": {
+      "closedAtUpgrade": "此训练审核是在应用更新前准备的。请重新询问教练。",
+      "saved": "{{workout}}（{{date}}）：更改已保存。",
+      "seenOnCalendar": "{{workout}}（{{date}}）：已在日历中看到此更改。",
+      "noLongerOnCalendar": "{{workout}}（{{date}}）：已不在日历中。",
+      "givenUp": "{{workout}}（{{date}}）：未进行此更改。",
+      "mayHaveBeenSaved": "{{workout}}（{{date}}）：此更改可能已保存。请检查你的日历。"
+    },
+    "preparedEarlier": "之前已准备",
+    "approve": "应用更改",
+    "card": {
+      "add": "添加",
+      "edit": "编辑",
+      "delete": "删除",
+      "heading": "{{action}} · 第 {{position}}/{{count}} 项 · {{date}} · {{duration}}",
+      "durationUnknown": "时长未知",
+      "unknown": "未知",
+      "load": "预估训练负荷：{{load}}",
+      "removed": "此训练将从日历中删除。",
+      "changed": {
+        "date": "日期：{{from}} → {{to}}",
+        "name": "名称：{{from}} → {{to}}",
+        "duration": "时长：{{from}} → {{to}}",
+        "load": "预估训练负荷：{{from}} → {{to}}",
+        "description": "描述将更改。",
+        "steps": "训练步骤将更改。"
+      },
+      "progress": {
+        "sending": "正在发送…",
+        "refused": "未保存",
+        "mayHaveBeenSaved": "可能已保存",
+        "notRemoved": "未删除",
+        "mayHaveBeenRemoved": "可能已删除"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "FTP 百分比",
+      "watts": "功率（瓦）"
+    },
+    "totals": {
+      "additions_other": "{{count}} 项新增",
+      "edits_other": "{{count}} 项编辑",
+      "deletions_other": "{{count}} 项删除",
+      "line": "{{additions}}、{{edits}}、{{deletions}} · 新增或编辑的训练共 {{duration}}",
+      "lineDurationUnknown": "{{additions}}、{{edits}}、{{deletions}} · 总时长未知"
+    },
+    "kept": {
+      "title": "保留的现有训练",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_other": "要将训练添加到你的日历吗？",
+        "edit_other": "要更新你日历中的训练吗？",
+        "delete_other": "要从你的日历中删除训练吗？",
+        "mixed": "要应用所有已审核的更改吗？"
+      },
+      "approveEdits": "更新日历",
+      "approveDeletions": "从日历中删除",
+      "unseen": "滚动浏览所有卡片以继续。",
+      "cardFailed": "无法显示第 {{position}}/{{count}} 张卡片。未做任何更改。",
+      "showAgain": "再次显示"
+    }
   }
 }

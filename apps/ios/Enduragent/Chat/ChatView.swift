@@ -3,12 +3,23 @@ import SwiftUI
 
 struct ChatView: View {
 	@Bindable var model: ShellModel
+	@Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
 	var body: some View {
 		NavigationStack(path: $model.navigation) {
 			TranscriptView(model: model)
 				.safeAreaInset(edge: .bottom, spacing: 0) {
-					ComposerView(model: model)
+					VStack(spacing: 0) {
+						if let review = model.chat?.review,
+							ChromePlacement(dynamicTypeSize) == .pinned
+						{
+							ReviewBarView(model: model, review: review)
+								.padding(.horizontal, 12)
+								.padding(.bottom, 8)
+								.background(Color(.systemBackground))
+						}
+						ComposerView(model: model)
+					}
 				}
 				#if DEBUG
 					.overlay(alignment: .topLeading) {

@@ -49,14 +49,6 @@
 					}
 				}
 				.accessibilityIdentifier("fixture.failReviewRead")
-				Button("Refresh review") {
-					Task {
-						guard let review = model.chat?.review
-						else { return }
-						_ = await services.coach.decide(.checkAgain(review.ref), in: .main)
-					}
-				}
-				.accessibilityIdentifier("fixture.refreshReview")
 				Button("Fail next calendar read") {
 					fixture.intervals.failCalendarReadOnce = true
 					fixture.trainingPeer.athleteB.failCalendarReadOnce = true

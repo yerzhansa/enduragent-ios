@@ -54,10 +54,12 @@ extension Ledger {
 	private static let archiveScope: RecordQuery.Scope = .synced(
 		[
 			.userMessage, .attemptQuestion, .turnSettled, .trainingIdentityObserved, .windowStart,
-			.reviewApplied,
-			.reviewWrite, .reviewCancelledUnknown,
+			.reviewOutcome,
 		],
-		includeLegacy: [.userMessage, .assistantMessage, .windowStart])
+		includeLegacy: [
+			.userMessage, .assistantMessage, .windowStart, .reviewApplied, .reviewWrite,
+			.reviewCancelledUnknown,
+		])
 
 	package func history() async throws(LedgerFailure) -> [ArchivedConversationSummary] {
 		let records = try await read(RecordQuery(scope: Self.archiveScope)).records

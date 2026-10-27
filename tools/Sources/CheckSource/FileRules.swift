@@ -35,6 +35,59 @@ extension SourceChecker {
 	static let secretShape =
 		#"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:gh[pousr]_[A-Za-z0-9]{30,}"#
 		+ #"|github_pat_[A-Za-z0-9_]{30,}|sk-or-v1-[a-f0-9]{32,}|AKIA[A-Z0-9]{16})\b"#
+	static let npmTopicCopy = #"\/Fixtures\/knowledge-topics-npm\/[^/]+\.md$"#
+	static let coachPackageSource = #"^apps\/ios\/Packages\/EnduragentCoach\/.*\.swift$"#
+	static let reviewSource = "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Review/"
+	static let mintedValues = [
+		MintedValue(
+			name: "Receipt", owner: reviewSource + "CalendarWriter.swift",
+			anywhere: [#"\bdecode(?:IfPresent)?\s*\(\s*Receipt\s*\.\s*self\b"#],
+			elsewhere: [#"\bextension\s+Receipt\b"#, #"\bReceipt(?:\s*\.\s*init)?\s*\("#]),
+		MintedValue(
+			name: "SendAttempt", owner: reviewSource + "WorkoutReview.swift", anywhere: [],
+			elsewhere: [#"\bextension\s+SendAttempt\b"#, #"\bSendAttempt(?:\s*\.\s*init)?\s*\("#]),
+		MintedValue(
+			name: "ReviewControlToken", owner: reviewSource + "ReviewTypes.swift", anywhere: [],
+			elsewhere: [
+				#"\bReviewControlToken\s*(?:\(|\.\s*init\b)"#,
+				#"(?:\.\s*init|\bSelf)\s*\(\s*ref\s*:\#(argumentText)*?\bsecret\s*:"#,
+			]),
+	]
+	static let coachSource =
+		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$"#
+	static let reviewChainType = #"(?:WorkoutReviewBody|ReviewPreparingBody)"#
+	static let bracketed = #"(?:[^()\[\]{}]|\([^()\[\]{}]*\)|\[[^()\[\]{}]*\]|\{[^()\[\]{}]*\})*"#
+	static let argumentText =
+		#"(?:[^()\[\]{}]|\(\#(bracketed)\)|\[\#(bracketed)\]|\{\#(bracketed)\})"#
+	static let lastArgumentText =
+		#"(?:[^()\[\]{},]|\(\#(bracketed)\)|\[\#(bracketed)\]|\{\#(bracketed)\})"#
+	static let reviewChainBuilt = [
+		#"\b\#(reviewChainType)\s*(?:\(|\.\s*init\b)"#,
+		#"\b(?:init|Self)\s*\(\s*review\s*:\#(lastArgumentText)*,?\s*\)"#,
+		#"\b(?:init|Self)\s*\(\s*chatId\s*:\#(argumentText)*?\bturn\s*:\#(argumentText)*?"#
+			+ #"\battempt\s*:\#(lastArgumentText)*,?\s*\)"#,
+	]
+	static let reviewChainRenamed = [
+		#"\btypealias\s+\w+(?:<[^>]*>)?\s*=\s*(?:\w+\s*\.\s*)?\#(reviewChainType)\b"#,
+		#"\bextension\s+(?:\w+\s*\.\s*)?\#(reviewChainType)\b"#,
+	]
+	static let reviewChainRecords =
+		"apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/"
+	static let reviewChainBuilders = [
+		"ReviewChain.swift", "RecordCodec.swift", "DeviceLocalCodec.swift",
+		"RecordEnvelopePayload.swift",
+	].map { reviewChainRecords + $0 }
+	static let reviewChainBodyFiles = ["WorkoutReviewBody.swift", "ReviewPreparingBody.swift"].map {
+		reviewChainRecords + $0
+	}
+	static let reviewOutcomeWriters = [
+		"Review/WorkoutReviewDesk.swift", "Review/ReviewUpgrade.swift", "Records/RecordCodec.swift",
+		"Records/RecordEnvelopePayload.swift", "Records/ReviewOutcomeBody.swift",
+	].map { "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/" + $0 }
+	static let reviewOutcomeBuilt = [
+		#"\.\s*reviewOutcome\s*\((?!\s*(?:let|var)\b)(?!\s*_\s*[,)])"#,
+		#"\bSyncedRecordBody\s*\.\s*reviewOutcome\b(?!\s*\()"#,
+	]
 	static let swiftCopy =
 		#"\b(?:Text|Label|Button|Section|navigationTitle|alert|confirmationDialog"#
 		+ #"|String\(localized:)\s*\(?(?:\s*)"((?:\\.|[^"\\])*)""#
@@ -102,11 +155,20 @@ extension SourceChecker {
 			try findings.report(file, "records-package-only")
 		}
 		if file.hasSameUnits(as: Self.recordModel) { try checkLedgerIndexVersion(file, text) }
+		if try mintsOutsideItsFile(file, text) { try findings.report(file, "minted-in-one-file") }
+		if try buildsReviewChainBodyOutsideTheChain(file, text) {
+			try findings.report(file, "review-chain-only")
+		}
+		if try writesReviewOutcomeOutsideTheDesk(file, text) {
+			try findings.report(file, "review-outcome-writer")
+		}
 		if try file.hasSameUnits(as: Self.mailbox) && hasExposedMailboxState(text) {
 			try findings.report(file, "mailbox-private-state")
 		}
 		if try patterns.test(Self.activityID, text) { try findings.report(file, "activity-id") }
-		if try patterns.test(Self.fixture, file) && hasCurrentEraDate(text) {
+		if try patterns.test(Self.fixture, file) && !patterns.test(Self.npmTopicCopy, file)
+			&& hasCurrentEraDate(text)
+		{
 			try findings.report(file, "fixture-date")
 		}
 		if try patterns.test(Self.secretShape, text) { try findings.report(file, "secret-shape") }
@@ -118,6 +180,37 @@ extension SourceChecker {
 				guard try patterns.test(Self.language, sentence.text) else { continue }
 				try findings.report(file, "public-language", key: sentence.key)
 			}
+		}
+	}
+
+	private func buildsReviewChainBodyOutsideTheChain(_ file: String, _ text: String) throws
+		-> Bool
+	{
+		guard try patterns.test(Self.coachSource, file) else { return false }
+		let forbidden =
+			(Self.reviewChainBuilders.contains(where: file.hasSameUnits(as:))
+				? [] : Self.reviewChainBuilt)
+			+ (Self.reviewChainBodyFiles.contains(where: file.hasSameUnits(as:))
+				? [] : Self.reviewChainRenamed)
+		return try forbidden.contains { try patterns.test($0, text) }
+	}
+
+	private func writesReviewOutcomeOutsideTheDesk(_ file: String, _ text: String) throws -> Bool {
+		guard try patterns.test(Self.coachSource, file),
+			!Self.reviewOutcomeWriters.contains(where: file.hasSameUnits(as:))
+		else { return false }
+		return try Self.reviewOutcomeBuilt.contains { try patterns.test($0, text) }
+	}
+
+	private func mintsOutsideItsFile(_ file: String, _ text: String) throws -> Bool {
+		guard try patterns.test(Self.coachPackageSource, file) else { return false }
+		return try Self.mintedValues.contains { value in
+			let owns = file.hasSameUnits(as: value.owner)
+			let shadows = try patterns.test(
+				#"\b(?:struct|enum|class|actor|typealias)\s+\#(value.name)\b"#, text)
+			if !owns && shadows { return false }
+			let forbidden = owns ? value.anywhere : value.anywhere + value.elsewhere
+			return try forbidden.contains { try patterns.test($0, text) }
 		}
 	}
 
@@ -168,4 +261,11 @@ extension SourceChecker {
 	private func inUnitOrder(_ values: [String]) -> [[UInt16]] {
 		values.map { Array($0.utf16) }.sorted { $0.lexicographicallyPrecedes($1) }
 	}
+}
+
+struct MintedValue {
+	let name: String
+	let owner: String
+	let anywhere: [String]
+	let elsewhere: [String]
 }

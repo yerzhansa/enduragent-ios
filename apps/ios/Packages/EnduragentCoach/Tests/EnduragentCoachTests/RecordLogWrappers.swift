@@ -5,8 +5,29 @@ import Testing
 
 @testable import EnduragentCoach
 
-final class BatchRecordingLog: RecordLog, @unchecked Sendable {
-	let inner: any RecordLog
+protocol ChainForwardingLog: ReviewChainLog {
+	var chainStore: any ReviewChainLog { get }
+}
+
+extension ChainForwardingLog {
+	func newest(_ query: RecordQuery) async throws -> NewestRecord {
+		try await chainStore.newest(query)
+	}
+
+	func append(_ record: AthleteRecord, after head: RecordHead, in query: RecordQuery)
+		async throws
+	{
+		try await chainStore.append(record, after: head, in: query)
+	}
+
+	func chats(holding scope: RecordQuery.Scope) async throws -> Set<ChatID> {
+		try await chainStore.chats(holding: scope)
+	}
+}
+
+final class BatchRecordingLog: ChainForwardingLog, @unchecked Sendable {
+	var chainStore: any ReviewChainLog { inner }
+	let inner: any ReviewChainLog
 	private(set) var batches: [[String]] = []
 	private let scopes = Mutex<[RecordQuery.Scope]>([])
 	private let cursorLocalities = Mutex<[RecordLocality]>([])
@@ -19,7 +40,7 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 	var cursorReads: [RecordLocality] { cursorLocalities.withLock { $0 } }
 	var fetches: [(query: RecordQuery, ulids: [ULID])] { fetched.withLock { $0 } }
 
-	init(inner: any RecordLog) {
+	init(inner: any ReviewChainLog) {
 		self.inner = inner
 	}
 
@@ -46,13 +67,14 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 	var imports: AsyncStream<Void> { inner.imports }
 }
 
-final class HeldConversationReadLog: RecordLog, Sendable {
-	let inner: any RecordLog
+final class HeldConversationReadLog: ChainForwardingLog, Sendable {
+	var chainStore: any ReviewChainLog { inner }
+	let inner: any ReviewChainLog
 	let gate = Gate()
 	var reached: AsyncStream<Void> { gate.reached }
 	private let held = Mutex(false)
 
-	init(inner: any RecordLog) {
+	init(inner: any ReviewChainLog) {
 		self.inner = inner
 	}
 
@@ -86,15 +108,16 @@ final class HeldConversationReadLog: RecordLog, Sendable {
 	var imports: AsyncStream<Void> { inner.imports }
 }
 
-final class HeldAppendLog: RecordLog, Sendable {
-	let inner: any RecordLog
+final class HeldAppendLog: ChainForwardingLog, Sendable {
+	var chainStore: any ReviewChainLog { inner }
+	let inner: any ReviewChainLog
 	let kind: String
 	let occurrence: Int
 	private let gate = Gate()
 	var reached: AsyncStream<Void> { gate.reached }
 	private let seen = Mutex(0)
 
-	init(inner: any RecordLog, holding kind: String, occurrence: Int) {
+	init(inner: any ReviewChainLog, holding kind: String, occurrence: Int) {
 		self.inner = inner
 		self.kind = kind
 		self.occurrence = occurrence
@@ -103,13 +126,24 @@ final class HeldAppendLog: RecordLog, Sendable {
 	var deviceId: DeviceID { inner.deviceId }
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		await holding(batch)
+		try await inner.append(batch, locality: locality)
+	}
+
+	func append(_ record: AthleteRecord, after head: RecordHead, in query: RecordQuery)
+		async throws
+	{
+		await holding([record])
+		try await inner.append(record, after: head, in: query)
+	}
+
+	private func holding(_ batch: [AthleteRecord]) async {
 		let hold = seen.withLock { current -> Bool in
 			guard batch.contains(where: { $0.body.kind == kind }) else { return false }
 			current += 1
 			return current == occurrence
 		}
 		if hold { await gate.wait() }
-		try await inner.append(batch, locality: locality)
 	}
 
 	func release() { gate.release() }

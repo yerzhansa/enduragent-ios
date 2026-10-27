@@ -3008,22 +3008,16 @@
     "accountChanged": "Ten trening przygotowano dla innego sportowca w {{service}}. Poproś mnie ponownie o przygotowanie go dla połączonego sportowca.",
     "add": "Dodaj do kalendarza",
     "cannotVerify": "Nie mogę sprawdzić Twojego połączenia z {{service}}, więc nic się nie zmieniło. Spróbuj ponownie za chwilę.",
-    "turnStopping": "Ta odpowiedź jest zatrzymywana. Po jej zatrzymaniu możesz zatwierdzić lub anulować przegląd treningu.",
-    "earlierVersion": "Ten przegląd treningu pochodzi z wcześniejszej wersji aplikacji i nie można go już zastosować.",
     "cancelledUnknown": "Anulowano. Ten trening mógł mimo to zostać zapisany. Sprawdź swój kalendarz.",
     "saveFailed": "Nie udało się zapisać Twojego wyboru na tym iPhonie, więc nic nie zostało zmienione. Spróbuj ponownie.",
     "storageUnavailable": "Nie udało się odczytać zapisanego przeglądu treningu. Jego przyciski są tymczasowo wyłączone.",
     "title": "Przegląd treningu",
-    "uncertain": "Nie mogę potwierdzić, czy ta zmiana trafiła do Twojego kalendarza w {{service}}. Sprawdź kalendarz, zanim poprosisz ponownie.",
     "workout": {
       "warmup": "Rozgrzewka",
       "mainSet": "Seria główna",
       "cooldown": "Schłodzenie",
       "ramp": "narastająco"
-    },
-    "writePending": "Ten trening mógł zostać zapisany. Sprawdź kalendarz, zanim przejdziesz dalej.",
-    "writeReadFailed": "Nie udało się sprawdzić kalendarza. Zatwierdzony trening nadal oczekuje na potwierdzenie.",
-    "saveApprovedAgain": "Zapisz ponownie zatwierdzony trening"
+    }
   },
   "credits": {
     "buy": "Kup",
@@ -3117,5 +3111,114 @@
       "waiting": "Odczytywanie profilu sportowca…"
     },
     "missing": "intervals.icu nie jest połączone. Połącz je, aby dodawać treningi do kalendarza."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Ten trening został sprawdzony przed aktualizacją aplikacji. Poproś trenera ponownie.",
+      "missing": "Trening z tego przeglądu nie znajduje się już w kalendarzu {{service}}, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie.",
+      "pastProtected": "Trening z tego przeglądu jest już w przeszłości, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie.",
+      "coachOnly": "Trening z tego przeglądu nie został dodany przez trenera, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie.",
+      "workoutOnly": "Wpis w tym przeglądzie nie jest treningiem, więc przegląd nie może być kontynuowany. Anuluj go i poproś trenera ponownie."
+    },
+    "refreshed": {
+      "nothingChanged": "Treningi w tym przeglądzie zmieniły się w {{service}} po tym, jak je sprawdzono, więc nic nie zostało zmienione. Sprawdź je ponownie przed zatwierdzeniem.",
+      "nothingElseChanged": "Treningi w tym przeglądzie zmieniły się w {{service}} po tym, jak je sprawdzono, więc nic więcej nie zostało zmienione. Sprawdź je ponownie przed zatwierdzeniem.",
+      "date": "{{workout}}: data zmieniona z {{from}} na {{to}}.",
+      "name": "{{workout}}: nazwa zmieniona na {{to}}.",
+      "duration": "{{workout}}: czas trwania zmieniony z {{from}} na {{to}} min.",
+      "description": "{{workout}}: opis zmieniony.",
+      "load": "{{workout}}: obciążenie treningowe zmienione z {{from}} na {{to}}.",
+      "structure": "{{workout}}: kroki treningu zmienione."
+    },
+    "notPrepared": "Nie udało się przygotować przeglądu treningu.",
+    "notPreparedInformationSaved": "Twoje informacje zostały zapisane, ale nie udało się przygotować przeglądu treningu.",
+    "stopped": "Przegląd treningu zatrzymał się przed wprowadzeniem wszystkich zmian. Wprowadzone już zmiany zostają zachowane.",
+    "sending": "Wprowadzanie sprawdzonych zmian w kalendarzu {{service}}…",
+    "partial": "{{service}} odrzucił zmianę, więc pozostałe zmiany zostały wstrzymane. Wprowadzone już zmiany zostają zachowane. Sprawdź resztę, zanim spróbujesz ponownie.",
+    "unconfirmed": "Zmiana mogła zostać zapisana w kalendarzu {{service}}. Sprawdź ponownie, zanim cokolwiek innego zostanie zmienione.",
+    "completed": "Wszystkie sprawdzone zmiany zostały wprowadzone.",
+    "canceled": "Pozostałe zmiany zostały anulowane.",
+    "finishedTitle": "Już wykonane",
+    "outcome": {
+      "closedAtUpgrade": "Ten przegląd treningu został przygotowany przed aktualizacją aplikacji. Poproś trenera ponownie.",
+      "saved": "{{workout}}, {{date}}: zmiana zapisana.",
+      "seenOnCalendar": "{{workout}}, {{date}}: zmiana widoczna w kalendarzu.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: nie ma go już w kalendarzu.",
+      "givenUp": "{{workout}}, {{date}}: zmiana nie została wprowadzona.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: zmiana mogła zostać zapisana. Sprawdź swój kalendarz."
+    },
+    "preparedEarlier": "Przygotowano wcześniej",
+    "approve": "Zastosuj zmiany",
+    "card": {
+      "add": "Dodaj",
+      "edit": "Edytuj",
+      "delete": "Usuń",
+      "heading": "{{action}} · {{position}} z {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "czas trwania nieznany",
+      "unknown": "nieznane",
+      "load": "Szacowane obciążenie treningowe: {{load}}",
+      "removed": "Ten trening zostanie usunięty z kalendarza.",
+      "changed": {
+        "date": "Data: {{from}} → {{to}}",
+        "name": "Nazwa: {{from}} → {{to}}",
+        "duration": "Czas trwania: {{from}} → {{to}}",
+        "load": "Szacowane obciążenie treningowe: {{from}} → {{to}}",
+        "description": "Opis się zmienia.",
+        "steps": "Kroki treningu się zmieniają."
+      },
+      "progress": {
+        "sending": "Wysyłanie…",
+        "refused": "Nie zapisano",
+        "mayHaveBeenSaved": "Mogło zostać zapisane",
+        "notRemoved": "Nie usunięto",
+        "mayHaveBeenRemoved": "Mogło zostać usunięte"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Procent FTP",
+      "watts": "Moc w watach"
+    },
+    "totals": {
+      "additions_one": "{{count}} dodanie",
+      "additions_few": "{{count}} dodania",
+      "additions_many": "{{count}} dodań",
+      "additions_other": "{{count}} dodania",
+      "edits_one": "{{count}} edycja",
+      "edits_few": "{{count}} edycje",
+      "edits_many": "{{count}} edycji",
+      "edits_other": "{{count}} edycji",
+      "deletions_one": "{{count}} usunięcie",
+      "deletions_few": "{{count}} usunięcia",
+      "deletions_many": "{{count}} usunięć",
+      "deletions_other": "{{count}} usunięcia",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} dla dodanych lub edytowanych treningów",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · łączny czas trwania nieznany"
+    },
+    "kept": {
+      "title": "Istniejące treningi pozostają",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Dodać ten trening do kalendarza?",
+        "add_few": "Dodać te treningi do kalendarza?",
+        "add_many": "Dodać te treningi do kalendarza?",
+        "add_other": "Dodać te treningi do kalendarza?",
+        "edit_one": "Zaktualizować ten trening w kalendarzu?",
+        "edit_few": "Zaktualizować te treningi w kalendarzu?",
+        "edit_many": "Zaktualizować te treningi w kalendarzu?",
+        "edit_other": "Zaktualizować te treningi w kalendarzu?",
+        "delete_one": "Usunąć ten trening z kalendarza?",
+        "delete_few": "Usunąć te treningi z kalendarza?",
+        "delete_many": "Usunąć te treningi z kalendarza?",
+        "delete_other": "Usunąć te treningi z kalendarza?",
+        "mixed": "Zastosować wszystkie sprawdzone zmiany?"
+      },
+      "approveEdits": "Zaktualizuj kalendarz",
+      "approveDeletions": "Usuń z kalendarza",
+      "unseen": "Przewiń wszystkie karty, aby kontynuować.",
+      "cardFailed": "Nie udało się wyświetlić karty {{position}} z {{count}}. Nic nie zostało zmienione.",
+      "showAgain": "Pokaż ponownie"
+    }
   }
 }

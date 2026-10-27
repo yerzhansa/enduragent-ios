@@ -33,13 +33,15 @@ package enum TurnLifecycle {
 	}
 
 	package static func settled(
-		_ attempt: AttemptID, _ settlement: Settlement, on facts: TurnFacts?, chat: ChatID
+		_ attempt: AttemptID, _ settlement: Settlement, on facts: TurnFacts?, chat: ChatID,
+		reviewNotPrepared: ReviewNotPrepared?
 	) -> TurnSettledBody? {
 		guard let facts,
 			!facts.settlements.contains(where: { $0.attempt == attempt })
 		else { return nil }
 		return TurnSettledBody(
-			chatId: chat, turn: facts.turn, attempt: attempt, settlement: settlement)
+			chatId: chat, turn: facts.turn, attempt: attempt, settlement: settlement,
+			reviewNotPrepared: reviewNotPrepared)
 	}
 
 	package static func stopBeforeStart(
@@ -183,8 +185,6 @@ extension LiveAttempt {
 			text = ""
 		case .activity(let next):
 			activity = next
-		case .proposalPending:
-			return
 		}
 	}
 }

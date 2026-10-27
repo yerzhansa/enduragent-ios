@@ -10,13 +10,13 @@ func connectedTraining(_ client: any TrainingClient) -> TrainingConnection {
 			connection: testConnection.id, athlete: testAthlete, client: client))
 }
 
-func makeReviews(
+func makeDesk(
 	ledger: Ledger, clock: any EnduragentCoach.Clock,
-	intervals: any TrainingClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-) -> SingleProposalReviews {
-	SingleProposalReviews(
-		ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock),
-		training: { _ in connectedTraining(intervals) })
+	diagnostics: DiagnosticsLog? = nil
+) -> WorkoutReviewDesk {
+	WorkoutReviewDesk(
+		ledger: ledger, clock: clock, diagnostics: diagnostics ?? DiagnosticsLog(clock: clock),
+		training: { _ in .unconnected }, host: ImmediateExecutionHost())
 }
 
 func makeToolOffer(
@@ -27,7 +27,9 @@ func makeToolOffer(
 	ToolOffer(
 		for: TurnReach(
 			training: training, memory: memory, chat: .main, ledger: ledger, clock: clock,
-			reviews: makeReviews(ledger: ledger, clock: clock)))
+			desk: makeDesk(ledger: ledger, clock: clock),
+			attempt: DraftKey(
+				turn: TurnID(ulid: fixedUlid(1)), attempt: AttemptID(ulid: fixedUlid(2)))))
 }
 
 func makeOfferedTools(
@@ -45,5 +47,28 @@ struct OfferedTools {
 	{
 		try await ToolRuntime.execute(
 			try #require(offer.tool(named: name.rawValue)), arguments: arguments, scope: scope)
+	}
+}
+
+extension FakeIntervalsCall {
+	var isWrite: Bool {
+		switch self {
+		case .createEvent, .updateEvent, .deleteEvent: true
+		default: false
+		}
+	}
+}
+
+extension ReviewControlToken {
+	func movedToAnotherChat(at head: ULID) throws -> ReviewControlToken {
+		let moved = Delivery(
+			ref: ReviewRef(
+				chat: "elsewhere", review: ref.review, revision: ref.revision,
+				delivery: ref.delivery),
+			head: head, presence: .armed(secret))
+		guard case .armed(_, let token) = moved.controls(.approveOrCancel) else {
+			throw UnexpectedReview(detail: "an armed delivery gave no control")
+		}
+		return token
 	}
 }

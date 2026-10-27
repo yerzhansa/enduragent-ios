@@ -1,27 +1,18 @@
 import Foundation
 
-package struct CalendarWriteID: Hashable, Sendable, Codable {
-	package let rawValue: UUID
-
-	package init(rawValue: UUID = UUID()) { self.rawValue = rawValue }
-
-	package var uid: String { rawValue.uuidString }
-	package var externalID: String { "cycling-coach:\(uid)" }
-}
-
 package enum CalendarWriteKey: Hashable, Sendable {
 	case durable(CalendarWriteID)
-	case legacy(ChangeSetID)
+	case legacy(WorkoutReviewID)
 }
 
-package enum CalendarObservation: String, Sendable, Codable {
+package enum CalendarObservation: String, Sendable, Decodable {
 	case dispatched
 	case absent
 	case found
 	case readFailed
 }
 
-package enum CalendarWriteEvidence: Sendable, Equatable, Codable {
+package enum CalendarWriteEvidence: Sendable, Equatable, Decodable {
 	case notSent
 	case unknown(CalendarObservation)
 	case applied(eventID: Int?)
@@ -40,7 +31,7 @@ package enum CalendarWriteEvidence: Sendable, Equatable, Codable {
 	}
 }
 
-package enum CalendarWriteTarget: Sendable, Equatable, Codable {
+package enum CalendarWriteTarget: Sendable, Equatable, Decodable {
 	case create(date: String)
 	case update(eventID: Int, date: String)
 	case delete(eventID: Int, date: String)
@@ -48,7 +39,7 @@ package enum CalendarWriteTarget: Sendable, Equatable, Codable {
 
 package struct ReviewWriteBody: Sendable, Equatable {
 	package let chatId: ChatID
-	package let review: ChangeSetID
+	package let review: WorkoutReviewID
 	package let writeID: CalendarWriteID?
 	package let target: CalendarWriteTarget?
 	package var evidence: CalendarWriteEvidence
@@ -58,20 +49,12 @@ package struct ReviewWriteBody: Sendable, Equatable {
 	}
 }
 
-struct ReviewWritePayload: Codable {
+struct ReviewWritePayload: Decodable {
 	let chatId: String
 	let review: String
 	let writeID: UUID?
 	let target: CalendarWriteTarget?
 	let evidence: CalendarWriteEvidence
-
-	init(_ body: ReviewWriteBody) {
-		chatId = body.chatId.rawValue
-		review = body.review.ulid.rawValue
-		writeID = body.writeID?.rawValue
-		target = body.target
-		evidence = body.evidence
-	}
 
 	private enum CodingKeys: String, CodingKey {
 		case chatId, review, writeID, target, evidence, status
@@ -94,21 +77,12 @@ struct ReviewWritePayload: Codable {
 		}
 	}
 
-	func encode(to encoder: Encoder) throws {
-		var values = encoder.container(keyedBy: CodingKeys.self)
-		try values.encode(chatId, forKey: .chatId)
-		try values.encode(review, forKey: .review)
-		try values.encodeIfPresent(writeID, forKey: .writeID)
-		try values.encodeIfPresent(target, forKey: .target)
-		try values.encode(evidence, forKey: .evidence)
-	}
-
 	func body() throws -> ReviewWriteBody {
 		guard writeID == nil || (target != nil && evidence != .applied(eventID: nil)) else {
 			throw RecordDecodeFailure(reason: "reviewWrite target")
 		}
 		return ReviewWriteBody(
-			chatId: try decodeChatID(chatId), review: ChangeSetID(ulid: try decodeULID(review)),
+			chatId: try decodeChatID(chatId), review: WorkoutReviewID(ulid: try decodeULID(review)),
 			writeID: writeID.map(CalendarWriteID.init(rawValue:)), target: target,
 			evidence: evidence)
 	}

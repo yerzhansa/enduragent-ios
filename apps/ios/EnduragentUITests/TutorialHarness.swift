@@ -17,7 +17,7 @@ enum TutorialHarness {
 	static let startedNewConversation = "You started a new conversation"
 	static let earlierChat = "Earlier chat"
 	static let readOnly = "Past conversations are read-only."
-	static let done = "Done — Create workout \"Endurance with tempo\" on 6/16/1998."
+	static let done = "Endurance with tempo, 6/16/1998: change saved."
 	static let warmup = "Warmup"
 	static let working = "Coach is working…"
 	static let providerDown = "The model provider is having trouble — try again in a few minutes."
@@ -71,7 +71,8 @@ enum TutorialHarness {
 
 	static func relaunchKeepingStore(
 		_ app: XCUIApplication, recovery: String = "readable", clock: String? = nil,
-		keychain: FixtureKeychainPolicy? = nil, language: String? = nil, locale: String? = nil
+		keychain: FixtureKeychainPolicy? = nil, language: String? = nil, locale: String? = nil,
+		clearingReadFaults: Bool = false
 	) {
 		app.terminate()
 		XCTAssertEqual(app.state, .notRunning)
@@ -84,6 +85,10 @@ enum TutorialHarness {
 		}
 		arguments.store = .keep
 		arguments.recovery = recovery
+		if clearingReadFaults {
+			arguments.calendarReadFault = nil
+			arguments.recordReadFault = nil
+		}
 		if let clock { arguments.clock = clock }
 		if let keychain { arguments.keychain = keychain }
 		if let language { arguments.language = language }

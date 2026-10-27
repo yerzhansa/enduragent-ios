@@ -191,10 +191,7 @@ final class MailboxExecution {
 				cause: work.phase.cause ?? .athleteStopped,
 				saved: await scope.interrupt())
 		}
-		await records.settle(
-			TurnLifecycle.settled(
-				attempt, settlement, on: records.conversation.turn(turn), chat: chatId),
-			stamp: stamp)
+		await records.settle(turn, attempt: attempt, settlement, stamp: stamp)
 		finish(turn, under: lease, on: mailbox)
 		if !lifecycle.terminating {
 			for job in await records.refreshJobs(from: flushes) {
@@ -224,7 +221,7 @@ final class MailboxExecution {
 		switch progress {
 		case .textDelta, .attemptRestarted:
 			mailbox.publish(liveText: true)
-		case .activity, .proposalPending:
+		case .activity:
 			mailbox.publish()
 		}
 	}

@@ -96,17 +96,12 @@ final class ShellLanguageTests {
 		#expect(model.connected?.athleteName == "Ada")
 	}
 
-	@Test(arguments: [true, false])
-	func visibleReviewOutcomeChangesWithTheLanguagePreference(expires: Bool) async throws {
+	@Test func visibleReviewOutcomeChangesWithTheLanguagePreference() async throws {
 		let phone = ShellDisplayPhone()
 		phone.change(languages: ["en"], region: "en_US")
 		transport.respond = ScriptedReply.sequence(
-			[
-				.toolCall(
-					name: "intervals_create_workout", arguments: FirstWeekFixture.workoutArguments),
-				.finish(reason: .toolCalls),
-				.text("Confirm to add the workout."),
-				.finish(reason: .stop),
+			FirstWeekFixture.preparation + [
+				.text("Approve the workout to add it."), .finish(reason: .stop),
 			], otherwise: transport.respond)
 		var model = await fixtureModel(
 			environment: AppEnvironment(
@@ -128,7 +123,7 @@ final class ShellLanguageTests {
 		await model.appear()
 		try await until { model.chat?.review != nil }
 		let restored = try #require(model.chat?.review)
-		#expect(restored.ref.set == review.ref.set)
+		#expect(restored.ref.review == review.ref.review)
 		#expect(
 			restored.cards.first?.lines(in: model.displayLocale).contains(
 				"- 10m progressif 60.5-80.5% 90rpm Warmup ramp 1.5") == true)
@@ -146,36 +141,21 @@ final class ShellLanguageTests {
 		#expect(transport.requestCount == calls)
 		await model.decide(.presented(restored.ref))
 		try await until { model.chat?.review?.controls != ReviewControls.none }
-		guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
+		guard case .armed(.approveOrCancel, let token)? = model.chat?.review?.controls else {
 			Issue.record("The presented review has no approval control")
 			return
 		}
-		if expires {
-			clock.advance(by: 11 * 60)
-		}
 		await model.decide(.approve(token))
-		if !expires {
-			try await until { model.chat?.notes.isEmpty == false }
-			try #require(model.chat?.notes.values.flatMap { $0 }.count == 1)
-		}
+		try await until { model.chat?.notes.isEmpty == false }
+		try #require(model.chat?.notes.values.flatMap { $0 }.count == 1)
 		let visible = {
-			expires
-				? model.reviewNotice?.sentence(in: model.displayLocale)
-				: model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.displayLocale)
+			model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.displayLocale)
 		}
-		#expect(
-			visible()
-				== (expires
-					? "That proposal expired — ask me again and I'll re-propose."
-					: "Done — Create workout \"Endurance with tempo\" on 16/06/1998."))
+		#expect(visible() == "Endurance with tempo, 16/06/1998: change saved.")
 		await model.chooseLanguage(.fixed(.es))
 		try await model.waitForStatus { $0.language == .fixed(.es) }
 		#expect(model.status.language == .fixed(.es))
-		#expect(
-			visible()
-				== (expires
-					? "Esa propuesta ha caducado. Pídemela otra vez y volveré a proponerla."
-					: "Hecho: Crear el entrenamiento \"Endurance with tempo\" el 16/06/1998."))
+		#expect(visible() == "Endurance with tempo, 16/06/1998: cambio guardado.")
 	}
 
 	@Test func retainedNumbersAndDatesRefreshWithLocaleNotificationsAndLanguageChoices()
