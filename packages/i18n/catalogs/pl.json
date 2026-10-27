@@ -1520,7 +1520,39 @@
       "signInAgain": "Zaloguj się ponownie"
     },
     "welcome": "Witaj w {{product}}!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z {{service}}.\n\nPolecenia:\n{{commands}}\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "Nie udało się przygotować planu treningowego do zapisania.",
+      "title": "Zapisać ten plan treningowy?",
+      "phase": "Faza {{number}}",
+      "focusLabel": "Akcent",
+      "weeklyHours": "Godziny tygodniowo",
+      "replaces": "Zastępuje twój zapisany plan: {{name}}",
+      "save": "Zapisz plan",
+      "saving": "Zapisywanie planu…",
+      "saved": "Zapisano. To jest teraz twój plan treningowy.",
+      "canceled": "Anulowano. Ten plan nie został zapisany.",
+      "expired": "Wygasło. Poproś trenera ponownie o zapisanie tego planu.",
+      "storageUnavailable": "Nie udało się zapisać tego planu, ponieważ pamięć tego iPhone’a jest niedostępna.",
+      "notSaved": {
+        "expired": "Nie zapisano: minęło dziesięć minut na zapisanie tego planu.",
+        "replaced": "Nie zapisano: nowszy plan czeka na zapisanie.",
+        "alreadyDecided": "Ten plan został już zapisany lub anulowany.",
+        "athleteChanged": "Nie zapisano: ten plan przygotowano dla innego sportowca w {{service}}.",
+        "notPresented": "Jeszcze nie zapisano. Przewiń do planu, a potem ponownie stuknij Zapisz plan."
+      },
+      "focus": {
+        "baseBuilding": "Budowanie bazy",
+        "aerobicDevelopment": "Rozwój tlenowy",
+        "threshold": "Próg",
+        "vo2max": "VO2max",
+        "racePrep": "Przygotowanie do startu",
+        "taper": "Tapering",
+        "recovery": "Regeneracja",
+        "maintenance": "Utrzymanie",
+        "generalFitness": "Ogólna sprawność"
+      }
+    }
   },
   "plan": {
     "details": {

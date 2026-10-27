@@ -6,12 +6,21 @@ enum LiveCheck: String, Sendable {
 	case reads
 	case coach
 	case calendar
+	case plan
 
 	static let selectorVariable = "ENDURAGENT_LIVE"
 	static let logsVariable = "ENDURAGENT_LIVE_LOGS"
 
 	static var selected: LiveCheck? {
 		ProcessInfo.processInfo.environment[selectorVariable].flatMap(LiveCheck.init(rawValue:))
+	}
+
+	var spend: (milestone: LiveMilestone, limit: Double)? {
+		switch self {
+		case .coach: (.m4, 10.0)
+		case .plan: (.m5, 5.0)
+		case .reads, .calendar: nil
+		}
 	}
 }
 

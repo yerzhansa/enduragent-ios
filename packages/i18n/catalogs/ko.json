@@ -1481,7 +1481,39 @@
       "signInAgain": "다시 로그인"
     },
     "welcome": "{{product}}에 오신 것을 환영합니다!\n\nAI 사이클링 코치입니다. {{service}} 데이터를 바탕으로 훈련 계획을 만들고, 워크아웃을 제안하고, 체력 변화를 살펴볼 수 있습니다.\n\n명령:\n{{commands}}\n\n편하게 훈련 이야기를 나눠도 좋습니다!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "훈련 계획 저장을 준비할 수 없습니다.",
+      "title": "이 훈련 계획을 저장할까요?",
+      "phase": "{{number}}단계",
+      "focusLabel": "중점",
+      "weeklyHours": "주당 시간",
+      "replaces": "저장된 계획을 대체합니다: {{name}}",
+      "save": "계획 저장",
+      "saving": "계획을 저장하는 중…",
+      "saved": "저장되었습니다. 이제 이 계획이 훈련 계획입니다.",
+      "canceled": "취소되었습니다. 이 계획은 저장되지 않았습니다.",
+      "expired": "만료되었습니다. 코치에게 이 계획을 다시 저장해 달라고 요청하세요.",
+      "storageUnavailable": "이 iPhone의 저장 공간을 사용할 수 없어 이 계획을 저장하지 못했습니다.",
+      "notSaved": {
+        "expired": "저장되지 않음: 이 계획을 저장할 수 있는 10분이 지났습니다.",
+        "replaced": "저장되지 않음: 더 최근 계획이 저장을 기다리고 있습니다.",
+        "alreadyDecided": "이 계획은 이미 저장되었거나 취소되었습니다.",
+        "athleteChanged": "저장되지 않음: 이 계획은 {{service}}의 다른 선수 계정에 맞춰 준비되었습니다.",
+        "notPresented": "아직 저장되지 않았습니다. 계획까지 스크롤한 다음 계획 저장을 다시 탭하세요."
+      },
+      "focus": {
+        "baseBuilding": "기초 체력 구축",
+        "aerobicDevelopment": "유산소 능력 향상",
+        "threshold": "역치",
+        "vo2max": "VO2max",
+        "racePrep": "대회 준비",
+        "taper": "테이퍼",
+        "recovery": "회복",
+        "maintenance": "유지",
+        "generalFitness": "일반 체력"
+      }
+    }
   },
   "plan": {
     "details": {

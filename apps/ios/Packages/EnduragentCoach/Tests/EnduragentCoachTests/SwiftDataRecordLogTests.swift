@@ -20,15 +20,14 @@ extension SwiftDataSuites {
 						body: .synced(sampleUser(chatId: .main, text: "synced"))),
 					storedRecord(
 						device: phoneA, wall: 2,
-						body: .deviceLocal(
-							sampleLocal(askedAt: expires))),
+						body: .deviceLocal(sampleLocal())),
 				]
 			)
 			let synced = try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records
-			let local = try await log.fetch(RecordQuery(scope: .deviceLocal([.workoutDrift])))
+			let local = try await log.fetch(RecordQuery(scope: .deviceLocal([.replyObserved])))
 				.records
 			#expect(kinds(synced) == ["userMessage"])
-			#expect(kinds(local) == ["workoutDrift"])
+			#expect(kinds(local) == ["replyObserved"])
 			let legacy = try await log.fetch(
 				RecordQuery(scope: .synced([], includeLegacy: [.assistantMessage]))
 			).records
@@ -61,13 +60,12 @@ extension SwiftDataSuites {
 						body: .synced(sampleUser(chatId: .main, text: "from a"))),
 					storedRecord(
 						device: phoneA, wall: 3,
-						body: .deviceLocal(
-							sampleLocal(askedAt: expires))),
+						body: .deviceLocal(sampleLocal())),
 				]
 			)
 			let synced = try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records
 			#expect(Set(synced.map(\.deviceId)) == [phoneA, phoneB])
-			let local = try await log.fetch(RecordQuery(scope: .deviceLocal([.workoutDrift])))
+			let local = try await log.fetch(RecordQuery(scope: .deviceLocal([.replyObserved])))
 				.records
 			#expect(local.map(\.deviceId) == [phoneA])
 		}
@@ -117,7 +115,7 @@ extension SwiftDataSuites {
 			let ulid = ULID.generate(at: Date(timeIntervalSince1970: 899_164_800))
 			let turn = TurnID(ulid: ulid)
 			let saved = WriteSummary(
-				memorySections: 1, ledgerEvents: 2, planSaves: 0, calendarWrites: 0)
+				memorySections: 1, ledgerEvents: 2, planConfirmations: 0, calendarWrites: 0)
 			let bodies: [SyncedRecordBody] = [
 				.turnSettled(
 					TurnSettledBody(
@@ -268,9 +266,6 @@ extension SwiftDataSuites {
 						key: "k", garmin: true, nonGarmin: false, unknown: false,
 						contentSha256: "abc")),
 				.coachReplyLanguage(CoachReplyLanguageBody(tag: .it)),
-				.planningDevice(
-					PlanningDeviceBody(
-						planningDeviceId: phoneA, planUlid: ulid, activatedAt: expires)),
 				.sessionSettings(
 					SessionSettingsBody(
 						settings: try SessionSettings.npmDefaults
@@ -298,40 +293,22 @@ extension SwiftDataSuites {
 					FlushSettledBody(
 						chatId: .main, job: FlushJobID(ulid: ulid),
 						settlement: .saved(sections: 2, events: 1))),
-				.planningCommand(
-					PlanningCommandBody(
-						commandName: .creationStart,
-						commandId: "cmd-1",
-						requestDigest: "digest",
-						status: .succeeded,
-						result: .object([
-							"ok": .bool(true),
-							"n": .number(2),
-							"s": .string("x"),
-							"z": .null,
-							"a": .array([.number(1)]),
-						])
-					)),
-				.planRevision(
-					PlanRevisionBody(
-						planUlid: ulid, version: 1, status: .active,
-						snapshot: .object(["name": .string("Base")]))),
-				.mirrorJob(
-					MirrorJobBody(
-						planUlid: ulid,
-						kind: .mirror,
-						windowStart: DateKey.from("1998-06-13"),
-						windowEnd: DateKey.from("1998-06-19"),
-						failureCount: 0
-					)),
-				.workoutMatch(
-					WorkoutMatchBody(
-						planWorkoutId: ulid, activityId: "123456", decision: .confirmed)),
-				.workoutDrift(WorkoutDriftBody(planWorkoutId: ulid, askedAt: expires)),
 			]
 			return try reviewRecordSamples([.completed]).map { ($0.kind, $0) }
 				+ synced.map { (kind: $0.kind.rawValue, body: RecordBody.synced($0)) }
 				+ local.map { (kind: $0.kind.rawValue, body: RecordBody.deviceLocal($0)) }
+				+ [
+					(
+						kind: SavedPlans.kind.rawValue,
+						body: try SavedPlanRows.body(PlanDocumentTests.base)
+					),
+					(
+						kind: PlanChain.kind.rawValue,
+						body: try PlanStepRows(confirmation: 1, turn: 2).prepared(
+							PlanDocumentTests.base,
+							expiresAt: Date(timeIntervalSince1970: 899_165_400))
+					),
+				]
 		}
 	}
 }

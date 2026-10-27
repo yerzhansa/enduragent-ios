@@ -17,11 +17,11 @@ package enum SyncedKind: String, Sendable, CaseIterable {
 	case journal
 	case provenance
 	case coachReplyLanguage
-	case planningDevice
 	case reviewOutcome
 	case sessionSettings
 	case languagePreference
 	case trainingIdentityObserved
+	case savedPlan
 }
 
 package enum DeviceLocalKind: String, Sendable, CaseIterable {
@@ -32,13 +32,9 @@ package enum DeviceLocalKind: String, Sendable, CaseIterable {
 	case pendingSettlement
 	case flushPending
 	case flushSettled
-	case planningCommand
-	case planRevision
-	case mirrorJob
-	case workoutMatch
-	case workoutDrift
 	case workoutReview
 	case reviewPreparing
+	case planConfirmation
 }
 
 package enum LegacyKind: String, Sendable, CaseIterable {
@@ -50,19 +46,20 @@ package enum LegacyKind: String, Sendable, CaseIterable {
 	case reviewWrite
 	case reviewCancelledUnknown
 	case reviewApplied
+	case planningDevice
 
 	package var locality: RecordLocality {
 		switch self {
 		case .pendingProposal, .proposalCleared: .deviceLocal
 		case .userMessage, .assistantMessage, .windowStart, .reviewWrite, .reviewCancelledUnknown,
-			.reviewApplied:
+			.reviewApplied, .planningDevice:
 			.synced
 		}
 	}
 
 	var lastStoredVersion: Int {
 		switch self {
-		case .userMessage, .assistantMessage, .windowStart: 1
+		case .userMessage, .assistantMessage, .windowStart, .planningDevice: 1
 		case .pendingProposal, .proposalCleared, .reviewWrite, .reviewCancelledUnknown,
 			.reviewApplied:
 			2
@@ -82,11 +79,11 @@ package enum SyncedRecordBody: Sendable, Equatable {
 	case journal(JournalBody)
 	case provenance(ProvenanceBody)
 	case coachReplyLanguage(CoachReplyLanguageBody)
-	case planningDevice(PlanningDeviceBody)
 	case reviewOutcome(ReviewOutcomeBody)
 	case sessionSettings(SessionSettingsBody)
 	case languagePreference(LanguagePreferenceBody)
 	case trainingIdentityObserved
+	case savedPlan(SavedPlanBody)
 
 	package var kind: SyncedKind {
 		switch self {
@@ -101,11 +98,11 @@ package enum SyncedRecordBody: Sendable, Equatable {
 		case .journal: .journal
 		case .provenance: .provenance
 		case .coachReplyLanguage: .coachReplyLanguage
-		case .planningDevice: .planningDevice
 		case .reviewOutcome: .reviewOutcome
 		case .sessionSettings: .sessionSettings
 		case .languagePreference: .languagePreference
 		case .trainingIdentityObserved: .trainingIdentityObserved
+		case .savedPlan: .savedPlan
 		}
 	}
 
@@ -118,8 +115,8 @@ package enum SyncedRecordBody: Sendable, Equatable {
 		case .compactionSummary(let body): body.chatId
 		case .reviewOutcome(let body): body.chatId
 		case .memorySection, .dailyNote, .ledgerEvent, .journal, .provenance,
-			.coachReplyLanguage, .planningDevice, .sessionSettings, .languagePreference,
-			.trainingIdentityObserved:
+			.coachReplyLanguage, .sessionSettings, .languagePreference, .trainingIdentityObserved,
+			.savedPlan:
 			nil
 		}
 	}
@@ -130,8 +127,8 @@ package enum SyncedRecordBody: Sendable, Equatable {
 		case .attemptQuestion(let body): body.turn
 		case .turnSettled(let body): body.turn
 		case .windowStart, .compactionSummary, .memorySection, .dailyNote, .ledgerEvent,
-			.journal, .provenance, .coachReplyLanguage, .planningDevice, .sessionSettings,
-			.languagePreference, .reviewOutcome, .trainingIdentityObserved:
+			.journal, .provenance, .coachReplyLanguage, .sessionSettings, .languagePreference,
+			.reviewOutcome, .trainingIdentityObserved, .savedPlan:
 			nil
 		}
 	}
@@ -145,13 +142,9 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 	case pendingSettlement(TurnSettledBody)
 	case flushPending(FlushPendingBody)
 	case flushSettled(FlushSettledBody)
-	case planningCommand(PlanningCommandBody)
-	case planRevision(PlanRevisionBody)
-	case mirrorJob(MirrorJobBody)
-	case workoutMatch(WorkoutMatchBody)
-	case workoutDrift(WorkoutDriftBody)
 	case workoutReview(WorkoutReviewBody)
 	case reviewPreparing(ReviewPreparingBody)
+	case planConfirmation(PlanConfirmationBody)
 
 	package var kind: DeviceLocalKind {
 		switch self {
@@ -162,13 +155,9 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 		case .pendingSettlement: .pendingSettlement
 		case .flushPending: .flushPending
 		case .flushSettled: .flushSettled
-		case .planningCommand: .planningCommand
-		case .planRevision: .planRevision
-		case .mirrorJob: .mirrorJob
-		case .workoutMatch: .workoutMatch
-		case .workoutDrift: .workoutDrift
 		case .workoutReview: .workoutReview
 		case .reviewPreparing: .reviewPreparing
+		case .planConfirmation: .planConfirmation
 		}
 	}
 
@@ -181,9 +170,8 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 		case .flushSettled(let body): body.chatId
 		case .workoutReview(let body): body.chatId
 		case .reviewPreparing(let body): body.chatId
-		case .openRouterKeyRejected, .providerConsent, .planningCommand, .planRevision, .mirrorJob,
-			.workoutMatch,
-			.workoutDrift:
+		case .planConfirmation(let body): body.chat
+		case .openRouterKeyRejected, .providerConsent:
 			nil
 		}
 	}
@@ -194,8 +182,8 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 		case .replyObserved(let body): body.turn
 		case .pendingSettlement(let body): body.turn
 		case .reviewPreparing(let body): body.turn
+		case .planConfirmation(let body): body.turn
 		case .openRouterKeyRejected, .providerConsent, .flushPending, .flushSettled,
-			.planningCommand, .planRevision, .mirrorJob, .workoutMatch, .workoutDrift,
 			.workoutReview:
 			nil
 		}

@@ -21,6 +21,7 @@ struct TurnSettledPayload: Codable {
 	var attempt: String
 	var settlement: SettlementPayload
 	var reviewNotPrepared: String?
+	var planSaveNotPrepared: String?
 }
 
 extension TurnSettledPayload {
@@ -28,7 +29,8 @@ extension TurnSettledPayload {
 		self.init(
 			chatId: body.chatId.rawValue, turn: body.turn.ulid.rawValue,
 			attempt: body.attempt.ulid.rawValue, settlement: SettlementPayload(body.settlement),
-			reviewNotPrepared: body.reviewNotPrepared?.rawValue)
+			reviewNotPrepared: body.reviewNotPrepared?.rawValue,
+			planSaveNotPrepared: body.planSaveNotPrepared?.rawValue)
 	}
 
 	func body() throws -> TurnSettledBody {
@@ -39,6 +41,12 @@ extension TurnSettledPayload {
 			reviewNotPrepared: try reviewNotPrepared.map { (raw) throws(RecordDecodeFailure) in
 				guard let cause = ReviewNotPrepared(rawValue: raw) else {
 					throw RecordDecodeFailure(reason: "reviewNotPrepared")
+				}
+				return cause
+			},
+			planSaveNotPrepared: try planSaveNotPrepared.map { (raw) throws(RecordDecodeFailure) in
+				guard let cause = PlanSaveNotPrepared(rawValue: raw) else {
+					throw RecordDecodeFailure(reason: "planSaveNotPrepared")
 				}
 				return cause
 			})
@@ -137,7 +145,7 @@ struct WriteSummaryPayload: Codable {
 	init(_ summary: WriteSummary) {
 		memorySections = summary.memorySections
 		ledgerEvents = summary.ledgerEvents
-		planSaves = summary.planSaves
+		planSaves = summary.planConfirmations
 		calendarWrites = summary.calendarWrites
 		unverifiedCalendarWrites = summary.unverifiedCalendarWrites
 	}
@@ -146,7 +154,7 @@ struct WriteSummaryPayload: Codable {
 		WriteSummary(
 			memorySections: memorySections,
 			ledgerEvents: ledgerEvents,
-			planSaves: planSaves,
+			planConfirmations: planSaves,
 			calendarWrites: calendarWrites,
 			unverifiedCalendarWrites: unverifiedCalendarWrites ?? calendarWrites
 		)
@@ -287,27 +295,19 @@ struct CoachReplyLanguagePayload: Codable {
 	var tag: String?
 }
 
-struct PlanningDevicePayload: Codable {
+struct PlanningDevicePayload: Decodable {
 	var planningDeviceId: String
 	var planUlid: String
 	var activatedAt: TimeInterval
 }
 
-struct JSONValuePayload: Codable {
+struct JSONValuePayload: Decodable {
 	var value: JSONValue
-
-	init(_ value: JSONValue) {
-		self.value = value
-	}
 
 	init(from decoder: Decoder) throws {
 		let container = try decoder.singleValueContainer()
 		if container.decodeNil() {
 			value = .null
-			return
-		}
-		if let flag = try? container.decode(Bool.self) {
-			value = .bool(flag)
 			return
 		}
 		if let number = try? container.decode(Double.self) {
@@ -318,66 +318,18 @@ struct JSONValuePayload: Codable {
 			value = .string(string)
 			return
 		}
-		if let items = try? container.decode([JSONValuePayload].self) {
-			value = .array(items.map(\.value))
-			return
-		}
 		if let fields = try? container.decode([String: JSONValuePayload].self) {
 			value = .object(fields.mapValues(\.value))
 			return
 		}
+		if let items = try? container.decode([JSONValuePayload].self) {
+			value = .array(items.map(\.value))
+			return
+		}
+		if let flag = try? container.decode(Bool.self) {
+			value = .bool(flag)
+			return
+		}
 		throw RecordDecodeFailure(reason: "json")
 	}
-
-	func encode(to encoder: Encoder) throws {
-		var container = encoder.singleValueContainer()
-		switch value {
-		case .null:
-			try container.encodeNil()
-		case .bool(let flag):
-			try container.encode(flag)
-		case .number(let number):
-			try container.encode(number)
-		case .string(let string):
-			try container.encode(string)
-		case .array(let items):
-			try container.encode(items.map(JSONValuePayload.init))
-		case .object(let fields):
-			try container.encode(fields.mapValues(JSONValuePayload.init))
-		}
-	}
-}
-
-struct PlanningCommandPayload: Codable {
-	var commandName: String
-	var commandId: String
-	var requestDigest: String
-	var status: String
-	var result: JSONValuePayload?
-}
-
-struct PlanRevisionPayload: Codable {
-	var planUlid: String
-	var version: Int
-	var status: String
-	var snapshot: JSONValuePayload
-}
-
-struct MirrorJobPayload: Codable {
-	var planUlid: String
-	var kind: String
-	var windowStart: Int
-	var windowEnd: Int
-	var failureCount: Int
-}
-
-struct WorkoutMatchPayload: Codable {
-	var planWorkoutId: String
-	var activityId: String
-	var decision: String
-}
-
-struct WorkoutDriftPayload: Codable {
-	var planWorkoutId: String
-	var askedAt: TimeInterval
 }

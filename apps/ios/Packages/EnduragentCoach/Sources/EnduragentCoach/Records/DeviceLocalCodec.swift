@@ -70,77 +70,6 @@ extension RecordCodec {
 					settlement: try payload.settlement()
 				)
 			)
-		case .planningCommand:
-			let payload = try payload(
-				PlanningCommandPayload.self, version: version, kind: name, data: data)
-			guard let commandName = PlanningCommandName(rawValue: payload.commandName),
-				let status = PlanningCommandStatus(rawValue: payload.status)
-			else {
-				throw RecordDecodeFailure(reason: "planningCommand")
-			}
-			return .planningCommand(
-				PlanningCommandBody(
-					commandName: commandName,
-					commandId: payload.commandId,
-					requestDigest: payload.requestDigest,
-					status: status,
-					result: payload.result?.value
-				)
-			)
-		case .planRevision:
-			let payload = try payload(
-				PlanRevisionPayload.self, version: version, kind: name, data: data)
-			guard let status = PlanStatus(rawValue: payload.status) else {
-				throw RecordDecodeFailure(reason: "planStatus")
-			}
-			return .planRevision(
-				PlanRevisionBody(
-					planUlid: try decodeULID(payload.planUlid),
-					version: payload.version,
-					status: status,
-					snapshot: payload.snapshot.value
-				)
-			)
-		case .mirrorJob:
-			let payload = try payload(
-				MirrorJobPayload.self, version: version, kind: name, data: data)
-			guard let jobKind = MirrorJobKind(rawValue: payload.kind),
-				let windowStart = DateKey(rawValue: payload.windowStart),
-				let windowEnd = DateKey(rawValue: payload.windowEnd)
-			else {
-				throw RecordDecodeFailure(reason: "mirror")
-			}
-			return .mirrorJob(
-				MirrorJobBody(
-					planUlid: try decodeULID(payload.planUlid),
-					kind: jobKind,
-					windowStart: windowStart,
-					windowEnd: windowEnd,
-					failureCount: payload.failureCount
-				)
-			)
-		case .workoutMatch:
-			let payload = try payload(
-				WorkoutMatchPayload.self, version: version, kind: name, data: data)
-			guard let decision = MatchDecision(rawValue: payload.decision) else {
-				throw RecordDecodeFailure(reason: "match")
-			}
-			return .workoutMatch(
-				WorkoutMatchBody(
-					planWorkoutId: try decodeULID(payload.planWorkoutId),
-					activityId: payload.activityId,
-					decision: decision
-				)
-			)
-		case .workoutDrift:
-			let payload = try payload(
-				WorkoutDriftPayload.self, version: version, kind: name, data: data)
-			return .workoutDrift(
-				WorkoutDriftBody(
-					planWorkoutId: try decodeULID(payload.planWorkoutId),
-					askedAt: Date(timeIntervalSince1970: payload.askedAt)
-				)
-			)
 		case .workoutReview:
 			return .workoutReview(WorkoutReviewBody(review: try WorkoutReviewPayload.decode(data)))
 		case .reviewPreparing:
@@ -153,6 +82,11 @@ extension RecordCodec {
 					attempt: AttemptID(ulid: try decodeULID(payload.attempt))
 				)
 			)
+		case .planConfirmation:
+			return .planConfirmation(
+				try PlanConfirmationBody.decode(
+					try payload(
+						PlanConfirmationPayload.self, version: version, kind: name, data: data)))
 		}
 	}
 }

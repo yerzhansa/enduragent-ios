@@ -26,7 +26,7 @@ struct CarriedTest: Hashable {
 }
 
 extension CoverageChecker {
-	static let retiringRecords = ["ADR-0083", "ADR-0079", "ADR-0082"]
+	static let retiringRecords = ["ADR-0083", "ADR-0079", "ADR-0082", "ADR-0084"]
 
 	func checkCarried(_ carried: JSONValue, in sources: inout SourceFiles) throws {
 		let files = try listedFiles(of: carried)

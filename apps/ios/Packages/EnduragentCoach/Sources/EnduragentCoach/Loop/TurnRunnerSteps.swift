@@ -59,8 +59,18 @@ extension TurnRunner {
 				await desk.refuseConcurrentPreparations(
 					DraftKey(turn: attempt.turn, attempt: attempt.attempt))
 			}
+			if calls.count(where: { $0.1?.name == .planSave }) > 1 {
+				await plans.refuseConcurrentSaves(
+					DraftKey(turn: attempt.turn, attempt: attempt.attempt))
+			}
 			let outcomes = try await runTools(calls, scope: scope)
 			for (call, outcome) in outcomes {
+				if call.name == ToolName.buildPlanSkeleton.rawValue,
+					let draft = PlanDraftStructure(outcome)
+				{
+					await plans.drafted(
+						draft, for: DraftKey(turn: attempt.turn, attempt: attempt.attempt))
+				}
 				wire.append(
 					WireMessage(
 						role: .tool,

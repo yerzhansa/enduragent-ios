@@ -48,7 +48,7 @@ package actor ChatMailbox {
 		self.feed = feed
 		self.lifecycle = MailboxLifecycle(host: host, chat: chatId, lifetime: lifetime)
 		self.records = ChatRecords(
-			chat: chatId, ledger: ledger, clock: clock, desk: runner.desk)
+			chat: chatId, ledger: ledger, clock: clock, desk: runner.desk, plans: runner.plans)
 		try await records.refresh(recoveryRecords: recoveryRecords)
 		publish()
 	}
@@ -171,6 +171,16 @@ package actor ChatMailbox {
 		return await records.decide(decision)
 	}
 
+	package func decide(_ decision: PlanDecision) async -> PlanDecisionOutcome {
+		defer { publish() }
+		return await records.decide(decision)
+	}
+
+	package func plansChanged() async {
+		defer { publish() }
+		await records.refreshPlans()
+	}
+
 	package func refreshImports() async throws(LedgerFailure) {
 		defer { publish() }
 		try await records.refresh()
@@ -214,7 +224,7 @@ package actor ChatMailbox {
 		MailboxSnapshotInput(
 			conversation: conversation, jobs: records.jobs, phase: work.phase,
 			window: work.window, queued: work.waiting, finishedAway: lifecycle.finishedAway,
-			unsavedTurns: records.unsavedTurns, review: records.review,
+			unsavedTurns: records.unsavedTurns, review: records.review, plans: records.planCards,
 			reset: work.resetStatus, resetMemory: work.resetMemory)
 	}
 

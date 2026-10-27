@@ -87,7 +87,7 @@ import Testing
 				== .failed(
 					.model(.budgetExhausted(.generateCalls)),
 					saved: WriteSummary(
-						memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+						memorySections: 1, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 0)
 				))
 		#expect(transport.requests.map(\.charge) == [.chatAttempt, .chatAttempt])
 	}
@@ -168,6 +168,9 @@ import Testing
 			diagnostics: diagnostics,
 			ladder: ladder,
 			desk: makeDesk(ledger: ledger, clock: clock),
+			plans: Plans(
+				ledger: ledger, clock: clock, diagnostics: diagnostics,
+				currentAccount: { .unconnected }),
 			authorizeInvocation: { _ in }
 		)
 		return try await runner.run(

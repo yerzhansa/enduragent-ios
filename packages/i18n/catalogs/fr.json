@@ -1494,7 +1494,39 @@
       "signInAgain": "Se reconnecter"
     },
     "welcome": "Bienvenue dans {{product}} !\n\nJe suis ton coach de cyclisme IA. Je peux créer des plans d’entraînement, te proposer des entraînements et suivre ta condition physique avec les données de {{service}}.\n\nCommandes :\n{{commands}}\n\nTu peux aussi simplement me parler de ton entraînement !",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "Impossible de préparer le plan d’entraînement pour l’enregistrer.",
+      "title": "Enregistrer ce plan d’entraînement ?",
+      "phase": "Phase {{number}}",
+      "focusLabel": "Orientation",
+      "weeklyHours": "Heures par semaine",
+      "replaces": "Remplace ton plan enregistré : {{name}}",
+      "save": "Enregistrer le plan",
+      "saving": "Enregistrement du plan…",
+      "saved": "Enregistré. C’est maintenant ton plan d’entraînement.",
+      "canceled": "Annulé. Ce plan n’a pas été enregistré.",
+      "expired": "Expiré. Demande à nouveau au coach d’enregistrer ce plan.",
+      "storageUnavailable": "Impossible d’enregistrer ce plan, car le stockage de cet iPhone n’est pas disponible.",
+      "notSaved": {
+        "expired": "Non enregistré : les dix minutes pour enregistrer ce plan sont écoulées.",
+        "replaced": "Non enregistré : un plan plus récent attend d’être enregistré.",
+        "alreadyDecided": "Ce plan a déjà été enregistré ou annulé.",
+        "athleteChanged": "Non enregistré : ce plan a été préparé pour un autre athlète sur {{service}}.",
+        "notPresented": "Pas encore enregistré. Fais défiler jusqu’au plan, puis touche à nouveau Enregistrer le plan."
+      },
+      "focus": {
+        "baseBuilding": "Construction de la base",
+        "aerobicDevelopment": "Développement aérobie",
+        "threshold": "Seuil",
+        "vo2max": "VO2max",
+        "racePrep": "Préparation à la course",
+        "taper": "Affûtage",
+        "recovery": "Récupération",
+        "maintenance": "Maintien",
+        "generalFitness": "Condition physique générale"
+      }
+    }
   },
   "plan": {
     "details": {

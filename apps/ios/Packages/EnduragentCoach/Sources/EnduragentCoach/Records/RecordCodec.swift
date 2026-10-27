@@ -1,7 +1,7 @@
 import Foundation
 
 enum RecordCodec {
-	static let currentBodyVersion = 6
+	static let currentBodyVersion = 7
 
 	static func encode(_ body: RecordBody) throws -> (version: Int, data: Data) {
 		let encoder = JSONEncoder()
@@ -12,6 +12,10 @@ enum RecordCodec {
 		case .synced(let synced):
 			data = try encoder.encode(SyncedPayload(synced))
 			switch synced {
+			case .savedPlan:
+				version = 7
+			case .userMessage(let message) where message.slash == .plan:
+				version = 7
 			case .reviewOutcome:
 				version = 6
 			case .attemptQuestion:
@@ -25,6 +29,8 @@ enum RecordCodec {
 		case .deviceLocal(let local):
 			data = try encoder.encode(DeviceLocalPayload(local))
 			switch local {
+			case .planConfirmation:
+				version = 7
 			case .workoutReview, .reviewPreparing:
 				version = 6
 			case .flushPending(let body) where body.sourceBound:
@@ -149,6 +155,16 @@ enum RecordCodec {
 			return .reviewApplied(
 				try payload(ReviewAppliedPayload.self, version: version, kind: name, data: data)
 					.body())
+		case .planningDevice:
+			let payload = try payload(
+				PlanningDevicePayload.self, version: version, kind: name, data: data)
+			return .planningDevice(
+				PlanningDeviceBody(
+					planningDeviceId: DeviceID(rawValue: payload.planningDeviceId),
+					planUlid: try decodeULID(payload.planUlid),
+					activatedAt: Date(timeIntervalSince1970: payload.activatedAt)
+				)
+			)
 		}
 	}
 
@@ -272,16 +288,6 @@ enum RecordCodec {
 				tag = nil
 			}
 			return .coachReplyLanguage(CoachReplyLanguageBody(tag: tag))
-		case .planningDevice:
-			let payload = try payload(
-				PlanningDevicePayload.self, version: version, kind: name, data: data)
-			return .planningDevice(
-				PlanningDeviceBody(
-					planningDeviceId: DeviceID(rawValue: payload.planningDeviceId),
-					planUlid: try decodeULID(payload.planUlid),
-					activatedAt: Date(timeIntervalSince1970: payload.activatedAt)
-				)
-			)
 		case .sessionSettings:
 			return .sessionSettings(
 				try payload(SessionSettingsPayload.self, version: version, kind: name, data: data)
@@ -292,6 +298,10 @@ enum RecordCodec {
 					LanguagePreferencePayload.self, version: version, kind: name, data: data
 				)
 				.body())
+		case .savedPlan:
+			return .savedPlan(
+				try SavedPlanBody.decode(
+					try payload(SavedPlanPayload.self, version: version, kind: name, data: data)))
 		}
 	}
 

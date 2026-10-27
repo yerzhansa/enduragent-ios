@@ -143,7 +143,7 @@ extension SwiftDataSuites {
 
 			private func written(unverified: Int) -> WriteSummary {
 				WriteSummary(
-					memorySections: 0, ledgerEvents: 0, planSaves: 0, calendarWrites: 1,
+					memorySections: 0, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 1,
 					unverifiedCalendarWrites: unverified)
 			}
 		}

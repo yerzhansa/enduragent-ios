@@ -79,7 +79,7 @@ The action that repeats something that did not finish. For a turn, it answers th
 _Avoid_: Retry, resend
 
 **New conversation**:
-The reset that archives the current conversation, saves memory, and shows the welcome.
+The reset that archives the current conversation, saves memory, and shows the welcome. A waiting plan-save confirmation stays until it expires.
 _Avoid_: Reset, new chat, clear
 
 **Memory**:
@@ -93,7 +93,7 @@ _Avoid_: App language, reply language, coach language
 ### Calendar changes
 
 **Workout review**:
-The complete set of proposed calendar changes, shown as cards with totals and kept workouts and approved or canceled as one.
+The complete set of proposed calendar changes, shown as cards with totals and kept workouts and approved or canceled as one. It never saves a training plan.
 _Avoid_: Proposal, preview, change set
 
 **Kept workouts**:
@@ -115,3 +115,37 @@ _Avoid_: Refresh, sync, reconcile
 **Refreshed review**:
 A workout review shown again because a workout in it changed on intervals.icu after it was first shown.
 _Avoid_: Updated review, stale review, new proposal
+
+### Training plans
+
+**Training plan**:
+A plan for a goal, built by the coach from the athlete's experience, FTP, weekly volume and schedule. It holds phases, weekly hours and sessions per phase, power zones and FTP test weeks.
+_Avoid_: Program, schedule, block, plan (alone)
+
+**Plan draft**:
+A training plan the coach built in the conversation that the athlete has not saved. It changes nothing on the calendar and nothing in the saved plan.
+_Avoid_: Skeleton, proposal, preview
+
+**Saved plan**:
+The one training plan the athlete saved with a plan-save confirmation, exactly as the athlete confirmed it. The coach sees its name, goal and length in every turn and can read the whole plan when it needs it. It follows the athlete to their other iPhones. A newer save replaces it, and History search shows each replacement.
+_Avoid_: Active plan, current plan, stored plan
+
+**Phase**:
+A run of weeks in a training plan with one focus, such as base building, threshold or taper.
+_Avoid_: Block, mesocycle, period
+
+**Taper**:
+The last phase before a race. It cuts volume and keeps intensity.
+_Avoid_: Peak, rest block, deload
+
+**Sample week**:
+One example week of sessions for a volume level and schedule. It is the same for every phase. It is never saved and never put on the calendar.
+_Avoid_: Template week, week plan, schedule
+
+**Feasibility check**:
+The coach's check of whether an FTP or W/kg goal is realistic for the athlete's experience. It gives a realistic first step and how many plan cycles the full goal may take.
+_Avoid_: Goal assessment, readiness, prediction
+
+**Plan-save confirmation**:
+The card that asks the athlete to save one exact training plan, with Save plan and Cancel. It shows the plan's name, goal, length and phases, and the saved plan it would replace. It is separate from a workout review. It appears when the coach's reply ends well, expires ten minutes after that, and a newer one replaces it. Saving it never changes the calendar.
+_Avoid_: Proposal, plan approval, plan review

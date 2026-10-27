@@ -6,8 +6,7 @@ import Testing
 
 extension TurnRunnerTests {
 	@Test(arguments: [
-		"build_plan_skeleton", "assess_feasibility", "get_sample_week", "plan_load",
-		"invented_tool", "memory_read", "plan_save", "intervals_create_workout",
+		"invented_tool", "memory_read", "intervals_create_workout",
 		"intervals_create_strength_workout", "intervals_delete_workout", "intervals_update_workout",
 	])
 	func unofferedToolCallsReturnUnknownTool(name: String) async throws {
@@ -38,12 +37,30 @@ extension TurnRunnerTests {
 				.isEmpty)
 	}
 
-	@Test(arguments: ["1500-02-28", "1582-10-10", "0001-01-01"])
-	func historicalDateKeysReturnInvalidDate(oldest: String) async throws {
+	@Test(arguments: ["1500-02-28", "1582-10-10", "0001-01-01"] as [CivilDate])
+	func historicalDateKeysPassTheDateCheck(day: CivilDate) async throws {
 		let result = try await toolResult(
 			name: "intervals_fetch_activities",
-			arguments: "{\"oldest\":\"\(oldest)\",\"newest\":\"\(oldest)\"}")
-		#expect(result.objectFields["error"] == .string("invalid_date"))
+			arguments: "{\"oldest\":\"\(day)\",\"newest\":\"\(day)\"}")
+		#expect(result.objectFields["error"] == nil, "\(canonicalJSON(result))")
+		#expect(activityLists() == [.activities(oldest: day, newest: day)])
+	}
+
+	@Test func aRangeAcrossYearZeroCountsEveryProlepticDay() async throws {
+		let refused = try await toolResult(
+			name: "intervals_fetch_activities",
+			arguments: #"{"oldest":"0000-01-01","newest":"0001-01-01"}"#)
+		#expect(
+			refused
+				== (try JSONValue.parse(
+					#"{"error":"range_too_wide","details":"Range is 367 days; the maximum is 366. Fetch the range in chunks of at most 366 days."}"#
+				)))
+		#expect(activityLists().isEmpty)
+		let read = try await toolResult(
+			name: "intervals_fetch_activities",
+			arguments: #"{"oldest":"0000-01-02","newest":"0001-01-01"}"#)
+		#expect(read.objectFields["error"] == nil, "\(canonicalJSON(read))")
+		#expect(activityLists() == [.activities(oldest: "0000-01-02", newest: "0001-01-01")])
 	}
 
 	@Test func promptOmitsUnavailableToolsAndKeepsNumberedChoiceSafetyRules() async throws {
@@ -53,7 +70,6 @@ extension TurnRunnerTests {
 		#expect(replyText(settled) == "Ready.")
 		let request = try #require(transport.requests.first)
 		let everyMessage = request.messages.map(\.content).joined(separator: "\n")
-		#expect(!everyMessage.contains("plan_save"))
 		#expect(!everyMessage.contains("request_user_decision"))
 		let prompt = try #require(request.messages.first { $0.role == .system }?.content)
 		#expect(
@@ -69,6 +85,13 @@ extension TurnRunnerTests {
 			prompt.contains(
 				"short label, one-sentence description, consequence, and recommendation flag"))
 		#expect(prompt.contains("Recommend at most one."))
+	}
+
+	func activityLists() -> [FakeIntervalsCall] {
+		intervals.calls.filter {
+			guard case .activities = $0 else { return false }
+			return true
+		}
 	}
 
 	func toolResult(name: String, arguments: String) async throws -> JSONValue {

@@ -93,6 +93,7 @@ struct CarriedCase: Sendable, CustomTestStringConvertible {
 	]
 
 	let name: String
+	var path = "coverage/sample.json"
 	var files = CarriedCase.listed
 	var rows = CarriedCase.complete
 	var sources = CarriedCase.sources
@@ -105,6 +106,14 @@ struct CarriedCase: Sendable, CustomTestStringConvertible {
 		CarriedCase(
 			name: "a retired row may name the ADR that ADR-0083 builds on",
 			rows: replacing(1, with: row(cancels, retiredBy: "ADR-0079 names the review."))),
+		CarriedCase(
+			name: "a retired row of the Milestone 4 table may name ADR-0084",
+			path: "coverage/milestone-4.json",
+			rows: replacing(1, with: row(cancels, retiredBy: "ADR-0084 saves plans apart."))),
+		CarriedCase(
+			name: "a retired row of the Milestone 5 table may name ADR-0084",
+			path: "coverage/milestone-5.json",
+			rows: replacing(1, with: row(cancels, retiredBy: "ADR-0084 saves plans apart."))),
 		CarriedCase(
 			name: "row names neither a replacement nor an ADR",
 			rows: replacing(1, with: row(cancels)),
@@ -258,7 +267,6 @@ struct CarriedCase: Sendable, CustomTestStringConvertible {
 	}
 
 	func check() throws -> [String] {
-		let path = "coverage/sample.json"
 		let listed = files.map { #""\#($0)""# }.joined(separator: ", ")
 		let table = #"""
 			{"units": {"1.1": 1}, "criteria": [\#(Self.criterion)],

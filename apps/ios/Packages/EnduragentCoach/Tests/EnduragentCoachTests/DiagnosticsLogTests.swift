@@ -193,7 +193,7 @@ private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 		.importsUnavailable,
 		.preferencesUnavailable, .consentUnavailable,
 		.snapshotReadFailed, .snapshotDeadlineMissed, .reviewOutcomeUnsaved, .settlementUnsaved,
-		.reviewUnavailable:
+		.reviewUnavailable, .planConfirmationUnavailable, .planSaveStalled:
 		return nil
 	}
 }

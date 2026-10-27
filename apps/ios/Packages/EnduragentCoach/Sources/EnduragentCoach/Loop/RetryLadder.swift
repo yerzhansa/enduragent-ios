@@ -65,7 +65,7 @@ package struct RetryLadder: Sendable, Equatable {
 	package static let npm = RetryLadder(
 		guards: [
 			.budgetExceededIsTerminal,
-			.committedWriteSettlesAsSavedWork([.memoryWrite, .ledgerAppend, .planSave]),
+			.committedWriteSettlesAsSavedWork([.memoryWrite, .ledgerAppend]),
 			.observedTextIsTerminalUnlessWindowExceeded,
 		],
 		rungs: [

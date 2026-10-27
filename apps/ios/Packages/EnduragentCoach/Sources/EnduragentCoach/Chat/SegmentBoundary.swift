@@ -18,7 +18,7 @@ package enum SegmentBoundary: Sendable, Equatable {
 		}
 	}
 
-	private var clock: HybridLogicalClock {
+	var clock: HybridLogicalClock {
 		switch self {
 		case .legacy(_, let recorded): recorded
 		case .observed(let boundary): boundary

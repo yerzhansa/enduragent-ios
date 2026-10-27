@@ -49,18 +49,19 @@ enum ToolRuntime {
 		guard case .result(let data) = raw.outcome else {
 			return raw
 		}
-		let measured = MeasuredResult(data)
-		if measured.fits {
-			return ToolExecution(outcome: .result(measured.enveloped), commit: raw.commit)
+		if ToolResultCap.fits(data) {
+			return ToolExecution(outcome: .result(UntrustedEnvelope.wrap(data)), commit: raw.commit)
 		}
-		if let smaller = raw.overCap.map(MeasuredResult.init), smaller.fits {
-			return ToolExecution(outcome: .result(smaller.enveloped), commit: raw.commit)
+		if let smaller = raw.overCap, ToolResultCap.fits(smaller) {
+			return ToolExecution(
+				outcome: .result(UntrustedEnvelope.wrap(smaller)), commit: raw.commit)
 		}
+		let estimatedTokens = ToolResultCap.estimatedTokens(data)
 		return ToolExecution(
 			outcome: .truncated(
 				notice: ToolResultCap.notice(
-					estimatedTokens: measured.estimatedTokens, rerunWith: tool.narrowing),
-				estimatedTokens: measured.estimatedTokens,
+					estimatedTokens: estimatedTokens, rerunWith: tool.narrowing),
+				estimatedTokens: estimatedTokens,
 				omittedRecords: omittedRecordCount(in: data)
 			),
 			commit: raw.commit
@@ -88,19 +89,15 @@ package struct ToolInputError: Error, Sendable, Equatable {
 	}
 }
 
-private struct MeasuredResult {
-	let enveloped: JSONValue
-	let estimatedTokens: Int
-
-	init(_ data: JSONValue) {
-		enveloped = UntrustedEnvelope.wrap(data)
-		estimatedTokens = estimateTokens(enveloped.canonicalDigestInput())
+enum ToolResultCap {
+	static func fits(_ data: JSONValue) -> Bool {
+		estimatedTokens(data) <= TurnPolicy.toolResultTokenCap
 	}
 
-	var fits: Bool { estimatedTokens <= TurnPolicy.toolResultTokenCap }
-}
+	static func estimatedTokens(_ data: JSONValue) -> Int {
+		estimateTokens(UntrustedEnvelope.wrap(data).canonicalDigestInput())
+	}
 
-enum ToolResultCap {
 	static func notice(estimatedTokens: Int, rerunWith narrowing: String?) -> String {
 		let omitted =
 			"Tool result too large (~\(estimatedTokens) tokens) and was omitted to protect context. "
@@ -126,5 +123,9 @@ package enum UntrustedEnvelope {
 			"untrusted_data": .string(banner),
 			"data": sanitizeJSONValue(data),
 		])
+	}
+
+	static func data(in envelope: JSONValue) -> JSONValue? {
+		envelope.objectFields["data"]
 	}
 }

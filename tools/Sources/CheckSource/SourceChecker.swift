@@ -43,7 +43,9 @@ struct SourceChecker {
 	static let upgradeStore =
 		#"^apps\/ios\/Packages\/EnduragentCoach\/Tests\/EnduragentCoachTests\/Fixtures\/"#
 		+ #"(?:v1-upgrade\/(?:history|review)|pre-vault-5de5c782|build-2bbe2ee"#
-		+ #"|build-6833d90f\/(?:open-review|unknown-write|completed))\/"#
+		+ #"|build-6833d90f\/(?:open-review|unknown-write|completed)"#
+		+ #"|build-d6f89d9b\/(?:waiting-review|reprinted-numbers|reprinted-authored-steps"#
+		+ #"|misread-intervals-number))\/"#
 		+ #"(?:synced|local)-records\.store$"#
 	static let proofFile = #"^apps\/ios\/EnduragentUITests\/[^/]+\.swift$"#
 	static let featureFile = #"^\.agents\/skills\/verify-ios\/features\/[^/]+\.md$"#

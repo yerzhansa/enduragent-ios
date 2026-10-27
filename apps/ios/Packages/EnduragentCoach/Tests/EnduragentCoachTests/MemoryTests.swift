@@ -125,10 +125,11 @@ import Testing
 		#expect(context.contains("Knee felt fine on the evening spin."))
 		#expect(!context.contains("### Compaction summary"))
 		#expect(!context.contains("FTP 240W"))
-		#expect(!context.contains("## Current Plan"))
+		#expect(
+			context.hasSuffix(
+				"Knee felt fine on the evening spin.\n\n## Current Plan\nNo plan saved yet."))
 		let view = prompt.view
 		#expect(view.orphanNames == ["random-legacy"])
-		#expect(view.planHeadline == nil)
 	}
 
 	@Test func injectableDailyLinesDropsMarkersAndExitsOnH3() {

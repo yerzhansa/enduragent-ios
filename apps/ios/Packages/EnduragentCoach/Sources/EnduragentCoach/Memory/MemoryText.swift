@@ -42,7 +42,7 @@ struct MemorySnapshot {
 	var journalRecords: [AthleteRecord]
 	var compaction: [AthleteRecord]
 	var orphanNames: [String]
-	var planHeadline: PlanHeadline? { nil }
+	var savedPlans: SavedPlans
 
 	func dailyNotesOnly(on date: CivilDate) -> String {
 		daily.sorted { $0.hlc < $1.hlc }.compactMap { record -> String? in

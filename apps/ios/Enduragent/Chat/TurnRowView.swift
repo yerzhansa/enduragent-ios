@@ -54,6 +54,10 @@ struct TurnRowView: View {
 				Text(reviewNotice.sentence(in: model.displayLocale))
 					.accessibilityIdentifier("chat.turn.reviewNotice")
 			}
+			if let planSaveNotice = turn.planSaveNotice {
+				Text(planSaveNotice.sentence(in: model.displayLocale))
+					.accessibilityIdentifier("chat.turn.planSaveNotice")
+			}
 			if let failure = turn.saveFailure {
 				Text(say(failure))
 					.foregroundStyle(.secondary)

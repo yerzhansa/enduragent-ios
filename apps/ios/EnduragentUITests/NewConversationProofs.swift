@@ -63,19 +63,6 @@ final class PartialFlushResetProof: XCTestCase {
 	}
 }
 
-final class PlanFreeTextProof: XCTestCase {
-	func testPlanIsFreeText() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.exchange(app, "/plan")
-		TutorialHarness.wait(app.staticTexts["/plan"])
-		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.welcome").exists)
-		TutorialHarness.attach(self, name: "plan-free-text", app: app)
-	}
-}
-
 final class WelcomeAfterSkipProof: XCTestCase {
 	func testWelcomeAfterSkip() {
 		let app = XCUIApplication()

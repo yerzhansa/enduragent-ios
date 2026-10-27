@@ -25,6 +25,7 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 		var syncedAppends = false
 		var syncedAcknowledgments = false
 		var appendKinds: Set<String> = []
+		var heldKinds: Set<String> = []
 		var chosenAppend: (kind: String, skipping: Int)?
 		var appendsBeforeRefusal: Int?
 		var fetches = false
@@ -96,8 +97,16 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 		faults.withLock { _ = $0.appendKinds.insert(kind) }
 	}
 
+	package func holdAppends(ofKind kind: String) throws {
+		guard SyncedKind(rawValue: kind) != nil || DeviceLocalKind(rawValue: kind) != nil else {
+			throw RecordFaultConfigurationError.unknownKind(kind)
+		}
+		faults.withLock { _ = $0.heldKinds.insert(kind) }
+	}
+
 	package func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		let kinds = batch.map(\.body.kind)
+		try await holdIfAsked(appending: kinds)
 		try failIfAsked(appending: kinds, locality: locality)
 		try await wrapped.append(batch, locality: locality)
 		if locality == .synced, failSyncedAcknowledgments {
@@ -108,8 +117,17 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 	package func append(_ record: AthleteRecord, after head: RecordHead, in query: RecordQuery)
 		async throws
 	{
+		try await holdIfAsked(appending: [record.body.kind])
 		try failIfAsked(appending: [record.body.kind], locality: record.locality)
 		try await wrapped.append(record, after: head, in: query)
+	}
+
+	private func holdIfAsked(appending kinds: [String]) async throws {
+		let held = faults.withLock { current in kinds.contains { current.heldKinds.contains($0) } }
+		guard held else { return }
+		repeat {
+			try await Task.sleep(for: .seconds(60))
+		} while true
 	}
 
 	package func failAppend(ofKind kind: String, skipping: Int) throws {

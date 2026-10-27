@@ -4,11 +4,15 @@ final class ChatRecords {
 	private let chat: ChatID
 	private let ledger: Ledger
 	private let desk: WorkoutReviewDesk
+	private let plans: Plans
 	private let clock: any Clock
 	private(set) var conversation: Conversation
 	private(set) var review: ReviewSnapshot?
 	private var reviewReads = 0
 	private var shownRead = 0
+	private(set) var planCards: [PlanCard] = []
+	private var planReads = 0
+	private var shownPlanRead = 0
 	private(set) var jobs: [FlushJob] = []
 	private var applied: [ULID: AthleteRecord] = [:]
 	private var pendingSettlements: [ULID: AthleteRecord] = [:]
@@ -18,11 +22,12 @@ final class ChatRecords {
 	}
 
 	init(
-		chat: ChatID, ledger: Ledger, clock: any Clock, desk: WorkoutReviewDesk
+		chat: ChatID, ledger: Ledger, clock: any Clock, desk: WorkoutReviewDesk, plans: Plans
 	) {
 		self.chat = chat
 		self.ledger = ledger
 		self.desk = desk
+		self.plans = plans
 		self.clock = clock
 		self.conversation = Conversation(chat: chat, segments: [])
 	}
@@ -73,6 +78,7 @@ final class ChatRecords {
 			conversation = folded
 			self.jobs = jobs
 		}
+		await refreshPlans()
 	}
 
 	func refreshInformationOwnership(isolation: isolated (any Actor)? = #isolation)
@@ -108,6 +114,27 @@ final class ChatRecords {
 			}
 		}
 		return outcome
+	}
+
+	func decide(
+		_ decision: PlanDecision, isolation: isolated (any Actor)? = #isolation
+	) async -> PlanDecisionOutcome {
+		let outcome = await plans.decide(decision)
+		await refreshPlans()
+		return outcome
+	}
+
+	func refreshPlans(isolation: isolated (any Actor)? = #isolation) async {
+		planReads += 1
+		let read = planReads
+		do throws(LedgerFailure) {
+			let cards = try await plans.snapshot(chat: chat)
+			guard read > shownPlanRead else { return }
+			planCards = cards
+			shownPlanRead = read
+		} catch {
+			ledger.report(.planConfirmationUnavailable(chat, error))
+		}
 	}
 
 	func updateReview(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
@@ -172,13 +199,17 @@ final class ChatRecords {
 		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, stamp: OperationStamp,
 		isolation: isolated (any Actor)? = #isolation
 	) async {
-		let review = await desk.settle(
-			DraftKey(turn: turn, attempt: attempt), in: chat, ending: TurnEnding(settlement))
+		let key = DraftKey(turn: turn, attempt: attempt)
+		let ending = TurnEnding(settlement)
+		let review = await desk.settle(key, in: chat, ending: ending)
 		if case .committed = review { _ = await refreshReview() }
+		let plan = await plans.settle(key, in: chat, ending: ending)
+		if case .leftWaiting = plan { await refreshPlans() }
 		await save(
 			TurnLifecycle.settled(
-				attempt, settlement, on: conversation.turn(turn), chat: chat,
-				reviewNotPrepared: review.notPrepared), stamp: stamp)
+				attempt, plan.counted(in: settlement), on: conversation.turn(turn), chat: chat,
+				reviewNotPrepared: review.notPrepared, planSaveNotPrepared: plan.notPrepared),
+			stamp: stamp)
 	}
 
 	private func save(

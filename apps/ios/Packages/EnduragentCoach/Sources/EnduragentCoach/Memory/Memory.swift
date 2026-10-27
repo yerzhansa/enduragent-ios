@@ -2,7 +2,7 @@ import Foundation
 
 package struct Memory: Sendable {
 	package static let snapshotScope: RecordQuery.Scope = .synced([
-		.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary,
+		.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary, SavedPlans.kind,
 	])
 
 	let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void
@@ -78,6 +78,7 @@ package struct Memory: Sendable {
 			order += 1
 		}
 
+		var history: [(hit: MemoryHit, at: HybridLogicalClock)] = []
 		for record in snapshot.journalRecords {
 			guard record.civilDate >= from, record.civilDate <= to else { continue }
 			guard case .synced(.journal(let body)) = record.body else { continue }
@@ -94,16 +95,21 @@ package struct Memory: Sendable {
 			let summary = historyBodySummary(section ?? body.op.rawValue, query: needle)
 			let was = historyBodySummary(oldBody, query: needle)
 			let now = historyBodySummary(newBody, query: needle)
-			collected.append(
+			history.append(
 				(
 					MemoryHit(
 						date: record.civilDate,
 						kind: .journal,
 						text: "\(summary) — was: \(was) / now: \(now)"
 					),
-					order
+					record.hlc
 				)
 			)
+		}
+		history += planHits(snapshot, from: from, to: to, contains: needle)
+
+		for entry in history.sorted(by: { $0.at < $1.at }) {
+			collected.append((entry.hit, order))
 			order += 1
 		}
 
@@ -124,7 +130,31 @@ package struct Memory: Sendable {
 		context: String, view: MemoryView
 	) {
 		let snapshot = try await loadSnapshot(for: account)
-		return (renderContext(snapshot, excluding: hiddenSections), view(snapshot))
+		return (
+			withPlanState(renderContext(snapshot, excluding: hiddenSections), snapshot),
+			view(snapshot)
+		)
+	}
+
+	private func withPlanState(_ context: String, _ snapshot: MemorySnapshot) -> String {
+		guard snapshot.savedPlans.newest == nil else { return context }
+		return context.isEmpty
+			? SavedPlans.noPlanContext : context + "\n\n" + SavedPlans.noPlanContext
+	}
+
+	private func planHits(
+		_ snapshot: MemorySnapshot, from: CivilDate, to: CivilDate, contains needle: String?
+	) -> [(hit: MemoryHit, at: HybridLogicalClock)] {
+		snapshot.savedPlans.history(from: from, to: to, contains: needle).map { line in
+			(
+				MemoryHit(
+					date: line.date, kind: .journal,
+					text:
+						"\(PlanHistoryLine.label) — was: \(historyBodySummary(line.was, query: needle))"
+						+ " / now: \(historyBodySummary(line.now, query: needle))"),
+				line.decided
+			)
+		}
 	}
 
 	private var hiddenSections: [String] {
@@ -239,7 +269,6 @@ package struct Memory: Sendable {
 		return MemoryView(
 			sections: sections,
 			todayNotes: trimmed.isEmpty ? nil : trimmed,
-			planHeadline: nil,
 			orphanNames: snapshot.orphanNames
 		)
 	}
@@ -277,21 +306,8 @@ package struct Memory: Sendable {
 		if !memoryTrimEnd(daily).isEmpty {
 			parts.append("## Today's Notes\n" + daily)
 		}
-		if let headline = snapshot.planHeadline {
-			var lines: [String] = []
-			lines.append("- Name: \(headline.name)")
-			if let goal = headline.primaryGoal {
-				lines.append("- Goal: \(goal)")
-			}
-			if let weeks = headline.totalWeeks {
-				lines.append("- Duration: \(weeks) weeks")
-			}
-			if let status = headline.status {
-				lines.append("- Status: \(status.rawValue)")
-			}
-			if !lines.isEmpty {
-				parts.append("## Current Plan\n" + lines.joined(separator: "\n"))
-			}
+		if let headline = snapshot.savedPlans.headline {
+			parts.append(headline)
 		}
 		return parts.joined(separator: "\n\n")
 	}

@@ -211,7 +211,7 @@ package struct ChannelSummary: Sendable, Equatable {
 		guard count > 0 else { return nil }
 		self.min = min
 		self.max = max
-		self.mean = OneDecimal.round(sum / Double(count))
+		self.mean = JavaScriptNumber.roundToTenths(sum / Double(count))
 	}
 }
 

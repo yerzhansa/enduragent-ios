@@ -34,14 +34,14 @@ package enum TurnLifecycle {
 
 	package static func settled(
 		_ attempt: AttemptID, _ settlement: Settlement, on facts: TurnFacts?, chat: ChatID,
-		reviewNotPrepared: ReviewNotPrepared?
+		reviewNotPrepared: ReviewNotPrepared?, planSaveNotPrepared: PlanSaveNotPrepared?
 	) -> TurnSettledBody? {
 		guard let facts,
 			!facts.settlements.contains(where: { $0.attempt == attempt })
 		else { return nil }
 		return TurnSettledBody(
 			chatId: chat, turn: facts.turn, attempt: attempt, settlement: settlement,
-			reviewNotPrepared: reviewNotPrepared)
+			reviewNotPrepared: reviewNotPrepared, planSaveNotPrepared: planSaveNotPrepared)
 	}
 
 	package static func stopBeforeStart(

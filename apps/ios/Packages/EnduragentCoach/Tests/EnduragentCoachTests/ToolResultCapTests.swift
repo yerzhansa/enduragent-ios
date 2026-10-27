@@ -109,13 +109,14 @@ import Testing
 
 		#expect(
 			declared == [
-				.calculateZones: nil, .intervalsFetchAthlete: nil,
+				.calculateZones: nil, .buildPlanSkeleton: nil, .assessFeasibility: nil,
+				.getSampleWeek: nil, .intervalsFetchAthlete: nil,
 				.intervalsFetchWellness: dateRange, .intervalsFetchActivity: nil,
 				.intervalsFetchStreams: "fewer stream types",
 				.intervalsFetchActivities: dateRange, .intervalsListEvents: dateRange,
 				.getPendingWorkoutChanges: nil, .prepareWorkoutChanges: nil, .memoryRead: nil,
 				.memoryQuery: "a shorter from/to range or a query filter", .memoryWrite: nil,
-				.ledgerAppend: nil,
+				.ledgerAppend: nil, .planSave: nil, .planLoad: nil,
 			])
 	}
 
@@ -145,7 +146,7 @@ import Testing
 			clock: clock,
 			memory: MemoryView(
 				sections: ["notes": "stamp\n- Prefers hill repeats"], todayNotes: nil,
-				planHeadline: nil, orphanNames: []))
+				orphanNames: []))
 	}
 
 	private func wide(_ index: Int) -> String {

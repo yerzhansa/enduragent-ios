@@ -4,30 +4,59 @@ struct RequirementScope {
 	enum Place {
 		case listed
 		case part
+		case earlierPart
 	}
 
 	static let milestoneFour = RequirementScope(
+		table: "milestone-4.json",
 		listed: numbered("B17.", 6) + numbered("B18.", 7) + numbered("B19.", 2)
 			+ numbered("B20.", 5) + numbered("B21.", 5) + numbered("A", 18) + numbered("B", 13)
 			+ numbered("C", 8) + numbered("D", 12)
 			+ ["X01", "X02", "X04", "X05", "X06", "G03", "G04", "G05", "G06", "G10"],
+		parts: [],
 		agreedDifferences: [
 			"B17.01/utc", "B17.06/head-unit", "B18.07/model-call", "B20.01/zones", "X04/zone",
 			"G06/midnight",
-		])
+		],
+		decisionRecords: ["ADR-0083"])
 
+	static let milestoneFive = RequirementScope(
+		table: "milestone-5.json",
+		listed: numbered("B15.", 5) + ["B19.03", "G07", "X08"],
+		parts: [
+			"B14.01/saved-plan", "B12.04/saved-plan", "B16.01/plan-save", "B09.01/plan-save",
+			"B01.03/saved-plan", "B07.04/saved-plan", "X05/saved-plan", "G03/plans", "D06/plan",
+			"D14/plan",
+		],
+		agreedDifferences: [
+			"B15.01/acknowledgement", "B15.01/arguments", "B15.03/phone-day", "B19.03/durable",
+			"B19.03/step-limit", "B15.05/plan-unavailable", "B15.05/size", "B15.05/sorted-keys",
+			"B15.05/two-calls", "B15.05/plan-schema", "B15.05/save-plan-sentence",
+			"B15.05/save-draft", "B15.02/exact-numbers",
+		],
+		decisionRecords: ["ADR-0083", "ADR-0084"])
+
+	let table: String
 	let listed: [String]
+	let parts: [String]
 	let agreedDifferences: [String]
+	let decisionRecords: [String]
+
+	static func of(table path: String) -> RequirementScope? {
+		[milestoneFour, milestoneFive].first { NodePath.basename(path).hasSameUnits(as: $0.table) }
+	}
 
 	func place(of identifier: String) -> Result<Place, Unplaced> {
-		let parts = identifier.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
-		guard parts.count == 2 else {
+		if parts.contains(identifier) { return .success(.earlierPart) }
+		let segments = identifier.split(
+			separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
+		guard segments.count == 2 else {
 			return listed.contains(identifier) ? .success(.listed) : .failure(.unknownRequirement)
 		}
-		guard !parts[1].isEmpty, !parts[1].contains("/") else {
+		guard !segments[1].isEmpty, !segments[1].contains("/") else {
 			return .failure(.unknownRequirement)
 		}
-		return listed.contains(String(parts[0])) ? .success(.part) : .failure(.unknownParent)
+		return listed.contains(String(segments[0])) ? .success(.part) : .failure(.unknownParent)
 	}
 
 	private static func numbered(_ prefix: String, _ count: Int) -> [String] {
@@ -118,11 +147,12 @@ struct RequirementChecker {
 				differences.insert(identifier)
 			}
 		}
-		for identifier in scope.listed
+		for identifier in scope.listed + scope.parts
 		where !closed.contains(identifier) && !open.contains(identifier) {
 			try problems.report(identifier, "missing-requirement")
 		}
-		for identifier in scope.agreedDifferences where !differences.contains(identifier) {
+		for identifier in scope.agreedDifferences
+		where !differences.contains(identifier) && !open.contains(identifier) {
 			try problems.report(identifier, "missing-agreed-difference")
 		}
 	}
@@ -186,10 +216,10 @@ struct RequirementChecker {
 		case (false, .some):
 			try problems.report(identifier, "more-than-one-proof")
 		case (true, let difference?):
-			if !difference.contains("ADR-0083") {
+			if !scope.decisionRecords.contains(where: difference.contains) {
 				try problems.report(identifier, "difference-without-adr")
 			}
-			if place == .listed {
+			if place != .part {
 				try problems.report(identifier, "difference-on-parent")
 			}
 			return true

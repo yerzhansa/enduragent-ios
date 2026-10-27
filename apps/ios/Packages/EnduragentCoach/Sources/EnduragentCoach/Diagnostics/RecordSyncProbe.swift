@@ -2,13 +2,13 @@
 	import Foundation
 
 	public struct RecordSyncProbe: Sendable {
+		private static let sampleChat: ChatID = "debug-sample"
+
 		private let ledger: Ledger
-		private let clock: any Clock
 		private let calendar: AthleteCalendar
 
 		package init(ledger: Ledger, clock: any Clock) {
 			self.ledger = ledger
-			self.clock = clock
 			self.calendar = AthleteCalendar(clock: clock)
 		}
 
@@ -64,8 +64,10 @@
 			let stamp = await sampleStamp()
 			_ = try await ledger.commit(
 				local: [
-					.workoutDrift(
-						WorkoutDriftBody(planWorkoutId: stamp.attempt.ulid, askedAt: clock.now))
+					.replyObserved(
+						ReplyObservedBody(
+							chatId: Self.sampleChat, turn: TurnID(ulid: stamp.attempt.ulid),
+							attempt: stamp.attempt))
 				],
 				stamp: stamp
 			)
@@ -82,8 +84,10 @@
 		}
 
 		private func detail(_ body: RecordBody) -> String {
-			if case .deviceLocal(.workoutDrift) = body {
-				return "workoutDrift"
+			if case .deviceLocal(.replyObserved(let observed)) = body,
+				observed.chatId == Self.sampleChat
+			{
+				return "replyObserved"
 			}
 			if case .deviceLocal(.turnClaim(let claim)) = body {
 				return claim.lease.rawValue

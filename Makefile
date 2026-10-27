@@ -9,11 +9,13 @@ FORMAT_OPTIONS := --parallel --configuration .swift-format
 APP_PROJECT := apps/ios/Enduragent.xcodeproj
 DERIVED_DATA ?= DerivedData
 ONLY ?= EnduragentTests
+PLAN_FIXTURES := $(COACH)/Tests/EnduragentCoachTests/Fixtures/plan
+NPM_FIXTURES := node tools/npm-fixtures/run.mjs --npm "$(NPM)" --out $(PLAN_FIXTURES)
 LIVE_LOGS ?= $(HOME)/Library/Logs/enduragent-m3/LIVE
 LIVE_CHECK := env -u OPENROUTER_API_KEY -u INTERVALS_API_KEY ENDURAGENT_LIVE_LOGS="$(LIVE_LOGS)"
 IPHONE_SIMULATOR := xcodebuild -project $(APP_PROJECT) -scheme Enduragent -showdestinations | awk '/Available destinations for/ { available = 1; next } /Ineligible destinations for/ { available = 0 } available && /platform:iOS Simulator/ && /name:iPhone/ { sub(/^.*id:/, ""); sub(/,.*/, ""); print; exit }'
 
-.PHONY: project generate-catalogs check-catalogs check-source check-coverage lint-swift format-swift check-format test-tools test-swift test-app live-reads live-calendar live-coach live-seed live-unseed
+.PHONY: project generate-catalogs check-catalogs check-source check-coverage lint-swift format-swift check-format test-tools test-swift test-app plan-fixtures plan-fixtures-check live-reads live-calendar live-coach live-plan live-seed live-unseed
 
 project:
 	$(AT_ROOT) xcodegen generate --spec apps/ios/project.yml
@@ -48,6 +50,12 @@ test-swift:
 test-app: project
 	$(AT_ROOT) destination="$$($(IPHONE_SIMULATOR))" && test -n "$$destination" && xcodebuild test -project $(APP_PROJECT) -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,arch=arm64,id=$$destination" -derivedDataPath $(DERIVED_DATA) -only-testing:$(ONLY) CODE_SIGNING_ALLOWED=NO
 
+plan-fixtures:
+	$(AT_ROOT) $(NPM_FIXTURES)
+
+plan-fixtures-check:
+	$(AT_ROOT) $(NPM_FIXTURES) --check
+
 live-reads:
 	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=reads swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LiveReadsCheck $(ARGS)
 
@@ -56,6 +64,9 @@ live-calendar:
 
 live-coach:
 	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=coach swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LiveCoachCheck $(ARGS)
+
+live-plan:
+	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=plan swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LivePlanCheck $(ARGS)
 
 live-seed:
 	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=seed swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LiveSeedCheck $(ARGS)

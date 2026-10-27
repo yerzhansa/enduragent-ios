@@ -14,6 +14,31 @@ extension SwiftDataSuites {
 
 		let phone = DeviceID(rawValue: "review-restore-phone")
 
+		static let longDigitChanges = [
+			#"{"kind":"edit","eventId":201,"patch":{"structure":{"steps":[{"duration":600,"power":{"units":"%ftp","value":1.2345678901234568e-05}}]}}}"#,
+			#"{"kind":"edit","eventId":201,"patch":{"structure":{"steps":[{"duration":600,"_power":{"value":1.2345678901234568e+20}}]}}}"#,
+			#"{"kind":"edit","eventId":201,"patch":{"structure":{"steps":[{"type":"interval","duration":{"value":30,"unit":"minutes"},"power":{"kind":"percent_ftp","value":1.2345678901234568e-05}}]}}}"#,
+			#"{"kind":"add-cycling","date":"1998-09-09","workout":{"name":"Spin","steps":[{"type":"interval","duration":{"value":30,"unit":"minutes"},"power":{"kind":"percent_ftp","value":1.2345678901234568e-05}}]},"trainingLoad":48}"#,
+		]
+
+		@Test(arguments: longDigitChanges)
+		func aStoredChangeHoldingALongDigitNumberRefusesTheSameChangeAgain(_ change: String)
+			async throws
+		{
+			let turns = ReviewTurns()
+			let coach = await turns.coach(over: try makeSwiftDataLog(deviceId: phone))
+			let first = try await turns.committed(
+				#"{"kind":"complete","changes":[\#(change)]}"#, on: coach)
+			let item = try #require(first.work.remaining.first)
+			let waiting = try await turns.head(of: coach)
+
+			_ = try await turns.reply(
+				after: [turns.prepare(turns.revise(first, [(item.reference, change)]))], on: coach)
+
+			#expect(try turns.toolData().first?.objectFields["error"] == .string("unchanged_item"))
+			#expect(try await turns.head(of: coach).0 == waiting.0)
+		}
+
 		@Test(arguments: Return.allCases)
 		func aReviewPreparedMoreThanTenMinutesAgoIsRestoredWithItsControls(_ way: Return)
 			async throws

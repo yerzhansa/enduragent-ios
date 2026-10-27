@@ -52,9 +52,55 @@ extension SourceChecker {
 				#"\bReviewControlToken\s*(?:\(|\.\s*init\b)"#,
 				#"(?:\.\s*init|\bSelf)\s*\(\s*ref\s*:\#(argumentText)*?\bsecret\s*:"#,
 			]),
+		MintedValue(
+			name: "SavedPlanBody", owner: plansSource + "PlanSave.swift", anywhere: [],
+			elsewhere: [
+				#"\bextension\s+SavedPlanBody\b"#, #"\bSavedPlanBody(?:\s*\.\s*init)?\s*\("#,
+				#"(?:\.\s*init|\bSelf)\s*\(\s*id\s*:\#(argumentText)*?\bconfirmation\s*:"#
+					+ #"\#(argumentText)*?\bdecided\s*:"#,
+			]),
+		MintedValue(
+			name: "ClaimedSave", owner: plansSource + "PlanSave.swift", anywhere: [],
+			elsewhere: [#"\bextension\s+ClaimedSave\b"#, #"\bClaimedSave(?:\s*\.\s*init)?\s*\("#]),
+		MintedValue(
+			name: "LiveConfirmation", owner: plansSource + "PlanConfirmation.swift", anywhere: [],
+			elsewhere: [
+				#"\bextension\s+LiveConfirmation\b"#, #"\bLiveConfirmation(?:\s*\.\s*init)?\s*\("#,
+			]),
+		MintedValue(
+			name: "PlanSaveToken", owner: plansSource + "PlanCard.swift", anywhere: [],
+			elsewhere: [
+				#"\bextension\s+PlanSaveToken\b"#, #"\bPlanSaveToken(?:\s*\.\s*init)?\s*\("#,
+			]),
+	]
+	static let plansSource = "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Plans/"
+	static let planRecordOwners =
+		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/(?:Plans\/[^/]+"#
+		+ #"|Records\/(?:AthleteRecord|RecordCodec|RecordEnvelopePayload|DeviceLocalCodec))"#
+		+ #"\.swift$"#
+	static let planRecordNames =
+		#"(?:^|[^\w)\]?!])\.\s*(?:savedPlan|planConfirmation)\b"#
+		+ #"|\b(?:SyncedKind|DeviceLocalKind)\s*\.\s*(?:savedPlan|planConfirmation)\b"#
+		+ #"|\b(?:SavedPlanBody|PlanConfirmationBody)\b"#
+	static let coachSourceFolder =
+		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/"#
+	static let separatedNames = [
+		(
+			files: coachSourceFolder + #"Plans\/.*\.swift$"#,
+			names: #"\b(?:Review[A-Z]|WorkoutReview)\w*"#
+		),
+		(
+			files: coachSourceFolder + #"Review\/.*\.swift$"#,
+			names: #"\b(?:Plan\w*Confirmation|SavedPlan|PlanDocument)\w*"#
+		),
 	]
 	static let coachSource =
 		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$"#
+	static let planningSource =
+		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/Planning\/.*\.swift$"#
+	static let impurePlanning =
+		#"\b\w*Clock\b|\bDate\s*(?:\(\s*\)|\.\s*now\b)|\bUUID\s*\(\s*\)"#
+		+ #"|\bTimeZone\s*\.\s*current\b|\bLedger\b|\bactor\b"#
 	static let reviewChainType = #"(?:WorkoutReviewBody|ReviewPreparingBody)"#
 	static let bracketed = #"(?:[^()\[\]{}]|\([^()\[\]{}]*\)|\[[^()\[\]{}]*\]|\{[^()\[\]{}]*\})*"#
 	static let argumentText =
@@ -87,6 +133,14 @@ extension SourceChecker {
 	static let reviewOutcomeBuilt = [
 		#"\.\s*reviewOutcome\s*\((?!\s*(?:let|var)\b)(?!\s*_\s*[,)])"#,
 		#"\bSyncedRecordBody\s*\.\s*reviewOutcome\b(?!\s*\()"#,
+	]
+	static let chainAppendCallers =
+		#"^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/"#
+		+ #"(?:Records\/(?:ChainAppend|ReviewChain|RecordLog)|Plans\/[^/]+)\.swift$"#
+	static let chainAppendCalls = [
+		#"\bappend\s*\(\#(argumentText)*?\bstamp\s*:\#(argumentText)*?\bafter\s*:"#,
+		#"\.\s*newest\s*\(|\bawait\s+newest\s*\("#,
+		#"\bchats\s*\(\s*holding\s*:"#,
 	]
 	static let swiftCopy =
 		#"\b(?:Text|Label|Button|Section|navigationTitle|alert|confirmationDialog"#
@@ -156,11 +210,24 @@ extension SourceChecker {
 		}
 		if file.hasSameUnits(as: Self.recordModel) { try checkLedgerIndexVersion(file, text) }
 		if try mintsOutsideItsFile(file, text) { try findings.report(file, "minted-in-one-file") }
+		if try namesAPlanRecordOutsideItsOwners(file, text) {
+			try findings.report(file, "plan-records-private")
+		}
+		if try namesTheOtherConfirmation(file, text) {
+			try findings.report(file, "plan-save-separate")
+		}
 		if try buildsReviewChainBodyOutsideTheChain(file, text) {
 			try findings.report(file, "review-chain-only")
 		}
 		if try writesReviewOutcomeOutsideTheDesk(file, text) {
 			try findings.report(file, "review-outcome-writer")
+		}
+		if try callsTheChainDoorwayOutsideItsCallers(file, text) {
+			try findings.report(file, "chain-append-callers")
+		}
+		if try patterns.test(Self.planningSource, file) && patterns.test(Self.impurePlanning, text)
+		{
+			try findings.report(file, "planning-pure")
 		}
 		if try file.hasSameUnits(as: Self.mailbox) && hasExposedMailboxState(text) {
 			try findings.report(file, "mailbox-private-state")
@@ -200,6 +267,28 @@ extension SourceChecker {
 			!Self.reviewOutcomeWriters.contains(where: file.hasSameUnits(as:))
 		else { return false }
 		return try Self.reviewOutcomeBuilt.contains { try patterns.test($0, text) }
+	}
+
+	private func callsTheChainDoorwayOutsideItsCallers(_ file: String, _ text: String) throws
+		-> Bool
+	{
+		guard try patterns.test(Self.coachSource, file),
+			try !patterns.test(Self.chainAppendCallers, file)
+		else { return false }
+		return try Self.chainAppendCalls.contains { try patterns.test($0, text) }
+	}
+
+	private func namesAPlanRecordOutsideItsOwners(_ file: String, _ text: String) throws -> Bool {
+		guard try patterns.test(Self.coachPackageSource, file),
+			try !patterns.test(Self.planRecordOwners, file)
+		else { return false }
+		return try patterns.test(Self.planRecordNames, text)
+	}
+
+	private func namesTheOtherConfirmation(_ file: String, _ text: String) throws -> Bool {
+		try Self.separatedNames.contains { rule in
+			try patterns.test(rule.files, file) && patterns.test(rule.names, text)
+		}
 	}
 
 	private func mintsOutsideItsFile(_ file: String, _ text: String) throws -> Bool {

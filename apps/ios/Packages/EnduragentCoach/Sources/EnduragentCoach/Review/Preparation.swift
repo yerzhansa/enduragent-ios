@@ -366,7 +366,7 @@ extension WorkoutPatch {
 		let earlier = before.applied(to: reviewed)
 		return candidate.durationSeconds == earlier.durationSeconds
 			&& candidate.description == earlier.description
-			&& candidate.structure == earlier.structure
+			&& WorkoutSnapshot.sameStructure(candidate.structure, earlier.structure)
 	}
 }
 

@@ -18,8 +18,13 @@ struct UpgradeStore {
 	init(_ scenario: String, folder: String, device: String) throws {
 		let source = try #require(
 			Bundle.module.url(forResource: scenario, withExtension: nil, subdirectory: folder))
-		root = try TestTemporaryFolders.make()
+		let root = try TestTemporaryFolders.make()
 		try FileManager.default.copyItem(at: source, to: root)
+		try self.init(reopening: root, device: device)
+	}
+
+	init(reopening root: URL, device: String) throws {
+		self.root = root
 		log = SwiftDataRecordLog(
 			deviceId: DeviceID(rawValue: device),
 			synced: try ModelContainerHandle.withoutCloudKit(

@@ -226,10 +226,11 @@ import Testing
 
 		#expect(
 			try #require(transport.requests.first).tools.map(\.name) == [
-				.calculateZones, .intervalsFetchAthlete, .intervalsFetchWellness,
-				.intervalsFetchActivity, .intervalsFetchStreams, .intervalsFetchActivities,
-				.intervalsListEvents, .getPendingWorkoutChanges, .prepareWorkoutChanges,
-				.memoryQuery, .memoryWrite, .ledgerAppend,
+				.calculateZones, .buildPlanSkeleton, .assessFeasibility, .getSampleWeek,
+				.intervalsFetchAthlete, .intervalsFetchWellness, .intervalsFetchActivity,
+				.intervalsFetchStreams, .intervalsFetchActivities, .intervalsListEvents,
+				.getPendingWorkoutChanges, .prepareWorkoutChanges, .memoryQuery, .memoryWrite,
+				.ledgerAppend, .planSave, .planLoad,
 			])
 	}
 

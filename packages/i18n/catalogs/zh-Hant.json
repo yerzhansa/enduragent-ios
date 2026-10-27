@@ -1481,7 +1481,39 @@
       "signInAgain": "重新登入"
     },
     "welcome": "歡迎使用 {{product}}！\n\n我是 AI 自行車教練，可以使用 {{service}} 資料制定訓練計畫、推薦訓練課表並追蹤體能。\n\n指令：\n{{commands}}\n\n也可以直接和我聊聊訓練！",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "無法準備儲存訓練計畫。",
+      "title": "儲存這個訓練計畫？",
+      "phase": "第 {{number}} 階段",
+      "focusLabel": "重點",
+      "weeklyHours": "每週時數",
+      "replaces": "將取代你已儲存的計畫：{{name}}",
+      "save": "儲存計畫",
+      "saving": "正在儲存計畫…",
+      "saved": "已儲存。現在這就是你的訓練計畫。",
+      "canceled": "已取消。這個計畫未儲存。",
+      "expired": "已過期。請再次請教練儲存這個計畫。",
+      "storageUnavailable": "由於這部 iPhone 的儲存空間無法使用，因此無法儲存這個計畫。",
+      "notSaved": {
+        "expired": "未儲存：儲存這個計畫的十分鐘已經過去。",
+        "replaced": "未儲存：有一個較新的計畫正在等待儲存。",
+        "alreadyDecided": "這個計畫已經儲存或取消。",
+        "athleteChanged": "未儲存：這個計畫是為 {{service}} 上的另一位運動員準備的。",
+        "notPresented": "尚未儲存。請捲動到該計畫，然後再次點一下「儲存計畫」。"
+      },
+      "focus": {
+        "baseBuilding": "基礎建立",
+        "aerobicDevelopment": "有氧能力發展",
+        "threshold": "閾值",
+        "vo2max": "最大攝氧量",
+        "racePrep": "賽前準備",
+        "taper": "減量",
+        "recovery": "恢復",
+        "maintenance": "維持",
+        "generalFitness": "綜合體能"
+      }
+    }
   },
   "plan": {
     "details": {

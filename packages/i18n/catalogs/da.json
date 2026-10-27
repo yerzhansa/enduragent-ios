@@ -1494,7 +1494,39 @@
       "signInAgain": "Log ind igen"
     },
     "welcome": "Velkommen til {{product}}!\n\nJeg er din AI-cykeltræner. Jeg kan lave træningsplaner, foreslå træning og følge din fitness med data fra {{service}}.\n\nKommandoer:\n{{commands}}\n\nEller skriv bare til mig om din træning!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "Træningsplanen kunne ikke gøres klar til at blive gemt.",
+      "title": "Gem denne træningsplan?",
+      "phase": "Fase {{number}}",
+      "focusLabel": "Fokus",
+      "weeklyHours": "Timer pr. uge",
+      "replaces": "Erstatter din gemte plan: {{name}}",
+      "save": "Gem plan",
+      "saving": "Gemmer planen…",
+      "saved": "Gemt. Dette er nu din træningsplan.",
+      "canceled": "Annulleret. Denne plan blev ikke gemt.",
+      "expired": "Udløbet. Bed coachen om at gemme denne plan igen.",
+      "storageUnavailable": "Denne plan kunne ikke gemmes, fordi lageret på denne iPhone ikke er tilgængeligt.",
+      "notSaved": {
+        "expired": "Ikke gemt: De ti minutter til at gemme denne plan er gået.",
+        "replaced": "Ikke gemt: En nyere plan venter på at blive gemt.",
+        "alreadyDecided": "Denne plan er allerede gemt eller annulleret.",
+        "athleteChanged": "Ikke gemt: Denne plan blev forberedt til en anden atlet på {{service}}.",
+        "notPresented": "Ikke gemt endnu. Rul til planen, og tryk derefter på Gem plan igen."
+      },
+      "focus": {
+        "baseBuilding": "Basisopbygning",
+        "aerobicDevelopment": "Aerob udvikling",
+        "threshold": "Tærskel",
+        "vo2max": "VO2max",
+        "racePrep": "Løbsforberedelse",
+        "taper": "Nedtrapning",
+        "recovery": "Restitution",
+        "maintenance": "Vedligeholdelse",
+        "generalFitness": "Generel form"
+      }
+    }
   },
   "plan": {
     "details": {

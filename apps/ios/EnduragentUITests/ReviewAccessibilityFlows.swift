@@ -220,7 +220,12 @@ struct ReviewCardReading {
 
 	@discardableResult
 	func reach(_ control: Control) -> XCUIElement {
-		let button = run.named(control.rawValue)
+		reach(control.rawValue)
+	}
+
+	@discardableResult
+	func reach(_ identifier: String) -> XCUIElement {
+		let button = run.named(identifier)
 		TutorialHarness.wait(
 			until: {
 				let band = TutorialHarness.transcriptBand(run.app)
@@ -242,7 +247,7 @@ struct ReviewCardReading {
 				return false
 			}, within: .bulk,
 			message:
-				"[\(run.language.rawValue)] \(control.rawValue) cannot be brought whole into the transcript and tapped"
+				"[\(run.language.rawValue)] \(identifier) cannot be brought whole into the transcript and tapped"
 		)
 		return button
 	}
@@ -288,7 +293,7 @@ struct ReviewCardReading {
 		TutorialHarness.bringIntoTranscript(run.app, title)
 	}
 
-	private func expectDisclaimerEndsTheTranscript(_ screen: String) {
+	func expectDisclaimerEndsTheTranscript(_ screen: String) {
 		let label = run.say(Catalog.chatViewDisclaimer)
 		let reading = NSPredicate(format: "label == %@", label)
 		let transcript = run.named("chat.transcript")
@@ -331,7 +336,7 @@ struct ReviewCardReading {
 		for child in node.children { collect(child, into: &items, leaving: excluded) }
 	}
 
-	private static func follows(_ earlier: CGRect, _ later: CGRect) -> Bool {
+	static func follows(_ earlier: CGRect, _ later: CGRect) -> Bool {
 		later.minY >= earlier.maxY - 2
 			|| (later.minX >= earlier.maxX - 2 && later.maxY > earlier.minY)
 	}

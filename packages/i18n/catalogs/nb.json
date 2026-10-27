@@ -1494,7 +1494,39 @@
       "signInAgain": "Logg inn igjen"
     },
     "welcome": "Velkommen til {{product}}!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra {{service}}.\n\nKommandoer:\n{{commands}}\n\nDu kan også bare prate med meg om treningen din!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "Treningsplanen kunne ikke klargjøres for lagring.",
+      "title": "Lagre denne treningsplanen?",
+      "phase": "Fase {{number}}",
+      "focusLabel": "Fokus",
+      "weeklyHours": "Timer per uke",
+      "replaces": "Erstatter den lagrede planen din: {{name}}",
+      "save": "Lagre plan",
+      "saving": "Lagrer planen…",
+      "saved": "Lagret. Dette er nå treningsplanen din.",
+      "canceled": "Avbrutt. Denne planen ble ikke lagret.",
+      "expired": "Utløpt. Be treneren om å lagre denne planen på nytt.",
+      "storageUnavailable": "Denne planen kunne ikke lagres fordi lagringen på denne iPhonen ikke er tilgjengelig.",
+      "notSaved": {
+        "expired": "Ikke lagret: De ti minuttene til å lagre denne planen har gått.",
+        "replaced": "Ikke lagret: En nyere plan venter på å bli lagret.",
+        "alreadyDecided": "Denne planen er allerede lagret eller avbrutt.",
+        "athleteChanged": "Ikke lagret: Denne planen ble klargjort for en annen utøver på {{service}}.",
+        "notPresented": "Ikke lagret ennå. Rull til planen, og trykk deretter på Lagre plan igjen."
+      },
+      "focus": {
+        "baseBuilding": "Grunnlagsbygging",
+        "aerobicDevelopment": "Aerob utvikling",
+        "threshold": "Terskel",
+        "vo2max": "VO2maks",
+        "racePrep": "Konkurranseforberedelse",
+        "taper": "Nedtrapping",
+        "recovery": "Restitusjon",
+        "maintenance": "Vedlikehold",
+        "generalFitness": "Generell form"
+      }
+    }
   },
   "plan": {
     "details": {

@@ -7,11 +7,12 @@ package struct TurnReach: Sendable {
 	package let ledger: Ledger
 	package let clock: any Clock
 	package let desk: WorkoutReviewDesk
+	package let plans: Plans
 	package let attempt: DraftKey
 
 	package init(
 		training: TrainingConnection, memory: MemoryView, chat: ChatID, ledger: Ledger,
-		clock: any Clock, desk: WorkoutReviewDesk, attempt: DraftKey
+		clock: any Clock, desk: WorkoutReviewDesk, plans: Plans, attempt: DraftKey
 	) {
 		self.training = training
 		self.memory = memory
@@ -19,6 +20,7 @@ package struct TurnReach: Sendable {
 		self.ledger = ledger
 		self.clock = clock
 		self.desk = desk
+		self.plans = plans
 		self.attempt = attempt
 	}
 }
@@ -29,6 +31,7 @@ struct LocalReach: Sendable {
 	let ledger: Ledger
 	let clock: any Clock
 	let desk: WorkoutReviewDesk
+	let plans: Plans
 	let attempt: DraftKey
 
 	fileprivate init(_ turn: TurnReach, scope: TurnScope) {
@@ -37,6 +40,7 @@ struct LocalReach: Sendable {
 		self.ledger = turn.ledger
 		self.clock = turn.clock
 		self.desk = turn.desk
+		self.plans = turn.plans
 		self.attempt = turn.attempt
 	}
 
@@ -153,6 +157,9 @@ enum CoachTools {
 	static func definition(of name: ToolName) -> CoachTool? {
 		switch name {
 		case .calculateZones: calculateZones
+		case .buildPlanSkeleton: buildPlanSkeleton
+		case .assessFeasibility: assessFeasibility
+		case .getSampleWeek: getSampleWeek
 		case .intervalsFetchAthlete: fetchAthlete
 		case .intervalsFetchWellness: fetchWellness
 		case .intervalsFetchActivity: fetchActivity
@@ -165,7 +172,8 @@ enum CoachTools {
 		case .memoryQuery: memoryQuery
 		case .memoryWrite: memoryWrite
 		case .ledgerAppend: ledgerAppend
-		case .planSave: nil
+		case .planSave: planSave
+		case .planLoad: planLoad
 		}
 	}
 }

@@ -7,62 +7,18 @@
 	@Suite(.serialized) struct LiveCoachCheck {
 		@Test(.enabled(if: LiveCheck.selected == .coach), .timeLimit(.minutes(60)))
 		func coachSuiteAgainstTheRealModel() async throws {
-			let started = Date()
-			let keys: [LiveKey: String]
-			do {
-				keys = try LiveKey.secrets(LiveKey.allCases, lookUp: LiveKey.lookUpInKeychain)
-			} catch let stop as LiveCheckStop {
-				Issue.record(Comment(rawValue: stop.description))
-				return
-			}
-			let intervalsKey = try #require(keys[.intervals])
-			let folder = try LiveRunFolder(kind: .coach, startedAt: started)
-			let ledger = try LiveSpendLedger(
-				file: folder.logs.appending(path: "spend.tsv"), limit: LiveSpendLedger.unitLimit)
-			defer { FileHandle.standardOutput.write(Data((ledger.statement + "\n").utf8)) }
-			let today = IntervalsPolicy.today(now: started, timeZone: .current)
-			let account = IntervalsRESTClient(credential: .apiKey(intervalsKey))
-			let profile = try await account.profile()
-			let listing = try await account.activities(
-				in: try ReadRange(oldest: today.adding(days: -29), newest: today, today: today))
-			let bench = LiveCoachBench(
-				intervalsKey: intervalsKey, openRouterKey: try #require(keys[.openRouter]),
-				athlete: IntervalsAthleteID(rawValue: profile.id),
-				model: try LiveCoachBench.builtInModel(), ledger: ledger, today: today,
-				modelTransport: { diagnostics in
-					OpenRouterTransport(
-						baseURL: ModelService.openRouterAPI, diagnostics: diagnostics)
-				},
-				accountReads: { credential, selection in
-					IntervalsRESTClient(credential: credential, athlete: selection)
-				})
-			let plan = LiveCoachPlan(
-				listing: listing,
-				calendar: try await account.listEvents(
-					in: try LiveSeedCalendar.window(around: today)),
-				today: today)
-			var report = LiveCoachReport(unavailable: plan.unavailable, spentBefore: ledger.total)
-			for scenario in plan.scenarios {
-				guard !ledger.capReached else {
-					report.stoppedBefore = scenario.name
-					break
-				}
-				var runs = [try await bench.run(scenario, attempt: 1)]
-				if !runs[0].passed, !ledger.capReached {
-					runs.append(try await bench.run(scenario, attempt: 2))
-				}
-				for run in runs {
-					try folder.write(run.transcript, to: "\(scenario.name)-run\(run.attempt).md")
-				}
-				report.results.append((scenario.name, runs))
-			}
-			report.leaks = try LiveCoachReport.leaks(in: folder, of: keys)
-			try folder.write(
-				report.markdown(total: ledger.total, limit: ledger.limit), to: "summary.md")
-			report.leaks += try LiveCoachReport.leaks(in: folder, of: keys).filter {
-				$0.hasPrefix("summary.md:")
-			}
-			for failure in report.failures(capReached: ledger.capReached) {
+			let run = try await LiveCoachSuite.live.run(
+				{ account, today in
+					let plan = LiveCoachPlan(
+						listing: try await account.activities(
+							in: try ReadRange(
+								oldest: today.adding(days: -29), newest: today, today: today)),
+						calendar: try await account.listEvents(
+							in: try LiveSeedCalendar.window(around: today)),
+						today: today)
+					return (plan.scenarios, plan.unavailable)
+				}, check: .coach, title: "Live coach suite")
+			for failure in run.failures {
 				Issue.record(Comment(rawValue: failure))
 			}
 		}
@@ -110,12 +66,13 @@ struct LiveCoachReport {
 		return failures
 	}
 
-	func markdown(total: Double, limit: Double) -> String {
+	func markdown(title: String, milestone: LiveMilestone, total: Double, limit: Double) -> String {
 		var lines = [
-			"# Live coach suite", "",
-			String(
-				format: "Spend: $%.4f this run, $%.4f of $%.2f in total.", total - spentBefore,
-				total, limit),
+			"# \(title)", "",
+			"Spend for \(milestone.rawValue): "
+				+ String(
+					format: "$%.4f this run, $%.4f of $%.2f in total.", total - spentBefore, total,
+					limit),
 			"", "| Scenario | Run 1 | Run 2 | Verdict |", "| --- | --- | --- | --- |",
 		]
 		for result in results {

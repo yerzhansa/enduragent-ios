@@ -228,8 +228,11 @@ SystemClock.sleep(for:)
 SystemClock.timeZone
 SystemClock.uptime
 ToolName
+ToolName.assessFeasibility
+ToolName.buildPlanSkeleton
 ToolName.calculateZones
 ToolName.getPendingWorkoutChanges
+ToolName.getSampleWeek
 ToolName.intervalsFetchActivities
 ToolName.intervalsFetchActivity
 ToolName.intervalsFetchAthlete
@@ -240,6 +243,7 @@ ToolName.ledgerAppend
 ToolName.memoryQuery
 ToolName.memoryRead
 ToolName.memoryWrite
+ToolName.planLoad
 ToolName.planSave
 ToolName.prepareWorkoutChanges
 TranscriptNote

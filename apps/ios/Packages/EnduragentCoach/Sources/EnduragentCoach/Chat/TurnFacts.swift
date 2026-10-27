@@ -38,7 +38,8 @@ package struct TurnFacts: Sendable, Equatable {
 			ulid: settled.ulid, hlc: settled.hlc, attempt: settled.attempt,
 			settlement: settled.settlement.resolvingCalendarWrites(
 				evidence: Array(reviewWrites.values)), origin: settled.origin,
-			account: settled.account, reviewNotPrepared: settled.reviewNotPrepared)
+			account: settled.account, reviewNotPrepared: settled.reviewNotPrepared,
+			planSaveNotPrepared: settled.planSaveNotPrepared)
 	}
 
 	package var reply: ReplyText? {
@@ -126,6 +127,7 @@ package struct SettledAttempt: Sendable, Equatable {
 	package var origin: DeviceID = DeviceID(rawValue: "unverified")
 	package var account: TrainingAccount = .unconnected
 	package var reviewNotPrepared: ReviewNotPrepared?
+	package var planSaveNotPrepared: PlanSaveNotPrepared?
 }
 
 extension Settlement {
@@ -149,7 +151,8 @@ extension Settlement {
 extension WriteSummary {
 	fileprivate func resolvingCalendarWrites(_ evidence: [CalendarWriteEvidence]) -> WriteSummary {
 		WriteSummary(
-			memorySections: memorySections, ledgerEvents: ledgerEvents, planSaves: planSaves,
+			memorySections: memorySections, ledgerEvents: ledgerEvents,
+			planConfirmations: planConfirmations,
 			calendarWrites: evidence.filter(\.dispatched).count,
 			unverifiedCalendarWrites: evidence.filter { $0.dispatched && !$0.applied }.count)
 	}

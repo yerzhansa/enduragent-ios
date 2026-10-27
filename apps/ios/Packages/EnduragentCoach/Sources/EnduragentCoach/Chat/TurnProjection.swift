@@ -66,6 +66,9 @@ struct TurnProjection {
 					settled.reviewNotPrepared.map { _ in
 						AthleteNotices.notice(forUnpreparedReview: settled.settlement.summary)
 					}
+				},
+				planSaveNotice: facts.latestSettlement?.planSaveNotPrepared.map { _ in
+					AthleteNotices.planSaveNotPrepared
 				})
 		}
 	}

@@ -11,13 +11,7 @@ public enum JSONValue: Sendable, Equatable {
 
 	public static func parse(_ raw: String) throws(DecodingError) -> JSONValue {
 		do {
-			guard let data = raw.data(using: .utf8) else {
-				throw DecodingError.dataCorrupted(
-					.init(codingPath: [], debugDescription: "invalid JSON")
-				)
-			}
-			let object = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
-			return try JSONValue.fromJSONObject(object)
+			return try JSONDecoder().decode(JSONValuePayload.self, from: Data(raw.utf8)).value
 		} catch let error as DecodingError {
 			throw error
 		} catch {
@@ -31,33 +25,6 @@ public enum JSONValue: Sendable, Equatable {
 		JSONValue.render(self, pretty: false, depth: 0)
 	}
 
-	private static func fromJSONObject(_ object: Any) throws -> JSONValue {
-		switch object {
-		case is NSNull:
-			return .null
-		case let number as NSNumber:
-			if CFGetTypeID(number) == CFBooleanGetTypeID() {
-				return .bool(number.boolValue)
-			}
-			return .number(number.doubleValue)
-		case let string as String:
-			return .string(string)
-		case let array as [Any]:
-			return .array(try array.map { try fromJSONObject($0) })
-		case let dictionary as [String: Any]:
-			var object: [String: JSONValue] = [:]
-			object.reserveCapacity(dictionary.count)
-			for (key, value) in dictionary {
-				object[key] = try fromJSONObject(value)
-			}
-			return .object(object)
-		default:
-			throw DecodingError.dataCorrupted(
-				.init(codingPath: [], debugDescription: "invalid JSON")
-			)
-		}
-	}
-
 	fileprivate static func render(_ value: JSONValue, pretty: Bool, depth: Int) -> String {
 		switch value {
 		case .null:
@@ -65,7 +32,7 @@ public enum JSONValue: Sendable, Equatable {
 		case .bool(let flag):
 			return flag ? "true" : "false"
 		case .number(let number):
-			return encodeJSONNumber(number)
+			return JavaScriptNumber.json(number)
 		case .string(let string):
 			return encodeJSONString(string)
 		case .array(let items):
@@ -141,20 +108,6 @@ private func encodeJSONString(_ string: String) -> String {
 	}
 	out += "\""
 	return out
-}
-
-private func encodeJSONNumber(_ value: Double) -> String {
-	if !value.isFinite {
-		return "null"
-	}
-	if value == 0 {
-		return "0"
-	}
-	let maxSafe = 9_007_199_254_740_991.0
-	if abs(value) <= maxSafe, value.rounded(.towardZero) == value {
-		return String(Int64(value))
-	}
-	return String(value)
 }
 
 package func wholeInt(_ value: Double) -> Int? {

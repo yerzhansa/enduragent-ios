@@ -1494,7 +1494,39 @@
       "signInAgain": "Entrar novamente"
     },
     "welcome": "Boas-vindas ao {{product}}!\n\nSou seu treinador de ciclismo com IA. Posso criar planos de treinamento, sugerir treinos e acompanhar seu condicionamento com os dados de {{service}}.\n\nComandos:\n{{commands}}\n\nOu converse comigo sobre seu treinamento!",
-    "welcomeCommand": "{{command}} : {{description}}"
+    "welcomeCommand": "{{command}} : {{description}}",
+    "planSave": {
+      "notPrepared": "Não foi possível preparar o plano de treinamento para salvar.",
+      "title": "Salvar este plano de treinamento?",
+      "phase": "Fase {{number}}",
+      "focusLabel": "Foco",
+      "weeklyHours": "Horas por semana",
+      "replaces": "Substitui seu plano salvo: {{name}}",
+      "save": "Salvar plano",
+      "saving": "Salvando o plano…",
+      "saved": "Salvo. Este agora é o seu plano de treinamento.",
+      "canceled": "Cancelado. Este plano não foi salvo.",
+      "expired": "Expirado. Peça de novo ao treinador para salvar este plano.",
+      "storageUnavailable": "Não foi possível salvar este plano porque o armazenamento deste iPhone não está disponível.",
+      "notSaved": {
+        "expired": "Não salvo: os dez minutos para salvar este plano já passaram.",
+        "replaced": "Não salvo: há um plano mais recente esperando para ser salvo.",
+        "alreadyDecided": "Este plano já foi salvo ou cancelado.",
+        "athleteChanged": "Não salvo: este plano foi preparado para outro atleta no {{service}}.",
+        "notPresented": "Ainda não salvo. Role até o plano e toque em Salvar plano de novo."
+      },
+      "focus": {
+        "baseBuilding": "Construção de base",
+        "aerobicDevelopment": "Desenvolvimento aeróbico",
+        "threshold": "Limiar",
+        "vo2max": "VO2máx",
+        "racePrep": "Preparação para a prova",
+        "taper": "Polimento",
+        "recovery": "Recuperação",
+        "maintenance": "Manutenção",
+        "generalFitness": "Condicionamento geral"
+      }
+    }
   },
   "plan": {
     "details": {

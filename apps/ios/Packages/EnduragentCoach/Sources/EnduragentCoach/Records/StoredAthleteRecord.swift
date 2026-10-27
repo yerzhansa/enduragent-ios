@@ -108,8 +108,8 @@ extension OperationID {
 		case .launchRecovery(let id): "launchRecovery:\(id.ulid.rawValue)"
 		case .workoutReview(let id, let revision):
 			"workoutChangeSet:\(id.ulid.rawValue):\(revision.rawValue)"
-		case .planningCommand(let id): "planningCommand:\(id.rawValue)"
 		case .debugSample(let id): "debugSample:\(id.ulid.rawValue)"
+		case .planSave(let id): "planSave:\(id.ulid.rawValue)"
 		}
 	}
 
@@ -119,10 +119,6 @@ extension OperationID {
 		guard parts.count == 2 else { return nil }
 		let name = parts[0]
 		let rest = String(parts[1])
-		if name == "planningCommand" {
-			self = .planningCommand(PlanningCommandID(rawValue: rest))
-			return
-		}
 		if name == "workoutChangeSet" {
 			let fields = rest.split(separator: ":")
 			guard fields.count == 2, let ulid = ULID(rawValue: String(fields[0])),
@@ -140,6 +136,7 @@ extension OperationID {
 		case "credentialChange": self = .credentialChange(CredentialChangeID(ulid: ulid))
 		case "launchRecovery": self = .launchRecovery(LaunchID(ulid: ulid))
 		case "debugSample": self = .debugSample(DebugSampleID(ulid: ulid))
+		case "planSave": self = .planSave(PlanConfirmationID(ulid: ulid))
 		default: return nil
 		}
 	}

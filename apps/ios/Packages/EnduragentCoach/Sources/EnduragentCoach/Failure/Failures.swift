@@ -60,26 +60,26 @@ public enum SavedWorkOutcome: String, Sendable {
 public struct WriteSummary: Sendable, Equatable {
 	public let memorySections: Int
 	public let ledgerEvents: Int
-	public let planSaves: Int
+	public let planConfirmations: Int
 	public let calendarWrites: Int
 	public let unverifiedCalendarWrites: Int
 
 	public init(
-		memorySections: Int, ledgerEvents: Int, planSaves: Int, calendarWrites: Int,
+		memorySections: Int, ledgerEvents: Int, planConfirmations: Int, calendarWrites: Int,
 		unverifiedCalendarWrites: Int = 0
 	) {
 		self.memorySections = memorySections
 		self.ledgerEvents = ledgerEvents
-		self.planSaves = planSaves
+		self.planConfirmations = planConfirmations
 		self.calendarWrites = calendarWrites
 		self.unverifiedCalendarWrites = unverifiedCalendarWrites
 	}
 
 	public static let none = WriteSummary(
-		memorySections: 0, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+		memorySections: 0, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 0)
 
 	public var isEmpty: Bool {
-		memorySections == 0 && ledgerEvents == 0 && planSaves == 0 && calendarWrites == 0
+		memorySections == 0 && ledgerEvents == 0 && planConfirmations == 0 && calendarWrites == 0
 	}
 }
 
@@ -330,6 +330,9 @@ package enum AthleteNotices {
 				actions: [])
 		}
 	}
+
+	package static let planSaveNotPrepared = AthleteNotice(
+		key: Catalog.chatPlanSaveNotPrepared, actions: [])
 
 	package static func notice(forUnpreparedReview saved: WriteSummary) -> AthleteNotice {
 		AthleteNotice(

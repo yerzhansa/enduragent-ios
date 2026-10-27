@@ -6,7 +6,7 @@ import Testing
 @testable import Enduragent
 
 extension FixtureLaunchTests {
-	@Test(arguments: [SlashCommand.workout, .status])
+	@Test(arguments: [SlashCommand.workout, .plan, .status])
 	func pickedShortcutFillsTheComposerAndSendsNothing(command: SlashCommand) async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
@@ -28,6 +28,7 @@ extension FixtureLaunchTests {
 	@Test(arguments: [
 		("/workout 45 minutes indoors", FirstWeekFixture.workoutShortcutReply),
 		("/status how is my Form this week", FirstWeekFixture.statusShortcutReply),
+		("/plan for my gran fondo in June", FirstWeekFixture.planShortcutReply),
 	])
 	func sentShortcutShowsItsTextAndWorksUntilTheReplyInText(text: String, reply: String)
 		async throws

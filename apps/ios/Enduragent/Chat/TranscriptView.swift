@@ -7,6 +7,7 @@ struct TranscriptView: View {
 	@Environment(\.dynamicTypeSize) private var dynamicTypeSize
 	@State private var revealedBackgroundTurns: Set<TurnID> = []
 	@State private var openedReview: String?
+	@State private var openedPlan: PlanConfirmationID?
 	@State private var viewport = TranscriptViewport(frame: .null)
 
 	var body: some View {
@@ -23,11 +24,13 @@ struct TranscriptView: View {
 						}
 					}
 					reviewCard(at: .preparedEarlier, proxy: proxy)
+					planCards(at: .preparedEarlier)
 					notes(after: nil)
 					ForEach(model.chat?.turns ?? []) { turn in
 						TurnRowView(model: model, turn: turn)
 						notes(after: turn.id)
 						reviewCard(at: .afterTurn(turn.id), proxy: proxy)
+						planCards(at: .afterTurn(turn.id))
 					}
 					if case .waiting? = model.chat?.reset {
 						Text(model.phrasebook.say(Catalog.chatNoticeStartingNewConversation, [:]))
@@ -90,11 +93,22 @@ struct TranscriptView: View {
 			.environment(\.transcriptViewport, viewport)
 			.buttonStyle(.borderless)
 			.onChange(of: model.chat?.revision, initial: true) {
-				if reviewEndsTranscript {
+				if waitingPlanEndingTranscript != nil || reviewEndsTranscript {
 					reveal()
 				} else {
 					scrollToEnd(proxy)
 				}
+			}
+			.onChange(of: openingPlan?.id, initial: true) {
+				aimAtOpeningPlan(proxy)
+			}
+			.onScrollGeometryChange(for: CGFloat.self) {
+				$0.contentSize.height
+			} action: { _, _ in
+				aimAtOpeningPlan(proxy)
+			}
+			.onScrollPhaseChange { _, phase in
+				if phase == .interacting { endOpening() }
 			}
 			.onChange(of: shownRound, initial: true) { old, new in
 				guard let new else { return }
@@ -111,18 +125,18 @@ struct TranscriptView: View {
 				scrollToEnd(proxy)
 			}
 			.onChange(of: model.slashListVisible) {
-				proxy.scrollTo("transcript.tail", anchor: .bottom)
+				scrollToTail(proxy)
 			}
 			.onChange(of: model.status.access.attention) {
-				proxy.scrollTo("transcript.tail", anchor: .bottom)
+				scrollToTail(proxy)
 			}
 			.onChange(of: model.reviewNotice) {
-				proxy.scrollTo("transcript.tail", anchor: .bottom)
+				scrollToTail(proxy)
 			}
 			.onReceive(
 				NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)
 			) { _ in
-				proxy.scrollTo("transcript.tail", anchor: .bottom)
+				scrollToTail(proxy)
 			}
 		}
 	}
@@ -143,6 +157,28 @@ struct TranscriptView: View {
 		}
 	}
 
+	private var waitingPlanEndingTranscript: PlanCard? {
+		guard let plan = model.chat?.plans.last, case .waiting = plan.state else { return nil }
+		switch plan.placement {
+		case .afterTurn(let turn): return turn == model.chat?.turns.last?.id ? plan : nil
+		case .preparedEarlier: return model.chat?.turns.isEmpty ?? true ? plan : nil
+		}
+	}
+
+	private var openingPlan: PlanCard? {
+		guard let plan = waitingPlanEndingTranscript, plan.id != openedPlan else { return nil }
+		return plan
+	}
+
+	private func aimAtOpeningPlan(_ proxy: ScrollViewProxy) {
+		guard let plan = openingPlan else { return }
+		proxy.scrollTo(PlanCardView.titleRow(of: plan), anchor: .center)
+	}
+
+	private func endOpening() {
+		if let plan = openingPlan { openedPlan = plan.id }
+	}
+
 	private func approachReview(_ review: ReviewSnapshot, _ proxy: ScrollViewProxy) {
 		let title = ConfirmedPreviewCard.titleRow(of: review)
 		guard reviewEndsTranscript, openedReview != title else { return }
@@ -157,8 +193,13 @@ struct TranscriptView: View {
 	}
 
 	private func scrollToEnd(_ proxy: ScrollViewProxy) {
-		proxy.scrollTo("transcript.tail", anchor: .bottom)
+		scrollToTail(proxy)
 		reveal()
+	}
+
+	private func scrollToTail(_ proxy: ScrollViewProxy) {
+		endOpening()
+		proxy.scrollTo("transcript.tail", anchor: .bottom)
 	}
 
 	private func reveal() {
@@ -183,6 +224,12 @@ struct TranscriptView: View {
 				cardLaidOut: { approachReview(review, proxy) }
 			)
 			.fixedSize(horizontal: false, vertical: true)
+		}
+	}
+
+	private func planCards(at placement: PlanCardPlacement) -> some View {
+		ForEach((model.chat?.plans ?? []).filter { $0.placement == placement }) { plan in
+			PlanCardView(model: model, card: plan)
 		}
 	}
 

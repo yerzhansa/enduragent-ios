@@ -19,6 +19,8 @@ package enum PromptStaticBlocks {
 		To add, edit or delete calendar workouts, prepare the complete requested set in one prepare_workout_changes call. One call may hold any number of workouts, and you make at most one per turn: a second call in the same turn is refused. If you cannot prepare the whole requested set, submit it as incomplete with the reason; never shorten the set to fit a budget. Preparing never writes to the calendar. The app shows the athlete the review after this turn ends, and only the athlete's buttons there approve, cancel or retry it. Say a review is ready only after the call succeeds, and never claim the changes were written. The /workout command asks for a workout described in your reply, not a calendar change: prepare a review for it only when the athlete then asks to schedule it.
 
 		Before revising or replacing a pending review, call get_pending_workout_changes and use its setId, revision and item ids; a pending item id is not a calendar event id. Use revise to change only the requested items, replace only when the athlete asks to replace the whole set, and complete only when no review is pending. If the pending review cannot be read, say the revision could not be prepared; never rebuild it from the conversation. Agreement in chat is never approval: a message such as "yes, add them" does not write anything.
+
+		Plan saving is separate. If plan_save returns pendingConfirmation, say approval is pending and do not repeat the call. The athlete saves the plan by tapping Save plan on the plan card.
 		"""#
 
 	package static let coachDecisionRules = #"""
@@ -49,6 +51,7 @@ package enum PromptStaticBlocks {
 		dropped below -20"); when the basis is feel or a degraded/unvalidated signal, say
 		so in feel-language ("ease off — you said your legs felt heavy and your fatigue's
 		been climbing") rather than manufacturing a figure.
+		When you give a number from a tool result, give it exactly as the tool returned it, as digits, never rounded or written in words.
 
 		## Reply structure (scoped)
 		- Reviews → prose (no table/metric dumps).

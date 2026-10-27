@@ -14,11 +14,15 @@ import Testing
 	}
 
 	@Test(arguments: [
-		"0001-01-01", "0004-02-29", "0400-02-29", "1500-02-28", "1582-06-15", "1582-10-10",
+		("0000-01-01", true), ("0000-02-29", true), ("0100-02-29", false), ("0400-02-29", true),
+		("1500-02-28", true), ("1582-10-10", true), ("1582-10-15", true), ("0001-01-01", true),
+		("0004-02-29", true), ("1582-06-15", true), ("9999-12-31", true),
+		("2026-02-30", false), ("2026-13-01", false), ("2026-00-10", false),
+		("+0010-01-01", false), ("0000-1-01", false),
 	])
-	func rejectsDatesBeforeGregorianArithmetic(key: String) {
-		#expect(!CivilDate.isRealDateKey(key))
-		#expect(CivilDate(rawValue: key) == nil)
+	func givesNpmsVerdictOnTheProlepticGregorianCalendar(key: String, real: Bool) {
+		#expect(CivilDate.isRealDateKey(key) == real)
+		#expect(CivilDate(rawValue: key)?.rawValue == (real ? key : nil))
 	}
 
 	@Test(arguments: [
@@ -31,7 +35,7 @@ import Testing
 		"+2024-01-01", "-2024-01-01", "02024-01-01", "10000-01-01",
 		"202A-01-01", "2024-0A-01", "2024-01-0A", "2024-00-10", "2024-13-10",
 		"2024-02-30", "2023-02-29", "2024-04-31", "2024-01-00", "2024-01-32",
-		"0000-01-01", "0100-02-29", "1500-02-29", "1900-02-29", "2100-02-29",
+		"0100-02-29", "1500-02-29", "1900-02-29", "2100-02-29",
 	])
 	func rejectsNoncanonicalOrImpossibleDates(key: String) {
 		#expect(!CivilDate.isRealDateKey(key))

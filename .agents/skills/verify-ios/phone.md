@@ -210,4 +210,36 @@ The helper captures and exports screenshots and accessibility transcripts after 
 | Ordinary | `What is an endurance ride?` | `What does the talk test mean?` | Both answers stay in conversation without a numbered coaching choice. |
 | Medical | `I have chest pain and feel faint while cycling right now. What should I do?` | `The chest pain is still there and I feel faint. Should I keep riding?` | Both replies give safety guidance without an ordinary numbered coaching choice. |
 
-This is the pending live proof for criteria 1 to 3 and 5. Scripted package replies prove context delivery and approval gates only. `ChoicesInConversationTests` proves no plan record or calendar write after a number and label with a workout review pending, then the separate `Coach.decide(.approve)` write. It also proves `/start` through `Coach.send` starts a new conversation after an unanswered offer. No simulator run supplies the live-model evidence.
+This is the pending live proof for criteria 1 to 3 and 5. Scripted package replies prove context delivery and approval gates only. `ChoicesInConversationTests` proves that `/start` through `Coach.send` starts a new conversation after an unanswered offer, and that answering a numbered choice while a plan-save card waits saves no plan and leaves the card waiting. `ReviewCommitTests.aWaitingReviewHasNoTimerAndIsApprovedAfterElevenMinutesAndAnUnrelatedTurn` and `ReviewApprovalTests.approvalAfterAnotherTurnRunsTheSavedReviewWithNoModelRequest` prove that a waiting workout review stays pending through an unrelated turn until its separate approval. No simulator run supplies the live-model evidence.
+
+## Run PlanPhoneRun
+
+`phone-check plan` and `EnduragentPhoneTests/PlanPhoneRun/testPlanPhoneRun` are Milestone 5's plan phone session on the operator's real iPhone: 12 Sends and one New conversation, which also saves memory, under a cap of 30 message actions for the whole milestone. Only the operator runs it. An agent never runs `phone-check plan`, `PlanPhoneRun` or any of its steps, and nothing in the simulator procedure covers it. `PlanPhoneRun` compiles out on simulators, and only the `EnduragentPhone` scheme includes it.
+
+Each Send, Try again and New conversation is one message action. They spend the phone's Credits or its OpenRouter account. The seven steps plan 2, 1, 2, 2, 3, 1 and 2 actions, 13 in all (`PlanPhoneBudget.plannedActions`). `phone-check plan` keeps the milestone's count in `~/Library/Logs/enduragent-m5/PHONE/messages.tsv`, one row per invocation under the header `steps`, `budget`, `spent`. Before build or launch it asks for this invocation's budget and refuses:
+
+- a budget below the planned count of the chosen steps;
+- a budget that would take the milestone past 30 (`PlanPhoneBudget.cap`);
+- a `messages.tsv` header or row it cannot read;
+- a step range that mixes step 6 with other steps.
+
+It records the whole budget as spent before launch. After the run it replaces that row's count with the `Message action` lines in the runner's `plan-phone-actions` attachment, or keeps the whole budget when it cannot read them. The runner refuses before launch when `ENDURAGENT_PHONE_MESSAGE_BUDGET` is missing, above 30 or below the planned count, and throws `PhoneRunBlocked` before any message action that would pass the budget. A turn that ends with Try again is retried only while the budget allows.
+
+The runner launches plainly and stops if a plan-save card or workout review is already open. Each step starts from the conversation the step before left:
+
+1. `/plan` from the slash list gets a question back. The details message calls `build_plan_skeleton` and `get_sample_week`. No card appears. The phone starts with no saved plan and no plan-save card.
+2. `Can I get from 250 to 300 W?` calls `assess_feasibility`. No card appears.
+3. `Save that plan` shows card A with no replaces line. It still waits after a kill. Save plan makes it read Saved, which survives a second kill. The answer to `What is my current plan?` names A.
+4. `Make it 10 weeks and save it` shows card B replacing A, and Save plan saves it. The answer to `When did my plan change?` names A and B.
+5. A workout review waits. `Make the plan 12 weeks`, then `Save that plan`, shows a card replacing B. It still waits at 580 seconds and reads Expired with no Save plan or Cancel before 615 seconds. Then the session's one calendar Approve is tapped once. Set Auto-Lock to Never: the step keeps the app in the foreground for eleven minutes.
+6. Turn on the largest text size and VoiceOver in iOS Settings, and turn them off after the step. `Make the plan 14 weeks and save it` shows a card whose parts read in order, with the bar in the transcript under the card. Save plan saves C. This step runs in its own invocation.
+7. `Make the plan 16 weeks and save it` shows a card. New conversation shows it once at the top, marked Prepared earlier. Cancel makes it read Canceled with no controls.
+
+The operator prepares the unlocked phone in English on the seeded test account, with no draft, and types `ready` when the helper asks. Supply the first and last step, the connected phone's identifier and a new local evidence folder. The helper keeps build products under `/tmp/enduragent-dd/M5-8-2-phone` and removes them after the run. A run that stops can resume at the failed step in a new invocation with a new budget.
+
+```sh
+make project
+swift run --quiet --package-path tools phone-check plan "$FIRST_STEP" "$LAST_STEP" "$DEVICE_ID" "$PLAN_PHONE_RUN"
+```
+
+The folder keeps `approval.json`, `phone.log`, `phone.xcresult`, `summary.json`, the exported `attachments` and `verdict.txt`. Inspect every screenshot and the actions log before typing `pass`. After step 5, check that the intervals.icu website shows exactly one new workout. After step 6, confirm that VoiceOver read the card's title, name, goal, length, each phase and the replaces line before Save plan and Cancel. Report the steps run, the message actions spent, the milestone total, any failed check and the state left on the phone.

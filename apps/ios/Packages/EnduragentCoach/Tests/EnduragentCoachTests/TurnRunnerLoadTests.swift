@@ -54,7 +54,7 @@ extension TurnRunnerTests {
 		let settled = try await coach.sendAndSettle("Is Saturday on?")
 		#expect(replyText(settled) == "Saturday is on.")
 		let memoryScope = RecordQuery.Scope.synced([
-			.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary,
+			.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary, SavedPlans.kind,
 		])
 		#expect(readsAtRequest.withLock { $0.filter { $0 == memoryScope }.count } == 1)
 		#expect(

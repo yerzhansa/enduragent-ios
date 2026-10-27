@@ -17,6 +17,9 @@ package struct ChatMessage: Sendable, Equatable {
 
 public enum ToolName: String, Sendable, CaseIterable {
 	case calculateZones = "calculate_zones"
+	case buildPlanSkeleton = "build_plan_skeleton"
+	case assessFeasibility = "assess_feasibility"
+	case getSampleWeek = "get_sample_week"
 	case intervalsFetchAthlete = "intervals_fetch_athlete"
 	case intervalsFetchWellness = "intervals_fetch_wellness"
 	case intervalsFetchActivity = "intervals_fetch_activity"
@@ -30,24 +33,26 @@ public enum ToolName: String, Sendable, CaseIterable {
 	case memoryWrite = "memory_write"
 	case ledgerAppend = "ledger_append"
 	case planSave = "plan_save"
+	case planLoad = "plan_load"
 }
 
 package enum ReplayUnsafeToolName: String, Sendable {
 	case memoryWrite = "memory_write"
 	case ledgerAppend = "ledger_append"
-	case planSave = "plan_save"
 
 	var toolName: ToolName {
 		switch self {
 		case .memoryWrite: .memoryWrite
 		case .ledgerAppend: .ledgerAppend
-		case .planSave: .planSave
 		}
 	}
 }
 
 enum ReadToolName: Sendable {
 	case calculateZones
+	case buildPlanSkeleton
+	case assessFeasibility
+	case getSampleWeek
 	case intervalsFetchAthlete
 	case intervalsFetchWellness
 	case intervalsFetchActivity
@@ -58,6 +63,9 @@ enum ReadToolName: Sendable {
 	var toolName: ToolName {
 		switch self {
 		case .calculateZones: .calculateZones
+		case .buildPlanSkeleton: .buildPlanSkeleton
+		case .assessFeasibility: .assessFeasibility
+		case .getSampleWeek: .getSampleWeek
 		case .intervalsFetchAthlete: .intervalsFetchAthlete
 		case .intervalsFetchWellness: .intervalsFetchWellness
 		case .intervalsFetchActivity: .intervalsFetchActivity
@@ -71,11 +79,13 @@ enum ReadToolName: Sendable {
 enum PreparationToolName: Sendable {
 	case getPendingWorkoutChanges
 	case prepareWorkoutChanges
+	case planSave
 
 	var toolName: ToolName {
 		switch self {
 		case .getPendingWorkoutChanges: .getPendingWorkoutChanges
 		case .prepareWorkoutChanges: .prepareWorkoutChanges
+		case .planSave: .planSave
 		}
 	}
 }
@@ -83,11 +93,13 @@ enum PreparationToolName: Sendable {
 enum MemoryReadToolName: Sendable {
 	case memoryRead
 	case memoryQuery
+	case planLoad
 
 	var toolName: ToolName {
 		switch self {
 		case .memoryRead: .memoryRead
 		case .memoryQuery: .memoryQuery
+		case .planLoad: .planLoad
 		}
 	}
 }
