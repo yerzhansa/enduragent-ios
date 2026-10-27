@@ -344,14 +344,18 @@ struct Scratch {
 
 	func runCommand(tables: [String]) throws -> (status: Int32, output: [String], errors: [String])
 	{
-		try inRoot { root in
-			let output = Lines()
-			let errors = Lines()
-			let status = try CheckCoverage.run(
-				arguments: ["--root", root] + tables, directory: root,
-				output: { output.lines.append($0) }, errors: { errors.lines.append($0) })
-			return (status, output.lines, errors.lines)
-		}
+		try inRoot { root in try Self.command(["--root", root] + tables, in: root) }
+	}
+
+	static func command(_ arguments: [String], in directory: String) throws -> (
+		status: Int32, output: [String], errors: [String]
+	) {
+		let output = Lines()
+		let errors = Lines()
+		let status = try CheckCoverage.run(
+			arguments: arguments, directory: directory,
+			output: { output.lines.append($0) }, errors: { errors.lines.append($0) })
+		return (status, output.lines, errors.lines)
 	}
 }
 
