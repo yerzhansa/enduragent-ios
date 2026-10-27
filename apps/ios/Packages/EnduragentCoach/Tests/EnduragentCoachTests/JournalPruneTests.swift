@@ -36,11 +36,13 @@ import Testing
 	}
 
 	@Test func aLogOverOneMiBLosesItsOldestLinesUntilItIsAtMost768KiB() throws {
-		let text = String(repeating: "x", count: Scrub.limit)
-		let records = try (0..<600).map {
-			try Self.record(at: Self.now - Double(600 - $0), text: text)
+		let large = String(repeating: "x", count: Scrub.limit)
+		let records = try (0..<3_350).map {
+			try Self.record(
+				at: Self.now - Double(3_350 - $0), text: $0 < 350 ? large : "userMessage")
 		}
 		#expect(Self.bytes(records) > 1_048_576)
+		#expect(records[0].encoded.count > 10 * records[3_349].encoded.count)
 		let kept = JournalPrune.kept(records, now: Self.now)
 		#expect(Array(records.suffix(kept.count)) == kept)
 		#expect(Self.bytes(kept) <= 786_432)

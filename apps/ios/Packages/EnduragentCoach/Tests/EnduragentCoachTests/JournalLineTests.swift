@@ -59,6 +59,8 @@ import Testing
 	@Test(arguments: [
 		"ledger unavailable", "ledger.unavailable\n", "tool_failed", "url(-1009)\"",
 		"ledger.ünavailable", "9lives", "",
+		"sk-or-v1-" + String(repeating: "0123456789abcdef", count: 4),
+		"My-knee-hurts-after-the-long-ride", "url(10-09)", "http(502", "http()",
 	])
 	func decodingRefusesACodeWithACharacterOutsideItsSet(_ code: String) throws {
 		let object: [String: Any] = [
@@ -83,6 +85,17 @@ import Testing
 		let encoded = try #require(String(data: try decoded.encoded(), encoding: .utf8))
 		#expect(!encoded.contains("sk-or-v1-abc"))
 		#expect(!encoded.contains("Bearer xyz"))
+	}
+
+	@Test func aJoinedCodeCutAtTheLimitKeepsEveryNumberWhole() throws {
+		let head = ProblemCode("unclassified").then(
+			ErrorTypeName(String(repeating: "a", count: 64)))
+		let code = head.then(ProblemCode("provider").then(ProblemCode("serverError", 502)))
+			.then(ProblemCode("http", 502)).then(ProblemCode("openRouter", 502))
+		#expect(code.rawValue == head.rawValue + ".provider.serverError(502).http(502).openRouter")
+		let line = StampedLine(
+			at: Self.at, line: .problem(ProblemLine(.recoveryUnavailable, cause: code)))
+		#expect(try StampedLine(decoding: line.encoded()) == line)
 	}
 
 	static let projectedCodes: [(FailureCode, String)] = [

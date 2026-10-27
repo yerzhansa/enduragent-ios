@@ -70,7 +70,8 @@
 			"statement": "Decoding refuses a problem line with an unknown kind, and one whose code has a character outside its closed set; each throws a DecodingError and nothing crashes.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "decodingRefusesAProblemLineWithAnUnknownKind"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "decodingRefusesACodeWithACharacterOutsideItsSet"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "decodingRefusesACodeWithACharacterOutsideItsSet"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "aJoinedCodeCutAtTheLimitKeepsEveryNumberWhole"}
 			]
 		},
 		{

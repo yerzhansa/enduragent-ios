@@ -151,7 +151,12 @@ package struct ProblemCode: Sendable, Hashable, Codable {
 	}
 
 	private init(joining head: String, _ tail: String) {
-		rawValue = String((head + "." + tail).prefix(Self.limit))
+		let cut = (head + "." + tail).prefix(Self.limit)
+		guard let open = cut.lastIndex(of: "("), !cut[open...].contains(")") else {
+			rawValue = String(cut)
+			return
+		}
+		rawValue = String(cut[..<open])
 	}
 
 	package func then(_ next: ProblemCode) -> ProblemCode {
@@ -167,7 +172,7 @@ package struct ProblemCode: Sendable, Hashable, Codable {
 		let raw = try container.decode(String.self)
 		guard Self.isClosed(raw) else {
 			throw DecodingError.dataCorruptedError(
-				in: container, debugDescription: "A problem code holds a character outside its set."
+				in: container, debugDescription: "The value is not a problem code."
 			)
 		}
 		rawValue = raw
@@ -179,24 +184,16 @@ package struct ProblemCode: Sendable, Hashable, Codable {
 				rawValue,
 				.init(
 					codingPath: encoder.codingPath,
-					debugDescription: "A problem code holds a character outside its set."))
+					debugDescription: "The value is not a problem code."))
 		}
 		var container = encoder.singleValueContainer()
 		try container.encode(rawValue)
 	}
 
 	private static func isClosed(_ raw: String) -> Bool {
-		let scalars = raw.unicodeScalars
-		guard let first = scalars.first, scalars.count <= limit, isLetter(first) else {
-			return false
-		}
-		return scalars.allSatisfy {
-			isLetter($0) || ("0"..."9").contains($0) || ".()-".unicodeScalars.contains($0)
-		}
-	}
-
-	private static func isLetter(_ scalar: Unicode.Scalar) -> Bool {
-		("a"..."z").contains(scalar) || ("A"..."Z").contains(scalar)
+		let shape = #/[A-Za-z][A-Za-z0-9.]*(?:\(-?[0-9]{1,20}\)[A-Za-z0-9.]*)*/#
+			.matchingSemantics(.unicodeScalar)
+		return raw.unicodeScalars.count <= limit && raw.wholeMatch(of: shape) != nil
 	}
 }
 
