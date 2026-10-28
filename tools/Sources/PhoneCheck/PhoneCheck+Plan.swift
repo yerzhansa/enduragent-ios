@@ -2,17 +2,6 @@ import Foundation
 import ToolSupport
 
 extension PhoneCheck {
-	private static var planLedger: String {
-		NodePath.join(NSHomeDirectory(), "Library/Logs/enduragent-m5/PHONE/messages.tsv")
-	}
-
-	private static let planSetup: [Int: String] = [
-		1: "The phone starts with no saved plan and no plan-save card.",
-		5:
-			"Auto-Lock is Never: step 5 waits eleven minutes with the app in the foreground. Step 5 makes the session's one calendar Approve.",
-		6: "Largest text size and VoiceOver are on in iOS Settings for step 6, and off after it.",
-	]
-
 	func plan(_ arguments: [String]) throws {
 		guard arguments.count == 4, !arguments[2].isEmpty, !arguments[3].isEmpty else {
 			throw PhoneFailure(
@@ -25,22 +14,21 @@ extension PhoneCheck {
 				description:
 					"An operator terminal is required before approval, build, launch or Send.")
 		}
-		let steps = try PlanPhoneSteps(first: arguments[0], last: arguments[1])
+		let plan = try session("plan")
+		let steps = try PhoneSteps(first: arguments[0], last: arguments[1], plan: plan)
+		let planned = plan.planned(steps.ids)
+		let named = steps.ids.joined(separator: ", ")
 		let folder = resolve(arguments[3])
-		let ledgerPath = Self.planLedger
-		let ledger = try PlanPhoneLedger(
-			text: FileManager.default.fileExists(atPath: ledgerPath)
-				? String(decoding: try FileSystem.read(ledgerPath), as: UTF8.self) : nil)
+		let ledgerPath = ledgerFile(of: plan)
+		let ledger = try readLedger(at: ledgerPath, of: plan)
 		try Console.say(
-			"PlanPhoneRun runs steps \(steps.text) of the plan phone session and plans \(steps.planned) message actions. Each Send, Try again and New conversation is one, and New conversation also saves memory. They spend the phone's Credits or its OpenRouter account. Milestone 5 has spent \(ledger.spent) of \(PlanPhoneBudget.cap)."
+			"PlanPhoneRun runs \(named) of the plan phone session and plans \(planned) message actions. Each Send, Try again and New conversation is one, and New conversation also saves memory. They spend the phone's Credits or its OpenRouter account. Milestone 5 has spent \(ledger.spent) of \(plan.cap)."
 		)
-		for step in steps.first...steps.last {
-			if let setup = Self.planSetup[step] { try Console.say("Step \(step): \(setup)") }
-		}
-		let invocation = try PlanPhoneBudget.approve(
+		try say(steps, of: plan)
+		let invocation = try PhoneBudget.approve(
 			try ask(
-				"Approve this invocation's message budget, at least \(steps.planned) and at most \(PlanPhoneBudget.cap - ledger.spent), acknowledging those charges. Enter a whole number or stop: "
-			), for: steps, after: ledger)
+				"Approve this invocation's message budget, at least \(planned) and at most \(plan.cap - ledger.spent), acknowledging those charges. Enter a whole number or stop: "
+			), steps: steps.ids, plan: plan, spent: ledger.spent)
 		guard
 			try ask(
 				"Prepare the unlocked phone in English on the seeded test account, in the conversation the step before left, with no draft. Type ready: "
@@ -52,13 +40,12 @@ extension PhoneCheck {
 		try makeNewFolder(folder)
 		try write(
 			JSONValue.keyed([
-				"steps": .string(steps.text), "plannedActions": .number(Double(steps.planned)),
+				"steps": .array(steps.ids.map(JSONValue.string)),
+				"plannedActions": .number(Double(planned)),
 				"approvedBudget": .number(Double(invocation.budget)),
 				"spentBefore": .number(Double(ledger.spent)), "chargesAcknowledged": .bool(true),
 			]).indentedText, to: NodePath.join(folder, "approval.json"))
-		try FileManager.default.createDirectory(
-			atPath: NodePath.dirname(ledgerPath), withIntermediateDirectories: true)
-		try write(ledger.recording(invocation, actions: nil).text, to: ledgerPath)
+		try book(ledger.recording(invocation, actions: nil), at: ledgerPath)
 		let build = "/tmp/enduragent-dd/M5-8-2-phone"
 		let bundle = NodePath.join(folder, "phone.xcresult")
 		let proof = Result {
@@ -70,16 +57,16 @@ extension PhoneCheck {
 					"-parallel-testing-enabled", "NO", "-resultBundlePath", bundle,
 					"-only-testing:EnduragentPhoneTests/PlanPhoneRun/testPlanPhoneRun",
 					"ENDURAGENT_PHONE_MESSAGE_BUDGET=\(invocation.budget)",
-					"ENDURAGENT_PLAN_PHONE_STEPS=\(steps.text)",
+					"\(PlannedPhoneStep.variable)=\(PlannedPhoneStep.text(plan.plannedSteps(steps.ids)))",
 				], log: NodePath.join(folder, "phone.log"),
 				failure: "The plan phone run failed. Stop and report \(folder)/phone.log.")
 		}
 		let attachments = NodePath.join(folder, "attachments")
 		let recorded = ledger.recording(
 			invocation, actions: try planActions(of: bundle, exportedTo: attachments))
-		try write(recorded.text, to: ledgerPath)
+		try book(recorded, at: ledgerPath)
 		try Console.say(
-			"This invocation spent \(recorded.invocations.last?.spent ?? invocation.budget) message actions. Milestone 5 has spent \(recorded.spent) of \(PlanPhoneBudget.cap)."
+			"This invocation spent \(recorded.invocations.last?.spent ?? invocation.budget) message actions. Milestone 5 has spent \(recorded.spent) of \(plan.cap)."
 		)
 		if FileManager.default.fileExists(atPath: build) {
 			try FileManager.default.removeItem(atPath: build)
