@@ -2981,6 +2981,7 @@
   },
   "feedback": {
     "title": "Palaute",
+    "command": "Lähetä viesti Enduragentin tekijöille",
     "prompt": "Kirjoita viesti Enduragentin tekijöille. Se lähtee yksinään, ilman keskusteluasi, muistia, harjoitustietoja tai diagnostiikkaa.",
     "send": "Lähetä",
     "sending": "Lähetetään…",

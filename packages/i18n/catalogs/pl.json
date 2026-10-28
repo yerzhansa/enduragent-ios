@@ -3053,6 +3053,7 @@
   },
   "feedback": {
     "title": "Opinia",
+    "command": "Wyślij wiadomość do autorów Enduragent",
     "prompt": "Napisz wiadomość do autorów Enduragent. Zostanie wysłana osobno, bez Twojej rozmowy, pamięci, danych treningowych i diagnostyki.",
     "send": "Wyślij",
     "sending": "Wysyłanie…",

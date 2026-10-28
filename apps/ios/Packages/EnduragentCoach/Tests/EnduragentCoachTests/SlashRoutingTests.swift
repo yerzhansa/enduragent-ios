@@ -16,6 +16,94 @@ import Testing
 		#expect(SlashRouting.parse("  /language  ") == .language)
 		#expect(SlashRouting.parse("/language it") == .language)
 		#expect(SlashRouting.parse("hello /review") == nil)
+		#expect(SlashRouting.parse("/feedback  the lap table is cut off ") == .feedback)
+		#expect(SlashRouting.parse("/version") == .version)
+	}
+
+	@Test func feedbackAndVersionOpenScreensAndFeedbackCarriesItsTrimmedText() {
+		let typed = "/feedback  the lap table is cut off "
+		#expect(SlashRouting.parse(typed)?.route == .screen(.feedback))
+		#expect(SlashRouting.argument(of: typed) == "the lap table is cut off")
+		#expect(SlashRouting.argument(of: "/feedback") == "")
+		#expect(
+			SlashRouting.argument(of: " /feedback\nline one\nline two\n") == "line one\nline two")
+		#expect(SlashRouting.parse("/version")?.route == .screen(.about))
+	}
+
+	@Test func aScreenRouteLeavesAWaitingReviewAndPlanCardAsTheyWere() async throws {
+		let turns = ReviewTurns()
+		let recording = BatchRecordingLog(inner: turns.store)
+		let coach = await makeCoach(
+			transport: turns.transport, intervals: turns.intervals, store: recording,
+			clock: HeldClock(calendar: turns.clock))
+		_ = try await turns.committed(ReviewTurns.oneRide, on: coach)
+		turns.script([
+			.toolCall(
+				name: "plan_save",
+				arguments: canonicalJSON(.object(["plan": PlanTurns.threshold]))),
+			.finish(reason: .toolCalls), .text("Saved?"), .finish(reason: .stop),
+		])
+		#expect(replyText(try await coach.sendAndSettle("Save my plan")) == "Saved?")
+		let saved = try #require(await coach.currentSnapshot(.main))
+		let card = try #require(saved.plans.last)
+		#expect(await coach.decide(.presented(card.ref), in: .main) == .presented)
+		let waiting = try #require(await coach.currentSnapshot(.main))
+		try #require(waiting.review != nil)
+		try #require(PlanTurns.token(of: waiting.plans.last) != nil)
+		let batches = recording.batches
+		let requests = turns.transport.requestCount
+
+		try await expectScreenRoutes(on: coach)
+
+		#expect(recording.batches == batches)
+		#expect(turns.transport.requestCount == requests)
+		#expect(await coach.currentSnapshot(.main) == waiting)
+	}
+
+	@Test func aScreenRouteLeavesTheCoalescingWindowOpen() async throws {
+		let timer = HeldClock()
+		let transport = FakeModelTransport()
+		transport.respond = ScriptedReply.sequence([
+			.text("Thursday reply."), .finish(reason: .stop),
+		])
+		let recording = BatchRecordingLog(inner: InMemoryRecordLog())
+		let coach = await makeCoach(
+			transport: transport, store: recording, clock: timer, coalescing: .npm,
+			coalescingClock: timer)
+		let thursday = try #require(
+			try await coach.send(draft("Thursday"), to: .main).acceptedTurn)
+		try await timer.waitUntilHeld(.milliseconds(1_500))
+		let batches = recording.batches
+		let collecting = try #require(await coach.currentSnapshot(.main))
+		#expect(
+			collecting.turns.map(\.state) == [
+				.accepted(.collecting(until: timer.now.addingTimeInterval(1.5)))
+			])
+
+		try await expectScreenRoutes(on: coach)
+
+		#expect(recording.batches == batches)
+		#expect(transport.requestCount == 0)
+		#expect(await coach.currentSnapshot(.main) == collecting)
+		#expect(timer.held == [.milliseconds(1_500)])
+		timer.advance(by: .milliseconds(1_500))
+		#expect(
+			replyText(try #require(await coach.settledState(of: thursday, in: .main)))
+				== "Thursday reply.")
+		let settled = try #require(await coach.currentSnapshot(.main))
+		#expect(settled.turns.map(\.athleteText) == ["Thursday"])
+		#expect(transport.requestCount == 1)
+		#expect(
+			transport.requests.first?.messages.last?.unstampedContent.hasPrefix(
+				"Thursday\nCurrent time: ") == true)
+	}
+
+	private func expectScreenRoutes(on coach: Coach) async throws {
+		#expect(
+			try await coach.send(draft("/feedback text"), to: .main)
+				== .openScreen(.feedback, argument: "text"))
+		#expect(
+			try await coach.send(draft("/version"), to: .main) == .openScreen(.about, argument: ""))
 	}
 
 	@Test(arguments: LanguageTag.allCases)

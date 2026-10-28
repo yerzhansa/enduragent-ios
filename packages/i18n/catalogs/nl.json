@@ -2981,6 +2981,7 @@
   },
   "feedback": {
     "title": "Feedback",
+    "command": "Een notitie sturen aan de auteurs van Enduragent",
     "prompt": "Schrijf een notitie aan de auteurs van Enduragent. Die wordt los verstuurd, zonder je gesprek, geheugen, trainingsgegevens of diagnostiek.",
     "send": "Versturen",
     "sending": "Bezig met versturen…",

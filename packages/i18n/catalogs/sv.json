@@ -2981,6 +2981,7 @@
   },
   "feedback": {
     "title": "Feedback",
+    "command": "Skicka en anteckning till Enduragents författare",
     "prompt": "Skriv en anteckning till Enduragents författare. Den skickas för sig, utan din konversation, ditt minne, dina träningsdata eller diagnostikdata.",
     "send": "Skicka",
     "sending": "Skickar…",

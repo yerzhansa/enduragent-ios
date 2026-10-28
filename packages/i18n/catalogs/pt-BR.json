@@ -2981,6 +2981,7 @@
   },
   "feedback": {
     "title": "Comentários",
+    "command": "Enviar uma nota para os autores do Enduragent",
     "prompt": "Escreva uma nota para os autores do Enduragent. Ela vai sozinha, sem sua conversa, memória, dados de treino ou diagnósticos.",
     "send": "Enviar",
     "sending": "Enviando…",

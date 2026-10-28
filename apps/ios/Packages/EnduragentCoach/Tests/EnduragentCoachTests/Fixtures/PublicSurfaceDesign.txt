@@ -810,6 +810,7 @@ SendOutcome
 SendOutcome.accepted
 SendOutcome.ignoredBlank
 SendOutcome.newConversation
+SendOutcome.openScreen
 SendOutcome.showLanguagePicker
 SessionField
 SessionField.contextWindowOverride
@@ -840,13 +841,18 @@ SignInFailure.callbackRejected
 SignInFailure.canceled
 SignInFailure.presentationUnavailable
 SlashCommand
+SlashCommand.feedback
 SlashCommand.language
 SlashCommand.menuTitle
 SlashCommand.plan
 SlashCommand.review
 SlashCommand.start
 SlashCommand.status
+SlashCommand.version
 SlashCommand.workout
+SlashScreen
+SlashScreen.about
+SlashScreen.feedback
 StyledText
 StyledText.init(text:styles:)
 StyledText.styles

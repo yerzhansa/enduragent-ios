@@ -178,114 +178,73 @@ final class AboutScreenProof: XCTestCase {
 }
 
 @MainActor
-private enum SupportScreen {
-	static let phrasebook = CatalogPhrasebook(tag: .en)
-	static let note = "The plan card skipped Tuesday."
-	static let closeShareSheet = "Close"
-	static let replaceSavedFile = "Replace"
-	static let keyboardAssistant = "SystemInputAssistantView"
-
-	static var notSavingSentence: String {
-		let display = DisplayLocale(
-			preference: .automatic, preferredLanguages: ["en"],
-			regionalConventions: Locale(identifier: "en_US"))
-		let clock = FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana")
-		return phrasebook.say(
-			Catalog.diagnosticsNotSaving, ["time": display.moment(clock.now, in: clock.timeZone)])
-	}
-
-	static func say(_ key: CatalogKey) -> String { phrasebook.say(key) }
-
-	static func start(feedback: String? = nil) -> XCUIApplication {
-		var arguments = FixtureArguments()
-		arguments.feedback = feedback.flatMap(FixtureFeedbackScript.init(rawValue:))
-		return start(arguments)
-	}
-
-	static func start(_ arguments: FixtureArguments) -> XCUIApplication {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app, arguments: arguments)
-		TutorialHarness.startUnconnected(app)
+final class SupportCommandProof: XCTestCase {
+	func testFeedbackCommandOpensDraft() {
+		let app = SupportScreen.chat()
+		TutorialHarness.send(app, "/feedback " + SupportScreen.lapTable)
+		let field = TutorialHarness.named(app, "feedback.field")
+		TutorialHarness.wait(field, until: .value(SupportScreen.lapTable))
+		SupportScreen.button(app, "feedback.send")
+		TutorialHarness.attach(self, name: "feedback-command-draft-light", app: app)
+		SupportScreen.backOnceToEmptyChat(app)
+		SupportScreen.assertFeedbackCounts(app, requests: 0, stored: 0)
 		TutorialHarness.openSettings(app)
-		return app
+		SupportScreen.open(app, "settings.feedback", showing: "feedback.field")
+		TutorialHarness.wait(field, until: .value(SupportScreen.lapTable))
+		SupportScreen.button(app, "feedback.send").tap()
+		SupportScreen.outcome(app, "feedback.outcome", SupportScreen.say(Catalog.feedbackReceived))
+		SupportScreen.assertFeedbackCounts(app, requests: 1, stored: 1)
 	}
 
-	static func startSharing() -> XCUIApplication {
-		let app = start()
-		open(app, "settings.diagnostics", showing: "diagnostics.make")
-		TutorialHarness.named(app, "diagnostics.make").tap()
-		TutorialHarness.wait(app.buttons[closeShareSheet], until: .hittable)
-		return app
-	}
-
-	static func open(_ app: XCUIApplication, _ row: String, showing content: String) {
-		let link = TutorialHarness.named(app, row)
-		TutorialHarness.scroll(app, to: link)
-		link.tap()
-		TutorialHarness.wait(TutorialHarness.named(app, content))
-	}
-
-	@discardableResult
-	static func outcome(
-		_ app: XCUIApplication, _ identifier: String, _ sentence: String
-	) -> XCUIElement {
-		let element = line(app, identifier, sentence)
-		TutorialHarness.wait(element)
-		return element
-	}
-
-	static func line(_ app: XCUIApplication, _ identifier: String, _ sentence: String)
-		-> XCUIElement
-	{
-		app.descendants(matching: .any).matching(
-			NSPredicate(format: "identifier == %@ AND label == %@", identifier, sentence)
-		).firstMatch
-	}
-
-	static func assertVisible(
-		_ app: XCUIApplication, _ element: XCUIElement,
-		file: StaticString = #filePath, line: UInt = #line
-	) {
-		TutorialHarness.wait(
-			until: {
-				element.exists && element.isHittable
-					&& element.frame.maxY <= visibleBottom(app)
-			},
-			message: "\(element) is not wholly above the keyboard",
-			file: file, line: line)
-	}
-
-	static func visibleBottom(_ app: XCUIApplication) -> CGFloat {
-		let covers = [app.keyboards.firstMatch, app.otherElements[keyboardAssistant]]
-			.filter(\.exists)
-		return covers.map(\.frame.minY).min() ?? app.windows.firstMatch.frame.maxY
-	}
-
-	static func shareAction(_ app: XCUIApplication, _ label: String) -> XCUIElement {
-		let action = app.descendants(matching: .any).matching(
-			NSPredicate(format: "label == %@", label)
-		).firstMatch
-		TutorialHarness.wait(action, until: .hittable)
-		return action
-	}
-
-	static func tryAgain(_ app: XCUIApplication) {
-		let button = TutorialHarness.named(app, "feedback.tryAgain")
-		assertVisible(app, button)
-		XCTAssertEqual(button.label, say(Catalog.chatTranscriptRetry))
-		button.tap()
-		assertVisible(app, outcome(app, "feedback.outcome", say(Catalog.feedbackReceived)))
-	}
-
-	static func assertFeedbackCounts(_ app: XCUIApplication, requests: Int, stored: Int) {
+	func testBareFeedbackKeepsDraft() {
+		let app = SupportScreen.start()
+		SupportScreen.open(app, "settings.feedback", showing: "feedback.field")
+		let field = TutorialHarness.named(app, "feedback.field")
+		field.tap()
+		field.typeText(SupportScreen.note)
+		TutorialHarness.wait(field, until: .value(SupportScreen.note))
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.openDebug(app)
-		XCTAssertEqual(
-			TutorialHarness.debugRow(app, "fixture.feedbackRequests").label,
-			"\(requests) feedback requests")
-		XCTAssertEqual(
-			TutorialHarness.debugRow(app, "fixture.feedbackStored").label,
-			"\(stored) feedback notes stored")
+		TutorialHarness.send(app, "/feedback")
+		TutorialHarness.wait(field, until: .value(SupportScreen.note))
+		TutorialHarness.attach(self, name: "feedback-command-bare-light", app: app)
+		SupportScreen.backOnceToEmptyChat(app)
+	}
+
+	func testVersionOpensAbout() {
+		let app = SupportScreen.chat()
+		let requests = SupportScreen.modelRequests(app)
+		TutorialHarness.send(app, "/version")
+		SupportScreen.outcome(app, "about.value.name", "Enduragent")
+		TutorialHarness.wait(TutorialHarness.named(app, "about.version"))
+		TutorialHarness.attach(self, name: "version-command-about-light", app: app)
+		SupportScreen.backOnceToEmptyChat(app)
+		XCTAssertEqual(SupportScreen.modelRequests(app), requests)
+	}
+
+	func testFeedbackCommandWithAKeptNote() {
+		let app = SupportScreen.start(feedback: "lost,lost,lost,lost")
+		SupportScreen.open(app, "settings.feedback", showing: "feedback.field")
+		let field = TutorialHarness.named(app, "feedback.field")
+		field.tap()
+		field.typeText(SupportScreen.note)
+		SupportScreen.button(app, "feedback.send").tap()
+		SupportScreen.button(app, "feedback.tryAgain")
 		TutorialHarness.returnToChat(app)
+		TutorialHarness.send(app, "/feedback " + SupportScreen.other)
+		TutorialHarness.wait(field, until: .value(SupportScreen.other))
+		SupportScreen.button(app, "feedback.send")
+		XCTAssertFalse(TutorialHarness.named(app, "feedback.tryAgain").exists)
+		TutorialHarness.attach(self, name: "feedback-command-kept-note-light", app: app)
+		SupportScreen.replaceNote(app, with: SupportScreen.note)
+		SupportScreen.button(app, "feedback.tryAgain")
+		SupportScreen.replaceNote(app, with: SupportScreen.other)
+		SupportScreen.button(app, "feedback.send").tap()
+		SupportScreen.button(app, "feedback.tryAgain")
+		SupportScreen.replaceNote(app, with: SupportScreen.note)
+		SupportScreen.button(app, "feedback.send")
+		XCTAssertFalse(TutorialHarness.named(app, "feedback.tryAgain").exists)
+		SupportScreen.replaceNote(app, with: SupportScreen.other)
+		SupportScreen.tryAgain(app)
+		SupportScreen.assertFeedbackCounts(app, requests: 5, stored: 2)
 	}
 }

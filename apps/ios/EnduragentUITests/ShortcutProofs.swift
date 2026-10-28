@@ -46,13 +46,21 @@ final class PlanShortcutProof: XCTestCase {
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		ShortcutScreen.openList(app)
-		let rows = ["start", "workout", "plan", "status", "review", "language"].map {
-			TutorialHarness.named(app, "chat.slash.\($0)")
-		}
+		let rows = [
+			"start", "workout", "plan", "status", "review", "language", "feedback", "version",
+		].map { TutorialHarness.named(app, "chat.slash.\($0)") }
 		for row in rows { TutorialHarness.wait(row) }
 		let tops = rows.map { $0.frame.minY }
 		XCTAssertEqual(tops, tops.sorted())
 		XCTAssertEqual(Set(tops).count, rows.count)
+		let titles = [
+			("/feedback", "Send a note to the Enduragent authors"),
+			("/version", "Show current version"),
+		]
+		for (row, (command, title)) in zip(rows.suffix(2), titles) {
+			XCTAssertTrue(row.label.hasPrefix(command), row.label)
+			XCTAssertTrue(row.label.contains(title), row.label)
+		}
 		TutorialHarness.attach(self, name: "slash-list-plan", app: app)
 	}
 

@@ -2945,6 +2945,7 @@
   },
   "feedback": {
     "title": "피드백",
+    "command": "Enduragent 제작자에게 메모 보내기",
     "prompt": "Enduragent 제작자에게 메모를 보내세요. 대화, 메모리, 훈련 데이터, 진단 정보 없이 메모만 전송됩니다.",
     "send": "보내기",
     "sending": "보내는 중…",

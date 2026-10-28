@@ -2981,6 +2981,7 @@
   },
   "feedback": {
     "title": "Feedback",
+    "command": "Send en note til forfatterne af Enduragent",
     "prompt": "Skriv en note til forfatterne af Enduragent. Den sendes for sig selv, uden din samtale, hukommelse, træningsdata eller diagnosedata.",
     "send": "Send",
     "sending": "Sender…",

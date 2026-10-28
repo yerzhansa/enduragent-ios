@@ -13,6 +13,8 @@ Support is the Settings section after Session. It holds Feedback, Diagnostics an
 - `support-diagnostics-share` makes the diagnostics file and opens the iOS share sheet. Close shows `Canceled. The file was not shared.`, Copy or another app shows `Shared. iOS handed the file to the app you chose.`, Save to Files shows `Saved to Files.`, and a share error shows `The file could not be shared.`. The make button returns after each outcome, and the share folder is empty again.
 - `support-diagnostics-not-saving` shows `This phone has not saved the problem log since <date time>. …` above the explanation when the journal has stopped saving. The time is the coach clock's date and clock in its zone.
 - `support-about` shows the app name `Enduragent`, `Version 0.1.0 (3)` and the Privacy policy link, which opens Safari.
+- `support-feedback-command` opens Feedback from the chat. `/feedback the lap table is cut off` opens it with `the lap table is cut off` as the draft and Send, and clears the composer. Nothing is stored in the conversation, no model request is made, and nothing reaches the feedback server until Send is tapped on Feedback. One Back returns to the conversation. `/feedback` with no text opens Feedback with the draft it had. With a kept note, `/feedback other text` shows `other text` and Send while the kept note stays: editing the field back to the kept text shows Try again. Send with `other text` keeps a new note in place of the old one, and Try again then resends that new note.
+- `support-version-command` opens About from the chat with `/version`, with no message stored and no model request.
 
 ## How to get to it (user POV)
 
@@ -21,6 +23,7 @@ Support is the Settings section after Session. It holds Feedback, Diagnostics an
 - On Feedback, type in `feedback.field` and tap `feedback.send`, or `feedback.tryAgain` when a note is kept.
 - On Diagnostics, tap `diagnostics.make`, then pick an action in the share sheet.
 - On About, tap `about.privacyPolicy`.
+- From the chat, type `/feedback` with or without text, or `/version`, and tap Send.
 
 ## Driving it with sim and XCUITest
 
@@ -37,6 +40,10 @@ Follow the [index](./README.md) setup. Use a 390 pt wide iPhone. Every launch us
 | `sim test <run id> DiagnosticsScreenProof/testSaveToFilesOnMyIPhoneShowsSaved` | Save to Files, On My iPhone, Save shows `Saved to Files.`. On a rerun, iOS asks to replace the file from the earlier run. A tap while the alert animates in is ignored, so the proof taps Replace whenever it is hittable until `Saved to Files.` appears. `diagnostics-saved-light`. |
 | `sim test <run id> DiagnosticsScreenProof/testNotSavingLine` | Launch with `-EnduragentFixtureJournal notSaving`. `diagnostics.notSaving` reads the not-saving sentence with the fixture clock's 1998-06-15 time in Europe/Ljubljana. `diagnostics-not-saving-light`. |
 | `sim test <run id> AboutScreenProof` | `about.value.name` reads Enduragent, `about.version` reads `Version 0.1.0 (3)`, and the Privacy policy link brings Safari to the foreground. `about-light`. |
+| `sim test <run id> SupportCommandProof/testFeedbackCommandOpensDraft` | `/feedback the lap table is cut off` opens Feedback with that draft and Send; one Back shows the chat with an empty composer and `turns 0 settled 0`; Debug reads `0 feedback requests`; Send on Feedback shows Received and Debug reads `1 feedback requests` and `1 feedback notes stored`. `feedback-command-draft-light`. |
+| `sim test <run id> SupportCommandProof/testBareFeedbackKeepsDraft` | A draft typed on Feedback stays after Back to the chat; `/feedback` opens Feedback with that draft, and one Back shows an empty composer. `feedback-command-bare-light`. |
+| `sim test <run id> SupportCommandProof/testVersionOpensAbout` | `/version` opens About with Enduragent and the version line; one Back shows an empty composer; `fixture.modelRequestCount` reads the same before and after. `version-command-about-light`. |
+| `sim test <run id> SupportCommandProof/testFeedbackCommandWithAKeptNote` | Launch with `-EnduragentFixtureFeedback lost,lost,lost,lost`. A note ends not confirmed; `/feedback other text` shows `other text` and Send; the kept text shows Try again; Send with `other text` ends not confirmed and keeps it, so the first note's text shows Send and `other text` shows Try again, which shows Received; Debug reads `5 feedback requests` and `2 feedback notes stored`. `feedback-command-kept-note-light`. |
 
 The hosted `FeedbackLineTests` suite maps every refusal and feedback status to its sentence and button, including Try again for a draft that trims to the kept note, and maps journal health to the not-saving line. The hosted `SupportShareTests.eachShareCompletionShowsItsLine` feeds literal share activity strings into `SupportModel.shareFinished` and checks each line and the empty share folder. The hosted `FeedbackDraftTests.receivedClearsOnlyTheDraftThatWasSent` holds a send at the fake server, edits the draft, and checks that Received keeps the edit.
 
@@ -48,3 +55,4 @@ Fixture handles: `-EnduragentFixtureFeedback` takes comma-separated answers (`lo
 - The share sheet cannot be swiped away; the activity view's completion is the only source of an outcome.
 - `testRefusals` types 4,001 characters, which takes a while.
 - `relaunchKeepingStore(clearingFeedbackScript: true)` drops the feedback script, so the relaunched fake server stores the note.
+- `SupportCommandProof` and `FeedbackScreenProof` both read `fixture.feedbackRequests`; run them in separate shards.
