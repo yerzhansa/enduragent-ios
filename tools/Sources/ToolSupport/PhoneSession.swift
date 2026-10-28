@@ -29,6 +29,15 @@ public struct PhoneSessionPlan: Sendable, Equatable, Decodable {
 			PlannedPhoneStep(id: $0.id, planned: $0.planned)
 		}
 	}
+
+	public func quotedMessages(of steps: [String]) -> [String] {
+		self.steps.filter { steps.contains($0.id) }.flatMap(\.checks).flatMap { check in
+			[check.look, check.pass].flatMap { text in
+				text.split(separator: "\"", omittingEmptySubsequences: false).enumerated()
+					.filter { !$0.offset.isMultiple(of: 2) }.map { String($0.element) }
+			}
+		}
+	}
 }
 
 public struct PhoneStep: Sendable, Equatable, Decodable {
@@ -176,7 +185,7 @@ public struct SittingStep: Sendable, Hashable, Decodable {
 	}
 }
 
-public struct PhoneInvocation: Sendable, Equatable {
+public struct PhoneLedgerRow: Sendable, Equatable {
 	public let steps: [String]
 	public let budget: Int
 	public let spent: Int
@@ -185,7 +194,7 @@ public struct PhoneInvocation: Sendable, Equatable {
 public enum PhoneBudget {
 	public static func approve(
 		_ answer: String, steps: [String], plan: PhoneSessionPlan, spent: Int
-	) throws -> PhoneInvocation {
+	) throws -> PhoneLedgerRow {
 		guard let budget = wholeNumber(answer) else {
 			throw PhoneRefusal(
 				description: "No message budget approved. Stop before build, launch or Send.")
@@ -204,7 +213,7 @@ public enum PhoneBudget {
 					"\(spent) message actions are spent, so a budget of \(budget) would pass the \(plan.name) cap of \(plan.cap). Stop before build, launch or Send."
 			)
 		}
-		return PhoneInvocation(steps: steps, budget: budget, spent: budget)
+		return PhoneLedgerRow(steps: steps, budget: budget, spent: budget)
 	}
 
 	static func wholeNumber(_ text: String) -> Int? {
@@ -214,5 +223,82 @@ public enum PhoneBudget {
 			digits.count == 1 || digits[0] != UInt8(ascii: "0")
 		else { return nil }
 		return Int(text)
+	}
+}
+
+public struct DiagnosticsScanInputs: Sendable, Equatable {
+	public let athleteID: String
+	public let intervalsKey: String
+	public let fixedMessages: [String]
+
+	public init(athleteID: String, intervalsKey: String, fixedMessages: [String]) {
+		self.athleteID = athleteID
+		self.intervalsKey = intervalsKey
+		self.fixedMessages = fixedMessages
+	}
+}
+
+public enum DiagnosticsFileScan {
+	static let keys = [
+		"access", "app", "device", "format", "journal", "language", "lines", "made", "records",
+		"training",
+	]
+	static let secretShapes = [
+		("sk-or-v1-", #"sk-or-v1-"#), ("sk-", #"\bsk-"#), ("Bearer ", #"Bearer "#),
+		("ghp_", #"\bghp_"#),
+	]
+	static let athleteShape = #"\bi\d{4,10}\b"#
+
+	public static func problems(in file: Data, inputs: DiagnosticsScanInputs) throws -> [String] {
+		guard let text = String(data: file, encoding: .utf8) else {
+			return ["The file is not UTF-8 text."]
+		}
+		let patterns = JavaScriptPatterns()
+		var problems = try structure(of: text)
+		for (name, shape) in secretShapes where try patterns.test(shape, text) {
+			problems.append("The file holds the secret shape \(name).")
+		}
+		if !inputs.athleteID.isEmpty, text.contains(inputs.athleteID) {
+			problems.append("The file holds the test account's athlete id.")
+		}
+		if try patterns.test(athleteShape, text) {
+			problems.append("The file holds an athlete id shape.")
+		}
+		if !inputs.intervalsKey.isEmpty, text.contains(inputs.intervalsKey) {
+			problems.append("The file holds the intervals key.")
+		}
+		for message in inputs.fixedMessages where !message.isEmpty && text.contains(message) {
+			problems.append("The file holds the message \(message.quotedAsJSON).")
+		}
+		return problems
+	}
+
+	private static func structure(of text: String) throws -> [String] {
+		let file: JSONValue
+		do {
+			file = try JSONValue.parse(text)
+		} catch let failure as JSONSyntaxFailure {
+			return ["The file is not JSON: \(failure.description)."]
+		}
+		guard case .object(let members) = file else { return ["The file is not a JSON object."] }
+		var problems: [String] = []
+		let found = members.map(\.key).sorted()
+		if found != keys {
+			problems.append(
+				"The file's top-level keys are \(found.joined(separator: ", ")), not \(keys.joined(separator: ", "))."
+			)
+		}
+		guard case .array(let lines) = try file.member("lines") else {
+			return problems + ["The file has no list of lines."]
+		}
+		let usage = try lines.contains { line in
+			guard case .object = line, case .object = try line.member("usage") else { return false }
+			let usage = try line.member("usage")
+			guard let model = try usage.member("model").string, !model.isEmpty else { return false }
+			return try usage.member("inputTokens").number != nil
+				&& usage.member("outputTokens").number != nil
+		}
+		if !usage { problems.append("The file has no usage line with a model and tokens.") }
+		return problems
 	}
 }

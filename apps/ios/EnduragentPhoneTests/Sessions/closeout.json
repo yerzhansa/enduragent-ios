@@ -199,7 +199,7 @@
 			"driver": {"runnerOnDebugBuild": {"scheme": "EnduragentKeychainProof", "testClass": "TwoPhoneReconnectCheck", "testMethod": "testTwoPhoneReconnectStep", "actionsAttachment": "operator-check"}},
 			"planned": 0,
 			"setup": [
-				"The second device is ready: by default the iOS simulator on this Mac, signed in to the test Apple ID, with the proof app. Without it the step is blocked."
+				"The second device is a physical iPhone signed in to the test Apple ID with iCloud Keychain on, with the proof app. Without one the step is blocked."
 			],
 			"checks": [
 				{"look": "each reconnect step's test result", "pass": "one passed test, no failure and no skip"},

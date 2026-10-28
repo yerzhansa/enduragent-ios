@@ -16,7 +16,8 @@
 		"8.2": 6,
 		"8.3": 8,
 		"8.4": 6,
-		"9.1": 9
+		"9.1": 9,
+		"9.2": 9
 	},
 	"criteria": [
 		{
@@ -1034,6 +1035,86 @@
 			"statement": "PhoneSessionTests.everyStepHasDecidableChecks: every step in the three committed files has at least one check with a non-empty pass, and an endsWith.",
 			"tests": [
 				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "everyStepHasDecidableChecks"}
+			]
+		},
+		{
+			"id": "9.2.1",
+			"statement": "PhoneInvocationPlan books m4 into enduragent-m4/PHONE/messages.tsv with cap 40, plan into enduragent-m5/PHONE/messages.tsv with cap 30, and closeout into enduragent-m6/PHONE/messages.tsv with cap 50. A bad budget and one that would pass the cap throw before the factory builds any Subprocess. The keychain-proof and two-phone invocations list the proof build, the devicectl install and the test, in that order.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "eachCommandBooksItsOwnLedger"},
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "aProofStepBuildsAndInstallsTheProofAppBeforeItsTest"},
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "runnerStepsOfOneTestShareOneRunThatPlansEachStep"}
+			]
+		},
+		{
+			"id": "9.2.2",
+			"statement": "A verdict entered at the prompt lands in coverage/closeout/sitting.json under its step, an answer that is not pass, fail <check> or blocked <reason> is refused, and a second verdict for the same step replaces the first.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/SittingRecordTests.swift", "function": "aVerdictTypedAtThePromptReplacesTheStepsEarlierOne"}
+			]
+		},
+		{
+			"id": "9.2.3",
+			"statement": "On the simulator in fixture mode, CloseoutPhoneRun passes the about, feedback and language steps against the separately installed app, and its closeout-phone-actions log holds 0, 0 and 4 Message action lines for them.",
+			"tests": [
+				{"file": "apps/ios/EnduragentPhoneTests/CloseoutPhoneRun.swift", "class": "CloseoutPhoneRun", "method": "testCloseoutPhoneRun"}
+			],
+			"checkedByHand": {"part": "The simulator agent counts the Message action lines per step in the exported closeout-phone-actions attachment and records the counts in the review.", "described": ".agents/skills/verify-ios/phone.md"}
+		},
+		{
+			"id": "9.2.4",
+			"statement": "The about step shows Enduragent and a version with its build on About from the Support row, /version opens About, and the privacy policy link brings Safari to the foreground.",
+			"tests": [
+				{"file": "apps/ios/EnduragentPhoneTests/CloseoutPhoneRun.swift", "class": "CloseoutPhoneRun", "method": "testCloseoutPhoneRun"}
+			],
+			"checkedByHand": {"part": "The simulator agent inspects the about, about-privacy-policy and about-from-version screenshots and records them in the review.", "described": ".agents/skills/verify-ios/phone.md"}
+		},
+		{
+			"id": "9.2.5",
+			"statement": "The feedback step opens Feedback from the Support row and from /feedback the lap table is cut off with that draft, shows the empty and too-long refusals through FeedbackSendGate, handles a pasted NUL, and fixture.feedbackRequests stays 0. The language step taps neither feedback.send nor feedback.tryAgain.",
+			"tests": [
+				{"file": "apps/ios/EnduragentPhoneTests/CloseoutPhoneRun.swift", "class": "CloseoutPhoneRun", "method": "testCloseoutPhoneRun"}
+			],
+			"checkedByHand": {"part": "Which NUL branch the simulator took, NUL entered or NUL not enterable, read from the actions log; the simulator agent records it in the review.", "described": ".agents/skills/verify-ios/phone.md"}
+		},
+		{
+			"id": "9.2.6",
+			"statement": "FeedbackStepGuard.mayTapSend trims a note at both ends with FeedbackText's JavaScript whitespace set. It allows an empty value, whitespace and newlines, NUL alone, a NUL inside text, 4,001 a, and 4,001 units with a space inside, and refuses ab, the lap table is cut off, 4,000 a, 4,000 a with a space at each end, U+0085, U+200B, and 3,999 a after two U+FEFF. Each of the 25 trimmed scalars alone is allowed and around 4,000 a is refused; each near-miss alone is refused and before 4,000 a is allowed. FeedbackTextTests pins the same scalars and near-misses on the app side.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aNoteTheAppMustRefuseMayBeSent"},
+				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aNoteTheAppWouldDeliverIsNeverSent"},
+				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aScalarTheAppTrimsIsTrimmed"},
+				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aScalarTheAppKeepsIsCounted"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "eachJavaScriptWhitespaceScalarIsTrimmed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "aScalarOutsideTheJavaScriptSetIsKept"}
+			]
+		},
+		{
+			"id": "9.2.7",
+			"statement": "phone-feedback-send-gate reports a phone test file that names feedback.send outside FeedbackSendGate.swift, a FeedbackSendGate.swift that does not call FeedbackStepGuard.mayTapSend, and a phone test file that names feedback.tryAgain. It passes on the committed sources, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "9.2.8",
+			"statement": "The build-0f943324 store, opened by this code with the clock nine minutes after the seed settled, shows its plan-save confirmation waiting, and Expired one minute later. Its four turns, the memory text, the saved plan Threshold Block, the waiting review's one change, the receipt for event 1 and the language fr match the seed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreFromM5Tests.swift", "function": "waitingConfirmationKeepsItsExpiry"}
+			]
+		},
+		{
+			"id": "9.2.9",
+			"statement": "DiagnosticsFileScan fails a file holding i1234567, the test account's athlete id, sk-or-v1- followed by hex built at run time, the intervals key, or one of closeout.json's fixed fill and update messages, and a file with no usage line. A clean file with a usage line that has a model and tokens passes.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "aCleanFileWithAUsageLinePasses"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "anAthleteIdShapeFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "theTestAccountsAthleteIdFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "anOpenRouterKeyShapeFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "theIntervalsKeyFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "aFixedCloseoutMessageFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "aFileWithoutAUsageLineFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "theCommittedCloseoutPlanFixesTheFillAndUpdateMessages"}
 			]
 		}
 	],

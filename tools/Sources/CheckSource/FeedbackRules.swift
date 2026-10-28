@@ -21,6 +21,26 @@ extension SourceChecker {
 	static let deviceSupportService =
 		#"\bSupportService\s*\.\s*onDevice\s*\(|(?:^|[^\w)\]?!])\.\s*onDevice\s*\(\s*app\s*:"#
 	static let proofLaunch = #"\.\s*launch\s*\(\s*\)"#
+	static let phoneTestSwift = #"^apps\/ios\/EnduragentPhoneTests\/.*\.swift$"#
+	static let feedbackSendGateFile = "apps/ios/EnduragentPhoneTests/FeedbackSendGate.swift"
+	static let feedbackSend = #"\bfeedback\.send\b"#
+	static let feedbackTryAgain = #"\bfeedback\.tryAgain\b"#
+	static let sendGuardCall = #"\bFeedbackStepGuard\s*\.\s*mayTapSend\s*\("#
+
+	func checkPhoneFeedbackSendGate(_ source: SourceFile) throws {
+		let file = source.file
+		guard try patterns.test(Self.phoneTestSwift, file) else { return }
+		let gate = file.hasSameUnits(as: Self.feedbackSendGateFile)
+		if try !gate && patterns.test(Self.feedbackSend, source.text) {
+			try findings.report(file, "phone-feedback-send-gate", key: "send")
+		}
+		if try gate && !patterns.test(Self.sendGuardCall, patterns.withoutStrings(source.text)) {
+			try findings.report(file, "phone-feedback-send-gate", key: "guard")
+		}
+		if try patterns.test(Self.feedbackTryAgain, source.text) {
+			try findings.report(file, "phone-feedback-send-gate", key: "tryAgain")
+		}
+	}
 
 	func checkFeedbackFakeOnly(_ source: SourceFile) throws {
 		let file = source.file
