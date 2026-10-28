@@ -7,18 +7,36 @@ import Testing
 	static let javaScriptTrims: [(String, String)] = [
 		("  the lap table is cut off  ", "the lap table is cut off"),
 		("\u{FEFF}\u{2028}note\u{2029}\r\n", "note"),
-		(
-			"\t\u{000B}\u{000C}\u{00A0}\u{1680}\u{2000}\u{200A}\u{202F}\u{205F}\u{3000}note\u{3000}",
-			"note"
-		),
-		("\u{0085}note\u{0085}", "\u{0085}note\u{0085}"),
-		("\u{200B}note\u{180E}", "\u{200B}note\u{180E}"),
 		("keep  the\ninside", "keep  the\ninside"),
 	]
 
 	@Test(arguments: javaScriptTrims)
 	func textIsTrimmedAsJavaScriptTrims(_ raw: String, _ trimmed: String) throws {
 		#expect(try FeedbackText(validating: raw).trimmed == trimmed)
+	}
+
+	static let javaScriptWhitespace: [Unicode.Scalar] = [
+		"\u{0009}", "\u{000A}", "\u{000B}", "\u{000C}", "\u{000D}", "\u{0020}", "\u{00A0}",
+		"\u{1680}", "\u{2000}", "\u{2001}", "\u{2002}", "\u{2003}", "\u{2004}", "\u{2005}",
+		"\u{2006}", "\u{2007}", "\u{2008}", "\u{2009}", "\u{200A}", "\u{2028}", "\u{2029}",
+		"\u{202F}", "\u{205F}", "\u{3000}", "\u{FEFF}",
+	]
+
+	@Test(arguments: javaScriptWhitespace)
+	func eachJavaScriptWhitespaceScalarIsTrimmed(_ scalar: Unicode.Scalar) throws {
+		let space = String(scalar)
+		#expect(try FeedbackText(validating: space + "note" + space).trimmed == "note")
+	}
+
+	static let keptScalars: [Unicode.Scalar] = [
+		"\u{001C}", "\u{001F}", "\u{0085}", "\u{180E}", "\u{200B}", "\u{200C}", "\u{200D}",
+		"\u{2060}",
+	]
+
+	@Test(arguments: keptScalars)
+	func aScalarOutsideTheJavaScriptSetIsKept(_ scalar: Unicode.Scalar) throws {
+		let kept = String(scalar)
+		#expect(try FeedbackText(validating: kept + "note" + kept).trimmed == kept + "note" + kept)
 	}
 
 	static let atTheLimit: [String] = [

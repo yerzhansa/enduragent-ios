@@ -120,7 +120,6 @@
 				coalescing: launch.coalescing
 			)
 			return AppServices(
-				identity: identity,
 				coach: coach,
 				deviceCheck: FakeDeviceCheckTokenProvider(),
 				clock: clock,

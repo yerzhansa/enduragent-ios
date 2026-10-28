@@ -186,11 +186,17 @@ struct PlanPhoneBudgetTests {
 			)
 		}
 		#expect(
-			try PlanPhoneBudget.actionsFile(in: manifest(["step-1-plan.png", stamp]))
+			try PlanPhoneBudget.actionsFile(
+				in: manifest(["step-1-plan.png", stamp]), named: "plan-phone-actions")
 				== "file-1.txt")
-		#expect(try PlanPhoneBudget.actionsFile(in: manifest(["step-1-plan.png"])) == nil)
-		#expect(try PlanPhoneBudget.actionsFile(in: manifest([stamp, stamp])) == nil)
 		#expect(
-			try PlanPhoneBudget.actionsFile(in: manifest(["plan-phone-actions-old.txt"])) == nil)
+			try PlanPhoneBudget.actionsFile(
+				in: manifest(["step-1-plan.png"]), named: "plan-phone-actions") == nil)
+		#expect(
+			try PlanPhoneBudget.actionsFile(
+				in: manifest([stamp, stamp]), named: "plan-phone-actions") == nil)
+		#expect(
+			try PlanPhoneBudget.actionsFile(
+				in: manifest(["plan-phone-actions-old.txt"]), named: "plan-phone-actions") == nil)
 	}
 }

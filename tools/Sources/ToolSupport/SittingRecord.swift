@@ -43,6 +43,14 @@ public struct SittingEntry: Sendable, Equatable, Decodable {
 		case verdict, date
 	}
 
+	public init(verdict: StepVerdict, date: String) throws {
+		guard Self.isDay(date) else {
+			throw PhoneRefusal(description: "\(date) is not a YYYY-MM-DD day.")
+		}
+		self.verdict = verdict
+		self.date = date
+	}
+
 	public init(from decoder: any Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		let text = try container.decode(String.self, forKey: .verdict)
@@ -79,5 +87,27 @@ public struct SittingRecord: Sendable, Equatable, Decodable {
 	public static func load(root: String) throws -> SittingRecord {
 		try JSONDecoder().decode(
 			SittingRecord.self, from: FileSystem.read(NodePath.join(root, path)))
+	}
+
+	public static func record(_ answer: String, for step: String, on date: String, root: String)
+		throws -> StepVerdict
+	{
+		guard let verdict = StepVerdict(answer) else {
+			throw PhoneRefusal(
+				description: "\(answer) is not pass, fail <check> or blocked <reason>.")
+		}
+		var steps = try load(root: root).steps
+		steps[step] = try SittingEntry(verdict: verdict, date: date)
+		try Data(text(steps).utf8).write(
+			to: URL(fileURLWithPath: NodePath.join(root, path)), options: .atomic)
+		return verdict
+	}
+
+	static func text(_ steps: [String: SittingEntry]) -> String {
+		guard !steps.isEmpty else { return "{\"steps\": {}}\n" }
+		let rows = steps.sorted { $0.key < $1.key }.map { step, entry in
+			"\t\t\(step.quotedAsJSON): {\"verdict\": \(entry.verdict.text.quotedAsJSON), \"date\": \(entry.date.quotedAsJSON)}"
+		}
+		return "{\n\t\"steps\": {\n" + rows.joined(separator: ",\n") + "\n\t}\n}\n"
 	}
 }

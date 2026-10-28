@@ -1,10 +1,10 @@
+import XCTest
+
+struct PhoneRunBlocked: Error {
+	let reason: String
+}
+
 #if !targetEnvironment(simulator)
-	import XCTest
-
-	struct PhoneRunBlocked: Error {
-		let reason: String
-	}
-
 	struct PhoneNode: Sendable {
 		let identifier: String
 		let label: String
