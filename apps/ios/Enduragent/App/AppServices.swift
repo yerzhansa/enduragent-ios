@@ -43,7 +43,6 @@ struct AppServices: Sendable {
 		try AppIdentity(infoDictionary: Bundle.main.infoDictionary ?? [:])
 	}
 
-	var identity: AppIdentity
 	var coach: Coach
 	var deviceCheck: any DeviceCheckTokenProviding
 	var clock: any Clock
@@ -78,7 +77,6 @@ struct AppServices: Sendable {
 			displayLocale: displayLocale
 		)
 		return AppServices(
-			identity: identity,
 			coach: coach,
 			deviceCheck: DeviceCheckTokenProvider(),
 			clock: clock,

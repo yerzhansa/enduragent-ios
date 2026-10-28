@@ -247,7 +247,7 @@ final class ShellLanguageTests {
 			coalescing: CoalescingPolicy(window: .milliseconds(20)))
 		return AppTestFixture.active.own(
 			AppServices(
-				identity: .fixture, coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(),
+				coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(),
 				clock: clock,
 				leases: { [] }, packPrices: { _ in [:] }))
 	}
