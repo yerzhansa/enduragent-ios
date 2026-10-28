@@ -21,6 +21,7 @@ package enum ProblemKind: String, Sendable, Codable, CaseIterable {
 	case planSaveStalled
 	case journalRestarted
 	case journalLinesDropped
+	case diagnosticsFileFailed
 }
 
 extension DiagnosticsEvent {
@@ -84,6 +85,8 @@ extension DiagnosticsEvent {
 			ProblemLine(.journalRestarted, cause: fault.code)
 		case .journalLinesDropped(let count):
 			ProblemLine(.journalLinesDropped, cause: ProblemCode("undecodable", count))
+		case .diagnosticsFileFailed(let failure, let code):
+			ProblemLine(.diagnosticsFileFailed, cause: code.code, detail: failure.code)
 		}
 	}
 
@@ -134,6 +137,15 @@ extension JournalFault {
 		case .unreadable: ProblemCode("unreadable")
 		case .appendFailed: ProblemCode("appendFailed")
 		case .rewriteFailed: ProblemCode("rewriteFailed")
+		}
+	}
+}
+
+extension DiagnosticsFileFailure {
+	fileprivate var code: ProblemCode {
+		switch self {
+		case .couldNotWrite: ProblemCode("couldNotWrite")
+		case .shareFailed: ProblemCode("shareFailed")
 		}
 	}
 }

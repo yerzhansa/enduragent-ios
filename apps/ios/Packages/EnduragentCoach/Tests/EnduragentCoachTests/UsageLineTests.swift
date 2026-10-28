@@ -8,9 +8,11 @@ import Testing
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 	let store = InMemoryRecordLog()
 	let journal = MemoryJournalStorage()
+	let share: ShareFolder
 	let transport: FakeModelTransport
 
-	init() {
+	init() throws {
+		share = ShareFolder(in: try TestTemporaryFolders.make())
 		transport = FakeModelTransport(clock: clock)
 		transport.finishUsage = Usage(inputTokens: 1_200, outputTokens: 300, cost: 0.25)
 	}
@@ -201,7 +203,8 @@ import Testing
 	private func makeCoach() async -> Coach {
 		await EnduragentCoachTests.makeCoach(
 			transport: transport, store: store, clock: clock,
-			support: SupportService(journal: journal, app: .fixture, device: .fixture))
+			support: SupportService(
+				journal: journal, shareFolder: share, app: .fixture, device: .fixture))
 	}
 
 	private func remember(_ content: String) -> ScriptedEvent {

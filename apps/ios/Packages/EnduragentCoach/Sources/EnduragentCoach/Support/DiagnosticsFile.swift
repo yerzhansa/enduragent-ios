@@ -281,12 +281,15 @@ package struct StatusFacts: Sendable, Equatable {
 }
 
 package enum RecordCensus: Sendable, Equatable, Encodable {
-	case counted(synced: [SyncedKind: Int], local: [DeviceLocalKind: Int], skipped: Int)
+	case counted(
+		synced: [SyncedKind: Int], local: [DeviceLocalKind: Int], legacy: [LegacyKind: Int],
+		skipped: Int)
 	case unavailable(LedgerFailure)
 
 	private enum Key: String, CodingKey {
 		case synced
 		case local
+		case legacy
 		case skipped
 		case unavailable
 	}
@@ -294,9 +297,10 @@ package enum RecordCensus: Sendable, Equatable, Encodable {
 	package func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: Key.self)
 		switch self {
-		case .counted(let synced, let local, let skipped):
+		case .counted(let synced, let local, let legacy, let skipped):
 			try container.encode(Self.counts(synced), forKey: .synced)
 			try container.encode(Self.counts(local), forKey: .local)
+			try container.encode(Self.counts(legacy), forKey: .legacy)
 			try container.encode(skipped, forKey: .skipped)
 		case .unavailable(let failure):
 			try container.encode(FailureCode.ledger(failure).code, forKey: .unavailable)

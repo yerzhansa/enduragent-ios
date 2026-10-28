@@ -2,7 +2,7 @@ import Foundation
 import Synchronization
 
 package final class DiagnosticsLog: Sendable {
-	private let clock: any Clock
+	package let clock: any Clock
 	private let journal: Journal
 	private let events = Mutex<[DiagnosticsEntry]>([])
 
@@ -20,6 +20,10 @@ package final class DiagnosticsLog: Sendable {
 
 	package var health: JournalHealth {
 		journal.health
+	}
+
+	package func healthChanges() -> AsyncStream<JournalHealth> {
+		journal.healthChanges()
 	}
 
 	package func record(_ event: DiagnosticsEvent) {
@@ -78,6 +82,7 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case planSaveStalled(PlanConfirmationID, LedgerFailure)
 	case journalRestarted(JournalFault)
 	case journalLinesDropped(count: Int)
+	case diagnosticsFileFailed(DiagnosticsFileFailure, FailureCode)
 }
 
 extension JournalOpening {

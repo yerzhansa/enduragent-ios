@@ -3,7 +3,8 @@ import Foundation
 public actor Coach {
 	package let memory: Memory
 	public nonisolated let credits: any CreditsClient
-	package nonisolated let diagnostics: DiagnosticsLog
+	public nonisolated let support: Support
+	package nonisolated var diagnostics: DiagnosticsLog { support.log }
 	private let sport: SportID
 	private let transport: any ModelTransport
 	let ledger: Ledger
@@ -65,7 +66,6 @@ public actor Coach {
 			store: ports.secrets, training: ports.training, clock: clock, ledger: ledger,
 			diagnostics: diagnostics,
 			catalogs: ports.models.catalogs, signInService: ports.openRouterSignIn)
-		self.diagnostics = diagnostics
 		self.sport = sport
 		self.transport = transport
 		self.vault = vault
@@ -101,6 +101,9 @@ public actor Coach {
 				try await vault.connectedAccount()
 			})
 		self.plans = plans
+		self.support = Support(
+			log: diagnostics, service: ports.support,
+			census: SupportCensus(ledger: ledger, preferences: preferences, vault: vault))
 		self.runner = TurnRunner(
 			transport: transport, ledger: ledger, clock: clock,
 			diagnostics: diagnostics, ladder: .npm,

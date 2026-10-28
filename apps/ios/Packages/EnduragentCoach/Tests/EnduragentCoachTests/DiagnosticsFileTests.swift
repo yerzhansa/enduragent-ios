@@ -13,7 +13,8 @@ import Testing
 		language: LanguagePreference = .fixed(.fr),
 		device: DeviceFacts = .fixture,
 		records: RecordCensus = .counted(
-			synced: [.userMessage: 4, .dailyNote: 1], local: [.turnClaim: 2], skipped: 3),
+			synced: [.userMessage: 4, .dailyNote: 1], local: [.turnClaim: 2], legacy: [:],
+			skipped: 3),
 		journal: JournalHealth = .saving,
 		lines: [StampedLine] = []
 	) throws -> DiagnosticsFile {

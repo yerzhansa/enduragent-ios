@@ -7,6 +7,7 @@
 		"2.1": 8,
 		"2.2": 8,
 		"2.3": 6,
+		"3.1": 10,
 		"6.1": 9,
 		"8.1": 6,
 		"8.2": 6,
@@ -405,6 +406,81 @@
 			]
 		},
 		{
+			"id": "3.1.1",
+			"statement": "coach.support.about holds the AppIdentity the SupportService port was given, its name, version and build, and About.privacyPolicy is https://enduragent.icu/privacy.html.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aboutHoldsTheIdentityThePortWasGiven"}
+			]
+		},
+		{
+			"id": "3.1.2",
+			"statement": "makeDiagnosticsFile() publishes preparing, then ready(handle); the handle's file is the one file in the share folder and holds the census, the log's window and its health at that moment. With the census held by a CensusGate a second call returns preparing. A file made 14 days and 1 second after a line holds no such line.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "makingAFilePublishesPreparingThenReadyWithTheCensusWindowAndHealth"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aFileMadeFourteenDaysAndASecondLaterHoldsNoEarlierLine"}
+			]
+		},
+		{
+			"id": "3.1.3",
+			"statement": "finishShare with each ShareOutcome removes the handle's file and publishes saved, shared, canceled or failed(.shareFailed). A later finishShare for an older handle changes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "finishingAShareRemovesTheFileAndPublishesItsOutcome"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aLateFinishForAnOlderHandleChangesNothing"}
+			]
+		},
+		{
+			"id": "3.1.4",
+			"statement": "A file left in the share folder is removed when Support opens.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aFileLeftInTheShareFolderIsRemovedWhenSupportOpens"}
+			]
+		},
+		{
+			"id": "3.1.5",
+			"statement": "While a subscriber follows observe(), a failed log write publishes a snapshot whose journal is notSaving, and the next successful write publishes one whose journal is saving, with no Support method called in between.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aFailedLogWriteAndTheNextGoodOneArePublishedWithNoCall"}
+			]
+		},
+		{
+			"id": "3.1.6",
+			"statement": "A file made while the log is not saving carries notSaving(since:firstCause:) in its journal field.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aFileMadeWhileTheLogIsNotSavingSaysSo"}
+			]
+		},
+		{
+			"id": "3.1.7",
+			"statement": "Ledger.census() counts each synced, device-local and legacy kind and the skipped rows, and is unavailable when the store cannot be read. The record sync probe counts each kind by its name through it, as before.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LedgerCensusTests.swift", "function": "theCensusCountsEachKindAndTheSkippedRows"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LedgerCensusTests.swift", "function": "anUnreadableStoreIsCountedAsUnavailable"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LedgerCensusTests.swift", "function": "theRecordSyncProbeCountsEachKindByItsName"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RecordSyncProbeTests.swift", "function": "localSampleIsAReplyObservedRowOnTheDebugSampleChat"}
+			]
+		},
+		{
+			"id": "3.1.8",
+			"statement": "A write failure in the share folder records diagnosticsFileFailed(.couldNotWrite, code) and publishes failed(.couldNotWrite).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aWriteFailureInTheShareFolderIsRecordedAndShown"}
+			]
+		},
+		{
+			"id": "3.1.9",
+			"statement": "A file made from a coach whose secrets hold an OpenRouter key and an intervals.icu connection, after a turn whose provider failure quoted the athlete's sentence and with a skipped row whose ulid is the key, holds none of the key, the athlete id, the intervals key, the sentence or its training values, and holds exactly one usage line and the providerFailure problem.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aFileFromASeededCoachHoldsNoSecretOrAthleteText"}
+			]
+		},
+		{
+			"id": "3.1.10",
+			"statement": "PublicSurfaceTests.publicSymbolsMatchTheDesignList passes with Support, SupportSnapshot, About, DiagnosticsFileState, DiagnosticsFileHandle, DiagnosticsFileFailure, ShareOutcome, JournalHealth and JournalFault and their public members listed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
+			]
+		},
+		{
 			"id": "6.1.1",
 			"statement": "privacy-manifest reports a missing manifest, one under the app target's excludes, one declaring tracking true, one declaring UserDefaults without CA92.1, and one with a third accessed API type; it reports a product file holding .modificationDate or volumeAvailableCapacity, and a manifest declaring UserDefaults over sources with no UserDefaults; it accepts a test file holding .creationDate. It passes on the committed files, which make check-source checks in CI on every pull request.",
 			"tests": [
@@ -789,6 +865,11 @@
 			"criteria": ["1.1.5", "1.2.3", "1.2.4", "1.2.5", "2.1.1", "2.1.2", "2.1.4", "2.1.7", "2.1.8", "2.2.1", "2.2.4", "2.3.1", "2.3.6"]
 		},
 		{
+			"id": "B10.02",
+			"statement": "The diagnostics file is the phone's full export: one complete JSON file, made on request and handed to the share sheet, holding the census, the log's 14-day window and its health, with no key, athlete id or message text. The training snapshot export is absent by B10.02/no-snapshot.",
+			"criteria": ["1.4.2", "3.1.2", "3.1.9"]
+		},
+		{
 			"id": "B10.03",
 			"statement": "The diagnostics file holds its sections in the athlete's scope: the app, the phone, the access method kind, the connection state, the language, the record counts and the journal, with no key, athlete id, message text or training data. The per-section training snapshot is absent by B10.03/no-snapshot.",
 			"criteria": ["1.4.1", "1.4.2"]
@@ -843,7 +924,6 @@
 		"B05.02",
 		"B05.03",
 		"B05.04",
-		"B10.02",
 		"B10.04",
 		"B11.01",
 		"B11.02"
@@ -891,7 +971,7 @@
 			{"id": "B09.02", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "committedMemoryWriteSettlesSavedUnverified"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "savedWorkReachesTheNextPromptAsTheCoachsReply"}}, {"test": {"file": "apps/ios/EnduragentUITests/FailureProofs.swift", "class": "SavedUnverifiedProof", "method": "testSavedWorkOffersNoTryAgain"}}], "differences": [], "waitsOn": []},
 			{"id": "B09.03", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatRecordFailureTests.swift", "function": "fetchFailureAtSettlementStillPersistsTheExactReply"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxTests.swift", "function": "tryAgainAfterSavedWorkIsRefusedWithoutAModelRequest"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "approvalAfterAnotherTurnRunsTheSavedReviewWithNoModelRequest"}}], "differences": [], "waitsOn": []},
 			{"id": "B10.01", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B10.01"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B10.01/one-file", "record": "ADR-0085"}}, {"agreed": {"table": "coverage/milestone-6.json", "sub": "B10.01/one-severity", "record": "ADR-0085"}}], "waitsOn": []},
-			{"id": "B10.02", "group": "work", "status": "open", "evidence": [], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B10.02/no-snapshot", "record": "ADR-0085"}}], "waitsOn": [{"table": {"table": "coverage/milestone-6.json", "id": "B10.02"}}]},
+			{"id": "B10.02", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B10.02"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B10.02/no-snapshot", "record": "ADR-0085"}}], "waitsOn": []},
 			{"id": "B10.03", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B10.03"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B10.03/no-snapshot", "record": "ADR-0085"}}], "waitsOn": []},
 			{"id": "B10.04", "group": "work", "status": "open", "evidence": [], "differences": [], "waitsOn": [{"table": {"table": "coverage/milestone-6.json", "id": "B10.04"}}]},
 			{"id": "B11.01", "group": "work", "status": "open", "evidence": [], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B11/three-outcomes", "record": "ADR-0085"}}], "waitsOn": [{"table": {"table": "coverage/milestone-6.json", "id": "B11.01"}}]},

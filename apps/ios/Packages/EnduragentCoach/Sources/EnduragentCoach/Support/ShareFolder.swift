@@ -33,7 +33,7 @@ package struct ShareFolder: Sendable {
 	}
 }
 
-package enum DiagnosticsFileState: Sendable, Equatable {
+public enum DiagnosticsFileState: Sendable, Equatable {
 	case idle
 	case preparing
 	case ready(DiagnosticsFileHandle)
@@ -43,17 +43,17 @@ package enum DiagnosticsFileState: Sendable, Equatable {
 	case failed(DiagnosticsFileFailure)
 }
 
-package struct DiagnosticsFileHandle: Sendable, Equatable {
-	package let url: URL
+public struct DiagnosticsFileHandle: Sendable, Equatable {
+	public let url: URL
 	package let id: ULID
 }
 
-package enum DiagnosticsFileFailure: String, Sendable, Equatable, Codable {
+public enum DiagnosticsFileFailure: String, Sendable, Equatable, Codable {
 	case couldNotWrite
 	case shareFailed
 }
 
-package enum ShareOutcome: Sendable, Equatable {
+public enum ShareOutcome: Sendable, Equatable {
 	case saved
 	case shared
 	case canceled
@@ -61,7 +61,7 @@ package enum ShareOutcome: Sendable, Equatable {
 
 	package static let saveToFilesActivity = "com.apple.DocumentManagerUICore.SaveToFiles"
 
-	package static func of(activityType: String?, completed: Bool, error: (any Error)?)
+	public static func of(activityType: String?, completed: Bool, error: (any Error)?)
 		-> ShareOutcome
 	{
 		if error != nil { return .failed }

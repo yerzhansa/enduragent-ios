@@ -86,12 +86,12 @@ package enum JournalPrune {
 	}
 }
 
-package enum JournalHealth: Sendable, Equatable, Encodable {
+public enum JournalHealth: Sendable, Equatable, Encodable {
 	case saving
 	case notSaving(since: Date, firstCause: JournalFault)
 }
 
-package enum JournalFault: String, Sendable, Codable {
+public enum JournalFault: String, Sendable, Codable {
 	case unreadable
 	case appendFailed
 	case rewriteFailed
