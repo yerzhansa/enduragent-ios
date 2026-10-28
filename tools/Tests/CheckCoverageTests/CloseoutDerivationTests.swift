@@ -25,12 +25,14 @@ struct CloseoutDerivationTests {
 			RetainedID(id: "D04", group: .decision, milestones: []),
 			RetainedID(id: "MOB01", group: .mobile, milestones: []),
 		]
+		fixture.approvals = ["A01", "D04"]
 		fixture.tables = [
 			four: #"""
 			{"requirements": [
 				{"id": "B17.01", "criteria": ["4.1.1"]},
-				{"id": "B17.01/utc", "agreedDifference": "ADR-0083 makes the phone's time zone decide."}
-			], "open": []}
+				{"id": "B17.01/utc", "agreedDifference": "ADR-0083 makes the phone's time zone decide."},
+				{"id": "D04", "criteria": ["4.2.1"]}
+			], "open": ["MOB01"]}
 			"""#,
 			five: #"""
 			{"requirements": [{"id": "B15.01", "criteria": ["5.1.1"]}], "open": []}
@@ -57,7 +59,6 @@ struct CloseoutDerivationTests {
 			("B13.01", #"{"recorded": {"record": "ADR-0080", "says": "Said once."}}"#)
 		]
 		fixture.waitsOn = [
-			("B11.02", #"{"table": {"table": "coverage/milestone-6.json", "id": "B11.02"}}"#),
 			("B13.02", #"{"work": "The reply half waits on its unit."}"#),
 			("MOB01", #"{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}"#),
 		]
@@ -101,7 +102,12 @@ struct CloseoutDerivationTests {
 			section.rows.filter { !$0.waitsOn.isEmpty }.map { [$0.id: $0.waitsOn] } == [
 				["B11.02": [.table(Self.six, id: "B11.02")]],
 				["B13.02": [.work("The reply half waits on its unit.")]],
-				["MOB01": [.phone(session: "closeout", step: "closeout/lifecycle")]],
+				[
+					"MOB01": [
+						.table(Self.four, id: "MOB01"),
+						.phone(session: "closeout", step: "closeout/lifecycle"),
+					]
+				],
 			])
 	}
 

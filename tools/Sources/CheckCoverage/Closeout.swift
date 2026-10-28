@@ -186,11 +186,12 @@ enum CloseoutDerivation {
 		retained: RetainedRequirements, hand: HandEvidence, tables: [String: TableDigest]
 	) -> CloseoutSection {
 		let ordered = tables.keys.sorted().compactMap { path in tables[path].map { (path, $0) } }
+		let approvals = Set(retained.approvals)
 		let rows = retained.requirements.map { retainedID in
 			let id = retainedID.id
 			let evidence =
 				ordered.flatMap { path, digest in
-					digest.requirements.filter { $0.id == id }.map {
+					digest.requirements.filter { $0.id == id && !approvals.contains(id) }.map {
 						EvidencePointer.requirement(table: path, id: $0.id)
 					}
 				} + hand.evidence[id, default: []]
@@ -201,7 +202,10 @@ enum CloseoutDerivation {
 							table: path, sub: $0.id, record: $0.record ?? "none")
 					}
 				} + hand.differences[id, default: []]
-			let waitsOn = hand.waitsOn[id, default: []]
+			let waitsOn =
+				ordered.flatMap { path, digest in
+					digest.open.filter { $0 == id }.map { OpenReason.table(path, id: $0) }
+				} + hand.waitsOn[id, default: []]
 			let status: CloseoutStatus =
 				!waitsOn.isEmpty ? .open : !differences.isEmpty ? .deviation : .met
 			return CloseoutRow(
