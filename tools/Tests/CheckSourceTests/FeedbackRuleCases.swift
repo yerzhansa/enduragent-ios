@@ -86,4 +86,54 @@ extension SourceCases {
 				"\(coachTests)/BodyTests.swift": "let body = try FeedbackClient.body(of: note)\n",
 			]),
 	]
+
+	static let phoneGate = "apps/ios/EnduragentPhoneTests/FeedbackSendGate.swift"
+	static let phoneRun = "apps/ios/EnduragentPhoneTests/CloseoutPhoneRun.swift"
+	static let guardedSend =
+		"guard FeedbackStepGuard.mayTapSend(fieldValue: value) else { return }\n"
+		+ "TutorialHarness.named(app, \"feedback.send\").tap()\n"
+
+	static func gateFinding(_ file: String, _ condition: String) -> String {
+		#""\#(file)" [phone-feedback-send-gate] "\#(condition)""#
+	}
+
+	static let phoneFeedbackSendGate: [SourceCase] = [
+		.rejects(
+			"rejects feedback.send named outside the send gate",
+			[phoneGate: guardedSend, phoneRun: "let send = app.buttons[\"feedback.send\"]\n"],
+			finding: "phone-feedback-send-gate",
+			findingLines: [gateFinding(phoneRun, "send")]),
+		.rejects(
+			"rejects a send gate that does not ask the guard",
+			[phoneGate: "TutorialHarness.named(app, \"feedback.send\").tap()\n"],
+			finding: "phone-feedback-send-gate",
+			findingLines: [gateFinding(phoneGate, "guard")]),
+		.rejects(
+			"rejects a send gate whose guard call is only text",
+			[
+				phoneGate:
+					"let note = \"FeedbackStepGuard.mayTapSend(fieldValue: value)\"\n"
+					+ "TutorialHarness.named(app, \"feedback.send\").tap()\n"
+			],
+			finding: "phone-feedback-send-gate",
+			findingLines: [gateFinding(phoneGate, "guard")]),
+		.rejects(
+			"rejects feedback.tryAgain anywhere in the phone tests",
+			[
+				phoneGate: guardedSend + "app.buttons[\"feedback.tryAgain\"].tap()\n",
+				phoneRun: "let retry = \"feedback.tryAgain\"\n",
+			],
+			finding: "phone-feedback-send-gate",
+			findingLines: [
+				gateFinding(phoneRun, "tryAgain"), gateFinding(phoneGate, "tryAgain"),
+			]),
+		.accepts(
+			"accepts the guarded send in the gate and both identifiers outside the phone tests",
+			[
+				phoneGate: guardedSend,
+				phoneRun: "try FeedbackSendGate.tapSend(in: app)\n",
+				"apps/ios/EnduragentUITests/SupportScreen.swift":
+					"app.buttons[\"feedback.send\"].tap()\napp.buttons[\"feedback.tryAgain\"].tap()\n",
+			]),
+	]
 }
