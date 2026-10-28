@@ -27,6 +27,7 @@ package struct ToolExecution: Sendable, Equatable {
 package actor TurnScope {
 	package nonisolated let stamp: OperationStamp
 	package nonisolated let policy: TurnBudgetPolicy
+	package nonisolated let meter: UsageMeter
 	private let started: Duration
 	private var calls = 0
 	private var attempts = 0
@@ -47,6 +48,7 @@ package actor TurnScope {
 		self.policy = policy
 		self.ladder = ladder
 		self.started = uptime
+		meter = UsageMeter(started: uptime)
 	}
 
 	package func chargeCall() throws(TurnBudgetExceeded) {
