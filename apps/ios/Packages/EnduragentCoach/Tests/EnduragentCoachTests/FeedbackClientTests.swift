@@ -1,5 +1,6 @@
 import EnduragentCoachFixtures
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -74,6 +75,22 @@ import Testing
 			])
 	}
 
+	@Test func theFakeAnswersWhileTheCooperativePoolIsBlocked() async throws {
+		let server = FakeFeedbackServer()
+		let session = server.client.session
+		var request = URLRequest(url: FeedbackClient.endpoint)
+		request.httpMethod = "POST"
+		request.httpBody = try FeedbackClient.body(of: note)
+		let status = await withCheckedContinuation { [request] continuation in
+			DispatchQueue.global().async {
+				let status = statusWithThePoolBlocked(request, on: session, for: 5)
+				continuation.resume(returning: status)
+			}
+		}
+		#expect(status == 204)
+		#expect(server.requestCount == 1)
+	}
+
 	@Test(arguments: sendCases)
 	func sendEndsWithItsOutcome(_ sendCase: SendCase) async throws {
 		let server = FakeFeedbackServer(script: try script(sendCase.script))
@@ -95,6 +112,44 @@ let receivedOutcome = FeedbackDelivery.settle(prior: nil, answers: [AttemptAnswe
 
 func script(_ words: String) throws -> [FakeFeedbackAnswer] {
 	try words.split(separator: ",").map { try #require(FakeFeedbackAnswer(word: String($0))) }
+}
+
+private func statusWithThePoolBlocked(
+	_ request: URLRequest, on session: URLSession, for limit: TimeInterval
+) -> Int? {
+	let priorities: [TaskPriority] = [.high, .medium, .low, .background]
+	let width = ProcessInfo.processInfo.activeProcessorCount
+	let started = DispatchSemaphore(value: 0)
+	let gate = DispatchSemaphore(value: 0)
+	for priority in priorities {
+		for _ in 0..<width {
+			Task.detached(priority: priority) {
+				holdAThread(started: started, until: gate, for: limit * 2)
+			}
+		}
+	}
+	let saturated = DispatchTime.now() + limit
+	for _ in 0..<width {
+		guard started.wait(timeout: saturated) == .success else { break }
+	}
+	let answered = DispatchSemaphore(value: 0)
+	let status = Mutex<Int?>(nil)
+	let task = session.dataTask(with: request) { _, response, _ in
+		status.withLock { $0 = (response as? HTTPURLResponse)?.statusCode }
+		answered.signal()
+	}
+	task.resume()
+	let outcome = answered.wait(timeout: .now() + limit)
+	for _ in 0..<(width * priorities.count) { gate.signal() }
+	task.cancel()
+	return outcome == .success ? status.withLock { $0 } : nil
+}
+
+private func holdAThread(
+	started: DispatchSemaphore, until gate: DispatchSemaphore, for limit: TimeInterval
+) {
+	started.signal()
+	_ = gate.wait(timeout: .now() + limit)
 }
 
 private final class FollowRedirects: NSObject, URLSessionTaskDelegate {

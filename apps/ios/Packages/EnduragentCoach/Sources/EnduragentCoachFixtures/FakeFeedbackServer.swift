@@ -8,7 +8,7 @@ public final class FakeFeedbackServer: Sendable {
 		var requests: [FakeFeedbackRequest] = []
 		var stored: [String: String] = [:]
 		var held = false
-		var waiting: [CheckedContinuation<Void, Never>] = []
+		var waiting: [@Sendable () -> Void] = []
 	}
 
 	package static let redirectLocation: URL = {
@@ -52,33 +52,33 @@ public final class FakeFeedbackServer: Sendable {
 			defer { state.waiting = [] }
 			return state.waiting
 		}
-		for continuation in waiting {
-			continuation.resume()
+		for reply in waiting {
+			reply()
 		}
 	}
 
-	fileprivate func answer(_ request: FakeFeedbackRequest) async -> FakeFeedbackAnswer {
-		state.withLock { $0.requests.append(request) }
-		await withCheckedContinuation { continuation in
-			let held = state.withLock { state in
-				if state.held { state.waiting.append(continuation) }
-				return state.held
-			}
-			if !held { continuation.resume() }
+	fileprivate func answer(
+		_ request: FakeFeedbackRequest, reply: @escaping @Sendable (FakeFeedbackAnswer) -> Void
+	) {
+		let note = Result { try request.note() }
+		let ready = state.withLock { state -> FakeFeedbackAnswer? in
+			state.requests.append(request)
+			guard state.held else { return Self.next(for: note, in: &state) }
+			state.waiting.append { reply(self.state.withLock { Self.next(for: note, in: &$0) }) }
+			return nil
 		}
-		let note: FakeFeedbackRequest.Note
-		do {
-			note = try request.note()
-		} catch {
-			return .status(400)
+		if let ready { reply(ready) }
+	}
+
+	private static func next(
+		for note: Result<FakeFeedbackRequest.Note, any Error>, in state: inout State
+	) -> FakeFeedbackAnswer {
+		guard case .success(let note) = note else { return .status(400) }
+		let answer = state.script.isEmpty ? .status(204) : state.script.removeFirst()
+		if answer.stores {
+			state.stored[note.id] = state.stored[note.id] ?? note.text
 		}
-		return state.withLock { state in
-			let answer = state.script.isEmpty ? .status(204) : state.script.removeFirst()
-			if answer.stores {
-				state.stored[note.id] = state.stored[note.id] ?? note.text
-			}
-			return answer
-		}
+		return answer
 	}
 }
 
@@ -140,18 +140,35 @@ private enum FakeFeedbackRoutes {
 		}
 	}
 
-	static func server(running task: URLSessionTask?) async -> FakeFeedbackServer? {
-		guard let task else { return nil }
-		for route in routes.withLock({ $0 }) {
-			guard let session = route.session else { continue }
-			if await session.allTasks.contains(where: { $0 === task }) { return route.server }
+	static func server(
+		running task: URLSessionTask, found: @escaping @Sendable (FakeFeedbackServer?) -> Void
+	) {
+		let live = routes.withLock { routes in
+			routes.compactMap { route in route.session.map { ($0, route.server) } }
 		}
-		return nil
+		search(live[...], for: task, found: found)
+	}
+
+	private static func search(
+		_ live: ArraySlice<(URLSession, FakeFeedbackServer)>, for task: URLSessionTask,
+		found: @escaping @Sendable (FakeFeedbackServer?) -> Void
+	) {
+		guard let (session, server) = live.first else {
+			found(nil)
+			return
+		}
+		session.getAllTasks { tasks in
+			guard tasks.contains(where: { $0 === task }) else {
+				search(live.dropFirst(), for: task, found: found)
+				return
+			}
+			found(server)
+		}
 	}
 }
 
 final class FakeFeedbackProtocol: URLProtocol, @unchecked Sendable {
-	private let answering = Mutex<Task<Void, Never>?>(nil)
+	private let stopped = Mutex(false)
 
 	override class func canInit(with request: URLRequest) -> Bool { true }
 
@@ -161,24 +178,25 @@ final class FakeFeedbackProtocol: URLProtocol, @unchecked Sendable {
 		let seen = FakeFeedbackRequest(
 			url: request.url, method: request.httpMethod,
 			headers: request.allHTTPHeaderFields ?? [:], body: httpBody(from: request))
-		let task = self.task
-		let reply = Task {
-			guard let server = await FakeFeedbackRoutes.server(running: task) else {
-				client?.urlProtocol(self, didFailWithError: URLError(.cannotFindHost))
+		guard let task else {
+			client?.urlProtocol(self, didFailWithError: URLError(.cannotFindHost))
+			return
+		}
+		FakeFeedbackRoutes.server(running: task) { server in
+			guard let server else {
+				self.client?.urlProtocol(self, didFailWithError: URLError(.cannotFindHost))
 				return
 			}
-			let answer = await server.answer(seen)
-			guard !Task.isCancelled else { return }
-			self.reply(answer, to: seen.url)
+			server.answer(seen) { answer in self.reply(answer, to: seen.url) }
 		}
-		answering.withLock { $0 = reply }
 	}
 
 	override func stopLoading() {
-		answering.withLock { $0?.cancel() }
+		stopped.withLock { $0 = true }
 	}
 
 	private func reply(_ answer: FakeFeedbackAnswer, to url: URL?) {
+		guard !stopped.withLock({ $0 }) else { return }
 		switch answer {
 		case .status(let status):
 			respond(status, headers: [:], to: url)
