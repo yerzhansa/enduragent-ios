@@ -32,6 +32,10 @@ package final class DiagnosticsLog: Sendable {
 		write(StampedLine(at: clock.now, line: .usage(line)))
 	}
 
+	func recordUnwritableLine() {
+		journal.markAppendFailed()
+	}
+
 	package func window(endingAt now: Date) -> [StampedLine] {
 		journal.window(endingAt: now)
 	}

@@ -192,6 +192,11 @@ final class MailboxExecution {
 				saved: await scope.interrupt())
 		}
 		await records.settle(turn, attempt: attempt, settlement, stamp: stamp)
+		runner.diagnostics.recordUsage(
+			of: scope.meter,
+			origin: .turn(
+				turn: turn.ulid, attempt: attempt.ulid, ending: TurnUsageEnding(settlement)),
+			model: request.access.model, at: clock.uptime)
 		finish(turn, under: lease, on: mailbox)
 		if !lifecycle.terminating {
 			for job in await records.refreshJobs(from: flushes) {
