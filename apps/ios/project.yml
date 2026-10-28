@@ -106,6 +106,7 @@ targets:
       - path: EnduragentUITests/TutorialScrolling.swift
       - path: Enduragent/Fixtures/FixtureArguments.swift
       - path: ../../tools/Sources/ToolSupport/PlannedPhoneStep.swift
+      - path: ../../tools/Sources/ToolSupport/FeedbackStepGuard.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.phonetests
