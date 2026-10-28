@@ -17,7 +17,7 @@ struct FeedbackView: View {
 					TextField(text: $support.draft, axis: .vertical) {
 						Text(say(Catalog.feedbackTitle))
 					}
-					.lineLimit(4, reservesSpace: true)
+					.lineLimit(4...8)
 					.focused($editing)
 					.accessibilityIdentifier("feedback.field")
 				}

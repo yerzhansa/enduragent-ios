@@ -11,6 +11,7 @@
 		"4.1": 12,
 		"5.1": 11,
 		"5.2": 7,
+		"5.3": 8,
 		"6.1": 9,
 		"8.1": 6,
 		"8.2": 6,
@@ -709,6 +710,78 @@
 			"statement": "With a not-confirmed note kept, /feedback other text opens Feedback with other text as the draft and Send while the kept note stays, so editing the field back to the kept text shows Try again; Send with other text mints a new id and replaces the kept note, and Try again then resends that id: fixture.feedbackRequests reads 5 and fixture.feedbackStored reads 2.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "SupportCommandProof", "method": "testFeedbackCommandWithAKeptNote"}
+			]
+		},
+		{
+			"id": "5.3.1",
+			"statement": "At accessibilityXXXL each Support row shows its whole label inside the window, spans the row, and can be tapped.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testSupportRowsWrap"},
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testSupportRowsWrap"}
+			]
+		},
+		{
+			"id": "5.3.2",
+			"statement": "At accessibilityXXXL the Feedback field, the outcome line and the button are stacked in that order, the button is full width, the field grows with the text, and with the keyboard up the button can be scrolled into view and tapped.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testFeedbackStacks"},
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testFeedbackStacks"}
+			]
+		},
+		{
+			"id": "5.3.3",
+			"statement": "At accessibilityXXXL with the not-saving fixture, Diagnostics shows the not-saving line, the explanation, the full-width button and the outcome line, in that order, each inside the window.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testDiagnosticsOrder"},
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testDiagnosticsOrder"}
+			]
+		},
+		{
+			"id": "5.3.4",
+			"statement": "At accessibilityXXXL About's version value sits under its label, and the privacy policy link can be tapped.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testAboutValueUnderLabel"},
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testAboutValueUnderLabel"}
+			]
+		},
+		{
+			"id": "5.3.5",
+			"statement": "At accessibilityXXXL each Session field's label sits above its full-width field; after an edit, Save and Cancel are each whole and can be tapped, and a rejected value's sentence shows under its field.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextProof", "method": "testFieldsStackAndSaveCancelAreWhole"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextDeProof", "method": "testFieldsStackAndSaveCancelAreWhole"}
+			]
+		},
+		{
+			"id": "5.3.6",
+			"statement": "VoiceOver order on Feedback, Diagnostics, About and Session settings follows the largest-text layout, top to bottom.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testReadingOrder"},
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testReadingOrder"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextProof", "method": "testReadingOrder"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextDeProof", "method": "testReadingOrder"}
+			]
+		},
+		{
+			"id": "5.3.7",
+			"statement": "At accessibilityXXXL every button, link, toggle and text field on Settings, Access method, Model picker, Credits, Training and the language picker can be scrolled into view, lies inside the window and is hittable; the sweep launches with the OpenRouter account with model choices, reaches each screen's title, matches a committed per-screen control count above 0, and runs Training once connected and once not connected.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SettingsSweepProofs.swift", "class": "SettingsLargestTextSweepProof", "method": "testEveryControlReachable"},
+				{"file": "apps/ios/EnduragentUITests/SettingsSweepProofs.swift", "class": "SettingsLargestTextSweepProof", "method": "testTrainingNotConnected"}
+			]
+		},
+		{
+			"id": "5.3.8",
+			"statement": "At the default size About's version value has the same minY as its label within 2 points, a Session field has the same minY as its label, the Feedback button is under the field, and the Session proofs pass unchanged.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testDefaultSizeKeepsInlineRows"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testEditsSurviveRelaunchWithCredits"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testEditsSurviveRelaunchWithAnOpenRouterAccount"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testCancelLeavesTheEditUnapplied"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testFailedSaveKeepsTheSavedValueAndConversation"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionRejectionProof", "method": "testSessionRejection"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "RatioAppliesProof", "method": "testRatioApplies"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "RatioAppliesProof", "method": "testContextWindowApplies"}
 			]
 		},
 		{

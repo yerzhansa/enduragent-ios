@@ -1,3 +1,4 @@
+da,de,fr,sv	about.version	Version	Version is the localized noun in these locales.
 de,fr,it,nl	archive.coach	Coach	Established loanword for a sports coach in these locales.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	archive.entryDetail	{{turnCount}} · {{reason}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	archive.entryLabel	{{timestamp}} · {{turnCount}} · {{reason}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.

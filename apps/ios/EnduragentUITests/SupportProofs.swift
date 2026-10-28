@@ -50,9 +50,7 @@ final class FeedbackScreenProof: XCTestCase {
 		let field = TutorialHarness.named(app, "feedback.field")
 		field.tap()
 		field.typeText(String(repeating: "a", count: FeedbackRefusal.limit + 1))
-		let send = TutorialHarness.named(app, "feedback.send")
-		SupportScreen.assertVisible(app, send)
-		send.tap()
+		SupportScreen.button(app, "feedback.send").tap()
 		let tooLong = SupportScreen.outcome(
 			app, "feedback.outcome",
 			SupportScreen.phrasebook.say(Catalog.feedbackRefusedTooLong, ["limit": "4,000"]))
@@ -162,10 +160,8 @@ final class AboutScreenProof: XCTestCase {
 		let app = SupportScreen.start()
 		SupportScreen.open(app, "settings.about", showing: "about.version")
 		SupportScreen.outcome(app, "about.value.name", "Enduragent")
-		SupportScreen.outcome(
-			app, "about.version",
-			SupportScreen.phrasebook.say(
-				Catalog.settingsApplicationVersion, ["version": "0.1.0 (3)"]))
+		SupportScreen.outcome(app, "about.version", SupportScreen.say(Catalog.aboutVersion))
+		SupportScreen.outcome(app, "about.value.version", "0.1.0 (3)")
 		let link = TutorialHarness.named(app, "about.privacyPolicy")
 		XCTAssertEqual(link.label, SupportScreen.say(Catalog.aboutPrivacyPolicy))
 		TutorialHarness.attach(self, name: "about-light", app: app)

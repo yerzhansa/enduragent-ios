@@ -3020,7 +3020,8 @@
   },
   "about": {
     "title": "关于",
-    "privacyPolicy": "隐私政策"
+    "privacyPolicy": "隐私政策",
+    "version": "版本"
   },
   "access": {
     "error": {

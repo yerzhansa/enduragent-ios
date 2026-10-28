@@ -3060,7 +3060,8 @@
   },
   "about": {
     "title": "Om",
-    "privacyPolicy": "Personvernerklæring"
+    "privacyPolicy": "Personvernerklæring",
+    "version": "Versjon"
   },
   "access": {
     "error": {

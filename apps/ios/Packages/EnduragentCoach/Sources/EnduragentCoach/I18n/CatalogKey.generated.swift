@@ -1,6 +1,7 @@
 public enum Catalog {
 	public static let aboutPrivacyPolicy = CatalogKey(rawValue: "about.privacyPolicy")
 	public static let aboutTitle = CatalogKey(rawValue: "about.title")
+	public static let aboutVersion = CatalogKey(rawValue: "about.version")
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorMalformed = CatalogKey(rawValue: "access.error.malformed")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")

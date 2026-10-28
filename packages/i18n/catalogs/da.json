@@ -3060,7 +3060,8 @@
   },
   "about": {
     "title": "Om",
-    "privacyPolicy": "Privatlivspolitik"
+    "privacyPolicy": "Privatlivspolitik",
+    "version": "Version"
   },
   "access": {
     "error": {

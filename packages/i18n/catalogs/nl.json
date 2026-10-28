@@ -3060,7 +3060,8 @@
   },
   "about": {
     "title": "Over",
-    "privacyPolicy": "Privacybeleid"
+    "privacyPolicy": "Privacybeleid",
+    "version": "Versie"
   },
   "access": {
     "error": {

@@ -3020,7 +3020,8 @@
   },
   "about": {
     "title": "情報",
-    "privacyPolicy": "プライバシーポリシー"
+    "privacyPolicy": "プライバシーポリシー",
+    "version": "バージョン"
   },
   "access": {
     "error": {

@@ -3060,7 +3060,8 @@
   },
   "about": {
     "title": "Tietoja",
-    "privacyPolicy": "Tietosuojakäytäntö"
+    "privacyPolicy": "Tietosuojakäytäntö",
+    "version": "Versio"
   },
   "access": {
     "error": {

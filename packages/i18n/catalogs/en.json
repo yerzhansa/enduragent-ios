@@ -1,7 +1,8 @@
 {
   "about": {
     "title": "About",
-    "privacyPolicy": "Privacy policy"
+    "privacyPolicy": "Privacy policy",
+    "version": "Version"
   },
   "access": {
     "error": {
