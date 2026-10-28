@@ -18,13 +18,16 @@ public final class FakeFeedbackServer: Sendable {
 		return url
 	}()
 
-	package let client: FeedbackClient
 	private let state: Mutex<State>
 
 	public init(script: [FakeFeedbackAnswer] = []) {
 		state = Mutex(State(script: script))
-		client = FeedbackClient(protocolClasses: [FakeFeedbackProtocol.self])
-		FakeFeedbackRoutes.add(self)
+	}
+
+	package var client: FeedbackClient {
+		let client = FeedbackClient(protocolClasses: [FakeFeedbackProtocol.self])
+		FakeFeedbackRoutes.add(self, answering: client.session)
+		return client
 	}
 
 	package var requests: [FakeFeedbackRequest] {
@@ -124,24 +127,24 @@ package struct FakeFeedbackRequest: Sendable, Equatable {
 
 private enum FakeFeedbackRoutes {
 	private struct Route: Sendable {
-		weak var server: FakeFeedbackServer?
-		let session: URLSession
+		weak var session: URLSession?
+		let server: FakeFeedbackServer
 	}
 
 	private static let routes = Mutex<[Route]>([])
 
-	static func add(_ server: FakeFeedbackServer) {
+	static func add(_ server: FakeFeedbackServer, answering session: URLSession) {
 		routes.withLock { routes in
-			routes.removeAll { $0.server == nil }
-			routes.append(Route(server: server, session: server.client.session))
+			routes.removeAll { $0.session == nil }
+			routes.append(Route(session: session, server: server))
 		}
 	}
 
 	static func server(running task: URLSessionTask?) async -> FakeFeedbackServer? {
 		guard let task else { return nil }
 		for route in routes.withLock({ $0 }) {
-			guard let server = route.server else { continue }
-			if await route.session.allTasks.contains(where: { $0 === task }) { return server }
+			guard let session = route.session else { continue }
+			if await session.allTasks.contains(where: { $0 === task }) { return route.server }
 		}
 		return nil
 	}

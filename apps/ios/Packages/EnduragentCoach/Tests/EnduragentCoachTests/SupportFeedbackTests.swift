@@ -187,6 +187,13 @@ import Testing
 		#expect(spy.saves.filter { $0.phase == .ready }.count == 1)
 	}
 
+	@Test func theFixtureServiceReceivesANoteThroughItsDefaultServer() async throws {
+		let support = support(over: .fixture(directory: folder, app: .fixture)).support
+		let kept = FileKeptNoteStorage(directory: folder)
+		#expect(try await support.send(Self.text) == receivedOutcome)
+		#expect(!FileManager.default.fileExists(atPath: kept.file.path))
+	}
+
 	@Test func cancelingTheCallerDoesNotCancelDelivery() async throws {
 		let server = FakeFeedbackServer()
 		let rig = rig(server)
@@ -214,13 +221,18 @@ import Testing
 			journal: MemoryJournalStorage(), keptNotes: notes ?? file,
 			shareFolder: ShareFolder(in: folder), feedback: server.client, app: .fixture,
 			device: .fixture)
+		let (support, log) = support(over: service)
+		return Rig(support: support, log: log, file: file)
+	}
+
+	private func support(over service: SupportService) -> (support: Support, log: DiagnosticsLog) {
 		let log = service.openLog(clock: clock)
 		let support = Support(
 			log: log, service: service,
 			census: SupportCensus(
 				status: { SupportDiagnosticsTests.facts },
 				records: { SupportDiagnosticsTests.records }))
-		return Rig(support: support, log: log, file: file)
+		return (support, log)
 	}
 }
 
