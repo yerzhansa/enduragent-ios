@@ -6,7 +6,7 @@ package actor Ledger {
 		case retry
 	}
 
-	package static let reportedSkipLimit = DiagnosticsLog.capacity / 2
+	package static let reportedSkipLimit = 100
 
 	private let log: any RecordLog
 	let chain: any ReviewChainLog

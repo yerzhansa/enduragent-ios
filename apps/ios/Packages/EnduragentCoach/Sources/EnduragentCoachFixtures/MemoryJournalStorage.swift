@@ -52,3 +52,9 @@ package final class MemoryJournalStorage: JournalStorage {
 		}
 	}
 }
+
+extension DiagnosticsLog {
+	package convenience init(clock: any Clock) {
+		self.init(clock: clock, storage: MemoryJournalStorage())
+	}
+}

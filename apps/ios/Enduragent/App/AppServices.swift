@@ -39,6 +39,11 @@ struct AppServices: Sendable {
 	}
 	static let deviceDefaultsKey = "enduragent.deviceId"
 
+	static func installedIdentity() throws(AppIdentityFailure) -> AppIdentity {
+		try AppIdentity(infoDictionary: Bundle.main.infoDictionary ?? [:])
+	}
+
+	var identity: AppIdentity
 	var coach: Coach
 	var deviceCheck: any DeviceCheckTokenProviding
 	var clock: any Clock
@@ -52,6 +57,7 @@ struct AppServices: Sendable {
 	@MainActor
 	static func live(displayLocale: @escaping DisplayLocaleResolver) throws -> AppServices {
 		let clock = SystemClock()
+		let identity = try installedIdentity()
 		let store = try RecordStore.onDevice(deviceId: persistedDeviceID(in: .standard))
 		let host = BackgroundTimeHost(
 			bundleIdentifier: bundleIdentifier, system: LiveBackgroundSystem())
@@ -65,12 +71,14 @@ struct AppServices: Sendable {
 				credits: .worker(creditsWorkerBase),
 				host: host,
 				clock: clock,
+				support: try .onDevice(app: identity),
 				openRouterSignIn: OpenRouterSignInService(authorizer: OpenRouterSignInSession())
 			),
 			builtInModel: builtInModel,
 			displayLocale: displayLocale
 		)
 		return AppServices(
+			identity: identity,
 			coach: coach,
 			deviceCheck: DeviceCheckTokenProvider(),
 			clock: clock,

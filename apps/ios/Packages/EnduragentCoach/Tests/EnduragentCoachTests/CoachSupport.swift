@@ -49,7 +49,7 @@ func makeCoach(
 	var ports = CoachPorts(
 		records: RecordStore(log: store), secrets: secrets, models: .scripted(transport),
 		training: TrainingService { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
-		host: host, clock: clock)
+		host: host, clock: clock, support: .inMemory(app: .fixture))
 	ports.watchdogSleep = watchdogClock.sleep
 	if let coalescingClock { ports.coalescingSleep = coalescingClock.sleep }
 	let coach = Coach(

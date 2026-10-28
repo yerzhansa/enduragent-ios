@@ -44,6 +44,8 @@ import Testing
 			return .planConfirmationUnavailable(.main, .rejectedBatch)
 		case .planSaveStalled:
 			return .planSaveStalled(PlanConfirmationID(ulid: fixedUlid(13)), .unavailable)
+		case .journalRestarted: return .journalRestarted(.unreadable)
+		case .journalLinesDropped: return .journalLinesDropped(count: 2)
 		}
 	}
 

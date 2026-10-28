@@ -31,7 +31,8 @@ struct AthleteScopedCoachingFixture {
 			records: RecordStore(log: store ?? self.store), secrets: secrets,
 			models: .scripted(transport),
 			training: .fake { credential, _ in peer.client(for: credential) },
-			credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock)
+			credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock,
+			support: .inMemory(app: .fixture))
 		ports.watchdogSleep = HeldClock().sleep
 		return await consentingCoach(
 			Coach(

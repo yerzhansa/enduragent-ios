@@ -45,7 +45,8 @@ import Testing
 					models: .scripted(FakeModelTransport()),
 					training: .fake { credential, _ in
 						credential == .apiKey("other-athlete") ? bo : ada
-					}, credits: .fake(FakeCreditsClient()), host: rig.host, clock: rig.clock),
+					}, credits: .fake(FakeCreditsClient()), host: rig.host, clock: rig.clock,
+					support: .inMemory(app: .fixture)),
 				builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow))
 	}
 }

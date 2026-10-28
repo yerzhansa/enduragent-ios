@@ -76,7 +76,7 @@ import Testing
 					records: RecordStore(log: log ?? records), secrets: secrets,
 					models: .scripted(transport),
 					training: training ?? self.training, credits: .fake(FakeCreditsClient()),
-					host: ImmediateExecutionHost(), clock: clock),
+					host: ImmediateExecutionHost(), clock: clock, support: .inMemory(app: .fixture)),
 				builtInModel: testModel,
 				displayLocale: testDisplayLocale,
 				coalescing: quickWindow

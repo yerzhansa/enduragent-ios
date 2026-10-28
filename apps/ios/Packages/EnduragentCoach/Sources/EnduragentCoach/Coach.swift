@@ -56,7 +56,7 @@ public actor Coach {
 		coalescing: CoalescingPolicy = .npm
 	) {
 		let clock = ports.clock
-		let diagnostics = DiagnosticsLog(clock: clock)
+		let diagnostics = ports.support.openLog(clock: clock)
 		let transport = ports.models.makeTransport(diagnostics)
 		let ledger = Ledger(
 			log: ports.records.log, chain: ports.records.chain, clock: clock,
