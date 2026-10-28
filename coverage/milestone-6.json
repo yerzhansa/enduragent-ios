@@ -8,6 +8,7 @@
 		"2.2": 8,
 		"2.3": 6,
 		"3.1": 10,
+		"4.1": 12,
 		"6.1": 9,
 		"8.1": 6,
 		"8.2": 6,
@@ -478,6 +479,100 @@
 			"statement": "PublicSurfaceTests.publicSymbolsMatchTheDesignList passes with Support, SupportSnapshot, About, DiagnosticsFileState, DiagnosticsFileHandle, DiagnosticsFileFailure, ShareOutcome, JournalHealth and JournalFault and their public members listed.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
+			]
+		},
+		{
+			"id": "4.1.1",
+			"statement": "Each attempt of FeedbackClient is one POST to the feedback endpoint with content-type application/json, the FeedbackBody bytes and no cookie header, over a session with request and resource timeouts of 10 seconds and no cookie storage. FeedbackClient.live is the same initializer with no protocol classes, so this is its proof.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackClientTests.swift", "function": "eachAttemptIsOnePostWithTheBodyAndATenSecondCap"}
+			]
+		},
+		{
+			"id": "4.1.2",
+			"statement": "A 302 script word sends no request to the Location; the answers are redirected(302) twice and both bodies are byte-equal. The control under a delegate that follows reaches the Location once.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackClientTests.swift", "function": "aRedirectIsRefusedAndRetriedWithTheSameBody"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackClientTests.swift", "function": "aFollowingDelegateWouldReachTheLocation"}
+			]
+		},
+		{
+			"id": "4.1.3",
+			"statement": "Through the fake protocol Send ends received after 503 then 204 with one id, notSent(.noConnection) after offline twice, notSent(.busy) after 429, notSent(.refused) after 400, notConfirmed after 502, and notConfirmed after timeout twice, each after the stated number of requests.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackClientTests.swift", "function": "sendEndsWithItsOutcome"}
+			]
+		},
+		{
+			"id": "4.1.4",
+			"statement": "With the script lost,lost Send ends notConfirmed after 2 requests and 1 stored note, and Try again ends received after a third request with the same id, one stored note and no feedback-note.json. With lost,lost,offline,offline Try again stays notConfirmed after 4 requests with one id and the kept file holds notConfirmed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "theTraceScriptIsReceivedOnTryAgainWithOneStoredNote"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "tryAgainAfterNotConfirmedStaysNotConfirmedWhenOffline"}
+			]
+		},
+		{
+			"id": "4.1.5",
+			"statement": "The kept note is saved with phase ready, then sending, before the first request leaves.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "theNoteIsKeptReadyThenSendingBeforeTheFirstRequest"}
+			]
+		},
+		{
+			"id": "4.1.6",
+			"statement": "A relaunch over a kept ready note shows notSent(.stopped), over sending shows notConfirmed, and notSent and notConfirmed stay; each keeps its text in keptText and saves the phase shown. Try again after a relaunch over {A, sending} resends A once, ends received, keeps storedCount at 1 and removes feedback-note.json.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "aRelaunchShowsWhatTheKeptPhaseProves"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "tryAgainAfterARelaunchResendsTheKeptId"}
+			]
+		},
+		{
+			"id": "4.1.7",
+			"statement": "Send with the kept text after notConfirmed stays notConfirmed with the kept id. Send with edited text starts a second id, ends notSent(.noConnection), and the kept file holds that id and phase.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "sendWithTheKeptTextAfterNotConfirmedStaysNotConfirmed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "editedTextStartsClean"}
+			]
+		},
+		{
+			"id": "4.1.8",
+			"statement": "A refused text throws its FeedbackRefusal; nothing is kept, the fake sees no request and the status stays idle.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "aRefusedTextIsNeitherKeptNorSent"}
+			]
+		},
+		{
+			"id": "4.1.9",
+			"statement": "notSent and notConfirmed record feedbackNotDelivered with each answer's code, received records nothing, and a kept note that cannot be saved records feedbackNoteUnsaved and is still sent.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "anUndeliveredNoteRecordsEachAnswer"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "aReceivedNoteRecordsNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "aKeptNoteThatCannotBeSavedIsRecordedAndStillSent"}
+			]
+		},
+		{
+			"id": "4.1.10",
+			"statement": "feedback-fake-only reports a fixture file for each of its five conditions, the host, a client made outside its makers, the live client, the device support service and a UI proof that launches the app, accepts the host in tools sources and each maker in its own file, and rejects the host in an app test. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "4.1.11",
+			"statement": "The live feedback gate refuses without the feedback selector, refuses when the log holds a row, allows only feedback with no log or a header-only log, and a refused run makes no request.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LiveFeedbackGateTests.swift", "function": "refusesWithoutTheSelector"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LiveFeedbackGateTests.swift", "function": "refusesWhenTheLogHoldsARow"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LiveFeedbackGateTests.swift", "function": "allowsOnlyFeedbackAndAnEmptyLog"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LiveFeedbackGateTests.swift", "function": "aRefusedRunMakesNoRequest"}
+			]
+		},
+		{
+			"id": "4.1.12",
+			"statement": "Two sends during a held delivery return the same outcome after one request and one ready save, and a send whose caller is canceled still reaches received and removes the kept file.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "aSecondSendDuringDeliveryJoinsIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "cancelingTheCallerDoesNotCancelDelivery"}
 			]
 		},
 		{

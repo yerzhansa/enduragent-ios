@@ -16,3 +16,14 @@ package func ephemeralSession(
 	}
 	return URLSession(configuration: configuration)
 }
+
+package final class RejectRedirects: NSObject, URLSessionTaskDelegate {
+	package func urlSession(
+		_ session: URLSession, task: URLSessionTask,
+		willPerformHTTPRedirection response: HTTPURLResponse,
+		newRequest request: URLRequest,
+		completionHandler: @escaping @Sendable (URLRequest?) -> Void
+	) {
+		completionHandler(nil)
+	}
+}

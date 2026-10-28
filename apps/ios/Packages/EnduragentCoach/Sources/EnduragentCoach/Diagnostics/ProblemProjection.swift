@@ -21,6 +21,8 @@ package enum ProblemKind: String, Sendable, Codable, CaseIterable {
 	case planSaveStalled
 	case journalRestarted
 	case journalLinesDropped
+	case feedbackNotDelivered
+	case feedbackNoteUnsaved
 	case diagnosticsFileFailed
 }
 
@@ -85,9 +87,18 @@ extension DiagnosticsEvent {
 			ProblemLine(.journalRestarted, cause: fault.code)
 		case .journalLinesDropped(let count):
 			ProblemLine(.journalLinesDropped, cause: ProblemCode("undecodable", count))
+		case .feedbackNotDelivered(let answers):
+			ProblemLine(.feedbackNotDelivered, cause: Self.codes(answers))
+		case .feedbackNoteUnsaved(let failure):
+			ProblemLine(.feedbackNoteUnsaved, cause: failure.code)
 		case .diagnosticsFileFailed(let failure, let code):
 			ProblemLine(.diagnosticsFileFailed, cause: code.code, detail: failure.code)
 		}
+	}
+
+	private static func codes(_ answers: [AttemptAnswer]) -> ProblemCode? {
+		guard let first = answers.first else { return nil }
+		return answers.dropFirst().reduce(first.code) { $0.then($1.code) }
 	}
 
 	private static func subject(_ chat: ChatID) -> ProblemSubject? {
@@ -146,6 +157,25 @@ extension DiagnosticsFileFailure {
 		switch self {
 		case .couldNotWrite: ProblemCode("couldNotWrite")
 		case .shareFailed: ProblemCode("shareFailed")
+		}
+	}
+}
+
+extension AttemptAnswer {
+	package var code: ProblemCode {
+		switch self {
+		case .stored: ProblemCode("stored")
+		case .unavailable: ProblemCode("unavailable")
+		case .limited: ProblemCode("limited")
+		case .refused(let status): ProblemCode("refused", status)
+		case .redirected(let status): ProblemCode("redirected", status)
+		case .neverLeft(let code): ProblemCode("neverLeft", code.rawValue)
+		case .mayHaveLeft(.serverStatus(let status)):
+			ProblemCode("mayHaveLeft").then(ProblemCode("serverStatus", status))
+		case .mayHaveLeft(.transport(let code)):
+			ProblemCode("mayHaveLeft").then(ProblemCode("transport", code.rawValue))
+		case .mayHaveLeft(.otherError(let failure)):
+			ProblemCode("mayHaveLeft").then(ProblemCode("otherError")).then(failure.code)
 		}
 	}
 }

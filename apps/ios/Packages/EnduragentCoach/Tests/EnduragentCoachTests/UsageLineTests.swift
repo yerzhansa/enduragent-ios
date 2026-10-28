@@ -8,6 +8,7 @@ import Testing
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 	let store = InMemoryRecordLog()
 	let journal = MemoryJournalStorage()
+	let server = FakeFeedbackServer()
 	let share: ShareFolder
 	let transport: FakeModelTransport
 
@@ -204,7 +205,8 @@ import Testing
 		await EnduragentCoachTests.makeCoach(
 			transport: transport, store: store, clock: clock,
 			support: SupportService(
-				journal: journal, shareFolder: share, app: .fixture, device: .fixture))
+				journal: journal, keptNotes: MemoryKeptNoteStorage(watching: server),
+				shareFolder: share, feedback: server.client, app: .fixture, device: .fixture))
 	}
 
 	private func remember(_ content: String) -> ScriptedEvent {

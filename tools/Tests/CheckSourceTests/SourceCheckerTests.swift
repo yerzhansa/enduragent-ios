@@ -35,7 +35,7 @@ enum SourceCases {
 		+ fixtureLaunch + recordAccess + secretStores + port + mintedInOneFile + reviewChainOnly
 		+ reviewOutcomeWriter + chainAppendCallerRule + singleChangePathDeleted + planningPure
 		+ planRecordsPrivate + planSaveSeparate + planMintedInOneFile + failureCodeCoversErrors
-		+ diagnosticsLogOneMaker + releaseRules
+		+ diagnosticsLogOneMaker + releaseRules + feedbackFakeOnly
 }
 
 enum Link: Sendable {
