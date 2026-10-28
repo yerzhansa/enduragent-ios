@@ -31,19 +31,28 @@ struct PlanPhoneBudgetTests {
 		}
 	}
 
+	static func stepsVariable(_ steps: [String], answer: String) throws -> String {
+		var built = 0
+		let commands = try PhoneSessionTests.start("plan", steps, answer: answer, built: &built)
+			.commands
+		try #require(commands.count == 1)
+		let prefix = "\(PlannedPhoneStep.variable)="
+		let argument = try #require(commands[0].first { $0.hasPrefix(prefix) })
+		return String(argument.dropFirst(prefix.count))
+	}
+
 	@Test func theWholeSessionPlansTwelveSendsAndOneNewConversation() throws {
 		let plan = try Self.plan()
 		let passed = try [("1", "5"), ("6", "6"), ("7", "7")].flatMap { bounds in
 			let steps = try PhoneSteps(first: bounds.0, last: bounds.1, plan: plan)
-			let variable = PlannedPhoneStep.text(plan.plannedSteps(steps.ids))
+			let variable = try Self.stepsVariable(
+				steps.ids, answer: String(plan.planned(steps.ids)))
 			return try #require(PlannedPhoneStep.steps(in: variable))
 		}
 		#expect(passed.map(\.id) == (1...7).map { "plan/\($0)" })
 		#expect(passed.map(\.planned) == [2, 1, 2, 2, 3, 1, 2])
 		#expect(passed.reduce(0) { $0 + $1.planned } == 13)
-		#expect(
-			PlannedPhoneStep.text(plan.plannedSteps(["plan/2", "plan/3"]))
-				== "plan/2=1,plan/3=2")
+		#expect(try Self.stepsVariable(["plan/2", "plan/3"], answer: "3") == "plan/2=1,plan/3=2")
 	}
 
 	@Test(arguments: [("0", "7"), ("1", "8"), ("5", "3"), ("one", "7"), ("01", "7"), ("", "7")])
