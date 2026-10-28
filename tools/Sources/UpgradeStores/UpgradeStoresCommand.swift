@@ -38,6 +38,10 @@ struct UpgradeStoreSeed {
 				"misread-intervals-number",
 			],
 			appFixtures: []),
+		UpgradeStoreSeed(
+			fixture: "build-0f943324", commit: "0f94332400e29b9c256e046ee262f4e2672c764f",
+			seed: "Build0f943324StoreSeed", destinationVariable: "UPGRADE_STORE_DESTINATION",
+			scenarios: ["filled"], appFixtures: []),
 	]
 }
 
