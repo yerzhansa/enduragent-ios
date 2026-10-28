@@ -68,11 +68,17 @@ extension AppIdentity {
 
 extension SupportService {
 	public static func inMemory(app: AppIdentity) -> SupportService {
-		SupportService(journal: MemoryJournalStorage(), app: app, device: .fixture)
+		SupportService(
+			journal: MemoryJournalStorage(),
+			shareFolder: ShareFolder(
+				in: FileManager.default.temporaryDirectory.appending(
+					path: "enduragent-share-\(UUID().uuidString)", directoryHint: .isDirectory)),
+			app: app, device: .fixture)
 	}
 
 	public static func fixture(directory: URL, app: AppIdentity) -> SupportService {
 		SupportService(
-			journal: FileJournalStorage(directory: directory), app: app, device: .fixture)
+			journal: FileJournalStorage(directory: directory),
+			shareFolder: ShareFolder(in: directory), app: app, device: .fixture)
 	}
 }

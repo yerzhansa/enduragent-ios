@@ -6,6 +6,13 @@ package final class Journal: Sendable {
 	private let storage: any JournalStorage
 	private let clock: any Clock
 	private let state: Mutex<JournalState>
+	private let watchers = Mutex<[UUID: AsyncStream<JournalHealth>.Continuation]>([:])
+
+	deinit {
+		for watcher in watchers.withLock({ Array($0.values) }) {
+			watcher.finish()
+		}
+	}
 
 	package init(storage: any JournalStorage, clock: any Clock) {
 		self.storage = storage
@@ -19,14 +26,39 @@ package final class Journal: Sendable {
 		state.withLock { $0.health }
 	}
 
+	package func healthChanges() -> AsyncStream<JournalHealth> {
+		let id = UUID()
+		let (stream, continuation) = AsyncStream<JournalHealth>.makeStream(
+			bufferingPolicy: .bufferingNewest(1))
+		continuation.onTermination = { [weak self] _ in
+			self?.watchers.withLock { _ = $0.removeValue(forKey: id) }
+		}
+		state.withLock { state in
+			watchers.withLock { $0[id] = continuation }
+			continuation.yield(state.health)
+		}
+		return stream
+	}
+
 	package func append(_ record: JournalRecord) {
 		let now = clock.now
-		state.withLock { $0.append(record, to: storage, now: now) }
+		change { $0.append(record, to: storage, now: now) }
 	}
 
 	package func markAppendFailed() {
 		let now = clock.now
-		state.withLock { $0.fail(.appendFailed, at: now) }
+		change { $0.fail(.appendFailed, at: now) }
+	}
+
+	private func change(_ apply: (inout JournalState) -> Void) {
+		state.withLock { state in
+			let before = state.health
+			apply(&state)
+			guard state.health != before else { return }
+			for watcher in watchers.withLock({ Array($0.values) }) {
+				watcher.yield(state.health)
+			}
+		}
 	}
 
 	package func window(endingAt now: Date) -> [StampedLine] {

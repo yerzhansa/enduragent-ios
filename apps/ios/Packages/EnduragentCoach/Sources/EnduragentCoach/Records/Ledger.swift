@@ -97,6 +97,31 @@ package actor Ledger {
 		return try await fetch(query)
 	}
 
+	package func census() async -> RecordCensus {
+		let pages: [RecordPage]
+		do throws(LedgerFailure) {
+			pages = [
+				try await read(RecordQuery(scope: .everySynced)),
+				try await read(RecordQuery(scope: .everyDeviceLocal)),
+			]
+		} catch {
+			return .unavailable(error)
+		}
+		var synced: [SyncedKind: Int] = [:]
+		var local: [DeviceLocalKind: Int] = [:]
+		var legacy: [LegacyKind: Int] = [:]
+		for record in pages.flatMap(\.records) {
+			switch record.body {
+			case .synced(let body): synced[body.kind, default: 0] += 1
+			case .deviceLocal(let body): local[body.kind, default: 0] += 1
+			case .legacy(let body): legacy[body.kind, default: 0] += 1
+			}
+		}
+		return .counted(
+			synced: synced, local: local, legacy: legacy,
+			skipped: pages.reduce(0) { $0 + $1.skipped.count })
+	}
+
 	private func fetch(_ query: RecordQuery) async throws(LedgerFailure) -> RecordPage {
 		let page: RecordPage
 		do {

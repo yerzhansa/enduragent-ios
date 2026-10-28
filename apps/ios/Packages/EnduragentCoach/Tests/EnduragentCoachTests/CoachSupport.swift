@@ -44,12 +44,13 @@ func makeCoach(
 	displayLocale: @escaping DisplayLocaleResolver = testDisplayLocale,
 	watchdogClock: HeldClock = HeldClock(),
 	coalescingClock: HeldClock? = nil,
-	consent: Bool = true
+	consent: Bool = true,
+	support: SupportService = .inMemory(app: .fixture)
 ) async -> Coach {
 	var ports = CoachPorts(
 		records: RecordStore(log: store), secrets: secrets, models: .scripted(transport),
 		training: TrainingService { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
-		host: host, clock: clock, support: .inMemory(app: .fixture))
+		host: host, clock: clock, support: support)
 	ports.watchdogSleep = watchdogClock.sleep
 	if let coalescingClock { ports.coalescingSleep = coalescingClock.sleep }
 	let coach = Coach(
