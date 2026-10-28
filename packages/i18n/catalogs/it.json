@@ -539,6 +539,9 @@
       "switchDetail": "Questa chiave appartiene all’atleta {{new}}. La tua conversazione, la cronologia e la memoria restano salvate per l’atleta {{current}} e non vengono usate per l’atleta {{new}}. Cambiare per usare questa chiave?",
       "switch": "Cambia atleta",
       "athlete": "Atleta {{id}}"
+    },
+    "support": {
+      "title": "Assistenza"
     }
   },
   "archive": {
@@ -2964,6 +2967,37 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnostica",
+    "explanation": "Crea un file con la versione dell’app, il modello e la versione di iOS di questo iPhone, le tue impostazioni, il conteggio di ciò che l’app ha salvato e gli ultimi 14 giorni di problemi e utilizzo del modello. Non contiene chiavi, messaggi né dati di allenamento. Nulla lascia l’iPhone finché non lo condividi.",
+    "make": "Crea file di diagnostica",
+    "preparing": "Preparazione del file…",
+    "shared": "Condiviso. iOS ha passato il file all’app che hai scelto.",
+    "saved": "Salvato in File.",
+    "canceled": "Annullato. Il file non è stato condiviso.",
+    "failed": "Impossibile creare il file.",
+    "shareFailed": "Impossibile condividere il file.",
+    "notSaving": "Questo iPhone non salva il registro dei problemi dal {{time}}. Il file contiene solo ciò che è stato salvato prima di allora e ciò che questa sessione ha registrato."
+  },
+  "feedback": {
+    "title": "Feedback",
+    "prompt": "Scrivi una nota agli autori di Enduragent. Viene inviata da sola, senza la tua conversazione, la memoria, i dati di allenamento o la diagnostica.",
+    "send": "Invia",
+    "sending": "Invio…",
+    "received": "Ricevuta. Grazie per la nota.",
+    "notSent": {
+      "noConnection": "Non inviata. L’iPhone non aveva connessione. La tua nota è conservata.",
+      "busy": "Non inviata. Il servizio di feedback è occupato. Riprova tra un minuto. La tua nota è conservata.",
+      "refused": "Non inviata. Il servizio di feedback ha rifiutato la nota. La tua nota è conservata.",
+      "stopped": "Non inviata. L’app si è fermata prima che la nota lasciasse questo iPhone. La tua nota è conservata."
+    },
+    "notConfirmed": "Non confermata. La nota potrebbe essere arrivata, ma non è giunta alcuna risposta. La tua nota è conservata e Riprova invia la stessa nota.",
+    "refused": {
+      "empty": "Scrivi prima una nota.",
+      "tooLong": "Mantieni la nota entro {{limit}} caratteri. Non è stato inviato nulla.",
+      "invalidCharacter": "La nota contiene un carattere che non può essere inviato. Non è stato inviato nulla."
+    }
+  },
   "review": {
     "accountChanged": "Questo allenamento è stato preparato per un altro atleta su {{service}}. Chiedimi di nuovo di prepararlo per l'atleta collegato.",
     "add": "Aggiungi al calendario",
@@ -3022,6 +3056,10 @@
       "decline": "Non ora",
       "saveFailed": "Impossibile salvare il tuo consenso. Riprova."
     }
+  },
+  "about": {
+    "title": "Informazioni",
+    "privacyPolicy": "Informativa sulla privacy"
   },
   "access": {
     "error": {

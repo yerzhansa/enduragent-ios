@@ -38,7 +38,7 @@ package struct FeedbackText: Sendable, Hashable, Codable {
 		try container.encode(trimmed)
 	}
 
-	private static func trimmedAsJavaScript(_ raw: String) -> String {
+	package static func trimmedAsJavaScript(_ raw: String) -> String {
 		let scalars = raw.unicodeScalars
 		guard let first = scalars.firstIndex(where: { !javaScriptWhitespace.contains($0) }),
 			let last = scalars.lastIndex(where: { !javaScriptWhitespace.contains($0) })

@@ -539,6 +539,9 @@
       "switchDetail": "Tämä avain kuuluu urheilijalle {{new}}. Keskustelusi, historiasi ja muistisi pysyvät tallennettuina urheilijalle {{current}}, eikä niitä käytetä urheilijalle {{new}}. Vaihdetaanko tämän avaimen käyttöön?",
       "switch": "Vaihda urheilija",
       "athlete": "Urheilija {{id}}"
+    },
+    "support": {
+      "title": "Tuki"
     }
   },
   "archive": {
@@ -2964,6 +2967,37 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnostiikka",
+    "explanation": "Luo tiedosto, jossa on sovelluksen versio, tämän iPhonen malli ja iOS-versio, asetuksesi, sovelluksen tallentamien kohteiden määrät sekä viimeisten 14 päivän ongelmat ja mallin käyttö. Siinä ei ole avaimia, viestejä eikä harjoitustietoja. Mitään ei lähde iPhonesta ennen kuin jaat sen.",
+    "make": "Luo diagnostiikkatiedosto",
+    "preparing": "Valmistellaan tiedostoa…",
+    "shared": "Jaettu. iOS antoi tiedoston valitsemallesi sovellukselle.",
+    "saved": "Tallennettu Tiedostot-appiin.",
+    "canceled": "Peruttu. Tiedostoa ei jaettu.",
+    "failed": "Tiedostoa ei voitu luoda.",
+    "shareFailed": "Tiedostoa ei voitu jakaa.",
+    "notSaving": "Tämä iPhone ei ole tallentanut ongelmalokia {{time}} jälkeen. Tiedosto sisältää vain sen, mikä tallennettiin ennen sitä, ja sen, mitä tämä istunto kirjasi."
+  },
+  "feedback": {
+    "title": "Palaute",
+    "prompt": "Kirjoita viesti Enduragentin tekijöille. Se lähtee yksinään, ilman keskusteluasi, muistia, harjoitustietoja tai diagnostiikkaa.",
+    "send": "Lähetä",
+    "sending": "Lähetetään…",
+    "received": "Vastaanotettu. Kiitos viestistä.",
+    "notSent": {
+      "noConnection": "Ei lähetetty. iPhonella ei ollut yhteyttä. Viestisi on tallessa.",
+      "busy": "Ei lähetetty. Palautepalvelu on varattu. Yritä uudelleen minuutin kuluttua. Viestisi on tallessa.",
+      "refused": "Ei lähetetty. Palautepalvelu hylkäsi viestin. Viestisi on tallessa.",
+      "stopped": "Ei lähetetty. Sovellus pysähtyi ennen kuin viesti lähti tästä iPhonesta. Viestisi on tallessa."
+    },
+    "notConfirmed": "Ei vahvistettu. Viesti on ehkä perillä, mutta vastausta ei tullut. Viestisi on tallessa, ja Yritä uudelleen lähettää saman viestin.",
+    "refused": {
+      "empty": "Kirjoita ensin viesti.",
+      "tooLong": "Pidä viestisi enintään {{limit}} merkissä. Mitään ei lähetetty.",
+      "invalidCharacter": "Viestissä on merkki, jota ei voi lähettää. Mitään ei lähetetty."
+    }
+  },
   "review": {
     "accountChanged": "Tämä harjoitus valmisteltiin toiselle urheilijalle palvelussa {{service}}. Pyydä minua uudelleen valmistelemaan se yhdistetylle urheilijalle.",
     "add": "Lisää kalenteriin",
@@ -3022,6 +3056,10 @@
       "decline": "Ei nyt",
       "saveFailed": "Suostumustasi ei voitu tallentaa. Yritä uudelleen."
     }
+  },
+  "about": {
+    "title": "Tietoja",
+    "privacyPolicy": "Tietosuojakäytäntö"
   },
   "access": {
     "error": {

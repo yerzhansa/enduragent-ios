@@ -65,6 +65,8 @@
 		static let catalogArgumentKey = "EnduragentFixtureCatalog"
 		static let signInArgumentKey = "EnduragentFixtureSignIn"
 		static let creditsArgumentKey = "EnduragentFixtureCredits"
+		static let feedbackArgumentKey = "EnduragentFixtureFeedback"
+		static let journalArgumentKey = "EnduragentFixtureJournal"
 		static let defaultClock = "1998-06-15T08:00:00Z"
 		static let timeZone = "Europe/Ljubljana"
 		static let firstWeekName = "first-week"
@@ -95,6 +97,8 @@
 		var creditsOutcome = FixtureCreditsOutcome.ready
 		var signInOutcome = FixtureSignInOutcome.cancel
 		var catalogResponse = FixtureCatalogResponse.offline
+		var feedback: FixtureFeedbackScript?
+		var journal = FixtureJournal.saving
 
 		static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 			guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -123,7 +127,9 @@
 				accessMethod: try policy(arguments, key: accessArgumentKey) ?? .credits,
 				creditsOutcome: try policy(arguments, key: creditsArgumentKey) ?? .ready,
 				signInOutcome: try policy(arguments, key: signInArgumentKey) ?? .cancel,
-				catalogResponse: try policy(arguments, key: catalogArgumentKey) ?? .offline
+				catalogResponse: try policy(arguments, key: catalogArgumentKey) ?? .offline,
+				feedback: try policy(arguments, key: feedbackArgumentKey),
+				journal: try policy(arguments, key: journalArgumentKey) ?? .saving
 			)
 		}
 

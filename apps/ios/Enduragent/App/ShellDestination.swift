@@ -9,6 +9,9 @@ enum ShellDestination: Hashable {
 	case modelPicker
 	case training
 	case session
+	case feedback
+	case diagnostics
+	case about
 	#if DEBUG
 		case debug
 		case debugCredits

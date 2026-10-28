@@ -539,6 +539,9 @@
       "switchDetail": "Denne nøkkelen tilhører utøver {{new}}. Samtalen, historikken og minnet ditt forblir lagret for utøver {{current}} og brukes ikke for utøver {{new}}. Bytte for å bruke denne nøkkelen?",
       "switch": "Bytt utøver",
       "athlete": "Utøver {{id}}"
+    },
+    "support": {
+      "title": "Brukerstøtte"
     }
   },
   "archive": {
@@ -2964,6 +2967,37 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnostikk",
+    "explanation": "Lag en fil med appversjonen, denne iPhonens modell og iOS-versjon, innstillingene dine, antall ting appen har lagret, og de siste 14 dagene med problemer og modellbruk. Den inneholder ingen nøkler, meldinger eller treningsdata. Ingenting forlater iPhonen før du deler den.",
+    "make": "Lag diagnosefil",
+    "preparing": "Forbereder filen…",
+    "shared": "Delt. iOS ga filen til appen du valgte.",
+    "saved": "Lagret i Filer.",
+    "canceled": "Avbrutt. Filen ble ikke delt.",
+    "failed": "Filen kunne ikke lages.",
+    "shareFailed": "Filen kunne ikke deles.",
+    "notSaving": "Denne iPhonen har ikke lagret problemloggen siden {{time}}. Filen inneholder bare det som ble lagret før det, og det denne økten registrerte."
+  },
+  "feedback": {
+    "title": "Tilbakemelding",
+    "prompt": "Skriv et notat til forfatterne av Enduragent. Det sendes alene, uten samtalen din, minnet, treningsdataene eller diagnostikken.",
+    "send": "Send",
+    "sending": "Sender…",
+    "received": "Mottatt. Takk for notatet.",
+    "notSent": {
+      "noConnection": "Ikke sendt. iPhonen hadde ingen tilkobling. Notatet ditt er tatt vare på.",
+      "busy": "Ikke sendt. Tilbakemeldingstjenesten er opptatt. Prøv igjen om et minutt. Notatet ditt er tatt vare på.",
+      "refused": "Ikke sendt. Tilbakemeldingstjenesten avviste notatet. Notatet ditt er tatt vare på.",
+      "stopped": "Ikke sendt. Appen stoppet før notatet forlot denne iPhonen. Notatet ditt er tatt vare på."
+    },
+    "notConfirmed": "Ikke bekreftet. Notatet kan ha kommet frem, men det kom ikke noe svar. Notatet ditt er tatt vare på, og Prøv igjen sender det samme notatet.",
+    "refused": {
+      "empty": "Skriv et notat først.",
+      "tooLong": "Hold notatet på høyst {{limit}} tegn. Ingenting ble sendt.",
+      "invalidCharacter": "Notatet har et tegn som ikke kan sendes. Ingenting ble sendt."
+    }
+  },
   "review": {
     "accountChanged": "Denne treningsøkten ble klargjort for en annen utøver på {{service}}. Be meg på nytt om å klargjøre den for den tilkoblede utøveren.",
     "add": "Legg til i kalender",
@@ -3022,6 +3056,10 @@
       "decline": "Ikke nå",
       "saveFailed": "Samtykket ditt kunne ikke lagres. Prøv igjen."
     }
+  },
+  "about": {
+    "title": "Om",
+    "privacyPolicy": "Personvernerklæring"
   },
   "access": {
     "error": {

@@ -93,6 +93,12 @@ struct ChatView: View {
 						TrainingSettingsView(model: model, settings: model.trainingSettings)
 					case .session:
 						SessionSettingsView(model: model, session: model.sessionSettings)
+					case .feedback:
+						FeedbackView(model: model, support: model.support)
+					case .diagnostics:
+						DiagnosticsView(model: model, support: model.support)
+					case .about:
+						AboutView(model: model, support: model.support)
 					#if DEBUG
 						case .debug:
 							SettingsDebugView(model: model)

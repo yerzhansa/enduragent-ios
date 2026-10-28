@@ -539,6 +539,9 @@
       "switchDetail": "Denna nyckel tillhör idrottare {{new}}. Ditt samtal, din historik och ditt minne förblir sparade för idrottare {{current}} och används inte för idrottare {{new}}. Byta för att använda denna nyckel?",
       "switch": "Byt idrottare",
       "athlete": "Idrottare {{id}}"
+    },
+    "support": {
+      "title": "Support"
     }
   },
   "archive": {
@@ -2964,6 +2967,37 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnostik",
+    "explanation": "Skapa en fil med appens version, den här iPhonens modell och iOS-version, dina inställningar, antal av det appen har sparat och de senaste 14 dagarnas problem och modellanvändning. Den innehåller inga nycklar, meddelanden eller träningsdata. Inget lämnar iPhonen förrän du delar den.",
+    "make": "Skapa diagnostikfil",
+    "preparing": "Förbereder filen…",
+    "shared": "Delad. iOS lämnade filen till appen du valde.",
+    "saved": "Sparad i Filer.",
+    "canceled": "Avbruten. Filen delades inte.",
+    "failed": "Filen kunde inte skapas.",
+    "shareFailed": "Filen kunde inte delas.",
+    "notSaving": "Den här iPhonen har inte sparat problemloggen sedan {{time}}. Filen innehåller bara det som sparades innan dess och det som den här sessionen registrerade."
+  },
+  "feedback": {
+    "title": "Feedback",
+    "prompt": "Skriv en anteckning till Enduragents författare. Den skickas för sig, utan din konversation, ditt minne, dina träningsdata eller diagnostikdata.",
+    "send": "Skicka",
+    "sending": "Skickar…",
+    "received": "Mottagen. Tack för anteckningen.",
+    "notSent": {
+      "noConnection": "Inte skickad. iPhonen hade ingen anslutning. Din anteckning finns kvar.",
+      "busy": "Inte skickad. Feedbacktjänsten är upptagen. Försök igen om en minut. Din anteckning finns kvar.",
+      "refused": "Inte skickad. Feedbacktjänsten avvisade anteckningen. Din anteckning finns kvar.",
+      "stopped": "Inte skickad. Appen stoppades innan anteckningen lämnade den här iPhonen. Din anteckning finns kvar."
+    },
+    "notConfirmed": "Inte bekräftad. Anteckningen kan ha kommit fram, men inget svar kom. Din anteckning finns kvar, och Försök igen skickar samma anteckning.",
+    "refused": {
+      "empty": "Skriv en anteckning först.",
+      "tooLong": "Håll anteckningen till högst {{limit}} tecken. Inget skickades.",
+      "invalidCharacter": "Anteckningen innehåller ett tecken som inte kan skickas. Inget skickades."
+    }
+  },
   "review": {
     "accountChanged": "Det här träningspasset förbereddes för en annan idrottare på {{service}}. Be mig igen att förbereda det för den anslutna idrottaren.",
     "add": "Lägg till i kalendern",
@@ -3022,6 +3056,10 @@
       "decline": "Inte nu",
       "saveFailed": "Det gick inte att spara ditt samtycke. Försök igen."
     }
+  },
+  "about": {
+    "title": "Om",
+    "privacyPolicy": "Integritetspolicy"
   },
   "access": {
     "error": {

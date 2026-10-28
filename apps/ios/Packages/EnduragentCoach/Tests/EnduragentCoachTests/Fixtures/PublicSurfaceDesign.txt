@@ -275,6 +275,7 @@ DisplayLocale.date(_:style:)
 DisplayLocale.init(preference:preferredLanguages:regionalConventions:)
 DisplayLocale.integer(_:)
 DisplayLocale.language
+DisplayLocale.moment(_:in:)
 DisplayLocale.number(_:precision:)
 DisplayLocale.phrasebook
 DisplayLocale.regionalConventions
@@ -856,6 +857,7 @@ Support.finishShare(_:_:)
 Support.makeDiagnosticsFile()
 Support.observe()
 Support.send(_:)
+Support.trimmed(_:)
 Support.tryAgain()
 SupportService
 SupportService.onDevice(app:)

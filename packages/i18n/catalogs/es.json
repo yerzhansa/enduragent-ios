@@ -539,6 +539,9 @@
       "switchDetail": "Esta clave pertenece al atleta {{new}}. Tu conversación, el historial y la memoria siguen guardados para el atleta {{current}} y no se usan para el atleta {{new}}. ¿Cambiar para usar esta clave?",
       "switch": "Cambiar atleta",
       "athlete": "Atleta {{id}}"
+    },
+    "support": {
+      "title": "Soporte"
     }
   },
   "archive": {
@@ -2964,6 +2967,37 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnóstico",
+    "explanation": "Crea un archivo con la versión de la app, el modelo y la versión de iOS de este iPhone, tus ajustes, recuentos de lo que la app ha guardado y los últimos 14 días de problemas y uso del modelo. No contiene claves, mensajes ni datos de entrenamiento. Nada sale del iPhone hasta que lo compartas.",
+    "make": "Crear archivo de diagnóstico",
+    "preparing": "Preparando el archivo…",
+    "shared": "Compartido. iOS entregó el archivo a la app que elegiste.",
+    "saved": "Guardado en Archivos.",
+    "canceled": "Cancelado. El archivo no se compartió.",
+    "failed": "No se pudo crear el archivo.",
+    "shareFailed": "No se pudo compartir el archivo.",
+    "notSaving": "Este iPhone no ha guardado el registro de problemas desde {{time}}. El archivo contiene solo lo que se guardó antes de ese momento y lo que registró esta sesión."
+  },
+  "feedback": {
+    "title": "Comentarios",
+    "prompt": "Escribe una nota a los autores de Enduragent. Se envía sola, sin tu conversación, memoria, datos de entrenamiento ni diagnósticos.",
+    "send": "Enviar",
+    "sending": "Enviando…",
+    "received": "Recibida. Gracias por la nota.",
+    "notSent": {
+      "noConnection": "No enviada. El iPhone no tenía conexión. Tu nota se conserva.",
+      "busy": "No enviada. El servicio de comentarios está ocupado. Inténtalo de nuevo en un minuto. Tu nota se conserva.",
+      "refused": "No enviada. El servicio de comentarios rechazó la nota. Tu nota se conserva.",
+      "stopped": "No enviada. La app se detuvo antes de que la nota saliera de este iPhone. Tu nota se conserva."
+    },
+    "notConfirmed": "Sin confirmar. Puede que la nota haya llegado, pero no hubo respuesta. Tu nota se conserva, y Reintentar envía la misma nota.",
+    "refused": {
+      "empty": "Escribe una nota primero.",
+      "tooLong": "Limita tu nota a {{limit}} caracteres o menos. No se envió nada.",
+      "invalidCharacter": "La nota tiene un carácter que no se puede enviar. No se envió nada."
+    }
+  },
   "review": {
     "accountChanged": "Este entrenamiento se preparó para otro atleta de {{service}}. Pídeme de nuevo que lo prepare para el atleta conectado.",
     "add": "Añadir al calendario",
@@ -3022,6 +3056,10 @@
       "decline": "Ahora no",
       "saveFailed": "No se pudo guardar tu consentimiento. Inténtalo de nuevo."
     }
+  },
+  "about": {
+    "title": "Acerca de",
+    "privacyPolicy": "Política de privacidad"
   },
   "access": {
     "error": {
