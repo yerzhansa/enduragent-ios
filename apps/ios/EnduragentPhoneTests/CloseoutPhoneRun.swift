@@ -90,12 +90,13 @@ final class CloseoutPhoneRun: XCTestCase {
 		shot("about")
 		link.tap()
 		log.append("Tapped about.privacyPolicy.")
-		TutorialHarness.wait(
-			XCUIApplication(bundleIdentifier: "com.apple.mobilesafari"), until: .foreground,
-			within: .turn)
+		let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
+		TutorialHarness.wait(safari, until: .foreground, within: .turn)
 		shot("about-privacy-policy")
 		app.activate()
 		TutorialHarness.wait(app, until: .foreground)
+		TutorialHarness.wait(
+			until: { safari.state != .runningForeground }, message: "Safari stayed in front.")
 		TutorialHarness.returnToChat(app)
 		try command("/version")
 		try expectAbout()
@@ -297,9 +298,11 @@ final class CloseoutPhoneRun: XCTestCase {
 		if shown.count > 200 {
 			field.press(forDuration: 1.2)
 			let selectAll = editAction("Select All")
-			if selectAll.waitForExistence(timeout: TutorialHarness.Timeout.probe.rawValue) {
-				selectAll.tap()
+			if !selectAll.waitForExistence(timeout: TutorialHarness.Timeout.probe.rawValue) {
+				field.tap()
 			}
+			TutorialHarness.wait(selectAll, until: .hittable)
+			selectAll.tap()
 			field.typeText(XCUIKeyboardKey.delete.rawValue)
 		} else {
 			field.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.9)).tap()
