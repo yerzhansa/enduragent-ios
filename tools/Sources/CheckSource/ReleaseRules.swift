@@ -85,6 +85,7 @@ extension SourceChecker {
 		try checkKnownHosts(product, spec: spec)
 		try checkNotice(source(Self.notice), sources: sources)
 		try checkSupportedDevices(spec)
+		try checkPhoneTestsUnhosted(spec)
 	}
 
 	private func plist(_ file: String) throws -> JSONValue {

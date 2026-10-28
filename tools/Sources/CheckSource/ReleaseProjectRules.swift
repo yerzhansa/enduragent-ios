@@ -8,6 +8,8 @@ struct ProjectSpec {
 	}
 
 	static let app = ["targets", "Enduragent"]
+	static let phoneTests = ["targets", "EnduragentPhoneTests"]
+	static let phoneScheme = ["schemes", "EnduragentPhone"]
 
 	let lines: [Line]
 
@@ -128,6 +130,28 @@ extension SourceChecker {
 		let declared = defined("INFOPLIST_KEY_UISupportedInterfaceOrientations")
 		if declared.isEmpty || !orientations.allSatisfy({ $0.hasSameUnits(as: portrait) }) {
 			try findings.report(Self.appProject, rule, key: "UISupportedInterfaceOrientations")
+		}
+	}
+
+	func checkPhoneTestsUnhosted(_ spec: ProjectSpec) throws {
+		let rule = "phone-tests-unhosted"
+		func isApplication(_ target: String) -> Bool {
+			spec.values(["targets", target, "type"]).contains { $0.hasSameUnits(as: "application") }
+		}
+		if spec.lines(under: ProjectSpec.phoneTests + ["settings"]).contains(where: {
+			$0.path.last.map { $0.hasSameUnits(as: "TEST_TARGET_NAME") } ?? false
+		}) {
+			try findings.report(Self.appProject, rule, key: "TEST_TARGET_NAME")
+		}
+		if spec.values(ProjectSpec.phoneTests + ["dependencies", "-", "target"]).contains(
+			where: isApplication)
+		{
+			try findings.report(Self.appProject, rule, key: "dependencies")
+		}
+		if spec.keys(under: ProjectSpec.phoneScheme + ["build", "targets"]).contains(
+			where: isApplication)
+		{
+			try findings.report(Self.appProject, rule, key: "schemes")
 		}
 	}
 }

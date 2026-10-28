@@ -7,7 +7,8 @@
 		"2.1": 8,
 		"6.1": 9,
 		"8.1": 6,
-		"8.2": 6
+		"8.2": 6,
+		"9.1": 9
 	},
 	"criteria": [
 		{
@@ -440,6 +441,76 @@
 			"statement": "check-coverage passes on the committed milestone-6.json.",
 			"tests": [
 				{"file": "tools/Tests/CheckCoverageTests/CoverageCheckerTests.swift", "function": "theCommittedMilestoneSixTablePasses"}
+			]
+		},
+		{
+			"id": "9.1.1",
+			"statement": "PhoneSessionPlan.load reads the three committed session files, m4.json, plan.json and closeout.json. Their planned totals are 15, 13 and 32, and their caps 40, 30 and 50.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "theCommittedFilesPlanTheirTotalsUnderTheirCaps"}
+			]
+		},
+		{
+			"id": "9.1.2",
+			"statement": "SittingOrder.problems is empty for the committed sitting.json.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "theCommittedSittingHasNoProblem"}
+			]
+		},
+		{
+			"id": "9.1.3",
+			"statement": "SittingOrder.problems reports a missing step, a step listed twice, closeout/update not second, a TestFlight step after closeout/debug-install, and closeout/second-device-diagnostics before closeout/two-phone.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "aSittingThatBreaksARuleIsReported"}
+			]
+		},
+		{
+			"id": "9.1.4",
+			"statement": "PhoneDriver decodes each of its four forms, and a runner step names its scheme, class, method and actions attachment.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "eachDriverFormDecodesWithItsBuild"},
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "aDriverOutsideTheFourFormsIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "everyCommittedRunnerStepNamesItsTest"}
+			]
+		},
+		{
+			"id": "9.1.5",
+			"statement": "PhoneBudget.approve refuses a non-number, a budget below the steps' planned count, and one that passes the cap after what the ledger spent, for each of the three sessions.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetBelowTheStepsPlannedCountIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "anAnswerThatIsNotABudgetIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetThatWouldTakeTheMilestonePastThirtyIsRefused"}
+			]
+		},
+		{
+			"id": "9.1.6",
+			"statement": "phone-check plan passes 2, 1, 2, 2, 3, 1 and 2 for the seven steps in ENDURAGENT_PLAN_PHONE_STEPS, read through PhoneSessionPlan.load, and PlanPhoneRun plans exactly the counts that variable holds.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theWholeSessionPlansTwelveSendsAndOneNewConversation"},
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "aStepsVariableThatCannotBeReadPlansNothing"}
+			]
+		},
+		{
+			"id": "9.1.7",
+			"statement": "phone-tests-unhosted reports a project with TEST_TARGET_NAME on EnduragentPhoneTests, one whose phone test target depends on the app, and one whose EnduragentPhone scheme builds the app. It passes on the committed project, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "9.1.8",
+			"statement": "On the simulator, PhoneUnhostedProof drives the separately installed app by bundle id. After xcodebuild test, xcrun simctl appinfo still reports CFBundleVersion 9001, and the conversation written before the run is shown.",
+			"tests": [
+				{"file": "apps/ios/EnduragentPhoneTests/PhoneUnhostedProof.swift", "class": "PhoneUnhostedProof", "method": "testWritesAConversationInTheInstalledApp"},
+				{"file": "apps/ios/EnduragentPhoneTests/PhoneUnhostedProof.swift", "class": "PhoneUnhostedProof", "method": "testShowsTheConversationWrittenBeforeTheRun"}
+			],
+			"checkedByHand": {"part": "That xcodebuild test installed nothing over the app. The simulator agent reads CFBundleVersion with xcrun simctl appinfo after each run and records 9001 both times in the review.", "described": ".agents/skills/verify-ios/phone.md"}
+		},
+		{
+			"id": "9.1.9",
+			"statement": "PhoneSessionTests.everyStepHasDecidableChecks: every step in the three committed files has at least one check with a non-empty pass, and an endsWith.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "everyStepHasDecidableChecks"}
 			]
 		}
 	],

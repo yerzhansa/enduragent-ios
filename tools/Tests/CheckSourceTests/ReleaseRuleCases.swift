@@ -17,6 +17,7 @@ extension SourceCases {
 	static let releaseRules: [SourceCase] =
 		privacyManifestRules + privacyLabelSheetRules + exportOptionsRules
 		+ packageDependencyRules + knownHostsRules + noticeRules + supportedDevicesRules
+		+ phoneTestsUnhostedRules
 
 	static let privacyManifestRules: [SourceCase] = [
 		.accepts("accepts release files that agree with each other", release.files),
@@ -230,5 +231,20 @@ extension SourceCases {
 					"UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft"
 			},
 			ReleaseTree.project, "supported-devices", "UISupportedInterfaceOrientations"),
+	]
+
+	static let phoneTestsUnhostedRules: [SourceCase] = [
+		rejectsRelease(
+			"phone-tests-unhosted rejects TEST_TARGET_NAME on the phone test target",
+			release.changed { $0.phoneTestSettings.append("TEST_TARGET_NAME: Enduragent") },
+			ReleaseTree.project, "phone-tests-unhosted", "TEST_TARGET_NAME"),
+		rejectsRelease(
+			"phone-tests-unhosted rejects a phone test target that depends on the app",
+			release.changed { $0.phoneTestDependencies.insert("target: Enduragent", at: 0) },
+			ReleaseTree.project, "phone-tests-unhosted", "dependencies"),
+		rejectsRelease(
+			"phone-tests-unhosted rejects a phone scheme that builds the app",
+			release.changed { $0.phoneSchemeTargets.insert("Enduragent: all", at: 0) },
+			ReleaseTree.project, "phone-tests-unhosted", "schemes"),
 	]
 }

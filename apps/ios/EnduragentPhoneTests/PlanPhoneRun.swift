@@ -3,7 +3,6 @@
 	import XCTest
 
 	final class PlanPhoneRun: XCTestCase {
-		static let plannedActions = [2, 1, 2, 2, 3, 1, 2]
 		static let card = "chat.planSave.card"
 		static let save = "chat.planSave.save"
 		static let cancel = "chat.planSave.cancel"
@@ -28,44 +27,43 @@
 		func testPlanPhoneRun() throws {
 			continueAfterFailure = false
 			let environment = ProcessInfo.processInfo.environment
-			let bounds = (environment["ENDURAGENT_PLAN_PHONE_STEPS"] ?? "")
-				.split(separator: "-", omittingEmptySubsequences: false).map { Int($0) }
-			guard bounds.count == 2, let first = bounds[0], let last = bounds[1], first >= 1,
-				first <= last, last <= Self.plannedActions.count
+			guard
+				let steps = PlannedPhoneStep.steps(
+					in: environment[PlannedPhoneStep.variable] ?? "")
 			else {
 				throw PhoneRunBlocked(reason: "Run PlanPhoneRun through phone-check plan.")
 			}
-			let steps = first...last
-			let planned = Self.plannedActions[(steps.lowerBound - 1)...(steps.upperBound - 1)]
-				.reduce(0, +)
+			let ids = steps.map(\.id).joined(separator: ", ")
+			let planned = steps.reduce(0) { $0 + $1.planned }
 			guard let value = environment["ENDURAGENT_PHONE_MESSAGE_BUDGET"],
-				let budget = Int(value), budget >= planned, budget <= 30
+				let budget = Int(value), budget >= planned
 			else {
 				throw PhoneRunBlocked(
 					reason:
-						"Ask the operator for this invocation's message budget through phone-check plan. Steps \(first)-\(last) need \(planned) message actions, and the milestone's cap is 30."
+						"Ask the operator for this invocation's message budget through phone-check plan. \(ids) need \(planned) message actions."
 				)
 			}
 			messagesRemaining = budget
-			log.append("Approved message budget \(budget) for steps \(first)-\(last).")
+			log.append("Approved message budget \(budget) for \(ids).")
 			try launchPlain()
 			guard !element(Self.save).exists, !element("chat.preview.add").exists else {
 				throw PhoneRunBlocked(reason: "A plan-save card or workout review is still open.")
 			}
 			for step in steps {
-				log.append("Step \(step) starts.")
-				switch step {
-				case 1: try draftWithoutSaving()
-				case 2: try feasibility()
-				case 3: try saveSurvivesRelaunch()
-				case 4: try replaceAndAskHistory()
-				case 5: try expireBesideReview()
-				case 6: try saveAtLargestText()
-				default: try cancelCarriedCard()
+				log.append("\(step.id) starts.")
+				switch step.id {
+				case "plan/1": try draftWithoutSaving()
+				case "plan/2": try feasibility()
+				case "plan/3": try saveSurvivesRelaunch()
+				case "plan/4": try replaceAndAskHistory()
+				case "plan/5": try expireBesideReview()
+				case "plan/6": try saveAtLargestText()
+				case "plan/7": try cancelCarriedCard()
+				default: throw PhoneRunBlocked(reason: "PlanPhoneRun has no step \(step.id).")
 				}
-				shot("step-\(step)-done")
+				shot("\(step.id.replacingOccurrences(of: "/", with: "-"))-done")
 			}
-			XCTAssertEqual(approvesRemaining, steps.contains(5) ? 0 : 1)
+			XCTAssertEqual(approvesRemaining, steps.contains { $0.id == "plan/5" } ? 0 : 1)
 		}
 
 		@MainActor
