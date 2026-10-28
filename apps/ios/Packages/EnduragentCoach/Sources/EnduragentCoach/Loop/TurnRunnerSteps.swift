@@ -34,7 +34,8 @@ extension TurnRunner {
 				tools: prompt.offer.schemas,
 				deadline: await scope.callDeadline(uptime: clock.uptime)
 			)
-			let step = try await modelCall.run(request: request, progress: progress)
+			let step = try await modelCall(metering: scope.meter).run(
+				request: request, progress: progress)
 			steps += 1
 			lastText = step.text
 			lastReason = step.reason
@@ -90,7 +91,7 @@ extension TurnRunner {
 			lastReason == .toolCalls || lastReason == .length
 		{
 			try await scope.chargeCall()
-			let recovery = try await modelCall.run(
+			let recovery = try await modelCall(metering: scope.meter).run(
 				request: CompletionRequest(
 					access: attempt.access,
 					attempt: attempt.attempt,
@@ -186,7 +187,8 @@ extension TurnRunner {
 			await progress(.activity(.compacting))
 			try await scope.chargeCall()
 			do {
-				let summary = try await Compactor(modelCall: modelCall).summarize(
+				let compactor = Compactor(modelCall: modelCall(metering: scope.meter))
+				let summary = try await compactor.summarize(
 					dropped, previous: prompt.summary, purpose: .inTurn, attempt: attempt)
 				prompt.summary = summary.markdown
 				prompt.wire = Array(prompt.wire.suffix(4))

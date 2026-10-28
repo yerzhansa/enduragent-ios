@@ -8,13 +8,14 @@ extension Memory {
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
 		stamp: OperationStamp,
-		scope: TurnScope?
+		scope: TurnScope?,
+		meter: UsageMeter
 	) async throws(CancellationError) -> FlushOutcome {
 		guard !messages.isEmpty else { return .nothingToSave }
 		let run = FlushRun(
 			messages: messages, timeZone: clock.timeZone, access: access, transport: transport,
 			stamp: stamp, diagnostics: diagnostics, ladder: ladder,
-			maxAttempts: (scope?.policy ?? .npm).maxGenerateAttempts)
+			maxAttempts: (scope?.policy ?? .npm).maxGenerateAttempts, meter: meter)
 		var tally = FlushTally()
 		do {
 			try await runFlushGenerate(run, scope: scope, tally: &tally)
@@ -69,7 +70,7 @@ extension Memory {
 		var remainingRetryWait = MemoryFlushPolicy.retryWaitAllowance
 		let modelCall = ModelCall(
 			transport: run.transport, diagnostics: run.diagnostics, watchdogSleep: watchdogSleep,
-			authorizeInvocation: authorizeInvocation)
+			authorizeInvocation: authorizeInvocation, meter: run.meter)
 		while steps < MemoryFlushPolicy.maxSteps {
 			try Task.checkCancellation()
 			try await scope?.checkDeadline(uptime: clock.uptime)
@@ -163,6 +164,7 @@ private struct FlushRun: Sendable {
 	let diagnostics: DiagnosticsLog
 	let ladder: RetryLadder
 	let maxAttempts: Int
+	let meter: UsageMeter
 }
 
 private struct FlushTally {

@@ -37,7 +37,8 @@ import Testing
 		try await memory.runFlush(
 			messages: messages ?? conversation, access: testAccess, transport: transport,
 			diagnostics: DiagnosticsLog(clock: clock), ladder: .npm,
-			stamp: testStamp(operation: .memoryFlush(job.id)), scope: scope)
+			stamp: testStamp(operation: .memoryFlush(job.id)), scope: scope,
+			meter: scope?.meter ?? UsageMeter(started: .zero))
 	}
 
 	@Test(arguments: [401, 429])

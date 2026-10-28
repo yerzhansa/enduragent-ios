@@ -131,14 +131,22 @@ package struct FlushWork: Sendable {
 	package func extract(
 		messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?, stamp: OperationStamp
 	) async throws(CancellationError) -> FlushOutcome {
+		let meter = scope?.meter ?? UsageMeter(started: clock.uptime)
 		let outcome = try await memory.runFlush(
 			messages: messages, access: access, transport: transport, diagnostics: diagnostics,
-			ladder: ladder, stamp: stamp, scope: scope)
+			ladder: ladder, stamp: stamp, scope: scope, meter: meter)
 		switch outcome {
 		case .partial, .failed:
 			diagnostics.record(.memoryFlushFailed(chat, .flush(FlushEnding(outcome))))
 		case .saved, .nothingToSave:
 			break
+		}
+		if scope == nil {
+			diagnostics.recordUsage(
+				of: meter,
+				origin: .memorySave(
+					attempt: stamp.attempt.ulid, ending: MemorySaveEnding(FlushEnding(outcome))),
+				model: access.model, at: clock.uptime)
 		}
 		return outcome
 	}

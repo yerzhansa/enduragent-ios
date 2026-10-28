@@ -310,7 +310,7 @@ package struct TurnRunner: Sendable {
 	) async throws -> (summary: String, records: [AthleteRecord]) {
 		await progress(.activity(.compacting))
 		try await scope.chargeCall()
-		let summary = try await Compactor(modelCall: modelCall).summarize(
+		let summary = try await Compactor(modelCall: modelCall(metering: scope.meter)).summarize(
 			dropped, previous: previous, purpose: .droppedHistory, attempt: attempt)
 		let windows = stride(from: 0, to: droppedUlids.count, by: Self.droppedMessageLimit).map {
 			start in
