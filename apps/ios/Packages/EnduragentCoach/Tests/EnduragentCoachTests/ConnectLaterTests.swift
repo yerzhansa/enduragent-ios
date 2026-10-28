@@ -31,7 +31,8 @@ import Testing
 					},
 					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
 					clock: FixedClock(
-						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")),
+						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
+					support: .inMemory(app: .fixture)),
 				builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow))
 		let reads: [ScriptedEvent] = [
 			.toolCall(name: ToolName.intervalsFetchAthlete.rawValue, arguments: "{}"),

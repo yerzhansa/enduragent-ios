@@ -43,36 +43,127 @@ import Testing
 		}
 	}
 
-	@Test func ringKeepsTheNewestEntries() {
-		let diagnostics = DiagnosticsLog(clock: clock)
-		for index in 0..<(DiagnosticsLog.capacity + 50) {
-			diagnostics.record(.memoryFlushFailed(.main, .cocoa(index)))
-		}
-		let kept = diagnostics.entries
-		#expect(kept.count == DiagnosticsLog.capacity)
-		#expect(kept.first?.event == .memoryFlushFailed(.main, .cocoa(50)))
-		#expect(kept.last?.event == .memoryFlushFailed(.main, .cocoa(249)))
+	@Test func aRecordedLineSurvivesANewLog() throws {
+		let directory = try Self.folder()
+		let file = directory.appending(path: "diagnostics.jsonl")
+		let log = DiagnosticsLog(clock: clock, storage: FileJournalStorage(directory: directory))
+		let event = DiagnosticsEvent.memoryFlushFailed(.main, .cocoa(4))
+		log.record(event)
+		let problem = StampedLine(at: clock.now, line: .problem(event.line))
+		#expect(try Self.lines(in: Data(contentsOf: file)) == [problem])
+		let usage = try Self.usage(cost: .reported(0.0042))
+		log.recordUsage(usage)
+		let used = StampedLine(at: clock.now, line: .usage(usage))
+		#expect(try Self.lines(in: Data(contentsOf: file)) == [problem, used])
+		let reopened = DiagnosticsLog(
+			clock: clock, storage: FileJournalStorage(directory: directory))
+		#expect(reopened.window(endingAt: clock.now) == [problem, used])
 	}
 
-	@Test func unreadableRowsCannotFlushProviderFailuresOutOfTheRing() async throws {
+	@Test func aTornFileIsRecordedAsADroppedLine() throws {
+		let directory = try Self.folder()
+		let file = directory.appending(path: "diagnostics.jsonl")
+		let whole = StampedLine(
+			at: clock.now, line: .problem(DiagnosticsEvent.recoveryUnavailable(.unavailable).line))
+		let torn = try whole.encoded()
+		try (torn + Data("\n".utf8) + torn.prefix(torn.count / 2)).write(to: file)
+		let log = DiagnosticsLog(clock: clock, storage: FileJournalStorage(directory: directory))
+		let dropped = DiagnosticsEvent.journalLinesDropped(count: 1)
+		#expect(log.entries.map(\.event) == [dropped])
+		#expect(
+			try Self.lines(in: Data(contentsOf: file)) == [
+				whole, StampedLine(at: clock.now, line: .problem(dropped.line)),
+			])
+	}
+
+	@Test func anUnreadableFileIsRecordedAsARestart() throws {
+		let storage = MemoryJournalStorage()
+		storage.failReads()
+		let log = DiagnosticsLog(clock: clock, storage: storage)
+		let restarted = DiagnosticsEvent.journalRestarted(.unreadable)
+		#expect(log.entries.map(\.event) == [restarted])
+		#expect(
+			try Self.lines(in: #require(storage.contents)) == [
+				StampedLine(at: clock.now, line: .problem(restarted.line))
+			])
+	}
+
+	@Test func entriesHoldEveryEventOfThisProcessAndNothingElse() throws {
+		let directory = try Self.folder()
+		let first = DiagnosticsLog(clock: clock, storage: FileJournalStorage(directory: directory))
+		let events = (0..<201).map { DiagnosticsEvent.memoryFlushFailed(.main, .cocoa($0)) }
+		for event in events {
+			first.record(event)
+		}
+		first.recordUsage(try Self.usage(cost: .unreported))
+		#expect(first.entries.map(\.event) == events)
+		let second = DiagnosticsLog(clock: clock, storage: FileJournalStorage(directory: directory))
+		#expect(second.entries.isEmpty)
+		second.record(.preferencesUnavailable(.unavailable))
+		#expect(second.entries.map(\.event) == [.preferencesUnavailable(.unavailable)])
+		#expect(second.window(endingAt: clock.now).count == 203)
+	}
+
+	@Test func aLedgerReportsTheFirstHundredSkippedRows() async throws {
 		let diagnostics = DiagnosticsLog(clock: clock)
-		let failure = DiagnosticsEvent.providerFailure(
-			AttemptID(ulid: fixedUlid(43)), .network, detail: .url(-1009))
-		diagnostics.record(failure)
-		let rows = (0..<250).map { SkippedRow.malformed(kind: "userMessage", ulid: "row-\($0)") }
+		let rows = (0..<101).map { SkippedRow.malformed(kind: "userMessage", ulid: "row-\($0)") }
 		let ledger = Ledger(
 			log: UnreadableLog(rows: rows), chain: InMemoryRecordLog(), clock: clock,
 			diagnostics: diagnostics)
 		_ = try await ledger.read(RecordQuery(scope: .everySynced))
 		_ = try await ledger.read(RecordQuery(scope: .everySynced))
-		let events = diagnostics.entries.map(\.event)
-		#expect(events.first == failure)
-		#expect(events.count == 1 + Ledger.reportedSkipLimit)
-		let skipped = events.compactMap { event -> SkippedRow? in
-			guard case .skippedRecord(let row) = event else { return nil }
-			return row
+		#expect(
+			diagnostics.entries.map(\.event)
+				== rows.prefix(100).map { DiagnosticsEvent.skippedRecord($0) })
+	}
+
+	@Test func aSkippedRowIsWrittenScrubbed() throws {
+		let directory = try Self.folder()
+		let log = DiagnosticsLog(clock: clock, storage: FileJournalStorage(directory: directory))
+		let url = "https://x.test/?k=sk-or-v1-abc"
+		let token = "gh" + "p_" + String(repeating: "a1", count: 18)
+		log.record(.skippedRecord(.malformed(kind: url, ulid: token)))
+		let written = String(
+			decoding: try Data(contentsOf: directory.appending(path: "diagnostics.jsonl")),
+			as: UTF8.self)
+		for text in ["sk-or-v1-abc", token, "x.test", url] {
+			#expect(!written.contains(text))
 		}
-		#expect(Set(skipped).count == Ledger.reportedSkipLimit)
+		#expect(written.contains("[redacted]"))
+	}
+
+	@Test func aLineThatCannotBeEncodedStopsSavingUntilTheNextWrite() throws {
+		let storage = MemoryJournalStorage()
+		let log = DiagnosticsLog(clock: clock, storage: storage)
+		log.recordUsage(try Self.usage(cost: .reported(.nan)))
+		#expect(log.health == .notSaving(since: clock.now, firstCause: .appendFailed))
+		#expect(storage.contents == nil)
+		let event = DiagnosticsEvent.recoveryUnavailable(.unavailable)
+		log.record(event)
+		#expect(log.health == .saving)
+		#expect(
+			try Self.lines(in: #require(storage.contents)) == [
+				StampedLine(at: clock.now, line: .problem(event.line))
+			])
+	}
+
+	private static func folder() throws -> URL {
+		let directory = try TestTemporaryFolders.make()
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+		return directory
+	}
+
+	private static func lines(in data: Data) throws -> [StampedLine] {
+		try #require(data.last == UInt8(ascii: "\n"))
+		return try data.split(separator: UInt8(ascii: "\n"), omittingEmptySubsequences: false)
+			.dropLast().map { try StampedLine(decoding: Data($0)) }
+	}
+
+	private static func usage(cost: UsageCost) throws -> UsageLine {
+		UsageLine(
+			origin: .turn(turn: fixedUlid(21), attempt: fixedUlid(22), ending: .replied),
+			model: try #require(ModelRef(testModel)), calls: 2, failedCalls: 0,
+			inputTokens: 1_200, outputTokens: 300, cost: cost, durationMilliseconds: 1_500)
 	}
 
 	@Test(arguments: [true, false])

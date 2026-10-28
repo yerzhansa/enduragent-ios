@@ -77,22 +77,55 @@ package struct DiagnosticsFile: Sendable, Encodable {
 	}
 }
 
-package struct AppIdentity: Sendable, Equatable, Encodable {
-	package let name: String
-	package let version: String
-	package let build: String
+public struct AppIdentity: Sendable, Equatable, Encodable {
+	public let name: String
+	public let version: String
+	public let build: String
 
 	package init?(name: String, version: String, build: String) {
-		guard fits(name, #/[A-Za-z][A-Za-z ]{0,29}/#),
-			fits(version, #/[0-9]+(?:\.[0-9]+){0,2}/#),
-			fits(build, #/[0-9]+(?:\.[0-9]+)*/#)
+		guard Field.name.admits(name), Field.version.admits(version), Field.build.admits(build)
 		else { return nil }
 		self.name = name
 		self.version = version
 		self.build = build
 	}
 
-	package var display: String { "\(version) (\(build))" }
+	public init(infoDictionary: [String: Any]) throws(AppIdentityFailure) {
+		name = try Field.name.read(infoDictionary)
+		version = try Field.version.read(infoDictionary)
+		build = try Field.build.read(infoDictionary)
+	}
+
+	public var display: String { "\(version) (\(build))" }
+
+	private enum Field: String {
+		case name = "CFBundleDisplayName"
+		case version = "CFBundleShortVersionString"
+		case build = "CFBundleVersion"
+
+		var shape: Regex<Substring> {
+			switch self {
+			case .name: #/[A-Za-z][A-Za-z ]{0,29}/#
+			case .version: #/[0-9]+(?:\.[0-9]+){0,2}/#
+			case .build: #/[0-9]+(?:\.[0-9]+)*/#
+			}
+		}
+
+		func admits(_ text: String) -> Bool {
+			fits(text, shape)
+		}
+
+		func read(_ dictionary: [String: Any]) throws(AppIdentityFailure) -> String {
+			guard let value = dictionary[rawValue] else { throw .missing(rawValue) }
+			guard let text = value as? String, admits(text) else { throw .malformed(rawValue) }
+			return text
+		}
+	}
+}
+
+public enum AppIdentityFailure: Error, Equatable {
+	case missing(String)
+	case malformed(String)
 }
 
 package struct DeviceFacts: Sendable, Equatable, Encodable {

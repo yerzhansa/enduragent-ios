@@ -70,7 +70,8 @@ struct StarterGrantTests {
 					training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
 					credits: .fake(credits), host: ImmediateExecutionHost(),
 					clock: FixedClock(
-						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")),
+						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
+					support: .inMemory(app: .fixture)),
 				builtInModel: testModel, displayLocale: testDisplayLocale))
 	}
 }

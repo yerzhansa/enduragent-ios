@@ -282,7 +282,7 @@ struct LiveCoachBench: Sendable {
 					LiveReadOnlyTraining(inner: reads(credential, selection), requests: requests)
 				},
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
-				clock: SystemClock()),
+				clock: SystemClock(), support: .inMemory(app: .fixture)),
 			builtInModel: model, displayLocale: testDisplayLocale)
 		if case .required(let challenge) = await coach.vault.accessConsent(
 			builtInModel: coach.builtInModel, recorded: nil)

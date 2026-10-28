@@ -81,6 +81,7 @@ struct SourceChecker {
 				featureProofSources.append(source)
 			}
 			try checkContentRules(source)
+			try checkDiagnosticsLogMaker(source)
 			try checkSingleChangePath(source)
 		}
 		let generatedProject = NodePath.resolve(root, Self.xcodeProject)

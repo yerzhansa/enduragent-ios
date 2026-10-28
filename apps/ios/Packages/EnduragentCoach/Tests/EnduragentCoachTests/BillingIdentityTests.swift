@@ -252,7 +252,8 @@ extension CreditsClientTests {
 					},
 					host: ImmediateExecutionHost(),
 					clock: FixedClock(
-						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")),
+						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
+					support: .inMemory(app: .fixture)),
 				builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow)
 			try await coach.recordConsent()
 			return coach

@@ -2,27 +2,49 @@ import Foundation
 import Synchronization
 
 package final class DiagnosticsLog: Sendable {
-	package static let capacity = 200
-
 	private let clock: any Clock
-	private let ring = Mutex<[DiagnosticsEntry]>([])
+	private let journal: Journal
+	private let events = Mutex<[DiagnosticsEntry]>([])
 
-	package init(clock: any Clock) {
+	package init(clock: any Clock, storage: any JournalStorage) {
 		self.clock = clock
+		journal = Journal(storage: storage, clock: clock)
+		for opening in journal.openings {
+			record(opening.event)
+		}
 	}
 
 	package var entries: [DiagnosticsEntry] {
-		ring.withLock { $0 }
+		events.withLock { $0 }
+	}
+
+	package var health: JournalHealth {
+		journal.health
 	}
 
 	package func record(_ event: DiagnosticsEvent) {
 		let entry = DiagnosticsEntry(at: clock.now, event: event)
-		ring.withLock { entries in
-			entries.append(entry)
-			if entries.count > Self.capacity {
-				entries.removeFirst(entries.count - Self.capacity)
-			}
+		events.withLock { $0.append(entry) }
+		write(StampedLine(at: entry.at, line: .problem(event.line)))
+	}
+
+	package func recordUsage(_ line: UsageLine) {
+		write(StampedLine(at: clock.now, line: .usage(line)))
+	}
+
+	package func window(endingAt now: Date) -> [StampedLine] {
+		journal.window(endingAt: now)
+	}
+
+	private func write(_ line: StampedLine) {
+		let record: JournalRecord
+		do {
+			record = try JournalRecord(line)
+		} catch {
+			journal.markAppendFailed()
+			return
 		}
+		journal.append(record)
 	}
 }
 
@@ -50,4 +72,15 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case reviewUnavailable(ChatID, LedgerFailure)
 	case planConfirmationUnavailable(ChatID, LedgerFailure)
 	case planSaveStalled(PlanConfirmationID, LedgerFailure)
+	case journalRestarted(JournalFault)
+	case journalLinesDropped(count: Int)
+}
+
+extension JournalOpening {
+	fileprivate var event: DiagnosticsEvent {
+		switch self {
+		case .linesDropped(let count): .journalLinesDropped(count: count)
+		case .restarted(let fault): .journalRestarted(fault)
+		}
+	}
 }

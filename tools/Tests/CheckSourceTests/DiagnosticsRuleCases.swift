@@ -71,4 +71,37 @@ extension SourceCases {
 					"package struct FixtureFailure: Error {}\n",
 			]),
 	]
+
+	static let supportServiceSource = "\(coachSources)/Support/SupportService.swift"
+	static let appProbeSource = "apps/ios/Enduragent/App/LogProbe.swift"
+
+	static let diagnosticsLogOneMaker: [SourceCase] = [
+		.rejects(
+			"rejects an app file that makes a diagnostics log",
+			[appProbeSource: "let log = DiagnosticsLog(clock: clock, storage: storage)\n"],
+			finding: "diagnostics-log-one-maker",
+			findingLines: [#""\#(appProbeSource)" [diagnostics-log-one-maker]"#]),
+		.rejects(
+			"rejects a package file that makes a diagnostics log through init",
+			[
+				"\(coachSources)/Coach.swift":
+					"let diagnostics = DiagnosticsLog . init(clock: clock, storage: storage)\n"
+			],
+			finding: "diagnostics-log-one-maker",
+			findingLines: [#""\#(coachSources)/Coach.swift" [diagnostics-log-one-maker]"#]),
+		.accepts(
+			"accepts the support service, tests, fixtures and names of the type",
+			[
+				supportServiceSource:
+					"func openLog(clock: any Clock) -> DiagnosticsLog {\n"
+					+ "\tDiagnosticsLog(clock: clock, storage: journal)\n}\n",
+				"\(coachSources)/Coach.swift":
+					"let diagnostics: DiagnosticsLog\n"
+					+ "let make: @Sendable (DiagnosticsLog) -> Int\n"
+					+ "let text = \"DiagnosticsLog(clock:)\"\n",
+				"\(coachTests)/LogTests.swift": "let log = DiagnosticsLog(clock: clock)\n",
+				"\(coachFixtures)/MemoryJournalStorage.swift":
+					"let log = DiagnosticsLog(clock: clock, storage: MemoryJournalStorage())\n",
+			]),
+	]
 }

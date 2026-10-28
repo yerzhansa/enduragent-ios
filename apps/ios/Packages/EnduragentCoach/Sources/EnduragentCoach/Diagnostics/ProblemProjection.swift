@@ -19,6 +19,8 @@ package enum ProblemKind: String, Sendable, Codable, CaseIterable {
 	case reviewUnavailable
 	case planConfirmationUnavailable
 	case planSaveStalled
+	case journalRestarted
+	case journalLinesDropped
 }
 
 extension DiagnosticsEvent {
@@ -78,6 +80,10 @@ extension DiagnosticsEvent {
 			ProblemLine(
 				.planSaveStalled, subject: .confirmation(confirmation.ulid),
 				cause: FailureCode.ledger(failure).code)
+		case .journalRestarted(let fault):
+			ProblemLine(.journalRestarted, cause: fault.code)
+		case .journalLinesDropped(let count):
+			ProblemLine(.journalLinesDropped, cause: ProblemCode("undecodable", count))
 		}
 	}
 
@@ -118,6 +124,16 @@ extension SnapshotLineKind {
 		switch self {
 		case .profile: ProblemCode("profile")
 		case .wellness: ProblemCode("wellness")
+		}
+	}
+}
+
+extension JournalFault {
+	fileprivate var code: ProblemCode {
+		switch self {
+		case .unreadable: ProblemCode("unreadable")
+		case .appendFailed: ProblemCode("appendFailed")
+		case .rewriteFailed: ProblemCode("rewriteFailed")
 		}
 	}
 }
