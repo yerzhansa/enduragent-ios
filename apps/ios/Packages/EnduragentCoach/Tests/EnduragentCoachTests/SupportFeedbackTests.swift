@@ -1,5 +1,6 @@
 import EnduragentCoachFixtures
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -176,9 +177,8 @@ import Testing
 		let server = FakeFeedbackServer()
 		let spy = MemoryKeptNoteStorage(watching: server)
 		let rig = rig(server, notes: spy)
-		server.hold()
+		server.hold { server.release() }
 		let (first, second) = await rig.support.sendTwice(Self.text)
-		server.release()
 		let outcomes = try await beforeDeadline(within: .hangGuard) {
 			[try await first.value, try await second.value]
 		}
@@ -198,13 +198,19 @@ import Testing
 		let server = FakeFeedbackServer()
 		let rig = rig(server)
 		let snapshots = await rig.support.observe()
-		server.hold()
-		let caller = Task { try await rig.support.send(Self.text) }
-		_ = try await supportSnapshot(in: snapshots) { $0.feedback == .sending }
-		caller.cancel()
-		server.release()
+		let caller = Mutex<Task<FeedbackOutcome, any Error>?>(nil)
+		server.hold {
+			caller.withLock { $0?.cancel() }
+			server.release()
+		}
+		let send = caller.withLock { held in
+			let send = Task { try await rig.support.send(Self.text) }
+			held = send
+			return send
+		}
 		_ = try await supportSnapshot(in: snapshots) { $0.feedback == .received }
-		#expect(try await caller.value == receivedOutcome)
+		#expect(send.isCancelled)
+		#expect(try await send.value == receivedOutcome)
 		#expect(server.requestCount == 1)
 		#expect(!FileManager.default.fileExists(atPath: rig.file.file.path))
 	}

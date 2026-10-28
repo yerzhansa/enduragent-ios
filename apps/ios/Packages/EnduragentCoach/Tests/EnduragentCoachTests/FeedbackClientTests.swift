@@ -81,14 +81,14 @@ import Testing
 		var request = URLRequest(url: FeedbackClient.endpoint)
 		request.httpMethod = "POST"
 		request.httpBody = try FeedbackClient.body(of: note)
-		let status = await withCheckedContinuation { [request] continuation in
+		let statuses = await withCheckedContinuation { [request] continuation in
 			DispatchQueue.global().async {
-				let status = statusWithThePoolBlocked(request, on: session, for: 5)
-				continuation.resume(returning: status)
+				let statuses = statusesWithThePoolBlocked(request, to: server, on: session, for: 5)
+				continuation.resume(returning: statuses)
 			}
 		}
-		#expect(status == 204)
-		#expect(server.requestCount == 1)
+		#expect(statuses == [204, 204])
+		#expect(server.requestCount == 2)
 	}
 
 	@Test(arguments: sendCases)
@@ -114,9 +114,10 @@ func script(_ words: String) throws -> [FakeFeedbackAnswer] {
 	try words.split(separator: ",").map { try #require(FakeFeedbackAnswer(word: String($0))) }
 }
 
-private func statusWithThePoolBlocked(
-	_ request: URLRequest, on session: URLSession, for limit: TimeInterval
-) -> Int? {
+private func statusesWithThePoolBlocked(
+	_ request: URLRequest, to server: FakeFeedbackServer, on session: URLSession,
+	for limit: TimeInterval
+) -> [Int?] {
 	let priorities: [TaskPriority] = [.high, .medium, .low, .background]
 	let width = ProcessInfo.processInfo.activeProcessorCount
 	let started = DispatchSemaphore(value: 0)
@@ -124,7 +125,7 @@ private func statusWithThePoolBlocked(
 	for priority in priorities {
 		for _ in 0..<width {
 			Task.detached(priority: priority) {
-				holdAThread(started: started, until: gate, for: limit * 2)
+				holdAThread(started: started, until: gate, for: limit * 4)
 			}
 		}
 	}
@@ -132,6 +133,21 @@ private func statusWithThePoolBlocked(
 	for _ in 0..<width {
 		guard started.wait(timeout: saturated) == .success else { break }
 	}
+	let free = status(of: request, on: session, within: limit)
+	let arrived = DispatchSemaphore(value: 0)
+	server.hold { arrived.signal() }
+	let held = status(of: request, on: session, within: limit) {
+		guard arrived.wait(timeout: .now() + limit) == .success else { return }
+		server.release()
+	}
+	for _ in 0..<(width * priorities.count) { gate.signal() }
+	return [free, held]
+}
+
+private func status(
+	of request: URLRequest, on session: URLSession, within limit: TimeInterval,
+	meanwhile: () -> Void = {}
+) -> Int? {
 	let answered = DispatchSemaphore(value: 0)
 	let status = Mutex<Int?>(nil)
 	let task = session.dataTask(with: request) { _, response, _ in
@@ -139,8 +155,8 @@ private func statusWithThePoolBlocked(
 		answered.signal()
 	}
 	task.resume()
+	meanwhile()
 	let outcome = answered.wait(timeout: .now() + limit)
-	for _ in 0..<(width * priorities.count) { gate.signal() }
 	task.cancel()
 	return outcome == .success ? status.withLock { $0 } : nil
 }

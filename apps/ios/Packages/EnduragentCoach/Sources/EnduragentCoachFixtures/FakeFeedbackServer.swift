@@ -7,7 +7,7 @@ public final class FakeFeedbackServer: Sendable {
 		var script: [FakeFeedbackAnswer]
 		var requests: [FakeFeedbackRequest] = []
 		var stored: [String: String] = [:]
-		var held = false
+		var arrived: (@Sendable () -> Void)?
 		var waiting: [@Sendable () -> Void] = []
 	}
 
@@ -42,13 +42,13 @@ public final class FakeFeedbackServer: Sendable {
 		state.withLock { $0.stored.count }
 	}
 
-	public func hold() {
-		state.withLock { $0.held = true }
+	public func hold(onArrival arrived: @escaping @Sendable () -> Void) {
+		state.withLock { $0.arrived = arrived }
 	}
 
 	public func release() {
 		let waiting = state.withLock { state in
-			state.held = false
+			state.arrived = nil
 			defer { state.waiting = [] }
 			return state.waiting
 		}
@@ -61,13 +61,16 @@ public final class FakeFeedbackServer: Sendable {
 		_ request: FakeFeedbackRequest, reply: @escaping @Sendable (FakeFeedbackAnswer) -> Void
 	) {
 		let note = Result { try request.note() }
-		let ready = state.withLock { state -> FakeFeedbackAnswer? in
+		let next = state.withLock { state -> @Sendable () -> Void in
 			state.requests.append(request)
-			guard state.held else { return Self.next(for: note, in: &state) }
+			guard let arrived = state.arrived else {
+				let answer = Self.next(for: note, in: &state)
+				return { reply(answer) }
+			}
 			state.waiting.append { reply(self.state.withLock { Self.next(for: note, in: &$0) }) }
-			return nil
+			return arrived
 		}
-		if let ready { reply(ready) }
+		next()
 	}
 
 	private static func next(
