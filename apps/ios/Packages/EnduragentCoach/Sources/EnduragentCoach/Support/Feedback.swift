@@ -47,8 +47,8 @@ package struct FeedbackText: Sendable, Hashable, Codable {
 	}
 }
 
-package enum FeedbackRefusal: Error, Sendable, Equatable {
-	package static let limit = 4_000
+public enum FeedbackRefusal: Error, Sendable, Equatable {
+	public static let limit = 4_000
 
 	case empty
 	case containsNul
@@ -117,7 +117,7 @@ package enum FeedbackChannel: String, Sendable, Encodable {
 	case ios
 }
 
-package struct FeedbackReceipt: Sendable, Equatable {
+public struct FeedbackReceipt: Sendable, Equatable {
 	fileprivate init() {}
 }
 
@@ -185,13 +185,13 @@ package enum Leg: Sendable {
 	}
 }
 
-package enum FeedbackOutcome: Sendable, Equatable {
+public enum FeedbackOutcome: Sendable, Equatable {
 	case received(FeedbackReceipt)
 	case notSent(NotSentReason)
 	case notConfirmed
 }
 
-package enum NotSentReason: String, Sendable, Equatable, Codable {
+public enum NotSentReason: String, Sendable, Equatable, Codable {
 	case noConnection
 	case busy
 	case refused

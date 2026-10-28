@@ -9,12 +9,15 @@ public actor Support {
 	private let healthChanges: AsyncStream<JournalHealth>
 	private var following: Task<Void, Never>?
 	private var file: DiagnosticsFileState = .idle
+	private var kept: KeptNote?
+	private var feedback: FeedbackStatus
+	private var running: Task<FeedbackSend, Never>?
 
 	deinit {
 		following?.cancel()
 	}
 
-	init(log: DiagnosticsLog, service: SupportService, census: SupportCensus) {
+	package init(log: DiagnosticsLog, service: SupportService, census: SupportCensus) {
 		self.log = log
 		about = About(app: service.app)
 		self.service = service
@@ -25,6 +28,9 @@ public actor Support {
 		} catch {
 			log.record(.diagnosticsFileFailed(.couldNotWrite, FailureCode(error)))
 		}
+		let relaunched = Self.relaunched(from: service.keptNotes, log: log)
+		kept = relaunched
+		feedback = relaunched.map { FeedbackStatus(kept: $0.phase) } ?? .idle
 	}
 
 	public func observe() -> AsyncStream<SupportSnapshot> {
@@ -38,6 +44,100 @@ public actor Support {
 			}
 		}
 		return feed.subscribe(from: snapshot)
+	}
+
+	public func send(_ draft: String) async throws(FeedbackRefusal) -> FeedbackOutcome {
+		try await sendNote(draft).outcome
+	}
+
+	package func sendNote(_ draft: String) async throws(FeedbackRefusal) -> FeedbackSend {
+		let text = try FeedbackText(validating: draft)
+		if let running { return await running.value }
+		guard let kept, kept.note.revised(to: text) == kept.note else {
+			let note = FeedbackNote.first(text)
+			keep(KeptNote(note: note, phase: .ready))
+			return await deliver(note, prior: nil)
+		}
+		return await deliver(kept.note, prior: kept.phase)
+	}
+
+	public func tryAgain() async -> FeedbackOutcome? {
+		if let running { return await running.value.outcome }
+		guard let kept else { return nil }
+		return await deliver(kept.note, prior: kept.phase).outcome
+	}
+
+	private func deliver(_ note: FeedbackNote, prior: KeptPhase?) async -> FeedbackSend {
+		keep(KeptNote(note: note, phase: .sending))
+		feedback = .sending
+		publish()
+		let delivery = Task { await settle(note, prior: prior) }
+		running = delivery
+		return await delivery.value
+	}
+
+	private func settle(_ note: FeedbackNote, prior: KeptPhase?) async -> FeedbackSend {
+		let answers = await service.feedback.deliver(note)
+		let outcome = FeedbackDelivery.settle(prior: prior, answers: answers)
+		switch outcome {
+		case .received:
+			forget()
+			feedback = .received
+		case .notSent(let reason):
+			settled(note, as: .notSent(reason), answers: answers)
+		case .notConfirmed:
+			settled(note, as: .notConfirmed, answers: answers)
+		}
+		running = nil
+		publish()
+		return FeedbackSend(id: note.id, answers: answers, outcome: outcome)
+	}
+
+	private func settled(_ note: FeedbackNote, as phase: KeptPhase, answers: [AttemptAnswer]) {
+		keep(KeptNote(note: note, phase: phase))
+		log.record(.feedbackNotDelivered(answers: answers))
+		feedback = FeedbackStatus(kept: phase)
+	}
+
+	private func keep(_ note: KeptNote) {
+		kept = note
+		Self.save(note, to: service.keptNotes, log: log)
+	}
+
+	private func forget() {
+		kept = nil
+		do {
+			try service.keptNotes.clear()
+		} catch {
+			log.record(.feedbackNoteUnsaved(FailureCode(error)))
+		}
+	}
+
+	private static func relaunched(from storage: any KeptNoteStorage, log: DiagnosticsLog)
+		-> KeptNote?
+	{
+		let loaded: KeptNote?
+		do {
+			loaded = try storage.load()
+		} catch {
+			log.record(.feedbackNoteUnsaved(FailureCode(error)))
+			return nil
+		}
+		guard var kept = loaded else { return nil }
+		let shown = kept.phase.afterRelaunch
+		guard shown != kept.phase else { return kept }
+		kept.phase = shown
+		save(kept, to: storage, log: log)
+		return kept
+	}
+
+	private static func save(_ kept: KeptNote, to storage: any KeptNoteStorage, log: DiagnosticsLog)
+	{
+		do {
+			try storage.save(kept)
+		} catch {
+			log.record(.feedbackNoteUnsaved(FailureCode(error)))
+		}
 	}
 
 	public func makeDiagnosticsFile() async -> DiagnosticsFileState {
@@ -90,13 +190,40 @@ public actor Support {
 	}
 
 	private var snapshot: SupportSnapshot {
-		SupportSnapshot(diagnosticsFile: file, journal: log.health)
+		SupportSnapshot(
+			feedback: feedback, keptText: kept?.note.text.trimmed, diagnosticsFile: file,
+			journal: log.health)
 	}
 }
 
 public struct SupportSnapshot: Sendable, Equatable {
+	public let feedback: FeedbackStatus
+	public let keptText: String?
 	public let diagnosticsFile: DiagnosticsFileState
 	public let journal: JournalHealth
+}
+
+public enum FeedbackStatus: Sendable, Equatable {
+	case idle
+	case sending
+	case received
+	case notSent(NotSentReason)
+	case notConfirmed
+
+	init(kept: KeptPhase) {
+		switch kept {
+		case .ready: self = .notSent(.stopped)
+		case .sending: self = .sending
+		case .notSent(let reason): self = .notSent(reason)
+		case .notConfirmed: self = .notConfirmed
+		}
+	}
+}
+
+package struct FeedbackSend: Sendable, Equatable {
+	package let id: FeedbackID
+	package let answers: [AttemptAnswer]
+	package let outcome: FeedbackOutcome
 }
 
 public struct About: Sendable, Equatable {

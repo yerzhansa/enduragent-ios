@@ -82,6 +82,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case planSaveStalled(PlanConfirmationID, LedgerFailure)
 	case journalRestarted(JournalFault)
 	case journalLinesDropped(count: Int)
+	case feedbackNotDelivered(answers: [AttemptAnswer])
+	case feedbackNoteUnsaved(FailureCode)
 	case diagnosticsFileFailed(DiagnosticsFileFailure, FailureCode)
 }
 

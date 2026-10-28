@@ -46,6 +46,12 @@ import Testing
 			return .planSaveStalled(PlanConfirmationID(ulid: fixedUlid(13)), .unavailable)
 		case .journalRestarted: return .journalRestarted(.unreadable)
 		case .journalLinesDropped: return .journalLinesDropped(count: 2)
+		case .feedbackNotDelivered:
+			return .feedbackNotDelivered(answers: [
+				.mayHaveLeft(.otherError(.cocoa(4))),
+				.mayHaveLeft(.transport(.networkConnectionLost)),
+			])
+		case .feedbackNoteUnsaved: return .feedbackNoteUnsaved(.cocoa(640))
 		case .diagnosticsFileFailed: return .diagnosticsFileFailed(.couldNotWrite, .cocoa(513))
 		}
 	}

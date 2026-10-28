@@ -254,8 +254,11 @@ import Testing
 	private func rig() throws -> Rig {
 		let folder = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+		let server = FakeFeedbackServer()
 		let service = SupportService(
-			journal: storage, shareFolder: ShareFolder(in: folder), app: .fixture, device: .fixture)
+			journal: storage, keptNotes: MemoryKeptNoteStorage(watching: server),
+			shareFolder: ShareFolder(in: folder), feedback: server.client, app: .fixture,
+			device: .fixture)
 		return Rig(service: service, log: service.openLog(clock: clock))
 	}
 

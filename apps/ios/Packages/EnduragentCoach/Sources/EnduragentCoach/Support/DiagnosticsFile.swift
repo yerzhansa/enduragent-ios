@@ -278,6 +278,12 @@ package struct StatusFacts: Sendable, Equatable {
 	package let access: AccessKind
 	package let training: ConnectionKind
 	package let language: LanguageCode
+
+	package init(access: AccessKind, training: ConnectionKind, language: LanguageCode) {
+		self.access = access
+		self.training = training
+		self.language = language
+	}
 }
 
 package enum RecordCensus: Sendable, Equatable, Encodable {
@@ -320,4 +326,12 @@ private func fits(_ text: String, _ shape: Regex<Substring>) -> Bool {
 package struct SupportCensus: Sendable {
 	package let status: @Sendable () async -> StatusFacts
 	package let records: @Sendable () async -> RecordCensus
+
+	package init(
+		status: @escaping @Sendable () async -> StatusFacts,
+		records: @escaping @Sendable () async -> RecordCensus
+	) {
+		self.status = status
+		self.records = records
+	}
 }
