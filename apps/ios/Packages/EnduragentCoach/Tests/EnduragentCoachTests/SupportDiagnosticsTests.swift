@@ -38,7 +38,10 @@ import Testing
 		let making = Task { await support.makeDiagnosticsFile() }
 		try await gate.waitUntilHeld()
 		_ = try await supportSnapshot(in: snapshots) { $0.diagnosticsFile == .preparing }
-		#expect(await support.makeDiagnosticsFile() == .preparing)
+		let second = try await beforeDeadline(within: .hangGuard, onTimeout: { gate.release() }) {
+			await support.makeDiagnosticsFile()
+		}
+		try #require(second == .preparing)
 		gate.release()
 		guard case .ready(let handle) = await making.value else {
 			Issue.record("The file was not made")
