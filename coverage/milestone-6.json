@@ -13,6 +13,7 @@
 		"5.2": 7,
 		"5.3": 8,
 		"6.1": 9,
+		"7.1": 6,
 		"8.1": 6,
 		"8.2": 6,
 		"8.3": 8,
@@ -846,6 +847,98 @@
 			]
 		},
 		{
+			"id": "7.1.1",
+			"statement": "In each of the 17 languages, testSupport finds every string on the Support section, Feedback, Diagnostics and About equal to that language's catalog value, and its sweep finds no raw key, no unresolved placeholder and no English except values the language's catalog keeps in English (CatalogSharedValues.tsv).",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEnSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEsSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFrSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixItSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDeProof", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNlSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDaSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixSvSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNbSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFiSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtPTProof", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtBRSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPlSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixKoSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixJaSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHansSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHantProof", "method": "testSupport"}
+			]
+		},
+		{
+			"id": "7.1.2",
+			"statement": "In each of the 17 languages, launched with -EnduragentFixtureFeedback offline,offline,lost,lost,204, Feedback shows feedback.notSent.noConnection after Send, feedback.notConfirmed after Try again, feedback.received after Try again, then feedback.refused.empty after an empty Send, in that order and in that language; Debug then reads 5 feedback requests and 1 feedback notes stored.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEnSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEsSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFrSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixItSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDeProof", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNlSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDaSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixSvSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNbSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFiSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtPTProof", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtBRSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPlSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixKoSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixJaSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHansSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHantProof", "method": "testSupport"}
+			]
+		},
+		{
+			"id": "7.1.3",
+			"statement": "In each of the 17 languages, testShortcuts scrolls to the /feedback and /version rows of the slash list and finds each with its command name and its translated title.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEnSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEsSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFrSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixItSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDeProof", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNlSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDaSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixSvSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNbSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFiSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtPTProof", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtBRSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPlSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixKoSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixJaSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHansSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHantProof", "method": "testShortcuts"}
+			]
+		},
+		{
+			"id": "7.1.4",
+			"statement": "With French chosen in Settings, the Support section and Feedback, Diagnostics and About read the French catalog values with no English; after Automatic on an English phone they read the English values.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "SupportLanguageProof", "method": "testFrenchThenAutomaticOnAnEnglishPhone"}
+			]
+		},
+		{
+			"id": "7.1.5",
+			"statement": "B05.03, carried: the review language proofs pass on this milestone's build.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testEveryReviewStringIsTranslatedAndNoControlIsClipped"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testEveryReviewStringIsTranslatedAndNoControlIsClipped"}
+			]
+		},
+		{
+			"id": "7.1.6",
+			"statement": "B05.04, carried: Automatic follows the phone's preferred languages, as Milestone 2 decided, and the one picker offers Automatic and the 17 fixed choices.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "AutomaticFrenchPhoneProof", "method": "testAutomaticFromSettings"},
+				{"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "LanguagePickerProof", "method": "testLanguagePickerFromSettings"}
+			]
+		},
+		{
 			"id": "8.1.1",
 			"statement": "On a specification-shaped fixture, the extract gives the work items with their milestones, a package in two milestones giving both, the X, G and D ids, and the MOB ids from cross_cutting mobile_ids, each once, in a stable order.",
 			"tests": [
@@ -1249,6 +1342,21 @@
 			"criteria": ["6.1.5"]
 		},
 		{
+			"id": "B05.02",
+			"statement": "Every retained screen reads in each of the 17 languages, Milestone 6's included: the Support section, Feedback through each of its outcomes, Diagnostics through Canceled, About, and the /feedback and /version rows of the slash list, with no English but values a language keeps in English for a recorded reason.",
+			"criteria": ["7.1.1", "7.1.2", "7.1.3"]
+		},
+		{
+			"id": "B05.03",
+			"statement": "Saved workout reviews render in the current language on this milestone's build.",
+			"criteria": ["7.1.5"]
+		},
+		{
+			"id": "B05.04",
+			"statement": "The language precedence is the one Milestone 2 decided: a fixed choice wins, and Automatic follows the phone's preferred languages, through one picker with no hidden override.",
+			"criteria": ["7.1.6"]
+		},
+		{
 			"id": "B10.01",
 			"statement": "The phone keeps 14 days of problems and model usage in one persisted diagnostics log, bounded at 1 MiB, as typed lines with npm's scrub patterns on every free-text field. Each Send or Try again writes one usage line carrying its turn, and each memory save outside a turn writes one, with the model, tokens, cost and duration and no message text. The separate usage ledger and log levels are absent by B10.01/one-file and B10.01/one-severity.",
 			"criteria": ["1.1.5", "1.2.3", "1.2.4", "1.2.5", "2.1.1", "2.1.2", "2.1.4", "2.1.7", "2.1.8", "2.2.1", "2.2.4", "2.3.1", "2.3.6"]
@@ -1319,9 +1427,6 @@
 		"B01.01",
 		"B01.03",
 		"B05.01",
-		"B05.02",
-		"B05.03",
-		"B05.04",
 		"B10.04"
 	],
 	"closeout": {
@@ -1345,9 +1450,9 @@
 			{"id": "B04.02", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultTests.swift", "function": "failedWriteKeepsPreviousItemAndNextAttemptUsesIt"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultTests.swift", "function": "cancelKeepsTheWorkingKey"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialSafeguardTests.swift", "function": "failedRecoveryKeepsThePreviousAccountDuringTheNextReplacement"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultRegressionTests.swift", "function": "concurrentReplacementThenDisconnectKeepsDisconnect"}}], "differences": [], "waitsOn": []},
 			{"id": "B04.03", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KeychainStoreTests.swift", "function": "everyItemIsSynchronizableAndReadableAfterFirstUnlock"}}, {"phone": {"session": "closeout", "step": "closeout/two-phone"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B04.03/keychain-only: The Keychain, synced through iCloud Keychain, is the only secret store; no external secret source."}}], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/two-phone"}}]},
 			{"id": "B05.01", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/EnduragentTests/FixtureSessionTests.swift", "function": "languageChoiceRewritesTheChatAndTheNextReplyRequest"}}, {"test": {"file": "apps/ios/EnduragentTests/FixtureSessionTests.swift", "function": "aLanguageThatCannotBeSavedKeepsTheCurrentChoice"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "uiTagUsesFirstSupportedSystemLanguageElseEnglish"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "fixedPreferenceChangesAppTextAndReplySection"}}, {"test": {"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "LanguagePickerProof", "method": "testLanguagePickerFromSettings"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B05.01/preferred-languages: Automatic uses the iPhone's preferred-languages list, never the message language."}}], "waitsOn": [{"table": {"table": "coverage/milestone-6.json", "id": "B05.01"}}]},
-			{"id": "B05.02", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CatalogCompletenessTests.swift", "function": "everyEnglishKeyHasAValueInEveryLocale"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CatalogPhrasebookTests.swift", "function": "missingKeyReturnsEnglishNeverTheRawKey"}}, {"test": {"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDeProof", "method": "testFailureNotices"}}], "differences": [], "waitsOn": [{"table": {"table": "coverage/milestone-6.json", "id": "B05.02"}}]},
-			{"id": "B05.03", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "everyLineOfAReviewAndItsProgressReadsInTheDisplayLanguage"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "authoredStepsOnTheCardFollowTheDisplayLanguageAndKeepItAfterRelaunch"}}, {"test": {"file": "apps/ios/EnduragentTests/ShellLanguageTests.swift", "function": "visibleReviewOutcomeChangesWithTheLanguagePreference"}}], "differences": [], "waitsOn": [{"table": {"table": "coverage/milestone-6.json", "id": "B05.03"}}]},
-			{"id": "B05.04", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "registryMatchesSeventeenTagTable"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyLanguageSectionTests.swift", "function": "everyTagUsesTheResolvedLanguage"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DisplayLocaleTests.swift", "function": "refreshFollowsThePhoneAndKeepsFixedWords"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B05.04/no-override: One language picker, with no hidden override such as ENDURAGENT_LANGUAGE."}}], "waitsOn": [{"table": {"table": "coverage/milestone-6.json", "id": "B05.04"}}]},
+			{"id": "B05.02", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B05.02"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CatalogCompletenessTests.swift", "function": "everyEnglishKeyHasAValueInEveryLocale"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CatalogPhrasebookTests.swift", "function": "missingKeyReturnsEnglishNeverTheRawKey"}}, {"test": {"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDeProof", "method": "testFailureNotices"}}], "differences": [], "waitsOn": []},
+			{"id": "B05.03", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B05.03"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "everyLineOfAReviewAndItsProgressReadsInTheDisplayLanguage"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "authoredStepsOnTheCardFollowTheDisplayLanguageAndKeepItAfterRelaunch"}}, {"test": {"file": "apps/ios/EnduragentTests/ShellLanguageTests.swift", "function": "visibleReviewOutcomeChangesWithTheLanguagePreference"}}], "differences": [], "waitsOn": []},
+			{"id": "B05.04", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B05.04"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "registryMatchesSeventeenTagTable"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyLanguageSectionTests.swift", "function": "everyTagUsesTheResolvedLanguage"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DisplayLocaleTests.swift", "function": "refreshFollowsThePhoneAndKeepsFixedWords"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B05.04/no-override: One language picker, with no hidden override such as ENDURAGENT_LANGUAGE."}}], "waitsOn": []},
 			{"id": "B06.01", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "startRoutesToResetAndPlanIsAModelTurn"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AcceptTests.swift", "function": "blankTextIsIgnoredAndLanguageSlashRoutesWithoutARecord"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FirstTurnTests.swift", "function": "replyFinishesWithTheAssembledRequest"}}, {"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}}], "differences": [], "waitsOn": []},
 			{"id": "B06.02", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FragmentOrderingTests.swift", "function": "shortcutsCloseBufferedTextInSendOrder"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FragmentOrderingTests.swift", "function": "fragmentsExtendTheRealTrailingWindow"}}, {"test": {"file": "apps/ios/EnduragentUITests/FragmentOrderingProof.swift", "class": "FragmentOrderingProof", "method": "testBufferedTextClosesBeforeLanguagePicker"}}], "differences": [], "waitsOn": []},
 			{"id": "B06.03", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolProgressTests.swift", "function": "workingPersistsAcrossIndependentModelAndToolWaits"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolResultCapTests.swift", "function": "oversizedArrayReportsEveryOmittedRow"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnFinalizationTests.swift", "function": "finalizationSettlesDurably"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "eachRungStopsAtItsNpmLimit"}}, {"test": {"file": "apps/ios/EnduragentUITests/ToolProgressProof.swift", "class": "ToolProgressProof", "method": "testToolProgress"}}], "differences": [], "waitsOn": []},
