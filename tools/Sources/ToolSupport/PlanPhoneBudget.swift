@@ -29,13 +29,13 @@ public struct PhoneLedger: Equatable, Sendable {
 	public static let header = "steps\tbudget\tspent"
 	public static let messageActionLine = "Message action "
 
-	public let invocations: [PhoneInvocation]
+	public let rows: [PhoneLedgerRow]
 
-	public var spent: Int { invocations.map(\.spent).reduce(0, +) }
+	public var spent: Int { rows.map(\.spent).reduce(0, +) }
 
 	public var text: String {
 		([Self.header]
-			+ invocations.map {
+			+ rows.map {
 				"\($0.steps.joined(separator: ","))\t\($0.budget)\t\($0.spent)"
 			})
 			.map { $0 + "\n" }.joined()
@@ -43,7 +43,7 @@ public struct PhoneLedger: Equatable, Sendable {
 
 	public init(text: String?, plan: PhoneSessionPlan) throws {
 		guard let text else {
-			invocations = []
+			rows = []
 			return
 		}
 		var lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
@@ -54,35 +54,33 @@ public struct PhoneLedger: Equatable, Sendable {
 					"messages.tsv does not start with its header. Stop before build, launch or Send."
 			)
 		}
-		invocations = try lines.dropFirst().enumerated().map { index, line in
-			guard let invocation = Self.invocation(line, plan: plan) else {
+		rows = try lines.dropFirst().enumerated().map { index, line in
+			guard let row = Self.row(line, plan: plan) else {
 				throw PhoneRefusal(
 					description:
 						"messages.tsv row \(index + 1) cannot be read: \(line). Stop before build, launch or Send."
 				)
 			}
-			return invocation
+			return row
 		}
 	}
 
-	private init(invocations: [PhoneInvocation]) {
-		self.invocations = invocations
+	private init(rows: [PhoneLedgerRow]) {
+		self.rows = rows
 	}
 
-	public func recording(_ invocation: PhoneInvocation, actions: String?) -> PhoneLedger {
+	public func recording(_ booked: PhoneLedgerRow, actions: String?) -> PhoneLedger {
 		let spent =
 			actions.map { log in
 				log.split(separator: "\n").count {
 					String($0).hasUnitPrefix(Self.messageActionLine)
 				}
-			} ?? invocation.budget
+			} ?? booked.budget
 		return PhoneLedger(
-			invocations: invocations + [
-				PhoneInvocation(steps: invocation.steps, budget: invocation.budget, spent: spent)
-			])
+			rows: rows + [PhoneLedgerRow(steps: booked.steps, budget: booked.budget, spent: spent)])
 	}
 
-	private static func invocation(_ line: String, plan: PhoneSessionPlan) -> PhoneInvocation? {
+	private static func row(_ line: String, plan: PhoneSessionPlan) -> PhoneLedgerRow? {
 		let fields = line.split(separator: "\t", omittingEmptySubsequences: false).map(String.init)
 		guard fields.count == 3 else { return nil }
 		let known = Set(plan.steps.map(\.id))
@@ -91,19 +89,19 @@ public struct PhoneLedger: Equatable, Sendable {
 		guard steps.allSatisfy(known.contains), let budget = PhoneBudget.wholeNumber(fields[1]),
 			let spent = PhoneBudget.wholeNumber(fields[2]), budget <= plan.cap, spent <= budget
 		else { return nil }
-		return PhoneInvocation(steps: steps, budget: budget, spent: spent)
+		return PhoneLedgerRow(steps: steps, budget: budget, spent: spent)
 	}
 }
 
 public enum PlanPhoneBudget {
-	public static let actionsAttachment = "plan-phone-actions"
-
-	public static func actionsFile(in manifest: JSONValue) throws -> String? {
+	public static func actionsFile(in manifest: JSONValue, named attachment: String) throws
+		-> String?
+	{
 		var found: [String] = []
 		for entry in try manifest.elements() {
 			for item in try entry.member("attachments").elements() {
 				guard let name = try item.member("suggestedHumanReadableName").string,
-					isActionsAttachment(name),
+					isActionsAttachment(name, named: attachment),
 					let file = try item.member("exportedFileName").string
 				else { continue }
 				found.append(file)
@@ -112,11 +110,11 @@ public enum PlanPhoneBudget {
 		return found.count == 1 ? found[0] : nil
 	}
 
-	private static func isActionsAttachment(_ name: String) -> Bool {
-		guard name.hasUnitPrefix(actionsAttachment), name.hasUnitSuffix(".txt") else {
+	private static func isActionsAttachment(_ name: String, named attachment: String) -> Bool {
+		guard name.hasUnitPrefix(attachment), name.hasUnitSuffix(".txt") else {
 			return false
 		}
-		let middle = name.slice(actionsAttachment.utf16.count, name.utf16.count - 4)
+		let middle = name.slice(attachment.utf16.count, name.utf16.count - 4)
 		guard !middle.isEmpty else { return true }
 		let parts = middle.split(separator: "_", omittingEmptySubsequences: false)
 		return parts.count == 3 && parts[0].isEmpty

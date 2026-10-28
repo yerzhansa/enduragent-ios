@@ -163,4 +163,91 @@ struct PhoneSessionTests {
 	func aStepsVariableThatCannotBeReadPlansNothing(_ text: String) {
 		#expect(PlannedPhoneStep.steps(in: text) == nil)
 	}
+
+	static let place = PhoneRunPlace(
+		device: "DEVICE", folder: "/evidence", build: "/tests", appBuild: "/app",
+		settings: ["ENDURAGENT_DEVICE_UPDATE_CHECK": "updated-together: 3"])
+
+	static func start(
+		_ session: String, _ steps: [String], answer: String, spent: Int = 0,
+		built: inout Int
+	) throws -> PhoneInvocation {
+		var count = built
+		defer { built = count }
+		return try PhoneInvocationPlan.start(
+			session: session, answer: answer, steps: steps, sessions: try sessions(),
+			ledgerSpent: { _ in spent }, place: place,
+			subprocess: {
+				count += 1
+				return Subprocess(directory: "/")
+			}
+		).invocation
+	}
+
+	@Test func eachCommandBooksItsOwnLedger() throws {
+		var built = 0
+		let booked = try [
+			Self.start("m4", ["m4/list"], answer: "1", built: &built),
+			Self.start("plan", ["plan/1"], answer: "2", built: &built),
+			Self.start("closeout", ["closeout/about"], answer: "0", built: &built),
+		]
+		#expect(built == 3)
+		#expect(
+			booked.map(\.ledger) == [
+				"enduragent-m4/PHONE/messages.tsv", "enduragent-m5/PHONE/messages.tsv",
+				"enduragent-m6/PHONE/messages.tsv",
+			])
+		#expect(booked.map(\.cap) == [40, 30, 50])
+		#expect(booked.map(\.budget) == [1, 2, 0])
+		#expect(booked[0].commands == [])
+		#expect(throws: PhoneRefusal.self) {
+			try Self.start("closeout", ["closeout/fill"], answer: "four", built: &built)
+		}
+		#expect(throws: PhoneRefusal.self) {
+			try Self.start("closeout", ["closeout/fill"], answer: "4", spent: 47, built: &built)
+		}
+		#expect(built == 3)
+	}
+
+	@Test(arguments: [
+		(
+			"closeout/keychain-proof",
+			"TrainingKeychainDeviceProof/testSettingsCredentialSurvivesRelaunch"
+		),
+		("closeout/two-phone", "TwoPhoneReconnectCheck/testTwoPhoneReconnectStep"),
+	])
+	func aProofStepBuildsAndInstallsTheProofAppBeforeItsTest(_ sample: (String, String)) throws {
+		var built = 0
+		let commands = try Self.start("closeout", [sample.0], answer: "0", built: &built).commands
+		#expect(commands.count == 3)
+		#expect(
+			commands.first?.prefix(6) == [
+				"xcodebuild", "build", "-project", "apps/ios/Enduragent.xcodeproj", "-scheme",
+				"EnduragentKeychainProof",
+			])
+		#expect(
+			commands.dropFirst().first == [
+				"xcrun", "devicectl", "device", "install", "app", "--device", "DEVICE",
+				"/app/Build/Products/DebugKeychainProof-iphoneos/Enduragent.app",
+			])
+		let test = try #require(commands.last)
+		#expect(test.prefix(2) == ["xcodebuild", "test"])
+		#expect(test.contains("ENDURAGENT_PHONE_MESSAGE_BUDGET=0"))
+		#expect(test.contains("ENDURAGENT_DEVICE_UPDATE_CHECK=updated-together: 3"))
+		#expect(test.contains("-only-testing:EnduragentPhoneTests/\(sample.1)"))
+	}
+
+	@Test func runnerStepsOfOneTestShareOneRunThatPlansEachStep() throws {
+		var built = 0
+		let invocation = try Self.start(
+			"closeout", ["closeout/feedback", "closeout/language"], answer: "4", built: &built)
+		#expect(invocation.commands.count == 1)
+		let command = try #require(invocation.commands.first)
+		#expect(
+			command.contains(
+				"-only-testing:EnduragentPhoneTests/CloseoutPhoneRun/testCloseoutPhoneRun"))
+		#expect(command.contains("ENDURAGENT_PHONE_MESSAGE_BUDGET=4"))
+		#expect(
+			command.contains("ENDURAGENT_PLAN_PHONE_STEPS=closeout/feedback=0,closeout/language=4"))
+	}
 }

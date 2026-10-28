@@ -1,10 +1,10 @@
 # Verify on the real phone
 
-Every check on this page needs the operator and a physical iPhone, except the simulator proof of the unhosted phone tests below. Simulator runs from the [verify-ios skill](./SKILL.md) never execute the phone checks.
+Every check on this page needs the operator and a physical iPhone, except the simulator proofs of the unhosted phone tests and of `CloseoutPhoneRun` below. Simulator runs from the [verify-ios skill](./SKILL.md) never execute the phone checks.
 
 ## The phone tests drive the installed app
 
-The `EnduragentPhoneTests` target has no target app: it sets no `TEST_TARGET_NAME`, depends on no app target, and the `EnduragentPhone` scheme builds no app. Every phone test launches the app already on the phone by its bundle id, so `xcodebuild test` installs nothing over the TestFlight or Debug build there. Install the build a step needs before the step: TestFlight for the TestFlight steps, the Debug build from Xcode for `closeout/debug-install` and after. The `phone-tests-unhosted` source rule keeps the project this way. The `EnduragentKeychainProof` scheme still builds `icu.enduragent.keychainproof`, but its test no longer installs it: install the built proof app with `xcrun devicectl device install app` before `TrainingKeychainDeviceProof` or `TwoPhoneReconnectCheck`.
+The `EnduragentPhoneTests` target has no target app: it sets no `TEST_TARGET_NAME`, depends on no app target, and the `EnduragentPhone` scheme builds no app. Every phone test launches the app already on the phone by its bundle id, so `xcodebuild test` installs nothing over the TestFlight or Debug build there. Install the build a step needs before the step: TestFlight for the TestFlight steps, the Debug build from Xcode for `closeout/debug-install` and after. The `phone-tests-unhosted` source rule keeps the project this way. The `EnduragentKeychainProof` scheme still builds `icu.enduragent.keychainproof`, but its test no longer installs it. `phone-check closeout` builds the proof app in its own derived-data folder and installs it with `xcrun devicectl device install app` before `TrainingKeychainDeviceProof` or `TwoPhoneReconnectCheck`.
 
 ### Prove it on the simulator
 
@@ -16,6 +16,17 @@ The `EnduragentPhoneTests` target has no target app: it sets no `TEST_TARGET_NAM
 4. Read `xcrun simctl appinfo` again. `CFBundleVersion` is `9001` and `Path` is the one recorded in step 2. Any other `Path` means the test run reinstalled the app, and the proof fails even though both methods passed.
 5. Repeat the `test ! -e` check from step 3, then run `testShowsTheConversationWrittenBeforeTheRun` alone the same way. It relaunches the app with `-EnduragentFixtureStore keep`, finds the message and reply the first run wrote, sends one more message and reads its reply.
 6. Read `xcrun simctl appinfo` again. `CFBundleVersion` is still `9001` and `Path` is still the one recorded in step 2. Record the three `CFBundleVersion` and `Path` pairs and both result bundles in the review, then delete the simulator, `/tmp/enduragent-dd/phone-unhosted` and `/tmp/enduragent-dd/phone-unhosted-app`.
+
+### Prove CloseoutPhoneRun on the simulator
+
+`EnduragentPhoneTests/CloseoutPhoneRun/testCloseoutPhoneRun` runs the `closeout/about`, `closeout/feedback` and `closeout/language` steps. It is not wrapped in `#if !targetEnvironment(simulator)`: on a simulator it launches the installed app with fresh fixture arguments and onboards, and at the end it reads `0 feedback requests` from `fixture.feedbackRequests` in Debug. Run it on its own simulator, never beside `PhoneUnhostedProof` or a `verify-ios` shard.
+
+1. Build and install the Debug app as in step 1 above, with `/tmp/enduragent-dd/closeout-app` as its derived-data folder and no `CURRENT_PROJECT_VERSION` override.
+2. Run `test ! -e /tmp/enduragent-dd/closeout-tests/Build/Products/Debug-iphonesimulator/Enduragent.app`. It must exit 0. Then run `xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme EnduragentPhone -configuration Debug -destination "platform=iOS Simulator,id=$SIM" -derivedDataPath /tmp/enduragent-dd/closeout-tests -resultBundlePath "$CLOSEOUT_SIM_RUN/closeout.xcresult" -only-testing:EnduragentPhoneTests/CloseoutPhoneRun/testCloseoutPhoneRun CODE_SIGNING_ALLOWED=NO ENDURAGENT_PLAN_PHONE_STEPS=closeout/about=0,closeout/feedback=0,closeout/language=4 ENDURAGENT_PHONE_MESSAGE_BUDGET=4`.
+3. Export the attachments with `xcrun xcresulttool export attachments`. In `closeout-phone-actions`, count the `Message action` lines after each `starts.` line: 0 for `closeout/about`, 0 for `closeout/feedback` and 4 for `closeout/language`. Check that no line names `feedback.tryAgain`, that `Tapped Send through the guard.` appears only inside `closeout/feedback`, and record which NUL line it holds, `NUL entered.` or `NUL not enterable.`.
+4. Inspect `about`, `about-privacy-policy`, `about-from-version`, `feedback-from-row`, `feedback-from-command`, `feedback-empty-refused`, `feedback-too-long-refused`, `feedback-nul`, the French Support screens and the four reply screenshots. Record the counts, the NUL branch and the result bundle in the review, then delete the simulator, `/tmp/enduragent-dd/closeout-tests` and `/tmp/enduragent-dd/closeout-app`.
+
+On the phone the runner launches the installed build plainly and never taps Send unless `FeedbackStepGuard.mayTapSend` allows it. That guard trims the note at both ends with the app's JavaScript whitespace set, as `FeedbackText` does, and allows only an empty note, a note holding NUL, or one over 4,000 UTF-16 units, each of which the app refuses before any request. The gate fails the step with `fail send-guard` when the field's value is not text, and when the field reads as its placeholder it types one probe character to prove the field is empty before it decides. `FeedbackSendGate.swift` is the one phone test file that names `feedback.send`, and the `phone-feedback-send-gate` source rule keeps it so and keeps `feedback.tryAgain` out of the phone tests.
 
 ## The sitting
 
@@ -51,7 +62,28 @@ The Milestone 4 steps are operator steps on the installed TestFlight build. Supp
 swift run --quiet --package-path tools phone-check m4 "$FIRST_STEP" "$LAST_STEP" "$M4_RUN"
 ```
 
-It prints each chosen step's setup, checks and end state, asks the budget, and books the whole budget in `~/Library/Logs/enduragent-m4/PHONE/messages.tsv` before the operator taps. After each step it asks the verdict, `pass`, `fail <check>` or `blocked <reason>`, writes it to `verdicts.tsv` in the folder, and stops at the first that is not `pass`.
+It prints each chosen step's setup, checks and end state, asks the budget, and books the whole budget in `~/Library/Logs/enduragent-m4/PHONE/messages.tsv` before the operator taps. After each step it asks the verdict, `pass`, `fail <check>` or `blocked <reason>`, asks again for any other answer, writes it to `coverage/closeout/sitting.json` in this checkout under the step's id, and stops at the first that is not `pass`. A later verdict for the same step replaces the earlier one. `phone-check plan` and `phone-check closeout` write their verdicts there the same way.
+
+Each command decides its booking through `PhoneInvocationPlan`: the session's ledger and cap, the budget, and the commands it will run. A refused budget stops the command before it starts any build, install or test.
+
+### Run phone-check closeout
+
+The Milestone 6 steps are in `closeout.json`. Supply the first and last step by position, from 1 (`closeout/fill`) to 15 (`closeout/second-device-diagnostics`), the connected phone's identifier and a new local evidence folder:
+
+```sh
+make project
+swift run --quiet --package-path tools phone-check closeout "$FIRST_STEP" "$LAST_STEP" "$DEVICE_ID" "$CLOSEOUT_RUN"
+```
+
+It asks the budget and books it in `~/Library/Logs/enduragent-m6/PHONE/messages.tsv` against the cap of 50, then walks the chosen steps in order:
+
+- An operator step prints its setup, checks and end state; the operator taps it on the phone.
+- `closeout/about`, `closeout/feedback` and `closeout/language` run `CloseoutPhoneRun`. Neighbouring runner steps share one `xcodebuild test`, which receives each step's planned count in `ENDURAGENT_PLAN_PHONE_STEPS` and the budget in `ENDURAGENT_PHONE_MESSAGE_BUDGET`; a run whose steps plan no message gets a budget of 0. Before each run the helper checks that no `Enduragent.app` sits in its test products.
+- `closeout/choices` and `closeout/openrouter-recovery` print the command to run instead: `phone-check choices` and `phone-check openrouter recover`, which ask for their own budget inside the one booked here.
+- `closeout/keychain-proof` and `closeout/two-phone` build `EnduragentKeychainProof` with `xcodebuild build`, install the built `icu.enduragent.keychainproof` with `xcrun devicectl device install app`, then run the test. The helper asks first for the device-update check and, for `closeout/two-phone`, the other device's proof build and this invocation's reconnect step from the table in [Prove reconnect across two phones](#prove-reconnect-across-two-phones). Each reconnect step needs its own invocation.
+- After `closeout/diagnostics` the helper asks for the path of the diagnostics file sent to this Mac, copies it into the folder as `diagnostics.json`, and scans it through `with-intervals-key`. `DiagnosticsFileScan` fails a file that is not the diagnostics JSON, has no usage line with a model and tokens, or holds a secret shape (`sk-or-v1-`, `sk-`, `Bearer `, `ghp_`), the test account's athlete id from the live seed ledger, anything shaped like `i` and 4 to 10 digits, the intervals key, or a message that `closeout/fill` or `closeout/update` fixes. It prints which check failed, never the value, and records `fail diagnostics-scan`.
+
+After each step it asks the verdict and writes it to `coverage/closeout/sitting.json`. After each runner it replaces the booked row's count with the `Message action` lines in the runners' actions logs when every chosen step that plans messages ran in a runner; otherwise the whole budget stays spent. Test products stay under `/tmp/enduragent-dd/phone-check-tests` and `/tmp/enduragent-dd/phone-check-app`, removed after the run. The folder keeps `approval.json`, one `.xcresult` per run, and one folder per run with its logs, `summary.json` and exported attachments.
 
 ## Run PhoneRun
 
@@ -286,11 +318,11 @@ The runner launches plainly and stops if a plan-save card or workout review is a
 6. Turn on the largest text size and VoiceOver in iOS Settings, and turn them off after the step. `Make the plan 14 weeks and save it` shows a card whose parts read in order, with the bar in the transcript under the card. Save plan saves C. This step runs in its own invocation.
 7. `Make the plan 16 weeks and save it` shows a card. New conversation shows it once at the top, marked Prepared earlier. Cancel makes it read Canceled with no controls.
 
-The operator prepares the unlocked phone in English on the seeded test account, with no draft, and types `ready` when the helper asks. Supply the first and last step, the connected phone's identifier and a new local evidence folder. The helper keeps build products under `/tmp/enduragent-dd/M5-8-2-phone` and removes them after the run. A run that stops can resume at the failed step in a new invocation with a new budget.
+The operator prepares the unlocked phone in English on the seeded test account, with no draft, and types `ready` when the helper asks. Supply the first and last step, the connected phone's identifier and a new local evidence folder. The helper keeps build products under `/tmp/enduragent-dd/phone-check-tests` and removes them after the run. A run that stops can resume at the failed step in a new invocation with a new budget.
 
 ```sh
 make project
 swift run --quiet --package-path tools phone-check plan "$FIRST_STEP" "$LAST_STEP" "$DEVICE_ID" "$PLAN_PHONE_RUN"
 ```
 
-The folder keeps `approval.json`, `phone.log`, `phone.xcresult`, `summary.json`, the exported `attachments` and `verdict.txt`. Inspect every screenshot and the actions log before typing `pass`. After step 5, check that the intervals.icu website shows exactly one new workout. After step 6, confirm that VoiceOver read the card's title, name, goal, length, each phase and the replaces line before Save plan and Cancel. Report the steps run, the message actions spent, the milestone total, any failed check and the state left on the phone.
+The folder keeps `approval.json`, the run's `.xcresult`, and a folder holding its logs, `summary.json` and exported `attachments`. Each step's verdict goes to `coverage/closeout/sitting.json`. Inspect every screenshot and the actions log before typing `pass`. After step 5, check that the intervals.icu website shows exactly one new workout. After step 6, confirm that VoiceOver read the card's title, name, goal, length, each phase and the replaces line before Save plan and Cancel. Report the steps run, the message actions spent, the milestone total, any failed check and the state left on the phone.

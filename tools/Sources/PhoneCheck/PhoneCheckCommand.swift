@@ -14,6 +14,10 @@ struct PhoneCheckCommand {
 			switch arguments.first {
 			case "choices":
 				try phone.choices(Array(arguments.dropFirst()))
+			case "closeout":
+				try phone.closeout(Array(arguments.dropFirst()))
+			case "scan-diagnostics":
+				try phone.scanDiagnostics(Array(arguments.dropFirst()))
 			case "m4":
 				try phone.m4(Array(arguments.dropFirst()))
 			case "language":
@@ -24,7 +28,7 @@ struct PhoneCheckCommand {
 				try phone.plan(Array(arguments.dropFirst()))
 			default:
 				try Console.complain(
-					"Usage: phone-check <choices|language|m4|openrouter|plan> [arguments]")
+					"Usage: phone-check <choices|closeout|language|m4|openrouter|plan> [arguments]")
 				exit(2)
 			}
 		} catch {
@@ -60,6 +64,14 @@ struct PhoneCheck {
 		try PhoneSessionPlan.load(path: PhoneSessionPlan.path(root: try root, name: name))
 	}
 
+	func sessions() throws -> [PhoneSessionPlan] {
+		try ["m4", "plan", "closeout"].map(session)
+	}
+
+	func spent(_ plan: PhoneSessionPlan) throws -> Int {
+		try readLedger(at: ledgerFile(of: plan), of: plan).spent
+	}
+
 	func ledgerFile(of plan: PhoneSessionPlan) -> String {
 		NodePath.join(NSHomeDirectory(), "Library/Logs", plan.ledger)
 	}
@@ -76,12 +88,81 @@ struct PhoneCheck {
 		try write(ledger.text, to: path)
 	}
 
-	func say(_ steps: PhoneSteps, of plan: PhoneSessionPlan) throws {
-		for step in plan.steps where steps.ids.contains(step.id) {
+	func say(_ steps: [String], of plan: PhoneSessionPlan) throws {
+		for step in plan.steps where steps.contains(step.id) {
 			try Console.say("\(step.id) plans \(step.planned) message actions.")
 			for setup in step.setup { try Console.say("  Setup: \(setup)") }
 			for check in step.checks { try Console.say("  Check \(check.look): \(check.pass)") }
 			try Console.say("  Ends with: \(step.endsWith)")
+		}
+	}
+
+	func today() -> String {
+		let formatter = DateFormatter()
+		formatter.locale = Locale(identifier: "en_US_POSIX")
+		formatter.dateFormat = "yyyy-MM-dd"
+		return formatter.string(from: Date())
+	}
+
+	func verdict(after step: String) throws -> StepVerdict {
+		let root = try root
+		let day = today()
+		while true {
+			let answer = try ask("After \(step), type pass, fail <check> or blocked <reason>: ")
+			do {
+				let verdict = try SittingRecord.record(answer, for: step, on: day, root: root)
+				try Console.say("Recorded \(step): \(verdict.text), in \(SittingRecord.path).")
+				return verdict
+			} catch let refusal as PhoneRefusal {
+				try Console.complain(refusal.description)
+			}
+		}
+	}
+
+	func verdicts(_ steps: [String]) throws {
+		for step in steps where try verdict(after: step) != .pass {
+			throw PhoneFailure(
+				description: "\(step) did not pass. Stop. A new invocation needs a new budget.")
+		}
+	}
+
+	func run(_ commands: [[String]], with subprocess: Subprocess, logs: String) throws {
+		for (index, command) in commands.enumerated() {
+			try requireFreeDisk()
+			let log = "\(logs)-\(index + 1).log"
+			let end = try subprocess.logged(log, "caffeinate", ["-i"] + command, exclusive: true)
+			guard end.succeeded else {
+				throw PhoneFailure(description: "\(command[0]) failed. Stop and report \(log).")
+			}
+		}
+	}
+
+	func actions(of test: RunnerTest, in bundle: String, exportedTo folder: String) throws
+		-> String?
+	{
+		do {
+			try makeNewFolder(folder)
+			try exportAttachments(
+				of: bundle, to: folder, failure: "Cannot export the \(test.testClass) attachments.")
+			let manifest = try JSONValue.parse(
+				String(
+					decoding: try FileSystem.read(NodePath.join(folder, "manifest.json")),
+					as: UTF8.self))
+			guard
+				let file = try PlanPhoneBudget.actionsFile(
+					in: manifest, named: test.actionsAttachment)
+			else {
+				try Console.complain(
+					"The result bundle has no single \(test.actionsAttachment) log. Recording the whole budget as spent."
+				)
+				return nil
+			}
+			return String(decoding: try FileSystem.read(NodePath.join(folder, file)), as: UTF8.self)
+		} catch {
+			try Console.complain(
+				"Cannot read the message actions: \(Console.text(of: error)). Recording the whole budget as spent."
+			)
+			return nil
 		}
 	}
 

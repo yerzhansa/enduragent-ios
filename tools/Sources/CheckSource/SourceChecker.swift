@@ -45,7 +45,7 @@ struct SourceChecker {
 		+ #"(?:v1-upgrade\/(?:history|review)|pre-vault-5de5c782|build-2bbe2ee"#
 		+ #"|build-6833d90f\/(?:open-review|unknown-write|completed)"#
 		+ #"|build-d6f89d9b\/(?:waiting-review|reprinted-numbers|reprinted-authored-steps"#
-		+ #"|misread-intervals-number))\/"#
+		+ #"|misread-intervals-number)|build-0f943324\/filled)\/"#
 		+ #"(?:synced|local)-records\.store$"#
 	static let proofFile = #"^apps\/ios\/EnduragentUITests\/[^/]+\.swift$"#
 	static let featureFile = #"^\.agents\/skills\/verify-ios\/features\/[^/]+\.md$"#
@@ -83,6 +83,7 @@ struct SourceChecker {
 			try checkContentRules(source)
 			try checkDiagnosticsLogMaker(source)
 			try checkFeedbackFakeOnly(source)
+			try checkPhoneFeedbackSendGate(source)
 			try checkSingleChangePath(source)
 		}
 		let generatedProject = NodePath.resolve(root, Self.xcodeProject)
