@@ -18,7 +18,7 @@ DESKTOP_DECISION = $(abspath $(DESKTOP))/docs/adr/0085-ios-closes-parity-with-a-
 REQUIRE_DESKTOP = test -n "$(DESKTOP)" || { echo "make $@ needs DESKTOP=<path to the desktop checkout>" >&2; exit 2; }
 IPHONE_SIMULATOR := xcodebuild -project $(APP_PROJECT) -scheme Enduragent -showdestinations | awk '/Available destinations for/ { available = 1; next } /Ineligible destinations for/ { available = 0 } available && /platform:iOS Simulator/ && /name:iPhone/ { sub(/^.*id:/, ""); sub(/,.*/, ""); print; exit }'
 
-.PHONY: project generate-catalogs check-catalogs check-source check-coverage write-retained check-retained lint-swift format-swift check-format test-tools test-swift test-app plan-fixtures plan-fixtures-check live-reads live-calendar live-coach live-plan live-seed live-unseed
+.PHONY: project generate-catalogs check-catalogs check-source check-coverage closeout check-closeout-final write-retained check-retained lint-swift format-swift check-format test-tools test-swift test-app plan-fixtures plan-fixtures-check live-reads live-calendar live-coach live-plan live-seed live-unseed
 
 project:
 	$(AT_ROOT) xcodegen generate --spec apps/ios/project.yml
@@ -34,6 +34,12 @@ check-source:
 
 check-coverage:
 	$(AT_ROOT) $(TOOL) check-coverage coverage/*.json
+
+closeout:
+	$(AT_ROOT) $(TOOL) check-coverage --write-closeout coverage/milestone-6.json
+
+check-closeout-final: check-retained
+	$(AT_ROOT) $(TOOL) check-coverage --require-final coverage/*.json
 
 write-retained:
 	@$(REQUIRE_DESKTOP)
