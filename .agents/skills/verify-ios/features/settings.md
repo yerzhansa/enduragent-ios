@@ -85,7 +85,7 @@ The device-only native persistence test uses the dedicated phone proof build to 
 - Debug tools compile out of Release. A Debug screenshot does not prove their absence in a Release build.
 - The Settings proof checks fixture connection identity. It does not prove live credentials or cross-device sync.
 - The physical `PhoneRun` uses the new History and Settings > Credits routes. Its message budget and device approval requirements still apply.
-- `SettingsLargestTextSweepProof` reads English titles and counts English controls. Run it in a shard with no proof that sets the language, such as `SupportLargestTextDeProof` or `SessionSettingsLargestTextDeProof`.
+- `SettingsLargestTextSweepProof` reads English titles and counts English controls. Run it in a shard with no proof that sets the language, such as `SupportLargestTextDeProof`, `SessionSettingsLargestTextDeProof` or `SupportLanguageProof`.
 - A task that forbids simulators can build these proofs and check their inventory. Their screenshots and runtime results remain pending until the simulator runner executes them.
 
 `OpenRouterRecoveryProof` covers missing/rejected/403 recovery and overlapping requests. `OpenRouterAccessProof` covers Settings and onboarding sign-in/cancel marks, relaunch and tool replies. The guarded live procedure is in the [real-phone OpenRouter recovery section](../phone.md#prove-openrouter-recovery-selected-model-sync-and-phone-lock).

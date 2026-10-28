@@ -244,3 +244,17 @@ final class SupportCommandProof: XCTestCase {
 		SupportScreen.assertFeedbackCounts(app, requests: 5, stored: 2)
 	}
 }
+
+@MainActor
+final class SupportLanguageProof: XCTestCase {
+	func testFrenchThenAutomaticOnAnEnglishPhone() {
+		let french = MatrixRun.begin(self, .fr, arguments: FixtureArguments(onboarded: true))
+		french.readSupport()
+		let app = french.app
+		TutorialHarness.returnToChat(app)
+		LanguagePickerEntry.settings.open(app)
+		LanguageProofFlow.choose(app, "automatic")
+		LanguagePickerEntry.settings.close(app)
+		MatrixRun(test: self, app: app, language: .en).readSupport()
+	}
+}

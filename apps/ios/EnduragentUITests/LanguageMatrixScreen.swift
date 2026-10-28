@@ -137,7 +137,7 @@ enum MatrixSweep {
 
 	private static let unswept = [
 		"fixture.", "debug.", "settings.debug", "chat.turnProgress", "chat.toolProgress",
-		"consent.modelRequestCount", "reply.",
+		"consent.modelRequestCount", "reply.", "about.value.",
 	]
 
 	private static let data =
