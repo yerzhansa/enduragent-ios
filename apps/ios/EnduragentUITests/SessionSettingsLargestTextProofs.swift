@@ -44,12 +44,14 @@ private enum SessionLargestText {
 				"\(field.name) is not full width")
 		}
 		attach(test, language, "fields", app)
+		LargestTextScreen.toTop(app)
 		enter(app, "historyBudgetRatio", "0")
 		let save = run.named("session.save")
 		LargestTextScreen.reveal(app, save, tappable: true)
 		XCTAssertEqual(save.label, run.say(Catalog.commonSave))
 		LargestTextScreen.assertWhole(app, save)
 		save.tap()
+		LargestTextScreen.toTop(app)
 		let rejection = SupportScreen.outcome(
 			app, "session.historyBudgetRatio.rejection",
 			run.say(Catalog.settingsConversationValidationHistoryTokenBudgetRatio))
@@ -74,7 +76,7 @@ private enum SessionLargestText {
 		let run = open(test, language)
 		let app = run.app
 		enter(app, "historyBudgetRatio", "5")
-		TutorialHarness.wait(run.named("session.save"))
+		LargestTextScreen.reveal(app, run.named("session.save"), tappable: false)
 		LargestTextScreen.toTop(app)
 		let parts = ["label", "input", "unit", "help"]
 		let order =

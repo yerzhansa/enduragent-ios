@@ -69,7 +69,7 @@ enum SupportLargestText {
 		let app = run.app
 		let rows: [(row: String, title: CatalogKey, content: String)] = [
 			("settings.feedback", Catalog.feedbackTitle, "feedback.field"),
-			("settings.diagnostics", Catalog.diagnosticsTitle, "diagnostics.make"),
+			("settings.diagnostics", Catalog.diagnosticsTitle, "diagnostics.explanation"),
 			("settings.about", Catalog.aboutTitle, "about.value.version"),
 		]
 		for entry in rows {
@@ -89,8 +89,10 @@ enum SupportLargestText {
 		let run = LargestTextScreen.begin(test, language)
 		let app = run.app
 		LargestTextScreen.open(app, row: "settings.feedback", showing: "feedback.field")
+		let prompt = run.named("feedback.prompt")
 		let field = run.named("feedback.field")
 		let send = run.named("feedback.send")
+		let empty = fieldSlot(prompt, send)
 		LargestTextScreen.reveal(app, send, tappable: true)
 		send.tap()
 		let refused = SupportScreen.outcome(
@@ -102,11 +104,20 @@ enum SupportLargestText {
 		LargestTextScreen.assertWhole(app, send)
 		attach(test, language, "feedback-stacked", app)
 		LargestTextScreen.reveal(app, field, tappable: true)
-		let empty = field.frame.height
 		field.tap()
 		field.typeText(note)
 		TutorialHarness.wait(field, until: .value(note))
-		XCTAssertGreaterThan(field.frame.height, empty + 1, "the field does not grow with the text")
+		let grown = fieldSlot(prompt, send)
+		XCTAssertGreaterThan(grown, empty + 1, "the field does not grow with the text")
+		let more = " " + note
+		field.typeText(more + more)
+		TutorialHarness.wait(field, until: .value(note + more + more))
+		let capped = fieldSlot(prompt, send)
+		XCTAssertGreaterThan(capped, grown + 1, "the field stops growing before its cap")
+		field.typeText(more)
+		TutorialHarness.wait(field, until: .value(note + more + more + more))
+		XCTAssertEqual(
+			fieldSlot(prompt, send), capped, accuracy: 1, "the field grows past its cap")
 		XCTAssertTrue(app.keyboards.firstMatch.exists, "the keyboard is not up")
 		LargestTextScreen.reveal(app, send, tappable: true)
 		XCTAssertLessThanOrEqual(send.frame.maxY, SupportScreen.visibleBottom(app) + 1)
@@ -177,17 +188,31 @@ enum SupportLargestText {
 
 	private static func makeAndCancel(_ run: MatrixRun) {
 		let app = run.app
-		LargestTextScreen.open(app, row: "settings.diagnostics", showing: "diagnostics.make")
-		TutorialHarness.wait(run.named("diagnostics.notSaving"))
+		LargestTextScreen.open(app, row: "settings.diagnostics", showing: "diagnostics.notSaving")
 		let make = run.named("diagnostics.make")
 		LargestTextScreen.reveal(app, make, tappable: true)
 		make.tap()
 		let close = app.buttons[SupportScreen.closeShareSheet]
+		TutorialHarness.wait(
+			until: { close.exists && LargestTextScreen.window(app).contains(close.frame) },
+			message: "\(close) did not settle inside the window")
 		TutorialHarness.wait(close, until: .hittable)
 		close.tap()
 		SupportScreen.outcome(app, "diagnostics.outcome", run.say(Catalog.diagnosticsCanceled))
 		TutorialHarness.wait(make, until: .enabled)
 		LargestTextScreen.toTop(app)
+	}
+
+	private static func fieldSlot(_ prompt: XCUIElement, _ send: XCUIElement) -> CGFloat {
+		var previous = -CGFloat.infinity
+		var current = CGFloat.infinity
+		TutorialHarness.wait(
+			until: {
+				previous = current
+				current = send.frame.minY - prompt.frame.maxY
+				return current == previous
+			}, message: "the Feedback field did not settle")
+		return current
 	}
 
 	private static func attach(
