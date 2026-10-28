@@ -30,6 +30,10 @@ final class SupportModel {
 		}
 	}
 
+	func prefill(_ text: String) {
+		if !text.isEmpty { draft = text }
+	}
+
 	func send() async {
 		let sent = Support.trimmed(draft)
 		do {

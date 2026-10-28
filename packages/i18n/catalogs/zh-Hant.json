@@ -2945,6 +2945,7 @@
   },
   "feedback": {
     "title": "意見回饋",
+    "command": "傳送留言給 Enduragent 的作者",
     "prompt": "寫一則留言給 Enduragent 的作者。留言會單獨傳送，不附帶你的對話、記憶、訓練資料或診斷資訊。",
     "send": "傳送",
     "sending": "正在傳送…",

@@ -2981,6 +2981,7 @@
   },
   "feedback": {
     "title": "Feedback",
+    "command": "Den Autoren von Enduragent eine Notiz senden",
     "prompt": "Schreib den Autoren von Enduragent eine Notiz. Sie wird allein gesendet, ohne deine Unterhaltung, dein Gedächtnis, deine Trainingsdaten oder Diagnosedaten.",
     "send": "Senden",
     "sending": "Wird gesendet…",

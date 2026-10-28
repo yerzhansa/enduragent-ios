@@ -2945,6 +2945,7 @@
   },
   "feedback": {
     "title": "反馈",
+    "command": "给 Enduragent 的作者发送留言",
     "prompt": "给 Enduragent 的作者写一条留言。留言会单独发送，不附带你的对话、记忆、训练数据或诊断信息。",
     "send": "发送",
     "sending": "正在发送…",

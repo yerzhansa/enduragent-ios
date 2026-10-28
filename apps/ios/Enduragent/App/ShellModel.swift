@@ -288,9 +288,7 @@ final class ShellModel {
 
 	func send() async {
 		reviewOutcomeNotice = nil
-		if case .showLanguagePicker? = await submission.send(using: services.coach) {
-			openLanguagePicker()
-		}
+		follow(await submission.send(using: services.coach))
 	}
 
 	func openLanguagePicker() {

@@ -1053,6 +1053,7 @@
   },
   "feedback": {
     "title": "Feedback",
+    "command": "Send a note to the Enduragent authors",
     "prompt": "Write a note to the Enduragent authors. It goes on its own, without your conversation, memory, training data or diagnostics.",
     "send": "Send",
     "sending": "Sending…",

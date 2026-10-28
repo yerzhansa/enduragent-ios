@@ -24,7 +24,7 @@
 			case .workout: finished = workoutShortcutReply
 			case .plan: finished = planShortcutReply
 			case .status: finished = statusShortcutReply
-			case .start, .review, .language, nil: return nil
+			case .start, .review, .language, .feedback, .version, nil: return nil
 			}
 			let trailing = typed.drop { !$0.isWhitespace }
 				.trimmingCharacters(in: .whitespacesAndNewlines)

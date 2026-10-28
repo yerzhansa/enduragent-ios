@@ -52,7 +52,7 @@ final class ChatSubmission {
 		do {
 			let outcome = try await coach.send(Draft(id: sent.id, text: text), to: .main)
 			switch outcome {
-			case .accepted, .showLanguagePicker:
+			case .accepted, .showLanguagePicker, .openScreen:
 				clear(sent)
 			case .newConversation(let admission):
 				apply(admission, submitted: sent)

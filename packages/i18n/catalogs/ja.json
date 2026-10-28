@@ -2945,6 +2945,7 @@
   },
   "feedback": {
     "title": "フィードバック",
+    "command": "Enduragentの作者にメモを送る",
     "prompt": "Enduragentの作者にメモを送ります。会話、メモリ、トレーニングデータ、診断情報は含まれず、メモだけが送信されます。",
     "send": "送信",
     "sending": "送信中…",

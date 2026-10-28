@@ -923,6 +923,7 @@ public enum Catalog {
 	public static let diagnosticsShareFailed = CatalogKey(rawValue: "diagnostics.shareFailed")
 	public static let diagnosticsShared = CatalogKey(rawValue: "diagnostics.shared")
 	public static let diagnosticsTitle = CatalogKey(rawValue: "diagnostics.title")
+	public static let feedbackCommand = CatalogKey(rawValue: "feedback.command")
 	public static let feedbackNotConfirmed = CatalogKey(rawValue: "feedback.notConfirmed")
 	public static let feedbackNotSentBusy = CatalogKey(rawValue: "feedback.notSent.busy")
 	public static let feedbackNotSentNoConnection = CatalogKey(rawValue: "feedback.notSent.noConnection")
