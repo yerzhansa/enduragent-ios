@@ -109,15 +109,12 @@ final class CloseoutPhoneRun: XCTestCase {
 		TutorialHarness.waitForIdentifier(app, "about.value.name", reading: "Enduragent")
 		let version = element("about.version")
 		TutorialHarness.wait(version)
-		let parts = english.say(Catalog.settingsApplicationVersion, ["version": "\u{1}"])
-			.components(separatedBy: "\u{1}")
-		let label = version.label
-		guard parts.count == 2, label.hasPrefix(parts[0]), label.hasSuffix(parts[1]),
-			label.count > parts[0].count + parts[1].count
-		else {
-			throw PhoneRunBlocked(reason: "About shows no version line: \(label).")
+		guard version.label == english.say(Catalog.aboutVersion) else {
+			throw PhoneRunBlocked(reason: "About shows no version line: \(version.label).")
 		}
-		let shown = String(label.dropFirst(parts[0].count).dropLast(parts[1].count))
+		let value = element("about.value.version")
+		TutorialHarness.wait(value)
+		let shown = value.label
 		XCTAssertNotNil(
 			shown.wholeMatch(of: /\d+(\.\d+)+ \(\d+\)/), "About shows the version and build.")
 		log.append("About shows Enduragent \(shown).")
