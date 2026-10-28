@@ -72,6 +72,7 @@ struct CloseoutFixture: Sendable {
 		"""#
 
 	var retained = checkerRetained
+	var approvals = ["A01"]
 	var differences = ["B11/three-outcomes", "G09/no-refresh"]
 	var stage = "building"
 	var handEvidence: [(id: String, pointers: String)] = [
@@ -231,7 +232,8 @@ struct CloseoutFixture: Sendable {
 			+ crossCutting.joined(separator: ", ") + "], \"golden_journeys\": ["
 			+ ids(.journey).joined(separator: ", ") + "], \"decisions\": ["
 			+ ids(.decision).joined(separator: ", ")
-			+ "], \"acceptance_traceability\": [{\"approval_ids\": [\"A01\"]}]}"
+			+ "], \"acceptance_traceability\": [{\"approval_ids\": ["
+			+ approvals.map(\.quotedAsJSON).joined(separator: ", ") + "]}]}"
 		let decision =
 			"# Decision\n\n## Agreed differences from npm\n\n"
 			+ differences.map { "- `\($0)`: it differs.\n" }.joined()
