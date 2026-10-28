@@ -24,12 +24,6 @@ public struct PhoneSessionPlan: Sendable, Equatable, Decodable {
 		self.steps.filter { steps.contains($0.id) }.reduce(0) { $0 + $1.planned }
 	}
 
-	public func plannedSteps(_ steps: [String]) -> [PlannedPhoneStep] {
-		self.steps.filter { steps.contains($0.id) }.map {
-			PlannedPhoneStep(id: $0.id, planned: $0.planned)
-		}
-	}
-
 	public func quotedMessages(of steps: [String]) -> [String] {
 		self.steps.filter { steps.contains($0.id) }.flatMap(\.checks).flatMap { check in
 			[check.look, check.pass].flatMap { text in
