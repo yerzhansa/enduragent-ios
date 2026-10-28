@@ -98,6 +98,14 @@ import Testing
 		#expect(frenchFrance.number(nil, precision: .whole) == "—")
 	}
 
+	@Test func momentShowsTheDayAndClockOfTheZoneItIsGiven() throws {
+		let instant = FixedClock(now: "2026-03-04T23:30:00Z", timeZone: "UTC").now
+		let tokyo = try #require(TimeZone(identifier: "Asia/Tokyo"))
+		#expect(
+			displayLocale(.fr, region: "fr_FR").moment(instant, in: tokyo) == "05/03/2026 08:30")
+		#expect(displayLocale(.fr, region: "fr_FR").moment(instant, in: .gmt) == "04/03/2026 23:30")
+	}
+
 	@Test func refreshFollowsThePhoneAndKeepsFixedWords() async throws {
 		let phone = DisplayPhone()
 		let transport = FakeModelTransport()

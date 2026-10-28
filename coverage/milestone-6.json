@@ -9,6 +9,7 @@
 		"2.3": 6,
 		"3.1": 10,
 		"4.1": 12,
+		"5.1": 11,
 		"6.1": 9,
 		"8.1": 6,
 		"8.2": 6,
@@ -576,6 +577,86 @@
 			]
 		},
 		{
+			"id": "5.1.1",
+			"statement": "Settings shows the Support section after Session, titled Support, with Feedback, Diagnostics and About in that order; each row opens its screen and Back returns to Settings.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "SupportSectionProof", "method": "testSectionOrderAndRows"}
+			]
+		},
+		{
+			"id": "5.1.2",
+			"statement": "Send on an empty draft shows \"Write a note first.\" and fixture.feedbackRequests stays 0; a 4,001-character draft shows the too-long sentence with 4,000 and sends nothing.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "FeedbackScreenProof", "method": "testRefusals"}
+			]
+		},
+		{
+			"id": "5.1.3",
+			"statement": "With the script lost,lost, Send shows the not-confirmed sentence and Try again and keeps the draft; Try again shows \"Received. Thank you for the note.\"; fixture.feedbackRequests reads 3 and fixture.feedbackStored reads 1.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "FeedbackScreenProof", "method": "testTraceLostLostThenTryAgain"}
+			]
+		},
+		{
+			"id": "5.1.4",
+			"statement": "FeedbackLine.of gives a refusal its sentence and Send, sending Sending with the button disabled, received its sentence and Send, and not sent and not confirmed their sentence with Try again while the trimmed draft equals the kept text, and Send after an edit.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/FeedbackLineTests.swift", "function": "aRefusalShowsItsSentenceAndOffersSend"},
+				{"file": "apps/ios/EnduragentTests/FeedbackLineTests.swift", "function": "eachSettledOrSendingStateShowsItsLine"},
+				{"file": "apps/ios/EnduragentTests/FeedbackLineTests.swift", "function": "aKeptNoteOffersTryAgainUntilTheDraftChanges"}
+			]
+		},
+		{
+			"id": "5.1.5",
+			"statement": "A relaunch with a kept not-confirmed note shows the kept text, the not-confirmed sentence and Try again; Try again shows \"Received. Thank you for the note.\" and fixture.feedbackStored reads 1.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "FeedbackScreenProof", "method": "testRelaunchKeepsNotConfirmedNoteAndTryAgainSendsIt"}
+			]
+		},
+		{
+			"id": "5.1.6",
+			"statement": "Make diagnostics file shows the share sheet; Close shows \"Canceled. The file was not shared.\" and the button again, which shows the share sheet again; Copy shows the shared sentence; Save to Files, On My iPhone, Save shows \"Saved to Files.\".",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "DiagnosticsScreenProof", "method": "testCancelShowsCanceled"},
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "DiagnosticsScreenProof", "method": "testCopyShowsShared"},
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "DiagnosticsScreenProof", "method": "testSaveToFilesOnMyIPhoneShowsSaved"}
+			]
+		},
+		{
+			"id": "5.1.7",
+			"statement": "With -EnduragentFixtureJournal notSaving, Diagnostics shows the not-saving sentence with the date and time the journal stopped saving, in the coach clock's zone.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "DiagnosticsScreenProof", "method": "testNotSavingLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DisplayLocaleTests.swift", "function": "momentShowsTheDayAndClockOfTheZoneItIsGiven"}
+			]
+		},
+		{
+			"id": "5.1.8",
+			"statement": "About shows \"Enduragent\", the version line with the bundle's version and build (\"Version 0.1.0 (3)\"), and Privacy policy; tapping the link brings Safari to the foreground.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "AboutScreenProof", "method": "testNameVersionAndLink"}
+			]
+		},
+		{
+			"id": "5.1.9",
+			"statement": "journalLine(_:) is nil while saving and diagnostics.notSaving while not saving.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/FeedbackLineTests.swift", "function": "theJournalLineAppearsOnlyWhileTheLogIsNotSaving"}
+			]
+		},
+		{
+			"id": "5.1.10",
+			"statement": "ShellModel.swift has at most 393 lines.",
+			"noAutomatedProof": "The reviewer runs wc -l apps/ios/Enduragent/App/ShellModel.swift on the pull request head and checks it reads at most 393; it read 393 when the Support model joined the shell."
+		},
+		{
+			"id": "5.1.11",
+			"statement": "SupportModel.shareFinished with the literal activities SaveToFiles completed, AirDrop completed, nil not completed and nil with CocoaError(.fileWriteUnknown) shows the diagnostics.saved, diagnostics.shared, diagnostics.canceled and diagnostics.shareFailed sentence, and the share folder is empty after each.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/SupportShareTests.swift", "function": "eachShareCompletionShowsItsLine"}
+			]
+		},
+		{
 			"id": "6.1.1",
 			"statement": "privacy-manifest reports a missing manifest, one under the app target's excludes, one declaring tracking true, one declaring UserDefaults without CA92.1, and one with a third accessed API type; it reports a product file holding .modificationDate or volumeAvailableCapacity, and a manifest declaring UserDefaults over sources with no UserDefaults; it accepts a test file holding .creationDate. It passes on the committed files, which make check-source checks in CI on every pull request.",
 			"tests": [
@@ -968,6 +1049,11 @@
 			"id": "B10.03",
 			"statement": "The diagnostics file holds its sections in the athlete's scope: the app, the phone, the access method kind, the connection state, the language, the record counts and the journal, with no key, athlete id, message text or training data. The per-section training snapshot is absent by B10.03/no-snapshot.",
 			"criteria": ["1.4.1", "1.4.2"]
+		},
+		{
+			"id": "B11.02",
+			"statement": "Feedback acknowledges only a successful submission: the app says Received only after the service accepted the note, shows a not-sent or not-confirmed outcome explicitly, keeps the note, and sends it again only when the athlete taps Try again.",
+			"criteria": ["1.3.4", "1.3.7", "4.1.1", "4.1.4", "5.1.3"]
 		}
 	],
 	"plan": {
@@ -1020,8 +1106,7 @@
 		"B05.03",
 		"B05.04",
 		"B10.04",
-		"B11.01",
-		"B11.02"
+		"B11.01"
 	],
 	"closeout": {
 		"stage": "building",
@@ -1070,7 +1155,7 @@
 			{"id": "B10.03", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B10.03"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B10.03/no-snapshot", "record": "ADR-0085"}}], "waitsOn": []},
 			{"id": "B10.04", "group": "work", "status": "open", "evidence": [], "differences": [], "waitsOn": [{"table": {"table": "coverage/milestone-6.json", "id": "B10.04"}}]},
 			{"id": "B11.01", "group": "work", "status": "open", "evidence": [], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B11/three-outcomes", "record": "ADR-0085"}}], "waitsOn": [{"table": {"table": "coverage/milestone-6.json", "id": "B11.01"}}]},
-			{"id": "B11.02", "group": "work", "status": "open", "evidence": [], "differences": [], "waitsOn": [{"table": {"table": "coverage/milestone-6.json", "id": "B11.02"}}]},
+			{"id": "B11.02", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B11.02"}}], "differences": [], "waitsOn": []},
 			{"id": "B12.01", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "newConversationRecoversAllNineSections"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "relaunchRecoversCorrectedFactsAndDatedHistory"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "rememberedInstructionsStayInsideDataBoundaries"}}], "differences": [], "waitsOn": []},
 			{"id": "B12.02", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachDailyMemoryTests.swift", "function": "duplicateFatigueNoteSurvivesRelaunchWithoutChangingCurrentFacts"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachDailyMemoryTests.swift", "function": "notesAcrossLocalMidnightKeepTheirDaysAfterRelaunch"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryTests.swift", "function": "appendDailyNoteSkipsWholeLineDuplicateWithoutJournal"}}], "differences": [], "waitsOn": []},
 			{"id": "B12.03", "group": "work", "status": "deviation", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachLedgerHistoryTests.swift", "function": "allEventKindsSurviveRelaunchWithTheirDatesWordingAndSources"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachLedgerHistoryTests.swift", "function": "duplicateAndInvalidInputsLeaveOnlyTheOriginalEventAfterRelaunch"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachLedgerHistoryTests.swift", "function": "laterDifferentDecisionKeepsBothDatedEventsAfterRelaunch"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B12.03/real-dates: A memory event date must be a real calendar date."}}], "waitsOn": []},

@@ -61,6 +61,10 @@ public actor Support {
 		return await deliver(kept.note, prior: kept.phase)
 	}
 
+	public nonisolated static func trimmed(_ draft: String) -> String {
+		FeedbackText.trimmedAsJavaScript(draft)
+	}
+
 	public func tryAgain() async -> FeedbackOutcome? {
 		if let running { return await running.value.outcome }
 		guard let kept else { return nil }

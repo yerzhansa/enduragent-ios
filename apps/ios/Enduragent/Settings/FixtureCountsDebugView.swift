@@ -70,6 +70,10 @@
 						? "Calendar read fault armed" : "Calendar read fault consumed"
 				)
 				.accessibilityIdentifier("fixture.calendarReadFault")
+				Text("\(fixture.feedback.requestCount) feedback requests")
+					.accessibilityIdentifier("fixture.feedbackRequests")
+				Text("\(fixture.feedback.storedCount) feedback notes stored")
+					.accessibilityIdentifier("fixture.feedbackStored")
 				if let host = fixture.host {
 					Button("Expire current lease") {
 						Task { await host.expire(.systemExpired) }

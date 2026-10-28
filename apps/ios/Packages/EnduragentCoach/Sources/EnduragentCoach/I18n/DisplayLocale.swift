@@ -48,6 +48,13 @@ public struct DisplayLocale: Sendable, Equatable {
 		return formatter.string(from: instant)
 	}
 
+	public func moment(_ instant: Date, in zone: TimeZone) -> String {
+		let day = DisplayDateFormatter.make(
+			language: language, region: regionalConventions, style: .numeric)
+		day.timeZone = zone
+		return "\(day.string(from: instant)) \(clock(instant, in: zone))"
+	}
+
 	public func say(
 		_ key: CatalogKey, count: Int? = nil, _ arguments: [String: CatalogArgument] = [:]
 	) -> String {

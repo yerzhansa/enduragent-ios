@@ -79,12 +79,44 @@ extension SupportService {
 	}
 
 	public static func fixture(
-		directory: URL, app: AppIdentity, server: FakeFeedbackServer = FakeFeedbackServer()
+		directory: URL, app: AppIdentity, server: FakeFeedbackServer = FakeFeedbackServer(),
+		journal: FixtureJournal = .saving
 	) -> SupportService {
-		SupportService(
-			journal: FileJournalStorage(directory: directory),
+		let file = FileJournalStorage(directory: directory)
+		let storage: any JournalStorage
+		switch journal {
+		case .saving: storage = file
+		case .notSaving: storage = UnwritableJournalStorage(file: file)
+		}
+		return SupportService(
+			journal: storage,
 			keptNotes: FileKeptNoteStorage(directory: directory),
 			shareFolder: ShareFolder(in: directory),
 			feedback: server.client, app: app, device: .fixture)
+	}
+}
+
+public enum FixtureJournal: String, Sendable {
+	case saving
+	case notSaving
+}
+
+private struct UnwritableJournalStorage: JournalStorage {
+	let file: FileJournalStorage
+
+	func read() throws -> Data? {
+		try file.read()
+	}
+
+	func append(_ line: Data) throws {
+		throw CocoaError(.fileWriteNoPermission)
+	}
+
+	func replace(with lines: Data) throws {
+		throw CocoaError(.fileWriteNoPermission)
+	}
+
+	func removeLeftover() throws {
+		throw CocoaError(.fileWriteNoPermission)
 	}
 }

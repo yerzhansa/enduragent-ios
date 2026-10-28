@@ -72,7 +72,7 @@ enum TutorialHarness {
 	static func relaunchKeepingStore(
 		_ app: XCUIApplication, recovery: String = "readable", clock: String? = nil,
 		keychain: FixtureKeychainPolicy? = nil, language: String? = nil, locale: String? = nil,
-		clearingReadFaults: Bool = false
+		clearingReadFaults: Bool = false, clearingFeedbackScript: Bool = false
 	) {
 		app.terminate()
 		XCTAssertEqual(app.state, .notRunning)
@@ -89,6 +89,7 @@ enum TutorialHarness {
 			arguments.calendarReadFault = nil
 			arguments.recordReadFault = nil
 		}
+		if clearingFeedbackScript { arguments.feedback = nil }
 		if let clock { arguments.clock = clock }
 		if let keychain { arguments.keychain = keychain }
 		if let language { arguments.language = language }

@@ -573,6 +573,9 @@
       "switchDetail": "Esta chave pertence ao atleta {{new}}. Sua conversa, o histórico e a memória continuam salvos para o atleta {{current}} e não são usados para o atleta {{new}}. Trocar para usar esta chave?",
       "switch": "Trocar atleta",
       "athlete": "Atleta {{id}}"
+    },
+    "support": {
+      "title": "Suporte"
     }
   },
   "setup": {
@@ -2964,6 +2967,37 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnóstico",
+    "explanation": "Crie um arquivo com a versão do app, o modelo e a versão do iOS deste iPhone, suas configurações, contagens do que o app salvou e os últimos 14 dias de problemas e uso do modelo. Ele não contém chaves, mensagens nem dados de treino. Nada sai do iPhone até você compartilhar.",
+    "make": "Criar arquivo de diagnóstico",
+    "preparing": "Preparando o arquivo…",
+    "shared": "Compartilhado. O iOS entregou o arquivo ao app que você escolheu.",
+    "saved": "Salvo em Arquivos.",
+    "canceled": "Cancelado. O arquivo não foi compartilhado.",
+    "failed": "Não foi possível criar o arquivo.",
+    "shareFailed": "Não foi possível compartilhar o arquivo.",
+    "notSaving": "Este iPhone não salva o registro de problemas desde {{time}}. O arquivo contém apenas o que foi salvo antes disso e o que esta sessão registrou."
+  },
+  "feedback": {
+    "title": "Comentários",
+    "prompt": "Escreva uma nota para os autores do Enduragent. Ela vai sozinha, sem sua conversa, memória, dados de treino ou diagnósticos.",
+    "send": "Enviar",
+    "sending": "Enviando…",
+    "received": "Recebida. Obrigado pela nota.",
+    "notSent": {
+      "noConnection": "Não enviada. O iPhone estava sem conexão. Sua nota foi mantida.",
+      "busy": "Não enviada. O serviço de comentários está ocupado. Tente novamente em um minuto. Sua nota foi mantida.",
+      "refused": "Não enviada. O serviço de comentários recusou a nota. Sua nota foi mantida.",
+      "stopped": "Não enviada. O app parou antes de a nota sair deste iPhone. Sua nota foi mantida."
+    },
+    "notConfirmed": "Não confirmada. A nota pode ter chegado, mas nenhuma resposta veio. Sua nota foi mantida, e Tentar novamente envia a mesma nota.",
+    "refused": {
+      "empty": "Escreva uma nota primeiro.",
+      "tooLong": "Mantenha sua nota com até {{limit}} caracteres. Nada foi enviado.",
+      "invalidCharacter": "A nota tem um caractere que não pode ser enviado. Nada foi enviado."
+    }
+  },
   "review": {
     "accountChanged": "Este treino foi preparado para outro atleta no {{service}}. Peça de novo para eu prepará-lo para o atleta conectado.",
     "add": "Adicionar ao calendário",
@@ -3022,6 +3056,10 @@
       "decline": "Agora não",
       "saveFailed": "Não foi possível salvar seu consentimento. Tente novamente."
     }
+  },
+  "about": {
+    "title": "Sobre",
+    "privacyPolicy": "Política de privacidade"
   },
   "access": {
     "error": {
