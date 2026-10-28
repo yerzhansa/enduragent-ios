@@ -4,8 +4,7 @@ import XCTest
 enum FeedbackSendGate {
 	static func tapSend(in app: XCUIApplication) throws {
 		let field = TutorialHarness.named(app, "feedback.field")
-		let value = field.value as? String ?? ""
-		guard FeedbackStepGuard.mayTapSend(fieldValue: value) else {
+		guard FeedbackStepGuard.mayTapSend(fieldValue: try note(in: field)) else {
 			throw PhoneRunBlocked(reason: "fail send-guard")
 		}
 		let send = TutorialHarness.named(app, "feedback.send")
@@ -17,5 +16,32 @@ enum FeedbackSendGate {
 			throw PhoneRunBlocked(reason: "Send cannot be reached above the keyboard.")
 		}
 		send.tap()
+	}
+
+	static func readsEmpty(_ field: XCUIElement) -> Bool {
+		guard let shown = field.value as? String else { return false }
+		return shown.isEmpty || shown == field.placeholderValue
+	}
+
+	private static func note(in field: XCUIElement) throws -> String {
+		guard let shown = field.value as? String else {
+			throw PhoneRunBlocked(reason: "fail send-guard")
+		}
+		guard !shown.isEmpty, shown == field.placeholderValue else { return shown }
+		let probe = "x"
+		field.tap()
+		field.typeText(probe)
+		guard field.value as? String == probe else {
+			throw PhoneRunBlocked(reason: "fail send-guard")
+		}
+		field.typeText(XCUIKeyboardKey.delete.rawValue)
+		guard
+			TutorialHarness.wait(
+				until: { readsEmpty(field) }, required: false,
+				message: "The probe stayed in the note.")
+		else {
+			throw PhoneRunBlocked(reason: "fail send-guard")
+		}
+		return ""
 	}
 }

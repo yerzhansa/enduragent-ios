@@ -1079,10 +1079,14 @@
 		},
 		{
 			"id": "9.2.6",
-			"statement": "FeedbackStepGuard.mayTapSend allows an empty value, whitespace and newlines, NUL alone, a NUL inside text and 4,001 a, and refuses ab, the lap table is cut off, 4,000 a, and 4,000 a with a space at each end.",
+			"statement": "FeedbackStepGuard.mayTapSend trims a note at both ends with FeedbackText's JavaScript whitespace set. It allows an empty value, whitespace and newlines, NUL alone, a NUL inside text, 4,001 a, and 4,001 units with a space inside, and refuses ab, the lap table is cut off, 4,000 a, 4,000 a with a space at each end, U+0085, U+200B, and 3,999 a after two U+FEFF. Each of the 25 trimmed scalars alone is allowed and around 4,000 a is refused; each near-miss alone is refused and before 4,000 a is allowed. FeedbackTextTests pins the same scalars and near-misses on the app side.",
 			"tests": [
 				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aNoteTheAppMustRefuseMayBeSent"},
-				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aNoteTheAppWouldDeliverIsNeverSent"}
+				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aNoteTheAppWouldDeliverIsNeverSent"},
+				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aScalarTheAppTrimsIsTrimmed"},
+				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aScalarTheAppKeepsIsCounted"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "eachJavaScriptWhitespaceScalarIsTrimmed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "aScalarOutsideTheJavaScriptSetIsKept"}
 			]
 		},
 		{
