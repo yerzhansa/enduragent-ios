@@ -3060,7 +3060,8 @@
   },
   "about": {
     "title": "Informazioni",
-    "privacyPolicy": "Informativa sulla privacy"
+    "privacyPolicy": "Informativa sulla privacy",
+    "version": "Versione"
   },
   "access": {
     "error": {

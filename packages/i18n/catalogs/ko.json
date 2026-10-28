@@ -3020,7 +3020,8 @@
   },
   "about": {
     "title": "정보",
-    "privacyPolicy": "개인정보 처리방침"
+    "privacyPolicy": "개인정보 처리방침",
+    "version": "버전"
   },
   "access": {
     "error": {
