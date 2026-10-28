@@ -51,13 +51,12 @@ final class FeedbackScreenProof: XCTestCase {
 		field.tap()
 		field.typeText(String(repeating: "a", count: FeedbackRefusal.limit + 1))
 		let send = TutorialHarness.named(app, "feedback.send")
-		TutorialHarness.scroll(app, to: send)
+		SupportScreen.assertVisible(app, send)
 		send.tap()
 		let tooLong = SupportScreen.outcome(
 			app, "feedback.outcome",
 			SupportScreen.phrasebook.say(Catalog.feedbackRefusedTooLong, ["limit": "4,000"]))
-		TutorialHarness.wait(tooLong, until: .hittable)
-		XCTAssertLessThanOrEqual(tooLong.frame.maxY, SupportScreen.keyboardTop(app))
+		SupportScreen.assertVisible(app, tooLong)
 		TutorialHarness.attach(self, name: "feedback-too-long-light", app: app)
 		SupportScreen.assertFeedbackCounts(app, requests: 0, stored: 0)
 	}
@@ -139,10 +138,11 @@ final class DiagnosticsScreenProof: XCTestCase {
 			app, "diagnostics.outcome", SupportScreen.say(Catalog.diagnosticsSaved))
 		let replace = app.buttons[SupportScreen.replaceSavedFile]
 		TutorialHarness.wait(
-			until: { saved.exists || replace.exists },
-			message: "Save neither finished nor asked to replace the earlier file")
-		if replace.exists { replace.tap() }
-		TutorialHarness.wait(saved)
+			until: {
+				if replace.exists && replace.isHittable { replace.tap() }
+				return saved.exists
+			},
+			message: "Save neither finished nor replaced the earlier file")
 		TutorialHarness.attach(self, name: "diagnostics-saved-light", app: app)
 	}
 
@@ -242,11 +242,23 @@ private enum SupportScreen {
 		).firstMatch
 	}
 
-	static func keyboardTop(_ app: XCUIApplication) -> CGFloat {
-		let keyboard = app.keyboards.firstMatch
-		TutorialHarness.wait(keyboard)
-		let covers = [keyboard, app.otherElements[keyboardAssistant]].filter(\.exists)
-		return covers.map(\.frame.minY).min() ?? 0
+	static func assertVisible(
+		_ app: XCUIApplication, _ element: XCUIElement,
+		file: StaticString = #filePath, line: UInt = #line
+	) {
+		TutorialHarness.wait(
+			until: {
+				element.exists && element.isHittable
+					&& element.frame.maxY <= visibleBottom(app)
+			},
+			message: "\(element) is not wholly above the keyboard",
+			file: file, line: line)
+	}
+
+	static func visibleBottom(_ app: XCUIApplication) -> CGFloat {
+		let covers = [app.keyboards.firstMatch, app.otherElements[keyboardAssistant]]
+			.filter(\.exists)
+		return covers.map(\.frame.minY).min() ?? app.windows.firstMatch.frame.maxY
 	}
 
 	static func shareAction(_ app: XCUIApplication, _ label: String) -> XCUIElement {
@@ -259,10 +271,10 @@ private enum SupportScreen {
 
 	static func tryAgain(_ app: XCUIApplication) {
 		let button = TutorialHarness.named(app, "feedback.tryAgain")
-		TutorialHarness.wait(button, until: .hittable)
+		assertVisible(app, button)
 		XCTAssertEqual(button.label, say(Catalog.chatTranscriptRetry))
 		button.tap()
-		outcome(app, "feedback.outcome", say(Catalog.feedbackReceived))
+		assertVisible(app, outcome(app, "feedback.outcome", say(Catalog.feedbackReceived)))
 	}
 
 	static func assertFeedbackCounts(_ app: XCUIApplication, requests: Int, stored: Int) {
