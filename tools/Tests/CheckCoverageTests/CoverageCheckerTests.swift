@@ -64,7 +64,10 @@ struct CoverageCheckerTests {
 	func commandWithoutATableShowsItsUsage() throws {
 		let result = try Scratch(files: [:]).runCommand(tables: [])
 		#expect(result.status == 2)
-		#expect(result.errors == ["Usage: check-coverage [--root repository] table..."])
+		#expect(
+			result.errors == [
+				"Usage: check-coverage [--require-final] [--root repository] table..."
+			])
 	}
 }
 

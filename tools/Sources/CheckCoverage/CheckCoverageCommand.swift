@@ -14,9 +14,10 @@ struct CheckCoverageCommand {
 }
 
 enum CheckCoverageMode: Equatable {
-	case tables(root: String?, tables: [String])
+	case tables(root: String?, tables: [String], requireFinal: Bool)
 	case writeRetained(specification: String, decision: String)
 	case retainedDrift(specification: String, decision: String)
+	case writeCloseout(table: String)
 
 	init(arguments: [String]) throws {
 		switch arguments.first {
@@ -29,14 +30,22 @@ enum CheckCoverageMode: Equatable {
 				flag == "--write-retained"
 				? .writeRetained(specification: arguments[1], decision: arguments[2])
 				: .retainedDrift(specification: arguments[1], decision: arguments[2])
+		case "--write-closeout":
+			guard arguments.count == 2 else {
+				throw CoverageFailure(description: "Usage: check-coverage --write-closeout table")
+			}
+			self = .writeCloseout(table: arguments[1])
 		default:
-			let rooted = arguments.first == "--root"
-			let tables = Array(arguments.dropFirst(rooted ? 2 : 0))
+			let requireFinal = arguments.first == "--require-final"
+			let rest = Array(arguments.dropFirst(requireFinal ? 1 : 0))
+			let rooted = rest.first == "--root"
+			let tables = Array(rest.dropFirst(rooted ? 2 : 0))
 			guard !tables.isEmpty else {
 				throw CoverageFailure(
-					description: "Usage: check-coverage [--root repository] table...")
+					description:
+						"Usage: check-coverage [--require-final] [--root repository] table...")
 			}
-			self = .tables(root: rooted ? arguments[1] : nil, tables: tables)
+			self = .tables(root: rooted ? rest[1] : nil, tables: tables, requireFinal: requireFinal)
 		}
 	}
 }
@@ -54,9 +63,14 @@ enum CheckCoverage {
 			return 2
 		}
 		switch mode {
-		case .tables(let root, let tables):
-			return try checkTables(
+		case .tables(let root, let tables, let requireFinal):
+			let status = try checkTables(
 				tables, root: root, directory: directory, output: output, errors: errors)
+			guard requireFinal, status != 2 else { return status }
+			return try requireFinalStage(
+				root: root, directory: directory, errors: errors, status: status)
+		case .writeCloseout(let table):
+			return try writeCloseout(table, directory: directory, output: output, errors: errors)
 		case .writeRetained(let specification, let decision):
 			return try writeRetained(
 				specification, decision, directory: directory, output: output, errors: errors)
@@ -92,6 +106,58 @@ enum CheckCoverage {
 			if problems.count > 0, status == 0 { status = 1 }
 		}
 		return status
+	}
+
+	private static func requireFinalStage(
+		root rootArgument: String?, directory: String, errors: (String) throws -> Void,
+		status: Int32
+	) throws -> Int32 {
+		let stage: CloseoutStage?
+		do {
+			let root = try FileSystem.realPath(NodePath.resolve(directory, rootArgument ?? ""))
+			stage = HandEvidence.exists(root: root) ? try HandEvidence.load(root: root).stage : nil
+		} catch {
+			try errors("check-coverage: \(HandEvidence.path) could not be read: \(error)")
+			return 2
+		}
+		guard stage != .final else { return status }
+		try errors(
+			"\(HandEvidence.path): closeout [closeout-not-final] stage \(stage?.rawValue ?? "none")"
+		)
+		return 1
+	}
+
+	private static func writeCloseout(
+		_ table: String, directory: String, output: (String) throws -> Void,
+		errors: (String) throws -> Void
+	) throws -> Int32 {
+		let path = NodePath.resolve(directory, table)
+		let section: CloseoutSection
+		let written: String
+		do {
+			guard let retained = try RetainedRequirements.load(root: directory) else {
+				throw CoverageFailure(description: "\(RetainedRequirements.path) does not exist")
+			}
+			guard HandEvidence.exists(root: directory) else {
+				throw CoverageFailure(description: "\(HandEvidence.path) does not exist")
+			}
+			section = CloseoutDerivation.section(
+				retained: retained, hand: try HandEvidence.load(root: directory),
+				tables: try CoverageIndex.load(root: directory).tables)
+			guard let text = String(validating: try FileSystem.read(path), as: UTF8.self) else {
+				throw CoverageFailure(description: "\(table) is not UTF-8")
+			}
+			written = try CloseoutLayout.written(section, into: text)
+		} catch {
+			try errors(
+				"check-coverage: the closeout section of \(table) could not be written: \(error)")
+			return 2
+		}
+		try Data(written.utf8).write(to: URL(fileURLWithPath: path), options: .atomic)
+		try output(
+			"check-coverage: wrote the closeout section of \(table): \(section.rows.count) rows, "
+				+ "stage \(section.stage.rawValue).")
+		return 0
 	}
 
 	private static func verifyRetained(

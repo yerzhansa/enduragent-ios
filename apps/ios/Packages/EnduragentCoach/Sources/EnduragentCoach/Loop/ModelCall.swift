@@ -1,10 +1,10 @@
 import Foundation
 
 extension TurnRunner {
-	var modelCall: ModelCall {
+	func modelCall(metering meter: UsageMeter) -> ModelCall {
 		ModelCall(
 			transport: transport, diagnostics: diagnostics, watchdogSleep: watchdogSleep,
-			authorizeInvocation: authorizeInvocation)
+			authorizeInvocation: authorizeInvocation, meter: meter)
 	}
 }
 
@@ -19,6 +19,7 @@ struct ModelCall: Sendable {
 	let watchdogSleep: @Sendable (Duration) async throws -> Void
 
 	let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void
+	let meter: UsageMeter
 
 	func run(
 		request: CompletionRequest,
@@ -27,8 +28,9 @@ struct ModelCall: Sendable {
 		try await authorizeInvocation(.authorize(request))
 		let watchdog = ChatWatchdog(sleep: watchdogSleep)
 		await watchdog.arm()
+		let step: GenerateStep
 		do {
-			let step = try await withThrowingTaskGroup(of: GenerateStep.self) { group in
+			step = try await withThrowingTaskGroup(of: GenerateStep.self) { group in
 				group.addTask {
 					try await self.collect(request: request, watchdog: watchdog, progress: progress)
 				}
@@ -54,15 +56,17 @@ struct ModelCall: Sendable {
 					throw error
 				}
 			}
-			try Task.checkCancellation()
-			return step
 		} catch {
+			meter.addFailure()
 			await watchdog.disarm()
 			if case .credentialRejected = error as? ProviderFailure {
 				try await authorizeInvocation(.rejected(request))
 			}
 			throw error
 		}
+		meter.add(step.usage)
+		try Task.checkCancellation()
+		return step
 	}
 
 	private func collect(
