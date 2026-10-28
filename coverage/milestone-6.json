@@ -10,6 +10,7 @@
 		"6.1": 9,
 		"8.1": 6,
 		"8.2": 6,
+		"8.3": 8,
 		"9.1": 9
 	},
 	"criteria": [
@@ -550,6 +551,69 @@
 			"statement": "check-coverage passes on the committed milestone-6.json.",
 			"tests": [
 				{"file": "tools/Tests/CheckCoverageTests/CoverageCheckerTests.swift", "function": "theCommittedMilestoneSixTablePasses"}
+			]
+		},
+		{
+			"id": "8.3.1",
+			"statement": "The closeout derivation gives every retained id a requirement pointer for each Milestone 4, 5 and 6 requirement row with that id, after which come its hand evidence; a row is open when it waits on anything, else a deviation when it has a difference, else met.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutDerivationTests.swift", "function": "everyRetainedIdPointsAtItsRequirementRowsAndTakesTheStatusItsReasonsGive"}
+			]
+		},
+		{
+			"id": "8.3.2",
+			"statement": "An agreed-difference row P/slug gives an agreed difference to the id P and to every id that starts with P., and a row with reaches only to the ids it names: B11/three-outcomes reaches B11.01 and not B11.02.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutDerivationTests.swift", "function": "anAgreedDifferenceReachesItsParentAndChildrenOrOnlyTheIdsItNames"}
+			]
+		},
+		{
+			"id": "8.3.3",
+			"statement": "Each pointer kind fails its own rule: missing-test-file, missing-test-function, missing-proof-method, unknown-table, unknown-criterion-pointer, unproven-criterion-pointer, unknown-requirement-pointer, open-requirement-pointer, unknown-phone-step, record-off-decision, unknown-record, and unknown-live-scenario for a scenario no Swift file of the live checks names.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "eachPointerKindFailsItsOwnRule"}
+			]
+		},
+		{
+			"id": "8.3.4",
+			"statement": "At building and at final, stale-row naming the field, stale-stage, missing-closeout-section, missing-closeout-row, unknown-closeout-row, duplicate-closeout-row, no-evidence and hand-for-unretained each fail on a crafted table, and the crafted table as written passes.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "theCommittedSectionMustBeTheDerivedOneAtEveryStage"},
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "theFixturePassesAsWritten"}
+			]
+		},
+		{
+			"id": "8.3.5",
+			"statement": "At final, a phone pointer whose verdict is missing, fail x or blocked y gives phone-step-not-passed and pass gives none; open-at-closeout fires per open row and per entry in any table's open; at building neither rule fires.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "everyVerdictButPassFailsAtFinal"},
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "openRowsAndOpenEntriesFailOnlyAtFinal"}
+			]
+		},
+		{
+			"id": "8.3.6",
+			"statement": "--require-final fails with closeout-not-final while the stage is building, and passes at final.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "requireFinalFailsWhileTheStageIsBuilding"}
+			]
+		},
+		{
+			"id": "8.3.7",
+			"statement": "--write-closeout appends the section after open and turns the open closer into a comma line on a table without one, replaces only the section's lines on a table with one, leaves every other byte unchanged, changes nothing on a second run, and writes a hand-edited row back as derived.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutWriterTests.swift", "function": "aTableWithNoSectionGainsItAfterOpenAndKeepsEveryOtherByte"},
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutWriterTests.swift", "function": "aTableWithASectionHasOnlyThoseLinesReplaced"},
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutWriterTests.swift", "function": "aSecondRunChangesNothing"},
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutWriterTests.swift", "function": "aHandEditedRowIsWrittenBackAsDerived"}
+			]
+		},
+		{
+			"id": "8.3.8",
+			"statement": "SittingRecord decodes pass, fail <check> and blocked <reason> with a date, and refuses any other verdict.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/SittingRecordTests.swift", "function": "eachVerdictDecodesWithItsDate"},
+				{"file": "tools/Tests/ToolSupportTests/SittingRecordTests.swift", "function": "anyOtherVerdictIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/SittingRecordTests.swift", "function": "aVerdictWithoutADayIsRefused"}
 			]
 		},
 		{
