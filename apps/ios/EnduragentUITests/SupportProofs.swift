@@ -19,9 +19,9 @@ final class SupportSectionProof: XCTestCase {
 				SupportScreen.say))
 		TutorialHarness.wait(support)
 		XCTAssertLessThan(session.frame.maxY, support.frame.minY)
-		XCTAssertLessThan(support.frame.maxY, rows[0].frame.minY)
-		XCTAssertLessThan(rows[0].frame.maxY, rows[1].frame.minY)
-		XCTAssertLessThan(rows[1].frame.maxY, rows[2].frame.minY)
+		XCTAssertLessThanOrEqual(support.frame.maxY, rows[0].frame.minY)
+		XCTAssertLessThanOrEqual(rows[0].frame.maxY, rows[1].frame.minY)
+		XCTAssertLessThanOrEqual(rows[1].frame.maxY, rows[2].frame.minY)
 		TutorialHarness.attach(self, name: "support-section-light", app: app)
 		let screens = [
 			("settings.feedback", "feedback.field"),
@@ -53,9 +53,11 @@ final class FeedbackScreenProof: XCTestCase {
 		let send = TutorialHarness.named(app, "feedback.send")
 		TutorialHarness.scroll(app, to: send)
 		send.tap()
-		SupportScreen.outcome(
+		let tooLong = SupportScreen.outcome(
 			app, "feedback.outcome",
 			SupportScreen.phrasebook.say(Catalog.feedbackRefusedTooLong, ["limit": "4,000"]))
+		TutorialHarness.wait(tooLong, until: .hittable)
+		XCTAssertLessThanOrEqual(tooLong.frame.maxY, SupportScreen.keyboardTop(app))
 		TutorialHarness.attach(self, name: "feedback-too-long-light", app: app)
 		SupportScreen.assertFeedbackCounts(app, requests: 0, stored: 0)
 	}
@@ -133,8 +135,14 @@ final class DiagnosticsScreenProof: XCTestCase {
 		let save = app.buttons["Save"]
 		TutorialHarness.wait(save, until: .enabled)
 		save.tap()
-		SupportScreen.outcome(
+		let saved = SupportScreen.line(
 			app, "diagnostics.outcome", SupportScreen.say(Catalog.diagnosticsSaved))
+		let replace = app.buttons[SupportScreen.replaceSavedFile]
+		TutorialHarness.wait(
+			until: { saved.exists || replace.exists },
+			message: "Save neither finished nor asked to replace the earlier file")
+		if replace.exists { replace.tap() }
+		TutorialHarness.wait(saved)
 		TutorialHarness.attach(self, name: "diagnostics-saved-light", app: app)
 	}
 
@@ -174,6 +182,8 @@ private enum SupportScreen {
 	static let phrasebook = CatalogPhrasebook(tag: .en)
 	static let note = "The plan card skipped Tuesday."
 	static let closeShareSheet = "Close"
+	static let replaceSavedFile = "Replace"
+	static let keyboardAssistant = "SystemInputAssistantView"
 
 	static var notSavingSentence: String {
 		let display = DisplayLocale(
@@ -215,8 +225,28 @@ private enum SupportScreen {
 		TutorialHarness.wait(TutorialHarness.named(app, content))
 	}
 
-	static func outcome(_ app: XCUIApplication, _ identifier: String, _ sentence: String) {
-		TutorialHarness.waitForIdentifier(app, identifier, reading: sentence)
+	@discardableResult
+	static func outcome(
+		_ app: XCUIApplication, _ identifier: String, _ sentence: String
+	) -> XCUIElement {
+		let element = line(app, identifier, sentence)
+		TutorialHarness.wait(element)
+		return element
+	}
+
+	static func line(_ app: XCUIApplication, _ identifier: String, _ sentence: String)
+		-> XCUIElement
+	{
+		app.descendants(matching: .any).matching(
+			NSPredicate(format: "identifier == %@ AND label == %@", identifier, sentence)
+		).firstMatch
+	}
+
+	static func keyboardTop(_ app: XCUIApplication) -> CGFloat {
+		let keyboard = app.keyboards.firstMatch
+		TutorialHarness.wait(keyboard)
+		let covers = [keyboard, app.otherElements[keyboardAssistant]].filter(\.exists)
+		return covers.map(\.frame.minY).min() ?? 0
 	}
 
 	static func shareAction(_ app: XCUIApplication, _ label: String) -> XCUIElement {

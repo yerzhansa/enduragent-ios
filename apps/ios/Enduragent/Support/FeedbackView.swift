@@ -14,7 +14,7 @@ struct FeedbackView: View {
 				TextField(text: $support.draft, axis: .vertical) {
 					Text(say(Catalog.feedbackTitle))
 				}
-				.lineLimit(4...)
+				.lineLimit(4, reservesSpace: true)
 				.accessibilityIdentifier("feedback.field")
 			}
 			Section {

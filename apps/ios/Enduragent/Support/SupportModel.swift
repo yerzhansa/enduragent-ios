@@ -31,15 +31,17 @@ final class SupportModel {
 	}
 
 	func send() async {
+		let sent = Support.trimmed(draft)
 		do {
-			finish(try await support.send(draft))
+			finish(try await support.send(draft), sent: sent)
 		} catch {
 			refusal = error
 		}
 	}
 
 	func tryAgain() async {
-		finish(await support.tryAgain())
+		let sent = Support.trimmed(draft)
+		finish(await support.tryAgain(), sent: sent)
 	}
 
 	func makeDiagnosticsFile() async {
@@ -80,8 +82,8 @@ final class SupportModel {
 		return Catalog.chatTranscriptRetry
 	}
 
-	private func finish(_ outcome: FeedbackOutcome?) {
-		if case .received? = outcome { draft = "" }
+	private func finish(_ outcome: FeedbackOutcome?, sent: String) {
+		if case .received? = outcome, Support.trimmed(draft) == sent { draft = "" }
 	}
 
 	private func diagnosticsLine(for state: DiagnosticsFileState) -> CatalogKey? {
