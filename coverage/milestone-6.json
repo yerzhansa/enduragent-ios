@@ -467,7 +467,7 @@
 		},
 		{
 			"id": "3.1.9",
-			"statement": "A file made from a coach whose secrets hold an OpenRouter key and an intervals.icu connection, after a turn whose provider failure quoted the athlete's sentence and with a skipped row whose ulid is the key, holds none of the key, the athlete id, the intervals key, the sentence or its training values, and holds the providerFailure problem.",
+			"statement": "A file made from a coach whose secrets hold an OpenRouter key and an intervals.icu connection, after a turn whose provider failure quoted the athlete's sentence and with a skipped row whose ulid is the key, holds none of the key, the athlete id, the intervals key, the sentence or its training values, and holds exactly one usage line and the providerFailure problem.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aFileFromASeededCoachHoldsNoSecretOrAthleteText"}
 			]

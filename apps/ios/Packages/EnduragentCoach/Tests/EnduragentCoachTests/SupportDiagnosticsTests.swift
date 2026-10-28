@@ -226,11 +226,16 @@ import Testing
 		] {
 			#expect(!text.contains(secret), "The diagnostics file holds \(secret)")
 		}
-		let problems = try JSONDecoder().decode(WrittenLines.self, from: bytes).lines.compactMap {
-			stamped -> ProblemLine? in
+		let lines = try JSONDecoder().decode(WrittenLines.self, from: bytes).lines
+		let problems = lines.compactMap { stamped -> ProblemLine? in
 			guard case .problem(let problem) = stamped.line else { return nil }
 			return problem
 		}
+		let usage = lines.filter { stamped in
+			guard case .usage = stamped.line else { return false }
+			return true
+		}
+		#expect(usage.count == 1)
 		#expect(problems.filter { $0.kind == .providerFailure }.count == 1)
 		let skipped = try #require(problems.first { $0.kind == .skippedRecord }?.row)
 		#expect(skipped.ulid.text == "[redacted]")
