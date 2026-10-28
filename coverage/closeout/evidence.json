@@ -1,0 +1,637 @@
+{
+	"stage": "building",
+	"evidence": {
+		"B01.01": [
+			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "RelaunchKeepsChatProof", "method": "testRelaunchKeepsChat"}}
+		],
+		"B02.01": [
+			{"test": {"file": "apps/ios/EnduragentTests/TrainingSettingsTests.swift", "function": "persistenceAndCancelledReplacementKeepConversationHistoryAndPreferences"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ConnectLaterTests.swift", "function": "unofferedTrainingToolsThenSavedKeyOwnerReachTheModel"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/ConnectIntervalsProofs.swift", "class": "ConnectIntervalsProof", "method": "testConnectIntervals"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/ConnectIntervalsProofs.swift", "class": "ConnectIntervalsProof", "method": "testConnectLaterWithLatinKeyboard"}}
+		],
+		"B02.02": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ConnectionResultTests.swift", "function": "blankAndFailedWriteHaveSeparateSaveGuidanceAndKeepConnection"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ConnectionResultTests.swift", "function": "networkProfileFailureRecoversUsingSavedKeyAndID"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ConnectionResultTests.swift", "function": "wellnessRetryReadsOnlyWellnessAndRetainsAthlete"}},
+			{"test": {"file": "apps/ios/EnduragentTests/TrainingSettingsTests.swift", "function": "savedDisplayFailuresHaveCorrectionAndRetryRoutes"}}
+		],
+		"B02.03": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SyncedTrainingIdentityTests.swift", "function": "foregroundTurnResolvesPeerReplacement"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteScopedCoachingTests.swift", "function": "localAndSyncedReconnectReadOnlySelectedAthlete"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteScopedExtractionTests.swift", "function": "delayedExtractionKeepsSourceAthlete"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteOwnershipSnapshotTests.swift", "function": "savedOwnershipSurvivesRotationSwitchAndRelaunch"}},
+			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
+		],
+		"B02.04": [
+			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "RelaunchKeepsChatProof", "method": "testRelaunchKeepsChat"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LegacyIntervalsIdentityTests.swift", "function": "legacyTrainingStaysConnectedWhenWritesFail"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}}
+		],
+		"B03.01": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AccessChoiceTests.swift", "function": "savedOpenRouterChoiceSurvivesReopen"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AccessChoiceTests.swift", "function": "choosingCreditsPublishesAndSurvivesReopen"}},
+			{"test": {"file": "apps/ios/EnduragentTests/AccessSettingsTests.swift", "function": "creditsSetupPersistsBeforeSelectingAndReopensWithBuiltInModel"}},
+			{"test": {"file": "apps/ios/EnduragentTests/AccessOnboardingTests.swift", "function": "starterSetupThenCreditsChoiceReopensForToolTurn"}},
+			{"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}
+		],
+		"B03.02": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelCatalogRefreshTests.swift", "function": "rejectedRefreshRetainsDownloadedChoices"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelCatalogRefreshTests.swift", "function": "omittedSelectionKeepsItsNameAndRequestAfterRestart"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelChoiceTests.swift", "function": "nonCatalogChoicesCannotBeSelectedOrInvoked"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/ModelPickerProof.swift", "class": "ModelPickerProof", "method": "testFailedRefreshesKeepChoicesTappableAndCoachingAvailable"}}
+		],
+		"B03.03": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/OpenRouterPKCETests.swift", "function": "knownS256VectorAuthorizesAndExchangesCode"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/OpenRouterSignInTests.swift", "function": "firstSignInUsesCreditsModelAndResignInPreservesChoice"}},
+			{"test": {"file": "apps/ios/EnduragentTests/OpenRouterSignInSessionTests.swift", "function": "systemCancellationReturnsTypedCanceled"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/OpenRouterAccessProof.swift", "class": "OpenRouterAccessProof", "method": "testSettingsSignInAndCancelKeepSavedMarksAndToolRepliesAfterRelaunch"}},
+			{"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}
+		],
+		"B03.04": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/OpenRouterSignInTests.swift", "function": "overlappingIntentsJoinAndSwitchOnlyAfterSave"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnAccessRejectionTests.swift", "function": "overlappingRejectionsRecoverOnce"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnAccessRejectionTests.swift", "function": "rejectedKeyStaysQuarantinedAfterReopen"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/OpenRouterRecoveryProof.swift", "class": "OpenRouterRecoveryProof", "method": "testRejectedKeySurvivesRelaunchAndDirectSignInKeepsConversation"}},
+			{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}
+		],
+		"B03.05": [
+			{"test": {"file": "apps/ios/EnduragentUITests/AccessSettingsProof.swift", "class": "AccessSettingsProof", "method": "testCreditsSetupSelectsOnlyAfterPersistenceAndKeepsTheChoice"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/AccessOnboardingProof.swift", "class": "AccessOnboardingProof", "method": "testCreditsFirstThenSignInAndPersistedChoice"}}
+		],
+		"B03.06": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsOperationsKeepOpenRouterAndReportFailures"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsBothActionsAfterReopeningAndInHistory"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialReadTests.swift", "function": "resolverReadsOnlyTheSelectedMethodKey"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CreditsClientTests.swift", "function": "claimSettlementFinishesOnlyAfterTerminalOutcome"}}
+		],
+		"B04.01": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialReadTests.swift", "function": "lockedStoreReportsSecureStorageLocked"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialReadTests.swift", "function": "malformedItemReportsSlotWithoutContent"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialCorrectionTests.swift", "function": "storageRecoveryClearsNoticeWithoutLeakingContent"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/CredentialProofs.swift", "class": "LockedKeychainProof", "method": "testLockedKeychainKeepsTheConversation"}},
+			{"phone": {"session": "closeout", "step": "closeout/keychain-proof"}}
+		],
+		"B04.02": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultTests.swift", "function": "failedWriteKeepsPreviousItemAndNextAttemptUsesIt"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultTests.swift", "function": "cancelKeepsTheWorkingKey"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialSafeguardTests.swift", "function": "failedRecoveryKeepsThePreviousAccountDuringTheNextReplacement"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultRegressionTests.swift", "function": "concurrentReplacementThenDisconnectKeepsDisconnect"}}
+		],
+		"B04.03": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KeychainStoreTests.swift", "function": "everyItemIsSynchronizableAndReadableAfterFirstUnlock"}},
+			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
+		],
+		"B05.01": [
+			{"test": {"file": "apps/ios/EnduragentTests/FixtureSessionTests.swift", "function": "languageChoiceRewritesTheChatAndTheNextReplyRequest"}},
+			{"test": {"file": "apps/ios/EnduragentTests/FixtureSessionTests.swift", "function": "aLanguageThatCannotBeSavedKeepsTheCurrentChoice"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "uiTagUsesFirstSupportedSystemLanguageElseEnglish"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "fixedPreferenceChangesAppTextAndReplySection"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "LanguagePickerProof", "method": "testLanguagePickerFromSettings"}}
+		],
+		"B05.02": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CatalogCompletenessTests.swift", "function": "everyEnglishKeyHasAValueInEveryLocale"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CatalogPhrasebookTests.swift", "function": "missingKeyReturnsEnglishNeverTheRawKey"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDeProof", "method": "testFailureNotices"}}
+		],
+		"B05.03": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "everyLineOfAReviewAndItsProgressReadsInTheDisplayLanguage"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "authoredStepsOnTheCardFollowTheDisplayLanguageAndKeepItAfterRelaunch"}},
+			{"test": {"file": "apps/ios/EnduragentTests/ShellLanguageTests.swift", "function": "visibleReviewOutcomeChangesWithTheLanguagePreference"}}
+		],
+		"B05.04": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "registryMatchesSeventeenTagTable"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyLanguageSectionTests.swift", "function": "everyTagUsesTheResolvedLanguage"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DisplayLocaleTests.swift", "function": "refreshFollowsThePhoneAndKeepsFixedWords"}}
+		],
+		"B06.01": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "startRoutesToResetAndPlanIsAModelTurn"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AcceptTests.swift", "function": "blankTextIsIgnoredAndLanguageSlashRoutesWithoutARecord"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FirstTurnTests.swift", "function": "replyFinishesWithTheAssembledRequest"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}}
+		],
+		"B06.02": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FragmentOrderingTests.swift", "function": "shortcutsCloseBufferedTextInSendOrder"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FragmentOrderingTests.swift", "function": "fragmentsExtendTheRealTrailingWindow"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/FragmentOrderingProof.swift", "class": "FragmentOrderingProof", "method": "testBufferedTextClosesBeforeLanguagePicker"}}
+		],
+		"B06.03": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolProgressTests.swift", "function": "workingPersistsAcrossIndependentModelAndToolWaits"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolResultCapTests.swift", "function": "oversizedArrayReportsEveryOmittedRow"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnFinalizationTests.swift", "function": "finalizationSettlesDurably"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "eachRungStopsAtItsNpmLimit"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/ToolProgressProof.swift", "class": "ToolProgressProof", "method": "testToolProgress"}}
+		],
+		"B06.04": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyDocumentTests.swift", "function": "longSharedFixtureRetainsWholeCodeAndBothSafeLinks"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyDocumentTests.swift", "function": "tableKeepsAlignmentStylesAndEmptyCells"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ResetWindowTests.swift", "function": "aReplyStreamingAtTheTapIsSavedWithItsQuestion"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/ReplyFormattingProofs.swift", "class": "ReplyFormattingProof", "method": "testFormattedReplyInChatAndHistory"}}
+		],
+		"B07.01": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SessionSettingsTests.swift", "function": "setSessionStoresOneRecordThatTheNextCoachReads"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ContextWindowTests.swift", "function": "contextWindowOverrideShrinksTheHistoryBudget"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelChoiceTests.swift", "function": "replyCompactionAndExtractionUseTheAccessModel"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testEditsSurviveRelaunchWithCredits"}}
+		],
+		"B07.02": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRunnerTests.swift", "function": "trimSummarizesDroppedMessagesWithCompactionModel"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FlushGateTests.swift", "function": "softFlushNeedsFiveMessagesAndEightyPercent"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FlushDrainTests.swift", "function": "aKilledFlushIsDrainedAtTheNextLaunch"}}
+		],
+		"B07.03": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ResetTests.swift", "function": "resetFlushesThenCommitsBoundaryThenSettlesFlush"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ResetTests.swift", "function": "resetQueuesBehindRunningTurn"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/NewConversationProofs.swift", "class": "SlashStartProof", "method": "testSlashStart"}}
+		],
+		"B07.04": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AcceptTests.swift", "function": "acceptWritesUserMessageBeforeAnyModelRequest"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatRecordFailureTests.swift", "function": "failedSettlementSurvivesRecoveryAndReopening"}},
+			{"requirement": {"table": "coverage/milestone-5.json", "id": "B07.04/saved-plan"}}
+		],
+		"B07.05": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxLifecycleTests.swift", "function": "relaunchAfterExpiryMidReplyDoesNotRerunTheModel"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxLifecycleTests.swift", "function": "willTerminateInterruptsTheRunningAttemptAndLeavesQueuedTurnsUnclaimed"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/LeaseProofs.swift", "class": "FinishedWhileAwayProof", "method": "testFinishedWhileAway"}},
+			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
+		],
+		"B07.06": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/HistoryTests.swift", "function": "openingAnArchiveShowsOnlyItsReplies"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/HistoryMigrationTests.swift", "function": "historyIssuesNoModelRequest"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRestoreTests.swift", "function": "aReviewPreparedMoreThanTenMinutesAgoIsRestoredWithItsControls"}}
+		],
+		"B08.03": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.5"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.8"}},
+			{"live": {"scenario": "reads-failing"}}
+		],
+		"B08.05": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.6"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.7"}}
+		],
+		"B09.01": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteNoticesTests.swift", "function": "everyFailureCaseHasARowAndNoneIsUnknownExceptTheThree"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "serverErrorRetriesTwiceWithJitteredWaits"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/FailureProofs.swift", "class": "FailureNoticesProof", "method": "testFailureNotices"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/RetryProofs.swift", "class": "RateLimitWaitProof", "method": "testRateLimitWait"}},
+			{"requirement": {"table": "coverage/milestone-5.json", "id": "B09.01/plan-save"}}
+		],
+		"B09.02": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "committedMemoryWriteSettlesSavedUnverified"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "savedWorkReachesTheNextPromptAsTheCoachsReply"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/FailureProofs.swift", "class": "SavedUnverifiedProof", "method": "testSavedWorkOffersNoTryAgain"}}
+		],
+		"B09.03": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatRecordFailureTests.swift", "function": "fetchFailureAtSettlementStillPersistsTheExactReply"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxTests.swift", "function": "tryAgainAfterSavedWorkIsRefusedWithoutAModelRequest"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "approvalAfterAnotherTurnRunsTheSavedReviewWithNoModelRequest"}}
+		],
+		"B12.01": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "newConversationRecoversAllNineSections"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "relaunchRecoversCorrectedFactsAndDatedHistory"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "rememberedInstructionsStayInsideDataBoundaries"}}
+		],
+		"B12.02": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachDailyMemoryTests.swift", "function": "duplicateFatigueNoteSurvivesRelaunchWithoutChangingCurrentFacts"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachDailyMemoryTests.swift", "function": "notesAcrossLocalMidnightKeepTheirDaysAfterRelaunch"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryTests.swift", "function": "appendDailyNoteSkipsWholeLineDuplicateWithoutJournal"}}
+		],
+		"B12.03": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachLedgerHistoryTests.swift", "function": "allEventKindsSurviveRelaunchWithTheirDatesWordingAndSources"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachLedgerHistoryTests.swift", "function": "duplicateAndInvalidInputsLeaveOnlyTheOriginalEventAfterRelaunch"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachLedgerHistoryTests.swift", "function": "laterDifferentDecisionKeepsBothDatedEventsAfterRelaunch"}}
+		],
+		"B12.04": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryQueryTests.swift", "function": "queryRendersDailyThenEventThenHistory"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryQueryTests.swift", "function": "aSaveAndItsReplacementShowAsHistoryWithNpmsPreviewsAndNoReviewDoes"}},
+			{"requirement": {"table": "coverage/milestone-5.json", "id": "B12.04/saved-plan"}}
+		],
+		"B13.01": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.3.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.3.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.3.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.3.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "1.3.7"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "2.1.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "2.1.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "2.1.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.5"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.6"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.7"}},
+			{"live": {"scenario": "not-connected"}},
+			{"live": {"scenario": "ftp-not-usable"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReadsCheck.swift", "function": "readsTheKeyOwnerThroughTheAppsReadCode"}}
+		],
+		"B13.02": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.8"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.9"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "3.2.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "3.2.5"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "3.2.8"}}
+		],
+		"B13.03": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.6"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.6"}},
+			{"live": {"scenario": "review-deep"}}
+		],
+		"B13.04": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.5"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.6"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.7"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.11"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.5"}},
+			{"live": {"scenario": "review-brief"}},
+			{"live": {"scenario": "review-default"}},
+			{"live": {"scenario": "review-deep"}},
+			{"live": {"scenario": "review-ambiguous"}}
+		],
+		"B13.05": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.4"}},
+			{"live": {"scenario": "review-close-pair"}}
+		],
+		"B13.06": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.8"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.9"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.1.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.1.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.2.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.3.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.4"}},
+			{"live": {"scenario": "review-brief"}},
+			{"live": {"scenario": "review-default"}},
+			{"live": {"scenario": "review-deep"}},
+			{"phone": {"session": "closeout", "step": "closeout/reads"}}
+		],
+		"B13.07": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.3.1"}},
+			{"live": {"scenario": "status"}},
+			{"live": {"scenario": "status-with-text"}},
+			{"live": {"scenario": "not-connected"}},
+			{"live": {"scenario": "workout-45-minutes-indoors"}}
+		],
+		"B14.01": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.5"}},
+			{"requirement": {"table": "coverage/milestone-5.json", "id": "B14.01/saved-plan"}},
+			{"live": {"scenario": "changed-goal"}},
+			{"phone": {"session": "closeout", "step": "closeout/reads"}}
+		],
+		"B14.02": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.5"}},
+			{"live": {"scenario": "zones-from-ftp"}}
+		],
+		"B14.03": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.4.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.4.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.4.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.4.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "8.4.5"}},
+			{"live": {"scenario": "designed-workout"}}
+		],
+		"B14.04": [
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.2.1"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.2.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.2.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.2.4"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.2.5"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.3.2"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.3.3"}},
+			{"criterion": {"table": "coverage/milestone-3.json", "id": "7.3.4"}}
+		],
+		"B16.01": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChoicesInConversationTests.swift", "function": "startAfterUnansweredChoiceArchivesItAndStartsNewConversation"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnToolInputTests.swift", "function": "promptOmitsUnavailableToolsAndKeepsNumberedChoiceSafetyRules"}},
+			{"requirement": {"table": "coverage/milestone-5.json", "id": "B16.01/plan-save"}},
+			{"phone": {"session": "closeout", "step": "closeout/choices"}}
+		],
+		"X03": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "bothReadsFailingGiveTheFallbackAndNoLines"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "missedDeadlineCancelsBothReadsAndGivesTheFallback"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachUpgradeTests.swift", "function": "anOpenReviewOpensOfflineAsAskTheCoachAgainWithNoControlAndStaysSoOnline"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEnSweep", "method": "testFailureNotices"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}}
+		],
+		"X07": [
+			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.1.3"}},
+			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.2.3"}},
+			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.2"}},
+			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.3"}},
+			{"criterion": {"table": "coverage/milestone-6.json", "id": "2.2.4"}},
+			{"phone": {"session": "closeout", "step": "closeout/diagnostics"}},
+			{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}
+		],
+		"G01": [
+			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "RelaunchKeepsChatProof", "method": "testRelaunchKeepsChat"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "relaunchRecoversCorrectedFactsAndDatedHistory"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "theFirstSnapshotAndRetryAfterRelaunchSeeTheSavedWorkOfADeadClaim"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/RecoveryProofs.swift", "class": "SavedWorkInterruptedProof", "method": "testSavedWorkInterrupted"}}
+		],
+		"G02": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "sevenDayListLeadsToOneActivitysDetailAndThenToItsStreams"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "twoActivitiesWithTheSameDayAndTitleAreListedApartAndEachIsReadAsItself"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "ReviewProof", "method": "testReview"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "startsShowTheTimeOfDayThatTheThirtyMinuteRuleReadsAndADateOnlyStartShowsTheDate"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "detailReadThatFailsAfterAGoodListGivesItsFailureAnswerAndNoActivityData"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/NumbersFollowUpTests.swift", "function": "detailReadAfterABriefReviewIsAnsweredAndBringsNoStreamStatistics"}}
+		],
+		"G05": [
+			{"phone": {"session": "m4", "step": "m4/offline-approve"}}
+		],
+		"G08": [
+			{"test": {"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "LanguagePickerProof", "method": "testLanguagePickerFromSettings"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "AutomaticFrenchPhoneProof", "method": "testAutomaticFromSettings"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultTests.swift", "function": "blankReplacementKeepsTheWorkingKey"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/OpenRouterRecoveryProof.swift", "class": "OpenRouterRecoveryProof", "method": "testRejectedKeySurvivesRelaunchAndDirectSignInKeepsConversation"}},
+			{"phone": {"session": "closeout", "step": "closeout/language"}},
+			{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}
+		],
+		"G09": [
+			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.3.4"}},
+			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.1"}},
+			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.3"}},
+			{"phone": {"session": "closeout", "step": "closeout/diagnostics"}},
+			{"phone": {"session": "closeout", "step": "closeout/feedback"}}
+		],
+		"D01": [
+			{"record": "ADR-0080"}
+		],
+		"D02": [
+			{"record": "ADR-0080"}
+		],
+		"D03": [
+			{"record": "ADR-0080"}
+		],
+		"D04": [
+			{"record": "ADR-0085"}
+		],
+		"D05": [
+			{"record": "ADR-0083"},
+			{"record": "ADR-0085"}
+		],
+		"D06": [
+			{"record": "ADR-0080"},
+			{"record": "ADR-0081"},
+			{"requirement": {"table": "coverage/milestone-5.json", "id": "D06/plan"}}
+		],
+		"D07": [
+			{"requirement": {"table": "coverage/milestone-4.json", "id": "X05"}}
+		],
+		"D08": [
+			{"record": "ADR-0080"}
+		],
+		"D09": [
+			{"record": "ADR-0082"}
+		],
+		"D10": [
+			{"record": "ADR-0082"},
+			{"record": "ADR-0083"}
+		],
+		"D11": [
+			{"record": "ADR-0085"}
+		],
+		"D12": [
+			{"record": "ADR-0085"}
+		],
+		"D13": [
+			{"record": "ADR-0085"}
+		],
+		"D14": [
+			{"record": "ADR-0084"},
+			{"requirement": {"table": "coverage/milestone-5.json", "id": "D14/plan"}}
+		],
+		"D15": [
+			{"record": "ADR-0085"},
+			{"criterion": {"table": "coverage/milestone-6.json", "id": "6.1.9"}}
+		],
+		"D16": [
+			{"record": "ADR-0080"},
+			{"record": "ADR-0083"}
+		],
+		"MOB01": [
+			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
+		],
+		"MOB02": [
+			{"phone": {"session": "m4", "step": "m4/offline-approve"}}
+		],
+		"MOB03": [
+			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
+		],
+		"MOB04": [
+			{"requirement": {"table": "coverage/milestone-4.json", "id": "X04/zone"}},
+			{"requirement": {"table": "coverage/milestone-4.json", "id": "G06/midnight"}}
+		],
+		"MOB05": [
+			{"requirement": {"table": "coverage/milestone-4.json", "id": "G06"}}
+		],
+		"MOB06": [
+			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
+		],
+		"MOB07": [
+			{"phone": {"session": "closeout", "step": "closeout/update"}}
+		],
+		"MOB08": [
+			{"phone": {"session": "m4", "step": "m4/largest-text"}},
+			{"phone": {"session": "plan", "step": "plan/6"}}
+		],
+		"MOB09": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsBothActionsAfterReopeningAndInHistory"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/BillingIdentityProof.swift", "class": "BillingIdentityProof", "method": "testExhaustedCreditsKeepMemoryAndMessagesAndOfferWorkingRoutes"}}
+		],
+		"MOB10": [
+			{"requirement": {"table": "coverage/milestone-4.json", "id": "X02"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FragmentOrderingTests.swift", "function": "fragmentsExtendTheRealTrailingWindow"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxTests.swift", "function": "sendsInsideTheWindowJoinOneTurn"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AcceptTests.swift", "function": "concurrentAcceptsOfOneDraftWriteOneMessage"}}
+		],
+		"MOB11": [
+			{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}
+		],
+		"MOB12": [
+			{"requirement": {"table": "coverage/milestone-5.json", "id": "X08"}}
+		]
+	},
+	"differences": {
+		"B02.01": [
+			{"recorded": {"record": "ADR-0080", "says": "B02.01/key-owner: The athlete is always the owner of the connected intervals.icu key; no other athlete ID."}}
+		],
+		"B02.02": [
+			{"recorded": {"record": "ADR-0080", "says": "B02.02/profile-display: iOS addition: Settings shows the resolved athlete and Fitness, Fatigue and Form after connecting."}}
+		],
+		"B03.01": [
+			{"recorded": {"record": "ADR-0080", "says": "B03.01/typed-model-id: The OpenRouter model is picked from the catalog only, with no typed model ID."}}
+		],
+		"B04.03": [
+			{"recorded": {"record": "ADR-0080", "says": "B04.03/keychain-only: The Keychain, synced through iCloud Keychain, is the only secret store; no external secret source."}}
+		],
+		"B05.01": [
+			{"recorded": {"record": "ADR-0080", "says": "B05.01/preferred-languages: Automatic uses the iPhone's preferred-languages list, never the message language."}}
+		],
+		"B05.04": [
+			{"recorded": {"record": "ADR-0080", "says": "B05.04/no-override: One language picker, with no hidden override such as ENDURAGENT_LANGUAGE."}}
+		],
+		"B07.01": [
+			{"recorded": {"record": "ADR-0080", "says": "B07.01/removed-controls: No idle-reset, daily-reset-hour, timezone or archive-retention control."}},
+			{"recorded": {"record": "ADR-0080", "says": "B07.01/one-model: Compaction and memory extraction use the reply model."}}
+		],
+		"B08.01": [
+			{"recorded": {"record": "ADR-0082", "says": "The phone keeps no Reference snapshot, so startup and a return to the app read training data live, with no refresh."}}
+		],
+		"B08.02": [
+			{"recorded": {"record": "ADR-0082", "says": "The phone runs no refresh, so there is no refresh result; each turn reads live or says the data is unavailable."}}
+		],
+		"B08.04": [
+			{"recorded": {"record": "ADR-0082", "says": "The 43 Reference outputs are not calculated on the phone, which keeps no snapshot."}}
+		],
+		"B08.05": [
+			{"recorded": {"record": "ADR-0082", "says": "No Reference validation gate, refresh time or stale warning; the FTP, weight and resting heart rate bands guard the live reads."}}
+		],
+		"B12.03": [
+			{"recorded": {"record": "ADR-0080", "says": "B12.03/real-dates: A memory event date must be a real calendar date."}}
+		],
+		"B13.01": [
+			{"recorded": {"record": "ADR-0082", "says": "A read with no end date ends on today in the phone's time zone, not UTC today (D10)."}},
+			{"recorded": {"record": "ADR-0082", "says": "The coach gets the athlete's sex and age in whole years; the date of birth stays on the phone."}},
+			{"recorded": {"record": "ADR-0082", "says": "An FTP outside 50 to 600 watts is shown to the coach marked not usable."}}
+		],
+		"B13.02": [
+			{"recorded": {"record": "ADR-0082", "says": "The detail read keeps the list fields, laps and a closed set of detail-only fields, not the whole response."}}
+		],
+		"B13.04": [
+			{"recorded": {"record": "ADR-0082", "says": "A review may state the Load, Intensity, power and heart-rate values intervals.icu supplies, as recorded values."}}
+		],
+		"B13.05": [
+			{"recorded": {"record": "ADR-0082", "says": "Legs are always inferred from starts within 30 minutes; intervals.icu sends no workout id or sequence."}}
+		],
+		"B13.06": [
+			{"recorded": {"record": "ADR-0082", "says": "A start is shown as the athlete's local time and never labelled UTC; intervals.icu sends no offset."}}
+		],
+		"B13.07": [
+			{"recorded": {"record": "ADR-0082", "says": "Text typed after /status reaches the coach (D09)."}}
+		],
+		"B14.02": [
+			{"recorded": {"record": "ADR-0082", "says": "The zones calculator accepts an FTP sent as text."}}
+		],
+		"B14.04": [
+			{"recorded": {"record": "ADR-0082", "says": "Text typed after /workout reaches the coach (D09)."}}
+		],
+		"B16.01": [
+			{"recorded": {"record": "ADR-0080", "says": "B16.01/numbered-only: Choices are numbered text only, with no decision tool or decision state."}}
+		],
+		"MOB04": [
+			{"recorded": {"record": "ADR-0083", "says": "The phone's time zone decides the athlete's day, as X04/zone and G06/midnight record."}}
+		]
+	},
+	"waitsOn": {
+		"B02.03": [
+			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
+		],
+		"B03.01": [
+			{"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}
+		],
+		"B03.03": [
+			{"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}
+		],
+		"B03.04": [
+			{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}
+		],
+		"B04.01": [
+			{"phone": {"session": "closeout", "step": "closeout/keychain-proof"}}
+		],
+		"B04.03": [
+			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
+		],
+		"B07.05": [
+			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
+		],
+		"B13.06": [
+			{"phone": {"session": "closeout", "step": "closeout/reads"}}
+		],
+		"B14.01": [
+			{"phone": {"session": "closeout", "step": "closeout/reads"}}
+		],
+		"B16.01": [
+			{"phone": {"session": "closeout", "step": "closeout/choices"}}
+		],
+		"X07": [
+			{"phone": {"session": "closeout", "step": "closeout/diagnostics"}},
+			{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}
+		],
+		"G05": [
+			{"phone": {"session": "m4", "step": "m4/offline-approve"}}
+		],
+		"G08": [
+			{"phone": {"session": "closeout", "step": "closeout/language"}},
+			{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}
+		],
+		"G09": [
+			{"phone": {"session": "closeout", "step": "closeout/diagnostics"}},
+			{"phone": {"session": "closeout", "step": "closeout/feedback"}}
+		],
+		"MOB01": [
+			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
+		],
+		"MOB02": [
+			{"phone": {"session": "m4", "step": "m4/offline-approve"}}
+		],
+		"MOB03": [
+			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
+		],
+		"MOB06": [
+			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
+		],
+		"MOB07": [
+			{"phone": {"session": "closeout", "step": "closeout/update"}}
+		],
+		"MOB08": [
+			{"phone": {"session": "m4", "step": "m4/largest-text"}},
+			{"phone": {"session": "plan", "step": "plan/6"}}
+		],
+		"MOB11": [
+			{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}
+		]
+	}
+}
