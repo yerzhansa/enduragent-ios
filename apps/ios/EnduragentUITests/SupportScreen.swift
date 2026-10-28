@@ -60,8 +60,17 @@ enum SupportScreen {
 	@discardableResult
 	static func button(_ app: XCUIApplication, _ identifier: String) -> XCUIElement {
 		let button = TutorialHarness.named(app, identifier)
+		TutorialHarness.wait(button)
+		reveal(app, button)
 		assertVisible(app, button)
 		return button
+	}
+
+	static func reveal(_ app: XCUIApplication, _ element: XCUIElement) {
+		let prompt = TutorialHarness.named(app, "feedback.prompt")
+		for _ in 0..<3 where element.frame.maxY > visibleBottom(app) {
+			prompt.swipeUp()
+		}
 	}
 
 	static func replaceNote(_ app: XCUIApplication, with text: String) {
@@ -134,10 +143,9 @@ enum SupportScreen {
 	}
 
 	static func tryAgain(_ app: XCUIApplication) {
-		let button = TutorialHarness.named(app, "feedback.tryAgain")
-		assertVisible(app, button)
-		XCTAssertEqual(button.label, say(Catalog.chatTranscriptRetry))
-		button.tap()
+		let retry = button(app, "feedback.tryAgain")
+		XCTAssertEqual(retry.label, say(Catalog.chatTranscriptRetry))
+		retry.tap()
 		assertVisible(app, outcome(app, "feedback.outcome", say(Catalog.feedbackReceived)))
 	}
 
