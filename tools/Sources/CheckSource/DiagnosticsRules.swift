@@ -9,10 +9,23 @@ extension SourceChecker {
 		+ #"(?!(?:func|var|let|subscript|init|deinit|typealias|case|static)\b)"#
 		+ #"(\w+(?:\.\w+)*)([^{};]*)\{|\{|\}"#
 	static let errorInheritance = #"\b(?:Localized|CustomNS)?Error\b"#
+	static let diagnosticsLogMaker =
+		"apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Support/SupportService.swift"
+	static let diagnosticsLogMade = #"\bDiagnosticsLog\s*(?:\.\s*init\s*)?\("#
 
 	private struct Scope {
 		let name: String?
 		let hidden: Bool
+	}
+
+	func checkDiagnosticsLogMaker(_ source: SourceFile) throws {
+		guard
+			try patterns.test(Self.coachSource, source.file)
+				|| patterns.test(Self.appSource, source.file),
+			!source.file.hasSameUnits(as: Self.diagnosticsLogMaker),
+			try patterns.test(Self.diagnosticsLogMade, patterns.withoutStrings(source.text))
+		else { return }
+		try findings.report(source.file, "diagnostics-log-one-maker")
 	}
 
 	func checkFailureCodes(_ sources: [SourceFile]) throws {

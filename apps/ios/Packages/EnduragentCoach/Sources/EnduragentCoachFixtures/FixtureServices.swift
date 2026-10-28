@@ -56,3 +56,23 @@ extension TrainingService {
 		TrainingService { credential, athlete in client(credential, athlete) }
 	}
 }
+
+extension AppIdentity {
+	public static let fixture: AppIdentity = {
+		guard let app = AppIdentity(name: "Enduragent", version: "0.1.0", build: "3") else {
+			preconditionFailure("The fixture app identity does not fit its shapes")
+		}
+		return app
+	}()
+}
+
+extension SupportService {
+	public static func inMemory(app: AppIdentity) -> SupportService {
+		SupportService(journal: MemoryJournalStorage(), app: app, device: .fixture)
+	}
+
+	public static func fixture(directory: URL, app: AppIdentity) -> SupportService {
+		SupportService(
+			journal: FileJournalStorage(directory: directory), app: app, device: .fixture)
+	}
+}

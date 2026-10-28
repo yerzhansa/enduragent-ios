@@ -37,6 +37,7 @@
 			guard launch.name == FixtureLaunch.firstWeekName else {
 				throw FixtureLaunchError.unknownFixture(launch.name)
 			}
+			let identity = try installedIdentity()
 			let clock = FixtureClock(
 				calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 			let intervals = FakeIntervalsClient.firstWeek(today: FirstWeekFixture.today)
@@ -105,6 +106,7 @@
 					credits: .fake(credits, mintedKey: FirstWeekFixture.creditsKey),
 					host: host,
 					clock: clock,
+					support: .fixture(directory: launch.directory, app: identity),
 					openRouterSignIn: .fake(
 						authorizer: authorizer,
 						exchangeFails: launch.signInOutcome == .exchangeFailure)
@@ -114,6 +116,7 @@
 				coalescing: launch.coalescing
 			)
 			return AppServices(
+				identity: identity,
 				coach: coach,
 				deviceCheck: FakeDeviceCheckTokenProvider(),
 				clock: clock,

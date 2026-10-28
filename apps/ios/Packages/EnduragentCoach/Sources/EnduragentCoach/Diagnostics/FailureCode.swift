@@ -89,6 +89,7 @@ package enum OpenRouterErrorCode: Sendable, Equatable {
 
 package enum PackageErrorType: String, Sendable, CaseIterable {
 	case acceptFailure = "AcceptFailure"
+	case appIdentityFailure = "AppIdentityFailure"
 	case catalogIssue = "CatalogIssue"
 	case compactorFailure = "Compactor.Failure"
 	case consentWriteFailure = "ConsentWriteFailure"

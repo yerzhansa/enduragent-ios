@@ -5,6 +5,7 @@
 		"1.3": 8,
 		"1.4": 5,
 		"2.1": 8,
+		"2.2": 8,
 		"6.1": 9,
 		"8.1": 6,
 		"8.2": 6,
@@ -292,6 +293,67 @@
 			"statement": "Over FileJournalStorage, when the append whose line takes the encoded sum past 1,048,576 bytes returns, the file is at most 786,432 bytes, the newest line is in it, and the oldest is not.",
 			"tests": [
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "aLongSessionStaysUnderOneMebibyte"}
+			]
+		},
+		{
+			"id": "2.2.1",
+			"statement": "Over a file journal in a temporary folder, a recorded event and a recorded usage line are each one line in diagnostics.jsonl when the call returns, and a new log over the same folder returns both from window(endingAt:).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "aRecordedLineSurvivesANewLog"}
+			]
+		},
+		{
+			"id": "2.2.2",
+			"statement": "A log opened over a torn file records journalLinesDropped(count: 1), and one opened with failReads records journalRestarted(.unreadable); each is in entries and in the file.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "aTornFileIsRecordedAsADroppedLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "anUnreadableFileIsRecordedAsARestart"}
+			]
+		},
+		{
+			"id": "2.2.3",
+			"statement": "entries holds only the typed events recorded by this process, and with 101 skipped rows in the ledger, 100 are reported.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "entriesHoldEveryEventOfThisProcessAndNothingElse"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "aLedgerReportsTheFirstHundredSkippedRows"}
+			]
+		},
+		{
+			"id": "2.2.4",
+			"statement": "A skipped row whose stored kind is a URL holding an sk-or-v1 key and whose ulid is a ghp_ token built at run time is written to diagnostics.jsonl with neither token nor the URL, and with [redacted].",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "aSkippedRowIsWrittenScrubbed"}
+			]
+		},
+		{
+			"id": "2.2.5",
+			"statement": "diagnostics-log-one-maker reports an app file and a package file that make a DiagnosticsLog outside SupportService.swift, and accepts the support service, tests, fixtures and names of the type. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "2.2.6",
+			"statement": "AppIdentity(infoDictionary:) reads Enduragent, 0.1.0 and 3 from a dictionary, throws missing with the key for each of the three keys when it is absent and malformed with the key when its value is not a string, and reads the app bundle's Info.plist without throwing, with the name Enduragent.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/AppIdentityTests.swift", "function": "readsNameVersionAndBuild"},
+				{"file": "apps/ios/EnduragentTests/AppIdentityTests.swift", "function": "aMissingKeyIsNamed"},
+				{"file": "apps/ios/EnduragentTests/AppIdentityTests.swift", "function": "aNonStringValueIsNamed"},
+				{"file": "apps/ios/EnduragentTests/AppIdentityTests.swift", "function": "theAppBundleHasAllThree"}
+			]
+		},
+		{
+			"id": "2.2.7",
+			"statement": "Fixture-mode services write diagnostics.jsonl into the fixture directory when the coach records its first event.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/FixtureJournalTests.swift", "function": "theFirstRecordedEventIsWrittenIntoTheFixtureDirectory"}
+			]
+		},
+		{
+			"id": "2.2.8",
+			"statement": "PublicSurfaceTests.publicSymbolsMatchTheDesignList passes with SupportService, SupportService.onDevice(app:), AppIdentity with its members and init(infoDictionary:), AppIdentityFailure, CoachPorts.support and the new CoachPorts.init listed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
 			]
 		},
 		{

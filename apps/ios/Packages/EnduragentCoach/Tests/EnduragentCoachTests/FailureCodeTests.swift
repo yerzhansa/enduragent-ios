@@ -65,6 +65,7 @@ import Testing
 	private static func sample(of type: PackageErrorType) -> any Error {
 		switch type {
 		case .acceptFailure: AcceptFailure.storageUnavailable
+		case .appIdentityFailure: AppIdentityFailure.missing("CFBundleVersion")
 		case .catalogIssue: CatalogIssue.offline
 		case .compactorFailure: Compactor.Failure(reason: .length)
 		case .consentWriteFailure: ConsentWriteFailure.notSaved

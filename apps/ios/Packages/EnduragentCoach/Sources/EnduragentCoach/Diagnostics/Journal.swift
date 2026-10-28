@@ -24,6 +24,11 @@ package final class Journal: Sendable {
 		state.withLock { $0.append(record, to: storage, now: now) }
 	}
 
+	package func markAppendFailed() {
+		let now = clock.now
+		state.withLock { $0.fail(.appendFailed, at: now) }
+	}
+
 	package func window(endingAt now: Date) -> [StampedLine] {
 		JournalPrune.kept(state.withLock { $0.records }, now: now).map(\.stamped)
 	}
@@ -108,7 +113,7 @@ struct JournalState: Sendable {
 		}
 	}
 
-	private mutating func fail(_ cause: JournalFault, at now: Date) {
+	mutating func fail(_ cause: JournalFault, at now: Date) {
 		if case .behind = disk { return }
 		disk = .behind(since: now, firstCause: cause)
 	}

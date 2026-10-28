@@ -283,6 +283,7 @@ extension TurnAccessTests {
 				models: .scripted(transport),
 				training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock,
+				support: .inMemory(app: .fixture),
 				openRouterSignIn: .fake(authorizer: authorizer)),
 			builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow)
 		return await consentingCoach(coach)

@@ -37,6 +37,15 @@ AccountAuthority.changed
 AccountAuthority.same
 AccountAuthority.sameAthlete
 AccountAuthority.unverifiable
+AppIdentity
+AppIdentity.build
+AppIdentity.display
+AppIdentity.init(infoDictionary:)
+AppIdentity.name
+AppIdentity.version
+AppIdentityFailure
+AppIdentityFailure.malformed
+AppIdentityFailure.missing
 AppLifecycleEvent
 AppLifecycleEvent.becameActive
 AppLifecycleEvent.enteredBackground
@@ -171,10 +180,11 @@ CoachPorts
 CoachPorts.clock
 CoachPorts.credits
 CoachPorts.host
-CoachPorts.init(records:secrets:models:training:credits:host:clock:openRouterSignIn:)
+CoachPorts.init(records:secrets:models:training:credits:host:clock:support:openRouterSignIn:)
 CoachPorts.models
 CoachPorts.records
 CoachPorts.secrets
+CoachPorts.support
 CoachPorts.training
 CoachStatus
 CoachStatus.access
@@ -789,6 +799,8 @@ StyledText
 StyledText.init(text:styles:)
 StyledText.styles
 StyledText.text
+SupportService
+SupportService.onDevice(app:)
 TrainingAccount
 TrainingAccount.authority(under:)
 TrainingAccount.intervals
