@@ -1513,13 +1513,11 @@
     },
     "menu": "Menu",
     "turn": {
-      "buyCredits": "Kup kredyty",
       "chooseAccessMethod": "Wybierz sposób dostępu",
       "finishedWhileLocked": "Zakończono, gdy telefon był zablokowany.",
       "interruptedNothingChanged": "Ta odpowiedź została przerwana przed zakończeniem. Nic nie zostało zmienione.",
       "interruptedSomeSaved": "Ta odpowiedź została przerwana przed zakończeniem. Część informacji zapisano wcześniej.",
       "receivedBeforeClose": "Odebrano przed zamknięciem aplikacji. Stuknij Spróbuj ponownie, aby wysłać wiadomość.",
-      "restorePurchases": "Przywróć zakupy",
       "signInAgain": "Zaloguj się ponownie"
     },
     "welcome": "Witaj w {{product}}!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z {{service}}.\n\nPolecenia:\n{{commands}}\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!",
@@ -3087,23 +3085,13 @@
     }
   },
   "credits": {
-    "buy": "Kup",
-    "testers": "Testerzy nie mogą jeszcze kupować pakietów.",
     "title": "Kredyty",
     "balance_one": "{{formattedCount}} kredyt",
-    "pack_one": "{{formattedCount}} kredyt",
-    "packPrice_one": "{{formattedCount}} kredyt · {{price}}",
     "balance_other": "{{formattedCount}} kredytu",
-    "pack_other": "{{formattedCount}} kredytu",
-    "packPrice_other": "{{formattedCount}} kredytu · {{price}}",
     "balance_few": "{{formattedCount}} kredyty",
-    "pack_few": "{{formattedCount}} kredyty",
-    "packPrice_few": "{{formattedCount}} kredyty · {{price}}",
     "balance_many": "{{formattedCount}} kredytów",
-    "pack_many": "{{formattedCount}} kredytów",
-    "packPrice_many": "{{formattedCount}} kredytów · {{price}}",
     "error": {
-      "accessRejected": "Nie udało się użyć twoich kredytów. Przywróć zakupy, aby kontynuować.",
+      "accessRejected": "Nie udało się użyć twoich kredytów. Możesz przełączyć się na swoje konto OpenRouter.",
       "exhausted": "Skończyły ci się kredyty. Możesz przełączyć się na swoje konto OpenRouter.",
       "unavailable": "Kredyty są teraz niedostępne. Spróbuj ponownie później.",
       "accountChanged": "Twoje konto kredytów zmieniło się podczas kończenia tego żądania. Zachowano twoje obecne konto."

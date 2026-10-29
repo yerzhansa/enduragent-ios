@@ -124,7 +124,6 @@
 				deviceCheck: FakeDeviceCheckTokenProvider(),
 				clock: clock,
 				leases: leases,
-				packPrices: { _ in [:] },
 				fixture: FixtureServices(
 					catalogSource: catalogSource, transport: transport, records: records,
 					host: fixtureHost, secrets: secrets,

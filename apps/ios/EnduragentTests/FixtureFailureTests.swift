@@ -35,11 +35,11 @@ extension FixtureLaunchTests {
 		("fixture:fail 400", Catalog.coachErrorUnknown, [Catalog.chatTranscriptRetry], 1),
 		(
 			"fixture:fail 401", Catalog.creditsErrorAccessRejected,
-			[Catalog.chatTurnRestorePurchases], 1
+			[Catalog.accessSwitchToOpenRouter], 1
 		),
 		(
 			"fixture:fail 402", Catalog.creditsErrorExhausted,
-			[Catalog.chatTurnBuyCredits, Catalog.accessSwitchToOpenRouter], 1
+			[Catalog.accessSwitchToOpenRouter], 1
 		),
 		(
 			"fixture:fail 429 1 x4", Catalog.coachErrorRateLimitSeconds,
@@ -144,7 +144,7 @@ extension FixtureLaunchTests {
 		let services = AppServices(
 			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(),
 			clock: clock,
-			leases: { host.leases }, packPrices: { _ in [:] })
+			leases: { host.leases })
 		await model(services).agreeAndStartChatting()
 		return coach
 	}

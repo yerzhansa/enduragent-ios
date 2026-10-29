@@ -1487,13 +1487,11 @@
     },
     "menu": "Menü",
     "turn": {
-      "buyCredits": "Guthaben kaufen",
       "chooseAccessMethod": "Zugriffsmethode wählen",
       "finishedWhileLocked": "Abgeschlossen, während das Telefon gesperrt war.",
       "interruptedNothingChanged": "Diese Antwort wurde vorzeitig beendet. Es wurde nichts geändert.",
       "interruptedSomeSaved": "Diese Antwort wurde vorzeitig beendet. Einige Angaben wurden zuvor gespeichert.",
       "receivedBeforeClose": "Vor dem Schließen der App empfangen. Tippe auf Erneut versuchen, um die Nachricht zu senden.",
-      "restorePurchases": "Käufe wiederherstellen",
       "signInAgain": "Erneut anmelden"
     },
     "welcome": "Willkommen bei {{product}}!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von {{service}}-Daten verfolgen.\n\nBefehle:\n{{commands}}\n\nOder sprich einfach mit mir über dein Training!",
@@ -3015,17 +3013,11 @@
     }
   },
   "credits": {
-    "buy": "Kaufen",
-    "testers": "Tester können noch keine Pakete kaufen.",
     "title": "Guthaben",
     "balance_one": "{{formattedCount}} Guthabenpunkt",
-    "pack_one": "{{formattedCount}} Guthabenpunkt",
-    "packPrice_one": "{{formattedCount}} Guthabenpunkt · {{price}}",
     "balance_other": "{{formattedCount}} Guthabenpunkte",
-    "pack_other": "{{formattedCount}} Guthabenpunkte",
-    "packPrice_other": "{{formattedCount}} Guthabenpunkte · {{price}}",
     "error": {
-      "accessRejected": "Deine Guthabenpunkte konnten nicht verwendet werden. Stelle deine Käufe wieder her, um fortzufahren.",
+      "accessRejected": "Deine Guthabenpunkte konnten nicht verwendet werden. Du kannst zu deinem OpenRouter-Konto wechseln.",
       "exhausted": "Du hast keine Guthabenpunkte mehr. Du kannst zu deinem OpenRouter-Konto wechseln.",
       "unavailable": "Guthabenpunkte sind derzeit nicht verfügbar. Versuche es später erneut.",
       "accountChanged": "Das Konto für deine Guthabenpunkte hat sich geändert, während diese Anfrage abgeschlossen wurde. Dein aktuelles Konto wurde beibehalten."

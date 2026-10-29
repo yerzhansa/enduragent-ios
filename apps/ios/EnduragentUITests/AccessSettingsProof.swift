@@ -146,7 +146,7 @@ final class AccessSettingsProof: XCTestCase {
 		}
 	}
 
-	func testDepletedAndUnavailableCreditsOfferDisabledBuyAndAccessScreen() {
+	func testDepletedAndUnavailableCreditsOfferTheAccessScreen() {
 		for depleted in [true, false] {
 			let app = launch(credits: depleted ? .zero : .unavailable)
 			TutorialHarness.openSettings(app)
@@ -160,13 +160,6 @@ final class AccessSettingsProof: XCTestCase {
 			} else {
 				XCTAssertFalse(TutorialHarness.named(app, "credits.balance").exists)
 			}
-			let buy = app.buttons.matching(
-				NSPredicate(format: "label == %@", phrasebook.say(Catalog.creditsBuy)))
-			XCTAssertEqual(buy.count, 2)
-			for button in buy.allElementsBoundByIndex { XCTAssertFalse(button.isEnabled) }
-			XCTAssertEqual(
-				TutorialHarness.named(app, "credits.note").label,
-				phrasebook.say(Catalog.creditsTesters))
 			capture(app, depleted ? "credits-depleted" : "credits-unavailable")
 			TutorialHarness.named(app, "credits.switchToOpenRouter").tap()
 			assertChoice(app, credits: true)
@@ -199,12 +192,17 @@ final class AccessSettingsProof: XCTestCase {
 		}
 	}
 
-	func testBuyCreditsAndSignInAgainRecoveryPreserveTheConversation() {
+	func testRejectedAccessRecoveryPreservesTheConversation() {
 		for openRouter in [false, true] {
 			let app = launch(access: openRouter ? .openRouter : .credits)
-			TutorialHarness.exchange(app, openRouter ? "fixture:fail 401" : "fixture:fail 402")
+			TutorialHarness.exchange(app, "fixture:fail 401")
 			let action = TutorialHarness.named(
-				app, openRouter ? "chat.access.signInAgain" : "chat.turn.buyCredits")
+				app, openRouter ? "chat.access.signInAgain" : "chat.turn.switchToOpenRouter")
+			if !openRouter {
+				TutorialHarness.wait(
+					TutorialHarness.notice(
+						app, reading: phrasebook.say(Catalog.creditsErrorAccessRejected)))
+			}
 			TutorialHarness.wait(action, until: .hittable)
 			action.tap()
 			if openRouter {
@@ -216,11 +214,9 @@ final class AccessSettingsProof: XCTestCase {
 				openAccess(app)
 				assertChoice(app, credits: false)
 			} else {
-				TutorialHarness.wait(TutorialHarness.named(app, "credits.balance"))
-				capture(app, "buy-credits-destination")
-				TutorialHarness.named(app, "credits.switchToOpenRouter").tap()
+				TutorialHarness.wait(app.navigationBars[phrasebook.say(Catalog.accessTitle)])
 				assertChoice(app, credits: true)
-				capture(app, "buy-credits-switch-destination")
+				capture(app, "rejected-credits-switch-destination")
 			}
 			TutorialHarness.returnToChat(app)
 			TutorialHarness.wait(action)

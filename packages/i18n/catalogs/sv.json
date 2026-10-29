@@ -1487,13 +1487,11 @@
     },
     "menu": "Meny",
     "turn": {
-      "buyCredits": "Köp krediter",
       "chooseAccessMethod": "Välj åtkomstmetod",
       "finishedWhileLocked": "Blev klart medan telefonen var låst.",
       "interruptedNothingChanged": "Svaret avbröts innan det var klart. Inget ändrades.",
       "interruptedSomeSaved": "Svaret avbröts innan det var klart. Viss information sparades först.",
       "receivedBeforeClose": "Mottaget innan appen stängdes. Tryck på Försök igen för att skicka meddelandet.",
-      "restorePurchases": "Återställ köp",
       "signInAgain": "Logga in igen"
     },
     "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{commands}}\n\nDu kan också bara prata med mig om din träning!",
@@ -3015,17 +3013,11 @@
     }
   },
   "credits": {
-    "buy": "Köp",
-    "testers": "Testare kan inte köpa paket ännu.",
     "title": "Krediter",
     "balance_one": "{{formattedCount}} kredit",
-    "pack_one": "{{formattedCount}} kredit",
-    "packPrice_one": "{{formattedCount}} kredit · {{price}}",
     "balance_other": "{{formattedCount}} krediter",
-    "pack_other": "{{formattedCount}} krediter",
-    "packPrice_other": "{{formattedCount}} krediter · {{price}}",
     "error": {
-      "accessRejected": "Dina krediter kunde inte användas. Återställ köp för att fortsätta.",
+      "accessRejected": "Dina krediter kunde inte användas. Du kan byta till ditt OpenRouter-konto.",
       "exhausted": "Dina krediter är slut. Du kan byta till ditt OpenRouter-konto.",
       "unavailable": "Krediter är inte tillgängliga just nu. Försök igen senare.",
       "accountChanged": "Ditt kreditkonto ändrades medan den här begäran slutfördes. Ditt nuvarande konto behölls."

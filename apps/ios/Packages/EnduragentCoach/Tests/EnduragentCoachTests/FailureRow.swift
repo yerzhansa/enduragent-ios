@@ -25,11 +25,11 @@ struct FailureRow: Sendable, CustomTestStringConvertible {
 	static let all: [FailureRow] = [
 		FailureRow(
 			scripted: .http(status: 401), failure: .credentialRejected(.credits),
-			key: Catalog.creditsErrorAccessRejected, buttons: ["Restore purchases"],
-			english: "Your Credits couldn't be used. Restore purchases to continue."),
+			key: Catalog.creditsErrorAccessRejected, buttons: ["Switch to OpenRouter"],
+			english: "Your Credits couldn't be used. You can switch to your OpenRouter account."),
 		FailureRow(
 			scripted: .http(status: 402), failure: .accessExhausted(.credits),
-			key: Catalog.creditsErrorExhausted, buttons: ["Buy Credits", "Switch to OpenRouter"],
+			key: Catalog.creditsErrorExhausted, buttons: ["Switch to OpenRouter"],
 			english: "You're out of Credits. You can switch to your OpenRouter account."),
 		FailureRow(
 			scripted: .http(status: 429, headers: ["retry-after": "7"]),

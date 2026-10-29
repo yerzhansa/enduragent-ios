@@ -74,11 +74,8 @@ final class CreditsProof: XCTestCase {
 		TutorialHarness.wait(balance)
 		XCTAssertEqual(balance.label, "200 credits")
 		XCTAssertEqual(
-			TutorialHarness.named(app, "credits.note").label, "Testers cannot buy packs yet.")
-		XCTAssertTrue(
-			TutorialHarness.named(app, "credits.pack.icu.enduragent.credits.small").exists)
-		XCTAssertTrue(
-			TutorialHarness.named(app, "credits.pack.icu.enduragent.credits.large").exists)
+			TutorialHarness.named(app, "credits.switchToOpenRouter").label,
+			TutorialHarness.switchToOpenRouter)
 		TutorialHarness.attach(self, name: "06-credits", app: app)
 	}
 }

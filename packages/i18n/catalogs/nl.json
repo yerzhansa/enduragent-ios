@@ -1487,13 +1487,11 @@
     },
     "menu": "Menu",
     "turn": {
-      "buyCredits": "Tegoed kopen",
       "chooseAccessMethod": "Toegangsmethode kiezen",
       "finishedWhileLocked": "Voltooid terwijl de telefoon vergrendeld was.",
       "interruptedNothingChanged": "Dit antwoord werd onderbroken voordat het klaar was. Er is niets gewijzigd.",
       "interruptedSomeSaved": "Dit antwoord werd onderbroken voordat het klaar was. Een deel van de informatie was al opgeslagen.",
       "receivedBeforeClose": "Ontvangen voordat de app sloot. Tik op Opnieuw proberen om het te verzenden.",
-      "restorePurchases": "Aankopen herstellen",
       "signInAgain": "Opnieuw inloggen"
     },
     "welcome": "Welkom bij {{product}}!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van {{service}}.\n\nOpdrachten:\n{{commands}}\n\nJe kunt ook gewoon met me praten over je training!",
@@ -3015,17 +3013,11 @@
     }
   },
   "credits": {
-    "buy": "Kopen",
-    "testers": "Testers kunnen nog geen pakketten kopen.",
     "title": "Tegoed",
     "balance_one": "{{formattedCount}} tegoedpunt",
-    "pack_one": "{{formattedCount}} tegoedpunt",
-    "packPrice_one": "{{formattedCount}} tegoedpunt · {{price}}",
     "balance_other": "{{formattedCount}} tegoedpunten",
-    "pack_other": "{{formattedCount}} tegoedpunten",
-    "packPrice_other": "{{formattedCount}} tegoedpunten · {{price}}",
     "error": {
-      "accessRejected": "Je tegoedpunten konden niet worden gebruikt. Herstel je aankopen om door te gaan.",
+      "accessRejected": "Je tegoedpunten konden niet worden gebruikt. Je kunt overschakelen naar je OpenRouter-account.",
       "exhausted": "Je tegoedpunten zijn op. Je kunt overschakelen naar je OpenRouter-account.",
       "unavailable": "Tegoedpunten zijn momenteel niet beschikbaar. Probeer het later opnieuw.",
       "accountChanged": "Je tegoedaccount is gewijzigd terwijl dit verzoek werd afgerond. Je huidige account is behouden."

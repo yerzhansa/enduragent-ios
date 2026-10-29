@@ -1,90 +1,92 @@
-import EnduragentCoach
-import Foundation
-import StoreKit
+#if DEBUG
+	import EnduragentCoach
+	import Foundation
+	import StoreKit
 
-enum StoreKitPurchaseFailure: Error {
-	case unverified
-	case userCancelled
-	case pending
-}
+	enum StoreKitPurchaseFailure: Error {
+		case unverified
+		case userCancelled
+		case pending
+	}
 
-@MainActor
-final class StoreKitPurchaseCoordinator {
-	private let coach: Coach
-	private let onSettlementFailure: @MainActor (Error) -> Void
-	private var updatesTask: Task<Void, Never>?
+	@MainActor
+	final class StoreKitPurchaseCoordinator {
+		private let coach: Coach
+		private let onSettlementFailure: @MainActor (Error) -> Void
+		private var updatesTask: Task<Void, Never>?
 
-	init(coach: Coach, onSettlementFailure: @escaping @MainActor (Error) -> Void) {
-		self.coach = coach
-		self.onSettlementFailure = onSettlementFailure
-		updatesTask = Task { [weak self] in
-			for await update in Transaction.updates {
-				guard let self else { return }
-				do {
-					_ = try await self.settle(update)
-				} catch is CancellationError {
-					return
-				} catch {
-					self.onSettlementFailure(error)
+		init(coach: Coach, onSettlementFailure: @escaping @MainActor (Error) -> Void) {
+			self.coach = coach
+			self.onSettlementFailure = onSettlementFailure
+			updatesTask = Task { [weak self] in
+				for await update in Transaction.updates {
+					guard let self else { return }
+					do {
+						_ = try await self.settle(update)
+					} catch is CancellationError {
+						return
+					} catch {
+						self.onSettlementFailure(error)
+					}
 				}
 			}
 		}
-	}
 
-	deinit {
-		updatesTask?.cancel()
-	}
+		deinit {
+			updatesTask?.cancel()
+		}
 
-	func purchase(_ product: Product) async throws -> ClaimOutcome {
-		let result = try await product.purchase(options: [
-			.appAccountToken(try await coach.prepareCreditsPurchase())
-		])
-		switch result {
-		case .success(let verification):
-			return try await settle(verification)
-		case .userCancelled:
-			throw StoreKitPurchaseFailure.userCancelled
-		case .pending:
-			throw StoreKitPurchaseFailure.pending
-		@unknown default:
-			throw CreditsFailure.unavailable
-		}
-	}
-
-	func settle(_ verification: VerificationResult<Transaction>) async throws -> ClaimOutcome {
-		guard case .verified(let tx) = verification else {
-			throw StoreKitPurchaseFailure.unverified
-		}
-		guard let token = tx.appAccountToken else { throw CreditsFailure.identityMismatch }
-		let outcome = try await coach.credits.claim(
-			signedTransaction: verification.jwsRepresentation, appAccountToken: token)
-		let hasKey = try await coach.creditsIdentity().hasCreditsKey
-		switch ClaimSettlement.settlement(after: outcome, hasKey: hasKey) {
-		case .finish:
-			await tx.finish()
-			return outcome
-		case .recoverThenFinish:
-			let jws = await newestPurchaseJWS(fallback: verification)
-			_ = try await coach.credits.recover(signedTransaction: jws)
-			await tx.finish()
-			return outcome
-		}
-	}
-
-	private func newestPurchaseJWS(fallback: VerificationResult<Transaction>) async -> String {
-		var newestDate: Date?
-		var newestJWS = fallback.jwsRepresentation
-		if case .verified(let tx) = fallback {
-			newestDate = tx.purchaseDate
-		}
-		for await item in Transaction.all {
-			guard case .verified(let candidate) = item else { continue }
-			if let newestDate, candidate.purchaseDate <= newestDate {
-				continue
+		func purchase(_ product: Product) async throws -> ClaimOutcome {
+			let result = try await product.purchase(options: [
+				.appAccountToken(try await coach.prepareCreditsPurchase())
+			])
+			switch result {
+			case .success(let verification):
+				return try await settle(verification)
+			case .userCancelled:
+				throw StoreKitPurchaseFailure.userCancelled
+			case .pending:
+				throw StoreKitPurchaseFailure.pending
+			@unknown default:
+				throw CreditsFailure.unavailable
 			}
-			newestDate = candidate.purchaseDate
-			newestJWS = item.jwsRepresentation
 		}
-		return newestJWS
+
+		func settle(_ verification: VerificationResult<Transaction>) async throws -> ClaimOutcome {
+			guard case .verified(let tx) = verification else {
+				throw StoreKitPurchaseFailure.unverified
+			}
+			guard let token = tx.appAccountToken else { throw CreditsFailure.identityMismatch }
+			let outcome = try await coach.credits.claim(
+				signedTransaction: verification.jwsRepresentation, appAccountToken: token)
+			let hasKey = try await coach.creditsIdentity().hasCreditsKey
+			switch ClaimSettlement.settlement(after: outcome, hasKey: hasKey) {
+			case .finish:
+				await tx.finish()
+				return outcome
+			case .recoverThenFinish:
+				let jws = await newestPurchaseJWS(fallback: verification)
+				_ = try await coach.credits.recover(signedTransaction: jws)
+				await tx.finish()
+				return outcome
+			}
+		}
+
+		private func newestPurchaseJWS(fallback: VerificationResult<Transaction>) async -> String {
+			var newestDate: Date?
+			var newestJWS = fallback.jwsRepresentation
+			if case .verified(let tx) = fallback {
+				newestDate = tx.purchaseDate
+			}
+			for await item in Transaction.all {
+				guard case .verified(let candidate) = item else { continue }
+				if let newestDate, candidate.purchaseDate <= newestDate {
+					continue
+				}
+				newestDate = candidate.purchaseDate
+				newestJWS = item.jwsRepresentation
+			}
+			return newestJWS
+		}
 	}
-}
+#endif

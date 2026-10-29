@@ -1487,13 +1487,11 @@
     },
     "menu": "Menu",
     "turn": {
-      "buyCredits": "Comprar créditos",
       "chooseAccessMethod": "Escolher método de acesso",
       "finishedWhileLocked": "Concluído enquanto o telemóvel estava bloqueado.",
       "interruptedNothingChanged": "Esta resposta foi interrompida antes de terminar. Nada foi alterado.",
       "interruptedSomeSaved": "Esta resposta foi interrompida antes de terminar. Algumas informações já tinham sido guardadas.",
       "receivedBeforeClose": "Recebida antes de a aplicação fechar. Toca em Tentar novamente para a enviar.",
-      "restorePurchases": "Restaurar compras",
       "signInAgain": "Iniciar sessão novamente"
     },
     "welcome": "Boas-vindas ao {{product}}!\n\nSou o teu treinador de ciclismo com IA. Posso criar planos de treino, sugerir treinos e acompanhar a tua condição física com os dados de {{service}}.\n\nComandos:\n{{commands}}\n\nOu fala comigo sobre o teu treino!",
@@ -3015,17 +3013,11 @@
     }
   },
   "credits": {
-    "buy": "Comprar",
-    "testers": "Os utilizadores de teste ainda não podem comprar pacotes.",
     "title": "Créditos",
     "balance_one": "{{formattedCount}} crédito",
-    "pack_one": "{{formattedCount}} crédito",
-    "packPrice_one": "{{formattedCount}} crédito · {{price}}",
     "balance_other": "{{formattedCount}} créditos",
-    "pack_other": "{{formattedCount}} créditos",
-    "packPrice_other": "{{formattedCount}} créditos · {{price}}",
     "error": {
-      "accessRejected": "Não foi possível usar os teus créditos. Restaura as compras para continuar.",
+      "accessRejected": "Não foi possível usar os teus créditos. Podes mudar para a tua conta OpenRouter.",
       "exhausted": "Os teus créditos acabaram. Podes mudar para a tua conta OpenRouter.",
       "unavailable": "Os créditos estão indisponíveis de momento. Tenta novamente mais tarde.",
       "accountChanged": "A tua conta de créditos mudou enquanto este pedido estava a ser concluído. A tua conta atual foi mantida."

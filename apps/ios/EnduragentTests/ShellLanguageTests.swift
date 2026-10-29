@@ -166,8 +166,6 @@ final class ShellLanguageTests {
 		intervals.seedWellness([(date: "1998-06-13", fitness: 1234.5, fatigue: 2345.5)])
 		let credits = FakeCreditsClient()
 		credits.grantResult = .success(.minted(Credits(units: 12345)))
-		credits.catalogResult = .success(
-			PackCatalog(purchasesEnabled: false, scale: CreditScale(creditsPerUsd: 100), packs: []))
 		credits.balanceResult = .success(CreditBalance(credits: Credits(units: 12345)))
 		let built = try services(
 			intervals: intervals, displayLocale: phone.resolve, credits: credits)
@@ -249,7 +247,7 @@ final class ShellLanguageTests {
 			AppServices(
 				coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(),
 				clock: clock,
-				leases: { [] }, packPrices: { _ in [:] }))
+				leases: { [] }))
 	}
 }
 
