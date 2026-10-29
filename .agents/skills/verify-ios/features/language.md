@@ -53,7 +53,7 @@ Preconditions:
 | `sim test <run id> LanguageSaveFailureProof` | `testFailuresFromCommand` and `testFailuresFromSettings` arm `fixture.failNextAppend` before fixed German and Automatic choices. Both retain English, show the not-saved notice, keep the English instruction before and after relaunch, and clear the notice on reopening. Attachments start `u9-2-command-failed-` and `u9-2-settings-failed-`, followed by `de` or `automatic` and the restored state or instruction. |
 | `sim test <run id> SavedLanguageFirstFrameProof` | Spanish chosen on an English phone remains Spanish through relaunch. `saved-spanish-first-frame-strings` lists observed strings; `m1-12-saved-spanish-first-frame` shows the screen. |
 | `sim test <run id> TutorialWaitProof` | The shared wait checks a satisfied condition immediately and samples a changing condition again within 0.5 seconds. This protects the snapshot sampling used by the saved-language first-frame proof. |
-| `sim test <run id> FrenchNoticesProof` | The exhausted-credits notice, Buy Credits action, and Send message label use the French catalog values, `notices-french`. |
+| `sim test <run id> FrenchNoticesProof` | The exhausted-credits notice, Switch to OpenRouter action, and Send message label use the French catalog values, `notices-french`. |
 
 Debug also opens the picker through `debug.language`. The hosted `FixtureLaunchTests.languageChoiceRewritesTheChatAndTheNextReplyRequest` and `FixtureLaunchTests.aLanguageThatCannotBeSavedKeepsTheCurrentChoice` drive both shell intents with a store-preserving relaunch and the fixture append fault. `ShellLanguageTests.settingsLanguagePickerPreservesTheNavigationAndConversation` covers the Settings intent without changing the draft or conversation.
 
@@ -91,7 +91,7 @@ Workout review cards, stage notices, outcome notes and the largest text size in 
 | `testOnboarding` | Launches with `-AppleLanguages (<tag>)` and Automatic. `onboarding-notice`, `onboarding-connect`, `onboarding-connected`, `onboarding-access`, `onboarding-consent`, `conversation-welcome`. |
 | `testConversation` | `command-choices`, `command-language-picker`, `review`, `review-approved`, `working-stop-send` with the Stop and Send icon buttons, `stopped-reply`, `new-conversation`. |
 | `testSettings` | `settings`, `settings-access-method`, `settings-credits`, `settings-session`, `settings-training`, `settings-switch-athlete`, `language-choice-not-saved`. |
-| `testFailureNotices` | `out-of-credits` with Buy Credits and Switch to OpenRouter, `failed-reply`, `locked-iphone`, `secure-storage-unavailable`, `training-storage-unavailable`, `draft-not-sent`. |
+| `testFailureNotices` | `out-of-credits` with Switch to OpenRouter, `failed-reply`, `locked-iphone`, `secure-storage-unavailable`, `training-storage-unavailable`, `draft-not-sent`. |
 | `testHistory` | `history-empty`, `history-earlier-athlete`, `history-conversation`. |
 | `testUnconfirmedChange` | Opens the build 6833d90f unknown write offline. `review-unconfirmed` with the `workouts.unconfirmed` notice in `chat.review.notice`, Check again and Cancel, `review-not-saved` with the `workouts.stopped` notice, Add to calendar and Cancel after Check again finds nothing, `review-cancelled` with the change-not-made line. |
 | `testOpenRouter` | `openrouter-blocked-request` with the 403 notice, `settings-openrouter`, `settings-model`. |

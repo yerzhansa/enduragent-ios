@@ -37,8 +37,8 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 | Turn or composer state | Visible notice and action |
 | --- | --- |
 | Server, network, timeout, or watchdog failure | `The model provider is having trouble — try again in a few minutes.` with Try again. |
-| Rejected Credits access | `Your Credits couldn't be used. Restore purchases to continue.` with `chat.turn.restorePurchases`, which opens Credits. |
-| Exhausted Credits | `You're out of Credits. You can switch to your OpenRouter account.` with `chat.turn.buyCredits`, which opens Credits, and below it `chat.turn.switchToOpenRouter`, which opens Access method. |
+| Rejected Credits access | `Your Credits couldn't be used. You can switch to your OpenRouter account.` with `chat.turn.switchToOpenRouter`, which opens Access method. |
+| Exhausted Credits | `You're out of Credits. You can switch to your OpenRouter account.` with `chat.turn.switchToOpenRouter`, which opens Access method. |
 | OpenRouter account out of funds | `Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.` with `chat.turn.chooseAccessMethod`, which opens the Access method screen. No UI proof or hosted app test reaches this notice. |
 | Rate limited | A duration such as `~7 seconds`, `~2 minutes`, or `about a minute` in the rate-limit sentence. `chat.turn.tryAgain` stays disabled until the wait ends. |
 | Bad request, overflow, or exhausted turn budget | `Sorry, something went wrong. Please try again.` with Try again. |
@@ -113,7 +113,7 @@ Preconditions:
 | `sim test <run id> ReplyObservedProof` | Text already shown is recorded and suppresses replay after the watchdog, `observed-text`, `observed-text-records`, `observed-text-timeout`. |
 | `sim test <run id> SavedUnverifiedProof` | A saved memory write followed by failure or Stop offers no Try again, `saved-unverified`, `saved-unverified-records`, `stopped-after-save`. |
 | `sim test <run id> StepLimitFallbackProof` | Choose French, save memory before the step limit, and read the French fallback in Chat, after relaunch, and in History. Check eleven model requests before relaunch, zero after, one memory record, and no Try again. Inspect `step-limit-french`, `step-limit-french-restored`, and `step-limit-french-history`. |
-| `sim test <run id> NoticeCopyProof` | Buy Credits and Restore purchases open Credits; saved-work failure has no replay action, `notice-copy-saved-unverified`. |
+| `sim test <run id> NoticeCopyProof` | Exhausted and rejected Credits each offer Switch to OpenRouter without Try again, `notice-copy-credits-exhausted`, `notice-copy-access-rejected`; saved-work failure has no replay action, `notice-copy-saved-unverified`. |
 | `sim test <run id> AccessNoticeProof` | Missing access opens Access method; locked keychain keeps the message and offers Try again, `access-not-configured-access-method`, `access-locked`. |
 
 ### Stop, expiry, background, and relaunch
