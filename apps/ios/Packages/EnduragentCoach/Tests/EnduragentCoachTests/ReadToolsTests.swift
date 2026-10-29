@@ -320,17 +320,20 @@ struct ReadToolsTests {
 		#expect(intervals.calls.isEmpty)
 	}
 
-	@Test func offeredSchemasHaveNoUnions() {
+	@Test func offeredSchemasHaveAnObjectRootWithoutAUnion() {
 		let schemas = makeToolOffer(
 			training: connectedTraining(intervals),
 			ledger: Ledger(
 				log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock
 		).schemas
-		let encoded = schemas.map { canonicalJSON($0.parameters) }.joined()
-		#expect(!encoded.contains("anyOf"))
-		#expect(!encoded.contains("oneOf"))
-		#expect(!encoded.contains("allOf"))
+		for schema in schemas {
+			let root = schema.parameters.objectFields
+			#expect(root["type"]?.stringValue == "object", "\(schema.name.rawValue)")
+			#expect(
+				Set(root.keys).isDisjoint(with: ["anyOf", "oneOf", "allOf"]),
+				"\(schema.name.rawValue)")
+		}
 		#expect(schemas.contains { $0.description.contains("Form = fitness - fatigue") })
 	}
 

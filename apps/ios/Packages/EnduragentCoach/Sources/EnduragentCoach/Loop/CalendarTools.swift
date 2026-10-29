@@ -42,40 +42,10 @@ extension CoachTools {
 		parameters: ToolParameters.object(
 			properties: [
 				"preparation": .object([
-					"type": .string("object"),
 					"description": .string(
 						"kind complete with changes; replace with base and changes; revise with base and replacements [{id, change}]; or incomplete with reason. A change is {kind: add-cycling, date, workout, trainingLoad?}, {kind: add-strength, date, name, durationMinutes, effort, description, trainingLoad?}, {kind: edit, eventId, patch} or {kind: delete, eventId}. base is {setId, revision} from get_pending_workout_changes."
 					),
-					"properties": .object([
-						"kind": .object([
-							"type": .string("string"),
-							"enum": .array(
-								["complete", "replace", "revise", "incomplete"].map(
-									JSONValue.string)),
-						]),
-						"changes": .object([
-							"type": .string("array"),
-							"items": .object(["type": .string("object")]),
-						]),
-						"base": ToolParameters.object(
-							properties: [
-								"setId": ToolParameters.string("The pending review's setId"),
-								"revision": ToolParameters.integer(
-									"The pending review's revision", minimum: 1),
-							],
-							required: ["setId", "revision"]),
-						"replacements": .object([
-							"type": .string("array"),
-							"items": ToolParameters.object(
-								properties: [
-									"id": ToolParameters.string("A pending item id"),
-									"change": .object(["type": .string("object")]),
-								],
-								required: ["id", "change"]),
-						]),
-						"reason": ToolParameters.string("Why the requested set cannot be prepared"),
-					]),
-					"required": .array([.string("kind")]),
+					"anyOf": .array(PreparationRequest.advertisedKinds),
 				])
 			],
 			required: ["preparation"]

@@ -216,6 +216,47 @@ import Testing
 		#expect(intervals.calls.allSatisfy { !$0.isCalendarCall })
 	}
 
+	@Test func eachPreparationKindIsAdvertisedWithExactlyTheFieldsItAccepts() async throws {
+		transport.respond = ScriptedReply.sequence(
+			[.text("Easy spin today."), .finish(reason: .stop)], otherwise: transport.respond)
+		let coach = await makeCoach(
+			transport: transport, intervals: intervals, store: store, clock: auckland)
+
+		_ = try await coach.sendAndSettle("What should I ride?")
+
+		let body = OpenRouterHTTP.body(for: try #require(transport.requests.first))
+		let function = try #require(
+			body.objectFields["tools"]?.arrayValue?.lazy.compactMap { $0.objectFields["function"] }
+				.first { $0.objectFields["name"] == .string("prepare_workout_changes") })
+		let preparation = try #require(
+			function.objectFields["parameters"]?.objectFields["properties"]?
+				.objectFields["preparation"])
+		let branches = try #require(preparation.objectFields["anyOf"]?.arrayValue)
+		var advertised: [String: Set<String>] = [:]
+		for branch in branches {
+			let fields = branch.objectFields
+			let kinds = try #require(
+				fields["properties"]?.objectFields["kind"]?.objectFields["enum"]?.arrayValue)
+			try #require(kinds.count == 1)
+			let kind = try #require(kinds.first?.stringValue)
+			let properties = Set(try #require(fields["properties"]).objectFields.keys)
+			let required = try #require(fields["required"]?.arrayValue).compactMap(\.stringValue)
+			#expect(fields["type"] == .string("object"), "\(kind)")
+			#expect(fields["additionalProperties"] == .bool(false), "\(kind)")
+			#expect(required.count == Set(required).count, "\(kind)")
+			#expect(Set(required) == properties, "\(kind)")
+			#expect(advertised.updateValue(properties, forKey: kind) == nil, "\(kind)")
+		}
+
+		#expect(
+			advertised == [
+				"complete": ["kind", "changes"],
+				"replace": ["kind", "base", "changes"],
+				"revise": ["kind", "base", "replacements"],
+				"incomplete": ["kind", "reason"],
+			])
+	}
+
 	@Test func aReviewTurnIsOfferedThePreparationToolsInsteadOfTheGatedOnes() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], otherwise: transport.respond)

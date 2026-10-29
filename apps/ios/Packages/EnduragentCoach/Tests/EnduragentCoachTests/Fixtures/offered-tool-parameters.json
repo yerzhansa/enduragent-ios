@@ -505,69 +505,146 @@
  "prepare_workout_changes": {
   "properties": {
    "preparation": {
-    "description": "kind complete with changes; replace with base and changes; revise with base and replacements [{id, change}]; or incomplete with reason. A change is {kind: add-cycling, date, workout, trainingLoad?}, {kind: add-strength, date, name, durationMinutes, effort, description, trainingLoad?}, {kind: edit, eventId, patch} or {kind: delete, eventId}. base is {setId, revision} from get_pending_workout_changes.",
-    "properties": {
-     "base": {
+    "anyOf": [
+     {
+      "additionalProperties": false,
       "properties": {
-       "revision": {
-        "description": "The pending review's revision",
-        "minimum": 1,
-        "type": "integer"
+       "changes": {
+        "items": {
+         "type": "object"
+        },
+        "type": "array"
        },
-       "setId": {
-        "description": "The pending review's setId",
+       "kind": {
+        "enum": [
+         "complete"
+        ],
         "type": "string"
        }
       },
       "required": [
-       "setId",
-       "revision"
+       "changes",
+       "kind"
       ],
       "type": "object"
      },
-     "changes": {
-      "items": {
-       "type": "object"
-      },
-      "type": "array"
-     },
-     "kind": {
-      "enum": [
-       "complete",
-       "replace",
-       "revise",
-       "incomplete"
-      ],
-      "type": "string"
-     },
-     "reason": {
-      "description": "Why the requested set cannot be prepared",
-      "type": "string"
-     },
-     "replacements": {
-      "items": {
-       "properties": {
-        "change": {
+     {
+      "additionalProperties": false,
+      "properties": {
+       "base": {
+        "properties": {
+         "revision": {
+          "description": "The pending review's revision",
+          "minimum": 1,
+          "type": "integer"
+         },
+         "setId": {
+          "description": "The pending review's setId",
+          "type": "string"
+         }
+        },
+        "required": [
+         "setId",
+         "revision"
+        ],
+        "type": "object"
+       },
+       "changes": {
+        "items": {
          "type": "object"
         },
-        "id": {
-         "description": "A pending item id",
-         "type": "string"
-        }
+        "type": "array"
        },
-       "required": [
-        "id",
-        "change"
-       ],
-       "type": "object"
+       "kind": {
+        "enum": [
+         "replace"
+        ],
+        "type": "string"
+       }
       },
-      "type": "array"
+      "required": [
+       "base",
+       "changes",
+       "kind"
+      ],
+      "type": "object"
+     },
+     {
+      "additionalProperties": false,
+      "properties": {
+       "base": {
+        "properties": {
+         "revision": {
+          "description": "The pending review's revision",
+          "minimum": 1,
+          "type": "integer"
+         },
+         "setId": {
+          "description": "The pending review's setId",
+          "type": "string"
+         }
+        },
+        "required": [
+         "setId",
+         "revision"
+        ],
+        "type": "object"
+       },
+       "kind": {
+        "enum": [
+         "revise"
+        ],
+        "type": "string"
+       },
+       "replacements": {
+        "items": {
+         "properties": {
+          "change": {
+           "type": "object"
+          },
+          "id": {
+           "description": "A pending item id",
+           "type": "string"
+          }
+         },
+         "required": [
+          "id",
+          "change"
+         ],
+         "type": "object"
+        },
+        "type": "array"
+       }
+      },
+      "required": [
+       "base",
+       "kind",
+       "replacements"
+      ],
+      "type": "object"
+     },
+     {
+      "additionalProperties": false,
+      "properties": {
+       "kind": {
+        "enum": [
+         "incomplete"
+        ],
+        "type": "string"
+       },
+       "reason": {
+        "description": "Why the requested set cannot be prepared",
+        "type": "string"
+       }
+      },
+      "required": [
+       "kind",
+       "reason"
+      ],
+      "type": "object"
      }
-    },
-    "required": [
-     "kind"
     ],
-    "type": "object"
+    "description": "kind complete with changes; replace with base and changes; revise with base and replacements [{id, change}]; or incomplete with reason. A change is {kind: add-cycling, date, workout, trainingLoad?}, {kind: add-strength, date, name, durationMinutes, effort, description, trainingLoad?}, {kind: edit, eventId, patch} or {kind: delete, eventId}. base is {setId, revision} from get_pending_workout_changes."
    }
   },
   "required": [

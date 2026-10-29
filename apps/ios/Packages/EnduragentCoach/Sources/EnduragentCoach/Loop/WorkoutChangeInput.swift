@@ -1,18 +1,58 @@
 import Foundation
 
 extension PreparationRequest {
-	private enum Kind: String {
+	private enum Kind: String, CaseIterable {
 		case complete, replace, revise, incomplete
 
-		var fields: Set<String> {
-			switch self {
-			case .complete: ["kind", "changes"]
-			case .replace: ["kind", "base", "changes"]
-			case .revise: ["kind", "base", "replacements"]
-			case .incomplete: ["kind", "reason"]
+		var fields: [String: JSONValue] {
+			let kind: JSONValue = .object([
+				"type": .string("string"), "enum": .array([.string(rawValue)]),
+			])
+			return switch self {
+			case .complete: ["kind": kind, "changes": Self.changes]
+			case .replace: ["kind": kind, "base": Self.base, "changes": Self.changes]
+			case .revise: ["kind": kind, "base": Self.base, "replacements": Self.replacements]
+			case .incomplete:
+				[
+					"kind": kind,
+					"reason": ToolParameters.string("Why the requested set cannot be prepared"),
+				]
 			}
 		}
+
+		var schema: JSONValue {
+			.object([
+				"type": .string("object"),
+				"properties": .object(fields),
+				"required": .array(fields.keys.sorted().map(JSONValue.string)),
+				"additionalProperties": .bool(false),
+			])
+		}
+
+		private static let changes: JSONValue = .object([
+			"type": .string("array"),
+			"items": .object(["type": .string("object")]),
+		])
+
+		private static let base = ToolParameters.object(
+			properties: [
+				"setId": ToolParameters.string("The pending review's setId"),
+				"revision": ToolParameters.integer("The pending review's revision", minimum: 1),
+			],
+			required: ["setId", "revision"])
+
+		private static let replacements: JSONValue = .object([
+			"type": .string("array"),
+			"items": ToolParameters.object(
+				properties: [
+					"id": ToolParameters.string("A pending item id"),
+					"change": .object(["type": .string("object")]),
+				],
+				required: ["id", "change"]),
+		])
 	}
+
+	static let advertisedKinds = Kind.allCases.map(\.schema)
 
 	init(arguments: JSONValue, today: CivilDate) throws(ToolInputError) {
 		let preparation = try StrictObject(
@@ -23,7 +63,8 @@ extension PreparationRequest {
 		else {
 			throw .invalid("preparation.kind must be complete, replace, revise or incomplete.")
 		}
-		let fields = try StrictObject(preparation, at: "preparation", allowing: kind.fields)
+		let fields = try StrictObject(
+			preparation, at: "preparation", allowing: Set(kind.fields.keys))
 		switch kind {
 		case .complete:
 			self = .complete(try Self.changes(fields.required("changes"), today: today))
