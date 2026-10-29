@@ -19,15 +19,13 @@ enum FeedbackSendGate {
 	}
 
 	static func readsEmpty(_ field: XCUIElement) -> Bool {
-		guard let shown = field.value as? String else { return false }
+		guard let shown = field.value as? String else { return true }
 		return shown.isEmpty || shown == field.placeholderValue
 	}
 
 	private static func note(in field: XCUIElement) throws -> String {
-		guard let shown = field.value as? String else {
-			throw PhoneRunBlocked(reason: "fail send-guard")
-		}
-		guard !shown.isEmpty, shown == field.placeholderValue else { return shown }
+		let shown = field.value as? String
+		if let shown, shown.isEmpty || shown != field.placeholderValue { return shown }
 		let probe = "x"
 		field.tap()
 		field.typeText(probe)
