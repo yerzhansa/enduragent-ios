@@ -1474,13 +1474,11 @@
     },
     "menu": "選單",
     "turn": {
-      "buyCredits": "購買點數",
       "chooseAccessMethod": "選擇存取方式",
       "finishedWhileLocked": "已在手機鎖定期間完成。",
       "interruptedNothingChanged": "本次回覆在完成前中斷。未做任何變更。",
       "interruptedSomeSaved": "本次回覆在完成前中斷。部分資訊已在中斷前儲存。",
       "receivedBeforeClose": "已在應用程式關閉前收到。點一下「重試」即可傳送。",
-      "restorePurchases": "回復購買項目",
       "signInAgain": "重新登入"
     },
     "welcome": "歡迎使用 {{product}}！\n\n我是 AI 自行車教練，可以使用 {{service}} 資料制定訓練計畫、推薦訓練課表並追蹤體能。\n\n指令：\n{{commands}}\n\n也可以直接和我聊聊訓練！",
@@ -2979,14 +2977,10 @@
     }
   },
   "credits": {
-    "buy": "購買",
-    "testers": "測試者目前還不能購買點數包。",
     "title": "點數",
     "balance_other": "{{formattedCount}} 點數",
-    "pack_other": "{{formattedCount}} 點數",
-    "packPrice_other": "{{formattedCount}} 點數 · {{price}}",
     "error": {
-      "accessRejected": "無法使用你的點數。請回復購買項目以繼續。",
+      "accessRejected": "無法使用你的點數。你可以切換到你的 OpenRouter 帳戶。",
       "exhausted": "你的點數已用完。你可以切換到你的 OpenRouter 帳戶。",
       "unavailable": "點數目前無法使用。請稍後重試。",
       "accountChanged": "完成此請求期間，你的點數帳戶發生了變更。你目前的帳戶已保留。"

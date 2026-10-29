@@ -96,7 +96,6 @@ extension FixtureLaunchTests {
 		#expect(model.navigation == [.settings, .credits])
 		await model.loadCredits()
 		#expect(model.balance?.units == 200)
-		#expect(model.catalog?.packs.count == 2)
 		model.navigation.removeAll()
 		model.open(.history)
 		#expect(model.navigation == [.history])

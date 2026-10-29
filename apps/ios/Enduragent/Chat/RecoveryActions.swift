@@ -5,8 +5,6 @@ extension ShellModel {
 		switch action {
 		case .tryAgain(let turn), .wait(let turn):
 			await tryAgain(turn)
-		case .restoreCredits, .buyCredits:
-			open(.credits)
 		case .connectTraining:
 			open(.training)
 			trainingSettings.edit()

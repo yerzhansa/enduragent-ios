@@ -51,10 +51,6 @@ private enum SettingsNavigationScreen {
 		XCTAssertEqual(
 			TutorialHarness.named(app, "credits.balance").label,
 			phrasebook.say(Catalog.creditsBalance, count: 200, ["formattedCount": "200"]))
-		let buy = app.buttons.matching(
-			NSPredicate(format: "label == %@", phrasebook.say(Catalog.creditsBuy)))
-		XCTAssertEqual(buy.count, 2)
-		for button in buy.allElementsBoundByIndex { XCTAssertFalse(button.isEnabled) }
 		TutorialHarness.attach(test, name: "\(name)-credits", app: app)
 		app.navigationBars.buttons.element(boundBy: 0).tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "settings.credits"), until: .hittable)

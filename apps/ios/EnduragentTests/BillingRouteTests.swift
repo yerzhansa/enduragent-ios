@@ -43,16 +43,10 @@ struct BillingRouteTests {
 			try assertUnchanged(model, selection: selection, account: account)
 			#expect(model.chat?.turns == saved.turns)
 		}
-		for action in [
-			RecoveryAction.buyCredits, .restoreCredits, .chooseAccessMethod, .switchToOpenRouter,
-		] {
+		for action in [RecoveryAction.chooseAccessMethod, .switchToOpenRouter] {
 			model.navigation.removeAll()
 			await model.perform(action)
-			if action == .buyCredits || action == .restoreCredits { await model.loadCredits() }
-			#expect(
-				model.navigation == [
-					action == .buyCredits || action == .restoreCredits ? .credits : .accessMethod
-				])
+			#expect(model.navigation == [.accessMethod])
 			try assertUnchanged(model, selection: selection, account: account)
 			#expect(model.chat?.turns == saved.turns)
 		}
@@ -93,7 +87,7 @@ struct BillingRouteTests {
 		}
 		#expect(
 			failure.notice?.actions
-				== (method == .credits ? [.buyCredits, .switchToOpenRouter] : nil))
+				== (method == .credits ? [.switchToOpenRouter] : nil))
 		if method == .openRouter {
 			try await model.waitForStatus { $0.access.attention == .rejectedKey }
 			#expect(model.status.access.notice?.actions == [.signInToOpenRouter])
@@ -113,14 +107,12 @@ struct BillingRouteTests {
 			#expect(model.navigation.isEmpty)
 			#expect(model.chat?.turns == saved.turns)
 			#expect(requests.withLock { $0.count } == modelRequests)
-			await model.perform(.buyCredits)
-			#expect(model.navigation == [.credits])
+			model.open(.credits)
 			await model.loadCredits()
 			#expect(model.balance?.units == 0)
 			#expect(
 				model.creditsNotice?.sentence(in: model.displayLocale)
 					== "You're out of Credits. You can switch to your OpenRouter account.")
-			#expect(model.catalog?.purchasesEnabled == false)
 			model.open(.accessMethod)
 		} else {
 			await model.perform(.signInToOpenRouter)

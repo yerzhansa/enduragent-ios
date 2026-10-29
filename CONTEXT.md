@@ -11,7 +11,7 @@ How the coach reaches and pays for a model: Credits or OpenRouter account.
 _Avoid_: Billing mode, plan, provider
 
 **Credits**:
-Prepaid units bought in the app through the App Store and spent on the built-in model.
+Units spent on the built-in model. Each iPhone gets a starter amount once, and the app sells none.
 _Avoid_: Balance, tokens, coins
 
 **Built-in model**:

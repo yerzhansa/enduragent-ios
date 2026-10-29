@@ -116,8 +116,6 @@ public struct AthleteNotice: Sendable, Equatable {
 public enum RecoveryAction: Sendable, Equatable {
 	case tryAgain(TurnID)
 	case wait(thenTryAgain: TurnID)
-	case restoreCredits
-	case buyCredits
 	case chooseAccessMethod
 	case switchToOpenRouter
 	case signInToOpenRouter
@@ -126,8 +124,6 @@ public enum RecoveryAction: Sendable, Equatable {
 	public var title: CatalogKey {
 		switch self {
 		case .tryAgain, .wait: Catalog.chatTranscriptRetry
-		case .restoreCredits: Catalog.chatTurnRestorePurchases
-		case .buyCredits: Catalog.chatTurnBuyCredits
 		case .chooseAccessMethod: Catalog.chatTurnChooseAccessMethod
 		case .switchToOpenRouter: Catalog.accessSwitchToOpenRouter
 		case .signInToOpenRouter: Catalog.chatTurnSignInAgain
@@ -205,7 +201,7 @@ package enum AthleteNotices {
 		switch failure {
 		case .model(.credentialRejected(.credits)):
 			return AthleteNotice(
-				key: Catalog.creditsErrorAccessRejected, actions: [.restoreCredits])
+				key: Catalog.creditsErrorAccessRejected, actions: [.switchToOpenRouter])
 		case .model(.credentialRejected(.openRouterAccount)):
 			return AthleteNotice(
 				key: Catalog.coachErrorReauth, vars: ["provider": .text(openRouter)],
@@ -217,7 +213,7 @@ package enum AthleteNotices {
 			return AthleteNotice(key: Catalog.accessErrorRequestBlocked, actions: [])
 		case .model(.accessExhausted(.credits)):
 			return AthleteNotice(
-				key: Catalog.creditsErrorExhausted, actions: [.buyCredits, .switchToOpenRouter])
+				key: Catalog.creditsErrorExhausted, actions: [.switchToOpenRouter])
 		case .model(.accessExhausted(.openRouterAccount)):
 			return AthleteNotice(
 				key: Catalog.accessErrorOpenRouterFunds, actions: [.chooseAccessMethod])

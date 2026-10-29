@@ -5,17 +5,17 @@ import XCTest
 final class DisplayLocaleProof: XCTestCase {
 	func testFrenchWordsWithUSFormats() {
 		prove(
-			region: "en_US", history: "mercredi, mars 4, 2026", pack: "2,000 crédits",
+			region: "en_US", history: "mercredi, mars 4, 2026",
 			outcomeDate: "6/16/1998")
 	}
 
 	func testFrenchWordsWithFrenchFormats() {
 		prove(
-			region: "fr_FR", history: "mercredi 4 mars 2026", pack: "2 000 crédits",
+			region: "fr_FR", history: "mercredi 4 mars 2026",
 			outcomeDate: "16/06/1998")
 	}
 
-	private func prove(region: String, history: String, pack: String, outcomeDate: String) {
+	private func prove(region: String, history: String, outcomeDate: String) {
 		let app = XCUIApplication()
 		TutorialHarness.launch(
 			app, language: "ru,fr,en", locale: region, clock: "1998-06-15T13:05:00Z")
@@ -37,9 +37,9 @@ final class DisplayLocaleProof: XCTestCase {
 		let credits = TutorialHarness.named(app, "settings.credits")
 		TutorialHarness.wait(credits, until: .hittable)
 		credits.tap()
-		let large = TutorialHarness.named(app, "credits.pack.icu.enduragent.credits.large")
-		TutorialHarness.wait(large)
-		XCTAssertEqual(large.label, pack)
+		let balance = TutorialHarness.named(app, "credits.balance")
+		TutorialHarness.wait(balance)
+		XCTAssertEqual(balance.label, "200 crédits")
 		TutorialHarness.attach(self, name: "u9-3-credits-fr-\(region)", app: app)
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.relaunchKeepingStore(app, clock: "1998-06-15T13:05:00Z")

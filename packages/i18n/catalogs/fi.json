@@ -1487,13 +1487,11 @@
     },
     "menu": "Valikko",
     "turn": {
-      "buyCredits": "Osta krediittejä",
       "chooseAccessMethod": "Valitse yhteystapa",
       "finishedWhileLocked": "Valmistui puhelimen ollessa lukittuna.",
       "interruptedNothingChanged": "Tämä vastaus keskeytyi ennen valmistumistaan. Mitään ei muutettu.",
       "interruptedSomeSaved": "Tämä vastaus keskeytyi ennen valmistumistaan. Osa tiedoista ehdittiin tallentaa.",
       "receivedBeforeClose": "Vastaanotettu ennen sovelluksen sulkeutumista. Lähetä viesti napauttamalla Yritä uudelleen.",
-      "restorePurchases": "Palauta ostokset",
       "signInAgain": "Kirjaudu uudelleen"
     },
     "welcome": "Tervetuloa käyttämään sovellusta {{product}}!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun {{service}} tietojen avulla.\n\nKomennot:\n{{commands}}\n\nVoit myös vain jutella kanssani harjoittelustasi!",
@@ -3015,17 +3013,11 @@
     }
   },
   "credits": {
-    "buy": "Osta",
-    "testers": "Testaajat eivät voi vielä ostaa paketteja.",
     "title": "Krediitit",
     "balance_one": "{{formattedCount}} krediitti",
-    "pack_one": "{{formattedCount}} krediitti",
-    "packPrice_one": "{{formattedCount}} krediitti · {{price}}",
     "balance_other": "{{formattedCount}} krediittiä",
-    "pack_other": "{{formattedCount}} krediittiä",
-    "packPrice_other": "{{formattedCount}} krediittiä · {{price}}",
     "error": {
-      "accessRejected": "Krediittejäsi ei voitu käyttää. Palauta ostokset jatkaaksesi.",
+      "accessRejected": "Krediittejäsi ei voitu käyttää. Voit vaihtaa OpenRouter-tiliisi.",
       "exhausted": "Krediittisi ovat loppuneet. Voit vaihtaa OpenRouter-tiliisi.",
       "unavailable": "Krediitit eivät ole juuri nyt käytettävissä. Yritä myöhemmin uudelleen.",
       "accountChanged": "Krediittitilisi vaihtui tämän pyynnön viimeistelyn aikana. Nykyinen tilisi säilytettiin."

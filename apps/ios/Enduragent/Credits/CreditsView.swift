@@ -10,19 +10,6 @@ struct CreditsView: View {
 				Text(balance)
 					.accessibilityIdentifier("credits.balance")
 			}
-			if let catalog = model.catalog {
-				ForEach(catalog.packs) { pack in
-					HStack {
-						Text(model.creditsPackLine(pack))
-						Spacer()
-						Button(model.phrasebook.say(Catalog.creditsBuy, [:])) {}
-							.disabled(true)
-					}
-					.accessibilityIdentifier("credits.pack.\(pack.id)")
-				}
-			}
-			Text(model.phrasebook.say(Catalog.creditsTesters, [:]))
-				.accessibilityIdentifier("credits.note")
 			Button(model.phrasebook.say(Catalog.accessSwitchToOpenRouter)) {
 				model.open(.accessMethod)
 			}
@@ -42,21 +29,9 @@ struct CreditsView: View {
 
 extension ShellModel {
 	var creditsBalanceLine: String? {
-		balance.map { countLine(Catalog.creditsBalance, units: $0.units) }
-	}
-
-	func creditsPackLine(_ pack: CreditPack) -> String {
-		if let price = packPrices[pack.id] {
-			return countLine(Catalog.creditsPackPrice, units: pack.credits.units, price: price)
+		balance.map {
+			displayLocale.say(
+				Catalog.creditsBalance, count: $0.units, ["formattedCount": .integer($0.units)])
 		}
-		return countLine(Catalog.creditsPack, units: pack.credits.units)
-	}
-
-	private func countLine(_ key: CatalogKey, units: Int, price: String? = nil) -> String {
-		var vars: [String: CatalogArgument] = ["formattedCount": .integer(units)]
-		if let price {
-			vars["price"] = .text(price)
-		}
-		return displayLocale.say(key, count: units, vars)
 	}
 }

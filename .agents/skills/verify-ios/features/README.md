@@ -53,7 +53,7 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 | [Settings](./settings.md) | Toolbar navigation, Credits and the model picker under Model access, intervals.icu connection and calendar guidance, Session, draft and setup continuity, and French icon actions. |
 | [Support](./support.md) | The Support section, Feedback with refusals, not-confirmed notes and Try again, the Diagnostics file and its share outcomes, the not-saving line, and About. |
 | [History](./history.md) | Archived conversations, close reasons, read-only content, upgrade, and open-time probes. |
-| [Credits](./credits.md) | Credit count, disabled packs, unavailable notice, recovery links from a turn, and Access method in Settings. |
+| [Credits](./credits.md) | Credit count, Switch to OpenRouter, unavailable notice, recovery links from a turn, and Access method in Settings. |
 
 ## Maintaining the map
 
