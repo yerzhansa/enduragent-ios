@@ -21,7 +21,7 @@ extension CredentialVault {
 	{
 		switch saved?.value {
 		case nil, .credits?:
-			return ConsentTarget(method: .credits, entry: try creditsEntry(builtInModel))
+			return ConsentTarget(method: .credits, entry: try builtInEntry(builtInModel))
 		case .openRouter(let reference)?:
 			return ConsentTarget(method: .openRouterAccount, entry: try savedEntry(reference))
 		}

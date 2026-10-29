@@ -14,7 +14,7 @@ extension CredentialVault {
 		switch saved?.value {
 		case nil, .credits?:
 			guard let key = try persistedCreditsKey() else { throw .notConfigured(.credits) }
-			let entry = try creditsEntry(builtInModel)
+			let entry = try builtInEntry(builtInModel)
 			return ResolvedAccess(
 				credential: ProviderCredential(secret: key.value.secret.value, method: .credits),
 				model: entry.id, provider: entry.details.provider)
@@ -158,7 +158,7 @@ extension CredentialVault {
 		}
 	}
 
-	func creditsEntry(_ model: ModelID) throws(AccessUnavailable) -> ModelCatalogEntry {
+	func builtInEntry(_ model: ModelID) throws(AccessUnavailable) -> ModelCatalogEntry {
 		do {
 			return try catalog.choice(
 				model,

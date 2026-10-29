@@ -136,10 +136,13 @@ import Testing
 		await reopened.lifecycle(.willTerminate)
 	}
 
-	@Test func firstSignInStillUsesTheBuiltInModelAfterAnOmission() async throws {
+	@Test(arguments: DownloadedBuiltIn.allCases)
+	func firstSignInFromCreditsUsesTheCurrentBuiltInEntry(_ downloaded: DownloadedBuiltIn)
+		async throws
+	{
 		let fixture = try Fixture()
-		let coach = try await fixture.coach(
-			source: FakeModelCatalogSource(response: .omittedSelectedModel))
+		let expected = try downloaded.entry(for: selected)
+		let coach = try await fixture.coach(source: try downloaded.source(for: selected))
 		_ = try await refreshedChoices(coach, cache: .available(.downloaded))
 		_ = await coach.changeModelAccess(.useCredits)
 		let credits = try await coach.observedStatus()
@@ -148,7 +151,7 @@ import Testing
 			await coach.lifecycle(.willTerminate)
 			return
 		}
-		#expect(challenge.target.entry == selected)
+		#expect(challenge.target.entry == expected)
 		try await coach.recordConsent(challenge)
 		try await fixture.proveReply(
 			coach, model: selected.id, method: .credits, selectionWrites: 1)
@@ -163,19 +166,21 @@ import Testing
 			await coach.lifecycle(.willTerminate)
 			return
 		}
-		#expect(choice.model == selected.id)
+		#expect(choice.entry == expected)
 		let status = try await coach.observedStatus()
-		#expect(status.access.modelChoices?.selected == selected)
+		#expect(status.access.modelChoices?.selected == expected)
 		guard case .required(let accountConsent) = status.access.consent else {
 			Issue.record("First sign-in needs OpenRouter consent")
 			await coach.lifecycle(.willTerminate)
 			return
 		}
+		#expect(accountConsent.target.entry == choice.entry)
 		try await coach.recordConsent(accountConsent)
 		#expect(
 			replyText(try await coach.sendAndSettle("Use the first sign-in model"))
 				== selected.id.rawValue)
 		#expect(fixture.transport.requests.last?.model == selected.id)
+		#expect(fixture.transport.requests.last?.provider == expected.details.provider)
 		#expect(fixture.transport.requests.last?.credential.method == .openRouterAccount)
 		await coach.lifecycle(.willTerminate)
 	}
@@ -300,6 +305,35 @@ import Testing
 			case .older, .equal: .stale
 			case .offline: .offline
 			case .empty: .noUsableChoices
+			}
+		}
+	}
+
+	enum DownloadedBuiltIn: CaseIterable {
+		case omitted, movedHost
+
+		func entry(for listed: ModelCatalogEntry) throws -> ModelCatalogEntry {
+			switch self {
+			case .omitted: listed
+			case .movedHost:
+				try ModelCatalogEntry(
+					id: listed.id,
+					details: ModelDetails(
+						displayName: listed.details.displayName, provider: .fixtureHost))
+			}
+		}
+
+		func source(for listed: ModelCatalogEntry) throws -> any ModelCatalogSource {
+			switch self {
+			case .omitted: FakeModelCatalogSource(response: .omittedSelectedModel)
+			case .movedHost:
+				CatalogDataSource(
+					data: try ModelCatalog(
+						revision: ModelCatalog.bundled.revision + 1,
+						entries: ModelCatalog.bundled.orderedEntries.map {
+							$0.id == listed.id ? try entry(for: listed) : $0
+						}
+					).encoded())
 			}
 		}
 	}
