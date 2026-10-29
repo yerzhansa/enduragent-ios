@@ -1,6 +1,7 @@
 import EnduragentCoachFixtures
 import Foundation
 import Security
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -13,16 +14,7 @@ import Testing
 
 	@Test func bundledChoicesAnswerOfflineAndMatchCreditsBuildPolicy() async throws {
 		let first = try #require(catalog.orderedEntries.first)
-		let ios = (0..<5).reduce(URL(fileURLWithPath: #filePath)) { path, _ in
-			path.deletingLastPathComponent()
-		}
-		let project = try String(contentsOf: ios.appending(path: "project.yml"), encoding: .utf8)
-		let setting = try #require(
-			project.split(separator: "\n").first {
-				$0.trimmingCharacters(in: .whitespaces).hasPrefix("OPENROUTER_MODEL:")
-			})
-		let builtIn = ModelID(
-			rawValue: try #require(setting.split(separator: " ").last).description)
+		let builtIn = try projectBuiltInModel()
 		#expect(first.id == builtIn)
 		let fixture = try secrets()
 		let transport = FakeModelTransport(respond: reply)
@@ -230,11 +222,82 @@ import Testing
 		#expect(requests.contains { $0.charge == .memoryFlush })
 		let model = method == .credits ? ModelCatalog.bundled.orderedEntries[0].id : chosen.id
 		#expect(requests.allSatisfy { $0.model == model && $0.credential.method == method })
-		#expect(
-			requests.allSatisfy {
-				$0.provider == (method == .credits ? nil : chosen.details.provider)
-			})
+		let host =
+			method == .credits
+			? ModelCatalog.bundled.orderedEntries[0].details.provider : chosen.details.provider
+		#expect(requests.allSatisfy { $0.provider == host })
 		await coach.lifecycle(.willTerminate)
+	}
+
+	@Test(arguments: [AccessMethod.credits, .openRouterAccount])
+	func updatedHostAsksConsentOnceThenPinsTheWire(_ method: AccessMethod) async throws {
+		let builtIn = try projectBuiltInModel()
+		let listed = try #require(catalog.entries[builtIn])
+		let signedIn = try ModelCatalogEntry(
+			id: builtIn,
+			details: ModelDetails(
+				displayName: listed.displayName,
+				provider: NamedProvider(name: "DeepSeek", routingSlug: "deepseek")))
+		try #require(signedIn.details.provider != listed.provider)
+		let fixture = try secrets()
+		let earlier = try ModelCatalog(revision: 1, entries: [signedIn])
+		try fixture.store.installOpenRouterChoice(model: builtIn, key: accountKey, catalog: earlier)
+		let records = InMemoryRecordLog()
+		let before = await coach(
+			fixture.store, transport: FakeModelTransport(respond: reply), records: records,
+			catalog: earlier, builtIn: builtIn)
+		if method == .credits {
+			_ = await before.changeModelAccess(.useCredits)
+			try await before.recordConsent()
+		}
+		#expect(try await before.observedStatus().acceptedConsent?.target?.method == method)
+		await before.lifecycle(.willTerminate)
+		let bodies = Mutex<[JSONValue]>([])
+		let models = try OpenRouterStub.models(catalog: .bundled) { request in
+			do {
+				let body = try #require(openRouterHTTPBody(from: request))
+				let parsed = try JSONValue.parse(String(decoding: body, as: UTF8.self))
+				bodies.withLock { $0.append(parsed) }
+			} catch {
+				Issue.record(error)
+			}
+			return .reply(
+				.sse(
+					#"data: {"choices":[{"delta":{"content":"Pinned."},"finish_reason":"stop"}]}"#
+						+ "\ndata: [DONE]\n"))
+		}
+		let updated = makeCoach(
+			records: RecordStore(log: records),
+			secrets: try ICloudKeychainStore.fixture(directory: fixture.directory).store,
+			models: models, clock: clock, builtInModel: builtIn)
+		guard case .required(let challenge) = try await updated.observedStatus().access.consent
+		else {
+			Issue.record("An updated host must ask for consent before any message goes to it")
+			return
+		}
+		#expect(challenge.target.method == method)
+		#expect(challenge.target.entry.details == listed)
+		#expect(
+			failure(try await updated.sendAndSettle("Before agreeing to the new host"))
+				== .model(.accessUnavailable(.providerConsentRequired)))
+		#expect(bodies.withLock { $0.isEmpty })
+		try await updated.recordConsent(challenge)
+		#expect(replyText(try await updated.sendAndSettle("After agreeing")) == "Pinned.")
+		let sent = try #require(bodies.withLock { $0.last }).objectFields
+		#expect(sent["model"] == .string(builtIn.rawValue))
+		#expect(
+			sent["provider"]
+				== .object([
+					"only": .array([.string(listed.provider.routingSlug)]),
+					"allow_fallbacks": .bool(false),
+				]))
+		await updated.lifecycle(.willTerminate)
+		let reopened = makeCoach(
+			records: RecordStore(log: records),
+			secrets: try ICloudKeychainStore.fixture(directory: fixture.directory).store,
+			models: models, clock: clock, builtInModel: builtIn)
+		#expect(try await reopened.observedStatus().needsProviderConsent == false)
+		await reopened.lifecycle(.willTerminate)
 	}
 
 	private func choose(_ model: ModelID, using coach: Coach) async throws -> AccessSelection {

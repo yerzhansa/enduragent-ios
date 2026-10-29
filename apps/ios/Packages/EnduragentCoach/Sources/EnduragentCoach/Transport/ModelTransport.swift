@@ -24,9 +24,9 @@ package struct ProviderCredential: Sendable, Equatable, CustomStringConvertible,
 package struct ResolvedAccess: Sendable, Equatable {
 	package let credential: ProviderCredential
 	package let model: ModelID
-	package let provider: NamedProvider?
+	package let provider: NamedProvider
 
-	package init(credential: ProviderCredential, model: ModelID, provider: NamedProvider? = nil) {
+	package init(credential: ProviderCredential, model: ModelID, provider: NamedProvider) {
 		self.credential = credential
 		self.model = model
 		self.provider = provider
@@ -46,7 +46,7 @@ package enum GenerateCharge: Sendable, Equatable {
 package struct CompletionRequest: Sendable, Equatable {
 	package let credential: ProviderCredential
 	package let model: ModelID
-	package let provider: NamedProvider?
+	package let provider: NamedProvider
 	package let attempt: AttemptID
 	package let origin: AttemptOrigin?
 	package let charge: GenerateCharge
@@ -231,16 +231,14 @@ package enum OpenRouterHTTP {
 			"messages": .array(request.messages.map(encode(message:))),
 			"stream": .bool(true),
 			"usage": .object(["include": .bool(true)]),
+			"provider": .object([
+				"only": .array([.string(request.provider.routingSlug)]),
+				"allow_fallbacks": .bool(false),
+			]),
 		]
 		if !request.tools.isEmpty {
 			object["tools"] = .array(request.tools.map(encode(tool:)))
 			object["tool_choice"] = .string("auto")
-		}
-		if let provider = request.provider {
-			object["provider"] = .object([
-				"only": .array([.string(provider.routingSlug)]),
-				"allow_fallbacks": .bool(false),
-			])
 		}
 		return .object(object)
 	}

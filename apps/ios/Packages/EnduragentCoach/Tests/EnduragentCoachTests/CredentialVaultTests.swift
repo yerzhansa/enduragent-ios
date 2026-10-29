@@ -231,7 +231,8 @@ import Testing
 
 	func testAccess(secret: String) -> ResolvedAccess {
 		ResolvedAccess(
-			credential: ProviderCredential(secret: secret, method: .credits), model: testModel)
+			credential: ProviderCredential(secret: secret, method: .credits), model: testModel,
+			provider: .fixtureHost)
 	}
 }
 

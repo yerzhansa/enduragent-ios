@@ -87,7 +87,7 @@ extension TutorialHarness {
 		if arguments.accessMethod == .syncedOpenRouter {
 			return ["model": "Claude Sonnet 4.5", "provider": "Anthropic"]
 		}
-		return ["model": "DeepSeek V4.1 Flash", "provider": "DeepSeek"]
+		return ["model": "DeepSeek V4.1 Flash", "provider": "DeepInfra"]
 	}
 
 }

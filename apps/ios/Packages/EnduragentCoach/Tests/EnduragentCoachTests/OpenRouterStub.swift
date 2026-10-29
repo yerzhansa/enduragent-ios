@@ -68,11 +68,11 @@ final class OpenRouterStub: URLProtocol, @unchecked Sendable {
 		}
 	}
 
-	static func models(handler: @escaping @Sendable (URLRequest) -> Outcome) throws
-		-> ModelService
-	{
+	static func models(
+		catalog: ModelCatalog = .fixture, handler: @escaping @Sendable (URLRequest) -> Outcome
+	) throws -> ModelService {
 		let baseURL = try route(handler)
-		return ModelService(catalog: .fixture) { diagnostics in
+		return ModelService(catalog: catalog) { diagnostics in
 			OpenRouterTransport(baseURL: baseURL, diagnostics: diagnostics, makeSession: session)
 		}
 	}

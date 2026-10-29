@@ -1,10 +1,10 @@
 {
-  "revision": 1,
+  "revision": 2,
   "entries": [
     {
       "id": "deepseek/deepseek-v4.1-flash-20260910",
       "displayName": "DeepSeek V4.1 Flash",
-      "provider": { "name": "DeepSeek", "routingSlug": "deepseek" }
+      "provider": { "name": "DeepInfra", "routingSlug": "deepinfra/fp8" }
     },
     {
       "id": "anthropic/claude-sonnet-4.5",

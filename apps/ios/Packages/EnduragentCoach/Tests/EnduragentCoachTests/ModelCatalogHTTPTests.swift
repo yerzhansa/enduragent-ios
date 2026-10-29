@@ -51,7 +51,7 @@ private final class CatalogURLStub: URLProtocol, @unchecked Sendable {
 			return
 		}
 		let data = Data(
-			#"{"revision":2,"entries":[{"id":"fixture/http-model","displayName":"HTTP Coach","provider":{"name":"Fixture Host","routingSlug":"fixture-host"}}]}"#
+			#"{"revision":\#(ModelCatalog.bundled.revision + 1),"entries":[{"id":"fixture/http-model","displayName":"HTTP Coach","provider":{"name":"Fixture Host","routingSlug":"fixture-host"}}]}"#
 				.utf8)
 		client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
 		client?.urlProtocol(self, didLoad: data)

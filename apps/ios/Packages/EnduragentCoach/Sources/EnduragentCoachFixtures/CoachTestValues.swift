@@ -4,7 +4,8 @@ import Foundation
 package let testModel = ModelID(rawValue: "test/coach-model")
 package let testKey = "sk-or-test-credits-key"
 package let testAccess = ResolvedAccess(
-	credential: ProviderCredential(secret: testKey, method: .credits), model: testModel)
+	credential: ProviderCredential(secret: testKey, method: .credits), model: testModel,
+	provider: .fixtureHost)
 
 package let testAthlete: IntervalsAthleteID = {
 	guard let athlete = IntervalsAthleteID(rawValue: "i1001") else {

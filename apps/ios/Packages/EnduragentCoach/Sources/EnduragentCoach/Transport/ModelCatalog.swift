@@ -60,10 +60,10 @@ public struct ModelCatalog: Equatable, Sendable {
 				}))
 	}
 
-	package func choice(_ id: ModelID, retaining details: ModelDetails? = nil) throws
+	package func choice(_ id: ModelID, unlisted details: ModelDetails? = nil) throws
 		-> ModelCatalogEntry
 	{
-		guard let details = details ?? entries[id] else {
+		guard let details = entries[id] ?? details else {
 			throw ModelCatalogIssue.modelNotInCatalog
 		}
 		return try ModelCatalogEntry(id: id, details: details)

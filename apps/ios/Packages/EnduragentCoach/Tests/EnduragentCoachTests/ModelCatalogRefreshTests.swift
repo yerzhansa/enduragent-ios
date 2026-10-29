@@ -185,7 +185,8 @@ import Testing
 		let first = try await fixture.coach(source: FakeModelCatalogSource(response: .newer))
 		let lastUsable = try await refreshedChoices(first, cache: .available(.downloaded))
 		await first.lifecycle(.willTerminate)
-		let newer = try ModelCatalog(revision: 3, entries: [selected])
+		let newer = try ModelCatalog(
+			revision: ModelCatalog.bundled.revision + 2, entries: [selected])
 		let coach = try await fixture.coach(
 			source: CatalogDataSource(data: try newer.encoded()),
 			cache: RejectingCatalogCache(cache: FileModelCatalogCache(directory: fixture.directory))
