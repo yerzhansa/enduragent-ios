@@ -5,6 +5,7 @@
 		"closeout/diagnostics": {"verdict": "pass", "date": "2026-10-29"},
 		"closeout/feedback": {"verdict": "blocked runner-cannot-write-the-phone-clipboard", "date": "2026-10-29"},
 		"closeout/fill": {"verdict": "pass", "date": "2026-10-29"},
+		"closeout/language": {"verdict": "blocked turn-progress-is-debug-only", "date": "2026-10-29"},
 		"closeout/openrouter-recovery": {"verdict": "blocked deferred by the operator 2026-10-29", "date": "2026-10-29"},
 		"closeout/reads": {"verdict": "blocked deferred by the operator 2026-10-29", "date": "2026-10-29"},
 		"closeout/second-device-diagnostics": {"verdict": "blocked deferred by the operator 2026-10-29", "date": "2026-10-29"},
