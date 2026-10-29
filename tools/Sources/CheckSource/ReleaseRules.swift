@@ -43,7 +43,7 @@ struct KnownHost {
 		KnownHost(name: "feedback.enduragent.icu", reason: "Feedback notes"),
 		KnownHost(name: "intervals.icu", reason: "The athlete's training data"),
 		KnownHost(
-			name: "enduragent-credits-testflight.yerzhan-st.workers.dev",
+			name: "credits.enduragent.icu",
 			reason: "The Credits worker base, the CREDITS_WORKER_BASE build setting"),
 	]
 }
