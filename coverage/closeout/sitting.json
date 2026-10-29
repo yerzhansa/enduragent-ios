@@ -2,9 +2,11 @@
 	"steps": {
 		"closeout/about": {"verdict": "pass", "date": "2026-10-29"},
 		"closeout/choices": {"verdict": "blocked deferred by the operator 2026-10-29", "date": "2026-10-29"},
+		"closeout/debug-install": {"verdict": "pass", "date": "2026-10-29"},
 		"closeout/diagnostics": {"verdict": "pass", "date": "2026-10-29"},
 		"closeout/feedback": {"verdict": "blocked runner-cannot-write-the-phone-clipboard", "date": "2026-10-29"},
 		"closeout/fill": {"verdict": "pass", "date": "2026-10-29"},
+		"closeout/keychain-proof": {"verdict": "fail native-write-over-50ms", "date": "2026-10-29"},
 		"closeout/language": {"verdict": "blocked turn-progress-is-debug-only", "date": "2026-10-29"},
 		"closeout/lifecycle": {"verdict": "fail offline-notice-without-try-again", "date": "2026-10-29"},
 		"closeout/openrouter-recovery": {"verdict": "blocked deferred by the operator 2026-10-29", "date": "2026-10-29"},
