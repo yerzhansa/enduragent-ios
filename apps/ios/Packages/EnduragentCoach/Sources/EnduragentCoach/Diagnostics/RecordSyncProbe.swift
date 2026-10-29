@@ -17,19 +17,14 @@
 		}
 
 		public func snapshot() async throws -> RecordSyncSnapshot {
+			let (counts, skipped) = try Self.counts(await ledger.census())
 			let synced = try await ledger.read(RecordQuery(scope: .everySynced))
 			let local = try await ledger.read(RecordQuery(scope: .everyDeviceLocal))
 			let records = (synced.records + local.records).sorted { $0.hlc < $1.hlc }
-			var counts: [String: Int] = [:]
-			for record in records {
-				counts[record.body.kind, default: 0] += 1
-			}
 			return RecordSyncSnapshot(
 				deviceId: ledger.deviceId,
 				newestHLC: records.last.map { hlcText($0.hlc) } ?? "",
-				counts: counts.sorted { $0.key < $1.key }.map {
-					RecordSyncCount(kind: $0.key, count: $0.value)
-				},
+				counts: counts,
 				rows: records.map { record in
 					RecordSyncRow(
 						id: record.ulid.rawValue,
@@ -40,8 +35,27 @@
 						account: record.account.storedValue
 					)
 				},
-				skipped: synced.skipped.count + local.skipped.count
+				skipped: skipped
 			)
+		}
+
+		private static func counts(_ census: RecordCensus) throws(LedgerFailure)
+			-> (counts: [RecordSyncCount], skipped: Int)
+		{
+			switch census {
+			case .unavailable(let failure):
+				throw failure
+			case .counted(let synced, let local, let legacy, let skipped):
+				var counts: [String: Int] = [:]
+				counts.merge(synced.map { ($0.key.rawValue, $0.value) }, uniquingKeysWith: +)
+				counts.merge(local.map { ($0.key.rawValue, $0.value) }, uniquingKeysWith: +)
+				counts.merge(legacy.map { ($0.key.rawValue, $0.value) }, uniquingKeysWith: +)
+				return (
+					counts.sorted { $0.key < $1.key }.map {
+						RecordSyncCount(kind: $0.key, count: $0.value)
+					}, skipped
+				)
+			}
 		}
 
 		public func appendSyncedSamples() async throws {

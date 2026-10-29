@@ -539,6 +539,9 @@
       "switchDetail": "Cette clé appartient à l’athlète {{new}}. Votre conversation, l’historique et la mémoire restent enregistrés pour l’athlète {{current}} et ne sont pas utilisés pour l’athlète {{new}}. Changer pour utiliser cette clé ?",
       "switch": "Changer d’athlète",
       "athlete": "Athlète {{id}}"
+    },
+    "support": {
+      "title": "Assistance"
     }
   },
   "archive": {
@@ -2964,6 +2967,38 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnostic",
+    "explanation": "Crée un fichier avec la version de l’app, le modèle et la version d’iOS de cet iPhone, tes réglages, le nombre d’éléments enregistrés par l’app, et les 14 derniers jours de problèmes et d’utilisation du modèle. Il ne contient ni clés, ni messages, ni données d’entraînement. Rien ne quitte l’iPhone tant que tu ne le partages pas.",
+    "make": "Créer le fichier de diagnostic",
+    "preparing": "Préparation du fichier…",
+    "shared": "Partagé. iOS a remis le fichier à l’app choisie.",
+    "saved": "Enregistré dans Fichiers.",
+    "canceled": "Annulé. Le fichier n’a pas été partagé.",
+    "failed": "Le fichier n’a pas pu être créé.",
+    "shareFailed": "Le fichier n’a pas pu être partagé.",
+    "notSaving": "Cet iPhone n’a pas enregistré le journal des problèmes depuis {{time}}. Le fichier contient seulement ce qui a été enregistré avant et ce que cette session a noté."
+  },
+  "feedback": {
+    "title": "Commentaires",
+    "command": "Envoyer une note aux auteurs d’Enduragent",
+    "prompt": "Écris une note aux auteurs d’Enduragent. Elle part seule, sans ta conversation, ta mémoire, tes données d’entraînement ni tes diagnostics.",
+    "send": "Envoyer",
+    "sending": "Envoi…",
+    "received": "Reçue. Merci pour la note.",
+    "notSent": {
+      "noConnection": "Non envoyée. L’iPhone n’avait pas de connexion. Ta note est conservée.",
+      "busy": "Non envoyée. Le service de commentaires est occupé. Réessaie dans une minute. Ta note est conservée.",
+      "refused": "Non envoyée. Le service de commentaires a refusé la note. Ta note est conservée.",
+      "stopped": "Non envoyée. L’app s’est arrêtée avant que la note quitte cet iPhone. Ta note est conservée."
+    },
+    "notConfirmed": "Non confirmée. La note est peut-être arrivée, mais aucune réponse n’est venue. Ta note est conservée, et Réessayer envoie la même note.",
+    "refused": {
+      "empty": "Écris d’abord une note.",
+      "tooLong": "Limite ta note à {{limit}} caractères. Rien n’a été envoyé.",
+      "invalidCharacter": "La note contient un caractère qui ne peut pas être envoyé. Rien n’a été envoyé."
+    }
+  },
   "review": {
     "accountChanged": "Cette séance a été préparée pour un autre athlète sur {{service}}. Demande-moi à nouveau de la préparer pour l'athlète connecté.",
     "add": "Ajouter au calendrier",
@@ -3022,6 +3057,11 @@
       "decline": "Pas maintenant",
       "saveFailed": "Impossible d’enregistrer ton accord. Réessaie."
     }
+  },
+  "about": {
+    "title": "À propos",
+    "privacyPolicy": "Politique de confidentialité",
+    "version": "Version"
   },
   "access": {
     "error": {

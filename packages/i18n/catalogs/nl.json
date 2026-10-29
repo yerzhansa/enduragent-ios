@@ -539,6 +539,9 @@
       "switchDetail": "Deze sleutel hoort bij atleet {{new}}. Je gesprek, geschiedenis en geheugen blijven opgeslagen voor atleet {{current}} en worden niet gebruikt voor atleet {{new}}. Wisselen om deze sleutel te gebruiken?",
       "switch": "Atleet wisselen",
       "athlete": "Atleet {{id}}"
+    },
+    "support": {
+      "title": "Ondersteuning"
     }
   },
   "archive": {
@@ -2964,6 +2967,38 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnose",
+    "explanation": "Maak een bestand met de versie van de app, het model en de iOS-versie van deze iPhone, je instellingen, tellingen van wat de app heeft bewaard en de problemen en het modelgebruik van de afgelopen 14 dagen. Het bevat geen sleutels, berichten of trainingsgegevens. Er verlaat niets de iPhone tot je het deelt.",
+    "make": "Diagnosebestand maken",
+    "preparing": "Bestand voorbereiden…",
+    "shared": "Gedeeld. iOS heeft het bestand doorgegeven aan de app die je koos.",
+    "saved": "Bewaard in Bestanden.",
+    "canceled": "Geannuleerd. Het bestand is niet gedeeld.",
+    "failed": "Het bestand kon niet worden gemaakt.",
+    "shareFailed": "Het bestand kon niet worden gedeeld.",
+    "notSaving": "Deze iPhone heeft het probleemlogboek sinds {{time}} niet bewaard. Het bestand bevat alleen wat daarvoor is bewaard en wat deze sessie heeft vastgelegd."
+  },
+  "feedback": {
+    "title": "Feedback",
+    "command": "Een notitie sturen aan de auteurs van Enduragent",
+    "prompt": "Schrijf een notitie aan de auteurs van Enduragent. Die wordt los verstuurd, zonder je gesprek, geheugen, trainingsgegevens of diagnostiek.",
+    "send": "Versturen",
+    "sending": "Bezig met versturen…",
+    "received": "Ontvangen. Bedankt voor je notitie.",
+    "notSent": {
+      "noConnection": "Niet verstuurd. De iPhone had geen verbinding. Je notitie blijft bewaard.",
+      "busy": "Niet verstuurd. De feedbackdienst is bezet. Probeer het over een minuut opnieuw. Je notitie blijft bewaard.",
+      "refused": "Niet verstuurd. De feedbackdienst heeft de notitie geweigerd. Je notitie blijft bewaard.",
+      "stopped": "Niet verstuurd. De app stopte voordat de notitie deze iPhone verliet. Je notitie blijft bewaard."
+    },
+    "notConfirmed": "Niet bevestigd. De notitie is misschien aangekomen, maar er kwam geen antwoord. Je notitie blijft bewaard, en Opnieuw proberen verstuurt dezelfde notitie.",
+    "refused": {
+      "empty": "Schrijf eerst een notitie.",
+      "tooLong": "Houd je notitie op maximaal {{limit}} tekens. Er is niets verstuurd.",
+      "invalidCharacter": "De notitie bevat een teken dat niet verstuurd kan worden. Er is niets verstuurd."
+    }
+  },
   "review": {
     "accountChanged": "Deze training is voorbereid voor een andere atleet op {{service}}. Vraag me opnieuw om deze voor de verbonden atleet voor te bereiden.",
     "add": "Toevoegen aan kalender",
@@ -3022,6 +3057,11 @@
       "decline": "Niet nu",
       "saveFailed": "Je toestemming kon niet worden opgeslagen. Probeer het opnieuw."
     }
+  },
+  "about": {
+    "title": "Over",
+    "privacyPolicy": "Privacybeleid",
+    "version": "Versie"
   },
   "access": {
     "error": {

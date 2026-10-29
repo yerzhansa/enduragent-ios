@@ -1,3 +1,4 @@
+da,de,fr,sv	about.version	Version	Version is the localized noun in these locales.
 de,fr,it,nl	archive.coach	Coach	Established loanword for a sports coach in these locales.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	archive.entryDetail	{{turnCount}} · {{reason}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	archive.entryLabel	{{timestamp}} · {{turnCount}} · {{reason}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
@@ -70,6 +71,8 @@ fr	coach.proposal.description	description	French noun for a description; shared 
 fr	desktop.tray.tag.attention	attention	French noun for attention; shared spelling.
 nl	desktop.tray.tag.conflict	conflict	Native Dutch noun for a conflict; shared spelling.
 da,de,it,nl,pl,pt-BR,pt-PT,sv	desktop.tray.tag.online	online	Established connectivity loanword in these locales.
+da,nb	feedback.send	Send	The Danish and Norwegian imperative of send is spelled like English.
+da,de,it,nl,sv	feedback.title	Feedback	Established interface loanword for user feedback in these locales.
 fr	onboarding.connect.fatigue	Fatigue {{value}}	Fatigue is the French training term; the numeric value is substituted.
 de	onboarding.connect.fitness	Fitness {{value}}	Fitness is an established German training loanword; the numeric value is substituted.
 da,de,nb,sv	onboarding.connect.form	Form {{value}}	Form is the native training-readiness term in these locales; the numeric value is substituted.
@@ -134,6 +137,7 @@ de	settings.spend.month.july	Jul	German abbreviated month name for Juli; shared 
 de	settings.spend.month.june	Jun	German abbreviated month name for Juni; shared spelling.
 de	settings.spend.month.november	Nov	German abbreviated month name for November; shared spelling.
 de	settings.spend.month.september	Sep	German abbreviated month name for September; shared spelling.
+da,de,sv	settings.support.title	Support	Established interface loanword for app support in these locales.
 da,de,it,nl,pl,pt-BR,pt-PT,sv	settings.telegram.channel.online	Online	Established connectivity loanword in these locales.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.training.title	intervals.icu	Service name is unchanged in every language.
 da,de,es,pt-BR,pt-PT	settings.units.imperial	Imperial	Established unit-system label in these locales; shared spelling.

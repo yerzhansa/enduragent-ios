@@ -242,12 +242,13 @@ final class ShellLanguageTests {
 			ports: CoachPorts(
 				records: records, secrets: secrets, models: .scripted(transport),
 				training: .fake { _, _ in intervals }, credits: .fake(credits),
-				host: ImmediateExecutionHost(), clock: clock),
+				host: ImmediateExecutionHost(), clock: clock, support: .inMemory(app: .fixture)),
 			builtInModel: ModelID(rawValue: "test/coach-model"), displayLocale: displayLocale,
 			coalescing: CoalescingPolicy(window: .milliseconds(20)))
 		return AppTestFixture.active.own(
 			AppServices(
-				coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
+				coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(),
+				clock: clock,
 				leases: { [] }, packPrices: { _ in [:] }))
 	}
 }

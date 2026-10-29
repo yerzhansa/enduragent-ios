@@ -101,6 +101,7 @@ public enum SendOutcome: Sendable, Equatable {
 	case accepted(TurnID)
 	case newConversation(ResetAdmission)
 	case showLanguagePicker
+	case openScreen(SlashScreen, argument: String)
 	case ignoredBlank
 }
 

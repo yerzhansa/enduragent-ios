@@ -541,6 +541,9 @@
       "switchDetail": "Ten klucz należy do sportowca {{new}}. Twoja rozmowa, historia i pamięć pozostają zapisane dla sportowca {{current}} i nie są używane dla sportowca {{new}}. Przełączyć, aby użyć tego klucza?",
       "switch": "Zmień sportowca",
       "athlete": "Sportowiec {{id}}"
+    },
+    "support": {
+      "title": "Pomoc"
     }
   },
   "archive": {
@@ -3036,6 +3039,38 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnostyka",
+    "explanation": "Utwórz plik z wersją aplikacji, modelem i wersją iOS tego iPhone’a, Twoimi ustawieniami, liczbą elementów zapisanych przez aplikację oraz problemami i użyciem modelu z ostatnich 14 dni. Nie zawiera kluczy, wiadomości ani danych treningowych. Nic nie opuszcza iPhone’a, dopóki go nie udostępnisz.",
+    "make": "Utwórz plik diagnostyczny",
+    "preparing": "Przygotowywanie pliku…",
+    "shared": "Udostępniono. iOS przekazał plik wybranej aplikacji.",
+    "saved": "Zapisano w Plikach.",
+    "canceled": "Anulowano. Plik nie został udostępniony.",
+    "failed": "Nie udało się utworzyć pliku.",
+    "shareFailed": "Nie udało się udostępnić pliku.",
+    "notSaving": "Ten iPhone nie zapisuje dziennika problemów od {{time}}. Plik zawiera tylko to, co zapisano wcześniej, i to, co zarejestrowała ta sesja."
+  },
+  "feedback": {
+    "title": "Opinia",
+    "command": "Wyślij wiadomość do autorów Enduragent",
+    "prompt": "Napisz wiadomość do autorów Enduragent. Zostanie wysłana osobno, bez Twojej rozmowy, pamięci, danych treningowych i diagnostyki.",
+    "send": "Wyślij",
+    "sending": "Wysyłanie…",
+    "received": "Odebrano. Dziękujemy za wiadomość.",
+    "notSent": {
+      "noConnection": "Nie wysłano. iPhone nie miał połączenia. Twoja wiadomość została zachowana.",
+      "busy": "Nie wysłano. Usługa opinii jest zajęta. Spróbuj ponownie za minutę. Twoja wiadomość została zachowana.",
+      "refused": "Nie wysłano. Usługa opinii odrzuciła wiadomość. Twoja wiadomość została zachowana.",
+      "stopped": "Nie wysłano. Aplikacja zatrzymała się, zanim wiadomość opuściła tego iPhone’a. Twoja wiadomość została zachowana."
+    },
+    "notConfirmed": "Nie potwierdzono. Wiadomość mogła dotrzeć, ale nie przyszła odpowiedź. Twoja wiadomość została zachowana, a „Spróbuj ponownie” wyśle tę samą wiadomość.",
+    "refused": {
+      "empty": "Najpierw napisz wiadomość.",
+      "tooLong": "Wiadomość może mieć najwyżej {{limit}} znaków. Nic nie wysłano.",
+      "invalidCharacter": "Wiadomość zawiera znak, którego nie można wysłać. Nic nie wysłano."
+    }
+  },
   "review": {
     "accountChanged": "Ten trening przygotowano dla innego sportowca w {{service}}. Poproś mnie ponownie o przygotowanie go dla połączonego sportowca.",
     "add": "Dodaj do kalendarza",
@@ -3102,6 +3137,11 @@
       "decline": "Nie teraz",
       "saveFailed": "Nie udało się zapisać Twojej zgody. Spróbuj ponownie."
     }
+  },
+  "about": {
+    "title": "Informacje",
+    "privacyPolicy": "Polityka prywatności",
+    "version": "Wersja"
   },
   "access": {
     "error": {

@@ -573,6 +573,9 @@
       "switchDetail": "Esta chave pertence ao atleta {{new}}. A sua conversa, o histórico e a memória continuam guardados para o atleta {{current}} e não são usados para o atleta {{new}}. Mudar para usar esta chave?",
       "switch": "Mudar atleta",
       "athlete": "Atleta {{id}}"
+    },
+    "support": {
+      "title": "Suporte"
     }
   },
   "setup": {
@@ -2964,6 +2967,38 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnóstico",
+    "explanation": "Cria um ficheiro com a versão da app, o modelo e a versão do iOS deste iPhone, as tuas definições, contagens do que a app guardou e os últimos 14 dias de problemas e utilização do modelo. Não contém chaves, mensagens nem dados de treino. Nada sai do iPhone até o partilhares.",
+    "make": "Criar ficheiro de diagnóstico",
+    "preparing": "A preparar o ficheiro…",
+    "shared": "Partilhado. O iOS entregou o ficheiro à app que escolheste.",
+    "saved": "Guardado em Ficheiros.",
+    "canceled": "Cancelado. O ficheiro não foi partilhado.",
+    "failed": "Não foi possível criar o ficheiro.",
+    "shareFailed": "Não foi possível partilhar o ficheiro.",
+    "notSaving": "Este iPhone não guarda o registo de problemas desde {{time}}. O ficheiro contém apenas o que foi guardado antes disso e o que esta sessão registou."
+  },
+  "feedback": {
+    "title": "Comentários",
+    "command": "Enviar uma nota aos autores do Enduragent",
+    "prompt": "Escreve uma nota aos autores do Enduragent. Segue sozinha, sem a tua conversa, memória, dados de treino ou diagnósticos.",
+    "send": "Enviar",
+    "sending": "A enviar…",
+    "received": "Recebida. Obrigado pela nota.",
+    "notSent": {
+      "noConnection": "Não enviada. O iPhone não tinha ligação. A tua nota foi guardada.",
+      "busy": "Não enviada. O serviço de comentários está ocupado. Tenta novamente dentro de um minuto. A tua nota foi guardada.",
+      "refused": "Não enviada. O serviço de comentários recusou a nota. A tua nota foi guardada.",
+      "stopped": "Não enviada. A app parou antes de a nota sair deste iPhone. A tua nota foi guardada."
+    },
+    "notConfirmed": "Não confirmada. A nota pode ter chegado, mas não houve resposta. A tua nota foi guardada, e Tentar novamente envia a mesma nota.",
+    "refused": {
+      "empty": "Escreve primeiro uma nota.",
+      "tooLong": "Mantém a nota com {{limit}} carateres ou menos. Nada foi enviado.",
+      "invalidCharacter": "A nota tem um caráter que não pode ser enviado. Nada foi enviado."
+    }
+  },
   "review": {
     "accountChanged": "Este treino foi preparado para outro atleta no {{service}}. Pede-me novamente para o preparar para o atleta ligado.",
     "add": "Adicionar ao calendário",
@@ -3022,6 +3057,11 @@
       "decline": "Agora não",
       "saveFailed": "Não foi possível guardar o teu consentimento. Tenta novamente."
     }
+  },
+  "about": {
+    "title": "Acerca de",
+    "privacyPolicy": "Política de privacidade",
+    "version": "Versão"
   },
   "access": {
     "error": {

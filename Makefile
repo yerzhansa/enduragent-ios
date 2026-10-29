@@ -13,9 +13,13 @@ PLAN_FIXTURES := $(COACH)/Tests/EnduragentCoachTests/Fixtures/plan
 NPM_FIXTURES := node tools/npm-fixtures/run.mjs --npm "$(NPM)" --out $(PLAN_FIXTURES)
 LIVE_LOGS ?= $(HOME)/Library/Logs/enduragent-m3/LIVE
 LIVE_CHECK := env -u OPENROUTER_API_KEY -u INTERVALS_API_KEY ENDURAGENT_LIVE_LOGS="$(LIVE_LOGS)"
+FEEDBACK_LOGS := $(HOME)/Library/Logs/enduragent-m6/LIVE
+DESKTOP_SPECIFICATION = $(abspath $(DESKTOP))/docs/initiatives/npm-telegram-feature-inventory/ios-parity-build/specification.json
+DESKTOP_DECISION = $(abspath $(DESKTOP))/docs/adr/0085-ios-closes-parity-with-a-diagnostics-file-note-only-feedback-and-apple-owned-updates.md
+REQUIRE_DESKTOP = test -n "$(DESKTOP)" || { echo "make $@ needs DESKTOP=<path to the desktop checkout>" >&2; exit 2; }
 IPHONE_SIMULATOR := xcodebuild -project $(APP_PROJECT) -scheme Enduragent -showdestinations | awk '/Available destinations for/ { available = 1; next } /Ineligible destinations for/ { available = 0 } available && /platform:iOS Simulator/ && /name:iPhone/ { sub(/^.*id:/, ""); sub(/,.*/, ""); print; exit }'
 
-.PHONY: project generate-catalogs check-catalogs check-source check-coverage lint-swift format-swift check-format test-tools test-swift test-app plan-fixtures plan-fixtures-check live-reads live-calendar live-coach live-plan live-seed live-unseed
+.PHONY: project generate-catalogs check-catalogs check-source check-coverage closeout check-closeout-final write-retained check-retained lint-swift format-swift check-format test-tools test-swift test-app plan-fixtures plan-fixtures-check live-reads live-calendar live-coach live-plan live-seed live-unseed live-feedback-note
 
 project:
 	$(AT_ROOT) xcodegen generate --spec apps/ios/project.yml
@@ -31,6 +35,20 @@ check-source:
 
 check-coverage:
 	$(AT_ROOT) $(TOOL) check-coverage coverage/*.json
+
+closeout:
+	$(AT_ROOT) $(TOOL) check-coverage --write-closeout coverage/milestone-6.json
+
+check-closeout-final: check-retained
+	$(AT_ROOT) $(TOOL) check-coverage --require-final coverage/*.json
+
+write-retained:
+	@$(REQUIRE_DESKTOP)
+	$(AT_ROOT) $(TOOL) check-coverage --write-retained "$(DESKTOP_SPECIFICATION)" "$(DESKTOP_DECISION)"
+
+check-retained:
+	@$(REQUIRE_DESKTOP)
+	$(AT_ROOT) $(TOOL) check-coverage --retained-drift "$(DESKTOP_SPECIFICATION)" "$(DESKTOP_DECISION)"
 
 lint-swift:
 	$(AT_ROOT) swiftlint lint --strict --quiet $(ARGS)
@@ -73,3 +91,6 @@ live-seed:
 
 live-unseed:
 	$(AT_ROOT) $(LIVE_CHECK) ENDURAGENT_LIVE=unseed swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LiveSeedCheck $(ARGS)
+
+live-feedback-note:
+	$(AT_ROOT) env -u OPENROUTER_API_KEY -u INTERVALS_API_KEY ENDURAGENT_LIVE_LOGS="$(FEEDBACK_LOGS)" ENDURAGENT_LIVE=feedback swift test --package-path $(COACH) --filter EnduragentCoachLiveChecks.LiveFeedbackNote $(ARGS)

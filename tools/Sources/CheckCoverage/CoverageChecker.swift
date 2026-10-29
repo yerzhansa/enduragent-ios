@@ -73,7 +73,9 @@ struct CoverageChecker {
 			throw CoverageFailure(description: "the carried section is not a group")
 		}
 		if let requirements {
-			if let scope = RequirementScope.of(table: table) {
+			if let scope = try RequirementScope.of(
+				table: table, retained: RetainedRequirements.load(root: root))
+			{
 				try RequirementChecker(
 					requirements: requirements, scope: scope, problems: problems,
 					criteria: seen, tested: tested
@@ -81,6 +83,10 @@ struct CoverageChecker {
 			} else {
 				try problems.report("requirements", "unknown-scope")
 			}
+		}
+		if NodePath.basename(table).hasSameUnits(as: RequirementScope.milestoneSixTable) {
+			var closeout = CloseoutChecker(root: root, table: document, problems: problems)
+			try closeout.run()
 		}
 		return rows.count
 	}
@@ -133,22 +139,13 @@ struct CoverageChecker {
 		let function = try test.member("function").text
 		let proof = try test.member("class").text
 		let method = try test.member("method").text
-		guard let declarations = try sources.declarations(in: file) else {
-			try problems.report(identifier, "missing-test-file", file)
-			return
-		}
-		switch (function, proof, method) {
-		case (let function?, nil, nil):
-			if !declarations.testFunctions.contains(function) {
-				try problems.report(identifier, "missing-test-function", file, function)
+		let name: TestName? =
+			switch (function, proof, method) {
+			case (let function?, nil, nil): .function(function)
+			case (nil, let proof?, let method?): .method(class: proof, method: method)
+			default: nil
 			}
-		case (nil, let proof?, let method?):
-			if !declarations.declares(method: method, in: proof) {
-				try problems.report(identifier, "missing-proof-method", file, "\(proof).\(method)")
-			}
-		default:
-			try problems.report(identifier, "test-without-name", file)
-		}
+		try sources.check(file, name, identifier, problems: problems)
 	}
 }
 
@@ -166,6 +163,27 @@ struct SourceFiles {
 		let declarations = try load(file)
 		read[file] = declarations
 		return declarations
+	}
+
+	mutating func check(
+		_ file: String, _ name: TestName?, _ identifier: String, problems: Problems
+	) throws {
+		guard let declarations = try declarations(in: file) else {
+			try problems.report(identifier, "missing-test-file", file)
+			return
+		}
+		switch name {
+		case .function(let function)?:
+			if !declarations.testFunctions.contains(function) {
+				try problems.report(identifier, "missing-test-function", file, function)
+			}
+		case .method(let proof, let method)?:
+			if !declarations.declares(method: method, in: proof) {
+				try problems.report(identifier, "missing-proof-method", file, "\(proof).\(method)")
+			}
+		case nil:
+			try problems.report(identifier, "test-without-name", file)
+		}
 	}
 
 	func path(of file: String) -> String? {

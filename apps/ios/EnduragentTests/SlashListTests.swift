@@ -9,10 +9,21 @@ struct SlashListTests {
 		let phrasebook = CatalogPhrasebook(tag: .en)
 		let rows = SlashCommand.allCases.map { ($0.rawValue, phrasebook.say($0.menuTitle, [:])) }
 		#expect(
-			rows.map(\.0) == ["/start", "/workout", "/plan", "/status", "/review", "/language"])
+			rows.map(\.0) == [
+				"/start", "/workout", "/plan", "/status", "/review", "/language", "/feedback",
+				"/version",
+			])
 		#expect(rows.first?.1 == "Start a fresh session")
 		#expect(rows.first { $0.0 == "/plan" }?.1 == "Generate a training plan")
+		#expect(
+			rows.suffix(2).map(\.1) == [
+				"Send a note to the Enduragent authors", "Show current version",
+			])
 		#expect(rows.allSatisfy { !$0.1.isEmpty })
+		let welcome = Welcome.text(in: phrasebook).split(separator: "\n").filter {
+			$0.hasPrefix("/")
+		}
+		#expect(welcome.map(String.init) == rows.map { "\($0.0) — \($0.1)" })
 	}
 }
 

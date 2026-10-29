@@ -89,7 +89,7 @@ import Testing
 					models: .scripted(fixture.transport),
 					training: .fake { credential, _ in peer.client(for: credential) },
 					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
-					clock: fixture.clock),
+					clock: fixture.clock, support: .inMemory(app: .fixture)),
 				builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow))
 	}
 

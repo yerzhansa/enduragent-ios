@@ -4,6 +4,8 @@ This file lists upstream projects whose code or design Cycling Coach (and the
 broader `enduragent` workspace) carries, along with the licenses they were
 distributed under and the modifications introduced during the port.
 
+The iPhone app (`apps/ios`) ships none of the code this file lists and has no third-party package.
+
 ---
 
 ## section-11

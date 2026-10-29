@@ -174,7 +174,7 @@ package struct OpenRouterTransport: ModelTransport {
 		do {
 			urlRequest = try OpenRouterHTTP.urlRequest(baseURL: baseURL, request: request)
 		} catch {
-			throw ExchangeFault.unencodable(String(describing: error))
+			throw ExchangeFault.unencodable
 		}
 		let (bytes, response) = try await session.bytes(for: urlRequest)
 		guard let http = response as? HTTPURLResponse else {
@@ -192,7 +192,7 @@ package struct OpenRouterTransport: ModelTransport {
 
 	private func settle(_ error: any Error, of request: CompletionRequest) -> any Error {
 		let failure: ProviderFailure
-		let detail: String
+		let detail: ProviderDetail
 		switch error {
 		case is CancellationError:
 			return CancellationError()
@@ -200,30 +200,27 @@ package struct OpenRouterTransport: ModelTransport {
 			return CancellationError()
 		case ExchangeFault.rejected(let status, let headers, let body):
 			failure = ProviderFailure(status: status, headers: headers, body: body)
-			detail = "HTTP \(status): \(body)"
-		case ExchangeFault.unencodable(let reason):
+			detail = .parse(status: status, body: body)
+		case ExchangeFault.unencodable:
 			failure = .invalidRequest
-			detail = reason
+			detail = .unencodable
 		case let urlError as URLError:
 			failure = ProviderFailure(urlError)
-			detail = "URLError \(urlError.code.rawValue)"
+			detail = .url(urlError.code.rawValue)
 		case let parsed as ProviderFailure:
 			failure = parsed
-			detail = ""
+			detail = .none
 		default:
 			failure = .network
-			detail = String(describing: error)
+			detail = .failure(FailureCode(error))
 		}
-		diagnostics.record(
-			.providerFailure(request.attempt, failure, detail: detail),
-			redacting: [request.credential.secret]
-		)
+		diagnostics.record(.providerFailure(request.attempt, failure, detail: detail))
 		return failure
 	}
 }
 
 private enum ExchangeFault: Error {
-	case unencodable(String)
+	case unencodable
 	case rejected(status: Int, headers: [String: String], body: String)
 }
 

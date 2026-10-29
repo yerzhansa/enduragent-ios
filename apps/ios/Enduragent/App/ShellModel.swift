@@ -36,6 +36,7 @@ final class ShellModel {
 	let accessSettings: AccessSettingsModel
 	let sessionSettings: SessionSettingsModel
 	let planDecisions: PlanDecisions
+	let support: SupportModel
 	private let submission: ChatSubmission
 	var drafts: DraftStore { submission.drafts }
 	private let onboarding: OnboardingModel
@@ -57,6 +58,7 @@ final class ShellModel {
 		self.accessSettings = AccessSettingsModel(environment: environment)
 		self.sessionSettings = SessionSettingsModel(coach: environment.services.coach)
 		self.planDecisions = PlanDecisions(services: environment.services)
+		self.support = SupportModel(support: environment.services.coach.support)
 		self.onboarding = OnboardingModel(environment: environment)
 		self.credits = CreditsModel(services: environment.services)
 		self.archive = HistoryModel(coach: environment.services.coach)
@@ -286,9 +288,7 @@ final class ShellModel {
 
 	func send() async {
 		reviewOutcomeNotice = nil
-		if case .showLanguagePicker? = await submission.send(using: services.coach) {
-			openLanguagePicker()
-		}
+		follow(await submission.send(using: services.coach))
 	}
 
 	func openLanguagePicker() {

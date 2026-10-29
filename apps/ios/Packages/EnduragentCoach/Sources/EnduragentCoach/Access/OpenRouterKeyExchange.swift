@@ -30,7 +30,7 @@ package struct OpenRouterKeyExchange: Sendable {
 		let response: URLResponse
 		do {
 			(data, response) = try await session.data(
-				for: request, delegate: RejectOpenRouterRedirects())
+				for: request, delegate: RejectRedirects())
 		} catch is CancellationError {
 			throw .signIn(.canceled)
 		} catch let error as URLError where error.code == .cancelled {
@@ -59,15 +59,4 @@ package struct OpenRouterKeyExchange: Sendable {
 
 private struct KeyReply: Decodable {
 	let key: String
-}
-
-private final class RejectOpenRouterRedirects: NSObject, URLSessionTaskDelegate {
-	func urlSession(
-		_ session: URLSession, task: URLSessionTask,
-		willPerformHTTPRedirection response: HTTPURLResponse,
-		newRequest request: URLRequest,
-		completionHandler: @escaping @Sendable (URLRequest?) -> Void
-	) {
-		completionHandler(nil)
-	}
 }

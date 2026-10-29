@@ -7,6 +7,7 @@ enum LiveCheck: String, Sendable {
 	case coach
 	case calendar
 	case plan
+	case feedback
 
 	static let selectorVariable = "ENDURAGENT_LIVE"
 	static let logsVariable = "ENDURAGENT_LIVE_LOGS"
@@ -19,7 +20,7 @@ enum LiveCheck: String, Sendable {
 		switch self {
 		case .coach: (.m4, 10.0)
 		case .plan: (.m5, 5.0)
-		case .reads, .calendar: nil
+		case .reads, .calendar, .feedback: nil
 		}
 	}
 }

@@ -7,94 +7,163 @@ import Testing
 @Suite struct DiagnosticsLogTests {
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-	@Test func rawBodyIsStoredRedactedAndBounded() async throws {
+	@Test func providerBodyLeavesOnlyItsStatusAndCodeInTheLog() async throws {
 		let diagnostics = DiagnosticsLog(clock: clock)
+		let key = "fixture-credits-key"
 		let otherKey = "sk-or-v1-0123456789abcdef"
+		let athleteText = "My left knee aches after Saturday's long ride"
 		let body = """
-			{"error":{"message":"User not found.","code":401,"metadata":{"echo":"Authorization: Bearer \(testKey)","seen":"\(otherKey)"}}}
+			{"error":{"message":"Key \(key) refused: \(athleteText)","code":401,"metadata":{"echo":"Authorization: Bearer \(testKey)","seen":"\(otherKey)"}}}
 			"""
 		let transport = try OpenRouterStub.transport(diagnostics: diagnostics) { _ in
 			.reply(.json(401, body))
 		}
 		let attempt = AttemptID(ulid: fixedUlid(41))
-		await #expect(throws: ProviderFailure.credentialRejected(status: 401)) {
-			_ = try await collect(
-				transport.stream(
-					testRequest(
-						[WireMessage(role: .user, content: "Hi", toolCalls: [], toolCallId: nil)],
-						attempt: attempt)))
-		}
-		let entry = try #require(diagnostics.entries.only)
-		let event = entry.event
-		guard case .providerFailure(attempt, .credentialRejected(status: 401), let detail) = event
-		else {
-			Issue.record("expected the 401 keyed by its attempt, got \(event)")
-			return
-		}
-		#expect(detail.contains("User not found."))
-		#expect(!detail.contains(testKey))
-		#expect(!detail.contains(otherKey))
-		#expect(detail.contains("[redacted]"))
-		#expect(entry.at == clock.now)
-
-		diagnostics.record(
-			.providerFailure(
-				attempt, .serverError(status: 500, retryAfter: nil),
-				detail: String(repeating: "x", count: 10_000)))
-		#expect(diagnostics.entries.last.map(detailLength) == DiagnosticsLog.detailLimit)
-
-		for index in 0..<(DiagnosticsLog.capacity + 50) {
-			diagnostics.record(.memoryFlushFailed(.main, detail: "flush \(index)"))
-		}
-		let kept = diagnostics.entries
-		#expect(kept.count == DiagnosticsLog.capacity)
-		#expect(kept.first?.event == .memoryFlushFailed(.main, detail: "flush 50"))
-		#expect(kept.last?.event == .memoryFlushFailed(.main, detail: "flush 249"))
-	}
-
-	@Test func requestKeyIsRedactedEvenWithoutAKnownPrefix() async throws {
-		let diagnostics = DiagnosticsLog(clock: clock)
-		let key = "fixture-credits-key"
-		let transport = try OpenRouterStub.transport(diagnostics: diagnostics) { _ in
-			.reply(.json(401, #"{"error":{"message":"Key \#(key) is not valid."}}"#))
-		}
-		let access = ResolvedAccess(
-			credential: ProviderCredential(secret: key, method: .credits), model: testModel)
 		let request = CompletionRequest(
-			access: access, attempt: AttemptID(ulid: fixedUlid(42)), charge: .chatAttempt,
-			messages: [WireMessage(role: .user, content: "Hi", toolCalls: [], toolCallId: nil)],
+			access: ResolvedAccess(
+				credential: ProviderCredential(secret: key, method: .credits), model: testModel),
+			attempt: attempt, charge: .chatAttempt,
+			messages: [
+				WireMessage(role: .user, content: athleteText, toolCalls: [], toolCallId: nil)
+			],
 			tools: [], deadline: .seconds(30))
 		await #expect(throws: ProviderFailure.credentialRejected(status: 401)) {
 			_ = try await collect(transport.stream(request))
 		}
 		let entry = try #require(diagnostics.entries.only)
-		guard case .providerFailure(_, _, let detail) = entry.event else {
-			Issue.record("expected a provider failure, got \(entry.event)")
-			return
+		#expect(
+			entry.event
+				== .providerFailure(
+					attempt, .credentialRejected(status: 401),
+					detail: .http(status: 401, openRouter: .code(401))))
+		#expect(entry.at == clock.now)
+		let logged = String(describing: diagnostics.entries)
+		for text in [athleteText, "knee", key, testKey, otherKey] {
+			#expect(!logged.contains(text))
 		}
-		#expect(!detail.contains(key))
-		#expect(detail.contains("Key [redacted] is not valid."))
 	}
 
-	@Test func unreadableRowsCannotFlushProviderFailuresOutOfTheRing() async throws {
+	@Test func aRecordedLineSurvivesANewLog() throws {
+		let directory = try Self.folder()
+		let file = directory.appending(path: "diagnostics.jsonl")
+		let log = DiagnosticsLog(clock: clock, storage: FileJournalStorage(directory: directory))
+		let event = DiagnosticsEvent.memoryFlushFailed(.main, .cocoa(4))
+		log.record(event)
+		let problem = StampedLine(at: clock.now, line: .problem(event.line))
+		#expect(try Self.lines(in: Data(contentsOf: file)) == [problem])
+		let usage = try Self.usage(cost: .reported(0.0042))
+		log.recordUsage(usage)
+		let used = StampedLine(at: clock.now, line: .usage(usage))
+		#expect(try Self.lines(in: Data(contentsOf: file)) == [problem, used])
+		let reopened = DiagnosticsLog(
+			clock: clock, storage: FileJournalStorage(directory: directory))
+		#expect(reopened.window(endingAt: clock.now) == [problem, used])
+	}
+
+	@Test func aTornFileIsRecordedAsADroppedLine() throws {
+		let directory = try Self.folder()
+		let file = directory.appending(path: "diagnostics.jsonl")
+		let whole = StampedLine(
+			at: clock.now, line: .problem(DiagnosticsEvent.recoveryUnavailable(.unavailable).line))
+		let torn = try whole.encoded()
+		try (torn + Data("\n".utf8) + torn.prefix(torn.count / 2)).write(to: file)
+		let log = DiagnosticsLog(clock: clock, storage: FileJournalStorage(directory: directory))
+		let dropped = DiagnosticsEvent.journalLinesDropped(count: 1)
+		#expect(log.entries.map(\.event) == [dropped])
+		#expect(
+			try Self.lines(in: Data(contentsOf: file)) == [
+				whole, StampedLine(at: clock.now, line: .problem(dropped.line)),
+			])
+	}
+
+	@Test func anUnreadableFileIsRecordedAsARestart() throws {
+		let storage = MemoryJournalStorage()
+		storage.failReads()
+		let log = DiagnosticsLog(clock: clock, storage: storage)
+		let restarted = DiagnosticsEvent.journalRestarted(.unreadable)
+		#expect(log.entries.map(\.event) == [restarted])
+		#expect(
+			try Self.lines(in: #require(storage.contents)) == [
+				StampedLine(at: clock.now, line: .problem(restarted.line))
+			])
+	}
+
+	@Test func entriesHoldEveryEventOfThisProcessAndNothingElse() throws {
+		let directory = try Self.folder()
+		let first = DiagnosticsLog(clock: clock, storage: FileJournalStorage(directory: directory))
+		let events = (0..<201).map { DiagnosticsEvent.memoryFlushFailed(.main, .cocoa($0)) }
+		for event in events {
+			first.record(event)
+		}
+		first.recordUsage(try Self.usage(cost: .unreported))
+		#expect(first.entries.map(\.event) == events)
+		let second = DiagnosticsLog(clock: clock, storage: FileJournalStorage(directory: directory))
+		#expect(second.entries.isEmpty)
+		second.record(.preferencesUnavailable(.unavailable))
+		#expect(second.entries.map(\.event) == [.preferencesUnavailable(.unavailable)])
+		#expect(second.window(endingAt: clock.now).count == 203)
+	}
+
+	@Test func aLedgerReportsTheFirstHundredSkippedRows() async throws {
 		let diagnostics = DiagnosticsLog(clock: clock)
-		let failure = DiagnosticsEvent.providerFailure(
-			AttemptID(ulid: fixedUlid(43)), .network, detail: "URLError -1009")
-		diagnostics.record(failure)
-		let rows = (0..<250).map { SkippedRow.malformed(kind: "userMessage", ulid: "row-\($0)") }
+		let rows = (0..<101).map { SkippedRow.malformed(kind: "userMessage", ulid: "row-\($0)") }
 		let ledger = Ledger(
 			log: UnreadableLog(rows: rows), chain: InMemoryRecordLog(), clock: clock,
 			diagnostics: diagnostics)
 		_ = try await ledger.read(RecordQuery(scope: .everySynced))
 		_ = try await ledger.read(RecordQuery(scope: .everySynced))
-		let events = diagnostics.entries.map(\.event)
-		#expect(events.first == failure)
-		#expect(events.count == 1 + Ledger.reportedSkipLimit)
-		let skipped = events.compactMap { event -> SkippedRow? in
-			guard case .skippedRecord(let row) = event else { return nil }
-			return row
+		#expect(
+			diagnostics.entries.map(\.event)
+				== rows.prefix(100).map { DiagnosticsEvent.skippedRecord($0) })
+	}
+
+	@Test func aSkippedRowIsWrittenScrubbed() throws {
+		let directory = try Self.folder()
+		let log = DiagnosticsLog(clock: clock, storage: FileJournalStorage(directory: directory))
+		let url = "https://x.test/?k=sk-or-v1-abc"
+		let token = "gh" + "p_" + String(repeating: "a1", count: 18)
+		log.record(.skippedRecord(.malformed(kind: url, ulid: token)))
+		let written = String(
+			decoding: try Data(contentsOf: directory.appending(path: "diagnostics.jsonl")),
+			as: UTF8.self)
+		for text in ["sk-or-v1-abc", token, "x.test", url] {
+			#expect(!written.contains(text))
 		}
-		#expect(Set(skipped).count == Ledger.reportedSkipLimit)
+		#expect(written.contains("[redacted]"))
+	}
+
+	@Test func aLineThatCannotBeEncodedStopsSavingUntilTheNextWrite() throws {
+		let storage = MemoryJournalStorage()
+		let log = DiagnosticsLog(clock: clock, storage: storage)
+		log.recordUsage(try Self.usage(cost: .reported(.nan)))
+		#expect(log.health == .notSaving(since: clock.now, firstCause: .appendFailed))
+		#expect(storage.contents == nil)
+		let event = DiagnosticsEvent.recoveryUnavailable(.unavailable)
+		log.record(event)
+		#expect(log.health == .saving)
+		#expect(
+			try Self.lines(in: #require(storage.contents)) == [
+				StampedLine(at: clock.now, line: .problem(event.line))
+			])
+	}
+
+	private static func folder() throws -> URL {
+		let directory = try TestTemporaryFolders.make()
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+		return directory
+	}
+
+	private static func lines(in data: Data) throws -> [StampedLine] {
+		try #require(data.last == UInt8(ascii: "\n"))
+		return try data.split(separator: UInt8(ascii: "\n"), omittingEmptySubsequences: false)
+			.dropLast().map { try StampedLine(decoding: Data($0)) }
+	}
+
+	private static func usage(cost: UsageCost) throws -> UsageLine {
+		UsageLine(
+			origin: .turn(turn: fixedUlid(21), attempt: fixedUlid(22), ending: .replied),
+			model: try #require(ModelRef(testModel)), calls: 2, failedCalls: 0,
+			inputTokens: 1_200, outputTokens: 300, cost: cost, durationMilliseconds: 1_500)
 	}
 
 	@Test(arguments: [true, false])
@@ -123,17 +192,18 @@ import Testing
 			transport: transport, store: store, clock: clock, secrets: secrets)
 		await coach.lifecycle(.becameActive)
 		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		var flushFailures: [String] = []
+		var flushFailures: [FailureCode] = []
 		while flushFailures.isEmpty, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))
-			flushFailures = coach.diagnostics.entries.compactMap { entry -> String? in
-				guard case .memoryFlushFailed(.main, let detail) = entry.event else { return nil }
-				return detail
+			flushFailures = coach.diagnostics.entries.compactMap { entry -> FailureCode? in
+				guard case .memoryFlushFailed(.main, let code) = entry.event else { return nil }
+				return code
 			}
 		}
-		let expected = keyStored ? "providerDown" : "secureStorageLocked"
-		#expect(flushFailures.count == 1)
-		#expect(flushFailures.first?.contains(expected) == true)
+		let expected: FailureCode =
+			keyStored
+			? .flush(.failed(.model(.providerDown(.outage)))) : .access(.secureStorageLocked)
+		#expect(flushFailures == [expected])
 		#expect(transport.requestCount == (keyStored ? 3 : 0))
 	}
 }
@@ -180,21 +250,6 @@ private struct UnreadableLog: RecordLog {
 
 	var imports: AsyncStream<Void> {
 		AsyncStream { _ in }
-	}
-}
-
-private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
-	switch entry.event {
-	case .providerFailure(_, _, let detail),
-		.memoryFlushFailed(_, let detail), .compactionFailed(_, let detail),
-		.replyObservedUnsaved(_, let detail):
-		return detail.count
-	case .secureStorageFailed, .toolFailed, .skippedRecord, .recoveryUnavailable,
-		.importsUnavailable,
-		.preferencesUnavailable, .consentUnavailable,
-		.snapshotReadFailed, .snapshotDeadlineMissed, .reviewOutcomeUnsaved, .settlementUnsaved,
-		.reviewUnavailable, .planConfirmationUnavailable, .planSaveStalled:
-		return nil
 	}
 }
 

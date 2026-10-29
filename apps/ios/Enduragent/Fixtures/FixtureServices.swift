@@ -22,6 +22,7 @@
 		let reviewProofDriver: FixtureReviewProofDriver?
 		let planTapDriver: FixturePlanTapDriver?
 		let presentationFault: FixturePresentationFault?
+		let feedback: FakeFeedbackServer
 	}
 
 	extension AppServices {
@@ -37,6 +38,7 @@
 			guard launch.name == FixtureLaunch.firstWeekName else {
 				throw FixtureLaunchError.unknownFixture(launch.name)
 			}
+			let identity = try installedIdentity()
 			let clock = FixtureClock(
 				calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 			let intervals = FakeIntervalsClient.firstWeek(today: FirstWeekFixture.today)
@@ -91,6 +93,7 @@
 			}
 			let authorizer = FakeOpenRouterAuthorizer(response: launch.signInOutcome.response)
 			let catalogSource = FakeModelCatalogSource(response: launch.catalogResponse)
+			let feedback = FakeFeedbackServer(script: launch.feedback?.answers ?? [])
 			let coach = Coach(
 				sport: .cycling,
 				ports: CoachPorts(
@@ -105,6 +108,9 @@
 					credits: .fake(credits, mintedKey: FirstWeekFixture.creditsKey),
 					host: host,
 					clock: clock,
+					support: .fixture(
+						directory: launch.directory, app: identity, server: feedback,
+						journal: launch.journal),
 					openRouterSignIn: .fake(
 						authorizer: authorizer,
 						exchangeFails: launch.signInOutcome == .exchangeFailure)
@@ -132,7 +138,7 @@
 					planTapDriver: launch.planTap.map {
 						FixturePlanTapDriver(tap: $0, calendar: clock.calendar)
 					},
-					presentationFault: launch.presentationFault)
+					presentationFault: launch.presentationFault, feedback: feedback)
 			)
 		}
 

@@ -297,15 +297,18 @@ enum LanguageMatrix {
 		composer.typeText("/")
 		let titles: [(SlashCommand, CatalogKey)] = [
 			(.workout, Catalog.telegramMenuWorkout), (.status, Catalog.telegramMenuStatus),
+			(.feedback, Catalog.feedbackCommand), (.version, Catalog.chatCommandsVersion),
 		]
 		for (command, title) in titles {
 			run.expect(ShortcutScreen.rowIdentifier(command), contains: title)
 			let row = ShortcutScreen.row(command, in: app)
+			TutorialHarness.bringIntoTranscript(app, row)
+			XCTAssertTrue(row.isHittable, row.label)
 			XCTAssertTrue(row.label.hasPrefix(command.rawValue), row.label)
 		}
 		run.screen("shortcut-choices")
 		let workout = ShortcutScreen.row(.workout, in: app)
-		TutorialHarness.scroll(app, to: workout, direction: .down)
+		TutorialHarness.bringIntoTranscript(app, workout)
 		workout.tap()
 		TutorialHarness.wait(composer, until: .value("/workout "))
 		TutorialHarness.send(app, ShortcutScreen.workoutRequest)

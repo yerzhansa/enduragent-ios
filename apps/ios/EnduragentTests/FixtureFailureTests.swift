@@ -137,11 +137,13 @@ extension FixtureLaunchTests {
 				records: .inMemory(deviceId: DeviceID()), secrets: fixture.secrets,
 				models: .scripted(transport),
 				training: .fake { credential, _ in fixture.trainingPeer.client(for: credential) },
-				credits: .fake(fixture.credits), host: host, clock: clock),
+				credits: .fake(fixture.credits), host: host, clock: clock,
+				support: .inMemory(app: .fixture)),
 			builtInModel: AppServices.builtInModel, displayLocale: testLocaleResolver(),
 			coalescing: CoalescingPolicy(window: .milliseconds(200)))
 		let services = AppServices(
-			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
+			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(),
+			clock: clock,
 			leases: { host.leases }, packPrices: { _ in [:] })
 		await model(services).agreeAndStartChatting()
 		return coach

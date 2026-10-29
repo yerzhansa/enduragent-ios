@@ -538,6 +538,9 @@
       "switchDetail": "此密钥属于运动员 {{new}}。你的对话、历史记录和记忆仍为运动员 {{current}} 保存，不会用于运动员 {{new}}。是否切换以使用此密钥？",
       "switch": "切换运动员",
       "athlete": "运动员 {{id}}"
+    },
+    "support": {
+      "title": "支持"
     }
   },
   "archive": {
@@ -2928,6 +2931,38 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "诊断",
+    "explanation": "生成一个文件，包含应用版本、这部 iPhone 的型号和 iOS 版本、你的设置、应用已保存内容的数量，以及最近 14 天的问题和模型使用情况。文件不含密钥、消息或训练数据。在你分享之前，任何内容都不会离开 iPhone。",
+    "make": "生成诊断文件",
+    "preparing": "正在准备文件…",
+    "shared": "已分享。iOS 已将文件交给你选择的应用。",
+    "saved": "已存储到“文件”。",
+    "canceled": "已取消。文件未分享。",
+    "failed": "无法生成文件。",
+    "shareFailed": "无法分享文件。",
+    "notSaving": "自 {{time}} 起，这部 iPhone 未保存问题日志。文件只包含此前已保存的内容和本次会话记录的内容。"
+  },
+  "feedback": {
+    "title": "反馈",
+    "command": "给 Enduragent 的作者发送留言",
+    "prompt": "给 Enduragent 的作者写一条留言。留言会单独发送，不附带你的对话、记忆、训练数据或诊断信息。",
+    "send": "发送",
+    "sending": "正在发送…",
+    "received": "已收到。感谢你的留言。",
+    "notSent": {
+      "noConnection": "未发送。iPhone 没有网络连接。你的留言已保留。",
+      "busy": "未发送。反馈服务繁忙，请一分钟后重试。你的留言已保留。",
+      "refused": "未发送。反馈服务拒绝了这条留言。你的留言已保留。",
+      "stopped": "未发送。留言离开这部 iPhone 之前，应用已停止。你的留言已保留。"
+    },
+    "notConfirmed": "未确认。留言可能已送达，但没有收到回复。你的留言已保留，轻点“重试”会发送同一条留言。",
+    "refused": {
+      "empty": "请先写一条留言。",
+      "tooLong": "留言请控制在 {{limit}} 个字符以内。未发送任何内容。",
+      "invalidCharacter": "留言中有无法发送的字符。未发送任何内容。"
+    }
+  },
   "review": {
     "accountChanged": "这项训练是为 {{service}} 上的另一位运动员准备的。请再次提出请求，让我为当前连接的运动员准备训练。",
     "add": "添加到日历",
@@ -2982,6 +3017,11 @@
       "decline": "暂不",
       "saveFailed": "无法保存你的同意。请重试。"
     }
+  },
+  "about": {
+    "title": "关于",
+    "privacyPolicy": "隐私政策",
+    "version": "版本"
   },
   "access": {
     "error": {

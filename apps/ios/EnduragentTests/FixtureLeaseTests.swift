@@ -120,14 +120,16 @@ extension FixtureLaunchTests {
 				training: .fake { _, _ in intervals },
 				credits: .fake(FakeCreditsClient()),
 				host: host,
-				clock: clock
+				clock: clock,
+				support: .inMemory(app: .fixture)
 			),
 			builtInModel: AppServices.builtInModel,
 			displayLocale: testLocaleResolver(),
 			coalescing: CoalescingPolicy(window: .milliseconds(20))
 		)
 		let services = AppServices(
-			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
+			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(),
+			clock: clock,
 			leases: { [] }, packPrices: { _ in [:] })
 		await model(services).agreeAndStartChatting()
 		return coach

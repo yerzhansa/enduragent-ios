@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -18,7 +19,8 @@ import Testing
 			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
 			credentialWriteFault: .failOnce, accessMethod: .openRouterNeedsCredits,
 			creditsOutcome: .provisioningFailed, signInOutcome: .held,
-			catalogResponse: .omittedSelectedModel, textSize: .accessibilityXXXL)
+			catalogResponse: .omittedSelectedModel, textSize: .accessibilityXXXL,
+			feedback: FixtureFeedbackScript(rawValue: "lost,lost"), journal: .notSaving)
 		var restored = FixtureArguments()
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
@@ -64,6 +66,8 @@ import Testing
 		#expect(parsed.creditsOutcome == expected.creditsOutcome)
 		#expect(parsed.signInOutcome == expected.signInOutcome)
 		#expect(parsed.catalogResponse == expected.catalogResponse)
+		#expect(parsed.feedback?.answers == [.lostAnswer, .lostAnswer])
+		#expect(parsed.journal == .notSaving)
 		#expect(
 			otherDefaults.string(forKey: FixtureLaunch.clockArgumentKey)
 				== FixtureLaunch.defaultClock)
@@ -81,6 +85,7 @@ import Testing
 		FixtureLaunch.resetArgumentKey,
 		FixtureLaunch.replyParserArgumentKey,
 		FixtureLaunch.trainingDisplayArgumentKey, FixtureLaunch.credentialWriteArgumentKey,
+		FixtureLaunch.feedbackArgumentKey, FixtureLaunch.journalArgumentKey,
 	])
 	func rejectsUnknownProofFaults(key: String) throws {
 		var builder = FixtureArguments()
@@ -105,7 +110,8 @@ import Testing
 			recordReadFault: .failAfterPresentedOnce, presentationFault: .failLastCardOnce,
 			reviewStage: .partial, resetFault: .failBoundary,
 			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
-			credentialWriteFault: .failOnce, textSize: .accessibilityXXXL)
+			credentialWriteFault: .failOnce, textSize: .accessibilityXXXL,
+			feedback: FixtureFeedbackScript(rawValue: "timeout"), journal: .notSaving)
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
 		let suite = "enduragent.fixture.no-fault.\(UUID().uuidString)"
@@ -124,5 +130,7 @@ import Testing
 		#expect(parsed.credentialWriteFault == nil)
 		#expect(parsed.signInOutcome == .cancel)
 		#expect(parsed.catalogResponse == .offline)
+		#expect(parsed.feedback == nil)
+		#expect(parsed.journal == .saving)
 	}
 }

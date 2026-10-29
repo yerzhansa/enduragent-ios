@@ -62,18 +62,34 @@ final class OpenRouterStub: URLProtocol, @unchecked Sendable {
 		onSession: @escaping @Sendable (TimeInterval) -> Void = { _ in },
 		handler: @escaping @Sendable (URLRequest) -> Outcome
 	) throws -> OpenRouterTransport {
+		OpenRouterTransport(baseURL: try route(handler), diagnostics: diagnostics) { timeout in
+			onSession(timeout)
+			return session(timeout)
+		}
+	}
+
+	static func models(handler: @escaping @Sendable (URLRequest) -> Outcome) throws
+		-> ModelService
+	{
+		let baseURL = try route(handler)
+		return ModelService(catalog: .fixture) { diagnostics in
+			OpenRouterTransport(baseURL: baseURL, diagnostics: diagnostics, makeSession: session)
+		}
+	}
+
+	private static func route(_ handler: @escaping @Sendable (URLRequest) -> Outcome) throws
+		-> URL
+	{
 		let host = "\(UUID().uuidString.lowercased()).openrouter.test"
 		routes.withLock { $0[host] = handler }
-		return OpenRouterTransport(
-			baseURL: try #require(URL(string: "https://\(host)/api/v1")),
-			diagnostics: diagnostics
-		) { timeout in
-			onSession(timeout)
-			let configuration = URLSessionConfiguration.ephemeral
-			configuration.timeoutIntervalForRequest = timeout
-			configuration.protocolClasses = [OpenRouterStub.self]
-			return URLSession(configuration: configuration)
-		}
+		return try #require(URL(string: "https://\(host)/api/v1"))
+	}
+
+	private static func session(_ timeout: TimeInterval) -> URLSession {
+		let configuration = URLSessionConfiguration.ephemeral
+		configuration.timeoutIntervalForRequest = timeout
+		configuration.protocolClasses = [OpenRouterStub.self]
+		return URLSession(configuration: configuration)
 	}
 
 	override class func canInit(with request: URLRequest) -> Bool { true }

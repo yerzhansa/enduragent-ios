@@ -539,6 +539,9 @@
       "switchDetail": "Denne nøgle tilhører atlet {{new}}. Din samtale, historik og hukommelse forbliver gemt for atlet {{current}} og bruges ikke for atlet {{new}}. Skift for at bruge denne nøgle?",
       "switch": "Skift atlet",
       "athlete": "Atlet {{id}}"
+    },
+    "support": {
+      "title": "Support"
     }
   },
   "archive": {
@@ -2964,6 +2967,38 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnosticering",
+    "explanation": "Opret en fil med appens version, denne iPhones model og iOS-version, dine indstillinger, antal af det, appen har gemt, og de seneste 14 dages problemer og modelforbrug. Den indeholder ingen nøgler, beskeder eller træningsdata. Intet forlader din iPhone, før du deler den.",
+    "make": "Opret diagnosefil",
+    "preparing": "Forbereder filen…",
+    "shared": "Delt. iOS gav filen til den app, du valgte.",
+    "saved": "Gemt i Filer.",
+    "canceled": "Annulleret. Filen blev ikke delt.",
+    "failed": "Filen kunne ikke oprettes.",
+    "shareFailed": "Filen kunne ikke deles.",
+    "notSaving": "Denne iPhone har ikke gemt problemloggen siden {{time}}. Filen indeholder kun det, der blev gemt før da, og det, denne session registrerede."
+  },
+  "feedback": {
+    "title": "Feedback",
+    "command": "Send en note til forfatterne af Enduragent",
+    "prompt": "Skriv en note til forfatterne af Enduragent. Den sendes for sig selv, uden din samtale, hukommelse, træningsdata eller diagnosedata.",
+    "send": "Send",
+    "sending": "Sender…",
+    "received": "Modtaget. Tak for noten.",
+    "notSent": {
+      "noConnection": "Ikke sendt. Din iPhone havde ingen forbindelse. Din note er gemt.",
+      "busy": "Ikke sendt. Feedbacktjenesten er optaget. Prøv igen om et minut. Din note er gemt.",
+      "refused": "Ikke sendt. Feedbacktjenesten afviste noten. Din note er gemt.",
+      "stopped": "Ikke sendt. Appen stoppede, før noten forlod denne iPhone. Din note er gemt."
+    },
+    "notConfirmed": "Ikke bekræftet. Noten er måske nået frem, men der kom intet svar. Din note er gemt, og Prøv igen sender den samme note.",
+    "refused": {
+      "empty": "Skriv en note først.",
+      "tooLong": "Hold din note på højst {{limit}} tegn. Intet blev sendt.",
+      "invalidCharacter": "Noten indeholder et tegn, der ikke kan sendes. Intet blev sendt."
+    }
+  },
   "review": {
     "accountChanged": "Dette træningspas blev forberedt til en anden atlet på {{service}}. Bed mig igen om at forberede det til den tilsluttede atlet.",
     "add": "Føj til kalender",
@@ -3022,6 +3057,11 @@
       "decline": "Ikke nu",
       "saveFailed": "Dit samtykke kunne ikke gemmes. Prøv igen."
     }
+  },
+  "about": {
+    "title": "Om",
+    "privacyPolicy": "Privatlivspolitik",
+    "version": "Version"
   },
   "access": {
     "error": {

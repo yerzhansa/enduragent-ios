@@ -22,6 +22,8 @@ extension Coach {
 		case .languagePicker:
 			guard mailboxes[chat] != nil else { return .showLanguagePicker }
 		case .resetConversation: return .newConversation(await startNewConversation(in: chat))
+		case .screen(let screen):
+			return .openScreen(screen, argument: SlashRouting.argument(of: text))
 		case .modelTurn, nil: break
 		}
 		let mailbox: ChatMailbox

@@ -1,4 +1,9 @@
 {
+  "about": {
+    "title": "About",
+    "privacyPolicy": "Privacy policy",
+    "version": "Version"
+  },
   "access": {
     "error": {
       "locked": "Unlock your iPhone to continue. Your message is saved.",
@@ -1033,6 +1038,38 @@
         "tokenRejected": "Telegram token rejected",
         "transferRequired": "Bot transfer required"
       }
+    }
+  },
+  "diagnostics": {
+    "title": "Diagnostics",
+    "explanation": "Make a file with the app's version, this phone's model and iOS version, your settings, counts of what the app has saved, and the last 14 days of problems and model usage. It holds no keys, messages or training data. Nothing leaves the phone until you share it.",
+    "make": "Make diagnostics file",
+    "preparing": "Preparing the file…",
+    "shared": "Shared. iOS handed the file to the app you chose.",
+    "saved": "Saved to Files.",
+    "canceled": "Canceled. The file was not shared.",
+    "failed": "The file could not be made.",
+    "shareFailed": "The file could not be shared.",
+    "notSaving": "This phone has not saved the problem log since {{time}}. The file holds only what was saved before then and what this session recorded."
+  },
+  "feedback": {
+    "title": "Feedback",
+    "command": "Send a note to the Enduragent authors",
+    "prompt": "Write a note to the Enduragent authors. It goes on its own, without your conversation, memory, training data or diagnostics.",
+    "send": "Send",
+    "sending": "Sending…",
+    "received": "Received. Thank you for the note.",
+    "notSent": {
+      "noConnection": "Not sent. The phone had no connection. Your note is kept.",
+      "busy": "Not sent. The feedback service is busy. Try again in a minute. Your note is kept.",
+      "refused": "Not sent. The feedback service refused the note. Your note is kept.",
+      "stopped": "Not sent. The app stopped before the note left this phone. Your note is kept."
+    },
+    "notConfirmed": "Not confirmed. The note may have arrived, but no answer came. Your note is kept, and Try again sends the same note.",
+    "refused": {
+      "empty": "Write a note first.",
+      "tooLong": "Keep your note to {{limit}} characters or fewer. Nothing was sent.",
+      "invalidCharacter": "The note has a character that can't be sent. Nothing was sent."
     }
   },
   "language": {
@@ -2230,6 +2267,9 @@
       "switchDetail": "This key belongs to athlete {{new}}. Your conversation, History and memory stay saved for athlete {{current}} and are not used for athlete {{new}}. Switch to use this key?",
       "switch": "Switch athlete",
       "athlete": "Athlete {{id}}"
+    },
+    "support": {
+      "title": "Support"
     }
   },
   "setup": {

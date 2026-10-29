@@ -144,6 +144,21 @@
 		case accessibilityXXXL = "UICTContentSizeCategoryAccessibilityXXXL"
 	}
 
+	struct FixtureFeedbackScript: RawRepresentable, Equatable {
+		let rawValue: String
+		let answers: [FakeFeedbackAnswer]
+
+		init?(rawValue: String) {
+			var answers: [FakeFeedbackAnswer] = []
+			for word in rawValue.split(separator: ",", omittingEmptySubsequences: false) {
+				guard let answer = FakeFeedbackAnswer(word: String(word)) else { return nil }
+				answers.append(answer)
+			}
+			self.rawValue = rawValue
+			self.answers = answers
+		}
+	}
+
 	struct FixtureArguments: Equatable {
 		var store: FixtureStorePolicy = .fresh
 		var keychain: FixtureKeychainPolicy = .unlocked
@@ -170,6 +185,8 @@
 		var signInOutcome = FixtureSignInOutcome.cancel
 		var catalogResponse = FixtureCatalogResponse.offline
 		var textSize: FixtureTextSize?
+		var feedback: FixtureFeedbackScript?
+		var journal: FixtureJournal?
 
 		var launchArguments: [String] {
 			var values = [
@@ -218,6 +235,8 @@
 			values += ["-EnduragentFixtureSignIn", signInOutcome.rawValue]
 			values += ["-EnduragentFixtureCatalog", catalogResponse.rawValue]
 			if let textSize { values += [Self.textSizeArgument, textSize.rawValue] }
+			if let feedback { values += ["-EnduragentFixtureFeedback", feedback.rawValue] }
+			if let journal { values += ["-EnduragentFixtureJournal", journal.rawValue] }
 			return values
 		}
 
@@ -262,6 +281,8 @@
 			signInOutcome = try policy(values, "-EnduragentFixtureSignIn") ?? .cancel
 			catalogResponse = try policy(values, "-EnduragentFixtureCatalog") ?? .offline
 			textSize = try policy(values, Self.textSizeArgument)
+			feedback = try policy(values, "-EnduragentFixtureFeedback")
+			journal = try policy(values, "-EnduragentFixtureJournal")
 		}
 
 		private static let textSizeArgument = "-UIPreferredContentSizeCategoryName"

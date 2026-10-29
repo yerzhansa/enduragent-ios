@@ -18,7 +18,7 @@ struct RequirementScope {
 			"B17.01/utc", "B17.06/head-unit", "B18.07/model-call", "B20.01/zones", "X04/zone",
 			"G06/midnight",
 		],
-		decisionRecords: ["ADR-0083"])
+		decisionRecords: ["ADR-0083"], retained: [])
 
 	static let milestoneFive = RequirementScope(
 		table: "milestone-5.json",
@@ -34,20 +34,41 @@ struct RequirementScope {
 			"B15.05/two-calls", "B15.05/plan-schema", "B15.05/save-plan-sentence",
 			"B15.05/save-draft", "B15.02/exact-numbers",
 		],
-		decisionRecords: ["ADR-0083", "ADR-0084"])
+		decisionRecords: ["ADR-0083", "ADR-0084"], retained: [])
+
+	static let milestoneSixTable = "milestone-6.json"
 
 	let table: String
 	let listed: [String]
 	let parts: [String]
 	let agreedDifferences: [String]
 	let decisionRecords: [String]
+	let retained: [String]
 
-	static func of(table path: String) -> RequirementScope? {
-		[milestoneFour, milestoneFive].first { NodePath.basename(path).hasSameUnits(as: $0.table) }
+	static func milestoneSix(_ retained: RetainedRequirements) -> RequirementScope {
+		RequirementScope(
+			table: milestoneSixTable, listed: retained.ids(inMilestone: 6), parts: [],
+			agreedDifferences: retained.differences.map(\.sub), decisionRecords: ["ADR-0085"],
+			retained: retained.requirements.map(\.id))
+	}
+
+	static func of(table path: String, retained: RetainedRequirements?) throws -> RequirementScope?
+	{
+		let name = NodePath.basename(path)
+		guard name.hasSameUnits(as: milestoneSixTable) else {
+			return [milestoneFour, milestoneFive].first { name.hasSameUnits(as: $0.table) }
+		}
+		guard let retained else {
+			throw CoverageFailure(
+				description:
+					"\(path) is checked against \(RetainedRequirements.path), which does not exist")
+		}
+		return milestoneSix(retained)
 	}
 
 	func place(of identifier: String) -> Result<Place, Unplaced> {
 		if parts.contains(identifier) { return .success(.earlierPart) }
+		if agreedDifferences.contains(identifier) { return .success(.part) }
 		let segments = identifier.split(
 			separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
 		guard segments.count == 2 else {
@@ -219,7 +240,9 @@ struct RequirementChecker {
 			if !scope.decisionRecords.contains(where: difference.contains) {
 				try problems.report(identifier, "difference-without-adr")
 			}
-			if place != .part {
+			if place == .part {
+				try checkReaches(of: row, identifier)
+			} else {
 				try problems.report(identifier, "difference-on-parent")
 			}
 			return true
@@ -227,6 +250,18 @@ struct RequirementChecker {
 			try checkCriteria(named.map { $0.text ?? $0.compactText }, of: row, identifier)
 		}
 		return false
+	}
+
+	private func checkReaches(of row: JSONValue, _ identifier: String) throws {
+		let listed = try row.member("reaches")
+		let reaches = listed.isTruthy ? try listed.elements() : []
+		for entry in reaches where !(entry.text.map(scope.retained.contains) ?? false) {
+			try problems.report(identifier, "unknown-reach", entry.text ?? entry.compactText)
+		}
+		let parent = String(identifier.prefix { $0 != "/" })
+		if reaches.isEmpty, !scope.listed.contains(parent), !scope.retained.contains(parent) {
+			try problems.report(identifier, "difference-reach-missing")
+		}
 	}
 
 	private func checkCriteria(

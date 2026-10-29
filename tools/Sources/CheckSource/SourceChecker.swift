@@ -45,7 +45,7 @@ struct SourceChecker {
 		+ #"(?:v1-upgrade\/(?:history|review)|pre-vault-5de5c782|build-2bbe2ee"#
 		+ #"|build-6833d90f\/(?:open-review|unknown-write|completed)"#
 		+ #"|build-d6f89d9b\/(?:waiting-review|reprinted-numbers|reprinted-authored-steps"#
-		+ #"|misread-intervals-number))\/"#
+		+ #"|misread-intervals-number)|build-0f943324\/filled)\/"#
 		+ #"(?:synced|local)-records\.store$"#
 	static let proofFile = #"^apps\/ios\/EnduragentUITests\/[^/]+\.swift$"#
 	static let featureFile = #"^\.agents\/skills\/verify-ios\/features\/[^/]+\.md$"#
@@ -68,15 +68,22 @@ struct SourceChecker {
 		let tracked = TrackedFiles(files.map { NodePath.resolve(root, $0) })
 		var featureProofSources: [SourceFile] = []
 		var appNavigationSources: [SourceFile] = []
+		var coachSources: [SourceFile] = []
+		var releaseSources: [SourceFile] = []
 		for file in files {
 			guard let text = try readableText(file, tracked: tracked) else { continue }
 			let source = SourceFile(file: file, text: text)
 			if try patterns.test(Self.appSource, file) { appNavigationSources.append(source) }
+			if try patterns.test(Self.coachSource, file) { coachSources.append(source) }
+			if try patterns.test(Self.releaseInput, file) { releaseSources.append(source) }
 			try checkTestRules(source)
 			if try patterns.test(Self.proofFile, file) || patterns.test(Self.featureFile, file) {
 				featureProofSources.append(source)
 			}
 			try checkContentRules(source)
+			try checkDiagnosticsLogMaker(source)
+			try checkFeedbackFakeOnly(source)
+			try checkPhoneFeedbackSendGate(source)
 			try checkSingleChangePath(source)
 		}
 		let generatedProject = NodePath.resolve(root, Self.xcodeProject)
@@ -85,6 +92,8 @@ struct SourceChecker {
 		}
 		try checkFeatureProofs(featureProofSources)
 		try checkNavigationStacks(appNavigationSources)
+		try checkFailureCodes(coachSources)
+		try checkRelease(releaseSources)
 		return files.count
 	}
 

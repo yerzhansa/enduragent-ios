@@ -2,28 +2,57 @@ import Foundation
 import Synchronization
 
 package final class DiagnosticsLog: Sendable {
-	package static let capacity = 200
-	package static let detailLimit = 2_000
+	package let clock: any Clock
+	private let journal: Journal
+	private let events = Mutex<[DiagnosticsEntry]>([])
 
-	private let clock: any Clock
-	private let ring = Mutex<[DiagnosticsEntry]>([])
-
-	package init(clock: any Clock) {
+	package init(clock: any Clock, storage: any JournalStorage) {
 		self.clock = clock
+		journal = Journal(storage: storage, clock: clock)
+		for opening in journal.openings {
+			record(opening.event)
+		}
 	}
 
 	package var entries: [DiagnosticsEntry] {
-		ring.withLock { $0 }
+		events.withLock { $0 }
 	}
 
-	package func record(_ event: DiagnosticsEvent, redacting secrets: [String] = []) {
-		let entry = DiagnosticsEntry(at: clock.now, event: event.redacted(secrets))
-		ring.withLock { entries in
-			entries.append(entry)
-			if entries.count > Self.capacity {
-				entries.removeFirst(entries.count - Self.capacity)
-			}
+	package var health: JournalHealth {
+		journal.health
+	}
+
+	package func healthChanges() -> AsyncStream<JournalHealth> {
+		journal.healthChanges()
+	}
+
+	package func record(_ event: DiagnosticsEvent) {
+		let entry = DiagnosticsEntry(at: clock.now, event: event)
+		events.withLock { $0.append(entry) }
+		write(StampedLine(at: entry.at, line: .problem(event.line)))
+	}
+
+	package func recordUsage(_ line: UsageLine) {
+		write(StampedLine(at: clock.now, line: .usage(line)))
+	}
+
+	func recordUnwritableLine() {
+		journal.markAppendFailed()
+	}
+
+	package func window(endingAt now: Date) -> [StampedLine] {
+		journal.window(endingAt: now)
+	}
+
+	private func write(_ line: StampedLine) {
+		let record: JournalRecord
+		do {
+			record = try JournalRecord(line)
+		} catch {
+			journal.markAppendFailed()
+			return
 		}
+		journal.append(record)
 	}
 }
 
@@ -33,11 +62,11 @@ package struct DiagnosticsEntry: Sendable, Equatable {
 }
 
 package enum DiagnosticsEvent: Sendable, Equatable {
-	case providerFailure(AttemptID, ProviderFailure, detail: String)
+	case providerFailure(AttemptID, ProviderFailure, detail: ProviderDetail)
 	case toolFailed(AttemptID, ToolName, failure: ToolFault)
-	case memoryFlushFailed(ChatID, detail: String)
-	case compactionFailed(ChatID, detail: String)
-	case replyObservedUnsaved(AttemptID, detail: String)
+	case memoryFlushFailed(ChatID, FailureCode)
+	case compactionFailed(ChatID, FailureCode)
+	case replyObservedUnsaved(AttemptID, FailureCode)
 	case skippedRecord(SkippedRow)
 	case recoveryUnavailable(LedgerFailure)
 	case importsUnavailable(ChatID, LedgerFailure)
@@ -51,36 +80,18 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case reviewUnavailable(ChatID, LedgerFailure)
 	case planConfirmationUnavailable(ChatID, LedgerFailure)
 	case planSaveStalled(PlanConfirmationID, LedgerFailure)
-
-	fileprivate func redacted(_ secrets: [String]) -> DiagnosticsEvent {
-		switch self {
-		case .providerFailure(let attempt, let failure, let detail):
-			return .providerFailure(attempt, failure, detail: Redaction.clean(detail, secrets))
-		case .memoryFlushFailed(let chat, let detail):
-			return .memoryFlushFailed(chat, detail: Redaction.clean(detail, secrets))
-		case .compactionFailed(let chat, let detail):
-			return .compactionFailed(chat, detail: Redaction.clean(detail, secrets))
-		case .secureStorageFailed, .toolFailed, .replyObservedUnsaved, .skippedRecord,
-			.recoveryUnavailable, .importsUnavailable,
-			.preferencesUnavailable, .consentUnavailable, .snapshotReadFailed,
-			.snapshotDeadlineMissed, .reviewOutcomeUnsaved,
-			.settlementUnsaved, .reviewUnavailable, .planConfirmationUnavailable,
-			.planSaveStalled:
-			return self
-		}
-	}
+	case journalRestarted(JournalFault)
+	case journalLinesDropped(count: Int)
+	case feedbackNotDelivered(answers: [AttemptAnswer])
+	case feedbackNoteUnsaved(FailureCode)
+	case diagnosticsFileFailed(DiagnosticsFileFailure, FailureCode)
 }
 
-private enum Redaction {
-	static let marker = "[redacted]"
-
-	static func clean(_ text: String, _ secrets: [String]) -> String {
-		var clean = text
-		for secret in secrets where !secret.isEmpty {
-			clean = clean.replacingOccurrences(of: secret, with: marker)
+extension JournalOpening {
+	fileprivate var event: DiagnosticsEvent {
+		switch self {
+		case .linesDropped(let count): .journalLinesDropped(count: count)
+		case .restarted(let fault): .journalRestarted(fault)
 		}
-		clean = clean.replacing(/\bsk-[A-Za-z0-9_\-]{6,}/, with: marker)
-		clean = clean.replacing(/(?i)\bbearer\s+[^\s"',;]+/, with: "Bearer \(marker)")
-		return String(clean.prefix(DiagnosticsLog.detailLimit))
 	}
 }
