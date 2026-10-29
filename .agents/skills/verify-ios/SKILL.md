@@ -186,7 +186,7 @@ These gaps were checked against `FixtureArguments`, `FirstWeekFixture`, and the 
 | No system banner or notification on a real phone, OS suspension or expiry, lock and unlock, and a hard kill losing partial text | The procedures in [phone.md](phone.md) and their screenshots. Home proves backgrounding only. The operator performs an actual lock and unlock. Fixture host expiry proves the package's expiry response, not when iOS expires a real lease. A device run must capture an actual OS expiry before claiming that part. |
 | Live networking, real Keychain access or sync, CloudKit imports, and a second device's consent or conversation | The [phone run](phone.md#run-phonerun) plus the operator-assisted [two-phone reconnect](phone.md#prove-reconnect-across-two-phones) on the same Apple ID. The one-phone script does not cover the second device. Fixture stores have CloudKit off. |
 | Exactly one intervals.icu event, including UID upsert after an uncertain write | The operator reads the real calendar after the single Add. Repeated-write UID-upsert evidence belongs to the operator's authorized live calendar-save check; this phone script never repeats Add. |
-| StoreKit purchases in Debug, Credits | Release builds contain no purchase code. The Debug purchase lab needs operator-approved sandbox testing. Neither this suite nor the phone script claims that proof. |
+| StoreKit purchases in Debug, Credits | Release builds contain no StoreKit purchase code. The Debug purchase lab needs operator-approved sandbox testing. Neither this suite nor the phone script claims that proof. |
 
 ## Compare with the prototype
 
