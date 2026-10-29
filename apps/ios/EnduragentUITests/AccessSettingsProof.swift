@@ -41,9 +41,9 @@ final class AccessSettingsProof: XCTestCase {
 			app, "consent.body",
 			reading: phrasebook.say(
 				Catalog.onboardingConsentBody,
-				["model": "DeepSeek V4.1 Flash", "provider": "DeepSeek"]))
+				["model": "DeepSeek V4.1 Flash", "provider": "DeepInfra"]))
 		TutorialHarness.agreeToProviderConsent(
-			app, recipient: (model: "DeepSeek V4.1 Flash", provider: "DeepSeek"))
+			app, recipient: (model: "DeepSeek V4.1 Flash", provider: "DeepInfra"))
 		openAccess(app)
 		assertChoice(app, credits: true)
 		capture(app, "credits-setup-succeeded")
@@ -83,7 +83,7 @@ final class AccessSettingsProof: XCTestCase {
 					app, "consent.body",
 					reading: phrasebook.say(
 						Catalog.onboardingConsentBody,
-						["model": "DeepSeek V4.1 Flash", "provider": "DeepSeek"]))
+						["model": "DeepSeek V4.1 Flash", "provider": "DeepInfra"]))
 				TutorialHarness.waitForIdentifier(
 					app, "consent.modelRequestCount", reading: "0 model requests")
 				capture(app, "sign-in-\(outcome.rawValue)-consent")

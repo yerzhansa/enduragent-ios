@@ -64,7 +64,7 @@ final class OpenRouterAccessProof: XCTestCase {
 			TutorialHarness.agreeToProviderConsent(
 				app,
 				recipient: success
-					? (model: "DeepSeek V4.1 Flash", provider: "DeepSeek")
+					? (model: "DeepSeek V4.1 Flash", provider: "DeepInfra")
 					: (model: "fixture/openrouter-model", provider: "Fixture Host"))
 			TutorialHarness.relaunchKeepingStore(app)
 			TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))

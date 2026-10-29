@@ -8,10 +8,11 @@ import Testing
 	@Test(.enabled(if: ProcessInfo.processInfo.environment["OPENROUTER_API_KEY"] != nil))
 	func streamsOneTurn() async throws {
 		let apiKey = try #require(ProcessInfo.processInfo.environment["OPENROUTER_API_KEY"])
+		let builtIn = try #require(ModelCatalog.bundled.orderedEntries.first)
 		let request = CompletionRequest(
 			access: ResolvedAccess(
 				credential: ProviderCredential(secret: apiKey, method: .credits),
-				model: ModelID(rawValue: "deepseek/deepseek-v4.1-flash-20260910")),
+				model: builtIn.id, provider: builtIn.details.provider),
 			attempt: AttemptID(ulid: fixedUlid(1)),
 			charge: .chatAttempt,
 			messages: [

@@ -20,6 +20,18 @@ func keyedSecrets(
 	return secrets
 }
 
+func projectBuiltInModel() throws -> ModelID {
+	let ios = (0..<5).reduce(URL(fileURLWithPath: #filePath)) { path, _ in
+		path.deletingLastPathComponent()
+	}
+	let project = try String(contentsOf: ios.appending(path: "project.yml"), encoding: .utf8)
+	let setting = try #require(
+		project.split(separator: "\n").first {
+			$0.trimmingCharacters(in: .whitespaces).hasPrefix("OPENROUTER_MODEL:")
+		})
+	return ModelID(rawValue: try #require(setting.split(separator: " ").last).description)
+}
+
 func testVault(
 	_ store: any SecretStore,
 	training: TrainingService = .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },

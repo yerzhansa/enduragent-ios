@@ -21,7 +21,8 @@ import Testing
 		let attempt = AttemptID(ulid: fixedUlid(41))
 		let request = CompletionRequest(
 			access: ResolvedAccess(
-				credential: ProviderCredential(secret: key, method: .credits), model: testModel),
+				credential: ProviderCredential(secret: key, method: .credits), model: testModel,
+				provider: .fixtureHost),
 			attempt: attempt, charge: .chatAttempt,
 			messages: [
 				WireMessage(role: .user, content: athleteText, toolCalls: [], toolCallId: nil)

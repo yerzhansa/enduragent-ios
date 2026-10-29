@@ -37,7 +37,7 @@ enum LanguageMatrix {
 		run.expectText(Catalog.onboardingConsentTitle)
 		run.expect(
 			"consent.body", Catalog.onboardingConsentBody,
-			["model": "DeepSeek V4.1 Flash", "provider": "DeepSeek"])
+			["model": "DeepSeek V4.1 Flash", "provider": "DeepInfra"])
 		run.expect("consent.accept", Catalog.onboardingConsentAccept)
 		run.expect("consent.decline", Catalog.onboardingConsentDecline)
 		run.screen("onboarding-consent")
@@ -280,7 +280,7 @@ enum LanguageMatrix {
 		TutorialHarness.wait(run.named("model.choices"))
 		run.expect(
 			"model.choice.deepseek/deepseek-v4.1-flash-20260910", Catalog.setupAiModelVia,
-			["model": "DeepSeek V4.1 Flash", "provider": "DeepSeek"])
+			["model": "DeepSeek V4.1 Flash", "provider": "DeepInfra"])
 		run.expectTitle(Catalog.settingsCoachChooseModel)
 		run.screen("settings-model")
 		TutorialHarness.returnToChat(app)

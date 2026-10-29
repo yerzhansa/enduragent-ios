@@ -21,11 +21,7 @@ extension CredentialVault {
 	{
 		switch saved?.value {
 		case nil, .credits?:
-			do {
-				return ConsentTarget(method: .credits, entry: try creditsEntry(builtInModel))
-			} catch {
-				throw .malformedStoredCredential(.accessSelection)
-			}
+			return ConsentTarget(method: .credits, entry: try builtInEntry(builtInModel))
 		case .openRouter(let reference)?:
 			return ConsentTarget(method: .openRouterAccount, entry: try savedEntry(reference))
 		}
@@ -130,21 +126,12 @@ extension CredentialVault {
 		if pendingModelChoice?.challenge == challenge { pendingModelChoice = nil }
 	}
 
-	private func creditsEntry(_ model: ModelID) throws -> ModelCatalogEntry {
-		let details = catalogs.bundled.entries[model] ?? ModelCatalog.bundled.entries[model]
-		return try catalog.choice(model, retaining: details)
-	}
-
 	func requestTarget(_ request: CompletionRequest) throws(AccessUnavailable) -> ConsentTarget {
 		do {
-			let entry: ModelCatalogEntry
-			if let provider = request.provider {
-				let details = try ModelDetails(
-					displayName: request.model.rawValue, provider: provider)
-				entry = try catalog.choice(request.model, retaining: details)
-			} else {
-				entry = try creditsEntry(request.model)
-			}
+			let entry = try ModelCatalogEntry(
+				id: request.model,
+				details: ModelDetails(
+					displayName: request.model.rawValue, provider: request.provider))
 			return ConsentTarget(method: request.credential.method, entry: entry)
 		} catch {
 			throw .malformedStoredCredential(.accessSelection)

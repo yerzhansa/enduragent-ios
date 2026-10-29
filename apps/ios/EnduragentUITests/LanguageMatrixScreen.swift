@@ -144,7 +144,7 @@ enum MatrixSweep {
 		messages + LanguageTag.allCases.map(\.endonym) + [
 			AthleteOwnershipFixture.savedQuestion, AthleteOwnershipFixture.unknownQuestion,
 			"Ada Kovač", "Bo Lind", "Endurance with tempo", "Warmup ramp 1.5",
-			"DeepSeek V4.1 Flash", "DeepSeek",
+			"DeepSeek V4.1 Flash", "DeepInfra",
 		]
 
 	static func shown(in screen: any XCUIElementSnapshot) -> [String] {
