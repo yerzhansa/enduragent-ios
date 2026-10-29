@@ -1,4 +1,5 @@
 #if KEYCHAIN_DEVICE_PROOF && !targetEnvironment(simulator)
+	import EnduragentCoach
 	import EnduragentCoachFixtures
 	import XCTest
 
@@ -29,7 +30,7 @@
 			let key = TutorialHarness.named(app, "training.apiKey")
 			TutorialHarness.wait(key, until: .hittable)
 			XCTAssertEqual(key.elementType, .secureTextField)
-			XCTAssertEqual(key.value as? String, key.placeholderValue)
+			XCTAssertTrue(TutorialHarness.readsEmpty(key))
 			key.tap()
 			key.typeText(NativeKeychainProof.syntheticKey)
 			TutorialHarness.named(app, "training.save").tap()
@@ -43,7 +44,8 @@
 			let before = try receipts("native-keychain-before-relaunch")
 			XCTAssertTrue(
 				before.attempts.contains {
-					$0.slot == "intervalsConnection" && $0.operation == "add" && $0.status == 0
+					$0.slot == CredentialSlot.intervalsConnection.rawValue && $0.operation == "add"
+						&& $0.status == 0
 				})
 			XCTAssertEqual(before.turnAccounts.count, 1)
 			TutorialHarness.relaunchKeepingStore(app)
@@ -87,7 +89,8 @@
 			XCTAssertFalse(receipt.attempts.isEmpty)
 			XCTAssertTrue(
 				receipt.attempts.contains {
-					$0.slot == "intervalsConnection" && $0.operation == "copy" && $0.status == 0
+					$0.slot == CredentialSlot.intervalsConnection.rawValue && $0.operation == "copy"
+						&& $0.status == 0
 				})
 			for attempt in receipt.attempts {
 				XCTAssertGreaterThanOrEqual(attempt.milliseconds, 0)
