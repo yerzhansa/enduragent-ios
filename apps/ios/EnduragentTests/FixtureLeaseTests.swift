@@ -130,7 +130,7 @@ extension FixtureLaunchTests {
 		let services = AppServices(
 			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(),
 			clock: clock,
-			leases: { [] }, packPrices: { _ in [:] })
+			leases: { [] })
 		await model(services).agreeAndStartChatting()
 		return coach
 	}

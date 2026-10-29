@@ -92,9 +92,7 @@ final class ShellModel {
 	private(set) var consentNotSaved = false
 	private(set) var isRecordingConsent = false
 	var balance: Credits? { credits.balance }
-	var catalog: PackCatalog? { credits.catalog }
 	var creditsNotice: AthleteNotice? { credits.notice }
-	var packPrices: [String: String] { credits.packPrices }
 	var history: HistoryList { archive.list }
 
 	var services: AppServices {

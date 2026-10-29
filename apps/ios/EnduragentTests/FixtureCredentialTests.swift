@@ -62,7 +62,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let fixture = try #require(services.fixture)
 		fixture.credits.grantResult = .failure(.banned)
-		fixture.credits.catalogResult = .failure(.unavailable)
+		fixture.credits.balanceResult = .failure(.unavailable)
 		let model = await model(services)
 		await model.loadStarter()
 		#expect(model.starterLine == "Credits are unavailable right now. Try again later.")

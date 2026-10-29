@@ -635,13 +635,11 @@
       }
     },
     "turn": {
-      "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",
       "finishedWhileLocked": "Finished while the phone was locked.",
       "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
       "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
       "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
-      "restorePurchases": "Restore purchases",
       "signInAgain": "Sign in again"
     },
     "view": {
@@ -940,19 +938,13 @@
   },
   "credits": {
     "error": {
-      "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
+      "accessRejected": "Your Credits couldn't be used. You can switch to your OpenRouter account.",
       "exhausted": "You're out of Credits. You can switch to your OpenRouter account.",
       "unavailable": "Credits are unavailable right now. Try again later.",
       "accountChanged": "Your Credits account changed while this request was finishing. Your current account was kept."
     },
     "balance_one": "{{formattedCount}} credit",
     "balance_other": "{{formattedCount}} credits",
-    "buy": "Buy",
-    "pack_one": "{{formattedCount}} credit",
-    "pack_other": "{{formattedCount}} credits",
-    "packPrice_one": "{{formattedCount}} credit · {{price}}",
-    "packPrice_other": "{{formattedCount}} credits · {{price}}",
-    "testers": "Testers cannot buy packs yet.",
     "title": "Credits"
   },
   "desktop": {

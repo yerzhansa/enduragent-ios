@@ -1487,13 +1487,11 @@
     },
     "menu": "Menu",
     "turn": {
-      "buyCredits": "Acquista crediti",
       "chooseAccessMethod": "Scegli il metodo di accesso",
       "finishedWhileLocked": "Terminato mentre il telefono era bloccato.",
       "interruptedNothingChanged": "Questa risposta si è interrotta prima di finire. Non è stato modificato nulla.",
       "interruptedSomeSaved": "Questa risposta si è interrotta prima di finire. Alcune informazioni erano già state salvate.",
       "receivedBeforeClose": "Ricevuto prima della chiusura dell’app. Tocca Riprova per inviarlo.",
-      "restorePurchases": "Ripristina acquisti",
       "signInAgain": "Accedi di nuovo"
     },
     "welcome": "Ti do il benvenuto su {{product}}!\n\nSono il tuo coach di ciclismo con IA. Posso creare piani di allenamento, suggerire allenamenti e seguire il tuo fitness con i dati di {{service}}.\n\nComandi:\n{{commands}}\n\nOppure parlami del tuo allenamento!",
@@ -3015,17 +3013,11 @@
     }
   },
   "credits": {
-    "buy": "Acquista",
-    "testers": "I tester non possono ancora acquistare pacchetti.",
     "title": "Crediti",
     "balance_one": "{{formattedCount}} credito",
-    "pack_one": "{{formattedCount}} credito",
-    "packPrice_one": "{{formattedCount}} credito · {{price}}",
     "balance_other": "{{formattedCount}} crediti",
-    "pack_other": "{{formattedCount}} crediti",
-    "packPrice_other": "{{formattedCount}} crediti · {{price}}",
     "error": {
-      "accessRejected": "Non è stato possibile usare i tuoi crediti. Ripristina gli acquisti per continuare.",
+      "accessRejected": "Non è stato possibile usare i tuoi crediti. Puoi passare al tuo conto OpenRouter.",
       "exhausted": "Hai esaurito i crediti. Puoi passare al tuo conto OpenRouter.",
       "unavailable": "I crediti non sono disponibili al momento. Riprova più tardi.",
       "accountChanged": "Il tuo conto crediti è cambiato mentre questa richiesta veniva completata. Il tuo conto attuale è stato mantenuto."

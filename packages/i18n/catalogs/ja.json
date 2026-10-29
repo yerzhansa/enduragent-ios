@@ -1474,13 +1474,11 @@
     },
     "menu": "メニュー",
     "turn": {
-      "buyCredits": "クレジットを購入",
       "chooseAccessMethod": "接続方法を選択",
       "finishedWhileLocked": "端末がロックされている間に完了しました。",
       "interruptedNothingChanged": "回答が完了する前に中断されました。変更はありません。",
       "interruptedSomeSaved": "回答が完了する前に中断されました。一部の情報はその前に保存されました。",
       "receivedBeforeClose": "アプリが閉じる前に受信しました。「再試行」をタップして送信してください。",
-      "restorePurchases": "購入を復元",
       "signInAgain": "再度サインイン"
     },
     "welcome": "{{product}}へようこそ！\n\nAIサイクリングコーチです。{{service}}のデータを使ってトレーニングプランを作成し、ワークアウトを提案し、フィットネスの変化を確認できます。\n\nコマンド:\n{{commands}}\n\nトレーニングについて、気軽に話しかけてください！",
@@ -2979,14 +2977,10 @@
     }
   },
   "credits": {
-    "buy": "購入",
-    "testers": "テスターはまだパックを購入できません。",
     "title": "クレジット",
     "balance_other": "{{formattedCount}}クレジット",
-    "pack_other": "{{formattedCount}}クレジット",
-    "packPrice_other": "{{formattedCount}}クレジット · {{price}}",
     "error": {
-      "accessRejected": "クレジットを使用できませんでした。購入を復元して続けてください。",
+      "accessRejected": "クレジットを使用できませんでした。OpenRouterアカウントに切り替えることができます。",
       "exhausted": "クレジットがなくなりました。OpenRouterアカウントに切り替えることができます。",
       "unavailable": "現在クレジットを利用できません。しばらくしてからもう一度お試しください。",
       "accountChanged": "このリクエストの完了処理中にクレジットアカウントが変更されました。現在のアカウントは保持されました。"

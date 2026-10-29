@@ -107,8 +107,6 @@ struct TurnRowView: View {
 	private func identifier(for action: RecoveryAction) -> String {
 		switch action {
 		case .tryAgain, .wait: "chat.turn.tryAgain"
-		case .restoreCredits: "chat.turn.restorePurchases"
-		case .buyCredits: "chat.turn.buyCredits"
 		case .chooseAccessMethod: "chat.turn.chooseAccessMethod"
 		case .switchToOpenRouter: "chat.turn.switchToOpenRouter"
 		case .signInToOpenRouter: "chat.turn.signInAgain"

@@ -574,10 +574,8 @@ ProviderTrouble.network
 ProviderTrouble.outage
 ProviderTrouble.timeout
 RecoveryAction
-RecoveryAction.buyCredits
 RecoveryAction.chooseAccessMethod
 RecoveryAction.connectTraining
-RecoveryAction.restoreCredits
 RecoveryAction.signInToOpenRouter
 RecoveryAction.switchToOpenRouter
 RecoveryAction.title

@@ -1,6 +1,5 @@
 import EnduragentCoach
 import Foundation
-import StoreKit
 
 enum ShellRoute: Equatable {
 	case loading
@@ -47,7 +46,6 @@ struct AppServices: Sendable {
 	var deviceCheck: any DeviceCheckTokenProviding
 	var clock: any Clock
 	var leases: @Sendable () async -> [LeaseRecord]
-	var packPrices: @Sendable ([String]) async throws -> [String: String]
 
 	#if DEBUG
 		var fixture: FixtureServices?
@@ -80,11 +78,7 @@ struct AppServices: Sendable {
 			coach: coach,
 			deviceCheck: DeviceCheckTokenProvider(),
 			clock: clock,
-			leases: { await host.leases },
-			packPrices: { identifiers in
-				let products = try await Product.products(for: identifiers)
-				return Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0.displayPrice) })
-			}
+			leases: { await host.leases }
 		)
 	}
 

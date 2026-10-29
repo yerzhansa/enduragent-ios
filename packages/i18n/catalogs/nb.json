@@ -1487,13 +1487,11 @@
     },
     "menu": "Meny",
     "turn": {
-      "buyCredits": "Kjøp kreditter",
       "chooseAccessMethod": "Velg tilgangsmåte",
       "finishedWhileLocked": "Ble ferdig mens telefonen var låst.",
       "interruptedNothingChanged": "Dette svaret ble avbrutt før det var ferdig. Ingenting ble endret.",
       "interruptedSomeSaved": "Dette svaret ble avbrutt før det var ferdig. Noen opplysninger ble lagret først.",
       "receivedBeforeClose": "Mottatt før appen lukket seg. Trykk på Prøv igjen for å sende meldingen.",
-      "restorePurchases": "Gjenopprett kjøp",
       "signInAgain": "Logg inn igjen"
     },
     "welcome": "Velkommen til {{product}}!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra {{service}}.\n\nKommandoer:\n{{commands}}\n\nDu kan også bare prate med meg om treningen din!",
@@ -3015,17 +3013,11 @@
     }
   },
   "credits": {
-    "buy": "Kjøp",
-    "testers": "Testere kan ikke kjøpe pakker ennå.",
     "title": "Kreditter",
     "balance_one": "{{formattedCount}} kreditt",
-    "pack_one": "{{formattedCount}} kreditt",
-    "packPrice_one": "{{formattedCount}} kreditt · {{price}}",
     "balance_other": "{{formattedCount}} kreditter",
-    "pack_other": "{{formattedCount}} kreditter",
-    "packPrice_other": "{{formattedCount}} kreditter · {{price}}",
     "error": {
-      "accessRejected": "Kredittene dine kunne ikke brukes. Gjenopprett kjøp for å fortsette.",
+      "accessRejected": "Kredittene dine kunne ikke brukes. Du kan bytte til OpenRouter-kontoen din.",
       "exhausted": "Du er tom for kreditter. Du kan bytte til OpenRouter-kontoen din.",
       "unavailable": "Kreditter er ikke tilgjengelige akkurat nå. Prøv igjen senere.",
       "accountChanged": "Kredittkontoen din ble endret mens denne forespørselen ble fullført. Den nåværende kontoen din ble beholdt."

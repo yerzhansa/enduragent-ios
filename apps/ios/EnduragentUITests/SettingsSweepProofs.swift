@@ -9,7 +9,7 @@ final class SettingsLargestTextSweepProof: XCTestCase {
 			(.settings, "settings.model", 10),
 			(.accessMethod, "access.credits", 2),
 			(.modelPicker, "model.choices", 2),
-			(.credits, "credits.pack.icu.enduragent.credits.small", 3),
+			(.credits, "credits.switchToOpenRouter", 1),
 			(.training, "training.athlete", 3),
 			(.languagePicker, "language.choice.automatic", 19),
 		]

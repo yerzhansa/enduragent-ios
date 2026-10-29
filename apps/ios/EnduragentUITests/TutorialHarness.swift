@@ -21,15 +21,15 @@ enum TutorialHarness {
 	static let warmup = "Warmup"
 	static let working = "Coach is working…"
 	static let providerDown = "The model provider is having trouble — try again in a few minutes."
-	static let accessRejected = "Your Credits couldn't be used. Restore purchases to continue."
+	static let accessRejected =
+		"Your Credits couldn't be used. You can switch to your OpenRouter account."
 	static let creditsExhausted =
 		"You're out of Credits. You can switch to your OpenRouter account."
 	static let savedUnverified =
 		"I saved your information, but couldn't verify my response. Please try again."
 	static let notConfigured = "Choose how the coach reaches a model to continue."
 	static let locked = "Unlock your iPhone to continue. Your message is saved."
-	static let buyCredits = "Buy Credits"
-	static let restorePurchases = "Restore purchases"
+	static let switchToOpenRouter = "Switch to OpenRouter"
 	static let chooseAccessMethod = "Choose access method"
 	static let rateLimitSevenSeconds = "Rate limited — please try again in ~7 seconds."
 	static let rateLimitSixSeconds = "Rate limited — please try again in ~6 seconds."

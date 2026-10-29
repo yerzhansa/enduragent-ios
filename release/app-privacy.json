@@ -28,15 +28,7 @@
 		{
 			"type": "NSPrivacyCollectedDataTypeUserID",
 			"label": "User ID",
-			"data": "The athlete id the Credits service creates and keeps.",
-			"linked": true,
-			"tracking": false,
-			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
-		},
-		{
-			"type": "NSPrivacyCollectedDataTypePurchaseHistory",
-			"label": "Purchase History",
-			"data": "Credits purchases the Credits service keeps for the athlete id.",
+			"data": "The athlete id the app creates and the Credits service keeps.",
 			"linked": true,
 			"tracking": false,
 			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]

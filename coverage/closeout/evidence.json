@@ -63,7 +63,7 @@
 		],
 		"B03.06": [
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsOperationsKeepOpenRouterAndReportFailures"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsBothActionsAfterReopeningAndInHistory"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsItsActionAfterReopeningAndInHistory"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialReadTests.swift", "function": "resolverReadsOnlyTheSelectedMethodKey"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CreditsClientTests.swift", "function": "claimSettlementFinishesOnlyAfterTerminalOutcome"}}
 		],
@@ -478,7 +478,7 @@
 		],
 		"MOB09": [
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsBothActionsAfterReopeningAndInHistory"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsItsActionAfterReopeningAndInHistory"}},
 			{"test": {"file": "apps/ios/EnduragentUITests/BillingIdentityProof.swift", "class": "BillingIdentityProof", "method": "testExhaustedCreditsKeepMemoryAndMessagesAndOfferWorkingRoutes"}}
 		],
 		"MOB10": [
