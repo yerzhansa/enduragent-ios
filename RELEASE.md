@@ -38,7 +38,14 @@ make check-closeout-final
 
 It passes only when `coverage/closeout/evidence.json` has stage `final`, no coverage table has an open row, and every phone step a closeout row cites is `pass` in `coverage/closeout/sitting.json`.
 
-Run it before the archive step. A build whose commit fails it may go to TestFlight, for example to rerun sitting steps, but it must never be submitted for App Review. Before you submit any build for App Review, check out that build's commit and run the gate again. Submit only if it passes.
+Run it before the archive step. Archive only from a clean tree: `git status --porcelain` must print nothing. Then tag the commit with the version and build from `apps/ios/project.yml`, and push the tag:
+
+```sh
+git tag ios-<MARKETING_VERSION>-<CURRENT_PROJECT_VERSION>
+git push origin ios-<MARKETING_VERSION>-<CURRENT_PROJECT_VERSION>
+```
+
+A build whose commit fails the gate may go to TestFlight, for example to rerun sitting steps, but it must never be submitted for App Review. Before you submit a build for App Review, check out its tag, run the gate again, and submit only if it passes. A build with no tag is never submitted.
 
 ## Archive on the operator Mac
 
