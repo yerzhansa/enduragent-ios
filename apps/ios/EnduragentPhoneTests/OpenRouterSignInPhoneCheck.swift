@@ -77,8 +77,7 @@
 		}
 
 		@MainActor private var composerIsEmpty: Bool {
-			let composer = element("chat.composer")
-			return ["", composer.placeholderValue].contains(composer.value as? String ?? "")
+			TutorialHarness.readsEmpty(element("chat.composer"))
 		}
 
 		private func launchPlain() throws {

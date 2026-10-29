@@ -129,8 +129,7 @@
 			capture("choices-plain-launch")
 			try requireChat()
 			let composer = element("chat.composer")
-			let draft = composer.value as? String ?? ""
-			guard draft.isEmpty || draft == composer.placeholderValue else {
+			guard TutorialHarness.readsEmpty(composer) else {
 				throw PhoneRunBlocked(reason: "The operator's draft is still in the composer.")
 			}
 			if fresh == "1" {

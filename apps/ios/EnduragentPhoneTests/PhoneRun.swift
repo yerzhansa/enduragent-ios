@@ -107,8 +107,7 @@
 				throw PhoneRunBlocked(reason: "An earlier turn or workout review is still open.")
 			}
 			let composer = element("chat.composer")
-			let value = composer.value as? String ?? ""
-			guard value.isEmpty || value == composer.placeholderValue else {
+			guard TutorialHarness.readsEmpty(composer) else {
 				throw PhoneRunBlocked(reason: "The operator's draft is still in the composer.")
 			}
 			composer.tap()

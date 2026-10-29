@@ -288,7 +288,7 @@ final class CloseoutPhoneRun: XCTestCase {
 
 	@MainActor
 	private func clear(_ field: XCUIElement) throws {
-		guard !FeedbackSendGate.readsEmpty(field) else { return }
+		guard !TutorialHarness.readsEmpty(field) else { return }
 		guard let shown = field.value as? String else {
 			throw PhoneRunBlocked(reason: "The note field shows no text.")
 		}
@@ -306,7 +306,7 @@ final class CloseoutPhoneRun: XCTestCase {
 			field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: shown.count))
 		}
 		TutorialHarness.wait(
-			until: { FeedbackSendGate.readsEmpty(field) }, message: "The note did not clear.")
+			until: { TutorialHarness.readsEmpty(field) }, message: "The note did not clear.")
 		log.append("Cleared the note.")
 	}
 

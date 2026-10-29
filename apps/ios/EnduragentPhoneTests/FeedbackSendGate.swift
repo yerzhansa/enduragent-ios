@@ -18,11 +18,6 @@ enum FeedbackSendGate {
 		send.tap()
 	}
 
-	static func readsEmpty(_ field: XCUIElement) -> Bool {
-		guard let shown = field.value as? String else { return true }
-		return shown.isEmpty || shown == field.placeholderValue
-	}
-
 	private static func note(in field: XCUIElement) throws -> String {
 		let shown = field.value as? String
 		if let shown, shown.isEmpty || shown != field.placeholderValue { return shown }
@@ -35,7 +30,7 @@ enum FeedbackSendGate {
 		field.typeText(XCUIKeyboardKey.delete.rawValue)
 		guard
 			TutorialHarness.wait(
-				until: { readsEmpty(field) }, required: false,
+				until: { TutorialHarness.readsEmpty(field) }, required: false,
 				message: "The probe stayed in the note.")
 		else {
 			throw PhoneRunBlocked(reason: "fail send-guard")
