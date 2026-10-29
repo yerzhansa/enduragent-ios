@@ -1,21 +1,22 @@
-# iOS TestFlight release
+# iOS release
 
-This is the iPhone upload path. The Railway image runbook does not apply.
+This is the iPhone release path, from a TestFlight upload to an App Store release. The Railway image runbook does not apply.
 
 ## Identity
 
 Read `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` from `apps/ios/project.yml`. Do not hardcode the next version in a script.
-First TestFlight is `0.1.0` `(1)`. The next upload increments `CURRENT_PROJECT_VERSION`.
+`MARKETING_VERSION` must equal the version name in App Store Connect, because App Store Connect matches the build's `CFBundleShortVersionString` to it.
+Every upload needs a `CURRENT_PROJECT_VERSION` higher than every build already uploaded for the app.
 Bundle id is `icu.enduragent.app`.
 Team is `FA494ACVTF`.
 Display name is `Enduragent`.
 
-`CREDITS_WORKER_BASE` is a build setting. First TestFlight uses `https://enduragent-credits-testflight.yerzhan-st.workers.dev`.
-`OPENROUTER_MODEL` is a build setting. First TestFlight uses `deepseek/deepseek-v4.1-flash-20260910`.
+`CREDITS_WORKER_BASE` is a build setting. TestFlight builds use `https://enduragent-credits-testflight.yerzhan-st.workers.dev`. A build for App Review must use the production Credits worker URL.
+`OPENROUTER_MODEL` is a build setting. It is `deepseek/deepseek-v4.1-flash-20260910`.
 
 ## Lane
 
-The first upload is from the operator Mac with Xcode automatic signing.
+Uploads are from the operator Mac with Xcode automatic signing.
 Do not merge a GitHub Actions upload workflow until the operator approves that specific workflow PR.
 
 ## CloudKit schema to Production
@@ -26,7 +27,7 @@ Do this before every archive whose build changes the record types, and before th
 2. Open the Development schema and choose Deploy Schema Changes.
 3. Check that the listed record types and fields are the ones the build reads and writes, then deploy them to Production.
 
-If the Production deploy fails, stop and report. Never upload a TestFlight build against a Development-only schema.
+If the Production deploy fails, stop and report. Never upload a build against a Development-only schema.
 
 ## Closeout gate
 
@@ -68,12 +69,10 @@ The IPA must embed an App Store profile: `get-task-allow` false, no device list,
 
 ## App Store Connect
 
-Create the app record named `Enduragent` with bundle id `icu.enduragent.app` before the first upload.
+The app record is named `Enduragent`, with bundle id `icu.enduragent.app`.
 Use the developer-only Apple ID.
 
-Fill the App Privacy label from `release/app-privacy.json`. It lists the same collected data types as `apps/ios/Enduragent/PrivacyInfo.xcprivacy`, and `make check-source` keeps the two equal.
-
-Upload with an App Store Connect API key. Put `AuthKey_<KEYID>.p8` in `~/.appstoreconnect/private_keys/`. Never commit the key.
+Upload with an App Store Connect API key. Put `AuthKey_<KEYID>.p8` in `~/.appstoreconnect/private_keys/`. Never commit the key, and never print it.
 
 ```sh
 xcrun altool --upload-app --type ios \
@@ -82,15 +81,58 @@ xcrun altool --upload-app --type ios \
   --apiIssuer ISSUER
 ```
 
-Create TestFlight group `Athletes`. The operator iPhone is the first tester.
+Wait until the build shows `VALID` in App Store Connect.
 
-## Rollback
+`ITSAppUsesNonExemptEncryption` is `false` in `project.yml`, so App Store Connect asks no export compliance question for the build.
 
-Expire the build in TestFlight. Do not delete the app record.
+## TestFlight
+
+TestFlight group `Athletes` holds the testers. The operator iPhone is the first tester.
+
+To roll back a TestFlight build, expire it in TestFlight. Do not delete the app record.
+
+## App Store
+
+An App Store build is a TestFlight build whose tag passes the closeout gate. Steps marked **Operator** are done by the operator in App Store Connect. An agent may do the other App Store Connect steps through the App Store Connect API only after the operator approves that step.
+
+### Prepare the build
+
+1. Set `MARKETING_VERSION` to the App Store Connect version name, and set `CURRENT_PROJECT_VERSION` above every uploaded build.
+2. Check that `CREDITS_WORKER_BASE` is the production Credits worker URL.
+3. Do "CloudKit schema to Production", "Closeout gate", "Archive on the operator Mac" and the upload in "App Store Connect", in that order.
+4. Install the build from TestFlight on the operator iPhone. Reach a coach reply on each access method that the review notes describe.
+
+### Fill the version page
+
+1. Under Build, select the tagged build.
+2. Under App Information, enter the name, subtitle, primary category Health & Fitness, secondary category Sports, the privacy policy URL and the content rights answer. The privacy policy page must be live before you enter its URL.
+3. Under the version, enter the promotional text, description, keywords, support URL, marketing URL and copyright. The support page must be live first.
+4. Set Version Release to "Manually release this version", so the release is a separate step.
+5. Upload screenshots for iPhone 6.9" (1320 × 2868) and iPhone 6.3" (1206 × 2622), portrait, PNG without an alpha channel. Capture them with the `verify-ios` skill on `iPhone 17 Pro Max` and `iPhone 17 Pro`, with the status bar set by `xcrun simctl status_bar <UDID> override`. Check each file with `sips -g pixelWidth -g pixelHeight -g hasAlpha <file>`. No screenshot may show a debug control, a fixture label or a key.
+6. **Operator.** Answer the App Privacy questionnaire from `release/app-privacy.json`: tracking No, and for each listed type the purpose and the linked value the file gives. Untick every type the file does not list. Publish the label. The file lists the same collected data types as `apps/ios/Enduragent/PrivacyInfo.xcprivacy`, and `make check-source` keeps the two equal. The App Store Connect API has no endpoint for this.
+7. Answer the age rating questionnaire.
+8. **Operator.** Under Pricing and Availability, set the price and the countries and regions. Answer the European Union trader status question before you distribute in the EU.
+9. Attach no in-app purchase. The app sells none.
+10. **Operator.** Under App Review Information, enter the notes, the demo sign-in and the contact fields. Credentials and contact details are typed by the operator only.
+
+### Submit for App Review
+
+1. Check out the build's tag and run `make check-closeout-final`. Submit only if it passes.
+2. **Operator.** Check that no section of the version shows a warning. Choose Add for Review, then Submit to App Review.
+
+### Release
+
+1. After approval, the version waits in Pending Developer Release.
+2. **Operator.** Choose Release This Version.
+
+### App Store rollback
+
+1. Before release: choose Remove from Review or Developer Reject, fix the build, and submit a new build.
+2. After release: submit a fixed version. To stop new downloads, remove the app from sale in Pricing and Availability. Do not delete the app record.
 
 ## Later builds
 
-Bump `MARKETING_VERSION` by SemVer policy for that slice.
+Bump `MARKETING_VERSION` by SemVer policy for that slice, and create the matching version in App Store Connect.
 Increment `CURRENT_PROJECT_VERSION` on every upload.
 Run `xcodegen generate --spec apps/ios/project.yml`.
 Archive and upload again.
