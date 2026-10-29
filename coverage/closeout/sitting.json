@@ -2,6 +2,7 @@
 	"steps": {
 		"closeout/about": {"verdict": "pass", "date": "2026-10-29"},
 		"closeout/choices": {"verdict": "blocked deferred by the operator 2026-10-29", "date": "2026-10-29"},
+		"closeout/diagnostics": {"verdict": "pass", "date": "2026-10-29"},
 		"closeout/fill": {"verdict": "pass", "date": "2026-10-29"},
 		"closeout/openrouter-recovery": {"verdict": "blocked deferred by the operator 2026-10-29", "date": "2026-10-29"},
 		"closeout/reads": {"verdict": "blocked deferred by the operator 2026-10-29", "date": "2026-10-29"},
