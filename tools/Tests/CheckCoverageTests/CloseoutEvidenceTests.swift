@@ -66,7 +66,7 @@ struct CloseoutEvidenceTests {
 		"B03.03": [closeout("openrouter-signin")],
 		"B03.04": [closeout("openrouter-recovery")],
 		"B04.01": [closeout("keychain-proof")],
-		"B05.01": [],
+		"B05.01": [closeout("language")],
 		"B07.05": [closeout("lifecycle")],
 		"B08.03": live("reads-failing"),
 		"B13.01": live("not-connected", "ftp-not-usable") + [

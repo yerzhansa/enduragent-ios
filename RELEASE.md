@@ -30,13 +30,15 @@ If the Production deploy fails, stop and report. Never upload a TestFlight build
 
 ## Closeout gate
 
-Before you archive a build for App Review, run this from the repository root:
+Run this from the repository root, on the commit the build is archived from:
 
 ```sh
 make check-closeout-final
 ```
 
-It passes only when `coverage/closeout/evidence.json` has stage `final`, no coverage table has an open row, and every phone step a closeout row cites is `pass` in `coverage/closeout/sitting.json`. If it fails, do not archive for App Review. A TestFlight build that reruns sitting steps does not need it.
+It passes only when `coverage/closeout/evidence.json` has stage `final`, no coverage table has an open row, and every phone step a closeout row cites is `pass` in `coverage/closeout/sitting.json`.
+
+Run it before the archive step. A build whose commit fails it may go to TestFlight, for example to rerun sitting steps, but it must never be submitted for App Review. Before you submit any build for App Review, check out that build's commit and run the gate again. Submit only if it passes.
 
 ## Archive on the operator Mac
 

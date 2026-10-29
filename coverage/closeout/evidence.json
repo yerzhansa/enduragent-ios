@@ -94,7 +94,8 @@
 			{"test": {"file": "apps/ios/EnduragentTests/FixtureSessionTests.swift", "function": "aLanguageThatCannotBeSavedKeepsTheCurrentChoice"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "uiTagUsesFirstSupportedSystemLanguageElseEnglish"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "fixedPreferenceChangesAppTextAndReplySection"}},
-			{"test": {"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "LanguagePickerProof", "method": "testLanguagePickerFromSettings"}}
+			{"test": {"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "LanguagePickerProof", "method": "testLanguagePickerFromSettings"}},
+			{"phone": {"session": "closeout", "step": "closeout/language"}}
 		],
 		"B05.02": [
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CatalogCompletenessTests.swift", "function": "everyEnglishKeyHasAValueInEveryLocale"}},
@@ -591,6 +592,9 @@
 		],
 		"B04.03": [
 			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
+		],
+		"B05.01": [
+			{"phone": {"session": "closeout", "step": "closeout/language"}}
 		],
 		"B07.05": [
 			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
