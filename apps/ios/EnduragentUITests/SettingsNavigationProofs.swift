@@ -157,8 +157,9 @@ private enum SettingsNavigationScreen {
 		TutorialHarness.waitForLabel(app, phrasebook.say(Catalog.settingsTrainingSection))
 		TutorialHarness.wait(TutorialHarness.named(app, "settings.session"))
 		TutorialHarness.waitForLabel(app, phrasebook.say(Catalog.settingsSessionTitle))
-		TutorialHarness.wait(TutorialHarness.named(app, "settings.debug"), until: .hittable)
-
+		TutorialHarness.wait(TutorialHarness.debugRow(app, "settings.debug"), until: .hittable)
+		TutorialHarness.wait(
+			TutorialHarness.debugRow(app, "settings.credits", direction: .down), until: .hittable)
 	}
 
 	private static func openHistory(_ app: XCUIApplication, phrasebook: CatalogPhrasebook) {
