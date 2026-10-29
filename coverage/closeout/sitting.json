@@ -1,5 +1,6 @@
 {
 	"steps": {
-		"closeout/fill": {"verdict": "pass", "date": "2026-10-29"}
+		"closeout/fill": {"verdict": "pass", "date": "2026-10-29"},
+		"closeout/update": {"verdict": "pass", "date": "2026-10-29"}
 	}
 }
