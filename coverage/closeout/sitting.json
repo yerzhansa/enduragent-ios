@@ -3,6 +3,7 @@
 		"closeout/fill": {"verdict": "pass", "date": "2026-10-29"},
 		"closeout/update": {"verdict": "pass", "date": "2026-10-29"},
 		"m4/approve-later": {"verdict": "pass", "date": "2026-10-29"},
+		"m4/external-edit": {"verdict": "pass", "date": "2026-10-29"},
 		"m4/list": {"verdict": "pass", "date": "2026-10-29"},
 		"m4/mixed-request": {"verdict": "fail thursday-not-in-review", "date": "2026-10-29"},
 		"m4/race-move": {"verdict": "fail no-notice", "date": "2026-10-29"},
