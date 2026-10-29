@@ -108,11 +108,6 @@ enum TutorialHarness {
 		app.descendants(matching: .any).matching(identifier: identifier).firstMatch
 	}
 
-	static func readsEmpty(_ field: XCUIElement) -> Bool {
-		guard let shown = field.value as? String else { return true }
-		return shown.isEmpty || shown == field.placeholderValue
-	}
-
 	static func assertIconButtonWidth(_ button: XCUIElement) {
 		XCTAssertLessThanOrEqual(button.frame.width, 44)
 	}

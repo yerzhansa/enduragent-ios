@@ -264,7 +264,7 @@ final class CloseoutPhoneRun: XCTestCase {
 			throw PhoneRunBlocked(reason: "The approved message budget is exhausted.")
 		}
 		let composer = element("chat.composer")
-		guard composer.value as? String ?? "" == "" else {
+		guard TutorialHarness.readsEmpty(composer) else {
 			throw PhoneRunBlocked(reason: "The operator's draft is still in the composer.")
 		}
 		let question = Self.questions[asked]
@@ -288,10 +288,7 @@ final class CloseoutPhoneRun: XCTestCase {
 
 	@MainActor
 	private func clear(_ field: XCUIElement) throws {
-		guard !TutorialHarness.readsEmpty(field) else { return }
-		guard let shown = field.value as? String else {
-			throw PhoneRunBlocked(reason: "The note field shows no text.")
-		}
+		guard !TutorialHarness.readsEmpty(field), let shown = field.value as? String else { return }
 		if shown.count > 200 {
 			field.press(forDuration: 1.2)
 			let selectAll = editAction("Select All")
