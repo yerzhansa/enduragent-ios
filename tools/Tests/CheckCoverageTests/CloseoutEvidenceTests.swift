@@ -160,13 +160,17 @@ struct CloseoutEvidenceTests {
 
 	@Test(.timeLimit(.minutes(1)))
 	func everyMobileRowClosesAsListed() throws {
-		let hand = try HandEvidence.load(root: RetainedTests.repository.path)
+		let root = RetainedTests.repository.path
+		let hand = try HandEvidence.load(root: root)
+		let sitting = try SittingRecord.load(root: root)
 		let mobile = try RetainedTests.committed().requirements.filter { $0.group == .mobile }
 		#expect(Set(mobile.map(\.id)) == Set(Self.mobileRows.keys))
 		for (id, listed) in Self.mobileRows {
 			#expect(hand.evidence[id, default: []] == listed.evidence, "\(id)")
 			#expect(hand.differences[id, default: []] == listed.differences, "\(id)")
-			#expect(hand.waitsOn[id, default: []] == Self.phoneReasons(listed.evidence), "\(id)")
+			#expect(
+				hand.waitsOn[id, default: []] == Self.unpassed(listed.evidence, in: sitting),
+				"\(id)")
 		}
 	}
 
@@ -174,16 +178,19 @@ struct CloseoutEvidenceTests {
 	func everyDeviceCheckRowClosesAsListed() throws {
 		let root = RetainedTests.repository.path
 		let hand = try HandEvidence.load(root: root)
+		let sitting = try SittingRecord.load(root: root)
 		#expect(Self.deviceCheckRows.count == 25)
 		for (id, closing) in Self.deviceCheckRows {
 			#expect(
 				hand.evidence[id, default: []].filter(Self.closesOnTheRealServices) == closing,
 				"\(id)")
-			#expect(hand.waitsOn[id, default: []] == Self.phoneReasons(closing), "\(id)")
+			#expect(hand.waitsOn[id, default: []] == Self.unpassed(closing, in: sitting), "\(id)")
 		}
 		let index = try CoverageIndex.load(root: root)
-		#expect(index.tables[Self.six]?.open.contains("B05.01") == true)
-		#expect(index.tables[Self.four]?.open.contains("G05") == true)
+		let languagePassed = sitting.steps["closeout/language"]?.verdict == .pass
+		let offlineApprovePassed = sitting.steps["m4/offline-approve"]?.verdict == .pass
+		#expect(index.tables[Self.six]?.open.contains("B05.01") == !languagePassed)
+		#expect(index.tables[Self.four]?.open.contains("G05") == !offlineApprovePassed)
 		let six = try JSONValue.parse(
 			String(contentsOfFile: NodePath.join(root, Self.six), encoding: .utf8))
 		let planned = try six.member("plan").member("requirements").member("B05.01").elements()
@@ -220,9 +227,13 @@ struct CloseoutEvidenceTests {
 		}
 	}
 
-	private static func phoneReasons(_ pointers: [EvidencePointer]) -> [OpenReason] {
+	private static func unpassed(_ pointers: [EvidencePointer], in sitting: SittingRecord)
+		-> [OpenReason]
+	{
 		pointers.compactMap { pointer in
-			guard case .phone(let session, let step) = pointer else { return nil }
+			guard case .phone(let session, let step) = pointer,
+				sitting.steps[step]?.verdict != .pass
+			else { return nil }
 			return .phone(session: session, step: step)
 		}
 	}

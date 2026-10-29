@@ -3,7 +3,12 @@
 	"evidence": {
 		"B01.01": [
 			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}},
-			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "RelaunchKeepsChatProof", "method": "testRelaunchKeepsChat"}}
+			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "RelaunchKeepsChatProof", "method": "testRelaunchKeepsChat"}},
+			{"phone": {"session": "closeout", "step": "closeout/fill"}},
+			{"phone": {"session": "closeout", "step": "closeout/update"}}
+		],
+		"B01.03": [
+			{"phone": {"session": "closeout", "step": "closeout/update"}}
 		],
 		"B02.01": [
 			{"test": {"file": "apps/ios/EnduragentTests/TrainingSettingsTests.swift", "function": "persistenceAndCancelledReplacementKeepConversationHistoryAndPreferences"}},
@@ -192,6 +197,9 @@
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatRecordFailureTests.swift", "function": "fetchFailureAtSettlementStillPersistsTheExactReply"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxTests.swift", "function": "tryAgainAfterSavedWorkIsRefusedWithoutAModelRequest"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "approvalAfterAnotherTurnRunsTheSavedReviewWithNoModelRequest"}}
+		],
+		"B10.04": [
+			{"phone": {"session": "closeout", "step": "closeout/diagnostics"}}
 		],
 		"B12.01": [
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "newConversationRecoversAllNineSections"}},
@@ -597,34 +605,23 @@
 			{"phone": {"session": "closeout", "step": "closeout/choices"}}
 		],
 		"X07": [
-			{"phone": {"session": "closeout", "step": "closeout/diagnostics"}},
 			{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}
-		],
-		"G05": [
-			{"phone": {"session": "m4", "step": "m4/offline-approve"}}
 		],
 		"G08": [
 			{"phone": {"session": "closeout", "step": "closeout/language"}},
 			{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}
 		],
 		"G09": [
-			{"phone": {"session": "closeout", "step": "closeout/diagnostics"}},
 			{"phone": {"session": "closeout", "step": "closeout/feedback"}}
 		],
 		"MOB01": [
 			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
-		],
-		"MOB02": [
-			{"phone": {"session": "m4", "step": "m4/offline-approve"}}
 		],
 		"MOB03": [
 			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
 		],
 		"MOB06": [
 			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
-		],
-		"MOB07": [
-			{"phone": {"session": "closeout", "step": "closeout/update"}}
 		],
 		"MOB08": [
 			{"phone": {"session": "m4", "step": "m4/largest-text"}},

@@ -1998,6 +1998,11 @@
 			"id": "X06",
 			"statement": "Every review is readable on a phone at large text sizes, with VoiceOver, in a narrow layout and in the athlete's language, and an eight-workout review is approved only when current and complete.",
 			"criteria": ["8.4.1", "8.4.2", "8.4.3", "8.4.4", "8.4.5"]
+		},
+		{
+			"id": "G05",
+			"statement": "Recover an uncertain partial result: a write whose answer was lost settles from the calendar, Try again sends only what is still missing, a crash or kill stops the old drive and the reopened app recovers without replay, and a cancel keeps every saved change.",
+			"criteria": ["6.1.4", "7.1.1", "7.2.1", "7.3.2"]
 		}
 	],
 	"plan": {
@@ -3412,7 +3417,5 @@
 			}
 		]
 	},
-	"open": [
-		"G05"
-	]
+	"open": []
 }

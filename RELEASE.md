@@ -28,6 +28,16 @@ Do this before every archive whose build changes the record types, and before th
 
 If the Production deploy fails, stop and report. Never upload a TestFlight build against a Development-only schema.
 
+## Closeout gate
+
+Before you archive a build for App Review, run this from the repository root:
+
+```sh
+make check-closeout-final
+```
+
+It passes only when `coverage/closeout/evidence.json` has stage `final`, no coverage table has an open row, and every phone step a closeout row cites is `pass` in `coverage/closeout/sitting.json`. If it fails, do not archive for App Review. A TestFlight build that reruns sitting steps does not need it.
+
 ## Archive on the operator Mac
 
 ```sh
