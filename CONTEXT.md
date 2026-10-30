@@ -189,5 +189,5 @@ The Settings section after Support. Its one row is Delete everything.
 _Avoid_: Privacy, account, data management
 
 **Delete everything**:
-The athlete deletes their conversation, memory, saved plan, settings and keys from this iPhone, their iCloud and their other devices, and their Credits record. Nothing is deleted until the Credits service confirms its part. A run cut off by a kill finishes at the next launch. Unused Credits are lost. intervals.icu data and an OpenRouter account stay with the athlete.
+The athlete deletes their conversation, memory, saved plan, settings and keys from this iPhone, their iCloud and their other devices, and their Credits record. Nothing is deleted until the Credits service confirms its part. When the Credits service cannot confirm that this iPhone owns the Credits record, the athlete can delete everything else, and the Credits record stays on the service. A run cut off by a kill finishes at the next launch. Unused Credits are lost. intervals.icu data and an OpenRouter account stay with the athlete.
 _Avoid_: Delete account, reset, wipe, erase (in athlete text)

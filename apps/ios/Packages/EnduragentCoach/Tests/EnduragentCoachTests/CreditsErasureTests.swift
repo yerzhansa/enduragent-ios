@@ -51,7 +51,7 @@ extension CreditsClientTests {
 		}
 
 		@Test(arguments: [
-			(401, #"{"error":"unauthorized"}"#, CreditsFailure.unexpectedResponse(status: 401)),
+			(401, #"{"error":"unauthorized"}"#, CreditsFailure.unauthorized),
 			(429, #"{"error":"rate_limited"}"#, .rateLimited),
 			(503, #"{"error":"unavailable"}"#, .unavailable),
 			(200, #"{"kind":"grantMinted"}"#, .unexpectedResponse(status: 200)),

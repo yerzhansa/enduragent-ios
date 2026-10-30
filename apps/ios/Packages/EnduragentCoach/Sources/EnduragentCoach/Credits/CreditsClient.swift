@@ -80,6 +80,7 @@ public enum CreditsFailure: Error, Sendable, Equatable {
 	case unexpectedResponse(status: Int)
 	case noAthleteKey
 	case athleteDeleted
+	case unauthorized
 }
 
 public struct CreditsService: Sendable {
@@ -127,6 +128,7 @@ package struct PhoneCreditsClient: CreditsClient {
 		"rate_limited": .rateLimited,
 		"unavailable": .unavailable,
 		"athlete_deleted": .athleteDeleted,
+		"unauthorized": .unauthorized,
 	]
 	private static let timeout: TimeInterval = 20
 

@@ -3207,6 +3207,14 @@
     "notStarted": "Non è stato eliminato nulla. Connettiti a internet e riprova.",
     "iCloudLater": "Eliminato da questo iPhone e dal servizio Crediti. La tua copia su iCloud verrà eliminata la prossima volta che questo iPhone si collega a iCloud.",
     "busy": "Aspetta che il coach finisca, poi riprova.",
-    "notFinished": "Non tutto è stato eliminato da questo iPhone. Riprova."
+    "notFinished": "Non tutto è stato eliminato da questo iPhone. Riprova.",
+    "progressTime": "Può richiedere fino a un minuto.",
+    "tryLater": "Non è stato eliminato nulla. Il servizio Crediti è occupato in questo momento. Riprova più tardi.",
+    "creditsUnconfirmed": "Non è stato eliminato nulla. Il servizio Crediti non ha potuto confermare che questo iPhone possiede il tuo record dei Crediti, quindi il record resta lì. Puoi comunque eliminare tutto da questo iPhone e dal tuo iCloud.",
+    "deleteHere": "Elimina da iPhone e iCloud",
+    "creditsKept": {
+      "done": "Tutto è stato eliminato da questo iPhone e dal tuo iCloud. Il tuo record dei Crediti resta nel servizio Crediti. Nessuno ha la sua chiave, quindi nessuno può usarlo.",
+      "iCloudLater": "Eliminato da questo iPhone. La tua copia su iCloud verrà eliminata la prossima volta che questo iPhone si collega a iCloud. Il tuo record dei Crediti resta nel servizio Crediti. Nessuno ha la sua chiave, quindi nessuno può usarlo."
+    }
   }
 }

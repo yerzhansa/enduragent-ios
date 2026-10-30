@@ -8,7 +8,7 @@ struct ErasingView: View {
 		NavigationStack {
 			Form {
 				Section {
-					if model.yourData.phase == .deleting {
+					if model.yourData.isDeleting {
 						ProgressView()
 							.frame(maxWidth: .infinity)
 							.accessibilityIdentifier("yourData.progress")
@@ -16,6 +16,11 @@ struct ErasingView: View {
 					if let line = model.yourData.line {
 						Text(say(line))
 							.accessibilityIdentifier("yourData.outcome")
+					}
+					if model.yourData.isDeleting {
+						Text(say(Catalog.yourDataProgressTime))
+							.foregroundStyle(.secondary)
+							.accessibilityIdentifier("yourData.progressTime")
 					}
 				}
 				actions
@@ -34,11 +39,21 @@ struct ErasingView: View {
 			Section {
 				action(Catalog.commonContinue, "yourData.continue") { model.yourData.finish() }
 			}
-		case .finished(.notStarted), .busy:
+		case .finished(.notStarted), .finished(.tryLater), .busy:
 			Section {
 				action(Catalog.chatTranscriptRetry, "yourData.tryAgain") {
 					Task { await model.yourData.tryAgain() }
 				}
+				action(Catalog.commonCancel, "yourData.cancel") { model.cancelErasure() }
+			}
+		case .finished(.creditsUnconfirmed):
+			Section {
+				Button(role: .destructive) {
+					Task { await model.yourData.deleteKeepingCreditsRecord() }
+				} label: {
+					Text(say(Catalog.yourDataDeleteHere)).frame(maxWidth: .infinity)
+				}
+				.accessibilityIdentifier("yourData.deleteHere")
 				action(Catalog.commonCancel, "yourData.cancel") { model.cancelErasure() }
 			}
 		case .finished(.notFinished):

@@ -43,16 +43,18 @@
 	}
 
 	extension FixtureErasure {
-		var result: Result<Void, CreditsFailure> {
+		var result: Result<Void, any Error> {
 			switch self {
 			case .erased, .iCloudLater, .exportHeld: .success(())
-			case .unreachable: .failure(.unavailable)
+			case .unreachable: .failure(URLError(.notConnectedToInternet))
+			case .refused: .failure(CreditsFailure.unauthorized)
+			case .rateLimited: .failure(CreditsFailure.rateLimited)
 			}
 		}
 
 		var export: FixtureExport {
 			switch self {
-			case .erased, .unreachable: .confirmed
+			case .erased, .unreachable, .refused, .rateLimited: .confirmed
 			case .iCloudLater: .noAccount
 			case .exportHeld: .held
 			}

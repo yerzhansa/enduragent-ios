@@ -3207,6 +3207,14 @@
     "notStarted": "Rien n’a été supprimé. Connecte-toi à internet et réessaie.",
     "iCloudLater": "Supprimé de cet iPhone et du service de Crédits. Ta copie iCloud sera supprimée la prochaine fois que cet iPhone se connectera à iCloud.",
     "busy": "Attends que le coach ait terminé, puis réessaie.",
-    "notFinished": "Tout n’a pas été supprimé de cet iPhone. Réessaie."
+    "notFinished": "Tout n’a pas été supprimé de cet iPhone. Réessaie.",
+    "progressTime": "Cela peut prendre jusqu’à une minute.",
+    "tryLater": "Rien n’a été supprimé. Le service de Crédits est occupé pour le moment. Réessaie plus tard.",
+    "creditsUnconfirmed": "Rien n’a été supprimé. Le service de Crédits n’a pas pu confirmer que cet iPhone possède ton dossier de Crédits, donc le dossier y reste. Tu peux quand même tout supprimer de cet iPhone et de ton iCloud.",
+    "deleteHere": "Supprimer de l’iPhone et d’iCloud",
+    "creditsKept": {
+      "done": "Tout a été supprimé de cet iPhone et de ton iCloud. Ton dossier de Crédits reste dans le service de Crédits. Personne n’a sa clé, donc personne ne peut l’utiliser.",
+      "iCloudLater": "Supprimé de cet iPhone. Ta copie iCloud sera supprimée la prochaine fois que cet iPhone se connectera à iCloud. Ton dossier de Crédits reste dans le service de Crédits. Personne n’a sa clé, donc personne ne peut l’utiliser."
+    }
   }
 }

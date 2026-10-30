@@ -3207,6 +3207,14 @@
     "notStarted": "Nothing was deleted. Connect to the internet and try again.",
     "iCloudLater": "Deleted from this iPhone and the Credits service. Your iCloud copy is deleted the next time this iPhone connects to iCloud.",
     "busy": "Wait for the coach to finish, then try again.",
-    "notFinished": "Not everything was deleted from this iPhone. Try again."
+    "notFinished": "Not everything was deleted from this iPhone. Try again.",
+    "progressTime": "This can take up to a minute.",
+    "tryLater": "Nothing was deleted. The Credits service is busy right now. Try again later.",
+    "creditsUnconfirmed": "Nothing was deleted. The Credits service couldn't confirm that this iPhone owns your Credits record, so the record stays there. You can still delete everything on this iPhone and in your iCloud.",
+    "deleteHere": "Delete from iPhone and iCloud",
+    "creditsKept": {
+      "done": "Everything is deleted from this iPhone and your iCloud. Your Credits record stays on the Credits service. No one holds its key, so no one can use it.",
+      "iCloudLater": "Deleted from this iPhone. Your iCloud copy is deleted the next time this iPhone connects to iCloud. Your Credits record stays on the Credits service. No one holds its key, so no one can use it."
+    }
   }
 }

@@ -3207,6 +3207,14 @@
     "notStarted": "Mitään ei poistettu. Yhdistä internetiin ja yritä uudelleen.",
     "iCloudLater": "Poistettu tästä iPhonesta ja krediittipalvelusta. iCloud-kopiosi poistetaan, kun tämä iPhone seuraavan kerran yhdistää iCloudiin.",
     "busy": "Odota, että valmentaja on valmis, ja yritä sitten uudelleen.",
-    "notFinished": "Kaikkea ei poistettu tästä iPhonesta. Yritä uudelleen."
+    "notFinished": "Kaikkea ei poistettu tästä iPhonesta. Yritä uudelleen.",
+    "progressTime": "Tämä voi kestää enintään minuutin.",
+    "tryLater": "Mitään ei poistettu. Krediittipalvelu on juuri nyt ruuhkautunut. Yritä myöhemmin uudelleen.",
+    "creditsUnconfirmed": "Mitään ei poistettu. Krediittipalvelu ei voinut vahvistaa, että krediittitietosi kuuluvat tälle iPhonelle, joten tiedot jäävät palveluun. Voit silti poistaa kaiken tästä iPhonesta ja iCloudistasi.",
+    "deleteHere": "Poista iPhonesta ja iCloudista",
+    "creditsKept": {
+      "done": "Kaikki on poistettu tästä iPhonesta ja iCloudistasi. Krediittitietosi jäävät krediittipalveluun. Kenelläkään ei ole niiden avainta, joten kukaan ei voi käyttää niitä.",
+      "iCloudLater": "Poistettu tästä iPhonesta. iCloud-kopiosi poistetaan, kun tämä iPhone seuraavan kerran yhdistää iCloudiin. Krediittitietosi jäävät krediittipalveluun. Kenelläkään ei ole niiden avainta, joten kukaan ei voi käyttää niitä."
+    }
   }
 }

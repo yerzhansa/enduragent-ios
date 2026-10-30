@@ -392517,6 +392517,324 @@
         }
       }
     },
+    "yourData.creditsKept.done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everything is deleted from this iPhone and your iCloud. Your Credits record stays on the Credits service. No one holds its key, so no one can use it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo se ha eliminado de este iPhone y de tu iCloud. Tu registro de Créditos se queda en el servicio de Créditos. Nadie tiene su clave, así que nadie puede usarlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout a été supprimé de cet iPhone et de ton iCloud. Ton dossier de Crédits reste dans le service de Crédits. Personne n’a sa clé, donc personne ne peut l’utiliser."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutto è stato eliminato da questo iPhone e dal tuo iCloud. Il tuo record dei Crediti resta nel servizio Crediti. Nessuno ha la sua chiave, quindi nessuno può usarlo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles wurde von diesem iPhone und aus deiner iCloud gelöscht. Dein Guthabenpunkte-Konto bleibt im Guthabenpunkte-Dienst. Niemand hat seinen Schlüssel, daher kann es niemand nutzen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles is verwijderd van deze iPhone en uit je iCloud. Je tegoedpuntengegevens blijven in de tegoedpuntendienst. Niemand heeft de sleutel ervan, dus niemand kan ze gebruiken."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alt er slettet fra denne iPhone og din iCloud. Din kredittpost bliver i kredittjenesten. Ingen har dens nøgle, så ingen kan bruge den."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allt är raderat från den här iPhonen och din iCloud. Din kreditpost finns kvar i kredittjänsten. Ingen har dess nyckel, så ingen kan använda den."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alt er slettet fra denne iPhonen og iCloud. Kredittoppføringen din blir værende i kreditttjenesten. Ingen har nøkkelen til den, så ingen kan bruke den."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaikki on poistettu tästä iPhonesta ja iCloudistasi. Krediittitietosi jäävät krediittipalveluun. Kenelläkään ei ole niiden avainta, joten kukaan ei voi käyttää niitä."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tudo foi apagado deste iPhone e do teu iCloud. O teu registo de Créditos fica no serviço de Créditos. Ninguém tem a chave dele, por isso ninguém o pode usar."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tudo foi apagado deste iPhone e do seu iCloud. Seu registro de Créditos continua no serviço de Créditos. Ninguém tem a chave dele, então ninguém pode usá-lo."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wszystko zostało usunięte z tego iPhone’a i z twojego iCloud. Twój rekord kredytów zostaje w usłudze kredytów. Nikt nie ma jego klucza, więc nikt nie może go użyć."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 iPhone과 iCloud에서 모두 삭제했습니다. 크레딧 기록은 크레딧 서비스에 남습니다. 아무도 그 키를 가지고 있지 않으므로 아무도 사용할 수 없습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このiPhoneとiCloudからすべて削除しました。クレジットの記録はクレジットサービスに残ります。そのキーは誰も持っていないため、誰も使用できません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有内容已从此 iPhone 和你的 iCloud 中删除。你的积分记录会保留在积分服务中。没有人持有它的密钥，因此没有人能使用它。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有內容已從此 iPhone 和你的 iCloud 中刪除。你的點數紀錄會保留在點數服務中。沒有人持有它的金鑰，因此沒有人能使用它。"
+          }
+        }
+      }
+    },
+    "yourData.creditsKept.iCloudLater": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted from this iPhone. Your iCloud copy is deleted the next time this iPhone connects to iCloud. Your Credits record stays on the Credits service. No one holds its key, so no one can use it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminado de este iPhone. Tu copia en iCloud se eliminará la próxima vez que este iPhone se conecte a iCloud. Tu registro de Créditos se queda en el servicio de Créditos. Nadie tiene su clave, así que nadie puede usarlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimé de cet iPhone. Ta copie iCloud sera supprimée la prochaine fois que cet iPhone se connectera à iCloud. Ton dossier de Crédits reste dans le service de Crédits. Personne n’a sa clé, donc personne ne peut l’utiliser."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminato da questo iPhone. La tua copia su iCloud verrà eliminata la prossima volta che questo iPhone si collega a iCloud. Il tuo record dei Crediti resta nel servizio Crediti. Nessuno ha la sua chiave, quindi nessuno può usarlo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von diesem iPhone gelöscht. Deine iCloud-Kopie wird gelöscht, sobald sich dieses iPhone das nächste Mal mit iCloud verbindet. Dein Guthabenpunkte-Konto bleibt im Guthabenpunkte-Dienst. Niemand hat seinen Schlüssel, daher kann es niemand nutzen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderd van deze iPhone. Je iCloud-kopie wordt verwijderd zodra deze iPhone de volgende keer verbinding maakt met iCloud. Je tegoedpuntengegevens blijven in de tegoedpuntendienst. Niemand heeft de sleutel ervan, dus niemand kan ze gebruiken."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slettet fra denne iPhone. Din iCloud-kopi slettes, næste gang denne iPhone opretter forbindelse til iCloud. Din kredittpost bliver i kredittjenesten. Ingen har dens nøgle, så ingen kan bruge den."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raderat från den här iPhonen. Din iCloud-kopia raderas nästa gång den här iPhonen ansluter till iCloud. Din kreditpost finns kvar i kredittjänsten. Ingen har dess nyckel, så ingen kan använda den."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slettet fra denne iPhonen. iCloud-kopien slettes neste gang denne iPhonen kobler til iCloud. Kredittoppføringen din blir værende i kreditttjenesten. Ingen har nøkkelen til den, så ingen kan bruke den."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poistettu tästä iPhonesta. iCloud-kopiosi poistetaan, kun tämä iPhone seuraavan kerran yhdistää iCloudiin. Krediittitietosi jäävät krediittipalveluun. Kenelläkään ei ole niiden avainta, joten kukaan ei voi käyttää niitä."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagado deste iPhone. A tua cópia no iCloud será apagada da próxima vez que este iPhone se ligar ao iCloud. O teu registo de Créditos fica no serviço de Créditos. Ninguém tem a chave dele, por isso ninguém o pode usar."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagado deste iPhone. Sua cópia no iCloud será apagada na próxima vez que este iPhone se conectar ao iCloud. Seu registro de Créditos continua no serviço de Créditos. Ninguém tem a chave dele, então ninguém pode usá-lo."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięto z tego iPhone’a. Kopia w iCloud zostanie usunięta, gdy ten iPhone następnym razem połączy się z iCloud. Twój rekord kredytów zostaje w usłudze kredytów. Nikt nie ma jego klucza, więc nikt nie może go użyć."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 iPhone에서 삭제했습니다. iCloud 사본은 이 iPhone이 다음에 iCloud에 연결될 때 삭제됩니다. 크레딧 기록은 크레딧 서비스에 남습니다. 아무도 그 키를 가지고 있지 않으므로 아무도 사용할 수 없습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このiPhoneから削除しました。iCloudのコピーは、次にこのiPhoneがiCloudに接続したときに削除されます。クレジットの記録はクレジットサービスに残ります。そのキーは誰も持っていないため、誰も使用できません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已从此 iPhone 删除。你的 iCloud 副本会在此 iPhone 下次连接 iCloud 时删除。你的积分记录会保留在积分服务中。没有人持有它的密钥，因此没有人能使用它。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已從此 iPhone 刪除。你的 iCloud 副本會在此 iPhone 下次連線到 iCloud 時刪除。你的點數紀錄會保留在點數服務中。沒有人持有它的金鑰，因此沒有人能使用它。"
+          }
+        }
+      }
+    },
+    "yourData.creditsUnconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing was deleted. The Credits service couldn't confirm that this iPhone owns your Credits record, so the record stays there. You can still delete everything on this iPhone and in your iCloud."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se eliminó nada. El servicio de Créditos no pudo confirmar que este iPhone es el dueño de tu registro de Créditos, así que el registro se queda allí. Aún puedes eliminar todo de este iPhone y de tu iCloud."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien n’a été supprimé. Le service de Crédits n’a pas pu confirmer que cet iPhone possède ton dossier de Crédits, donc le dossier y reste. Tu peux quand même tout supprimer de cet iPhone et de ton iCloud."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato eliminato nulla. Il servizio Crediti non ha potuto confermare che questo iPhone possiede il tuo record dei Crediti, quindi il record resta lì. Puoi comunque eliminare tutto da questo iPhone e dal tuo iCloud."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es wurde nichts gelöscht. Der Guthabenpunkte-Dienst konnte nicht bestätigen, dass dieses iPhone dein Guthabenpunkte-Konto besitzt, deshalb bleibt das Konto dort. Du kannst trotzdem alles auf diesem iPhone und in deiner iCloud löschen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is niets verwijderd. De tegoedpuntendienst kon niet bevestigen dat deze iPhone eigenaar is van je tegoedpuntengegevens, dus die blijven daar staan. Je kunt nog steeds alles op deze iPhone en in je iCloud verwijderen."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intet blev slettet. Kredittjenesten kunne ikke bekræfte, at denne iPhone ejer din kredittpost, så posten bliver der. Du kan stadig slette alt på denne iPhone og i din iCloud."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget raderades. Kredittjänsten kunde inte bekräfta att den här iPhonen äger din kreditpost, så posten finns kvar där. Du kan ändå radera allt på den här iPhonen och i din iCloud."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingenting ble slettet. Kreditttjenesten kunne ikke bekrefte at denne iPhonen eier kredittoppføringen din, så oppføringen blir værende der. Du kan likevel slette alt på denne iPhonen og i iCloud."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitään ei poistettu. Krediittipalvelu ei voinut vahvistaa, että krediittitietosi kuuluvat tälle iPhonelle, joten tiedot jäävät palveluun. Voit silti poistaa kaiken tästä iPhonesta ja iCloudistasi."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada foi apagado. O serviço de Créditos não conseguiu confirmar que este iPhone é o dono do teu registo de Créditos, por isso o registo fica lá. Ainda podes apagar tudo deste iPhone e do teu iCloud."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada foi apagado. O serviço de Créditos não conseguiu confirmar que este iPhone é dono do seu registro de Créditos, então o registro continua lá. Você ainda pode apagar tudo deste iPhone e do seu iCloud."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nic nie zostało usunięte. Usługa kredytów nie potwierdziła, że ten iPhone jest właścicielem twojego rekordu kredytów, więc rekord tam zostaje. Nadal możesz usunąć wszystko z tego iPhone’a i z twojego iCloud."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아무것도 삭제되지 않았습니다. 크레딧 서비스가 이 iPhone이 크레딧 기록의 소유자임을 확인하지 못해 기록이 서비스에 남습니다. 이 iPhone과 iCloud의 데이터는 모두 삭제할 수 있습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "何も削除されませんでした。クレジットサービスは、このiPhoneがあなたのクレジットの記録の所有者であることを確認できなかったため、記録はサービスに残ります。このiPhoneとiCloudのデータはすべて削除できます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有删除任何内容。积分服务无法确认此 iPhone 拥有你的积分记录，因此该记录会保留在服务中。你仍然可以删除此 iPhone 和你的 iCloud 中的所有内容。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有刪除任何內容。點數服務無法確認此 iPhone 擁有你的點數紀錄，因此該紀錄會保留在服務中。你仍然可以刪除此 iPhone 和你的 iCloud 中的所有內容。"
+          }
+        }
+      }
+    },
     "yourData.deleteEverything": {
       "localizations": {
         "en": {
@@ -392619,6 +392937,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "刪除所有內容"
+          }
+        }
+      }
+    },
+    "yourData.deleteHere": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete from iPhone and iCloud"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar del iPhone y de iCloud"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer de l’iPhone et d’iCloud"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina da iPhone e iCloud"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von iPhone und iCloud löschen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderen van iPhone en iCloud"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slet fra iPhone og iCloud"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radera från iPhone och iCloud"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slett fra iPhone og iCloud"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poista iPhonesta ja iCloudista"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar do iPhone e do iCloud"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar do iPhone e do iCloud"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń z iPhone’a i iCloud"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone과 iCloud에서 삭제"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhoneとiCloudから削除"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从 iPhone 和 iCloud 删除"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "從 iPhone 和 iCloud 刪除"
           }
         }
       }
@@ -393259,6 +393683,112 @@
         }
       }
     },
+    "yourData.progressTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This can take up to a minute."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puede tardar hasta un minuto."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela peut prendre jusqu’à une minute."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Può richiedere fino a un minuto."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das kann bis zu einer Minute dauern."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit kan tot een minuut duren."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det kan tage op til et minut."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det kan ta upp till en minut."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette kan ta opptil ett minutt."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämä voi kestää enintään minuutin."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isto pode demorar até um minuto."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isso pode levar até um minuto."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Może to potrwać do minuty."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최대 1분 정도 걸릴 수 있습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大1分ほどかかることがあります。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这最多可能需要一分钟。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這最多可能需要一分鐘。"
+          }
+        }
+      }
+    },
     "yourData.title": {
       "localizations": {
         "en": {
@@ -393361,6 +393891,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "你的資料"
+          }
+        }
+      }
+    },
+    "yourData.tryLater": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing was deleted. The Credits service is busy right now. Try again later."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se eliminó nada. El servicio de Créditos está ocupado ahora mismo. Vuelve a intentarlo más tarde."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien n’a été supprimé. Le service de Crédits est occupé pour le moment. Réessaie plus tard."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato eliminato nulla. Il servizio Crediti è occupato in questo momento. Riprova più tardi."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es wurde nichts gelöscht. Der Guthabenpunkte-Dienst ist gerade ausgelastet. Versuche es später erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is niets verwijderd. De tegoedpuntendienst is nu druk. Probeer het later opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intet blev slettet. Kredittjenesten har travlt lige nu. Prøv igen senere."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget raderades. Kredittjänsten är upptagen just nu. Försök igen senare."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingenting ble slettet. Kreditttjenesten er opptatt akkurat nå. Prøv igjen senere."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitään ei poistettu. Krediittipalvelu on juuri nyt ruuhkautunut. Yritä myöhemmin uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada foi apagado. O serviço de Créditos está ocupado neste momento. Tenta novamente mais tarde."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada foi apagado. O serviço de Créditos está ocupado agora. Tente de novo mais tarde."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nic nie zostało usunięte. Usługa kredytów jest teraz zajęta. Spróbuj ponownie później."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아무것도 삭제되지 않았습니다. 지금은 크레딧 서비스가 혼잡합니다. 나중에 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "何も削除されませんでした。クレジットサービスは現在混み合っています。しばらくしてからもう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有删除任何内容。积分服务目前繁忙。请稍后重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有刪除任何內容。點數服務目前忙碌中。請稍後再試一次。"
           }
         }
       }

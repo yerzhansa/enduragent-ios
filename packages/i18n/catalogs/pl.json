@@ -3295,6 +3295,14 @@
     "notStarted": "Nic nie zostało usunięte. Połącz się z internetem i spróbuj ponownie.",
     "iCloudLater": "Usunięto z tego iPhone’a i z usługi kredytów. Kopia w iCloud zostanie usunięta, gdy ten iPhone następnym razem połączy się z iCloud.",
     "busy": "Poczekaj, aż coach skończy, i spróbuj ponownie.",
-    "notFinished": "Nie wszystko zostało usunięte z tego iPhone’a. Spróbuj ponownie."
+    "notFinished": "Nie wszystko zostało usunięte z tego iPhone’a. Spróbuj ponownie.",
+    "progressTime": "Może to potrwać do minuty.",
+    "tryLater": "Nic nie zostało usunięte. Usługa kredytów jest teraz zajęta. Spróbuj ponownie później.",
+    "creditsUnconfirmed": "Nic nie zostało usunięte. Usługa kredytów nie potwierdziła, że ten iPhone jest właścicielem twojego rekordu kredytów, więc rekord tam zostaje. Nadal możesz usunąć wszystko z tego iPhone’a i z twojego iCloud.",
+    "deleteHere": "Usuń z iPhone’a i iCloud",
+    "creditsKept": {
+      "done": "Wszystko zostało usunięte z tego iPhone’a i z twojego iCloud. Twój rekord kredytów zostaje w usłudze kredytów. Nikt nie ma jego klucza, więc nikt nie może go użyć.",
+      "iCloudLater": "Usunięto z tego iPhone’a. Kopia w iCloud zostanie usunięta, gdy ten iPhone następnym razem połączy się z iCloud. Twój rekord kredytów zostaje w usłudze kredytów. Nikt nie ma jego klucza, więc nikt nie może go użyć."
+    }
   }
 }

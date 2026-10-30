@@ -48,6 +48,7 @@ public actor Coach {
 		reviewObservation?.cancel()
 		planObservation?.cancel()
 		pendingImportRefresh?.cancel()
+		pendingErasure?.cancel()
 	}
 
 	public init(
@@ -155,6 +156,8 @@ public actor Coach {
 			planObservation = nil
 			pendingImportRefresh?.cancel()
 			pendingImportRefresh = nil
+			pendingErasure?.cancel()
+			pendingErasure = nil
 			await access?.value
 			await observation?.value
 			await refresh?.value

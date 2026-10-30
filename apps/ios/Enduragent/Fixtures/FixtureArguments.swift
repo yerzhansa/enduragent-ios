@@ -146,6 +146,8 @@
 		case unreachable
 		case iCloudLater = "icloud-later"
 		case exportHeld = "export-held"
+		case refused
+		case rateLimited = "rate-limited"
 	}
 
 	enum FixtureTextSize: String {

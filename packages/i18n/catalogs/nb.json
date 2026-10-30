@@ -3207,6 +3207,14 @@
     "notStarted": "Ingenting ble slettet. Koble til internett og prøv igjen.",
     "iCloudLater": "Slettet fra denne iPhonen og kreditttjenesten. iCloud-kopien slettes neste gang denne iPhonen kobler til iCloud.",
     "busy": "Vent til coachen er ferdig, og prøv igjen.",
-    "notFinished": "Ikke alt ble slettet fra denne iPhonen. Prøv igjen."
+    "notFinished": "Ikke alt ble slettet fra denne iPhonen. Prøv igjen.",
+    "progressTime": "Dette kan ta opptil ett minutt.",
+    "tryLater": "Ingenting ble slettet. Kreditttjenesten er opptatt akkurat nå. Prøv igjen senere.",
+    "creditsUnconfirmed": "Ingenting ble slettet. Kreditttjenesten kunne ikke bekrefte at denne iPhonen eier kredittoppføringen din, så oppføringen blir værende der. Du kan likevel slette alt på denne iPhonen og i iCloud.",
+    "deleteHere": "Slett fra iPhone og iCloud",
+    "creditsKept": {
+      "done": "Alt er slettet fra denne iPhonen og iCloud. Kredittoppføringen din blir værende i kreditttjenesten. Ingen har nøkkelen til den, så ingen kan bruke den.",
+      "iCloudLater": "Slettet fra denne iPhonen. iCloud-kopien slettes neste gang denne iPhonen kobler til iCloud. Kredittoppføringen din blir værende i kreditttjenesten. Ingen har nøkkelen til den, så ingen kan bruke den."
+    }
   }
 }

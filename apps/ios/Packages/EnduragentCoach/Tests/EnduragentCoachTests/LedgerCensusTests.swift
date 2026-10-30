@@ -95,8 +95,8 @@ struct SkippingLog: RecordLog {
 		try await base.latest(locality: locality, writtenBy: writtenBy)
 	}
 
-	func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int {
-		try await base.erase(locality, sparing: kept)
+	func erase(_ locality: RecordLocality, writtenBefore cutoff: Date?) async throws -> Int {
+		try await base.erase(locality, writtenBefore: cutoff)
 	}
 
 	func confirmSyncedExport(after saved: Date) async throws -> Bool {

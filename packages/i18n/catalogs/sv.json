@@ -3207,6 +3207,14 @@
     "notStarted": "Inget raderades. Anslut till internet och försök igen.",
     "iCloudLater": "Raderat från den här iPhonen och kredittjänsten. Din iCloud-kopia raderas nästa gång den här iPhonen ansluter till iCloud.",
     "busy": "Vänta tills coachen är klar och försök sedan igen.",
-    "notFinished": "Allt raderades inte från den här iPhonen. Försök igen."
+    "notFinished": "Allt raderades inte från den här iPhonen. Försök igen.",
+    "progressTime": "Det kan ta upp till en minut.",
+    "tryLater": "Inget raderades. Kredittjänsten är upptagen just nu. Försök igen senare.",
+    "creditsUnconfirmed": "Inget raderades. Kredittjänsten kunde inte bekräfta att den här iPhonen äger din kreditpost, så posten finns kvar där. Du kan ändå radera allt på den här iPhonen och i din iCloud.",
+    "deleteHere": "Radera från iPhone och iCloud",
+    "creditsKept": {
+      "done": "Allt är raderat från den här iPhonen och din iCloud. Din kreditpost finns kvar i kredittjänsten. Ingen har dess nyckel, så ingen kan använda den.",
+      "iCloudLater": "Raderat från den här iPhonen. Din iCloud-kopia raderas nästa gång den här iPhonen ansluter till iCloud. Din kreditpost finns kvar i kredittjänsten. Ingen har dess nyckel, så ingen kan använda den."
+    }
   }
 }

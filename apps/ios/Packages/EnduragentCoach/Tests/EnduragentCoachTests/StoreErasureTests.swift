@@ -23,30 +23,31 @@ extension SwiftDataSuites {
 				[storedRecord(device: phone, wall: 1, body: .deviceLocal(sampleLocal()))],
 				locality: .deviceLocal)
 
-			#expect(try await log.erase(.synced, sparing: nil) == pages)
+			#expect(try await log.erase(.synced, writtenBefore: nil) == pages)
 			#expect(try await log.fetch(RecordQuery(scope: .everySynced)).records.isEmpty)
 			#expect(try await log.fetch(RecordQuery(scope: .everyDeviceLocal)).records.count == 1)
-			#expect(try await log.erase(.synced, sparing: nil) == 0)
-			#expect(try await log.erase(.deviceLocal, sparing: nil) == 1)
+			#expect(try await log.erase(.synced, writtenBefore: nil) == 0)
+			#expect(try await log.erase(.deviceLocal, writtenBefore: nil) == 1)
 			#expect(try await log.fetch(RecordQuery(scope: .everyDeviceLocal)).records.isEmpty)
 		}
 
 		@Test(arguments: RecordLogKind.allCases)
-		func eraseSparingADeviceKeepsOnlyItsRows(kind: RecordLogKind) async throws {
+		func eraseWrittenBeforeACutoffKeepsLaterRows(kind: RecordLogKind) async throws {
 			let log = try SwiftDataSuites.makeRecordLog(kind, deviceId: phone)
 			try await log.append(
 				[
 					storedRecord(
-						device: phone, wall: 1,
-						body: .synced(sampleUser(chatId: .main, text: "kept"))),
-					storedRecord(
-						device: otherPhone, wall: 2,
+						device: otherPhone, wall: 1_999,
 						body: .synced(sampleUser(chatId: .main, text: "returning"))),
+					storedRecord(
+						device: otherPhone, wall: 2_000,
+						body: .synced(sampleUser(chatId: .main, text: "written after"))),
 				], locality: .synced)
 
-			#expect(try await log.erase(.synced, sparing: phone) == 1)
+			let cutoff = Date(timeIntervalSince1970: 2)
+			#expect(try await log.erase(.synced, writtenBefore: cutoff) == 1)
 			let left = try await log.fetch(RecordQuery(scope: .everySynced)).records
-			#expect(left.map(messageText) == ["kept"])
+			#expect(left.map(messageText) == ["written after"])
 		}
 
 		@Test func deleteEverythingRemovesEveryKeychainItemOfTheService() throws {
@@ -106,11 +107,16 @@ extension SwiftDataSuites {
 			defaults.set(true, forKey: "enduragent.onboardingCompleted")
 			defaults.set("draft", forKey: "enduragent.draft.main.text")
 			defaults.set("kept", forKey: "other.setting")
-			device.mark(.creditsErased)
+			let began = Date(timeIntervalSince1970: 1_000)
+			let local = LocalErasure(credits: .kept, iCloud: .erasedUnconfirmed)
+			device.mark(.running(.erasingLocally(local), began: began))
+			#expect(device.erasureRun?.progress == .erasingLocally(local))
+			#expect(device.erasureRun?.began == began)
 
-			device.erase(keeping: .iCloudPending)
+			device.erase(keeping: .iCloudPending(began: began))
 
-			#expect(device.erasure == .iCloudPending)
+			#expect(device.erasure == .iCloudPending(began: began))
+			#expect(device.erasureRun == nil)
 			#expect(defaults.string(forKey: "enduragent.deviceId") == nil)
 			#expect(defaults.object(forKey: "enduragent.onboardingCompleted") == nil)
 			#expect(defaults.string(forKey: "enduragent.draft.main.text") == nil)

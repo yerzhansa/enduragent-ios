@@ -195,6 +195,8 @@
 			"noAthleteKey"
 		case .athleteDeleted:
 			"athleteDeleted"
+		case .unauthorized:
+			"unauthorized"
 		}
 	}
 

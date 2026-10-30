@@ -249,7 +249,7 @@ private struct UnreadableLog: RecordLog {
 		RecordPage(records: [], skipped: rows)
 	}
 
-	func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int { 0 }
+	func erase(_ locality: RecordLocality, writtenBefore cutoff: Date?) async throws -> Int { 0 }
 
 	func confirmSyncedExport(after saved: Date) async throws -> Bool { true }
 

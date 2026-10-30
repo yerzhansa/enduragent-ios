@@ -3163,6 +3163,14 @@
     "notStarted": "没有删除任何内容。请连接互联网后重试。",
     "iCloudLater": "已从此 iPhone 和积分服务中删除。你的 iCloud 副本会在此 iPhone 下次连接 iCloud 时删除。",
     "busy": "请等待教练完成后重试。",
-    "notFinished": "此 iPhone 上的部分内容未能删除。请重试。"
+    "notFinished": "此 iPhone 上的部分内容未能删除。请重试。",
+    "progressTime": "这最多可能需要一分钟。",
+    "tryLater": "没有删除任何内容。积分服务目前繁忙。请稍后重试。",
+    "creditsUnconfirmed": "没有删除任何内容。积分服务无法确认此 iPhone 拥有你的积分记录，因此该记录会保留在服务中。你仍然可以删除此 iPhone 和你的 iCloud 中的所有内容。",
+    "deleteHere": "从 iPhone 和 iCloud 删除",
+    "creditsKept": {
+      "done": "所有内容已从此 iPhone 和你的 iCloud 中删除。你的积分记录会保留在积分服务中。没有人持有它的密钥，因此没有人能使用它。",
+      "iCloudLater": "已从此 iPhone 删除。你的 iCloud 副本会在此 iPhone 下次连接 iCloud 时删除。你的积分记录会保留在积分服务中。没有人持有它的密钥，因此没有人能使用它。"
+    }
   }
 }

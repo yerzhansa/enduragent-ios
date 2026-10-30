@@ -24,8 +24,8 @@ extension ChainForwardingLog {
 		try await chainStore.chats(holding: scope)
 	}
 
-	func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int {
-		try await chainStore.erase(locality, sparing: kept)
+	func erase(_ locality: RecordLocality, writtenBefore cutoff: Date?) async throws -> Int {
+		try await chainStore.erase(locality, writtenBefore: cutoff)
 	}
 
 	func confirmSyncedExport(after saved: Date) async throws -> Bool {

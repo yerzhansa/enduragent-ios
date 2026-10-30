@@ -3207,6 +3207,14 @@
     "notStarted": "Es wurde nichts gelöscht. Verbinde dich mit dem Internet und versuche es erneut.",
     "iCloudLater": "Von diesem iPhone und aus dem Guthabenpunkte-Dienst gelöscht. Deine iCloud-Kopie wird gelöscht, sobald sich dieses iPhone das nächste Mal mit iCloud verbindet.",
     "busy": "Warte, bis der Coach fertig ist, und versuche es dann erneut.",
-    "notFinished": "Nicht alles wurde von diesem iPhone gelöscht. Versuche es erneut."
+    "notFinished": "Nicht alles wurde von diesem iPhone gelöscht. Versuche es erneut.",
+    "progressTime": "Das kann bis zu einer Minute dauern.",
+    "tryLater": "Es wurde nichts gelöscht. Der Guthabenpunkte-Dienst ist gerade ausgelastet. Versuche es später erneut.",
+    "creditsUnconfirmed": "Es wurde nichts gelöscht. Der Guthabenpunkte-Dienst konnte nicht bestätigen, dass dieses iPhone dein Guthabenpunkte-Konto besitzt, deshalb bleibt das Konto dort. Du kannst trotzdem alles auf diesem iPhone und in deiner iCloud löschen.",
+    "deleteHere": "Von iPhone und iCloud löschen",
+    "creditsKept": {
+      "done": "Alles wurde von diesem iPhone und aus deiner iCloud gelöscht. Dein Guthabenpunkte-Konto bleibt im Guthabenpunkte-Dienst. Niemand hat seinen Schlüssel, daher kann es niemand nutzen.",
+      "iCloudLater": "Von diesem iPhone gelöscht. Deine iCloud-Kopie wird gelöscht, sobald sich dieses iPhone das nächste Mal mit iCloud verbindet. Dein Guthabenpunkte-Konto bleibt im Guthabenpunkte-Dienst. Niemand hat seinen Schlüssel, daher kann es niemand nutzen."
+    }
   }
 }

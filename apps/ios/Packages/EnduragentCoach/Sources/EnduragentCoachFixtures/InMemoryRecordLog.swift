@@ -56,10 +56,17 @@ package final class InMemoryRecordLog: ReviewChainLog, @unchecked Sendable {
 		records.filter { recordMatches($0, query) }.max { $0.hlc < $1.hlc }
 	}
 
-	package func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int {
-		records.withLock { records in
+	package func erase(_ locality: RecordLocality, writtenBefore cutoff: Date?) async throws
+		-> Int
+	{
+		let cutoffMs = cutoff.map(wallMs)
+		return records.withLock { records in
 			let before = records.count
-			records.removeAll { $0.locality == locality && $0.deviceId != kept }
+			records.removeAll { record in
+				guard record.locality == locality else { return false }
+				guard let cutoffMs else { return true }
+				return record.hlc.wallMs < cutoffMs
+			}
 			return before - records.count
 		}
 	}

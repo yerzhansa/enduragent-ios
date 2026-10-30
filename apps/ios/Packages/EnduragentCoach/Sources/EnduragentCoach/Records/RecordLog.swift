@@ -102,7 +102,7 @@ package protocol RecordLog: Sendable {
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws
 	func fetch(_ query: RecordQuery) async throws -> RecordPage
 	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
-	func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int
+	func erase(_ locality: RecordLocality, writtenBefore cutoff: Date?) async throws -> Int
 	func confirmSyncedExport(after saved: Date) async throws -> Bool
 	var imports: AsyncStream<Void> { get }
 }
@@ -244,13 +244,15 @@ package struct SwiftDataRecordLog: RecordLog {
 		return RecordPage(records: records.sorted { $0.hlc < $1.hlc }, skipped: skipped)
 	}
 
-	package func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int {
+	package func erase(_ locality: RecordLocality, writtenBefore cutoff: Date?) async throws
+		-> Int
+	{
 		let context = ModelContext(container(for: locality))
 		context.autosaveEnabled = false
-		let sparing = kept != nil
-		let keptDevice = kept?.rawValue ?? ""
+		let bounded = cutoff != nil
+		let cutoffMs = cutoff.map(wallMs) ?? 0
 		var descriptor = FetchDescriptor<StoredAthleteRecord>(
-			predicate: #Predicate { !sparing || $0.deviceId != keptDevice })
+			predicate: #Predicate { !bounded || $0.hlcWallMs < cutoffMs })
 		descriptor.fetchLimit = Self.erasePage
 		var erased = 0
 		while true {

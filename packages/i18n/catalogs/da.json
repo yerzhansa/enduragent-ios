@@ -3207,6 +3207,14 @@
     "notStarted": "Intet blev slettet. Opret forbindelse til internettet, og prøv igen.",
     "iCloudLater": "Slettet fra denne iPhone og kredittjenesten. Din iCloud-kopi slettes, næste gang denne iPhone opretter forbindelse til iCloud.",
     "busy": "Vent, til coachen er færdig, og prøv så igen.",
-    "notFinished": "Ikke alt blev slettet fra denne iPhone. Prøv igen."
+    "notFinished": "Ikke alt blev slettet fra denne iPhone. Prøv igen.",
+    "progressTime": "Det kan tage op til et minut.",
+    "tryLater": "Intet blev slettet. Kredittjenesten har travlt lige nu. Prøv igen senere.",
+    "creditsUnconfirmed": "Intet blev slettet. Kredittjenesten kunne ikke bekræfte, at denne iPhone ejer din kredittpost, så posten bliver der. Du kan stadig slette alt på denne iPhone og i din iCloud.",
+    "deleteHere": "Slet fra iPhone og iCloud",
+    "creditsKept": {
+      "done": "Alt er slettet fra denne iPhone og din iCloud. Din kredittpost bliver i kredittjenesten. Ingen har dens nøgle, så ingen kan bruge den.",
+      "iCloudLater": "Slettet fra denne iPhone. Din iCloud-kopi slettes, næste gang denne iPhone opretter forbindelse til iCloud. Din kredittpost bliver i kredittjenesten. Ingen har dens nøgle, så ingen kan bruge den."
+    }
   }
 }

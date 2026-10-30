@@ -3163,6 +3163,14 @@
     "notStarted": "沒有刪除任何內容。請連線到網際網路後再試一次。",
     "iCloudLater": "已從此 iPhone 和點數服務中刪除。你的 iCloud 副本會在此 iPhone 下次連線到 iCloud 時刪除。",
     "busy": "請等待教練完成後再試一次。",
-    "notFinished": "此 iPhone 上的部分內容未能刪除。請再試一次。"
+    "notFinished": "此 iPhone 上的部分內容未能刪除。請再試一次。",
+    "progressTime": "這最多可能需要一分鐘。",
+    "tryLater": "沒有刪除任何內容。點數服務目前忙碌中。請稍後再試一次。",
+    "creditsUnconfirmed": "沒有刪除任何內容。點數服務無法確認此 iPhone 擁有你的點數紀錄，因此該紀錄會保留在服務中。你仍然可以刪除此 iPhone 和你的 iCloud 中的所有內容。",
+    "deleteHere": "從 iPhone 和 iCloud 刪除",
+    "creditsKept": {
+      "done": "所有內容已從此 iPhone 和你的 iCloud 中刪除。你的點數紀錄會保留在點數服務中。沒有人持有它的金鑰，因此沒有人能使用它。",
+      "iCloudLater": "已從此 iPhone 刪除。你的 iCloud 副本會在此 iPhone 下次連線到 iCloud 時刪除。你的點數紀錄會保留在點數服務中。沒有人持有它的金鑰，因此沒有人能使用它。"
+    }
   }
 }

@@ -18,7 +18,7 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 		var recoverResult: Result<Recovery, CreditsFailure>
 		var catalogResult: Result<PackCatalog, CreditsFailure>
 		var balanceResult: Result<CreditBalance, CreditsFailure>
-		var eraseResult: Result<Void, CreditsFailure>
+		var eraseResult: Result<Void, any Error>
 		var calls: [FakeCreditsCall]
 		var provisioning: (CredentialVault, NonEmptySecret)?
 	}
@@ -50,7 +50,7 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 		set { state.withLock { $0.balanceResult = newValue } }
 	}
 
-	public var eraseResult: Result<Void, CreditsFailure> {
+	public var eraseResult: Result<Void, any Error> {
 		get { state.withLock { $0.eraseResult } }
 		set { state.withLock { $0.eraseResult = newValue } }
 	}
@@ -67,7 +67,7 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 				recoverResult: .failure(.unavailable),
 				catalogResult: .failure(.unavailable),
 				balanceResult: .failure(.unavailable),
-				eraseResult: .failure(.unavailable),
+				eraseResult: .failure(CreditsFailure.unavailable),
 				calls: [], provisioning: nil
 			)
 		)

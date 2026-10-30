@@ -151,7 +151,6 @@ Clock.timeZone
 Clock.uptime
 Coach
 Coach.archivedConversation(_:)
-Coach.beginErasure(_:)
 Coach.changeModelAccess(_:)
 Coach.changeTraining(_:)
 Coach.claimStarter(deviceCheck:)
@@ -256,7 +255,6 @@ DateKey.from(_:)
 DateKey.init(year:month:day:)
 DateKey.rawValue
 DeviceDefaults
-DeviceDefaults.erasure
 DeviceDefaults.init(suiteName:)
 DiagnosticsFileFailure
 DiagnosticsFileFailure.couldNotWrite
@@ -299,10 +297,6 @@ DraftID
 DraftID.init()
 DraftID.init(rawValue:)
 DraftID.rawValue
-ErasureMarker
-ErasureMarker.creditsErased
-ErasureMarker.iCloudPending
-ErasureMarker.started
 ErasureOutcome
 ErasureOutcome.done
 ErasureOutcome.iCloudLater
@@ -1018,6 +1012,7 @@ AccessConsent
 AccessConsent.required
 AccessConsent.accepted
 AccessConsent.unavailable
+Coach.beginErasure(_:_:)
 ConsentTarget
 ConsentTarget.method
 ConsentTarget.entry
@@ -1028,3 +1023,14 @@ ConsentWriteFailure.notSaved
 ConsentWriteFailure.staleChallenge
 ProviderConsent.target
 Coach.declineConsent(_:)
+CreditsFailure.unauthorized
+CreditsRecordFate
+CreditsRecordFate.erased
+CreditsRecordFate.kept
+DeviceDefaults.erasureRun
+ErasureOutcome.creditsUnconfirmed
+ErasureOutcome.tryLater
+ErasureRun
+ErasureScope
+ErasureScope.everything
+ErasureScope.thisPhoneAndICloud

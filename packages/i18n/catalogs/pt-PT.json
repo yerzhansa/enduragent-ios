@@ -3207,6 +3207,14 @@
     "notStarted": "Nada foi apagado. Liga-te à internet e tenta novamente.",
     "iCloudLater": "Apagado deste iPhone e do serviço de Créditos. A tua cópia no iCloud será apagada da próxima vez que este iPhone se ligar ao iCloud.",
     "busy": "Espera que o coach termine e tenta novamente.",
-    "notFinished": "Nem tudo foi apagado deste iPhone. Tenta novamente."
+    "notFinished": "Nem tudo foi apagado deste iPhone. Tenta novamente.",
+    "progressTime": "Isto pode demorar até um minuto.",
+    "tryLater": "Nada foi apagado. O serviço de Créditos está ocupado neste momento. Tenta novamente mais tarde.",
+    "creditsUnconfirmed": "Nada foi apagado. O serviço de Créditos não conseguiu confirmar que este iPhone é o dono do teu registo de Créditos, por isso o registo fica lá. Ainda podes apagar tudo deste iPhone e do teu iCloud.",
+    "deleteHere": "Apagar do iPhone e do iCloud",
+    "creditsKept": {
+      "done": "Tudo foi apagado deste iPhone e do teu iCloud. O teu registo de Créditos fica no serviço de Créditos. Ninguém tem a chave dele, por isso ninguém o pode usar.",
+      "iCloudLater": "Apagado deste iPhone. A tua cópia no iCloud será apagada da próxima vez que este iPhone se ligar ao iCloud. O teu registo de Créditos fica no serviço de Créditos. Ninguém tem a chave dele, por isso ninguém o pode usar."
+    }
   }
 }

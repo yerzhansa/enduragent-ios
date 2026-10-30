@@ -51,12 +51,86 @@ final class YourDataProof: XCTestCase {
 		YourDataScreen.confirm(app)
 		YourDataScreen.outcome(app, Catalog.yourDataProgress)
 		TutorialHarness.wait(TutorialHarness.named(app, "yourData.progress"))
+		XCTAssertEqual(
+			TutorialHarness.named(app, "yourData.progressTime").label,
+			SupportScreen.say(Catalog.yourDataProgressTime))
 		TutorialHarness.attach(self, name: "your-data-deleting-light", app: app)
 		TutorialHarness.relaunchKeepingStore(app, erasure: .iCloudLater)
 		YourDataScreen.outcome(app, Catalog.yourDataICloudLater)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.composer").exists)
 		TutorialHarness.attach(self, name: "your-data-resumed-icloud-later-light", app: app)
 		YourDataScreen.continueToOnboarding(app)
+	}
+
+	func testAnUnconfirmedCreditsRecordOffersToDeleteThisPhoneAndICloud() {
+		let app = YourDataScreen.chatWithOneReply(.refused)
+		YourDataScreen.openScreen(app)
+		YourDataScreen.confirm(app)
+		YourDataScreen.outcome(app, Catalog.yourDataCreditsUnconfirmed)
+		XCTAssertEqual(
+			TutorialHarness.named(app, "yourData.deleteHere").label,
+			SupportScreen.say(Catalog.yourDataDeleteHere))
+		XCTAssertTrue(TutorialHarness.named(app, "yourData.cancel").exists)
+		XCTAssertFalse(TutorialHarness.named(app, "yourData.tryAgain").exists)
+		TutorialHarness.attach(self, name: "your-data-credits-unconfirmed-light", app: app)
+		TutorialHarness.named(app, "yourData.deleteHere").tap()
+		YourDataScreen.outcome(app, Catalog.yourDataCreditsKeptDone)
+		TutorialHarness.attach(self, name: "your-data-credits-kept-done-light", app: app)
+		YourDataScreen.continueToOnboarding(app)
+		YourDataScreen.assertEmptyChatAfterOnboarding(app)
+	}
+
+	func testABusyCreditsServiceSaysToTryAgainLater() {
+		let app = YourDataScreen.chatWithOneReply(.rateLimited)
+		YourDataScreen.openScreen(app)
+		YourDataScreen.confirm(app)
+		YourDataScreen.outcome(app, Catalog.yourDataTryLater)
+		XCTAssertTrue(TutorialHarness.named(app, "yourData.tryAgain").exists)
+		TutorialHarness.attach(self, name: "your-data-try-later-light", app: app)
+		TutorialHarness.named(app, "yourData.cancel").tap()
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"), until: .hittable)
+		XCTAssertEqual(
+			TutorialHarness.named(app, "chat.turnProgress").value as? String,
+			"turns 1 settled 1")
+	}
+
+	func testLargestTextKeepsTheDeletingAndICloudLaterScreensWhole() {
+		let app = YourDataScreen.confirmedAtLargestText(.exportHeld)
+		YourDataScreen.outcome(app, Catalog.yourDataProgress)
+		YourDataScreen.assertWhole(app, ["yourData.outcome", "yourData.progressTime"])
+		TutorialHarness.attach(self, name: "largest-en-your-data-deleting-light", app: app)
+		TutorialHarness.relaunchKeepingStore(app, erasure: .iCloudLater)
+		YourDataScreen.outcome(app, Catalog.yourDataICloudLater)
+		YourDataScreen.assertWhole(app, ["yourData.outcome", "yourData.continue"])
+		TutorialHarness.attach(self, name: "largest-en-your-data-icloud-later-light", app: app)
+	}
+
+	func testLargestTextKeepsTheDoneScreenWhole() {
+		let app = YourDataScreen.confirmedAtLargestText(.erased)
+		YourDataScreen.outcome(app, Catalog.yourDataDone)
+		YourDataScreen.assertWhole(app, ["yourData.outcome", "yourData.continue"])
+		TutorialHarness.attach(self, name: "largest-en-your-data-done-light", app: app)
+	}
+
+	func testLargestTextKeepsTheCreditsRecordOfferAndItsOutcomeWhole() {
+		let app = YourDataScreen.confirmedAtLargestText(.refused)
+		YourDataScreen.outcome(app, Catalog.yourDataCreditsUnconfirmed)
+		YourDataScreen.assertWhole(
+			app, ["yourData.outcome", "yourData.deleteHere", "yourData.cancel"])
+		TutorialHarness.attach(
+			self, name: "largest-en-your-data-credits-unconfirmed-light", app: app)
+		TutorialHarness.named(app, "yourData.deleteHere").tap()
+		YourDataScreen.outcome(app, Catalog.yourDataCreditsKeptDone)
+		YourDataScreen.assertWhole(app, ["yourData.outcome", "yourData.continue"])
+		TutorialHarness.attach(self, name: "largest-en-your-data-credits-kept-done-light", app: app)
+	}
+
+	func testLargestTextKeepsTheTryLaterScreenWhole() {
+		let app = YourDataScreen.confirmedAtLargestText(.rateLimited)
+		YourDataScreen.outcome(app, Catalog.yourDataTryLater)
+		YourDataScreen.assertWhole(
+			app, ["yourData.outcome", "yourData.tryAgain", "yourData.cancel"])
+		TutorialHarness.attach(self, name: "largest-en-your-data-try-later-light", app: app)
 	}
 
 	func testLargestTextKeepsEveryLineAndControlWhole() {
@@ -106,6 +180,63 @@ enum YourDataScreen {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		TutorialHarness.openSettings(app)
 		return app
+	}
+
+	static func confirmedAtLargestText(_ erasure: FixtureErasure) -> XCUIApplication {
+		var arguments = FixtureArguments()
+		arguments.erasure = erasure
+		let app = SupportScreen.chat(arguments)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		ReviewAccessibility.reopenAtLargestText(app, arguments)
+		LargestTextScreen.openSettings(app)
+		let row = TutorialHarness.named(app, "settings.yourData")
+		LargestTextScreen.reveal(app, row, tappable: true)
+		row.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
+		let delete = TutorialHarness.named(app, "yourData.delete")
+		LargestTextScreen.reveal(app, delete, tappable: true)
+		delete.tap()
+		let alert = app.alerts.firstMatch
+		TutorialHarness.wait(alert)
+		alert.buttons[SupportScreen.say(Catalog.yourDataDeleteEverything)].tap()
+		return app
+	}
+
+	private static let lines: Set = ["yourData.outcome", "yourData.progressTime"]
+
+	static func assertWhole(_ app: XCUIApplication, _ identifiers: [String]) {
+		for identifier in identifiers {
+			let element = TutorialHarness.named(app, identifier)
+			if lines.contains(identifier) {
+				assertReadable(app, element)
+			} else {
+				LargestTextScreen.reveal(app, element, tappable: true)
+				LargestTextScreen.assertWhole(app, element)
+			}
+		}
+	}
+
+	static func assertReadable(_ app: XCUIApplication, _ line: XCUIElement) {
+		TutorialHarness.wait(line)
+		let window = LargestTextScreen.window(app)
+		XCTAssertGreaterThanOrEqual(
+			line.frame.minX, window.minX, "\(line) starts left of the window")
+		XCTAssertLessThanOrEqual(line.frame.maxX, window.maxX, "\(line) ends right of the window")
+		scroll(app, until: { $0.minY <= line.frame.minY }, forward: false, "the top of \(line)")
+		scroll(app, until: { line.frame.maxY <= $0.maxY }, forward: true, "the bottom of \(line)")
+	}
+
+	private static func scroll(
+		_ app: XCUIApplication, until shown: @escaping (CGRect) -> Bool, forward: Bool,
+		_ edge: String
+	) {
+		TutorialHarness.wait(
+			until: {
+				let region = LargestTextScreen.visible(app)
+				if shown(region) { return true }
+				LargestTextScreen.drag(app, in: region, forward: forward)
+				return false
+			}, within: .retry, message: "\(edge) cannot be scrolled into the screen")
 	}
 
 	static func openScreen(_ app: XCUIApplication) {

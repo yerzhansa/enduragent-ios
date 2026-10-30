@@ -103,11 +103,13 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 		set { faults.withLock { $0.export = newValue } }
 	}
 
-	package func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int {
+	package func erase(_ locality: RecordLocality, writtenBefore cutoff: Date?) async throws
+		-> Int
+	{
 		if failErasures.contains(locality) {
 			throw RecordStorageFault(operation: .erase)
 		}
-		return try await wrapped.erase(locality, sparing: kept)
+		return try await wrapped.erase(locality, writtenBefore: cutoff)
 	}
 
 	package func confirmSyncedExport(after saved: Date) async throws -> Bool {

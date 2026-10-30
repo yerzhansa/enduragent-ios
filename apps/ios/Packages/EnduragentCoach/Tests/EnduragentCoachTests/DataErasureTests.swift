@@ -9,27 +9,56 @@ import Testing
 		let rig = try await ErasureRig()
 		let coach = rig.launch()
 
-		#expect(await coach.beginErasure(rig.device) == .begun)
-		#expect(rig.device.erasure == .started)
-		#expect(await coach.continueErasure(rig.device) == .done)
+		let run = try await rig.begin(coach)
+		#expect(rig.device.erasureRun?.progress == .askingCredits)
+		#expect(await coach.continueErasure(run) == .done(.erased))
 
-		try await rig.expectEverythingErased(marker: nil)
+		try await rig.expectEverythingErased(iCloudPending: false)
 		#expect(rig.credits.calls == [.erase])
 	}
 
-	@Test func anUnconfirmedCreditsErasureDeletesNothing() async throws {
+	@Test(arguments: [
+		(CreditsFailure.unauthorized as any Error, ErasureOutcome.creditsUnconfirmed),
+		(CreditsFailure.rateLimited, .tryLater),
+		(CreditsFailure.unavailable, .tryLater),
+		(URLError(.notConnectedToInternet), .notStarted),
+	])
+	func anUnconfirmedCreditsErasureDeletesNothingAndSaysWhy(
+		_ failure: any Error, _ outcome: ErasureOutcome
+	) async throws {
 		let rig = try await ErasureRig()
-		rig.credits.eraseResult = .failure(.unavailable)
+		rig.credits.eraseResult = .failure(failure)
 		let coach = rig.launch()
 
-		#expect(await coach.beginErasure(rig.device) == .begun)
-		#expect(await coach.continueErasure(rig.device) == .notStarted)
+		#expect(await coach.continueErasure(try await rig.begin(coach)) == outcome)
 
 		#expect(rig.device.erasure == nil)
 		try await rig.expectNothingErased()
 		#expect(
 			coach.diagnostics.entries.map(\.event).contains(
-				.erasureNotStarted(FailureCode(CreditsFailure.unavailable))))
+				.erasureNotStarted(FailureCode(failure))))
+	}
+
+	@Test func anAthleteWhoseRecordIsNotConfirmedCanDeleteThisPhoneAndICloudAndIsToldWhatStayed()
+		async throws
+	{
+		let rig = try await ErasureRig()
+		rig.credits.eraseResult = .failure(CreditsFailure.unauthorized)
+		let first = rig.launch()
+		#expect(await first.continueErasure(try await rig.begin(first)) == .creditsUnconfirmed)
+
+		let kept = try await rig.begin(first, .thisPhoneAndICloud)
+		try rig.fail(.keychain)
+		guard case .notFinished(.keychain, _) = await first.continueErasure(kept) else {
+			Issue.record("the stopped run did not report the Keychain step")
+			return
+		}
+		try rig.recover(.keychain)
+
+		let resumed = try #require(rig.device.erasureRun)
+		#expect(await rig.launch().continueErasure(resumed) == .done(.kept))
+		try await rig.expectEverythingErased(iCloudPending: false)
+		#expect(rig.credits.calls == [.erase])
 	}
 
 	@Test(arguments: [ErasureStep.iCloud, .deviceRecords, .files, .keychain])
@@ -38,11 +67,12 @@ import Testing
 	{
 		let rig = try await ErasureRig()
 		let first = rig.launch()
-		#expect(await first.beginErasure(rig.device) == .begun)
+		let run = try await rig.begin(first)
 		try rig.fail(step)
 
-		#expect(await first.continueErasure(rig.device) == .notFinished(step))
-		#expect(rig.device.erasure == .creditsErased)
+		let stopped = await first.continueErasure(run)
+		let saved = try #require(rig.device.erasureRun)
+		#expect(stopped == .notFinished(step, resume: saved))
 		#expect(
 			first.diagnostics.entries.contains {
 				if case .erasureNotFinished(step, _) = $0.event { return true }
@@ -50,17 +80,18 @@ import Testing
 			})
 
 		try rig.recover(step)
-		#expect(await rig.launch().continueErasure(rig.device) == .done)
-		try await rig.expectEverythingErased(marker: nil)
+		#expect(await rig.launch().continueErasure(saved) == .done(.erased))
+		try await rig.expectEverythingErased(iCloudPending: false)
 		#expect(rig.credits.calls == [.erase])
 	}
 
 	@Test func aRunKilledBeforeCreditsAnsweredAsksCreditsAgainOnResume() async throws {
 		let rig = try await ErasureRig()
-		#expect(await rig.launch().beginErasure(rig.device) == .begun)
+		_ = try await rig.begin(rig.launch())
 
-		#expect(await rig.launch().continueErasure(rig.device) == .done)
-		try await rig.expectEverythingErased(marker: nil)
+		let resumed = try #require(rig.device.erasureRun)
+		#expect(await rig.launch().continueErasure(resumed) == .done(.erased))
+		try await rig.expectEverythingErased(iCloudPending: false)
 		#expect(rig.credits.calls == [.erase])
 	}
 
@@ -68,71 +99,52 @@ import Testing
 		let rig = try await ErasureRig()
 		rig.records.export = .noAccount
 		let coach = rig.launch()
-		#expect(await coach.beginErasure(rig.device) == .begun)
 
-		#expect(await coach.continueErasure(rig.device) == .iCloudLater)
-		try await rig.expectEverythingErased(marker: .iCloudPending)
+		#expect(await coach.continueErasure(try await rig.begin(coach)) == .iCloudLater(.erased))
+		try await rig.expectEverythingErased(iCloudPending: true)
 	}
 
-	@Test(arguments: [FixtureExport.noAccount, .confirmed])
-	func theNextLaunchDeletesReturningRowsAndClearsTheMarkerOnlyAfterAnExport(
-		_ export: FixtureExport
+	@Test(arguments: [
+		(FixtureExport.noAccount, ErasureOutcome.iCloudLater(.erased)),
+		(.confirmed, .done(.erased)),
+	])
+	func aRunResumedAfterTheSyncedDeleteWaitsForAnExportAgain(
+		_ export: FixtureExport, _ outcome: ErasureOutcome
 	) async throws {
-		let rig = try await ErasureRig()
-		rig.device.mark(.iCloudPending)
-		let fresh = DeviceID(rawValue: "phone-after-erasure")
-		let records = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: fresh))
-		records.export = export
-		try await records.append(
-			[
-				storedRecord(
-					device: ErasureRig.phone, wall: 1,
-					body: .synced(sampleUser(chatId: .main, text: "returning"))),
-				storedRecord(
-					device: fresh, wall: 2, body: .synced(sampleUser(chatId: .main, text: "new"))),
-			], locality: .synced)
-		let coach = rig.launch(records: records)
-
-		await coach.eraseReturningRows(rig.device)
-		await coach.pendingErasure?.value
-
-		let left = try await records.fetch(RecordQuery(scope: .everySynced)).records
-		#expect(left.map(messageText) == ["new"])
-		#expect(rig.device.erasure == (export == .confirmed ? nil : .iCloudPending))
-	}
-
-	@Test func aRunResumedAfterTheSyncedDeleteDoesNotReportAnUnconfirmedExportAsDone()
-		async throws
-	{
 		let rig = try await ErasureRig()
 		rig.records.export = .held
 		let first = rig.launch()
-		#expect(await first.beginErasure(rig.device) == .begun)
-		let killed = Task { await first.continueErasure(rig.device) }
+		let run = try await rig.begin(first)
+		let killed = Task { await first.continueErasure(run) }
 		try await rig.waitUntilSyncedRowsAreGone()
 		killed.cancel()
 		_ = await killed.value
 
-		rig.records.export = .noAccount
-		#expect(await rig.launch().continueErasure(rig.device) == .iCloudLater)
-		try await rig.expectEverythingErased(marker: .iCloudPending)
+		rig.records.export = export
+		let resumed = try #require(rig.device.erasureRun)
+		#expect(await rig.launch().continueErasure(resumed) == outcome)
+		try await rig.expectEverythingErased(iCloudPending: outcome == .iCloudLater(.erased))
 	}
 
 	@Test func aRunThatFindsNoSyncedRowsDoesNotReportICloudAsDeleted() async throws {
 		let rig = try await ErasureRig()
-		_ = try await rig.records.erase(.synced, sparing: nil)
+		_ = try await rig.records.erase(.synced, writtenBefore: nil)
 		let coach = rig.launch()
-		#expect(await coach.beginErasure(rig.device) == .begun)
 
-		#expect(await coach.continueErasure(rig.device) == .iCloudLater)
-		try await rig.expectEverythingErased(marker: .iCloudPending)
+		#expect(await coach.continueErasure(try await rig.begin(coach)) == .iCloudLater(.erased))
+		try await rig.expectEverythingErased(iCloudPending: true)
 	}
 
-	@Test func theSweepKeepsRowsAnotherPhoneWroteAfterTheErasure() async throws {
+	@Test(arguments: [FixtureExport.noAccount, .confirmed])
+	func theNextLaunchDeletesOnlyRowsWrittenBeforeTheErasureAndClearsTheMarkerAfterAnExport(
+		_ export: FixtureExport
+	) async throws {
 		let rig = try await ErasureRig()
-		rig.device.mark(.iCloudPending)
+		let began = Date(timeIntervalSince1970: 1)
+		rig.device.mark(.iCloudPending(began: began))
 		let fresh = DeviceID(rawValue: "phone-after-erasure")
 		let records = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: fresh))
+		records.export = export
 		try await records.append(
 			[
 				storedRecord(
@@ -141,6 +153,9 @@ import Testing
 				storedRecord(
 					device: DeviceID(rawValue: "other-phone"), wall: 2_000,
 					body: .synced(sampleUser(chatId: .main, text: "written after"))),
+				storedRecord(
+					device: fresh, wall: 3_000,
+					body: .synced(sampleUser(chatId: .main, text: "new"))),
 			], locality: .synced)
 		let coach = rig.launch(records: records)
 
@@ -148,34 +163,22 @@ import Testing
 		await coach.pendingErasure?.value
 
 		let left = try await records.fetch(RecordQuery(scope: .everySynced)).records
-		#expect(left.map(messageText) == ["written after"])
+		#expect(left.map(messageText) == ["written after", "new"])
+		#expect(rig.device.erasure == (export == .confirmed ? nil : .iCloudPending(began: began)))
 	}
 
 	@Test func theSweepLeavesANewerRunsMarker() async throws {
 		let rig = try await ErasureRig()
-		rig.device.mark(.iCloudPending)
+		rig.device.mark(.iCloudPending(began: Date(timeIntervalSince1970: 1)))
 		rig.records.export = .held
 		let coach = rig.launch()
 		await coach.eraseReturningRows(rig.device)
 
-		#expect(await coach.beginErasure(rig.device) == .begun)
+		_ = try await rig.begin(coach)
 		rig.records.export = .confirmed
 		await coach.pendingErasure?.value
 
-		#expect(rig.device.erasure == .started)
-	}
-
-	@Test(arguments: [CreditsFailure.unexpectedResponse(status: 401), .rateLimited, .unavailable])
-	func aRefusalOrABusyCreditsServiceIsNotReportedAsNoConnection(_ failure: CreditsFailure)
-		async throws
-	{
-		let rig = try await ErasureRig()
-		rig.credits.eraseResult = .failure(failure)
-		let coach = rig.launch()
-		#expect(await coach.beginErasure(rig.device) == .begun)
-
-		#expect(await coach.continueErasure(rig.device) != .notStarted)
-		try await rig.expectNothingErased()
+		#expect(rig.device.erasureRun?.progress == .askingCredits)
 	}
 
 	@Test func aRunningTurnOrAnOpenMessageWindowRefusesToBegin() async throws {
@@ -189,16 +192,19 @@ import Testing
 
 		let turn = try #require(try await coach.send(draft("Hold this"), to: .main).acceptedTurn)
 		try await window.waitUntilHeld(quickWindow.window)
-		#expect(await coach.beginErasure(rig.device) == .busy)
+		#expect(await coach.beginErasure(rig.device, .everything) == .busy)
 		window.release(quickWindow.window)
 		try await waitForArrival(at: gate)
-		#expect(await coach.beginErasure(rig.device) == .busy)
+		#expect(await coach.beginErasure(rig.device, .everything) == .busy)
 		#expect(rig.device.erasure == nil)
 
 		await gate.release()
 		_ = try #require(await coach.settledState(of: turn, in: .main))
-		#expect(try await eventuallyBegins(coach, rig.device) == .begun)
-		#expect(rig.device.erasure == .started)
+		guard case .begun = try await eventuallyBegins(coach, rig.device) else {
+			Issue.record("the erasure did not begin after the turn settled")
+			return
+		}
+		#expect(rig.device.erasureRun?.progress == .askingCredits)
 	}
 
 	private func waitForArrival(at gate: FakeModelGate) async throws {
@@ -213,17 +219,23 @@ import Testing
 		-> ErasureStart
 	{
 		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		var start = await coach.beginErasure(device)
+		var start = await coach.beginErasure(device, .everything)
 		while start == .busy, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))
-			start = await coach.beginErasure(device)
+			start = await coach.beginErasure(device, .everything)
 		}
 		return start
 	}
 }
 
+private enum ErasureRigFailure: Error {
+	case busy
+}
+
 private final class ErasureRig: Sendable {
 	static let phone = DeviceID(rawValue: "phone-before-erasure")
+	static let now = "1998-06-13T08:00:00+02:00"
+	static let began = FixedClock(now: now, timeZone: "Europe/Amsterdam").now
 	let directory: URL
 	let suite: String
 	let device: DeviceDefaults
@@ -265,7 +277,7 @@ private final class ErasureRig: Sendable {
 				cacheDirectory: directory, catalog: .fixture),
 			training: TrainingService { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
 			credits: .fake(credits), host: ImmediateExecutionHost(),
-			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
+			clock: FixedClock(now: Self.now, timeZone: "Europe/Amsterdam"),
 			support: support)
 		ports.watchdogSleep = HeldClock().sleep
 		if let coalescingClock { ports.coalescingSleep = coalescingClock.sleep }
@@ -306,6 +318,13 @@ private final class ErasureRig: Sendable {
 			locality: .deviceLocal)
 	}
 
+	func begin(_ coach: Coach, _ scope: ErasureScope = .everything) async throws -> ErasureRun {
+		guard case .begun(let run) = await coach.beginErasure(device, scope) else {
+			throw ErasureRigFailure.busy
+		}
+		return run
+	}
+
 	func waitUntilSyncedRowsAreGone() async throws {
 		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while try await !records.fetch(RecordQuery(scope: .everySynced)).records.isEmpty,
@@ -334,7 +353,7 @@ private final class ErasureRig: Sendable {
 			[.posixPermissions: 0o700], ofItemAtPath: directory.path)
 	}
 
-	func expectEverythingErased(marker: ErasureMarker?) async throws {
+	func expectEverythingErased(iCloudPending: Bool) async throws {
 		#expect(try await records.fetch(RecordQuery(scope: .everySynced)).records.isEmpty)
 		#expect(try await records.fetch(RecordQuery(scope: .everyDeviceLocal)).records.isEmpty)
 		let store = ICloudKeychainStore(backing: backing)
@@ -348,7 +367,7 @@ private final class ErasureRig: Sendable {
 		#expect(defaults.string(forKey: "enduragent.deviceId") == nil)
 		#expect(defaults.object(forKey: "enduragent.onboardingCompleted") == nil)
 		#expect(defaults.string(forKey: "other.setting") == "other")
-		#expect(device.erasure == marker)
+		#expect(device.erasure == (iCloudPending ? .iCloudPending(began: Self.began) : nil))
 	}
 
 	func expectNothingErased() async throws {

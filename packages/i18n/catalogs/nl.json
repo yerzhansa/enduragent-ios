@@ -3207,6 +3207,14 @@
     "notStarted": "Er is niets verwijderd. Maak verbinding met internet en probeer het opnieuw.",
     "iCloudLater": "Verwijderd van deze iPhone en uit de tegoedpuntendienst. Je iCloud-kopie wordt verwijderd zodra deze iPhone de volgende keer verbinding maakt met iCloud.",
     "busy": "Wacht tot de coach klaar is en probeer het dan opnieuw.",
-    "notFinished": "Niet alles is van deze iPhone verwijderd. Probeer het opnieuw."
+    "notFinished": "Niet alles is van deze iPhone verwijderd. Probeer het opnieuw.",
+    "progressTime": "Dit kan tot een minuut duren.",
+    "tryLater": "Er is niets verwijderd. De tegoedpuntendienst is nu druk. Probeer het later opnieuw.",
+    "creditsUnconfirmed": "Er is niets verwijderd. De tegoedpuntendienst kon niet bevestigen dat deze iPhone eigenaar is van je tegoedpuntengegevens, dus die blijven daar staan. Je kunt nog steeds alles op deze iPhone en in je iCloud verwijderen.",
+    "deleteHere": "Verwijderen van iPhone en iCloud",
+    "creditsKept": {
+      "done": "Alles is verwijderd van deze iPhone en uit je iCloud. Je tegoedpuntengegevens blijven in de tegoedpuntendienst. Niemand heeft de sleutel ervan, dus niemand kan ze gebruiken.",
+      "iCloudLater": "Verwijderd van deze iPhone. Je iCloud-kopie wordt verwijderd zodra deze iPhone de volgende keer verbinding maakt met iCloud. Je tegoedpuntengegevens blijven in de tegoedpuntendienst. Niemand heeft de sleutel ervan, dus niemand kan ze gebruiken."
+    }
   }
 }
