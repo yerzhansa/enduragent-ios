@@ -52,10 +52,10 @@ final class YourDataProof: XCTestCase {
 		YourDataScreen.outcome(app, Catalog.yourDataProgress)
 		TutorialHarness.wait(TutorialHarness.named(app, "yourData.progress"))
 		TutorialHarness.attach(self, name: "your-data-deleting-light", app: app)
-		TutorialHarness.relaunchKeepingStore(app)
-		YourDataScreen.outcome(app, Catalog.yourDataDone)
+		TutorialHarness.relaunchKeepingStore(app, erasure: .iCloudLater)
+		YourDataScreen.outcome(app, Catalog.yourDataICloudLater)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.composer").exists)
-		TutorialHarness.attach(self, name: "your-data-resumed-done-light", app: app)
+		TutorialHarness.attach(self, name: "your-data-resumed-icloud-later-light", app: app)
 		YourDataScreen.continueToOnboarding(app)
 	}
 

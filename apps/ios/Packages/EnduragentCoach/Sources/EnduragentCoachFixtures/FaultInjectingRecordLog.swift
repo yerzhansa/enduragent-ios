@@ -115,9 +115,8 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 		case .confirmed: return true
 		case .noAccount: return false
 		case .held:
-			repeat {
-				try await Task.sleep(for: .seconds(60))
-			} while true
+			try await Task.sleep(for: .milliseconds(20))
+			return try await confirmSyncedExport(after: saved)
 		}
 	}
 

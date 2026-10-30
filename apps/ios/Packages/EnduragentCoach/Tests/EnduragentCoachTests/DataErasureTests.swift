@@ -101,6 +101,83 @@ import Testing
 		#expect(rig.device.erasure == (export == .confirmed ? nil : .iCloudPending))
 	}
 
+	@Test func aRunResumedAfterTheSyncedDeleteDoesNotReportAnUnconfirmedExportAsDone()
+		async throws
+	{
+		let rig = try await ErasureRig()
+		rig.records.export = .held
+		let first = rig.launch()
+		#expect(await first.beginErasure(rig.device) == .begun)
+		let killed = Task { await first.continueErasure(rig.device) }
+		try await rig.waitUntilSyncedRowsAreGone()
+		killed.cancel()
+		_ = await killed.value
+
+		rig.records.export = .noAccount
+		#expect(await rig.launch().continueErasure(rig.device) == .iCloudLater)
+		try await rig.expectEverythingErased(marker: .iCloudPending)
+	}
+
+	@Test func aRunThatFindsNoSyncedRowsDoesNotReportICloudAsDeleted() async throws {
+		let rig = try await ErasureRig()
+		_ = try await rig.records.erase(.synced, sparing: nil)
+		let coach = rig.launch()
+		#expect(await coach.beginErasure(rig.device) == .begun)
+
+		#expect(await coach.continueErasure(rig.device) == .iCloudLater)
+		try await rig.expectEverythingErased(marker: .iCloudPending)
+	}
+
+	@Test func theSweepKeepsRowsAnotherPhoneWroteAfterTheErasure() async throws {
+		let rig = try await ErasureRig()
+		rig.device.mark(.iCloudPending)
+		let fresh = DeviceID(rawValue: "phone-after-erasure")
+		let records = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: fresh))
+		try await records.append(
+			[
+				storedRecord(
+					device: ErasureRig.phone, wall: 500,
+					body: .synced(sampleUser(chatId: .main, text: "returning"))),
+				storedRecord(
+					device: DeviceID(rawValue: "other-phone"), wall: 2_000,
+					body: .synced(sampleUser(chatId: .main, text: "written after"))),
+			], locality: .synced)
+		let coach = rig.launch(records: records)
+
+		await coach.eraseReturningRows(rig.device)
+		await coach.pendingErasure?.value
+
+		let left = try await records.fetch(RecordQuery(scope: .everySynced)).records
+		#expect(left.map(messageText) == ["written after"])
+	}
+
+	@Test func theSweepLeavesANewerRunsMarker() async throws {
+		let rig = try await ErasureRig()
+		rig.device.mark(.iCloudPending)
+		rig.records.export = .held
+		let coach = rig.launch()
+		await coach.eraseReturningRows(rig.device)
+
+		#expect(await coach.beginErasure(rig.device) == .begun)
+		rig.records.export = .confirmed
+		await coach.pendingErasure?.value
+
+		#expect(rig.device.erasure == .started)
+	}
+
+	@Test(arguments: [CreditsFailure.unexpectedResponse(status: 401), .rateLimited, .unavailable])
+	func aRefusalOrABusyCreditsServiceIsNotReportedAsNoConnection(_ failure: CreditsFailure)
+		async throws
+	{
+		let rig = try await ErasureRig()
+		rig.credits.eraseResult = .failure(failure)
+		let coach = rig.launch()
+		#expect(await coach.beginErasure(rig.device) == .begun)
+
+		#expect(await coach.continueErasure(rig.device) != .notStarted)
+		try await rig.expectNothingErased()
+	}
+
 	@Test func aRunningTurnOrAnOpenMessageWindowRefusesToBegin() async throws {
 		let rig = try await ErasureRig()
 		let gate = FakeModelGate()
@@ -227,6 +304,16 @@ private final class ErasureRig: Sendable {
 		try await records.append(
 			[storedRecord(device: Self.phone, wall: 3, body: .deviceLocal(sampleLocal()))],
 			locality: .deviceLocal)
+	}
+
+	func waitUntilSyncedRowsAreGone() async throws {
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
+		while try await !records.fetch(RecordQuery(scope: .everySynced)).records.isEmpty,
+			ContinuousClock.now < deadline
+		{
+			try await Task.sleep(for: .milliseconds(10))
+		}
+		try #require(try await records.fetch(RecordQuery(scope: .everySynced)).records.isEmpty)
 	}
 
 	func fail(_ step: ErasureStep) throws {
