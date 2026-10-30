@@ -2654,6 +2654,7 @@
     "error": {
       "intervalsCredentials": "{{service}}에서 요청을 거부했습니다. {{service}} 연결이나 API 키를 확인해 주세요.",
       "intervalsTransient": "지금은 {{service}}에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+      "noConnection": "연결되어 있지 않습니다. 메시지는 보관됩니다. 온라인 상태가 되면 다시 시도하세요.",
       "providerCredentials": "모델 제공업체가 API 키를 거부했습니다. 제공업체 인증 정보를 확인해 주세요.",
       "providerDown": "모델 제공업체에 문제가 있습니다. 몇 분 후 다시 시도해 주세요.",
       "rateLimit": "요청 한도에 도달했습니다. 잠시 후 다시 시도해 주세요.",

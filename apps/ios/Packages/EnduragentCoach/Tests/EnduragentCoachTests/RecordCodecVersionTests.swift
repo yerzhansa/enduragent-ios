@@ -8,6 +8,7 @@ import Testing
 extension SwiftDataSuites {
 	@Suite struct RecordCodecVersionTests {
 		static let milestoneFourBodyVersion = 6
+		static let offlineNoticeBodyVersion = 7
 
 		let phone = DeviceID(rawValue: "plan-shortcut-phone")
 
@@ -58,6 +59,64 @@ extension SwiftDataSuites {
 			#expect(Set(read.records.map(\.ulid)) == Set(records.map(\.ulid)))
 			for record in records {
 				#expect(read.records.first { $0.ulid == record.ulid } == record)
+			}
+		}
+
+		@Test func aBuildBeforeTheNoConnectionNoticeSkipsOnlyNoConnectionSettlementsAsNewer()
+			async throws
+		{
+			let root = try TestTemporaryFolders.make()
+			let log = try makeSwiftDataLog(deviceId: phone, directory: root)
+			let failures: [CoachFailure] = [
+				.model(.providerDown(.noConnection)),
+				.model(.accessUnavailable(.trainingIdentityUnverified(.noConnection))),
+				.model(.providerDown(.network)),
+				.model(.accessUnavailable(.trainingIdentityUnverified(.temporarilyUnavailable))),
+			]
+			let settled = failures.enumerated().map { index, failure in
+				TurnSettledBody(
+					chatId: .main, turn: TurnID(ulid: fixedUlid(100 + index)),
+					attempt: AttemptID(ulid: fixedUlid(200 + index)),
+					settlement: .failed(failure, saved: .none))
+			}
+			let records =
+				settled.enumerated().map { index, body in
+					storedRecord(
+						device: phone, wall: Int64(index + 1), ulid: fixedUlid(index + 1),
+						body: .synced(.turnSettled(body)))
+				} + [
+					storedRecord(
+						device: phone, wall: 10, ulid: fixedUlid(10),
+						body: .deviceLocal(.pendingSettlement(settled[0]))),
+					storedRecord(
+						device: phone, wall: 11, ulid: fixedUlid(11),
+						body: .deviceLocal(.pendingSettlement(settled[2]))),
+				]
+
+			try await log.append(Array(records.prefix(4)), locality: .synced)
+			try await log.append(Array(records.suffix(2)), locality: .deviceLocal)
+
+			let rows = try ["synced.store", "local.store"].flatMap { file in
+				try ModelContext(
+					try ModelContainerHandle.withoutCloudKit(
+						storeURL: root.appending(path: file)
+					)
+					.container
+				).fetch(FetchDescriptor<StoredAthleteRecord>())
+			}
+			let skipped = rows.filter { $0.bodyVersion > Self.offlineNoticeBodyVersion }
+			#expect(rows.count == records.count)
+			#expect(
+				Set(skipped.map(\.ulid))
+					== Set([fixedUlid(1), fixedUlid(2), fixedUlid(10)].map(\.rawValue)))
+			let synced = try await log.fetch(RecordQuery(scope: .synced([.turnSettled])))
+			let local = try await log.fetch(
+				RecordQuery(scope: .deviceLocal([.pendingSettlement])))
+			#expect(synced.skipped.isEmpty && local.skipped.isEmpty)
+			let read = synced.records + local.records
+			#expect(read.count == records.count)
+			for record in records {
+				#expect(read.first { $0.ulid == record.ulid } == record)
 			}
 		}
 	}

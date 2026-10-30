@@ -48,6 +48,10 @@ public final class FakeIntervalsClient: TrainingReads, IntervalsClient, @uncheck
 		faults.withLock { $0.fail(read, with: error, once: once) }
 	}
 
+	public func loseConnection(for read: FakeTrainingRead) {
+		fail(read, with: IntervalsError.unreachable(URLError(.notConnectedToInternet)))
+	}
+
 	public func restore(_ read: FakeTrainingRead) {
 		faults.withLock { $0.restore(read) }
 	}

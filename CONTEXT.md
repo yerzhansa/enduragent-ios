@@ -74,6 +74,10 @@ _Avoid_: Run, call
 A sentence the app shows when something could not be done or needs the athlete, with the actions that fix it.
 _Avoid_: Error, alert, banner, warning
 
+**No-connection notice**:
+The notice a turn shows when the iPhone had no internet connection for the model or the intervals.icu read: "No connection. Your message is kept. Try again when you're online." It offers Try again and names neither intervals.icu nor the model provider.
+_Avoid_: Offline error, network error, airplane notice
+
 **Try again**:
 The action that repeats something that did not finish. For a turn, it answers the turn again and is offered only when nothing from the turn was saved; otherwise the notice asks for a new message. For feedback, it sends the same note again, and the feedback service keeps one copy.
 _Avoid_: Retry, resend

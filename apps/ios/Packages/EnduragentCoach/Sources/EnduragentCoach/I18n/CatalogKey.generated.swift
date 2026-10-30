@@ -763,6 +763,7 @@ public enum Catalog {
 	public static let coachConfirmationRefused = CatalogKey(rawValue: "coach.confirmation.refused")
 	public static let coachErrorIntervalsCredentials = CatalogKey(rawValue: "coach.error.intervalsCredentials")
 	public static let coachErrorIntervalsTransient = CatalogKey(rawValue: "coach.error.intervalsTransient")
+	public static let coachErrorNoConnection = CatalogKey(rawValue: "coach.error.noConnection")
 	public static let coachErrorProviderCredentials = CatalogKey(rawValue: "coach.error.providerCredentials")
 	public static let coachErrorProviderDown = CatalogKey(rawValue: "coach.error.providerDown")
 	public static let coachErrorRateLimit = CatalogKey(rawValue: "coach.error.rateLimit")

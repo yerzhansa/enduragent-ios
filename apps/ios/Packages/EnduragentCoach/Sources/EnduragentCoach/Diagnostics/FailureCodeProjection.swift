@@ -66,12 +66,21 @@ extension ProviderFailure {
 		case .accessExhausted: ProblemCode("accessExhausted")
 		case .rateLimited: ProblemCode("rateLimited")
 		case .serverError(let status, _): ProblemCode("serverError", status)
-		case .network: ProblemCode("network")
+		case .network(let loss): ProblemCode("network").then(loss.code)
 		case .timeout(let kind): ProblemCode("timeout").then(kind.code)
 		case .contextOverflow: ProblemCode("contextOverflow")
 		case .invalidRequest: ProblemCode("invalidRequest")
 		case .unknownFinish: ProblemCode("unknownFinish")
 		case .malformedStream: ProblemCode("malformedStream")
+		}
+	}
+}
+
+extension ConnectionLoss {
+	fileprivate var code: ProblemCode {
+		switch self {
+		case .noConnection: ProblemCode("noConnection")
+		case .unreachable: ProblemCode("unreachable")
 		}
 	}
 }
@@ -140,6 +149,7 @@ extension TrainingFailure {
 		case .credentialRejected: ProblemCode("credentialRejected")
 		case .temporarilyUnavailable: ProblemCode("temporarilyUnavailable")
 		case .requestRejected: ProblemCode("requestRejected")
+		case .noConnection: ProblemCode("noConnection")
 		}
 	}
 }
@@ -176,6 +186,7 @@ extension ProviderTrouble {
 		case .outage: ProblemCode("outage")
 		case .network: ProblemCode("network")
 		case .timeout: ProblemCode("timeout")
+		case .noConnection: ProblemCode("noConnection")
 		}
 	}
 }

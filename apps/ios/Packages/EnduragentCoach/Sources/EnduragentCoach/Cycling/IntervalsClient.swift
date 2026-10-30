@@ -94,6 +94,7 @@ public struct IntervalsError: Error, Sendable, Equatable {
 	public var code: String
 	public var details: String
 	public var status: Int?
+	package private(set) var loss: ConnectionLoss?
 
 	public init(code: String, details: String, status: Int? = nil) {
 		self.code = code
@@ -113,9 +114,11 @@ public struct IntervalsError: Error, Sendable, Equatable {
 	}
 
 	package static func unreachable(_ error: URLError) -> IntervalsError {
-		IntervalsError(
+		var unreachable = IntervalsError(
 			code: "network",
 			details: "intervals.icu could not be reached (URLError \(error.code.rawValue)).")
+		unreachable.loss = ConnectionLoss(error)
+		return unreachable
 	}
 }
 

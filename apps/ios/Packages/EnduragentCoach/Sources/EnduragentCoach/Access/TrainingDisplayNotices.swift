@@ -8,7 +8,7 @@ extension IntervalsSummary {
 			return AthleteNotice(
 				key: Catalog.coachErrorIntervalsCredentials, vars: ["service": "intervals.icu"],
 				actions: [])
-		case .failed(.temporarilyUnavailable):
+		case .failed(.temporarilyUnavailable), .failed(.noConnection):
 			key = Catalog.connectErrorProfileUnavailable
 		case .available(let athlete):
 			switch athlete.wellness {
@@ -24,7 +24,7 @@ extension IntervalsSummary {
 
 	public var action: TrainingDisplayAction? {
 		switch profile {
-		case .failed(.temporarilyUnavailable): .retry(connectionID)
+		case .failed(.temporarilyUnavailable), .failed(.noConnection): .retry(connectionID)
 		case .failed(.credentialRejected), .failed(.requestRejected): .reviewConnection
 		case .available(let athlete):
 			switch athlete.wellness {

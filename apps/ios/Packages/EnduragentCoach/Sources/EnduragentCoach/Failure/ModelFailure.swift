@@ -24,7 +24,9 @@ public enum ModelFailure: Sendable, Equatable {
 			self = .rateLimited(retryAfter: retryAfter)
 		case .serverError:
 			self = .providerDown(.outage)
-		case .network:
+		case .network(.noConnection):
+			self = .providerDown(.noConnection)
+		case .network(.unreachable):
 			self = .providerDown(.network)
 		case .timeout:
 			self = .providerDown(.timeout)

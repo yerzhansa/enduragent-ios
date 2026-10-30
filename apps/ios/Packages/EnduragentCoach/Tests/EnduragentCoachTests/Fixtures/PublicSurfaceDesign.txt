@@ -571,6 +571,7 @@ ProviderConsent.currentVersion
 ProviderConsent.version
 ProviderTrouble
 ProviderTrouble.network
+ProviderTrouble.noConnection
 ProviderTrouble.outage
 ProviderTrouble.timeout
 RecoveryAction
@@ -881,6 +882,7 @@ TrainingDisplayAction.reviewConnection
 TrainingDisplayAction.title
 TrainingFailure
 TrainingFailure.credentialRejected
+TrainingFailure.noConnection
 TrainingFailure.requestRejected
 TrainingFailure.temporarilyUnavailable
 TrainingService

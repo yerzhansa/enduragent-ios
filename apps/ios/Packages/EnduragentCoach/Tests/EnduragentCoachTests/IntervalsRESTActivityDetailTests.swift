@@ -117,10 +117,7 @@ extension IntervalsRESTClientTests {
 	@Test func unreachableServiceIsANetworkFailureAndCancellationIsNotRenamed() async throws {
 		let client = try makeClient()
 		IntervalsURLProtocolStub.handler = { _ in throw URLError(.notConnectedToInternet) }
-		await #expect(
-			throws: IntervalsError(
-				code: "network", details: "intervals.icu could not be reached (URLError -1009).")
-		) {
+		await #expect(throws: IntervalsError.unreachable(URLError(.notConnectedToInternet))) {
 			_ = try await client.activity(try id("i1234567"))
 		}
 		IntervalsURLProtocolStub.handler = { _ in throw URLError(.cancelled) }

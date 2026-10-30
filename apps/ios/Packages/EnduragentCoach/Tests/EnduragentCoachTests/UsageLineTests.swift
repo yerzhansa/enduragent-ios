@@ -88,7 +88,7 @@ import Testing
 			otherwise: transport.respond)
 		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
-		#expect(failure(settled) == .model(.providerDown(.network)))
+		#expect(failure(settled) == .model(.providerDown(.noConnection)))
 		let line = try #require(try lines().first)
 		#expect(try lines().count == 1)
 		#expect(line.calls == 0)

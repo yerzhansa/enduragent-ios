@@ -104,12 +104,13 @@ import Testing
 	}
 
 	@Test func networkProfileFailureRecoversUsingSavedKeyAndID() async throws {
-		client.fail(.profile, with: URLError(.notConnectedToInternet))
+		client.fail(.profile, with: IntervalsError.unreachable(URLError(.notConnectedToInternet)))
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
 		_ = await coach.changeTraining(.replace(apiKey: "synthetic-key", athlete: .keyOwner))
 		let failed = try await landed(in: statuses)
-		#expect(failed.profile == .failed(.temporarilyUnavailable))
+		#expect(failed.profile == .failed(.noConnection))
+		#expect(failed.notice?.key == Catalog.connectErrorProfileUnavailable)
 		let active = try #require(try secrets.intervalsConnection())
 		client.athlete = .cyclist(id: "i1001", name: "Ada", ftp: 250)
 		client.restore(.profile)

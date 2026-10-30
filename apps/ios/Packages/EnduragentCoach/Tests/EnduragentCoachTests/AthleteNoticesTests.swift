@@ -14,6 +14,7 @@ private let memorySaved = WriteSummary(
 
 private let tryAgain = "Try again"
 private let providerDown = "The model provider is having trouble — try again in a few minutes."
+private let noConnection = "No connection. Your message is kept. Try again when you're online."
 private let unknown = "Sorry, something went wrong. Please try again."
 private let responseFailure = "The coach couldn't respond. Please try again."
 private let notConfigured = "Choose how the coach reaches a model to continue."
@@ -70,6 +71,13 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 		failed(.model(.providerDown(.outage)), providerDown, [.tryAgain(turn)], [tryAgain]),
 		failed(.model(.providerDown(.network)), providerDown, [.tryAgain(turn)], [tryAgain]),
 		failed(.model(.providerDown(.timeout)), providerDown, [.tryAgain(turn)], [tryAgain]),
+		failed(.model(.providerDown(.noConnection)), noConnection, [.tryAgain(turn)], [tryAgain]),
+		failed(
+			.model(.accessUnavailable(.trainingIdentityUnverified(.noConnection))), noConnection,
+			[.tryAgain(turn)], [tryAgain]),
+		failed(
+			.model(.accessUnavailable(.trainingIdentityUnverified(.temporarilyUnavailable))),
+			"Couldn't reach intervals.icu right now — try again shortly.", [], []),
 		failed(.model(.contextOverflow), unknown, [.tryAgain(turn)], [tryAgain]),
 		failed(.model(.invalidRequest), unknown, [.tryAgain(turn)], [tryAgain]),
 		failed(.model(.budgetExhausted(.generateAttempts)), unknown, [.tryAgain(turn)], [tryAgain]),

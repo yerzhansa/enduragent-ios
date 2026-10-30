@@ -59,10 +59,7 @@ import Testing
 		#expect(
 			try await client.streams(of: activity, channels: .standard).gaps
 				== [.unanswered: StreamChannels.standard.names])
-		await #expect(
-			throws: IntervalsError(
-				code: "network", details: "intervals.icu could not be reached (URLError -1009).")
-		) {
+		await #expect(throws: IntervalsError.unreachable(URLError(.notConnectedToInternet))) {
 			if fetchFirst {
 				_ = try await client.fetchEvent(id: event.id)
 			} else {

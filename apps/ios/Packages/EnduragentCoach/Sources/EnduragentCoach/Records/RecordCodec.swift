@@ -1,7 +1,7 @@
 import Foundation
 
 enum RecordCodec {
-	static let currentBodyVersion = 7
+	static let currentBodyVersion = 8
 
 	static func encode(_ body: RecordBody) throws -> (version: Int, data: Data) {
 		let encoder = JSONEncoder()
@@ -12,6 +12,8 @@ enum RecordCodec {
 		case .synced(let synced):
 			data = try encoder.encode(SyncedPayload(synced))
 			switch synced {
+			case .turnSettled(let body) where body.settlement.losesConnection:
+				version = 8
 			case .savedPlan:
 				version = 7
 			case .userMessage(let message) where message.slash == .plan:
@@ -29,6 +31,8 @@ enum RecordCodec {
 		case .deviceLocal(let local):
 			data = try encoder.encode(DeviceLocalPayload(local))
 			switch local {
+			case .pendingSettlement(let body) where body.settlement.losesConnection:
+				version = 8
 			case .planConfirmation:
 				version = 7
 			case .workoutReview, .reviewPreparing:
@@ -305,4 +309,16 @@ enum RecordCodec {
 		}
 	}
 
+}
+
+extension Settlement {
+	fileprivate var losesConnection: Bool {
+		switch self {
+		case .failed(.model(.providerDown(.noConnection)), _),
+			.failed(.model(.accessUnavailable(.trainingIdentityUnverified(.noConnection))), _):
+			true
+		case .replied, .savedWork, .failed, .interrupted:
+			false
+		}
+	}
 }

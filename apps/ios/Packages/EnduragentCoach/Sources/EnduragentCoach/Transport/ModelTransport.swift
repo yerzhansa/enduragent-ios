@@ -211,7 +211,7 @@ package struct OpenRouterTransport: ModelTransport {
 			failure = parsed
 			detail = .none
 		default:
-			failure = .network
+			failure = .network(.unreachable)
 			detail = .failure(FailureCode(error))
 		}
 		diagnostics.record(.providerFailure(request.attempt, failure, detail: detail))

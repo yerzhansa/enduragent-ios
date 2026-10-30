@@ -2654,6 +2654,7 @@
     "error": {
       "intervalsCredentials": "{{service}} 拒绝了请求。请检查 {{service}} 连接或 API 密钥。",
       "intervalsTransient": "暂时无法连接 {{service}}，请稍后重试。",
+      "noConnection": "没有网络连接。你的消息已保留。联网后请重试。",
       "providerCredentials": "模型服务商拒绝了 API 密钥，请检查服务商凭据。",
       "providerDown": "模型服务商遇到了问题，请过几分钟再试。",
       "rateLimit": "请求过于频繁，请稍后重试。",

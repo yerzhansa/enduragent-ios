@@ -231,7 +231,8 @@ import Testing
 
 		let observed = situation(observedText: true)
 		#expect(
-			RetryLadder.npm.decide(.provider(.network), situation: observed, counters: .zero)
+			RetryLadder.npm.decide(
+				.provider(.network(.unreachable)), situation: observed, counters: .zero)
 				== .terminal(.model(.providerDown(.network))))
 		guard
 			case .retry(_, let preparations) = RetryLadder.npm.decide(
@@ -279,7 +280,7 @@ import Testing
 			(.provider(.contextOverflow), 3),
 			(.provider(.rateLimited(retryAfter: nil)), 3),
 			(.provider(.serverError(status: 502, retryAfter: nil)), 2),
-			(.provider(.network), 2),
+			(.provider(.network(.unreachable)), 2),
 			(.provider(.timeout(.firstToken)), 1),
 			(.provider(.credentialRejected(status: 401)), 0),
 			(.provider(.invalidRequest), 0),

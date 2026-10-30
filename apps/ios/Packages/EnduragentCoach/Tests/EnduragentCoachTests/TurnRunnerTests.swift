@@ -134,7 +134,7 @@ import Testing
 			otherwise: transport.respond)
 		let coach = await makeCoach()
 		let network = try await coach.sendAndSettle("one")
-		#expect(failure(network) == .model(.providerDown(.network)))
+		#expect(failure(network) == .model(.providerDown(.noConnection)))
 		transport.respond = ScriptedReply.sequence(
 			[.fail(ScriptedFailure(.unknownFinish))], otherwise: transport.respond)
 		let finish = try await coach.sendAndSettle("two")

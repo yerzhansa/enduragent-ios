@@ -6,7 +6,7 @@ package enum ProviderFailure: Error, Sendable, Equatable {
 	case accessExhausted
 	case rateLimited(retryAfter: Duration?)
 	case serverError(status: Int, retryAfter: Duration?)
-	case network
+	case network(ConnectionLoss)
 	case timeout(TimeoutKind)
 	case contextOverflow
 	case invalidRequest
@@ -75,7 +75,7 @@ extension ProviderFailure {
 		} else if Self.unreadableResponseCodes.contains(error.code) {
 			self = .malformedStream
 		} else {
-			self = .network
+			self = .network(ConnectionLoss(error))
 		}
 	}
 

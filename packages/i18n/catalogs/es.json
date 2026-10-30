@@ -2684,6 +2684,7 @@
     "error": {
       "intervalsCredentials": "{{service}} ha rechazado la solicitud. Revisa tu conexión con {{service}} o tu clave de API.",
       "intervalsTransient": "No he podido conectar con {{service}} ahora. Inténtalo de nuevo en un momento.",
+      "noConnection": "Sin conexión. Tu mensaje se conserva. Vuelve a intentarlo cuando tengas conexión.",
       "providerCredentials": "El proveedor del modelo ha rechazado la clave de API. Revisa tus credenciales del proveedor.",
       "providerDown": "El proveedor del modelo está teniendo problemas. Inténtalo de nuevo en unos minutos.",
       "rateLimit": "Se ha alcanzado el límite de solicitudes. Inténtalo de nuevo en un momento.",

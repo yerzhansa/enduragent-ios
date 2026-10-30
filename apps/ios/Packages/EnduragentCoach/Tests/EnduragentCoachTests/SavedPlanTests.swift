@@ -44,7 +44,7 @@ extension SwiftDataSuites {
 				)
 				.container)
 			let row = try StoredAthleteRecord(record: record)
-			row.bodyVersion = SavedPlanRows.version + 1
+			row.bodyVersion = RecordCodec.currentBodyVersion + 1
 			context.insert(row)
 			try context.save()
 
@@ -54,7 +54,8 @@ extension SwiftDataSuites {
 			#expect(
 				read.skipped == [
 					.newerVersion(
-						kind: SavedPlans.kind.rawValue, version: 8, ulid: fixedUlid(9).rawValue)
+						kind: SavedPlans.kind.rawValue, version: RecordCodec.currentBodyVersion + 1,
+						ulid: fixedUlid(9).rawValue)
 				])
 		}
 
@@ -76,7 +77,7 @@ extension SwiftDataSuites {
 				uniquingKeysWith: { first, _ in first })
 
 			#expect(versions == expected)
-			#expect(RecordCodec.currentBodyVersion == 7)
+			#expect(RecordCodec.currentBodyVersion == 8)
 		}
 
 		@Test func theSavedPlanIsTheNewestDecisionEvenWhenAnOlderDecisionLandedLater() throws {

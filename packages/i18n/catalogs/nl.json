@@ -2832,6 +2832,7 @@
     "error": {
       "intervalsCredentials": "{{service}} heeft het verzoek geweigerd. Controleer je verbinding met {{service}} of je API-sleutel.",
       "intervalsTransient": "Ik kon {{service}} nu niet bereiken. Probeer het zo opnieuw.",
+      "noConnection": "Geen verbinding. Je bericht blijft bewaard. Probeer het opnieuw wanneer je online bent.",
       "providerCredentials": "De modelaanbieder heeft de API-sleutel geweigerd. Controleer je toegangsgegevens voor de aanbieder.",
       "providerDown": "Er zijn problemen bij de modelaanbieder. Probeer het over een paar minuten opnieuw.",
       "rateLimit": "De aanvraaglimiet is bereikt. Probeer het zo opnieuw.",

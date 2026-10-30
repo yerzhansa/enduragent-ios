@@ -34,7 +34,7 @@ struct OnboardingConnectionTests {
 		let summary = try #require(model.connected)
 		let saved = try #require(try fixture.secrets.intervalsConnection())
 		switch display {
-		case .profileRejected, .profileRequestRejected, .profileUnavailable:
+		case .profileRejected, .profileRequestRejected, .profileUnavailable, .profileOffline:
 			#expect(summary.athleteName == nil)
 			#expect(summary.today == nil)
 		case .wellnessRejected, .wellnessUnavailable, .emptyWellness, .partialWellness:
@@ -45,7 +45,7 @@ struct OnboardingConnectionTests {
 			#expect(summary.notice?.key == Catalog.connectErrorRejected)
 		case .profileRequestRejected:
 			#expect(summary.notice?.key == Catalog.coachErrorIntervalsCredentials)
-		case .profileUnavailable:
+		case .profileUnavailable, .profileOffline:
 			#expect(summary.notice?.key == Catalog.connectErrorProfileUnavailable)
 		case .wellnessRejected:
 			#expect(summary.notice?.key == Catalog.connectErrorWellnessRejected)
@@ -65,6 +65,12 @@ struct OnboardingConnectionTests {
 		switch display {
 		case .emptyWellness, .partialWellness:
 			#expect(summary.action == nil)
+		case .profileOffline:
+			let reads = fixture.intervals.count(of: .profile)
+			await model.performTrainingDisplay(try #require(summary.action))
+			#expect(fixture.intervals.count(of: .profile) > reads)
+			#expect(model.connected?.profile == .failed(.noConnection))
+			#expect(model.connected?.notice?.key == Catalog.connectErrorProfileUnavailable)
 		case .profileRejected, .profileRequestRejected, .profileUnavailable,
 			.wellnessRejected, .wellnessUnavailable:
 			let action = try #require(summary.action)

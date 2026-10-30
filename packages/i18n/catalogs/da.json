@@ -2832,6 +2832,7 @@
     "error": {
       "intervalsCredentials": "{{service}} afviste anmodningen — tjek din forbindelse til {{service}} eller din API-nøgle.",
       "intervalsTransient": "Jeg kunne ikke kontakte {{service}} lige nu — prøv igen om lidt.",
+      "noConnection": "Ingen forbindelse. Din besked er gemt. Prøv igen, når du er online.",
       "providerCredentials": "Modeludbyderen afviste API-nøglen — tjek dine adgangsoplysninger til udbyderen.",
       "providerDown": "Modeludbyderen har problemer — prøv igen om et par minutter.",
       "rateLimit": "Grænsen for forespørgsler er nået — prøv igen om lidt.",

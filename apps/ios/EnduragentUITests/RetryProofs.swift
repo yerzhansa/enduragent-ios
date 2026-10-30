@@ -43,7 +43,7 @@ final class NetworkRetryProof: XCTestCase {
 		TutorialHarness.attach(self, name: "network-retry", app: app)
 		TutorialHarness.exchange(app, "fixture:fail network x3")
 		TutorialHarness.wait(
-			TutorialHarness.notice(app, reading: TutorialHarness.providerDown), within: .turn)
+			TutorialHarness.notice(app, reading: TutorialHarness.noConnection), within: .turn)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "network-exhausted", app: app)
 		assertModelRequests(app, 6, test: self, name: "network-requests")
@@ -125,7 +125,7 @@ private func stamp(_ test: XCTestCase, name: String, seconds: TimeInterval) {
 	test.add(sample)
 }
 
-private func assertModelRequests(
+func assertModelRequests(
 	_ app: XCUIApplication, _ expected: Int, test: XCTestCase, name: String
 ) {
 	TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), until: .absent)

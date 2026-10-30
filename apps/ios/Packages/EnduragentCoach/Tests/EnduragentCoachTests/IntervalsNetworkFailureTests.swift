@@ -8,8 +8,7 @@ extension IntervalsRESTClientTests {
 	@Suite struct IntervalsNetworkFailureTests {
 		static let unreachable =
 			#"{"error":"network","details":"intervals.icu could not be reached (URLError -1009)."}"#
-		static let failure = IntervalsError(
-			code: "network", details: "intervals.icu could not be reached (URLError -1009).")
+		static let failure = IntervalsError.unreachable(URLError(.notConnectedToInternet))
 		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 		@Test(arguments: [
@@ -54,9 +53,25 @@ extension IntervalsRESTClientTests {
 			}
 		}
 
-		private func unreachableClient() throws -> IntervalsRESTClient {
+		@Test(arguments: [
+			(URLError.Code.notConnectedToInternet, TrainingFailure.noConnection),
+			(.networkConnectionLost, .temporarilyUnavailable),
+		])
+		func aReadWithNoConnectionIsTrainingNoConnection(
+			code: URLError.Code, expected: TrainingFailure
+		) async throws {
+			let client = try unreachableClient(code)
+			let thrown = await #expect(throws: IntervalsError.self) {
+				_ = try await client.profile()
+			}
+			#expect(TrainingFailure(try #require(thrown)) == expected)
+		}
+
+		private func unreachableClient(_ code: URLError.Code = .notConnectedToInternet) throws
+			-> IntervalsRESTClient
+		{
 			let client = try IntervalsRESTClientTests().makeClient()
-			IntervalsURLProtocolStub.handler = { _ in throw URLError(.notConnectedToInternet) }
+			IntervalsURLProtocolStub.handler = { _ in throw URLError(code) }
 			return client
 		}
 	}
