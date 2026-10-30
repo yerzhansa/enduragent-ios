@@ -170,7 +170,7 @@ import Testing
 		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: failing, clock: auckland)
 		#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
-		failing.failNextFetch(in: .deviceLocal([.workoutReview]))
+		failing.failNextFetch(in: .deviceLocal([.workoutReview]), skipping: 1)
 
 		#expect(replyText(try await coach.sendAndSettle("Plan my week")) == "I could not read it.")
 

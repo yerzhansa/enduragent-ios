@@ -83,6 +83,15 @@ extension Ledger {
 			})
 	}
 
+	package func newestReviewOutcome(
+		chat: ChatID, visibleIn scope: InformationReadScope, using ownership: InformationOwnership
+	) async throws(LedgerFailure) -> ReviewOutcomeBody? {
+		let page = try await read(RecordQuery(scope: .synced([.reviewOutcome]), chatId: chat))
+		return ReviewOutcomeNotes.notes(from: page.records).last {
+			scope.contains(ownership.rowOwner(account: $0.record.account))
+		}?.body
+	}
+
 	package func reviewPreparing(chat: ChatID, turn: TurnID) async throws(LedgerFailure)
 		-> [ReviewPreparingBody]
 	{

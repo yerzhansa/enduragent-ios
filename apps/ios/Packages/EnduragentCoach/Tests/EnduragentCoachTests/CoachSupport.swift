@@ -233,6 +233,7 @@ func systemTokens(clock: any Clock) -> Int {
 			profile: .cyclist(name: "Ada", ftp: 250), wellness: [],
 			lookback: .snapshotLookback(
 				endingOn: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone))),
+		reviewStatus: .read(.none, newestEnding: nil),
 		timeZoneName: clock.timeZone.identifier,
 		displayLocale: testDisplayLocale(.automatic)
 	)

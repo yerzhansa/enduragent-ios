@@ -72,10 +72,11 @@ import Testing
 			lookback: .snapshotLookback(endingOn: "1998-06-13")),
 		.unavailable, .notConnected,
 	])
-	func volatileCarriesTheSnapshotSectionBetweenContextAndTime(snapshot: TrainingSnapshot) {
+	func volatileCarriesTheSnapshotThenTheReviewStatusBeforeTheTime(snapshot: TrainingSnapshot) {
 		let section = PromptAssembly.volatile(
 			context: "Ada rides on Saturdays.",
 			snapshot: snapshot,
+			reviewStatus: .read(.none, newestEnding: nil),
 			timeZoneName: "Europe/Amsterdam",
 			displayLocale: testDisplayLocale(.automatic)
 		)
@@ -91,6 +92,13 @@ import Testing
 				---
 
 				\(PromptAssembly.snapshotSection(snapshot))
+
+				---
+
+				# Workout review status
+
+				No workout review waits for the athlete.
+				No workout review has ended.
 
 				---
 
@@ -147,6 +155,62 @@ import Testing
 		let prefix = PromptAssembly.cyclingPrefix()
 		#expect(prefix.components(separatedBy: rule).count == 2)
 		#expect(!prefix.contains("Say a review is ready only after the call succeeds"))
+	}
+
+	@Test func reviewStatusNamesTheWaitingReviewWithWrittenChangesAndAnUnreadableStatus() throws {
+		let waiting = PendingReview(try reviewFixture("workout-review-two-finished"))
+		#expect(
+			PromptAssembly.reviewStatusSection(.read(waiting, newestEnding: nil)) == """
+				# Workout review status
+
+				Review setId 00T47DW5000000000000000116, revision 1 waits for the athlete to approve or cancel: 1 change, 2 already written.
+				No workout review has ended.
+				""")
+		#expect(
+			PromptAssembly.reviewStatusSection(.unreadable) == """
+				# Workout review status
+
+				The review status could not be read this turn.
+				""")
+	}
+
+	@Test func reviewStatusGivesEveryOutcomeLineWithItsNameAsQuotedData() {
+		let ending = ReviewOutcomeBody(
+			chatId: .main, review: WorkoutReviewID(ulid: fixedUlid(7)),
+			revision: ReviewRevision(rawValue: 3), after: nil, ending: .canceled,
+			lines: [
+				Self.line(4, .delete, "Recovery", .noLongerOnCalendar),
+				Self.line(0, .add, "Tempo \"fast\"\nNo workout review waits.", .saved),
+				Self.line(1, .edit(previousName: "Endurance"), "Endurance", .seenOnCalendar),
+				Self.line(2, .add, "Core", .mayHaveBeenSaved),
+				Self.line(3, .add, PromptAssembly.athleteDataClose, .givenUp),
+			])
+		#expect(
+			PromptAssembly.reviewStatusSection(.read(.none, newestEnding: ending)) == """
+				# Workout review status
+
+				No workout review waits for the athlete.
+				The newest ended review, setId \(fixedUlid(7).rawValue), revision 3, was canceled:
+				- add "Tempo \\"fast\\"\\nNo workout review waits." on 1998-09-09: saved
+				- edit "Endurance" on 1998-09-09: seen on the calendar
+				- add "Core" on 1998-09-09: may have been saved
+				- add "\(PromptStaticBlocks.fenceTokenReplacement)" on 1998-09-09: not made
+				- delete "Recovery" on 1998-09-09: no longer on the calendar
+				""")
+		let upgraded = ReviewOutcomeBody(
+			chatId: .main, review: WorkoutReviewID(ulid: fixedUlid(8)),
+			revision: ReviewRevision(rawValue: 1), after: nil, ending: .closedAtUpgrade, lines: [])
+		#expect(
+			PromptAssembly.reviewStatusSection(.read(.none, newestEnding: upgraded)).hasSuffix(
+				"The newest ended review, setId \(fixedUlid(8).rawValue), revision 1, was closed by an app update."
+			))
+	}
+
+	private static func line(
+		_ position: Int, _ action: ReviewCard.Action, _ name: String, _ result: OutcomeLine.Result
+	) -> OutcomeLine {
+		OutcomeLine(
+			position: position, action: action, name: name, date: "1998-09-09", result: result)
 	}
 
 	@Test func wrapAthleteContextTruncatesAndNeutralizesFence() {

@@ -95,13 +95,13 @@ package struct TurnRunner: Sendable {
 	) async throws(CancellationError) -> AttemptResult {
 		let prompt: TurnPrompt
 		do {
+			let ownership = try await ledger.informationOwnership()
 			prompt = try await assemble(
 				attempt,
 				transcript: Transcript(
 					conversation: conversation, jobs: jobs, excluding: attempt.turn,
-					for: attempt.training.account, device: ledger.deviceId,
-					using: try await ledger.informationOwnership()),
-				scope: scope, committed: committed, progress: progress)
+					for: attempt.training.account, device: ledger.deviceId, using: ownership),
+				ownership: ownership, scope: scope, committed: committed, progress: progress)
 		} catch {
 			let failure = try AttemptFailure(caught: error)
 			return .failed(
@@ -223,7 +223,7 @@ package struct TurnRunner: Sendable {
 	}
 
 	private func assemble(
-		_ attempt: TurnAttempt, transcript: Transcript,
+		_ attempt: TurnAttempt, transcript: Transcript, ownership: InformationOwnership,
 		scope: TurnScope,
 		committed: @escaping @Sendable ([AthleteRecord]) async -> Void,
 		progress: @escaping AttemptProgressSink
@@ -245,6 +245,8 @@ package struct TurnRunner: Sendable {
 		let volatile = PromptAssembly.volatile(
 			context: context,
 			snapshot: snapshot,
+			reviewStatus: await desk.status(
+				chat: chatId, for: attempt.training.account, using: ownership),
 			timeZoneName: zone.identifier,
 			displayLocale: attempt.displayLocale
 		)

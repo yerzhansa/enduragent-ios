@@ -125,6 +125,27 @@ import Testing
 				""")
 	}
 
+	@Test func anUnreadableReviewChainLeavesTheTurnRunningAndSaysTheStatusIsUnknown()
+		async throws
+	{
+		let failing = FaultInjectingRecordLog(wrapping: turns.store)
+		let coach = await makeCoach(
+			transport: turns.transport, intervals: calendar, store: failing, clock: turns.clock)
+		#expect(try #require(await coach.currentSnapshot(.main)).review == nil)
+		failing.failNextFetch(in: .deviceLocal([.workoutReview]))
+
+		#expect(
+			try await statusSeen(by: coach) == """
+				# Workout review status
+
+				The review status could not be read this turn.
+				""")
+		#expect(
+			coach.diagnostics.entries.contains {
+				if case .reviewUnavailable(.main, _) = $0.event { true } else { false }
+			})
+	}
+
 	private func coach() async -> Coach {
 		await makeCoach(
 			transport: turns.transport, intervals: calendar, store: turns.store, clock: turns.clock)

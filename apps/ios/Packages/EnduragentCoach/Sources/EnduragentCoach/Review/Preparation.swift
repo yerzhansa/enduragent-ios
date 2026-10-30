@@ -85,7 +85,8 @@ package struct PendingItem: Equatable, Sendable {
 package enum PendingReview: Equatable, Sendable {
 	case none
 	case waiting(ReviewBase, remaining: [PendingItem], finished: Int)
-	case busy(ReviewBase)
+	case running(ReviewBase)
+	case unconfirmed(ReviewBase)
 
 	init(_ head: WorkoutReview?) {
 		guard let head else {
@@ -95,8 +96,10 @@ package enum PendingReview: Equatable, Sendable {
 		switch head.stage {
 		case .completed, .canceled:
 			self = .none
-		case .running, .waiting(.unconfirmed):
-			self = .busy(ReviewBase(of: head))
+		case .running:
+			self = .running(ReviewBase(of: head))
+		case .waiting(.unconfirmed):
+			self = .unconfirmed(ReviewBase(of: head))
 		case .waiting:
 			self = .waiting(
 				ReviewBase(of: head),

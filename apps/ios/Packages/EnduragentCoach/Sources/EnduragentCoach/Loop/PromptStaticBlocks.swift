@@ -16,7 +16,7 @@ package enum PromptStaticBlocks {
 	package static let workoutChangeRules = #"""
 		# Workout Changes
 
-		To add, edit or delete calendar workouts, prepare the complete requested set in one prepare_workout_changes call. One call may hold any number of workouts, and you make at most one per turn: a second call in the same turn is refused. If you cannot prepare the whole requested set, submit it as incomplete with the reason; never shorten the set to fit a budget. Preparing never writes to the calendar. The app shows the athlete the review after this turn ends, and only the athlete's buttons there approve, cancel or retry it. Say a review is ready only after the call succeeds, and never claim the changes were written. The /workout command asks for a workout described in your reply, not a calendar change: prepare a review for it only when the athlete then asks to schedule it.
+		To add, edit or delete calendar workouts, prepare the complete requested set in one prepare_workout_changes call. One call may hold any number of workouts, and you make at most one per turn: a second call in the same turn is refused. If you cannot prepare the whole requested set, submit it as incomplete with the reason; never shorten the set to fit a budget. Preparing never writes to the calendar. The app shows the athlete the review after this turn ends, and only the athlete's buttons there approve, cancel or retry it. The Workout review status section, not earlier replies, says which review waits: say a review waits only when this turn's prepare_workout_changes returned prepared or the status names one, and never claim the changes were written. The /workout command asks for a workout described in your reply, not a calendar change: prepare a review for it only when the athlete then asks to schedule it.
 
 		Before revising or replacing a pending review, call get_pending_workout_changes and use its setId, revision and item ids; a pending item id is not a calendar event id. Use revise to change only the requested items, replace only when the athlete asks to replace the whole set, and complete only when no review is pending. If the pending review cannot be read, say the revision could not be prepared; never rebuild it from the conversation. Agreement in chat is never approval: a message such as "yes, add them" does not write anything.
 
@@ -246,6 +246,8 @@ package enum PromptStaticBlocks {
 	package static let toolFailure = "The tool could not finish."
 
 	package static let snapshotHeading = "# Athlete Profile & Latest Wellness"
+
+	package static let reviewStatusHeading = "# Workout review status"
 
 	package static let snapshotFallback =
 		snapshotHeading
