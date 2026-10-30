@@ -3199,22 +3199,22 @@
     "deleteEverything": "Alles verwijderen",
     "confirm": {
       "title": "Alles verwijderen?",
-      "body": "Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone, uit je iCloud en van je andere apparaten, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren. Dit kan niet ongedaan worden gemaakt."
+      "body": "Dit kan niet ongedaan worden gemaakt. Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone en uit je iCloud, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren."
     },
     "keeps": "Je intervals.icu-account en trainingen blijven op intervals.icu. Als je bent ingelogd met je eigen OpenRouter-account, verwijder dan de sleutel daarvan bij OpenRouter.",
     "progress": "Verwijderen…",
     "done": "Alles is verwijderd van deze iPhone, uit je iCloud en uit de tegoedpuntendienst.",
     "notStarted": "Er is niets verwijderd. Maak verbinding met internet en probeer het opnieuw.",
-    "iCloudLater": "Verwijderd van deze iPhone en uit de tegoedpuntendienst. Je iCloud-kopie wordt verwijderd zodra deze iPhone de volgende keer verbinding maakt met iCloud.",
+    "iCloudLater": "Verwijderd van deze iPhone en uit de tegoedpuntendienst. Je iCloud-kopie wordt verwijderd de volgende keer dat je Enduragent opent terwijl deze iPhone online is en ingelogd bij iCloud. Als je de app eerder verwijdert, verwijder dan de gegevens ervan in Instellingen van iOS bij iCloud-opslag.",
     "busy": "Wacht tot de coach klaar is en probeer het dan opnieuw.",
     "notFinished": "Niet alles is van deze iPhone verwijderd. Probeer het opnieuw.",
     "progressTime": "Dit kan tot een minuut duren.",
-    "tryLater": "Er is niets verwijderd. De tegoedpuntendienst is nu druk. Probeer het later opnieuw.",
+    "tryLater": "Er is niets verwijderd van deze iPhone of uit je iCloud. De tegoedpuntendienst is nu druk. Probeer het later opnieuw.",
     "creditsUnconfirmed": "Er is niets verwijderd. De tegoedpuntendienst kon niet bevestigen dat deze iPhone eigenaar is van je tegoedpuntengegevens, dus die blijven daar staan. Je kunt nog steeds alles op deze iPhone en in je iCloud verwijderen.",
     "deleteHere": "Verwijderen van iPhone en iCloud",
     "creditsKept": {
       "done": "Alles is verwijderd van deze iPhone en uit je iCloud. Je tegoedpuntengegevens blijven in de tegoedpuntendienst. Niemand heeft de sleutel ervan, dus niemand kan ze gebruiken.",
-      "iCloudLater": "Verwijderd van deze iPhone. Je iCloud-kopie wordt verwijderd zodra deze iPhone de volgende keer verbinding maakt met iCloud. Je tegoedpuntengegevens blijven in de tegoedpuntendienst. Niemand heeft de sleutel ervan, dus niemand kan ze gebruiken."
+      "iCloudLater": "Verwijderd van deze iPhone. Je iCloud-kopie wordt verwijderd de volgende keer dat je Enduragent opent terwijl deze iPhone online is en ingelogd bij iCloud. Als je de app eerder verwijdert, verwijder dan de gegevens ervan in Instellingen van iOS bij iCloud-opslag. Je tegoedpuntengegevens blijven in de tegoedpuntendienst. Niemand heeft de sleutel ervan, dus niemand kan ze gebruiken."
     }
   }
 }

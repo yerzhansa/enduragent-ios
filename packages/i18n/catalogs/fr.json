@@ -3199,22 +3199,22 @@
     "deleteEverything": "Tout supprimer",
     "confirm": {
       "title": "Tout supprimer ?",
-      "body": "Cela supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone, de ton iCloud et de tes autres appareils, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus. Cette action est irréversible."
+      "body": "Cette action est irréversible. Elle supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone et de ton iCloud, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus."
     },
     "keeps": "Ton compte intervals.icu et tes entraînements restent sur intervals.icu. Si tu t’es connecté avec ton propre compte OpenRouter, supprime sa clé sur OpenRouter.",
     "progress": "Suppression…",
     "done": "Tout a été supprimé de cet iPhone, de ton iCloud et du service de Crédits.",
     "notStarted": "Rien n’a été supprimé. Connecte-toi à internet et réessaie.",
-    "iCloudLater": "Supprimé de cet iPhone et du service de Crédits. Ta copie iCloud sera supprimée la prochaine fois que cet iPhone se connectera à iCloud.",
+    "iCloudLater": "Supprimé de cet iPhone et du service de Crédits. Ta copie iCloud sera supprimée la prochaine fois que tu ouvriras Enduragent alors que cet iPhone est en ligne et connecté à iCloud. Si tu supprimes l’app avant, supprime ses données dans les Réglages d’iOS, sous Stockage iCloud.",
     "busy": "Attends que le coach ait terminé, puis réessaie.",
     "notFinished": "Tout n’a pas été supprimé de cet iPhone. Réessaie.",
     "progressTime": "Cela peut prendre jusqu’à une minute.",
-    "tryLater": "Rien n’a été supprimé. Le service de Crédits est occupé pour le moment. Réessaie plus tard.",
+    "tryLater": "Rien n’a été supprimé de cet iPhone ni de ton iCloud. Le service de Crédits est occupé pour le moment. Réessaie plus tard.",
     "creditsUnconfirmed": "Rien n’a été supprimé. Le service de Crédits n’a pas pu confirmer que cet iPhone possède ton dossier de Crédits, donc le dossier y reste. Tu peux quand même tout supprimer de cet iPhone et de ton iCloud.",
     "deleteHere": "Supprimer de l’iPhone et d’iCloud",
     "creditsKept": {
       "done": "Tout a été supprimé de cet iPhone et de ton iCloud. Ton dossier de Crédits reste dans le service de Crédits. Personne n’a sa clé, donc personne ne peut l’utiliser.",
-      "iCloudLater": "Supprimé de cet iPhone. Ta copie iCloud sera supprimée la prochaine fois que cet iPhone se connectera à iCloud. Ton dossier de Crédits reste dans le service de Crédits. Personne n’a sa clé, donc personne ne peut l’utiliser."
+      "iCloudLater": "Supprimé de cet iPhone. Ta copie iCloud sera supprimée la prochaine fois que tu ouvriras Enduragent alors que cet iPhone est en ligne et connecté à iCloud. Si tu supprimes l’app avant, supprime ses données dans les Réglages d’iOS, sous Stockage iCloud. Ton dossier de Crédits reste dans le service de Crédits. Personne n’a sa clé, donc personne ne peut l’utiliser."
     }
   }
 }

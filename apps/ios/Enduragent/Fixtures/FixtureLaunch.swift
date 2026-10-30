@@ -47,7 +47,7 @@
 			switch self {
 			case .erased, .iCloudLater, .exportHeld: .success(())
 			case .unreachable: .failure(URLError(.notConnectedToInternet))
-			case .refused: .failure(CreditsFailure.unauthorized)
+			case .refused, .refusedICloudLater: .failure(CreditsFailure.unauthorized)
 			case .rateLimited: .failure(CreditsFailure.rateLimited)
 			}
 		}
@@ -55,7 +55,7 @@
 		var export: FixtureExport {
 			switch self {
 			case .erased, .unreachable, .refused, .rateLimited: .confirmed
-			case .iCloudLater: .noAccount
+			case .iCloudLater, .refusedICloudLater: .noAccount
 			case .exportHeld: .held
 			}
 		}

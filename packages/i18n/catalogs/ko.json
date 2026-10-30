@@ -3155,22 +3155,22 @@
     "deleteEverything": "모두 삭제",
     "confirm": {
       "title": "모두 삭제할까요?",
-      "body": "이 iPhone, iCloud, 다른 기기에서 대화, 메모리, 저장된 계획, 설정, 키를 삭제하고 크레딧 기록도 삭제합니다. 사용하지 않은 크레딧은 사라집니다. 이 작업은 되돌릴 수 없습니다."
+      "body": "이 작업은 되돌릴 수 없습니다. 이 iPhone과 iCloud에서 대화, 메모리, 저장된 계획, 설정, 키를 삭제하고 크레딧 기록도 삭제합니다. 사용하지 않은 크레딧은 사라집니다."
     },
     "keeps": "intervals.icu 계정과 운동은 intervals.icu에 남아 있습니다. 직접 OpenRouter 계정으로 로그인했다면 OpenRouter에서 해당 키를 삭제하세요.",
     "progress": "삭제 중…",
     "done": "이 iPhone, iCloud, 크레딧 서비스에서 모두 삭제했습니다.",
     "notStarted": "아무것도 삭제되지 않았습니다. 인터넷에 연결한 후 다시 시도하세요.",
-    "iCloudLater": "이 iPhone과 크레딧 서비스에서 삭제했습니다. iCloud 사본은 이 iPhone이 다음에 iCloud에 연결될 때 삭제됩니다.",
+    "iCloudLater": "이 iPhone과 크레딧 서비스에서 삭제했습니다. iCloud 사본은 이 iPhone이 온라인 상태이고 iCloud에 로그인되어 있을 때 다음에 Enduragent를 열면 삭제됩니다. 그 전에 앱을 삭제하면 iOS 설정의 iCloud 저장 공간에서 해당 데이터를 삭제하세요.",
     "busy": "코치가 끝날 때까지 기다린 후 다시 시도하세요.",
     "notFinished": "이 iPhone에서 일부 데이터를 삭제하지 못했습니다. 다시 시도하세요.",
     "progressTime": "최대 1분 정도 걸릴 수 있습니다.",
-    "tryLater": "아무것도 삭제되지 않았습니다. 지금은 크레딧 서비스가 혼잡합니다. 나중에 다시 시도하세요.",
+    "tryLater": "이 iPhone과 iCloud에서는 아무것도 삭제되지 않았습니다. 지금은 크레딧 서비스가 혼잡합니다. 나중에 다시 시도하세요.",
     "creditsUnconfirmed": "아무것도 삭제되지 않았습니다. 크레딧 서비스가 이 iPhone이 크레딧 기록의 소유자임을 확인하지 못해 기록이 서비스에 남습니다. 이 iPhone과 iCloud의 데이터는 모두 삭제할 수 있습니다.",
     "deleteHere": "iPhone과 iCloud에서 삭제",
     "creditsKept": {
       "done": "이 iPhone과 iCloud에서 모두 삭제했습니다. 크레딧 기록은 크레딧 서비스에 남습니다. 아무도 그 키를 가지고 있지 않으므로 아무도 사용할 수 없습니다.",
-      "iCloudLater": "이 iPhone에서 삭제했습니다. iCloud 사본은 이 iPhone이 다음에 iCloud에 연결될 때 삭제됩니다. 크레딧 기록은 크레딧 서비스에 남습니다. 아무도 그 키를 가지고 있지 않으므로 아무도 사용할 수 없습니다."
+      "iCloudLater": "이 iPhone에서 삭제했습니다. iCloud 사본은 이 iPhone이 온라인 상태이고 iCloud에 로그인되어 있을 때 다음에 Enduragent를 열면 삭제됩니다. 그 전에 앱을 삭제하면 iOS 설정의 iCloud 저장 공간에서 해당 데이터를 삭제하세요. 크레딧 기록은 크레딧 서비스에 남습니다. 아무도 그 키를 가지고 있지 않으므로 아무도 사용할 수 없습니다."
     }
   }
 }

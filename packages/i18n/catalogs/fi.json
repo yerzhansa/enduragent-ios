@@ -3199,22 +3199,22 @@
     "deleteEverything": "Poista kaikki",
     "confirm": {
       "title": "Poistetaanko kaikki?",
-      "body": "Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta, iCloudistasi ja muilta laitteiltasi sekä krediittitietosi. Käyttämättömät krediitit menetetään. Tätä ei voi perua."
+      "body": "Tätä ei voi perua. Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta ja iCloudistasi sekä krediittitietosi. Käyttämättömät krediitit menetetään."
     },
     "keeps": "intervals.icu-tilisi ja harjoituksesi jäävät intervals.icuun. Jos kirjauduit omalla OpenRouter-tililläsi, poista sen avain OpenRouterissa.",
     "progress": "Poistetaan…",
     "done": "Kaikki on poistettu tästä iPhonesta, iCloudistasi ja krediittipalvelusta.",
     "notStarted": "Mitään ei poistettu. Yhdistä internetiin ja yritä uudelleen.",
-    "iCloudLater": "Poistettu tästä iPhonesta ja krediittipalvelusta. iCloud-kopiosi poistetaan, kun tämä iPhone seuraavan kerran yhdistää iCloudiin.",
+    "iCloudLater": "Poistettu tästä iPhonesta ja krediittipalvelusta. iCloud-kopiosi poistetaan, kun avaat Enduragentin seuraavan kerran tämän iPhonen ollessa verkossa ja kirjautuneena iCloudiin. Jos poistat sovelluksen sitä ennen, poista sen tiedot iOS:n Asetuksista kohdasta iCloud-tallennustila.",
     "busy": "Odota, että valmentaja on valmis, ja yritä sitten uudelleen.",
     "notFinished": "Kaikkea ei poistettu tästä iPhonesta. Yritä uudelleen.",
     "progressTime": "Tämä voi kestää enintään minuutin.",
-    "tryLater": "Mitään ei poistettu. Krediittipalvelu on juuri nyt ruuhkautunut. Yritä myöhemmin uudelleen.",
+    "tryLater": "Tästä iPhonesta tai iCloudistasi ei poistettu mitään. Krediittipalvelu on juuri nyt ruuhkautunut. Yritä myöhemmin uudelleen.",
     "creditsUnconfirmed": "Mitään ei poistettu. Krediittipalvelu ei voinut vahvistaa, että krediittitietosi kuuluvat tälle iPhonelle, joten tiedot jäävät palveluun. Voit silti poistaa kaiken tästä iPhonesta ja iCloudistasi.",
     "deleteHere": "Poista iPhonesta ja iCloudista",
     "creditsKept": {
       "done": "Kaikki on poistettu tästä iPhonesta ja iCloudistasi. Krediittitietosi jäävät krediittipalveluun. Kenelläkään ei ole niiden avainta, joten kukaan ei voi käyttää niitä.",
-      "iCloudLater": "Poistettu tästä iPhonesta. iCloud-kopiosi poistetaan, kun tämä iPhone seuraavan kerran yhdistää iCloudiin. Krediittitietosi jäävät krediittipalveluun. Kenelläkään ei ole niiden avainta, joten kukaan ei voi käyttää niitä."
+      "iCloudLater": "Poistettu tästä iPhonesta. iCloud-kopiosi poistetaan, kun avaat Enduragentin seuraavan kerran tämän iPhonen ollessa verkossa ja kirjautuneena iCloudiin. Jos poistat sovelluksen sitä ennen, poista sen tiedot iOS:n Asetuksista kohdasta iCloud-tallennustila. Krediittitietosi jäävät krediittipalveluun. Kenelläkään ei ole niiden avainta, joten kukaan ei voi käyttää niitä."
     }
   }
 }

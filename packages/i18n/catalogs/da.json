@@ -3199,22 +3199,22 @@
     "deleteEverything": "Slet alt",
     "confirm": {
       "title": "Slet alt?",
-      "body": "Dette sletter din samtale, hukommelse, gemte plan, indstillinger og nøgler fra denne iPhone, din iCloud og dine andre enheder samt din kredittpost. Ubrugte kreditter går tabt. Det kan ikke fortrydes."
+      "body": "Det kan ikke fortrydes. Det sletter din samtale, hukommelse, gemte plan, indstillinger og nøgler fra denne iPhone og din iCloud samt din kredittpost. Ubrugte kreditter går tabt."
     },
     "keeps": "Din intervals.icu-konto og dine træninger bliver på intervals.icu. Hvis du loggede ind med din egen OpenRouter-konto, skal du slette dens nøgle på OpenRouter.",
     "progress": "Sletter…",
     "done": "Alt er slettet fra denne iPhone, din iCloud og kredittjenesten.",
     "notStarted": "Intet blev slettet. Opret forbindelse til internettet, og prøv igen.",
-    "iCloudLater": "Slettet fra denne iPhone og kredittjenesten. Din iCloud-kopi slettes, næste gang denne iPhone opretter forbindelse til iCloud.",
+    "iCloudLater": "Slettet fra denne iPhone og kredittjenesten. Din iCloud-kopi slettes, næste gang du åbner Enduragent, mens denne iPhone er online og logget ind på iCloud. Hvis du sletter appen inden da, skal du slette dens data i Indstillinger i iOS under iCloud-lagringsplads.",
     "busy": "Vent, til coachen er færdig, og prøv så igen.",
     "notFinished": "Ikke alt blev slettet fra denne iPhone. Prøv igen.",
     "progressTime": "Det kan tage op til et minut.",
-    "tryLater": "Intet blev slettet. Kredittjenesten har travlt lige nu. Prøv igen senere.",
+    "tryLater": "Intet blev slettet fra denne iPhone eller din iCloud. Kredittjenesten har travlt lige nu. Prøv igen senere.",
     "creditsUnconfirmed": "Intet blev slettet. Kredittjenesten kunne ikke bekræfte, at denne iPhone ejer din kredittpost, så posten bliver der. Du kan stadig slette alt på denne iPhone og i din iCloud.",
     "deleteHere": "Slet fra iPhone og iCloud",
     "creditsKept": {
       "done": "Alt er slettet fra denne iPhone og din iCloud. Din kredittpost bliver i kredittjenesten. Ingen har dens nøgle, så ingen kan bruge den.",
-      "iCloudLater": "Slettet fra denne iPhone. Din iCloud-kopi slettes, næste gang denne iPhone opretter forbindelse til iCloud. Din kredittpost bliver i kredittjenesten. Ingen har dens nøgle, så ingen kan bruge den."
+      "iCloudLater": "Slettet fra denne iPhone. Din iCloud-kopi slettes, næste gang du åbner Enduragent, mens denne iPhone er online og logget ind på iCloud. Hvis du sletter appen inden da, skal du slette dens data i Indstillinger i iOS under iCloud-lagringsplads. Din kredittpost bliver i kredittjenesten. Ingen har dens nøgle, så ingen kan bruge den."
     }
   }
 }

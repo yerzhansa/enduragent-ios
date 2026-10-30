@@ -3199,22 +3199,22 @@
     "deleteEverything": "Radera allt",
     "confirm": {
       "title": "Radera allt?",
-      "body": "Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen, din iCloud och dina andra enheter, samt din kreditpost. Oanvända krediter går förlorade. Det går inte att ångra."
+      "body": "Det går inte att ångra. Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen och din iCloud, samt din kreditpost. Oanvända krediter går förlorade."
     },
     "keeps": "Ditt intervals.icu-konto och dina pass finns kvar på intervals.icu. Om du loggade in med ditt eget OpenRouter-konto raderar du dess nyckel hos OpenRouter.",
     "progress": "Raderar…",
     "done": "Allt är raderat från den här iPhonen, din iCloud och kredittjänsten.",
     "notStarted": "Inget raderades. Anslut till internet och försök igen.",
-    "iCloudLater": "Raderat från den här iPhonen och kredittjänsten. Din iCloud-kopia raderas nästa gång den här iPhonen ansluter till iCloud.",
+    "iCloudLater": "Raderat från den här iPhonen och kredittjänsten. Din iCloud-kopia raderas nästa gång du öppnar Enduragent medan den här iPhonen är online och inloggad på iCloud. Om du raderar appen innan dess raderar du dess data i Inställningar i iOS under iCloud-lagring.",
     "busy": "Vänta tills coachen är klar och försök sedan igen.",
     "notFinished": "Allt raderades inte från den här iPhonen. Försök igen.",
     "progressTime": "Det kan ta upp till en minut.",
-    "tryLater": "Inget raderades. Kredittjänsten är upptagen just nu. Försök igen senare.",
+    "tryLater": "Inget raderades från den här iPhonen eller din iCloud. Kredittjänsten är upptagen just nu. Försök igen senare.",
     "creditsUnconfirmed": "Inget raderades. Kredittjänsten kunde inte bekräfta att den här iPhonen äger din kreditpost, så posten finns kvar där. Du kan ändå radera allt på den här iPhonen och i din iCloud.",
     "deleteHere": "Radera från iPhone och iCloud",
     "creditsKept": {
       "done": "Allt är raderat från den här iPhonen och din iCloud. Din kreditpost finns kvar i kredittjänsten. Ingen har dess nyckel, så ingen kan använda den.",
-      "iCloudLater": "Raderat från den här iPhonen. Din iCloud-kopia raderas nästa gång den här iPhonen ansluter till iCloud. Din kreditpost finns kvar i kredittjänsten. Ingen har dess nyckel, så ingen kan använda den."
+      "iCloudLater": "Raderat från den här iPhonen. Din iCloud-kopia raderas nästa gång du öppnar Enduragent medan den här iPhonen är online och inloggad på iCloud. Om du raderar appen innan dess raderar du dess data i Inställningar i iOS under iCloud-lagring. Din kreditpost finns kvar i kredittjänsten. Ingen har dess nyckel, så ingen kan använda den."
     }
   }
 }

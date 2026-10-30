@@ -147,6 +147,7 @@
 		case iCloudLater = "icloud-later"
 		case exportHeld = "export-held"
 		case refused
+		case refusedICloudLater = "refused-icloud-later"
 		case rateLimited = "rate-limited"
 	}
 

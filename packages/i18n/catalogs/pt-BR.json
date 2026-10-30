@@ -3199,22 +3199,22 @@
     "deleteEverything": "Apagar tudo",
     "confirm": {
       "title": "Apagar tudo?",
-      "body": "Isso apaga sua conversa, memória, plano salvo, ajustes e chaves deste iPhone, do seu iCloud e dos seus outros dispositivos, além do seu registro de Créditos. Créditos não usados são perdidos. Não é possível desfazer."
+      "body": "Não é possível desfazer. Isso apaga sua conversa, memória, plano salvo, ajustes e chaves deste iPhone e do seu iCloud, além do seu registro de Créditos. Créditos não usados são perdidos."
     },
     "keeps": "Sua conta do intervals.icu e seus treinos continuam no intervals.icu. Se você entrou com sua própria conta do OpenRouter, apague a chave dela no OpenRouter.",
     "progress": "Apagando…",
     "done": "Tudo foi apagado deste iPhone, do seu iCloud e do serviço de Créditos.",
     "notStarted": "Nada foi apagado. Conecte-se à internet e tente de novo.",
-    "iCloudLater": "Apagado deste iPhone e do serviço de Créditos. Sua cópia no iCloud será apagada na próxima vez que este iPhone se conectar ao iCloud.",
+    "iCloudLater": "Apagado deste iPhone e do serviço de Créditos. Sua cópia no iCloud será apagada na próxima vez que você abrir o Enduragent com este iPhone conectado à internet e ao iCloud. Se você apagar o app antes disso, apague os dados dele em Ajustes do iOS, em Armazenamento do iCloud.",
     "busy": "Espere o coach terminar e tente de novo.",
     "notFinished": "Nem tudo foi apagado deste iPhone. Tente de novo.",
     "progressTime": "Isso pode levar até um minuto.",
-    "tryLater": "Nada foi apagado. O serviço de Créditos está ocupado agora. Tente de novo mais tarde.",
+    "tryLater": "Nada foi apagado deste iPhone nem do seu iCloud. O serviço de Créditos está ocupado agora. Tente de novo mais tarde.",
     "creditsUnconfirmed": "Nada foi apagado. O serviço de Créditos não conseguiu confirmar que este iPhone é dono do seu registro de Créditos, então o registro continua lá. Você ainda pode apagar tudo deste iPhone e do seu iCloud.",
     "deleteHere": "Apagar do iPhone e do iCloud",
     "creditsKept": {
       "done": "Tudo foi apagado deste iPhone e do seu iCloud. Seu registro de Créditos continua no serviço de Créditos. Ninguém tem a chave dele, então ninguém pode usá-lo.",
-      "iCloudLater": "Apagado deste iPhone. Sua cópia no iCloud será apagada na próxima vez que este iPhone se conectar ao iCloud. Seu registro de Créditos continua no serviço de Créditos. Ninguém tem a chave dele, então ninguém pode usá-lo."
+      "iCloudLater": "Apagado deste iPhone. Sua cópia no iCloud será apagada na próxima vez que você abrir o Enduragent com este iPhone conectado à internet e ao iCloud. Se você apagar o app antes disso, apague os dados dele em Ajustes do iOS, em Armazenamento do iCloud. Seu registro de Créditos continua no serviço de Créditos. Ninguém tem a chave dele, então ninguém pode usá-lo."
     }
   }
 }

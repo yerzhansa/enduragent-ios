@@ -3287,22 +3287,22 @@
     "deleteEverything": "Usuń wszystko",
     "confirm": {
       "title": "Usunąć wszystko?",
-      "body": "To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a, z twojego iCloud i z innych urządzeń, a także twój rekord kredytów. Niewykorzystane kredyty przepadną. Tego nie można cofnąć."
+      "body": "Tego nie można cofnąć. To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a i z twojego iCloud, a także twój rekord kredytów. Niewykorzystane kredyty przepadną."
     },
     "keeps": "Twoje konto intervals.icu i treningi zostają w intervals.icu. Jeśli zalogowano cię własnym kontem OpenRouter, usuń jego klucz w OpenRouter.",
     "progress": "Usuwanie…",
     "done": "Wszystko zostało usunięte z tego iPhone’a, z twojego iCloud i z usługi kredytów.",
     "notStarted": "Nic nie zostało usunięte. Połącz się z internetem i spróbuj ponownie.",
-    "iCloudLater": "Usunięto z tego iPhone’a i z usługi kredytów. Kopia w iCloud zostanie usunięta, gdy ten iPhone następnym razem połączy się z iCloud.",
+    "iCloudLater": "Usunięto z tego iPhone’a i z usługi kredytów. Kopia w iCloud zostanie usunięta, gdy następnym razem otworzysz Enduragent, a ten iPhone będzie online i zalogowany do iCloud. Jeśli wcześniej usuniesz aplikację, usuń jej dane w Ustawieniach iOS, w sekcji Pamięć iCloud.",
     "busy": "Poczekaj, aż coach skończy, i spróbuj ponownie.",
     "notFinished": "Nie wszystko zostało usunięte z tego iPhone’a. Spróbuj ponownie.",
     "progressTime": "Może to potrwać do minuty.",
-    "tryLater": "Nic nie zostało usunięte. Usługa kredytów jest teraz zajęta. Spróbuj ponownie później.",
+    "tryLater": "Nic nie zostało usunięte z tego iPhone’a ani z twojego iCloud. Usługa kredytów jest teraz zajęta. Spróbuj ponownie później.",
     "creditsUnconfirmed": "Nic nie zostało usunięte. Usługa kredytów nie potwierdziła, że ten iPhone jest właścicielem twojego rekordu kredytów, więc rekord tam zostaje. Nadal możesz usunąć wszystko z tego iPhone’a i z twojego iCloud.",
     "deleteHere": "Usuń z iPhone’a i iCloud",
     "creditsKept": {
       "done": "Wszystko zostało usunięte z tego iPhone’a i z twojego iCloud. Twój rekord kredytów zostaje w usłudze kredytów. Nikt nie ma jego klucza, więc nikt nie może go użyć.",
-      "iCloudLater": "Usunięto z tego iPhone’a. Kopia w iCloud zostanie usunięta, gdy ten iPhone następnym razem połączy się z iCloud. Twój rekord kredytów zostaje w usłudze kredytów. Nikt nie ma jego klucza, więc nikt nie może go użyć."
+      "iCloudLater": "Usunięto z tego iPhone’a. Kopia w iCloud zostanie usunięta, gdy następnym razem otworzysz Enduragent, a ten iPhone będzie online i zalogowany do iCloud. Jeśli wcześniej usuniesz aplikację, usuń jej dane w Ustawieniach iOS, w sekcji Pamięć iCloud. Twój rekord kredytów zostaje w usłudze kredytów. Nikt nie ma jego klucza, więc nikt nie może go użyć."
     }
   }
 }

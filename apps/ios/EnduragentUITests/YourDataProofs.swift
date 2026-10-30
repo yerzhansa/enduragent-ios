@@ -113,16 +113,17 @@ final class YourDataProof: XCTestCase {
 	}
 
 	func testLargestTextKeepsTheCreditsRecordOfferAndItsOutcomeWhole() {
-		let app = YourDataScreen.confirmedAtLargestText(.refused)
+		let app = YourDataScreen.confirmedAtLargestText(.refusedICloudLater)
 		YourDataScreen.outcome(app, Catalog.yourDataCreditsUnconfirmed)
 		YourDataScreen.assertWhole(
 			app, ["yourData.outcome", "yourData.deleteHere", "yourData.cancel"])
 		TutorialHarness.attach(
 			self, name: "largest-en-your-data-credits-unconfirmed-light", app: app)
 		TutorialHarness.named(app, "yourData.deleteHere").tap()
-		YourDataScreen.outcome(app, Catalog.yourDataCreditsKeptDone)
+		YourDataScreen.outcome(app, Catalog.yourDataCreditsKeptICloudLater)
 		YourDataScreen.assertWhole(app, ["yourData.outcome", "yourData.continue"])
-		TutorialHarness.attach(self, name: "largest-en-your-data-credits-kept-done-light", app: app)
+		TutorialHarness.attach(
+			self, name: "largest-en-your-data-credits-kept-icloud-later-light", app: app)
 	}
 
 	func testLargestTextKeepsTheTryLaterScreenWhole() {

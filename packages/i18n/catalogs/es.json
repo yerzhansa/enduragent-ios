@@ -3199,22 +3199,22 @@
     "deleteEverything": "Eliminar todo",
     "confirm": {
       "title": "¿Eliminar todo?",
-      "body": "Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone, de tu iCloud y de tus otros dispositivos, además de tu registro de Créditos. Los Créditos no usados se pierden. No se puede deshacer."
+      "body": "No se puede deshacer. Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone y de tu iCloud, además de tu registro de Créditos. Los Créditos no usados se pierden."
     },
     "keeps": "Tu cuenta de intervals.icu y tus entrenamientos se quedan en intervals.icu. Si iniciaste sesión con tu propia cuenta de OpenRouter, elimina su clave en OpenRouter.",
     "progress": "Eliminando…",
     "done": "Todo se ha eliminado de este iPhone, de tu iCloud y del servicio de Créditos.",
     "notStarted": "No se eliminó nada. Conéctate a internet y vuelve a intentarlo.",
-    "iCloudLater": "Eliminado de este iPhone y del servicio de Créditos. Tu copia en iCloud se eliminará la próxima vez que este iPhone se conecte a iCloud.",
+    "iCloudLater": "Eliminado de este iPhone y del servicio de Créditos. Tu copia en iCloud se eliminará la próxima vez que abras Enduragent mientras este iPhone esté conectado a internet y con la sesión iniciada en iCloud. Si eliminas la app antes, elimina sus datos en Ajustes de iOS, en Almacenamiento de iCloud.",
     "busy": "Espera a que el coach termine y vuelve a intentarlo.",
     "notFinished": "No se eliminó todo de este iPhone. Vuelve a intentarlo.",
     "progressTime": "Puede tardar hasta un minuto.",
-    "tryLater": "No se eliminó nada. El servicio de Créditos está ocupado ahora mismo. Vuelve a intentarlo más tarde.",
+    "tryLater": "No se eliminó nada de este iPhone ni de tu iCloud. El servicio de Créditos está ocupado ahora mismo. Vuelve a intentarlo más tarde.",
     "creditsUnconfirmed": "No se eliminó nada. El servicio de Créditos no pudo confirmar que este iPhone es el dueño de tu registro de Créditos, así que el registro se queda allí. Aún puedes eliminar todo de este iPhone y de tu iCloud.",
     "deleteHere": "Eliminar del iPhone y de iCloud",
     "creditsKept": {
       "done": "Todo se ha eliminado de este iPhone y de tu iCloud. Tu registro de Créditos se queda en el servicio de Créditos. Nadie tiene su clave, así que nadie puede usarlo.",
-      "iCloudLater": "Eliminado de este iPhone. Tu copia en iCloud se eliminará la próxima vez que este iPhone se conecte a iCloud. Tu registro de Créditos se queda en el servicio de Créditos. Nadie tiene su clave, así que nadie puede usarlo."
+      "iCloudLater": "Eliminado de este iPhone. Tu copia en iCloud se eliminará la próxima vez que abras Enduragent mientras este iPhone esté conectado a internet y con la sesión iniciada en iCloud. Si eliminas la app antes, elimina sus datos en Ajustes de iOS, en Almacenamiento de iCloud. Tu registro de Créditos se queda en el servicio de Créditos. Nadie tiene su clave, así que nadie puede usarlo."
     }
   }
 }
