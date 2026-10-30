@@ -28,7 +28,7 @@ struct ReleaseTree {
 	var deviceFamily = "\"1\""
 	var orientations = "UIInterfaceOrientationPortrait"
 	var excludes = ["Info.plist"]
-	var creditsBase = "https://enduragent-credits-testflight.yerzhan-st.workers.dev"
+	var creditsBase = "https://credits.enduragent.icu"
 	var properties = ["CreditsWorkerBase: $(CREDITS_WORKER_BASE)"]
 	var packages = ["EnduragentCoach"]
 	var phoneTestSettings = ["GENERATE_INFOPLIST_FILE: YES"]

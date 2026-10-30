@@ -11,7 +11,7 @@ Bundle id is `icu.enduragent.app`.
 Team is `FA494ACVTF`.
 Display name is `Enduragent`.
 
-`CREDITS_WORKER_BASE` is a build setting. TestFlight builds use `https://enduragent-credits-testflight.yerzhan-st.workers.dev`. A build for App Review must use the production Credits worker URL.
+`CREDITS_WORKER_BASE` is a build setting. Every build uses `https://credits.enduragent.icu`, the production Credits worker. It is `apps/credits-worker` in `yerzhansa/enduragent-backend`, deployed with env `production`.
 `OPENROUTER_MODEL` is a build setting. Read it from `apps/ios/project.yml`.
 
 ## Lane
@@ -98,9 +98,10 @@ An App Store build is a TestFlight build whose tag passes the closeout gate. Ste
 ### Prepare the build
 
 1. Set `MARKETING_VERSION` to the App Store Connect version name, and set `CURRENT_PROJECT_VERSION` above every uploaded build. Commit the change.
-2. Set `CREDITS_WORKER_BASE` in `apps/ios/project.yml` to the production Credits worker URL, and add its host to `KnownHost.all` in `tools/Sources/CheckSource/ReleaseRules.swift`, so `make check-source` accepts it. If no production worker exists, stop: the build may go to TestFlight but never to App Review.
+2. Check that `CREDITS_WORKER_BASE` in `apps/ios/project.yml` is `https://credits.enduragent.icu`. If it is not, stop.
 3. Do "CloudKit schema to Production", "Closeout gate", "Archive on the operator Mac" and the upload in "App Store Connect", in that order.
 4. Install the build from TestFlight on the operator iPhone. Reach a coach reply on each access method that the review notes describe.
+5. Prove the production starter grant on an iPhone whose Keychain holds no Enduragent Credits key: Enduragent was never installed on it, and it is signed in to an Apple ID other than the operator's or has iCloud Keychain off. Install the build from TestFlight, choose Credits in onboarding, check that onboarding says the starter Credits were added, and reach a coach reply. A reply on the operator iPhone does not prove the grant. Its Credits key syncs through iCloud Keychain, and the app asks the worker for a grant only when it has no key. The worker marks each iPhone in Apple DeviceCheck when it grants, so each iPhone can prove the grant only once.
 
 ### Fill the version page
 
