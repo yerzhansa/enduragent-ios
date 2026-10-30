@@ -160,14 +160,14 @@ import Testing
 	@Test func reviewStatusNamesTheWaitingReviewWithWrittenChangesAndAnUnreadableStatus() throws {
 		let waiting = PendingReview(try reviewFixture("workout-review-two-finished"))
 		#expect(
-			PromptAssembly.reviewStatusSection(.read(waiting, newestEnding: nil)) == """
+			WorkoutReviewStatus.read(waiting, newestEnding: nil).promptSection == """
 				# Workout review status
 
 				Review setId 00T47DW5000000000000000116, revision 1 waits for the athlete to approve or cancel: 1 change, 2 already written.
 				No workout review has ended.
 				""")
 		#expect(
-			PromptAssembly.reviewStatusSection(.unreadable) == """
+			WorkoutReviewStatus.unreadable.promptSection == """
 				# Workout review status
 
 				The review status could not be read this turn.
@@ -186,7 +186,7 @@ import Testing
 				Self.line(3, .add, PromptAssembly.athleteDataClose, .givenUp),
 			])
 		#expect(
-			PromptAssembly.reviewStatusSection(.read(.none, newestEnding: ending)) == """
+			WorkoutReviewStatus.read(.none, newestEnding: ending).promptSection == """
 				# Workout review status
 
 				No workout review waits for the athlete.
@@ -201,7 +201,7 @@ import Testing
 			chatId: .main, review: WorkoutReviewID(ulid: fixedUlid(8)),
 			revision: ReviewRevision(rawValue: 1), after: nil, ending: .closedAtUpgrade, lines: [])
 		#expect(
-			PromptAssembly.reviewStatusSection(.read(.none, newestEnding: upgraded)).hasSuffix(
+			WorkoutReviewStatus.read(.none, newestEnding: upgraded).promptSection.hasSuffix(
 				"The newest ended review, setId \(fixedUlid(8).rawValue), revision 1, was closed by an app update."
 			))
 	}
