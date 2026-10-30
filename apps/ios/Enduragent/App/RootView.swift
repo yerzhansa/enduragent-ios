@@ -20,6 +20,8 @@ struct RootView: View {
 				ProviderConsentView(model: model)
 			case .chat:
 				ChatView(model: model)
+			case .erasing:
+				ErasingView(model: model)
 			}
 		}
 		.task {

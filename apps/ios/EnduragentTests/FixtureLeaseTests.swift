@@ -128,7 +128,8 @@ extension FixtureLaunchTests {
 			coalescing: CoalescingPolicy(window: .milliseconds(20))
 		)
 		let services = AppServices(
-			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(),
+			coach: coach, device: DeviceDefaults(suiteName: FixtureLaunch.defaultsSuiteName),
+			deviceCheck: FakeDeviceCheckTokenProvider(),
 			clock: clock,
 			leases: { [] })
 		await model(services).agreeAndStartChatting()

@@ -42,6 +42,23 @@
 		case upgradeStoreMissing(String)
 	}
 
+	extension FixtureErasure {
+		var result: Result<Void, CreditsFailure> {
+			switch self {
+			case .erased, .iCloudLater, .exportHeld: .success(())
+			case .unreachable: .failure(.unavailable)
+			}
+		}
+
+		var export: FixtureExport {
+			switch self {
+			case .erased, .unreachable: .confirmed
+			case .iCloudLater: .noAccount
+			case .exportHeld: .held
+			}
+		}
+	}
+
 	struct FixtureLaunch {
 		static let nameArgumentKey = "EnduragentFixture"
 		static let storeArgumentKey = "EnduragentFixtureStore"
@@ -67,6 +84,7 @@
 		static let creditsArgumentKey = "EnduragentFixtureCredits"
 		static let feedbackArgumentKey = "EnduragentFixtureFeedback"
 		static let journalArgumentKey = "EnduragentFixtureJournal"
+		static let erasureArgumentKey = "EnduragentFixtureErasure"
 		static let defaultClock = "1998-06-15T08:00:00Z"
 		static let timeZone = "Europe/Ljubljana"
 		static let firstWeekName = "first-week"
@@ -99,6 +117,7 @@
 		var catalogResponse = FixtureCatalogResponse.offline
 		var feedback: FixtureFeedbackScript?
 		var journal = FixtureJournal.saving
+		var erasure = FixtureErasure.erased
 
 		static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 			guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -129,7 +148,8 @@
 				signInOutcome: try policy(arguments, key: signInArgumentKey) ?? .cancel,
 				catalogResponse: try policy(arguments, key: catalogArgumentKey) ?? .offline,
 				feedback: try policy(arguments, key: feedbackArgumentKey),
-				journal: try policy(arguments, key: journalArgumentKey) ?? .saving
+				journal: try policy(arguments, key: journalArgumentKey) ?? .saving,
+				erasure: try policy(arguments, key: erasureArgumentKey) ?? .erased
 			)
 		}
 
@@ -203,6 +223,12 @@
 				throw FixtureLaunchError.unknownArgument(key: clockArgumentKey, value: raw)
 			}
 			return raw
+		}
+
+		func afterErasure() -> FixtureLaunch {
+			var kept = self
+			kept.store = .keep
+			return kept
 		}
 
 		private static func applicationSupportDirectory() throws -> URL {

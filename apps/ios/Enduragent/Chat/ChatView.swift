@@ -99,6 +99,8 @@ struct ChatView: View {
 						DiagnosticsView(model: model, support: model.support)
 					case .about:
 						AboutView(model: model, support: model.support)
+					case .yourData:
+						YourDataView(model: model)
 					#if DEBUG
 						case .debug:
 							SettingsDebugView(model: model)

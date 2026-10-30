@@ -183,3 +183,11 @@ _Avoid_: Bug report, support request, ticket, message, report
 **Diagnostics file**:
 A file the athlete makes in Settings, under Support, and shares on purpose. It holds the version, the phone model and iOS version, the access method kind, the connection state, the language preference, counts of what the app has saved, and the last 14 days of the app's problems and model usage, with no keys, no message text and no training data. Nothing leaves the phone until the athlete shares it.
 _Avoid_: Logs, snapshot, export, debug dump, crash report
+
+**Your data**:
+The Settings section after Support. Its one row is Delete everything.
+_Avoid_: Privacy, account, data management
+
+**Delete everything**:
+The athlete deletes their conversation, memory, saved plan, settings and keys from this iPhone, their iCloud and their other devices, and their Credits record. Nothing is deleted until the Credits service confirms its part. A run cut off by a kill finishes at the next launch. Unused Credits are lost. intervals.icu data and an OpenRouter account stay with the athlete.
+_Avoid_: Delete account, reset, wipe, erase (in athlete text)

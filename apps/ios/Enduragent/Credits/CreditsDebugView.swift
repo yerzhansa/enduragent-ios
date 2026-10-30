@@ -193,6 +193,8 @@
 			"unexpectedResponse"
 		case .noAthleteKey:
 			"noAthleteKey"
+		case .athleteDeleted:
+			"athleteDeleted"
 		}
 	}
 
