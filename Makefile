@@ -19,7 +19,7 @@ DESKTOP_DECISION = $(abspath $(DESKTOP))/docs/adr/0085-ios-closes-parity-with-a-
 REQUIRE_DESKTOP = test -n "$(DESKTOP)" || { echo "make $@ needs DESKTOP=<path to the desktop checkout>" >&2; exit 2; }
 IPHONE_SIMULATOR := xcodebuild -project $(APP_PROJECT) -scheme Enduragent -showdestinations | awk '/Available destinations for/ { available = 1; next } /Ineligible destinations for/ { available = 0 } available && /platform:iOS Simulator/ && /name:iPhone/ { sub(/^.*id:/, ""); sub(/,.*/, ""); print; exit }'
 
-.PHONY: project generate-catalogs check-catalogs check-source check-coverage closeout check-closeout-final write-retained check-retained lint-swift format-swift check-format test-tools test-swift test-app plan-fixtures plan-fixtures-check live-reads live-calendar live-coach live-plan live-seed live-unseed live-feedback-note
+.PHONY: project generate-catalogs check-catalogs check-source check-coverage closeout check-closeout-final write-retained check-retained lint-swift format-swift check-format test-tools test-swift test-app test-keychain plan-fixtures plan-fixtures-check live-reads live-calendar live-coach live-plan live-seed live-unseed live-feedback-note
 
 project:
 	$(AT_ROOT) xcodegen generate --spec apps/ios/project.yml
@@ -67,6 +67,9 @@ test-swift:
 
 test-app: project
 	$(AT_ROOT) destination="$$($(IPHONE_SIMULATOR))" && test -n "$$destination" && xcodebuild test -project $(APP_PROJECT) -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,arch=arm64,id=$$destination" -derivedDataPath $(DERIVED_DATA) -only-testing:$(ONLY) CODE_SIGNING_ALLOWED=NO
+
+test-keychain: project
+	$(AT_ROOT) destination="$(or $(SIMULATOR),$$($(IPHONE_SIMULATOR)))" && test -n "$$destination" && TEST_RUNNER_ENDURAGENT_KEYCHAIN_TESTS=1 xcodebuild test -project $(APP_PROJECT) -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,arch=arm64,id=$$destination" -derivedDataPath $(DERIVED_DATA) -only-testing:EnduragentTests/KeychainErasureTests -parallel-testing-enabled NO CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER=
 
 plan-fixtures:
 	$(AT_ROOT) $(NPM_FIXTURES)
