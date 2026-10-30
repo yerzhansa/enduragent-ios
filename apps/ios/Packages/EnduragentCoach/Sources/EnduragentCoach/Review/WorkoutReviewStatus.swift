@@ -21,8 +21,8 @@ extension WorkoutReviewStatus {
 		switch pending {
 		case .none:
 			"No workout review waits for the athlete."
-		case .waiting(let base, let remaining, let finished):
-			"Review \(named(base)) waits for the athlete to approve or cancel: \(remaining.count) "
+		case .waiting(let base, let remaining, let finished, let controls):
+			"Review \(named(base)) waits for the athlete to \(controls.choice): \(remaining.count) "
 				+ (remaining.count == 1 ? "change" : "changes")
 				+ (finished > 0 ? ", \(finished) already written." : ".")
 		case .running(let base):
@@ -65,6 +65,17 @@ extension WorkoutReviewDesk {
 		} catch {
 			diagnostics.record(.reviewUnavailable(chat, error))
 			return .unreadable
+		}
+	}
+}
+
+extension ControlSet {
+	fileprivate var choice: String {
+		switch self {
+		case .approveOrCancel: "approve or cancel"
+		case .tryAgainOrCancel: "try again or cancel"
+		case .checkAgainOrCancel: "check again or cancel"
+		case .cancelOnly: "cancel, because it can no longer be approved"
 		}
 	}
 }

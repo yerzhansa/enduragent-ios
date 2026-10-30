@@ -40,6 +40,17 @@ package enum TryAgainReason: Equatable, Sendable {
 	case settled
 }
 
+extension Waiting {
+	package var controls: ControlSet {
+		switch self {
+		case .approval: .approveOrCancel
+		case .tryAgain: .tryAgainOrCancel
+		case .unconfirmed: .checkAgainOrCancel
+		case .blocked: .cancelOnly
+		}
+	}
+}
+
 package enum TransitionRefusal: Error, Equatable, Sendable {
 	case wrongStage
 	case wrongAction

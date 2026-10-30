@@ -102,7 +102,7 @@ extension PendingReview {
 					"The review is being written or has an unconfirmed change, so it cannot be revised now."
 				),
 			])
-		case .waiting(let base, let remaining, let finished):
+		case .waiting(let base, let remaining, let finished, _):
 			.object([
 				"kind": .string("pending"),
 				"reference": base.json,

@@ -241,12 +241,7 @@ extension WorkoutReview {
 
 	package var allowedControls: ControlSet? {
 		guard case .waiting(let waiting) = stage else { return nil }
-		return switch waiting {
-		case .approval: .approveOrCancel
-		case .tryAgain: .tryAgainOrCancel
-		case .unconfirmed: .checkAgainOrCancel
-		case .blocked: .cancelOnly
-		}
+		return waiting.controls
 	}
 
 	private func checkingRun() throws(TransitionRefusal) -> Run {

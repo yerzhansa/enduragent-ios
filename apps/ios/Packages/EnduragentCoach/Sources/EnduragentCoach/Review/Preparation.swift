@@ -84,7 +84,7 @@ package struct PendingItem: Equatable, Sendable {
 
 package enum PendingReview: Equatable, Sendable {
 	case none
-	case waiting(ReviewBase, remaining: [PendingItem], finished: Int)
+	case waiting(ReviewBase, remaining: [PendingItem], finished: Int, controls: ControlSet)
 	case running(ReviewBase)
 	case unconfirmed(ReviewBase)
 
@@ -100,11 +100,11 @@ package enum PendingReview: Equatable, Sendable {
 			self = .running(ReviewBase(of: head))
 		case .waiting(.unconfirmed):
 			self = .unconfirmed(ReviewBase(of: head))
-		case .waiting:
+		case .waiting(let waiting):
 			self = .waiting(
 				ReviewBase(of: head),
 				remaining: head.work.remaining.map { PendingItem(id: $0.id, action: $0.action) },
-				finished: head.work.finished.count)
+				finished: head.work.finished.count, controls: waiting.controls)
 		}
 	}
 }

@@ -163,7 +163,7 @@ import Testing
 			WorkoutReviewStatus.read(waiting, newestEnding: nil).promptSection == """
 				# Workout review status
 
-				Review setId 00T47DW5000000000000000116, revision 1 waits for the athlete to approve or cancel: 1 change, 2 already written.
+				Review setId 00T47DW5000000000000000116, revision 1 waits for the athlete to try again or cancel: 1 change, 2 already written.
 				No workout review has ended.
 				""")
 		#expect(
