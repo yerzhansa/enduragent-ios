@@ -118,8 +118,8 @@ struct RequirementCase: Sendable, CustomTestStringConvertible {
 		D01 D02 D03 D04 D05 D06 D07 D08 D09 D10 D11 D12 X01 X02 X04 X05 X06 G03 G04 G05 G06 G10
 		""".split(separator: " ").map(String.init)
 	static let agreed = [
-		"B17.01/utc", "B17.06/head-unit", "B18.07/model-call", "B18.07/review-status",
-		"B20.01/zones", "X04/zone", "G06/midnight",
+		"B17.01/utc", "B17.06/head-unit", "B18.07/model-call", "B20.01/zones", "X04/zone",
+		"G06/midnight",
 	]
 	static let closed = closing("B17.01", ["1.1.1", "1.1.2"])
 	static let baseRows = [closed] + agreed.map { difference($0) }
@@ -208,7 +208,7 @@ struct RequirementCase: Sendable, CustomTestStringConvertible {
 			RequirementCase(
 				name: "a row has no id",
 				rows: baseRows + [#"{"statement": "S.", "criteria": ["1.1.1"]}"#],
-				problems: ["requirement \(baseRows.count + 1) [no-identifier]"]),
+				problems: ["requirement 8 [no-identifier]"]),
 			RequirementCase(
 				name: "an open entry is not an id",
 				open: inScope.filter { $0 != "B17.01" } + [""],
