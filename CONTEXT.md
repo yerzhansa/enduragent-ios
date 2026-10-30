@@ -120,6 +120,10 @@ _Avoid_: Refresh, sync, reconcile
 A workout review shown again because a workout in it changed on intervals.icu after it was first shown.
 _Avoid_: Updated review, stale review, new proposal
 
+**Workout review status**:
+The section of every coach turn's prompt that names the workout review that waits, is being written or holds an unconfirmed change, or says none waits, and tells how the newest ended review ended, change by change. The coach trusts it over its own earlier replies.
+_Avoid_: Pending state, review context
+
 ### Training plans
 
 **Training plan**:
