@@ -27,7 +27,9 @@ import Testing
 
 		#expect(rig.device.erasure == nil)
 		try await rig.expectNothingErased()
-		#expect(coach.diagnostics.entries.map(\.event).contains(.erasureNotStarted(FailureCode(CreditsFailure.unavailable))))
+		#expect(
+			coach.diagnostics.entries.map(\.event).contains(
+				.erasureNotStarted(FailureCode(CreditsFailure.unavailable))))
 	}
 
 	@Test(arguments: [ErasureStep.iCloud, .deviceRecords, .files, .keychain])
@@ -91,7 +93,7 @@ import Testing
 			], locality: .synced)
 		let coach = rig.launch(records: records)
 
-		try await coach.eraseReturningRows(rig.device)
+		await coach.eraseReturningRows(rig.device)
 		await coach.pendingErasure?.value
 
 		let left = try await records.fetch(RecordQuery(scope: .everySynced)).records

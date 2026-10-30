@@ -37,7 +37,8 @@ extension SwiftDataSuites {
 			try await log.append(
 				[
 					storedRecord(
-						device: phone, wall: 1, body: .synced(sampleUser(chatId: .main, text: "kept"))),
+						device: phone, wall: 1,
+						body: .synced(sampleUser(chatId: .main, text: "kept"))),
 					storedRecord(
 						device: otherPhone, wall: 2,
 						body: .synced(sampleUser(chatId: .main, text: "returning"))),

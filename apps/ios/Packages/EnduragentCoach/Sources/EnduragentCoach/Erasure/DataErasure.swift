@@ -46,14 +46,15 @@ extension Coach {
 		return await eraseFromThisPhone(defaults)
 	}
 
-	public func eraseReturningRows(_ defaults: DeviceDefaults) async throws {
+	public func eraseReturningRows(_ defaults: DeviceDefaults) {
 		guard defaults.erasure == .iCloudPending else { return }
-		_ = try await ledger.erase(.synced, sparing: ledger.deviceId)
-		let saved = clock.now
 		let ledger = ledger
 		let diagnostics = diagnostics
+		let clock = clock
 		pendingErasure = Task {
 			do {
+				let saved = clock.now
+				_ = try await ledger.erase(.synced, sparing: ledger.deviceId)
 				if try await ledger.confirmSyncedExport(after: saved) { defaults.mark(nil) }
 			} catch {
 				diagnostics.record(.erasureUnconfirmed(FailureCode(error)))

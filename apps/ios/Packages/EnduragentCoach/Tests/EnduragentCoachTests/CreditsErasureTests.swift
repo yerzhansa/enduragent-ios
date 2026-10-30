@@ -9,7 +9,9 @@ extension CreditsClientTests {
 	@Suite struct CreditsErasureTests {
 		private static let athleteId = "11111111-2222-4333-8444-555555555555"
 
-		@Test(arguments: [("sk-or-test-0000", "Bearer sk-or-test-0000"), (nil, nil)] as [(String?, String?)])
+		@Test(
+			arguments: [("sk-or-test-0000", "Bearer sk-or-test-0000"), (nil, nil)]
+				as [(String?, String?)])
 		func eraseSendsTheAthleteIdWithItsKeyAndKeepsTheAccount(
 			key: String?, authorization: String?
 		) async throws {
@@ -29,7 +31,9 @@ extension CreditsClientTests {
 			#expect(request.url?.path == "/erase")
 			#expect(request.value(forHTTPHeaderField: "Authorization") == authorization)
 			#expect(try jsonObject(from: request)["athleteId"] as? String == Self.athleteId)
-			#expect(try secrets.creditsAccount() == CreditsAccount(appAccountToken: athleteId, key: key))
+			#expect(
+				try secrets.creditsAccount() == CreditsAccount(appAccountToken: athleteId, key: key)
+			)
 		}
 
 		@Test func eraseWithoutACreditsAccountSendsNothing() async throws {

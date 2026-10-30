@@ -37,7 +37,8 @@ extension ModelContainerHandle {
 		let storeURL = storeURL.standardizedFileURL.resolvingSymlinksInPath()
 		return try openHandles.withLock { handles in
 			if let handle = handles[storeURL]?.handle { return handle }
-			let handle = try make(name: name, storeURL: storeURL, cloudKitContainer: cloudKitContainer)
+			let handle = try make(
+				name: name, storeURL: storeURL, cloudKitContainer: cloudKitContainer)
 			handles[storeURL] = HeldHandle(handle)
 			return handle
 		}
