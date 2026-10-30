@@ -174,6 +174,29 @@ import Testing
 				""")
 	}
 
+	@Test(arguments: [
+		(
+			"workout-review-try-again",
+			"Review setId 00T47DW5000000000000000102, revision 1 waits for the athlete to try again or cancel: 1 change."
+		),
+		(
+			"workout-review-blocked",
+			"Review setId 00T47DW5000000000000000103, revision 1 waits for the athlete to cancel, because it can no longer be approved: 1 change."
+		),
+	])
+	func reviewStatusOffersOnlyTheControlsTheWaitingReviewAllows(fixture: String, line: String)
+		throws
+	{
+		let waiting = PendingReview(try reviewFixture(fixture))
+		#expect(
+			WorkoutReviewStatus.read(waiting, newestEnding: nil).promptSection == """
+				# Workout review status
+
+				\(line)
+				No workout review has ended.
+				""")
+	}
+
 	@Test func reviewStatusGivesEveryOutcomeLineWithItsNameAsQuotedData() {
 		let ending = ReviewOutcomeBody(
 			chatId: .main, review: WorkoutReviewID(ulid: fixedUlid(7)),
