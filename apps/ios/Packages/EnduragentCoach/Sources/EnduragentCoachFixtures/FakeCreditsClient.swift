@@ -8,6 +8,7 @@ public enum FakeCreditsCall: Sendable, Equatable {
 	case recover(transactionLength: Int)
 	case catalog
 	case balance
+	case erase
 }
 
 public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
@@ -17,6 +18,7 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 		var recoverResult: Result<Recovery, CreditsFailure>
 		var catalogResult: Result<PackCatalog, CreditsFailure>
 		var balanceResult: Result<CreditBalance, CreditsFailure>
+		var eraseResult: Result<Void, CreditsFailure>
 		var calls: [FakeCreditsCall]
 		var provisioning: (CredentialVault, NonEmptySecret)?
 	}
@@ -48,6 +50,11 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 		set { state.withLock { $0.balanceResult = newValue } }
 	}
 
+	public var eraseResult: Result<Void, CreditsFailure> {
+		get { state.withLock { $0.eraseResult } }
+		set { state.withLock { $0.eraseResult = newValue } }
+	}
+
 	public var calls: [FakeCreditsCall] {
 		state.withLock { $0.calls }
 	}
@@ -60,6 +67,7 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 				recoverResult: .failure(.unavailable),
 				catalogResult: .failure(.unavailable),
 				balanceResult: .failure(.unavailable),
+				eraseResult: .failure(.unavailable),
 				calls: [], provisioning: nil
 			)
 		)
@@ -117,5 +125,13 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 			return current.balanceResult
 		}
 		return try result.get()
+	}
+
+	public func erase() async throws {
+		let result = state.withLock { current in
+			current.calls.append(.erase)
+			return current.eraseResult
+		}
+		try result.get()
 	}
 }

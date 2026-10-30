@@ -10,6 +10,7 @@ package struct RecordStorageFault: Error, Sendable, Equatable {
 	package enum Operation: Sendable, Equatable {
 		case append(kinds: [String])
 		case fetch
+		case erase
 	}
 
 	package var operation: Operation
@@ -19,8 +20,16 @@ package struct RecordStorageFault: Error, Sendable, Equatable {
 	}
 }
 
+public enum FixtureExport: String, Sendable, CaseIterable {
+	case confirmed
+	case noAccount = "no-account"
+	case held
+}
+
 package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 	private struct Faults: Sendable {
+		var erasures: Set<RecordLocality> = []
+		var export = FixtureExport.confirmed
 		var nextAppend = false
 		var syncedAppends = false
 		var syncedAcknowledgments = false
@@ -83,6 +92,34 @@ package final class FaultInjectingRecordLog: ReviewChainLog, Sendable {
 	}
 
 	package var failedFetchCount: Int { faults.withLock { $0.failedFetches } }
+
+	package var failErasures: Set<RecordLocality> {
+		get { faults.withLock { $0.erasures } }
+		set { faults.withLock { $0.erasures = newValue } }
+	}
+
+	package var export: FixtureExport {
+		get { faults.withLock { $0.export } }
+		set { faults.withLock { $0.export = newValue } }
+	}
+
+	package func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int {
+		if failErasures.contains(locality) {
+			throw RecordStorageFault(operation: .erase)
+		}
+		return try await wrapped.erase(locality, sparing: kept)
+	}
+
+	package func confirmSyncedExport(after saved: Date) async throws -> Bool {
+		switch export {
+		case .confirmed: return true
+		case .noAccount: return false
+		case .held:
+			repeat {
+				try await Task.sleep(for: .seconds(60))
+			} while true
+		}
+	}
 
 	package func failNextFetch(in scope: RecordQuery.Scope, skipping: Int = 0) {
 		faults.withLock { $0.nextFetch = (scope, skipping) }

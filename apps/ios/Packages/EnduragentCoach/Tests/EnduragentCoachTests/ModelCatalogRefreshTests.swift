@@ -365,4 +365,5 @@ private struct RejectingCatalogCache: ModelCatalogCache {
 	func replaceAtomically(_ catalog: ModelCatalog) throws {
 		throw CocoaError(.fileWriteNoPermission)
 	}
+	func erase() throws { try cache.erase() }
 }

@@ -79,6 +79,7 @@ public enum CreditsFailure: Error, Sendable, Equatable {
 	case unavailable
 	case unexpectedResponse(status: Int)
 	case noAthleteKey
+	case athleteDeleted
 }
 
 public struct CreditsService: Sendable {
@@ -99,6 +100,7 @@ public protocol CreditsClient: Sendable {
 	func recover(signedTransaction: String) async throws -> Recovery
 	func catalog() async throws -> PackCatalog
 	func balance() async throws -> CreditBalance
+	func erase() async throws
 }
 
 public enum ClaimSettlement: Sendable, Equatable {
@@ -124,6 +126,7 @@ package struct PhoneCreditsClient: CreditsClient {
 		"identity_mismatch": .identityMismatch,
 		"rate_limited": .rateLimited,
 		"unavailable": .unavailable,
+		"athlete_deleted": .athleteDeleted,
 	]
 	private static let timeout: TimeInterval = 20
 
@@ -146,7 +149,7 @@ package struct PhoneCreditsClient: CreditsClient {
 
 	package func grant(deviceCheck: Data) async throws -> GrantOutcome {
 		let athleteId = try await vault.prepareCreditsAccount()
-		let (status, data) = try await worker(
+		let (status, data) = try await identified(
 			path: "grant",
 			method: "POST",
 			body: GrantBody(
@@ -173,7 +176,7 @@ package struct PhoneCreditsClient: CreditsClient {
 	package func claim(signedTransaction: String, appAccountToken: UUID) async throws
 		-> ClaimOutcome
 	{
-		let (status, data) = try await worker(
+		let (status, data) = try await identified(
 			path: "claim",
 			method: "POST",
 			body: SignedTransactionBody(signedTransaction: signedTransaction)
@@ -195,7 +198,7 @@ package struct PhoneCreditsClient: CreditsClient {
 	}
 
 	package func recover(signedTransaction: String) async throws -> Recovery {
-		let (status, data) = try await worker(
+		let (status, data) = try await identified(
 			path: "recover",
 			method: "POST",
 			body: SignedTransactionBody(signedTransaction: signedTransaction)
@@ -245,15 +248,36 @@ package struct PhoneCreditsClient: CreditsClient {
 		return CreditBalance(credits: Credits(units: max(0, units)))
 	}
 
-	private func worker(path: String, method: String, body: some Encodable) async throws -> (
+	package func erase() async throws {
+		let identity = try await vault.creditsIdentity()
+		guard let athleteId = identity.appAccountToken else { return }
+		let key = try await vault.creditsKey()
+		let (status, data) = try await send(
+			url: workerBase.appending(path: "erase"),
+			method: "POST",
+			body: try JSONEncoder().encode(
+				EraseBody(athleteId: athleteId.uuidString.lowercased())),
+			authorization: key.map { "Bearer \($0.value)" }
+		)
+		guard try decode(KindWire.self, from: data, status: status).kind == "erased" else {
+			throw CreditsFailure.unexpectedResponse(status: status)
+		}
+	}
+
+	private func identified(path: String, method: String, body: some Encodable) async throws -> (
 		status: Int, data: Data
 	) {
-		try await send(
-			url: workerBase.appending(path: path),
-			method: method,
-			body: try JSONEncoder().encode(body),
-			authorization: nil
-		)
+		do {
+			return try await send(
+				url: workerBase.appending(path: path),
+				method: method,
+				body: try JSONEncoder().encode(body),
+				authorization: nil
+			)
+		} catch CreditsFailure.athleteDeleted {
+			try await vault.forgetCreditsAccount()
+			throw CreditsFailure.athleteDeleted
+		}
 	}
 
 	private func send(url: URL, method: String, body: Data?, authorization: String?) async throws

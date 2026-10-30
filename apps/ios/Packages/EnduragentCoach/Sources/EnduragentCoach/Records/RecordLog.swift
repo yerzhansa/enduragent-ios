@@ -1,3 +1,4 @@
+import CloudKit
 import CoreData
 import Foundation
 import SwiftData
@@ -102,6 +103,8 @@ package protocol RecordLog: Sendable {
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws
 	func fetch(_ query: RecordQuery) async throws -> RecordPage
 	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
+	func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int
+	func confirmSyncedExport(after saved: Date) async throws -> Bool
 	var imports: AsyncStream<Void> { get }
 }
 
@@ -142,6 +145,8 @@ package struct RecordDecodeFailure: Error, Sendable, Equatable {
 }
 
 package struct SwiftDataRecordLog: RecordLog {
+	package static let erasePage = 200
+	package static let exportWindow: Duration = .seconds(60)
 	package let deviceId: DeviceID
 	private let synced: ModelContainerHandle
 	private let local: ModelContainerHandle
@@ -241,7 +246,62 @@ package struct SwiftDataRecordLog: RecordLog {
 		return RecordPage(records: records.sorted { $0.hlc < $1.hlc }, skipped: skipped)
 	}
 
+	package func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int {
+		let context = ModelContext(container(for: locality))
+		context.autosaveEnabled = false
+		let sparing = kept != nil
+		let keptDevice = kept?.rawValue ?? ""
+		var descriptor = FetchDescriptor<StoredAthleteRecord>(
+			predicate: #Predicate { !sparing || $0.deviceId != keptDevice })
+		descriptor.fetchLimit = Self.erasePage
+		var erased = 0
+		while true {
+			let page = try context.fetch(descriptor)
+			guard !page.isEmpty else { return erased }
+			for row in page { context.delete(row) }
+			try context.save()
+			erased += page.count
+		}
+	}
+
+	package func confirmSyncedExport(after saved: Date) async throws -> Bool {
+		guard let identifier = synced.cloudKitContainer else { return true }
+		guard try await CKContainer(identifier: identifier).accountStatus() == .available else {
+			return false
+		}
+		let exports = syncedEvents(of: .export) { event in
+			event.succeeded && event.startDate >= saved
+		}
+		let window = Self.exportWindow
+		return await withTaskGroup(of: Bool.self) { group in
+			group.addTask {
+				for await _ in exports { return true }
+				return false
+			}
+			group.addTask {
+				do {
+					try await Task.sleep(for: window)
+				} catch is CancellationError {
+					return false
+				} catch {
+					preconditionFailure("Task.sleep failed: \(error)")
+				}
+				return false
+			}
+			let first = await group.next() ?? false
+			group.cancelAll()
+			return first
+		}
+	}
+
 	package var imports: AsyncStream<Void> {
+		syncedEvents(of: .import) { _ in true }
+	}
+
+	private func syncedEvents(
+		of type: NSPersistentCloudKitContainer.EventType,
+		where admits: @escaping @Sendable (NSPersistentCloudKitContainer.Event) -> Bool
+	) -> AsyncStream<Void> {
 		AsyncStream { continuation in
 			let urls = Set(synced.container.configurations.map(\.url))
 			let changes = NotificationCenter.default.notifications(
@@ -252,7 +312,7 @@ package struct SwiftDataRecordLog: RecordLog {
 						let event = notification.userInfo?[
 							NSPersistentCloudKitContainer.eventNotificationUserInfoKey]
 							as? NSPersistentCloudKitContainer.Event,
-						event.type == .import, event.endDate != nil,
+						event.type == type, event.endDate != nil, admits(event),
 						let container = notification.object as? NSPersistentCloudKitContainer,
 						container.persistentStoreCoordinator.persistentStores.contains(where: {
 							$0.identifier == event.storeIdentifier
@@ -334,10 +394,12 @@ extension SwiftDataRecordLog: ReviewChainLog {
 
 package final class ModelContainerHandle: Sendable {
 	let container: ModelContainer
+	let cloudKitContainer: String?
 	let chain = Mutex(())
 
-	init(container: ModelContainer) {
+	init(container: ModelContainer, cloudKitContainer: String?) {
 		self.container = container
+		self.cloudKitContainer = cloudKitContainer
 	}
 }
 

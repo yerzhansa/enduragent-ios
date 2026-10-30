@@ -11,7 +11,7 @@ public actor Coach {
 	let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let coalescingSleep: @Sendable (Duration) async throws -> Void
-	private let host: any ExecutionHost
+	let host: CountingHost
 	let resolveDisplayLocale: DisplayLocaleResolver
 	let preferences: CoachPreferences
 	let builtInModel: ModelID
@@ -38,6 +38,7 @@ public actor Coach {
 	var reviewObservation: Task<Void, Never>?
 	var planObservation: Task<Void, Never>?
 	var pendingImportRefresh: Task<Void, Never>?
+	package var pendingErasure: Task<Void, Never>?
 	private let process: ProcessID
 
 	deinit {
@@ -57,6 +58,7 @@ public actor Coach {
 		coalescing: CoalescingPolicy = .npm
 	) {
 		let clock = ports.clock
+		let host = CountingHost(ports.host)
 		let diagnostics = ports.support.openLog(clock: clock)
 		let transport = ports.models.makeTransport(diagnostics)
 		let ledger = Ledger(
@@ -83,7 +85,7 @@ public actor Coach {
 		self.clock = clock
 		self.coalescing = coalescing
 		self.coalescingSleep = ports.coalescingSleep
-		self.host = ports.host
+		self.host = host
 		self.resolveDisplayLocale = displayLocale
 		self.memory = Memory(
 			ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep,
@@ -93,7 +95,7 @@ public actor Coach {
 			training: { (recheck: Bool) async throws(AccessUnavailable) in
 				try await vault.trainingConnection(recheck: recheck)
 			},
-			host: ports.host)
+			host: host)
 		self.desk = desk
 		let plans = Plans(
 			ledger: ledger, clock: clock, diagnostics: diagnostics,

@@ -56,6 +56,16 @@ package final class InMemoryRecordLog: ReviewChainLog, @unchecked Sendable {
 		records.filter { recordMatches($0, query) }.max { $0.hlc < $1.hlc }
 	}
 
+	package func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int {
+		records.withLock { records in
+			let before = records.count
+			records.removeAll { $0.locality == locality && $0.deviceId != kept }
+			return before - records.count
+		}
+	}
+
+	package func confirmSyncedExport(after saved: Date) async throws -> Bool { true }
+
 	package var imports: AsyncStream<Void> {
 		AsyncStream { _ in }
 	}

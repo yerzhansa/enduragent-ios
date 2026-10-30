@@ -37,6 +37,14 @@ package actor Ledger {
 		log.deviceId
 	}
 
+	package func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int {
+		try await log.erase(locality, sparing: kept)
+	}
+
+	package func confirmSyncedExport(after saved: Date) async throws -> Bool {
+		try await log.confirmSyncedExport(after: saved)
+	}
+
 	package nonisolated func report(_ unsaved: DiagnosticsEvent) {
 		diagnostics.record(unsaved)
 	}

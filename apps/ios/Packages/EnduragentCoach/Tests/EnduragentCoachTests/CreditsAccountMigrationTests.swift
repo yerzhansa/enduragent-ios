@@ -254,4 +254,6 @@ private final class PeerInitializationBeforeAddBacking: SecretStoreBacking, @unc
 	}
 
 	func delete(account: String) throws { try base.delete(account: account) }
+
+	func deleteEverything() throws { try base.deleteEverything() }
 }

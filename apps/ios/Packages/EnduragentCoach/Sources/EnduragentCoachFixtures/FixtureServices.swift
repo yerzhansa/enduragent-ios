@@ -116,6 +116,10 @@ private struct UnwritableJournalStorage: JournalStorage {
 		throw CocoaError(.fileWriteNoPermission)
 	}
 
+	func erase() throws {
+		try file.erase()
+	}
+
 	func removeLeftover() throws {
 		throw CocoaError(.fileWriteNoPermission)
 	}

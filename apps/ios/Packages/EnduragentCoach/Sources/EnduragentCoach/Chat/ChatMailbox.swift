@@ -54,6 +54,11 @@ package actor ChatMailbox {
 	}
 
 	var conversation: Conversation { records.conversation }
+
+	var holdsWork: Bool {
+		guard case .idle = work.phase else { return true }
+		return !work.isEmpty || work.window != nil
+	}
 	var jobs: [FlushJob] { records.jobs }
 
 	package func hasLocalWork() async throws(LedgerFailure) -> Bool {

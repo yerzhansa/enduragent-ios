@@ -23,6 +23,14 @@ extension ChainForwardingLog {
 	func chats(holding scope: RecordQuery.Scope) async throws -> Set<ChatID> {
 		try await chainStore.chats(holding: scope)
 	}
+
+	func erase(_ locality: RecordLocality, sparing kept: DeviceID?) async throws -> Int {
+		try await chainStore.erase(locality, sparing: kept)
+	}
+
+	func confirmSyncedExport(after saved: Date) async throws -> Bool {
+		try await chainStore.confirmSyncedExport(after: saved)
+	}
 }
 
 final class BatchRecordingLog: ChainForwardingLog, @unchecked Sendable {

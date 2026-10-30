@@ -1,6 +1,6 @@
 import Foundation
 
-package enum RecordLocality: Sendable, Equatable {
+package enum RecordLocality: Sendable, Hashable {
 	case synced
 	case deviceLocal
 }
