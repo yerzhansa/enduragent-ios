@@ -51,6 +51,11 @@ enum LiveTranscript {
 			if let notice = turn.notice { lines += ["", "Review notice: \(notice.rawValue)"] }
 			lines += ["", "### Plan cards after the turn", "", plans(turn.plans)]
 			if let tap = turn.tap { lines += ["", "Save plan: \(tap.outcome)"] }
+			if let approval = turn.approval {
+				lines += [
+					"", "Approve: \(approval.outcome), \(approval.creates) calendar adds sent",
+				]
+			}
 			lines += ["", "Saved plan after the turn: \(saved(turn.savedAfter))"]
 		}
 		if let cancel {

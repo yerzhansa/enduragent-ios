@@ -8,6 +8,7 @@ enum LiveSetting: String, Sendable {
 	case readsFailing = "both snapshot reads failing"
 	case implausibleFTP = "FTP of 720 W"
 	case reviewing = "connected, preparing workout reviews"
+	case approving = "connected, approving workout reviews on the seeded account"
 
 	private static let preparesNothing: [LiveExpectation] = [
 		.review(.preparesNothing), .review(.leavesNoReview),
@@ -20,7 +21,7 @@ enum LiveSetting: String, Sendable {
 		]
 		switch self {
 		case .connected: return connected + Self.preparesNothing
-		case .reviewing: return connected
+		case .reviewing, .approving: return connected
 		case .notConnected, .readsFailing, .implausibleFTP: return Self.preparesNothing
 		}
 	}
@@ -44,6 +45,7 @@ struct LiveTurnPlan: Sendable {
 	let message: String
 	let expectations: [LiveExpectation]
 	var tapsSavePlan = false
+	var approvesReview = false
 }
 
 struct LiveScenario: Sendable {
@@ -64,60 +66,8 @@ struct LiveScenario: Sendable {
 		self.turns = turns.map {
 			LiveTurnPlan(
 				message: $0.message, expectations: setting.standing + $0.expectations,
-				tapsSavePlan: $0.tapsSavePlan)
+				tapsSavePlan: $0.tapsSavePlan, approvesReview: $0.approvesReview)
 		}
-	}
-}
-
-struct LiveTurnRecord: Sendable {
-	let message: String
-	let exchanges: [LiveExchange]
-	let reply: String?
-	let outcome: String
-	let reviewPending: Bool
-	let calendarWrites: Int
-	var reviewBefore: WorkoutReview?
-	var reviewAfter: WorkoutReview?
-	var notice: CatalogKey?
-	var plans: [PlanCard] = []
-	var draft: JSONValue?
-	var prepared: PlanDocument?
-	var savedBefore: PlanDocument?
-	var savedAfter: PlanDocument?
-	var tap: LivePlanTap?
-
-	var chat: [LiveExchange] {
-		exchanges.filter { [.chatAttempt, .stepRecovery].contains($0.request.charge) }
-	}
-
-	var toolCalls: [WireToolCall] {
-		chat.flatMap { exchange in
-			exchange.events.compactMap { event -> WireToolCall? in
-				guard case .toolCall(let call) = event else { return nil }
-				return call
-			}
-		}
-	}
-
-	var offeredTools: Set<String> {
-		Set(chat.flatMap { $0.request.tools.map(\.name.rawValue) })
-	}
-
-	var toolResults: [String: String] {
-		var results: [String: String] = [:]
-		for message in chat.flatMap(\.request.messages) where message.role == .tool {
-			if let id = message.toolCallId { results[id] = message.content }
-		}
-		return results
-	}
-
-	var systemPrompt: String {
-		chat.first?.request.messages.first { $0.role == .system }?.content ?? ""
-	}
-
-	var athleteMessage: String? {
-		chat.first?.request.messages.last { $0.role == .user }?.content
-			.components(separatedBy: "\nCurrent time:").first
 	}
 }
 

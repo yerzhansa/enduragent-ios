@@ -43,7 +43,8 @@ struct LiveCoachSuite: Sendable {
 			intervalsKey: intervalsKey, openRouterKey: openRouterKey,
 			athlete: IntervalsAthleteID(rawValue: profile.id),
 			model: try LiveCoachBench.builtInModel(), ledger: ledger, today: today,
-			modelTransport: modelTransport, accountReads: accountReads)
+			modelTransport: modelTransport, accountReads: accountReads,
+			seedLedger: folder.logs.appending(path: "seed/ledger.tsv"))
 		var report = LiveCoachReport(unavailable: planned.unavailable, spentBefore: ledger.total)
 		for scenario in planned.scenarios {
 			guard !ledger.capReached else {

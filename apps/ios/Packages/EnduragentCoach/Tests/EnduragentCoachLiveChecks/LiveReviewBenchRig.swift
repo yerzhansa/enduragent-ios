@@ -140,7 +140,7 @@ struct ReviewBenchRig {
 		return Dictionary(uniqueKeysWithValues: zip(messages[index], turns))
 	}
 
-	private static func respond(to steps: [String: [Step]]) -> FakeModelTransport.Response {
+	static func respond(to steps: [String: [Step]]) -> FakeModelTransport.Response {
 		{ request in
 			guard request.purpose == .chat, let script = steps[request.text],
 				request.step < script.count
@@ -149,7 +149,7 @@ struct ReviewBenchRig {
 		}
 	}
 
-	private static let reply: Step = { _ in [.text("Ready."), .finish(reason: .stop)] }
+	static let reply: Step = { _ in [.text("Ready."), .finish(reason: .stop)] }
 
 	private static let read: Step = { _ in
 		[
@@ -167,7 +167,7 @@ struct ReviewBenchRig {
 		}
 	}
 
-	private static func complete(_ changes: [String]) -> Step {
+	static func complete(_ changes: [String]) -> Step {
 		call(
 			#"{"preparation":{"kind":"complete","changes":[\#(changes.joined(separator: ","))]}}"#)
 	}
@@ -245,11 +245,11 @@ struct ReviewBenchRig {
 		#"{"kind":"delete","eventId":\#(event.rawValue)}"#
 	}
 
-	private static func ride(on date: CivilDate, minutes: Int) -> String {
+	static func ride(on date: CivilDate, minutes: Int) -> String {
 		#"{"kind":"add-cycling","date":"\#(date.rawValue)","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":55}},{"type":"interval","duration":{"value":\#(minutes - 10),"unit":"minutes"},"power":{"kind":"percent_ftp","value":66}}]},"trainingLoad":\#(minutes / 2)}"#
 	}
 
-	private static func strength(on date: CivilDate, minutes: Int) -> String {
+	static func strength(on date: CivilDate, minutes: Int) -> String {
 		#"{"kind":"add-strength","date":"\#(date.rawValue)","name":"Core","durationMinutes":\#(minutes),"effort":"Easy","description":"Plank 3x45s"}"#
 	}
 }
