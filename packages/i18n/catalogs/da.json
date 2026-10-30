@@ -3193,5 +3193,20 @@
       "cardFailed": "Kort {{position}} af {{count}} kunne ikke vises. Intet blev ændret.",
       "showAgain": "Vis igen"
     }
+  },
+  "yourData": {
+    "title": "Dine data",
+    "deleteEverything": "Slet alt",
+    "confirm": {
+      "title": "Slet alt?",
+      "body": "Dette sletter din samtale, hukommelse, gemte plan, indstillinger og nøgler fra denne iPhone, din iCloud og dine andre enheder samt din kredittpost. Ubrugte kreditter går tabt. Det kan ikke fortrydes."
+    },
+    "keeps": "Din intervals.icu-konto og dine træninger bliver på intervals.icu. Hvis du loggede ind med din egen OpenRouter-konto, skal du slette dens nøgle på OpenRouter.",
+    "progress": "Sletter…",
+    "done": "Alt er slettet fra denne iPhone, din iCloud og kredittjenesten.",
+    "notStarted": "Intet blev slettet. Opret forbindelse til internettet, og prøv igen.",
+    "iCloudLater": "Slettet fra denne iPhone og kredittjenesten. Din iCloud-kopi slettes, næste gang denne iPhone opretter forbindelse til iCloud.",
+    "busy": "Vent, til coachen er færdig, og prøv så igen.",
+    "notFinished": "Ikke alt blev slettet fra denne iPhone. Prøv igen."
   }
 }

@@ -3193,5 +3193,20 @@
       "cardFailed": "Karte {{position}} von {{count}} konnte nicht angezeigt werden. Nichts wurde geändert.",
       "showAgain": "Erneut anzeigen"
     }
+  },
+  "yourData": {
+    "title": "Deine Daten",
+    "deleteEverything": "Alles löschen",
+    "confirm": {
+      "title": "Alles löschen?",
+      "body": "Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone, aus deiner iCloud und von deinen anderen Geräten gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen. Das kann nicht rückgängig gemacht werden."
+    },
+    "keeps": "Dein intervals.icu-Konto und deine Trainings bleiben auf intervals.icu. Wenn du dich mit deinem eigenen OpenRouter-Konto angemeldet hast, lösche dessen Schlüssel bei OpenRouter.",
+    "progress": "Wird gelöscht…",
+    "done": "Alles wurde von diesem iPhone, aus deiner iCloud und aus dem Guthabenpunkte-Dienst gelöscht.",
+    "notStarted": "Es wurde nichts gelöscht. Verbinde dich mit dem Internet und versuche es erneut.",
+    "iCloudLater": "Von diesem iPhone und aus dem Guthabenpunkte-Dienst gelöscht. Deine iCloud-Kopie wird gelöscht, sobald sich dieses iPhone das nächste Mal mit iCloud verbindet.",
+    "busy": "Warte, bis der Coach fertig ist, und versuche es dann erneut.",
+    "notFinished": "Nicht alles wurde von diesem iPhone gelöscht. Versuche es erneut."
   }
 }

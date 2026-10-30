@@ -3193,5 +3193,20 @@
       "cardFailed": "Kort {{position}} av {{count}} kunde inte visas. Inget ändrades.",
       "showAgain": "Visa igen"
     }
+  },
+  "yourData": {
+    "title": "Dina data",
+    "deleteEverything": "Radera allt",
+    "confirm": {
+      "title": "Radera allt?",
+      "body": "Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen, din iCloud och dina andra enheter, samt din kreditpost. Oanvända krediter går förlorade. Det går inte att ångra."
+    },
+    "keeps": "Ditt intervals.icu-konto och dina pass finns kvar på intervals.icu. Om du loggade in med ditt eget OpenRouter-konto raderar du dess nyckel hos OpenRouter.",
+    "progress": "Raderar…",
+    "done": "Allt är raderat från den här iPhonen, din iCloud och kredittjänsten.",
+    "notStarted": "Inget raderades. Anslut till internet och försök igen.",
+    "iCloudLater": "Raderat från den här iPhonen och kredittjänsten. Din iCloud-kopia raderas nästa gång den här iPhonen ansluter till iCloud.",
+    "busy": "Vänta tills coachen är klar och försök sedan igen.",
+    "notFinished": "Allt raderades inte från den här iPhonen. Försök igen."
   }
 }

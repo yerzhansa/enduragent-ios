@@ -3193,5 +3193,20 @@
       "cardFailed": "Não foi possível mostrar o cartão {{position}} de {{count}}. Nada foi alterado.",
       "showAgain": "Mostrar novamente"
     }
+  },
+  "yourData": {
+    "title": "Os teus dados",
+    "deleteEverything": "Apagar tudo",
+    "confirm": {
+      "title": "Apagar tudo?",
+      "body": "Isto apaga a tua conversa, memória, plano guardado, definições e chaves deste iPhone, do teu iCloud e dos teus outros dispositivos, bem como o teu registo de Créditos. Os Créditos não usados perdem-se. Não é possível anular."
+    },
+    "keeps": "A tua conta do intervals.icu e os teus treinos ficam no intervals.icu. Se iniciaste sessão com a tua própria conta do OpenRouter, apaga a chave dela no OpenRouter.",
+    "progress": "A apagar…",
+    "done": "Tudo foi apagado deste iPhone, do teu iCloud e do serviço de Créditos.",
+    "notStarted": "Nada foi apagado. Liga-te à internet e tenta novamente.",
+    "iCloudLater": "Apagado deste iPhone e do serviço de Créditos. A tua cópia no iCloud será apagada da próxima vez que este iPhone se ligar ao iCloud.",
+    "busy": "Espera que o coach termine e tenta novamente.",
+    "notFinished": "Nem tudo foi apagado deste iPhone. Tenta novamente."
   }
 }

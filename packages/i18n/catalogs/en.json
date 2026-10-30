@@ -3193,5 +3193,20 @@
       "cardFailed": "Card {{position}} of {{count}} could not be shown. Nothing was changed.",
       "showAgain": "Show again"
     }
+  },
+  "yourData": {
+    "title": "Your data",
+    "deleteEverything": "Delete everything",
+    "confirm": {
+      "title": "Delete everything?",
+      "body": "This deletes your conversation, memory, saved plan, settings and keys from this iPhone, your iCloud and your other devices, and your Credits record. Unused Credits are lost. This can't be undone."
+    },
+    "keeps": "Your intervals.icu account and workouts stay on intervals.icu. If you signed in with your own OpenRouter account, delete its key on OpenRouter.",
+    "progress": "Deleting…",
+    "done": "Everything is deleted from this iPhone, your iCloud and the Credits service.",
+    "notStarted": "Nothing was deleted. Connect to the internet and try again.",
+    "iCloudLater": "Deleted from this iPhone and the Credits service. Your iCloud copy is deleted the next time this iPhone connects to iCloud.",
+    "busy": "Wait for the coach to finish, then try again.",
+    "notFinished": "Not everything was deleted from this iPhone. Try again."
   }
 }

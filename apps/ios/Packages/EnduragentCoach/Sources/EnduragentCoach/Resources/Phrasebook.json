@@ -392198,6 +392198,1172 @@
           }
         }
       }
+    },
+    "yourData.busy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait for the coach to finish, then try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espera a que el coach termine y vuelve a intentarlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attends que le coach ait terminé, puis réessaie."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aspetta che il coach finisca, poi riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warte, bis der Coach fertig ist, und versuche es dann erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wacht tot de coach klaar is en probeer het dan opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vent, til coachen er færdig, og prøv så igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vänta tills coachen är klar och försök sedan igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vent til coachen er ferdig, og prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odota, että valmentaja on valmis, ja yritä sitten uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espera que o coach termine e tenta novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espere o coach terminar e tente de novo."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poczekaj, aż coach skończy, i spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "코치가 끝날 때까지 기다린 후 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コーチが終わるまで待ってから、もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请等待教练完成后重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請等待教練完成後再試一次。"
+          }
+        }
+      }
+    },
+    "yourData.confirm.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This deletes your conversation, memory, saved plan, settings and keys from this iPhone, your iCloud and your other devices, and your Credits record. Unused Credits are lost. This can't be undone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone, de tu iCloud y de tus otros dispositivos, además de tu registro de Créditos. Los Créditos no usados se pierden. No se puede deshacer."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone, de ton iCloud et de tes autres appareils, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus. Cette action est irréversible."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo elimina la conversazione, la memoria, il piano salvato, le impostazioni e le chiavi da questo iPhone, dal tuo iCloud e dagli altri tuoi dispositivi, oltre al tuo record dei Crediti. I Crediti non usati vanno persi. L’operazione non si può annullare."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone, aus deiner iCloud und von deinen anderen Geräten gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen. Das kann nicht rückgängig gemacht werden."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone, uit je iCloud en van je andere apparaten, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren. Dit kan niet ongedaan worden gemaakt."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette sletter din samtale, hukommelse, gemte plan, indstillinger og nøgler fra denne iPhone, din iCloud og dine andre enheder samt din kredittpost. Ubrugte kreditter går tabt. Det kan ikke fortrydes."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen, din iCloud och dina andra enheter, samt din kreditpost. Oanvända krediter går förlorade. Det går inte att ångra."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette sletter samtalen, minnet, den lagrede planen, innstillingene og nøklene dine fra denne iPhonen, iCloud og de andre enhetene dine, i tillegg til kredittoppføringen din. Ubrukte kreditter går tapt. Dette kan ikke angres."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta, iCloudistasi ja muilta laitteiltasi sekä krediittitietosi. Käyttämättömät krediitit menetetään. Tätä ei voi perua."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isto apaga a tua conversa, memória, plano guardado, definições e chaves deste iPhone, do teu iCloud e dos teus outros dispositivos, bem como o teu registo de Créditos. Os Créditos não usados perdem-se. Não é possível anular."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isso apaga sua conversa, memória, plano salvo, ajustes e chaves deste iPhone, do seu iCloud e dos seus outros dispositivos, além do seu registro de Créditos. Créditos não usados são perdidos. Não é possível desfazer."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a, z twojego iCloud i z innych urządzeń, a także twój rekord kredytów. Niewykorzystane kredyty przepadną. Tego nie można cofnąć."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 iPhone, iCloud, 다른 기기에서 대화, 메모리, 저장된 계획, 설정, 키를 삭제하고 크레딧 기록도 삭제합니다. 사용하지 않은 크레딧은 사라집니다. 이 작업은 되돌릴 수 없습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このiPhone、iCloud、ほかのデバイスから会話、メモリ、保存したプラン、設定、キーを削除し、クレジットの記録も削除します。未使用のクレジットは失われます。この操作は取り消せません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会从此 iPhone、你的 iCloud 和你的其他设备中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失。此操作无法撤销。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這會從此 iPhone、你的 iCloud 和你的其他裝置刪除你的對話、記憶、已儲存的計畫、設定和金鑰，並刪除你的點數紀錄。未使用的點數將會遺失。此動作無法復原。"
+          }
+        }
+      }
+    },
+    "yourData.confirm.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete everything?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar todo?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout supprimer ?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminare tutto?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles löschen?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles verwijderen?"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slet alt?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radera allt?"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slette alt?"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poistetaanko kaikki?"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar tudo?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar tudo?"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunąć wszystko?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모두 삭제할까요?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべて削除しますか？"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除所有内容？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要刪除所有內容嗎？"
+          }
+        }
+      }
+    },
+    "yourData.deleteEverything": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete everything"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar todo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout supprimer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina tutto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles löschen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles verwijderen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slet alt"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radera allt"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slett alt"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poista kaikki"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar tudo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar tudo"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń wszystko"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모두 삭제"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべて削除"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除所有内容"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除所有內容"
+          }
+        }
+      }
+    },
+    "yourData.done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everything is deleted from this iPhone, your iCloud and the Credits service."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo se ha eliminado de este iPhone, de tu iCloud y del servicio de Créditos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout a été supprimé de cet iPhone, de ton iCloud et du service de Crédits."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutto è stato eliminato da questo iPhone, dal tuo iCloud e dal servizio Crediti."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles wurde von diesem iPhone, aus deiner iCloud und aus dem Guthabenpunkte-Dienst gelöscht."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles is verwijderd van deze iPhone, uit je iCloud en uit de tegoedpuntendienst."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alt er slettet fra denne iPhone, din iCloud og kredittjenesten."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allt är raderat från den här iPhonen, din iCloud och kredittjänsten."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alt er slettet fra denne iPhonen, iCloud og kreditttjenesten."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaikki on poistettu tästä iPhonesta, iCloudistasi ja krediittipalvelusta."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tudo foi apagado deste iPhone, do teu iCloud e do serviço de Créditos."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tudo foi apagado deste iPhone, do seu iCloud e do serviço de Créditos."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wszystko zostało usunięte z tego iPhone’a, z twojego iCloud i z usługi kredytów."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 iPhone, iCloud, 크레딧 서비스에서 모두 삭제했습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このiPhone、iCloud、クレジットサービスからすべて削除しました。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有内容已从此 iPhone、你的 iCloud 和积分服务中删除。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有內容已從此 iPhone、你的 iCloud 和點數服務中刪除。"
+          }
+        }
+      }
+    },
+    "yourData.iCloudLater": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted from this iPhone and the Credits service. Your iCloud copy is deleted the next time this iPhone connects to iCloud."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminado de este iPhone y del servicio de Créditos. Tu copia en iCloud se eliminará la próxima vez que este iPhone se conecte a iCloud."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimé de cet iPhone et du service de Crédits. Ta copie iCloud sera supprimée la prochaine fois que cet iPhone se connectera à iCloud."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminato da questo iPhone e dal servizio Crediti. La tua copia su iCloud verrà eliminata la prossima volta che questo iPhone si collega a iCloud."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von diesem iPhone und aus dem Guthabenpunkte-Dienst gelöscht. Deine iCloud-Kopie wird gelöscht, sobald sich dieses iPhone das nächste Mal mit iCloud verbindet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderd van deze iPhone en uit de tegoedpuntendienst. Je iCloud-kopie wordt verwijderd zodra deze iPhone de volgende keer verbinding maakt met iCloud."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slettet fra denne iPhone og kredittjenesten. Din iCloud-kopi slettes, næste gang denne iPhone opretter forbindelse til iCloud."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raderat från den här iPhonen och kredittjänsten. Din iCloud-kopia raderas nästa gång den här iPhonen ansluter till iCloud."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slettet fra denne iPhonen og kreditttjenesten. iCloud-kopien slettes neste gang denne iPhonen kobler til iCloud."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poistettu tästä iPhonesta ja krediittipalvelusta. iCloud-kopiosi poistetaan, kun tämä iPhone seuraavan kerran yhdistää iCloudiin."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagado deste iPhone e do serviço de Créditos. A tua cópia no iCloud será apagada da próxima vez que este iPhone se ligar ao iCloud."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagado deste iPhone e do serviço de Créditos. Sua cópia no iCloud será apagada na próxima vez que este iPhone se conectar ao iCloud."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięto z tego iPhone’a i z usługi kredytów. Kopia w iCloud zostanie usunięta, gdy ten iPhone następnym razem połączy się z iCloud."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 iPhone과 크레딧 서비스에서 삭제했습니다. iCloud 사본은 이 iPhone이 다음에 iCloud에 연결될 때 삭제됩니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このiPhoneとクレジットサービスから削除しました。iCloudのコピーは、次にこのiPhoneがiCloudに接続したときに削除されます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已从此 iPhone 和积分服务中删除。你的 iCloud 副本会在此 iPhone 下次连接 iCloud 时删除。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已從此 iPhone 和點數服務中刪除。你的 iCloud 副本會在此 iPhone 下次連線到 iCloud 時刪除。"
+          }
+        }
+      }
+    },
+    "yourData.keeps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your intervals.icu account and workouts stay on intervals.icu. If you signed in with your own OpenRouter account, delete its key on OpenRouter."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu cuenta de intervals.icu y tus entrenamientos se quedan en intervals.icu. Si iniciaste sesión con tu propia cuenta de OpenRouter, elimina su clave en OpenRouter."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton compte intervals.icu et tes entraînements restent sur intervals.icu. Si tu t’es connecté avec ton propre compte OpenRouter, supprime sa clé sur OpenRouter."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo account intervals.icu e i tuoi allenamenti restano su intervals.icu. Se hai effettuato l’accesso con il tuo account OpenRouter, elimina la sua chiave su OpenRouter."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein intervals.icu-Konto und deine Trainings bleiben auf intervals.icu. Wenn du dich mit deinem eigenen OpenRouter-Konto angemeldet hast, lösche dessen Schlüssel bei OpenRouter."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je intervals.icu-account en trainingen blijven op intervals.icu. Als je bent ingelogd met je eigen OpenRouter-account, verwijder dan de sleutel daarvan bij OpenRouter."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din intervals.icu-konto og dine træninger bliver på intervals.icu. Hvis du loggede ind med din egen OpenRouter-konto, skal du slette dens nøgle på OpenRouter."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ditt intervals.icu-konto och dina pass finns kvar på intervals.icu. Om du loggade in med ditt eget OpenRouter-konto raderar du dess nyckel hos OpenRouter."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu-kontoen og øktene dine blir værende på intervals.icu. Hvis du logget på med din egen OpenRouter-konto, sletter du nøkkelen hos OpenRouter."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu-tilisi ja harjoituksesi jäävät intervals.icuun. Jos kirjauduit omalla OpenRouter-tililläsi, poista sen avain OpenRouterissa."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tua conta do intervals.icu e os teus treinos ficam no intervals.icu. Se iniciaste sessão com a tua própria conta do OpenRouter, apaga a chave dela no OpenRouter."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua conta do intervals.icu e seus treinos continuam no intervals.icu. Se você entrou com sua própria conta do OpenRouter, apague a chave dela no OpenRouter."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje konto intervals.icu i treningi zostają w intervals.icu. Jeśli zalogowano cię własnym kontem OpenRouter, usuń jego klucz w OpenRouter."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu 계정과 운동은 intervals.icu에 남아 있습니다. 직접 OpenRouter 계정으로 로그인했다면 OpenRouter에서 해당 키를 삭제하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icuのアカウントとワークアウトはintervals.icuに残ります。自分のOpenRouterアカウントでサインインした場合は、OpenRouterでそのキーを削除してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的 intervals.icu 账户和训练会保留在 intervals.icu 上。如果你使用自己的 OpenRouter 账户登录，请在 OpenRouter 上删除其密钥。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的 intervals.icu 帳戶和訓練會保留在 intervals.icu 上。如果你使用自己的 OpenRouter 帳戶登入，請在 OpenRouter 上刪除其金鑰。"
+          }
+        }
+      }
+    },
+    "yourData.notFinished": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not everything was deleted from this iPhone. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se eliminó todo de este iPhone. Vuelve a intentarlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout n’a pas été supprimé de cet iPhone. Réessaie."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non tutto è stato eliminato da questo iPhone. Riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht alles wurde von diesem iPhone gelöscht. Versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet alles is van deze iPhone verwijderd. Probeer het opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikke alt blev slettet fra denne iPhone. Prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allt raderades inte från den här iPhonen. Försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikke alt ble slettet fra denne iPhonen. Prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaikkea ei poistettu tästä iPhonesta. Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nem tudo foi apagado deste iPhone. Tenta novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nem tudo foi apagado deste iPhone. Tente de novo."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie wszystko zostało usunięte z tego iPhone’a. Spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 iPhone에서 일부 데이터를 삭제하지 못했습니다. 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このiPhoneから一部のデータを削除できませんでした。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 iPhone 上的部分内容未能删除。请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 iPhone 上的部分內容未能刪除。請再試一次。"
+          }
+        }
+      }
+    },
+    "yourData.notStarted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing was deleted. Connect to the internet and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se eliminó nada. Conéctate a internet y vuelve a intentarlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien n’a été supprimé. Connecte-toi à internet et réessaie."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato eliminato nulla. Connettiti a internet e riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es wurde nichts gelöscht. Verbinde dich mit dem Internet und versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is niets verwijderd. Maak verbinding met internet en probeer het opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intet blev slettet. Opret forbindelse til internettet, og prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget raderades. Anslut till internet och försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingenting ble slettet. Koble til internett og prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitään ei poistettu. Yhdistä internetiin ja yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada foi apagado. Liga-te à internet e tenta novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada foi apagado. Conecte-se à internet e tente de novo."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nic nie zostało usunięte. Połącz się z internetem i spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아무것도 삭제되지 않았습니다. 인터넷에 연결한 후 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "何も削除されませんでした。インターネットに接続して、もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有删除任何内容。请连接互联网后重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有刪除任何內容。請連線到網際網路後再試一次。"
+          }
+        }
+      }
+    },
+    "yourData.progress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminando…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suppression…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminazione…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird gelöscht…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderen…"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sletter…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raderar…"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sletter…"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poistetaan…"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A apagar…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagando…"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuwanie…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "삭제 중…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除中…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在删除…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在刪除…"
+          }
+        }
+      }
+    },
+    "yourData.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your data"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus datos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tes données"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I tuoi dati"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Daten"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je gegevens"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dine data"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dina data"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dine data"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tietosi"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os teus dados"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus dados"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje dane"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 데이터"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたのデータ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的数据"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的資料"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -3193,5 +3193,20 @@
       "cardFailed": "La carte {{position}} sur {{count}} n’a pas pu s’afficher. Rien n’a été modifié.",
       "showAgain": "Afficher à nouveau"
     }
+  },
+  "yourData": {
+    "title": "Tes données",
+    "deleteEverything": "Tout supprimer",
+    "confirm": {
+      "title": "Tout supprimer ?",
+      "body": "Cela supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone, de ton iCloud et de tes autres appareils, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus. Cette action est irréversible."
+    },
+    "keeps": "Ton compte intervals.icu et tes entraînements restent sur intervals.icu. Si tu t’es connecté avec ton propre compte OpenRouter, supprime sa clé sur OpenRouter.",
+    "progress": "Suppression…",
+    "done": "Tout a été supprimé de cet iPhone, de ton iCloud et du service de Crédits.",
+    "notStarted": "Rien n’a été supprimé. Connecte-toi à internet et réessaie.",
+    "iCloudLater": "Supprimé de cet iPhone et du service de Crédits. Ta copie iCloud sera supprimée la prochaine fois que cet iPhone se connectera à iCloud.",
+    "busy": "Attends que le coach ait terminé, puis réessaie.",
+    "notFinished": "Tout n’a pas été supprimé de cet iPhone. Réessaie."
   }
 }

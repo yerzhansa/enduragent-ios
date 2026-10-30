@@ -3149,5 +3149,20 @@
       "cardFailed": "無法顯示第 {{position}}/{{count}} 張卡片。未進行任何變更。",
       "showAgain": "再次顯示"
     }
+  },
+  "yourData": {
+    "title": "你的資料",
+    "deleteEverything": "刪除所有內容",
+    "confirm": {
+      "title": "要刪除所有內容嗎？",
+      "body": "這會從此 iPhone、你的 iCloud 和你的其他裝置刪除你的對話、記憶、已儲存的計畫、設定和金鑰，並刪除你的點數紀錄。未使用的點數將會遺失。此動作無法復原。"
+    },
+    "keeps": "你的 intervals.icu 帳戶和訓練會保留在 intervals.icu 上。如果你使用自己的 OpenRouter 帳戶登入，請在 OpenRouter 上刪除其金鑰。",
+    "progress": "正在刪除…",
+    "done": "所有內容已從此 iPhone、你的 iCloud 和點數服務中刪除。",
+    "notStarted": "沒有刪除任何內容。請連線到網際網路後再試一次。",
+    "iCloudLater": "已從此 iPhone 和點數服務中刪除。你的 iCloud 副本會在此 iPhone 下次連線到 iCloud 時刪除。",
+    "busy": "請等待教練完成後再試一次。",
+    "notFinished": "此 iPhone 上的部分內容未能刪除。請再試一次。"
   }
 }

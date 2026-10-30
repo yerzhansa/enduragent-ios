@@ -3193,5 +3193,20 @@
       "cardFailed": "No se pudo mostrar la tarjeta {{position}} de {{count}}. No se cambió nada.",
       "showAgain": "Mostrar de nuevo"
     }
+  },
+  "yourData": {
+    "title": "Tus datos",
+    "deleteEverything": "Eliminar todo",
+    "confirm": {
+      "title": "¿Eliminar todo?",
+      "body": "Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone, de tu iCloud y de tus otros dispositivos, además de tu registro de Créditos. Los Créditos no usados se pierden. No se puede deshacer."
+    },
+    "keeps": "Tu cuenta de intervals.icu y tus entrenamientos se quedan en intervals.icu. Si iniciaste sesión con tu propia cuenta de OpenRouter, elimina su clave en OpenRouter.",
+    "progress": "Eliminando…",
+    "done": "Todo se ha eliminado de este iPhone, de tu iCloud y del servicio de Créditos.",
+    "notStarted": "No se eliminó nada. Conéctate a internet y vuelve a intentarlo.",
+    "iCloudLater": "Eliminado de este iPhone y del servicio de Créditos. Tu copia en iCloud se eliminará la próxima vez que este iPhone se conecte a iCloud.",
+    "busy": "Espera a que el coach termine y vuelve a intentarlo.",
+    "notFinished": "No se eliminó todo de este iPhone. Vuelve a intentarlo."
   }
 }

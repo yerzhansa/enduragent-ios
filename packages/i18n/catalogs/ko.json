@@ -3149,5 +3149,20 @@
       "cardFailed": "카드 {{position}}/{{count}}을(를) 표시할 수 없습니다. 아무것도 변경되지 않았습니다.",
       "showAgain": "다시 표시"
     }
+  },
+  "yourData": {
+    "title": "내 데이터",
+    "deleteEverything": "모두 삭제",
+    "confirm": {
+      "title": "모두 삭제할까요?",
+      "body": "이 iPhone, iCloud, 다른 기기에서 대화, 메모리, 저장된 계획, 설정, 키를 삭제하고 크레딧 기록도 삭제합니다. 사용하지 않은 크레딧은 사라집니다. 이 작업은 되돌릴 수 없습니다."
+    },
+    "keeps": "intervals.icu 계정과 운동은 intervals.icu에 남아 있습니다. 직접 OpenRouter 계정으로 로그인했다면 OpenRouter에서 해당 키를 삭제하세요.",
+    "progress": "삭제 중…",
+    "done": "이 iPhone, iCloud, 크레딧 서비스에서 모두 삭제했습니다.",
+    "notStarted": "아무것도 삭제되지 않았습니다. 인터넷에 연결한 후 다시 시도하세요.",
+    "iCloudLater": "이 iPhone과 크레딧 서비스에서 삭제했습니다. iCloud 사본은 이 iPhone이 다음에 iCloud에 연결될 때 삭제됩니다.",
+    "busy": "코치가 끝날 때까지 기다린 후 다시 시도하세요.",
+    "notFinished": "이 iPhone에서 일부 데이터를 삭제하지 못했습니다. 다시 시도하세요."
   }
 }

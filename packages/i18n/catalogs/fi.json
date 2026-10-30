@@ -3193,5 +3193,20 @@
       "cardFailed": "Korttia {{position}}/{{count}} ei voitu näyttää. Mitään ei muutettu.",
       "showAgain": "Näytä uudelleen"
     }
+  },
+  "yourData": {
+    "title": "Tietosi",
+    "deleteEverything": "Poista kaikki",
+    "confirm": {
+      "title": "Poistetaanko kaikki?",
+      "body": "Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta, iCloudistasi ja muilta laitteiltasi sekä krediittitietosi. Käyttämättömät krediitit menetetään. Tätä ei voi perua."
+    },
+    "keeps": "intervals.icu-tilisi ja harjoituksesi jäävät intervals.icuun. Jos kirjauduit omalla OpenRouter-tililläsi, poista sen avain OpenRouterissa.",
+    "progress": "Poistetaan…",
+    "done": "Kaikki on poistettu tästä iPhonesta, iCloudistasi ja krediittipalvelusta.",
+    "notStarted": "Mitään ei poistettu. Yhdistä internetiin ja yritä uudelleen.",
+    "iCloudLater": "Poistettu tästä iPhonesta ja krediittipalvelusta. iCloud-kopiosi poistetaan, kun tämä iPhone seuraavan kerran yhdistää iCloudiin.",
+    "busy": "Odota, että valmentaja on valmis, ja yritä sitten uudelleen.",
+    "notFinished": "Kaikkea ei poistettu tästä iPhonesta. Yritä uudelleen."
   }
 }
