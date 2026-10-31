@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -8,78 +9,83 @@ import Testing
 	let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	@Test func memoryReadOmittedWhenNotesAreStampOnly() async throws {
-		let store = InMemoryRecordLog()
-		let memory = Memory(store: store, clock: clock)
-		try await memory.writeSection(.notes, content: "", source: .chat)
-		let view = try await memory.view()
-		let schemas = runtime(store: store).toolsForTurn(chatId: .main, memory: view)
+		let ledger = Ledger(
+			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let memory = Memory(ledger: ledger, clock: clock)
+		try await memory.writeSection(.notes, content: "", source: .chat, stamp: testStamp())
+		let view = try await memory.prompt(for: .unconnected).view
+		let schemas = makeToolOffer(
+			training: .unconnected, ledger: ledger, clock: clock, memory: view
+		).schemas
 		#expect(!schemas.map(\.name).contains(.memoryRead))
-		try await memory.writeSection(.notes, content: "- Prefers hill repeats", source: .chat)
-		let withNotes = try await memory.view()
-		let offered = runtime(store: store).toolsForTurn(chatId: .main, memory: withNotes)
+		try await memory.writeSection(
+			.notes, content: "- Prefers hill repeats", source: .chat, stamp: testStamp())
+		let withNotes = try await memory.prompt(for: .unconnected).view
+		let offered = makeToolOffer(
+			training: .unconnected, ledger: ledger, clock: clock, memory: withNotes
+		).schemas
 		#expect(offered.map(\.name).contains(.memoryRead))
 	}
 
-	@Test func ledgerAppendReturnsDuplicateFlag() async throws {
+	@Test func ledgerAppendReportsACommitOnlyWhenRecorded() async throws {
 		let store = InMemoryRecordLog()
 		let tools = runtime(store: store)
+		let arguments = try JSONValue.parse(
+			#"{"date":"1998-06-13","kind":"decision","text":"Rides with a group on Saturdays"}"#
+		)
 		let first = try await tools.execute(
-			name: .ledgerAppend,
-			arguments: try JSONValue.parse(
-				#"{"date":"1998-06-13","kind":"decision","text":"Rides with a group on Saturdays"}"#
-			),
-			chatId: .main,
-			state: turnState()
-		)
+			name: .ledgerAppend, arguments: arguments, scope: turnScope())
 		let second = try await tools.execute(
-			name: .ledgerAppend,
+			name: .ledgerAppend, arguments: arguments, scope: turnScope())
+		#expect(unwrap(first.outcome).objectFields["recorded"]?.boolValue == true)
+		#expect(first.commit == CommittedWrite(tool: .ledgerAppend))
+		#expect(unwrap(second.outcome).objectFields["recorded"]?.boolValue == false)
+		#expect(unwrap(second.outcome).objectFields["duplicate"]?.boolValue == true)
+		#expect(second.commit == nil)
+	}
+
+	@Test func memoryWriteReportsACommitOnlyAfterARecordIsSaved() async throws {
+		let store = InMemoryRecordLog()
+		let tools = runtime(store: store)
+		let section = try await tools.execute(
+			name: .memoryWrite,
 			arguments: try JSONValue.parse(
-				#"{"date":"1998-06-13","kind":"decision","text":"Rides with a group on Saturdays"}"#
-			),
-			chatId: .main,
-			state: turnState()
+				#"{"type":"memory","section":"schedule","content":"Rides on Saturdays"}"#),
+			scope: turnScope()
 		)
-		#expect(unwrap(first).objectFields["recorded"]?.boolValue == true)
-		#expect(unwrap(second).objectFields["recorded"]?.boolValue == false)
-		#expect(unwrap(second).objectFields["duplicate"]?.boolValue == true)
-	}
-
-	@Test func memoryQueryInvalidRangeReturnsCopiedError() async throws {
-		let outcome = try await runtime().execute(
-			name: .memoryQuery,
-			arguments: try JSONValue.parse(#"{"from":"1998-06-30","to":"1998-06-01"}"#),
-			chatId: .main,
-			state: turnState()
+		let refused = try await tools.execute(
+			name: .memoryWrite,
+			arguments: try JSONValue.parse(
+				#"{"type":"memory","section":"nonsense","content":"Rides on Saturdays"}"#),
+			scope: turnScope()
 		)
-		#expect(
-			unwrapString(outcome)
-				== "Error: 'from' (1998-06-30) is after 'to' (1998-06-01). Swap the bounds."
-		)
-	}
-
-	@Test func memoryQueryInvalidDateReturnsCopiedError() async throws {
-		let outcome = try await runtime().execute(
-			name: .memoryQuery,
-			arguments: try JSONValue.parse(#"{"from":"1998-02-31","to":"1998-03-01"}"#),
-			chatId: .main,
-			state: turnState()
-		)
-		#expect(
-			unwrapString(outcome)
-				== "Error: 1998-02-31..1998-03-01 contains an invalid calendar date. Use real YYYY-MM-DD dates."
-		)
+		let daily = try JSONValue.parse(#"{"type":"daily","content":"Group ride on Saturdays"}"#)
+		let note = try await tools.execute(
+			name: .memoryWrite, arguments: daily, scope: turnScope())
+		let repeated = try await tools.execute(
+			name: .memoryWrite, arguments: daily, scope: turnScope())
+		#expect(section.commit == CommittedWrite(tool: .memoryWrite))
+		#expect(refused.commit == nil)
+		#expect(note.commit == CommittedWrite(tool: .memoryWrite))
+		#expect(repeated.commit == nil)
+		let sections = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
+		let notes = try await store.fetch(RecordQuery(scope: .synced([.dailyNote]))).records
+		#expect(sections.count == 1)
+		#expect(notes.count == 1)
 	}
 
 	@Test func memoryWriteAcceptsOrphanName() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(store: store, clock: clock)
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let memory = Memory(ledger: ledger, clock: clock)
 		try await memory.writeSection(
-			SectionName(rawValue: "random-legacy"), content: "stale orphan body", source: .chat)
+			SectionName(rawValue: "random-legacy"), content: "stale orphan body", source: .chat,
+			stamp: testStamp())
 		let tools = runtime(store: store)
-		let view = try await memory.view()
-		let schema = tools.toolsForTurn(chatId: .main, memory: view).first {
-			$0.name == .memoryWrite
-		}
+		let view = try await memory.prompt(for: .unconnected).view
+		let schema = makeToolOffer(
+			training: .unconnected, ledger: ledger, clock: clock, memory: view
+		).schemas.first { $0.name == .memoryWrite }
 		let encoded = canonicalJSON(schema?.parameters ?? .null)
 		#expect(encoded.contains("random-legacy"))
 		let result = try await tools.execute(
@@ -87,9 +93,8 @@ import Testing
 			arguments: try JSONValue.parse(
 				#"{"type":"memory","section":"random-legacy","content":"updated orphan"}"#
 			),
-			chatId: .main,
-			state: turnState()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(unwrap(result).objectFields["saved"]?.boolValue == true)
 	}
 
@@ -99,11 +104,10 @@ import Testing
 			name: .memoryWrite,
 			arguments: try JSONValue.parse(
 				#"{"type":"daily","content":"Group ride on Saturdays"}"#),
-			chatId: .main,
-			state: turnState()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(unwrap(result).objectFields["saved"]?.boolValue == true)
-		let notes = try await store.fetch(RecordQuery(kinds: [.dailyNote]))
+		let notes = try await store.fetch(RecordQuery(scope: .synced([.dailyNote]))).records
 		#expect(notes.count == 1)
 	}
 
@@ -112,29 +116,15 @@ import Testing
 		return json.objectFields["data"] ?? json
 	}
 
-	private func unwrapString(_ outcome: ToolOutcome) -> String {
-		unwrap(outcome).stringValue ?? ""
-	}
-
-	private func runtime(store: InMemoryRecordLog = InMemoryRecordLog()) -> ToolRuntime {
-		ToolRuntime(
+	private func runtime(store: InMemoryRecordLog = InMemoryRecordLog()) -> OfferedTools {
+		makeOfferedTools(
 			intervals: intervals,
-			store: store,
-			planning: Planning(store: store, intervals: intervals, clock: clock),
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock
 		)
 	}
 
-	private func turnState() -> TurnState {
-		TurnState(
-			chatId: .main,
-			messages: [],
-			windowStart: nil,
-			pending: nil,
-			writesCommitted: 0,
-			flushedThisTurn: false,
-			lastFlushMessageCount: 0,
-			steps: 0
-		)
+	private func turnScope() -> TurnScope {
+		TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero)
 	}
 }

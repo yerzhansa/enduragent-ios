@@ -1,0 +1,69 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000314",
+  "chat": "main",
+  "finished": [
+    {
+      "change": {
+        "action": {
+          "edit": {
+            "patch": {
+              "name": "Hill repeats"
+            },
+            "target": {
+              "reviewed": {
+                "event": 117,
+                "snapshot": {
+                  "date": "1998-07-14",
+                  "durationSeconds": 3600,
+                  "name": "Hills"
+                }
+              }
+            }
+          }
+        },
+        "id": "00T47DW5000000000000000423",
+        "position": 0
+      },
+      "result": {
+        "seenOnCalendar": {
+          "event": 117
+        }
+      }
+    }
+  ],
+  "id": "00T47DW5000000000000000114",
+  "kept": [],
+  "remaining": [
+    {
+      "action": {
+        "add": {
+          "identity": "A8098C1A-F86E-11DA-BD1A-00112444BE1E",
+          "payload": {
+            "date": "1998-07-15",
+            "description": "Easy\n- 30m Z2",
+            "movingTime": 7200,
+            "name": "Group ride",
+            "trainingLoad": 90,
+            "type": "Ride"
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000424",
+      "position": 1
+    }
+  ],
+  "revision": 1,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "tryAgain": {
+          "_0": {
+            "settled": {}
+          }
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000214"
+}

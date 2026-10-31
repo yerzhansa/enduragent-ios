@@ -1,54 +1,21 @@
 import Foundation
 
-public enum CoachEvent: Sendable, Equatable {
-	case textDelta(String)
-	case toolStarted(name: String, callId: String)
-	case toolFinished(name: String, callId: String)
-	case proposalPending(PendingProposal)
-	case planCard(PlanCard)
-	case languagePicker
-	case finished
-	case failed(message: String)
-	case interrupted(text: String)
-}
+package struct ChatMessage: Sendable, Equatable {
+	package let author: Author
+	package let text: String
 
-public struct ChatMessage: Sendable, Equatable {
-	public var role: Role
-	public var text: String
-	public var civilDate: CivilDate?
-
-	public init(role: Role, text: String, civilDate: CivilDate? = nil) {
-		self.role = role
+	package init(author: Author, text: String) {
+		self.author = author
 		self.text = text
-		self.civilDate = civilDate
 	}
 
-	public enum Role: String, Sendable {
-		case user
-		case assistant
-	}
-}
-
-public enum ConfirmOutcome: Sendable, Equatable {
-	case executed(summary: String)
-	case refused(message: String)
-	case failed(message: String)
-	case expired
-	case mismatch
-	case none
-}
-
-public struct LanguagePreference: Sendable, Equatable {
-	public var ui: LanguageTag
-	public var coachReply: LanguageTag?
-
-	public init(ui: LanguageTag, coachReply: LanguageTag?) {
-		self.ui = ui
-		self.coachReply = coachReply
+	package enum Author: Sendable, Equatable {
+		case athlete(sent: Date, timeZone: IANATimeZone)
+		case coach
 	}
 }
 
-public enum ToolName: String, Sendable {
+public enum ToolName: String, Sendable, CaseIterable {
 	case calculateZones = "calculate_zones"
 	case buildPlanSkeleton = "build_plan_skeleton"
 	case assessFeasibility = "assess_feasibility"
@@ -59,10 +26,8 @@ public enum ToolName: String, Sendable {
 	case intervalsFetchStreams = "intervals_fetch_streams"
 	case intervalsFetchActivities = "intervals_fetch_activities"
 	case intervalsListEvents = "intervals_list_events"
-	case intervalsCreateWorkout = "intervals_create_workout"
-	case intervalsCreateStrengthWorkout = "intervals_create_strength_workout"
-	case intervalsDeleteWorkout = "intervals_delete_workout"
-	case intervalsUpdateWorkout = "intervals_update_workout"
+	case getPendingWorkoutChanges = "get_pending_workout_changes"
+	case prepareWorkoutChanges = "prepare_workout_changes"
 	case memoryRead = "memory_read"
 	case memoryQuery = "memory_query"
 	case memoryWrite = "memory_write"
@@ -71,38 +36,70 @@ public enum ToolName: String, Sendable {
 	case planLoad = "plan_load"
 }
 
-public enum GatedToolName: String, Sendable {
-	case intervalsCreateWorkout = "intervals_create_workout"
-	case intervalsCreateStrengthWorkout = "intervals_create_strength_workout"
-	case intervalsDeleteWorkout = "intervals_delete_workout"
-	case intervalsUpdateWorkout = "intervals_update_workout"
-	case planSave = "plan_save"
+package enum ReplayUnsafeToolName: String, Sendable {
+	case memoryWrite = "memory_write"
+	case ledgerAppend = "ledger_append"
 
-	public var toolName: ToolName {
+	var toolName: ToolName {
 		switch self {
-		case .intervalsCreateWorkout: .intervalsCreateWorkout
-		case .intervalsCreateStrengthWorkout: .intervalsCreateStrengthWorkout
-		case .intervalsDeleteWorkout: .intervalsDeleteWorkout
-		case .intervalsUpdateWorkout: .intervalsUpdateWorkout
+		case .memoryWrite: .memoryWrite
+		case .ledgerAppend: .ledgerAppend
+		}
+	}
+}
+
+enum ReadToolName: Sendable {
+	case calculateZones
+	case buildPlanSkeleton
+	case assessFeasibility
+	case getSampleWeek
+	case intervalsFetchAthlete
+	case intervalsFetchWellness
+	case intervalsFetchActivity
+	case intervalsFetchStreams
+	case intervalsFetchActivities
+	case intervalsListEvents
+
+	var toolName: ToolName {
+		switch self {
+		case .calculateZones: .calculateZones
+		case .buildPlanSkeleton: .buildPlanSkeleton
+		case .assessFeasibility: .assessFeasibility
+		case .getSampleWeek: .getSampleWeek
+		case .intervalsFetchAthlete: .intervalsFetchAthlete
+		case .intervalsFetchWellness: .intervalsFetchWellness
+		case .intervalsFetchActivity: .intervalsFetchActivity
+		case .intervalsFetchStreams: .intervalsFetchStreams
+		case .intervalsFetchActivities: .intervalsFetchActivities
+		case .intervalsListEvents: .intervalsListEvents
+		}
+	}
+}
+
+enum PreparationToolName: Sendable {
+	case getPendingWorkoutChanges
+	case prepareWorkoutChanges
+	case planSave
+
+	var toolName: ToolName {
+		switch self {
+		case .getPendingWorkoutChanges: .getPendingWorkoutChanges
+		case .prepareWorkoutChanges: .prepareWorkoutChanges
 		case .planSave: .planSave
 		}
 	}
-
-	public static let all: Set<GatedToolName> = [
-		.intervalsCreateWorkout,
-		.intervalsCreateStrengthWorkout,
-		.intervalsDeleteWorkout,
-		.intervalsUpdateWorkout,
-		.planSave,
-	]
 }
 
-public enum ReplayUnsafeToolName: String, Sendable {
-	case intervalsCreateWorkout = "intervals_create_workout"
-	case intervalsCreateStrengthWorkout = "intervals_create_strength_workout"
-	case intervalsDeleteWorkout = "intervals_delete_workout"
-	case intervalsUpdateWorkout = "intervals_update_workout"
-	case memoryWrite = "memory_write"
-	case ledgerAppend = "ledger_append"
-	case planSave = "plan_save"
+enum MemoryReadToolName: Sendable {
+	case memoryRead
+	case memoryQuery
+	case planLoad
+
+	var toolName: ToolName {
+		switch self {
+		case .memoryRead: .memoryRead
+		case .memoryQuery: .memoryQuery
+		case .planLoad: .planLoad
+		}
+	}
 }

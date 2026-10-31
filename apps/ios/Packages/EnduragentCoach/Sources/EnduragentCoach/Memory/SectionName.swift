@@ -1,23 +1,23 @@
 import Foundation
 
-public struct SectionName: RawRepresentable, Hashable, Sendable {
-	public let rawValue: String
+package struct SectionName: RawRepresentable, Hashable, Sendable {
+	package let rawValue: String
 
-	public init(rawValue: String) {
+	package init(rawValue: String) {
 		self.rawValue = rawValue
 	}
 
-	public static let person = SectionName(rawValue: "person")
-	public static let schedule = SectionName(rawValue: "schedule")
-	public static let goals = SectionName(rawValue: "goals")
-	public static let preferences = SectionName(rawValue: "preferences")
-	public static let notes = SectionName(rawValue: "notes")
-	public static let medicalHistory = SectionName(rawValue: "medical-history")
-	public static let cyclingProfile = SectionName(rawValue: "cycling-profile")
-	public static let cyclingEquipment = SectionName(rawValue: "cycling-equipment")
-	public static let cyclingHistory = SectionName(rawValue: "cycling-history")
+	package static let person = SectionName(rawValue: "person")
+	package static let schedule = SectionName(rawValue: "schedule")
+	package static let goals = SectionName(rawValue: "goals")
+	package static let preferences = SectionName(rawValue: "preferences")
+	package static let notes = SectionName(rawValue: "notes")
+	package static let medicalHistory = SectionName(rawValue: "medical-history")
+	package static let cyclingProfile = SectionName(rawValue: "cycling-profile")
+	package static let cyclingEquipment = SectionName(rawValue: "cycling-equipment")
+	package static let cyclingHistory = SectionName(rawValue: "cycling-history")
 
-	public var inject: Bool {
+	package var inject: Bool {
 		switch rawValue {
 		case SectionName.notes.rawValue, SectionName.cyclingEquipment.rawValue,
 			SectionName.cyclingHistory.rawValue:
@@ -27,16 +27,16 @@ public struct SectionName: RawRepresentable, Hashable, Sendable {
 		}
 	}
 
-	public static let cyclingEffective: [SectionName] = [
+	package static let cyclingEffective: [SectionName] = [
 		.person, .schedule, .goals, .preferences, .notes, .medicalHistory,
 		.cyclingProfile, .cyclingEquipment, .cyclingHistory,
 	]
 
-	public static var declaredNames: Set<String> {
+	package static var declaredNames: Set<String> {
 		Set(cyclingEffective.map(\.rawValue))
 	}
 
-	public var hint: String {
+	package var hint: String {
 		switch rawValue {
 		case SectionName.person.rawValue:
 			return "name, weight, age, available training days"
@@ -61,7 +61,7 @@ public struct SectionName: RawRepresentable, Hashable, Sendable {
 		}
 	}
 
-	public var sectionDescription: String {
+	package var sectionDescription: String {
 		switch rawValue {
 		case SectionName.person.rawValue:
 			return

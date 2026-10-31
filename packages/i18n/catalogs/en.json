@@ -1,4 +1,26 @@
 {
+  "about": {
+    "title": "About",
+    "privacyPolicy": "Privacy policy",
+    "version": "Version"
+  },
+  "access": {
+    "error": {
+      "locked": "Unlock your iPhone to continue. Your message is saved.",
+      "notConfigured": "Choose how the coach reaches a model to continue.",
+      "requestBlocked": "OpenRouter blocked this request. Try a different model or message.",
+      "providerConsentRequired": "Your permission is needed before sharing chat data with AI providers.",
+      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
+      "storageUnavailable": "Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again.",
+      "malformed": "Your saved access method couldn't be read. Choose an access method to continue."
+    },
+    "title": "Access method",
+    "openRouterAccount": "OpenRouter account",
+    "signIn": "Sign in with OpenRouter",
+    "signInCancelled": "Sign-in cancelled. Your access method was not changed.",
+    "signInIncomplete": "OpenRouter sign-in didn't complete. Your access method was not changed. Try again.",
+    "switchToOpenRouter": "Switch to OpenRouter"
+  },
   "archive": {
     "athlete": "You",
     "back": "All past chats",
@@ -11,16 +33,15 @@
       "title": "Delete this conversation?"
     },
     "empty": "No past conversations yet. Starting a new conversation keeps the old one here.",
-    "history": "History",
     "emptyConversation": "This conversation has no readable messages.",
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Past conversations are temporarily unavailable.",
-    "loadEarlier": "Load earlier messages",
     "loading": "Loading past conversations…",
     "pageFailure": "This conversation is temporarily unavailable.",
     "readOnly": "Past conversations are read-only.",
     "reason": {
+      "earlierChat": "Earlier chat",
       "explicit": "You started a new conversation",
       "stale": "Closed after a break"
     },
@@ -30,12 +51,11 @@
     "truncated": "Only the most recent past conversations are listed.",
     "turnCount_one": "{{formattedCount}} message",
     "turnCount_other": "{{formattedCount}} messages",
-    "unavailable": "This conversation is no longer available."
+    "unavailable": "This conversation is no longer available.",
+    "history": "History",
+    "savedForAnotherAthlete": "Saved for another intervals.icu athlete ({{id}})"
   },
   "chat": {
-    "addToCalendar": "Add to calendar",
-    "menu": "Menu",
-    "title": "Coach",
     "attachment": {
       "activity": "Recorded activity",
       "adding": "Adding files…",
@@ -114,11 +134,10 @@
       "attach": "Attach files",
       "finishPlanQuestion": "Finish the Plan question above",
       "label": "Message your coach",
-      "messageField": "Message",
       "messagePlaceholder": "Message your coach",
+      "notSent": "Not sent. Your draft is still here.",
       "responding": "Coach is responding…",
       "send": "Send message",
-      "sendButton": "Send",
       "stop": "Stop responding"
     },
     "date": {
@@ -152,7 +171,6 @@
     },
     "history": {
       "failure": "Conversation history is temporarily unavailable.",
-      "loadEarlier": "Load earlier messages",
       "retry": "Retry history"
     },
     "newConversation": {
@@ -161,6 +179,7 @@
       "cancel": "Cancel",
       "confirm": "Start new conversation",
       "hydrated": "Your visible conversation and the earlier messages restored on {{computer}} will be cleared. Your training data and saved coach memory will remain.",
+      "label": "New conversation",
       "title": "Start a new conversation?"
     },
     "notice": {
@@ -184,13 +203,17 @@
       "planningRequestLoadFailure": "We couldn’t check saved Plan requests. Reconnect and try again.",
       "protocolFailure": "The coaching response could not be verified. Please try again.",
       "questionSkipped": "Question skipped",
+      "replyUnsaved": "Couldn't save this reply. Keep the app open while saving is retried.",
       "queueLoadFailure": "We couldn’t check your saved messages. Reconnect and try again.",
       "queueRemoveFailure": "We couldn’t remove that saved message. Try again.",
       "responseFailure": "The coach couldn't respond. Please try again.",
-      "responseStopped": "Response stopped. Your partial response is preserved.",
       "retryMessage": "Retry message",
       "savedChoice": "Saved choice",
-      "working": "Coach is working…"
+      "calendarUnverified": "The calendar change may have been saved. Check your calendar before asking again.",
+      "savedUnverified": "I saved your information, but couldn't verify my response. Please try again.",
+      "working": "Coach is working…",
+      "responseStopped": "Response stopped. Your partial response is preserved.",
+      "startingNewConversation": "Starting a new conversation…"
     },
     "planChange": {
       "activePlan": "Active Plan",
@@ -611,6 +634,14 @@
         "review": "Review the structured Proposal in Plan; the active Plan is unchanged."
       }
     },
+    "turn": {
+      "chooseAccessMethod": "Choose access method",
+      "finishedWhileLocked": "Finished while the phone was locked.",
+      "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
+      "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
+      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
+      "signInAgain": "Sign in again"
+    },
     "view": {
       "closeContext": "Close",
       "confirmation": "Training changes need your confirmation.",
@@ -621,6 +652,41 @@
       "hideContext": "Hide training context",
       "showContext": "Show training context",
       "title": "Chat"
+    },
+    "menu": "Menu",
+    "welcome": "Welcome to {{product}}!\n\nI'm your AI cycling coach. I can build training plans, suggest workouts, and track your fitness using {{service}} data.\n\nCommands:\n{{commands}}\n\nOr just chat with me about your training!",
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "The training plan could not be prepared for saving.",
+      "title": "Save this training plan?",
+      "phase": "Phase {{number}}",
+      "focusLabel": "Focus",
+      "weeklyHours": "Hours per week",
+      "replaces": "Replaces your saved plan: {{name}}",
+      "save": "Save plan",
+      "saving": "Saving the plan…",
+      "saved": "Saved. This is now your training plan.",
+      "canceled": "Canceled. This plan was not saved.",
+      "expired": "Expired. Ask the coach again to save this plan.",
+      "storageUnavailable": "This plan could not be saved because storage on this iPhone is unavailable.",
+      "notSaved": {
+        "expired": "Not saved: the ten minutes to save this plan have passed.",
+        "replaced": "Not saved: a newer plan is waiting to be saved.",
+        "alreadyDecided": "This plan was already saved or canceled.",
+        "athleteChanged": "Not saved: this plan was prepared for a different {{service}} athlete.",
+        "notPresented": "Not saved yet. Scroll to the plan, then tap Save plan again."
+      },
+      "focus": {
+        "baseBuilding": "Base building",
+        "aerobicDevelopment": "Aerobic development",
+        "threshold": "Threshold",
+        "vo2max": "VO2max",
+        "racePrep": "Race preparation",
+        "taper": "Taper",
+        "recovery": "Recovery",
+        "maintenance": "Maintenance",
+        "generalFitness": "General fitness"
+      }
     }
   },
   "cli": {
@@ -791,6 +857,7 @@
     "error": {
       "intervalsCredentials": "{{service}} rejected the request — check your {{service}} connection or API key.",
       "intervalsTransient": "Couldn't reach {{service}} right now — try again shortly.",
+      "noConnection": "No connection. Your message is kept. Try again when you're online.",
       "providerCredentials": "The model provider rejected the API key — check your provider credentials.",
       "providerDown": "The model provider is having trouble — try again in a few minutes.",
       "rateLimit": "Rate limited — please try again shortly.",
@@ -834,7 +901,9 @@
       "structure": "workout structure",
       "trainingLoad": "training load to {{load}}",
       "unnamed": "Unnamed workout",
-      "update": "Update workout \"{{name}}\" on {{date}} — {{detail}}"
+      "update": "Update workout \"{{name}}\" on {{date}} — {{detail}}",
+      "deleteFallback": "Delete a workout",
+      "updateFallback": "Update workout — {{detail}}"
     }
   },
   "common": {
@@ -844,15 +913,39 @@
     "continue": "Continue",
     "save": "Save"
   },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu did not accept that key.",
+      "blank": "Enter an intervals.icu API key. Your current connection is unchanged.",
+      "notSaved": "The replacement wasn't saved. Your previous connection is unchanged. Try again.",
+      "profileUnavailable": "Your athlete profile is temporarily unavailable. Try again.",
+      "wellnessRejected": "intervals.icu did not allow today's wellness read. Review your connection.",
+      "wellnessUnavailable": "Today's wellness is temporarily unavailable. Try again.",
+      "blankConnection": "Enter an intervals.icu API key.",
+      "connectionNotSaved": "The connection wasn't saved. Try again.",
+      "storageLocked": "Unlock your iPhone to read your intervals.icu connection. Then try again.",
+      "storageUnavailable": "Your intervals.icu connection is temporarily unavailable because secure storage couldn't be read. Try again.",
+      "storageMalformed": "The saved intervals.icu connection couldn't be read. Replace the key to connect again."
+    },
+    "wellness": {
+      "empty": "No wellness data for today.",
+      "waiting": "Reading today's wellness…"
+    },
+    "review": "Review connection",
+    "profile": {
+      "waiting": "Reading athlete profile…"
+    },
+    "missing": "intervals.icu is not connected. Connect to add workouts to your calendar."
+  },
   "credits": {
+    "error": {
+      "accessRejected": "Your Credits couldn't be used. You can switch to your OpenRouter account.",
+      "exhausted": "You're out of Credits. You can switch to your OpenRouter account.",
+      "unavailable": "Credits are unavailable right now. Try again later.",
+      "accountChanged": "Your Credits account changed while this request was finishing. Your current account was kept."
+    },
     "balance_one": "{{formattedCount}} credit",
     "balance_other": "{{formattedCount}} credits",
-    "buy": "Buy",
-    "pack_one": "{{formattedCount}} credit",
-    "pack_other": "{{formattedCount}} credits",
-    "packPrice_one": "{{formattedCount}} credit · {{price}}",
-    "packPrice_other": "{{formattedCount}} credits · {{price}}",
-    "testers": "Testers cannot buy packs yet.",
     "title": "Credits"
   },
   "desktop": {
@@ -940,11 +1033,46 @@
       }
     }
   },
+  "diagnostics": {
+    "title": "Diagnostics",
+    "explanation": "Make a file with the app's version, this phone's model and iOS version, your settings, counts of what the app has saved, and the last 14 days of problems and model usage. It holds no keys, messages or training data. Nothing leaves the phone until you share it.",
+    "make": "Make diagnostics file",
+    "preparing": "Preparing the file…",
+    "shared": "Shared. iOS handed the file to the app you chose.",
+    "saved": "Saved to Files.",
+    "canceled": "Canceled. The file was not shared.",
+    "failed": "The file could not be made.",
+    "shareFailed": "The file could not be shared.",
+    "notSaving": "This phone has not saved the problem log since {{time}}. The file holds only what was saved before then and what this session recorded."
+  },
+  "feedback": {
+    "title": "Feedback",
+    "command": "Send a note to the Enduragent authors",
+    "prompt": "Write a note to the Enduragent authors. It goes on its own, without your conversation, memory, training data or diagnostics.",
+    "send": "Send",
+    "sending": "Sending…",
+    "received": "Received. Thank you for the note.",
+    "notSent": {
+      "noConnection": "Not sent. The phone had no connection. Your note is kept.",
+      "busy": "Not sent. The feedback service is busy. Try again in a minute. Your note is kept.",
+      "refused": "Not sent. The feedback service refused the note. Your note is kept.",
+      "stopped": "Not sent. The app stopped before the note left this phone. Your note is kept."
+    },
+    "notConfirmed": "Not confirmed. The note may have arrived, but no answer came. Your note is kept, and Try again sends the same note.",
+    "refused": {
+      "empty": "Write a note first.",
+      "tooLong": "Keep your note to {{limit}} characters or fewer. Nothing was sent.",
+      "invalidCharacter": "The note has a character that can't be sent. Nothing was sent."
+    }
+  },
   "language": {
     "chooseTitle": "Choose your language",
     "continue": "Continue"
   },
   "onboarding": {
+    "notice": {
+      "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+    },
     "connect": {
       "action": "Connect",
       "apiKey": "intervals.icu API key",
@@ -953,11 +1081,19 @@
       "form": "Form {{value}}",
       "skip": "Skip for now"
     },
-    "notice": {
-      "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
-    },
     "starter": {
-      "start": "Start chatting"
+      "start": "Start chatting",
+      "progress": "Requesting starter credits",
+      "added_one": "Added {{formattedCount}} credit",
+      "added_other": "Added {{formattedCount}} credits",
+      "alreadyGranted": "This device already used its starter credits."
+    },
+    "consent": {
+      "title": "Your coach uses AI",
+      "body": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to {{provider}} to run {{model}}. They use this data only to generate your coach's replies. Nothing is sent until you agree.",
+      "accept": "Agree and continue",
+      "decline": "Not now",
+      "saveFailed": "Couldn't save your agreement. Try again."
     }
   },
   "plan": {
@@ -1580,6 +1716,21 @@
       }
     }
   },
+  "review": {
+    "accountChanged": "This workout was prepared for a different {{service}} athlete. Ask me again to prepare it for the connected athlete.",
+    "add": "Add to calendar",
+    "cannotVerify": "Couldn't check your {{service}} connection, so nothing was changed. Try again in a moment.",
+    "cancelledUnknown": "Cancelled. This workout may still have been saved. Check your calendar.",
+    "saveFailed": "Couldn't save your choice on this iPhone, so nothing was changed. Try again.",
+    "storageUnavailable": "Couldn't read the saved workout review. Its buttons are temporarily disabled.",
+    "title": "Workout review",
+    "workout": {
+      "warmup": "Warmup",
+      "mainSet": "Main set",
+      "cooldown": "Cooldown",
+      "ramp": "ramp"
+    }
+  },
   "settings": {
     "appearance": {
       "dark": "Dark",
@@ -1740,6 +1891,7 @@
       "title": "Conversation & time",
       "unavailable": "Conversation settings aren’t available. Reconnect and reload.",
       "validation": {
+        "contextWindowTokens": "Enter a safe whole number of tokens, 1 or more.",
         "dailyResetHour": "Enter a whole hour from 0 to 23.",
         "historyTokenBudgetRatio": "Enter a history budget above 0% and no more than 100%.",
         "idleMinutes": "Enter a safe whole number of minutes, 0 or more.",
@@ -2082,6 +2234,35 @@
       "saving": "Saving units…",
       "title": "Units",
       "unavailable": "Units preference unavailable"
+    },
+    "modelAccessTitle": "Model access",
+    "session": {
+      "title": "Session",
+      "contextWindow": {
+        "label": "Context window",
+        "help": "Upper limit on the model context. Leave empty to use the default.",
+        "default": "Default"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokens"
+      }
+    },
+    "training": {
+      "section": "Training connection",
+      "title": "intervals.icu",
+      "replace": "Replace key",
+      "keep": "Keep current connection",
+      "disconnect": "Disconnect",
+      "disconnectTitle": "Disconnect intervals.icu?",
+      "disconnectDetail": "Your conversation and History stay available.",
+      "switchTitle": "Use another athlete?",
+      "switchDetail": "This key belongs to athlete {{new}}. Your conversation, History and memory stay saved for athlete {{current}} and are not used for athlete {{new}}. Switch to use this key?",
+      "switch": "Switch athlete",
+      "athlete": "Athlete {{id}}"
+    },
+    "support": {
+      "title": "Support"
     }
   },
   "setup": {
@@ -2337,7 +2518,6 @@
     }
   },
   "sidebar": {
-    "menu": "Menu",
     "navigation": "Main navigation",
     "newChat": "New chat",
     "planAttention_one": "Plan, {{formattedCount}} item needs attention",
@@ -2430,7 +2610,6 @@
       "start": "Start a fresh session",
       "status": "Check current fitness, fatigue, and form",
       "sync": "Force-refresh training data from {{service}}",
-      "update": "Check for and install updates",
       "version": "Show current version",
       "whatsnew": "See what changed in the latest version",
       "workout": "Get today's workout"
@@ -2547,7 +2726,6 @@
       "managedInstruction": "Send {{whatsnew}} to see what changed. {{notice}}",
       "prepareFailed": "Couldn't safely prepare the update just now. Please try {{command}} again in a moment."
     },
-    "welcome": "Welcome to {{product}}!\n\nI'm your AI cycling coach. I can build training plans, suggest workouts, and track your fitness using {{service}} data.\n\nCommands:\n{{plan}} — Generate a training plan\n{{workout}} — Get today's workout\n{{status}} — Check current fitness, fatigue, and form\n{{review}} — Review your last session\n{{sync}} — Force-refresh training data from {{service}}\n{{version}} — Show current version\n{{whatsnew}} — See what changed in the latest version\n{{update}} — {{updateDescription}}\n\nOr just chat with me about your training!",
     "workout": {
       "working": "Checking your form and plan..."
     }
@@ -2917,6 +3095,103 @@
       "week": "Week",
       "weeklySummary": "Weekly summary",
       "weekRange": "{{start}}–{{end}}"
+    }
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "This workout was reviewed before the app was updated. Ask the coach again.",
+      "missing": "A workout in this review is no longer on your {{service}} calendar, so this review can't continue. Cancel it and ask the coach again.",
+      "pastProtected": "A workout in this review is now in the past, so this review can't continue. Cancel it and ask the coach again.",
+      "coachOnly": "A workout in this review wasn't added by the coach, so this review can't continue. Cancel it and ask the coach again.",
+      "workoutOnly": "An entry in this review isn't a workout, so this review can't continue. Cancel it and ask the coach again."
+    },
+    "refreshed": {
+      "nothingChanged": "Workouts in this review changed in {{service}} after you reviewed them, so nothing was changed. Check them again before you approve.",
+      "nothingElseChanged": "Workouts in this review changed in {{service}} after you reviewed them, so nothing else was changed. Check them again before you approve.",
+      "date": "{{workout}}: date changed from {{from}} to {{to}}.",
+      "name": "{{workout}}: name changed to {{to}}.",
+      "duration": "{{workout}}: duration changed from {{from}} to {{to}} minutes.",
+      "description": "{{workout}}: description changed.",
+      "load": "{{workout}}: training load changed from {{from}} to {{to}}.",
+      "structure": "{{workout}}: workout steps changed."
+    },
+    "notPrepared": "The workout review could not be prepared.",
+    "notPreparedInformationSaved": "Your information was saved, but the workout review could not be prepared.",
+    "stopped": "This workout review stopped before every change was made. Changes already made are kept.",
+    "sending": "Making the reviewed changes on your {{service}} calendar…",
+    "partial": "{{service}} refused a change, so the remaining changes were stopped. Changes already made are kept. Check the rest before you try again.",
+    "unconfirmed": "A change may have been saved to your {{service}} calendar. Check again to find out before anything else is changed.",
+    "completed": "All reviewed changes are complete.",
+    "canceled": "The remaining changes were canceled.",
+    "finishedTitle": "Already completed",
+    "outcome": {
+      "closedAtUpgrade": "This review was prepared before the app was updated. Ask the coach again.",
+      "saved": "{{workout}}, {{date}}: change saved.",
+      "seenOnCalendar": "{{workout}}, {{date}}: change seen on the calendar.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: no longer on the calendar.",
+      "givenUp": "{{workout}}, {{date}}: change not made.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: change may have been saved. Check your calendar."
+    },
+    "preparedEarlier": "Prepared earlier",
+    "approve": "Apply changes",
+    "card": {
+      "add": "Add",
+      "edit": "Edit",
+      "delete": "Delete",
+      "heading": "{{action}} · {{position}} of {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "duration unknown",
+      "unknown": "unknown",
+      "load": "Estimated training load: {{load}}",
+      "removed": "This workout will be removed from the calendar.",
+      "changed": {
+        "date": "Date: {{from}} → {{to}}",
+        "name": "Name: {{from}} → {{to}}",
+        "duration": "Duration: {{from}} → {{to}}",
+        "load": "Estimated training load: {{from}} → {{to}}",
+        "description": "The description changes.",
+        "steps": "The workout steps change."
+      },
+      "progress": {
+        "sending": "Sending…",
+        "refused": "Not saved",
+        "mayHaveBeenSaved": "May have been saved",
+        "notRemoved": "Not removed",
+        "mayHaveBeenRemoved": "May have been removed"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Percent of FTP",
+      "watts": "Power in watts"
+    },
+    "totals": {
+      "additions_one": "{{count}} addition",
+      "additions_other": "{{count}} additions",
+      "edits_one": "{{count}} edit",
+      "edits_other": "{{count}} edits",
+      "deletions_one": "{{count}} deletion",
+      "deletions_other": "{{count}} deletions",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} for added or edited workouts",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · total duration unknown"
+    },
+    "kept": {
+      "title": "Existing workouts kept",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Add this workout to your calendar?",
+        "add_other": "Add these workouts to your calendar?",
+        "edit_one": "Update this workout on your calendar?",
+        "edit_other": "Update these workouts on your calendar?",
+        "delete_one": "Remove this workout from your calendar?",
+        "delete_other": "Remove these workouts from your calendar?",
+        "mixed": "Apply all reviewed changes?"
+      },
+      "approveEdits": "Update calendar",
+      "approveDeletions": "Remove from calendar",
+      "unseen": "Scroll through every card to continue.",
+      "cardFailed": "Card {{position}} of {{count}} could not be shown. Nothing was changed.",
+      "showAgain": "Show again"
     }
   }
 }

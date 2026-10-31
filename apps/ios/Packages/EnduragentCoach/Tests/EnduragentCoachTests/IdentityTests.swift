@@ -80,6 +80,20 @@ import Testing
 		#expect(quotes == "[\"say \\\"hi\\\"\",\"a\\\\b\",\"line\\n\"]")
 	}
 
+	@Test func aPlanSaveOperationIsStoredAsPlanSaveAndItsULIDAndNoOtherTailParses() throws {
+		let ulid = try #require(ULID(rawValue: "01ARZ3NDEKTSV4RRFFQ69G5FAV"))
+		let operation = OperationID.planSave(PlanConfirmationID(ulid: ulid))
+
+		#expect(operation.storedValue == "planSave:01ARZ3NDEKTSV4RRFFQ69G5FAV")
+		#expect(OperationID(storedValue: operation.storedValue) == operation)
+		for malformed in [
+			"planSave:not-a-ulid", "planSave:", "planSave:01ARZ3NDEKTSV4RRFFQ69G5FAV:1",
+			"planSaves:01ARZ3NDEKTSV4RRFFQ69G5FAV",
+		] {
+			#expect(OperationID(storedValue: malformed) == nil)
+		}
+	}
+
 	@Test func estimateTokensMatchesDesktop() throws {
 		let rows = try loadLedgerDigestTable()
 		for row in rows {
@@ -97,11 +111,70 @@ private func ulidTimestamp(_ raw: String) throws -> UInt64 {
 	return value
 }
 
+@Suite struct TrainingAccountTests {
+	let athlete: IntervalsAthleteID
+	let other: IntervalsAthleteID
+
+	init() throws {
+		athlete = try #require(IntervalsAthleteID(rawValue: "i12345"))
+		other = try #require(IntervalsAthleteID(rawValue: "i67890"))
+	}
+
+	@Test func sameConnectionIsSame() throws {
+		let connection = ConnectionID()
+		let bound = TrainingAccount.intervals(connection: connection, athlete: athlete)
+		#expect(bound.authority(under: .intervals(connection: connection, athlete: nil)) == .same)
+		#expect(TrainingAccount.unconnected.authority(under: .unconnected) == .same)
+	}
+
+	@Test func rotatedKeyForTheSameAthleteIsSameAthlete() throws {
+		let bound = TrainingAccount.intervals(connection: ConnectionID(), athlete: athlete)
+		let rotated = TrainingAccount.intervals(connection: ConnectionID(), athlete: athlete)
+		#expect(bound.authority(under: rotated) == .sameAthlete)
+	}
+
+	@Test func conflictingAthleteIdsOnTheSameConnectionAreChanged() {
+		let connection = ConnectionID()
+		let bound = TrainingAccount.intervals(connection: connection, athlete: athlete)
+		let current = TrainingAccount.intervals(connection: connection, athlete: other)
+		#expect(bound.authority(under: current) == .changed)
+	}
+
+	@Test func differentAthleteOrDisconnectIsChanged() throws {
+		let bound = TrainingAccount.intervals(connection: ConnectionID(), athlete: athlete)
+		let another = TrainingAccount.intervals(connection: ConnectionID(), athlete: other)
+		#expect(bound.authority(under: another) == .changed)
+		#expect(bound.authority(under: .unconnected) == .changed)
+		#expect(TrainingAccount.unconnected.authority(under: another) == .changed)
+	}
+
+	@Test func unknownAthleteOnEitherSideIsUnverifiable() throws {
+		let bound = TrainingAccount.intervals(connection: ConnectionID(), athlete: nil)
+		let known = TrainingAccount.intervals(connection: ConnectionID(), athlete: athlete)
+		#expect(bound.authority(under: known) == .unverifiable)
+		#expect(known.authority(under: bound) == .unverifiable)
+	}
+
+	@Test func selfAliasIsNotAnAthleteId() {
+		#expect(IntervalsAthleteID(rawValue: "0") == nil)
+		#expect(IntervalsAthleteID(rawValue: "") == nil)
+		#expect(IntervalsAthleteID(rawValue: "i12345")?.rawValue == "i12345")
+	}
+
+	@Test func ulidIncrementStaysOrderedAndCarries() throws {
+		let base = try #require(ULID(rawValue: "01ARZ3NDEKTSV4RRFFQ69G5FAV"))
+		#expect(base.incremented().rawValue == "01ARZ3NDEKTSV4RRFFQ69G5FAW")
+		#expect(base < base.incremented())
+		let carry = try #require(ULID(rawValue: "01ARZ3NDEKTSV4RRFFQ69G5FZZ"))
+		#expect(carry.incremented().rawValue == "01ARZ3NDEKTSV4RRFFQ69G5G00")
+		#expect(carry < carry.incremented())
+	}
+}
+
 struct LedgerDigestRow: Codable, Equatable {
 	var date: String
 	var kind: String
 	var text: String
-	var digestInput: String
 	var digest: String
 	var estimateTokens: Int
 }

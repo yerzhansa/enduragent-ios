@@ -1,0 +1,115 @@
+import CryptoKit
+import Foundation
+
+public enum JSONValue: Sendable, Equatable {
+	case null
+	case bool(Bool)
+	case number(Double)
+	case string(String)
+	case array([JSONValue])
+	case object([String: JSONValue])
+
+	public static func parse(_ raw: String) throws(DecodingError) -> JSONValue {
+		do {
+			return try JSONDecoder().decode(JSONValuePayload.self, from: Data(raw.utf8)).value
+		} catch let error as DecodingError {
+			throw error
+		} catch {
+			throw DecodingError.dataCorrupted(
+				.init(codingPath: [], debugDescription: String(describing: error))
+			)
+		}
+	}
+
+	public func canonicalDigestInput() -> String {
+		JSONValue.render(self, pretty: false, depth: 0)
+	}
+
+	fileprivate static func render(_ value: JSONValue, pretty: Bool, depth: Int) -> String {
+		switch value {
+		case .null:
+			return "null"
+		case .bool(let flag):
+			return flag ? "true" : "false"
+		case .number(let number):
+			return JavaScriptNumber.json(number)
+		case .string(let string):
+			return encodeJSONString(string)
+		case .array(let items):
+			if items.isEmpty { return "[]" }
+			if !pretty {
+				return "["
+					+ items.map { render($0, pretty: false, depth: 0) }.joined(separator: ",") + "]"
+			}
+			let pad = String(repeating: "  ", count: depth + 1)
+			let close = String(repeating: "  ", count: depth)
+			let inner = items.map { pad + render($0, pretty: true, depth: depth + 1) }.joined(
+				separator: ",\n")
+			return "[\n\(inner)\n\(close)]"
+		case .object(let fields):
+			let pairs = fields.sorted { $0.key < $1.key }
+			if pairs.isEmpty { return "{}" }
+			if !pretty {
+				return "{"
+					+ pairs.map { key, value in
+						encodeJSONString(key) + ":" + render(value, pretty: false, depth: 0)
+					}
+					.joined(separator: ",")
+					+ "}"
+			}
+			let pad = String(repeating: "  ", count: depth + 1)
+			let close = String(repeating: "  ", count: depth)
+			let inner = pairs.map { key, value in
+				pad + encodeJSONString(key) + ": " + render(value, pretty: true, depth: depth + 1)
+			}.joined(separator: ",\n")
+			return "{\n\(inner)\n\(close)}"
+		}
+	}
+}
+
+package func canonicalJSON(_ value: JSONValue) -> String {
+	JSONValue.render(value, pretty: true, depth: 0)
+}
+
+package func sha256Hex(_ utf8: String) -> String {
+	SHA256.hash(data: Data(utf8.utf8)).map { byte in
+		String(byte, radix: 16).leftPadHex
+	}.joined()
+}
+
+package func estimateTokens(_ text: String) -> Int {
+	Int((Double(text.utf16.count) / 4.0 * 1.2).rounded(.up))
+}
+
+extension String {
+	fileprivate var leftPadHex: String { count == 1 ? "0" + self : self }
+}
+
+private func encodeJSONString(_ string: String) -> String {
+	var out = "\""
+	for scalar in string.unicodeScalars {
+		switch scalar.value {
+		case 0x22: out += "\\\""
+		case 0x5C: out += "\\\\"
+		case 0x08: out += "\\b"
+		case 0x0C: out += "\\f"
+		case 0x0A: out += "\\n"
+		case 0x0D: out += "\\r"
+		case 0x09: out += "\\t"
+		case 0x00..<0x20:
+			out += "\\u" + String(format: "%04x", scalar.value)
+		case 0x2028:
+			out += "\\u2028"
+		case 0x2029:
+			out += "\\u2029"
+		default:
+			out.append(Character(scalar))
+		}
+	}
+	out += "\""
+	return out
+}
+
+package func wholeInt(_ value: Double) -> Int? {
+	Int(exactly: value)
+}

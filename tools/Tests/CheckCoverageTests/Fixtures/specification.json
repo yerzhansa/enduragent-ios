@@ -1,0 +1,35 @@
+{
+	"schema_version": 1,
+	"packages": [
+		{"id": "B13", "title": "Reads", "work": [{"id": "B13.01", "title": "Read the week"}]},
+		{
+			"id": "B04",
+			"title": "Turns",
+			"work": [
+				{"id": "B04.02", "title": "Coalesce messages"},
+				{"id": "B04.01", "title": "Keep the key"}
+			]
+		},
+		{
+			"id": "B11",
+			"title": "Feedback",
+			"work": [{"id": "B11.01", "title": "Send a note"}, {"id": "B11.02", "title": "Keep the note"}]
+		}
+	],
+	"milestones": [
+		{"id": "M2", "packages": ["B13", "B04"]},
+		{"id": "M1", "packages": ["B04"]},
+		{"id": "M6", "packages": ["B11"]}
+	],
+	"cross_cutting": [
+		{"id": "X02", "mobile_ids": ["MOB10", "MOB02"]},
+		{"id": "X01", "mobile_ids": ["MOB01", "MOB02"]}
+	],
+	"golden_journeys": [{"id": "G02", "scenario": "Review"}, {"id": "G01", "scenario": "Start"}],
+	"decisions": [{"id": "D02", "title": "Keys"}, {"id": "D01", "title": "Language"}],
+	"acceptance_traceability": [
+		{"source_id": "N02", "approval_ids": ["B01", "A02"]},
+		{"source_id": "N01", "approval_ids": []},
+		{"source_id": "N03", "approval_ids": ["A01", "A02"]}
+	]
+}

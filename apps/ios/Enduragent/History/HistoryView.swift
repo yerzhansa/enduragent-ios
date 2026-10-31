@@ -1,24 +1,68 @@
 import EnduragentCoach
 import SwiftUI
 
+enum HistoryList: Equatable {
+	case loading
+	case loaded([ArchivedConversationSummary])
+	case unavailable
+}
+
 struct HistoryView: View {
 	var model: ShellModel
 
 	var body: some View {
-		List(model.history) { row in
-			Button {
-				Task { await model.openChat(row.id) }
-			} label: {
-				VStack(alignment: .leading) {
-					Text(row.title)
-					Text(row.civilDate.rawValue)
+		Group {
+			switch model.history {
+			case .loading:
+				ProgressView()
+			case .unavailable:
+				Text(say(Catalog.archiveListFailure))
+			case .loaded(let conversations) where conversations.isEmpty:
+				Text(say(Catalog.archiveEmpty))
+			case .loaded(let conversations):
+				List(conversations) { conversation in
+					NavigationLink(value: ShellDestination.archivedConversation(conversation.id)) {
+						row(conversation)
+					}
+					.accessibilityIdentifier("history.row.\(conversation.id.rawValue)")
 				}
+				.accessibilityIdentifier("history.content")
 			}
-			.accessibilityIdentifier("history.row.\(row.id.rawValue)")
 		}
-		.navigationTitle(model.builder.phrasebook.say(Catalog.archiveHistory, [:]))
+		.navigationTitle(say(Catalog.archiveHistory))
 		.task {
-			await model.reloadHistory()
+			await model.loadHistory()
 		}
 	}
+
+	private func row(_ conversation: ArchivedConversationSummary) -> some View {
+		VStack(alignment: .leading, spacing: 4) {
+			if let question = conversation.firstQuestion {
+				Text(question)
+					.lineLimit(2)
+			}
+			Text(say(conversation.reason.title))
+				.font(.footnote)
+			if let line = conversation.attribution.historyLine(
+				in: model.phrasebook, connectedAthlete: model.connectedAthlete)
+			{
+				Text(line)
+					.font(.footnote)
+					.foregroundStyle(.secondary)
+					.accessibilityIdentifier("history.athlete.\(conversation.id.rawValue)")
+			}
+			Text(model.historyDate(conversation.startedOn))
+				.accessibilityIdentifier("history.date.\(conversation.id.rawValue)")
+				.font(.footnote)
+				.foregroundStyle(.secondary)
+		}
+	}
+
+	private func say(_ key: CatalogKey) -> String {
+		model.phrasebook.say(key, [:])
+	}
+}
+
+extension ShellModel {
+	func historyDate(_ day: CivilDate) -> String { displayLocale.date(day, style: .named) }
 }

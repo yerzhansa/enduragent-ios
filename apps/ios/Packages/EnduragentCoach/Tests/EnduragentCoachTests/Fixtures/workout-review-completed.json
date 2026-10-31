@@ -1,0 +1,42 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000305",
+  "chat": "main",
+  "finished": [
+    {
+      "change": {
+        "action": {
+          "delete": {
+            "target": {
+              "reviewed": {
+                "event": 106,
+                "snapshot": {
+                  "date": "1998-06-27",
+                  "name": "Rest day"
+                }
+              }
+            }
+          }
+        },
+        "id": "00T47DW5000000000000000409",
+        "position": 0
+      },
+      "result": {
+        "noLongerOnCalendar": {}
+      }
+    }
+  ],
+  "id": "00T47DW5000000000000000105",
+  "kept": [
+    {
+      "date": "1998-06-28",
+      "name": "Club ride"
+    }
+  ],
+  "remaining": [],
+  "revision": 1,
+  "stage": {
+    "completed": {}
+  },
+  "turn": "00T47DW5000000000000000205"
+}

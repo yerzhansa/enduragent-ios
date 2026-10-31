@@ -1,0 +1,180 @@
+import XCTest
+
+final class FailureNoticesProof: XCTestCase {
+	func testFailureNotices() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.exchange(app, "fixture:fail timeout x2")
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.providerDown))
+		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 1)
+		TutorialHarness.attach(self, name: "failure-timeout", app: app)
+		TutorialHarness.exchange(app, "fixture:fail 402")
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.creditsExhausted))
+		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.switchToOpenRouter").exists)
+		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 1)
+		TutorialHarness.attach(self, name: "failure-exhausted", app: app)
+		TutorialHarness.exchange(app, "fixture:fail overflow x4")
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.unknownFailure))
+		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
+		XCTAssertFalse(
+			app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "131072"))
+				.firstMatch.exists)
+		assertNoWireDetail(app)
+		TutorialHarness.attach(self, name: "failure-overflow", app: app)
+	}
+}
+
+final class FailNoticeLatencyProbe: XCTestCase {
+	func testFailNoticeLatency() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		let composer = TutorialHarness.named(app, "chat.composer")
+		composer.tap()
+		composer.typeText("fixture:fail 500 x3")
+		let send = TutorialHarness.named(app, "chat.send")
+		TutorialHarness.wait(send)
+		let failure = TutorialHarness.named(app, "chat.turn.notice")
+		let tapped = Date()
+		send.tap()
+		TutorialHarness.wait(failure, within: .turn)
+		let latency = Date().timeIntervalSince(tapped)
+		XCTAssertTrue(failure.exists)
+		let sample = XCTAttachment(string: String(format: "%.0f", latency * 1_000))
+		sample.name = "fail-notice-latency-ms"
+		sample.lifetime = .keepAlways
+		add(sample)
+		TutorialHarness.attach(self, name: "fail-notice", app: app)
+	}
+}
+
+final class RetryLadderProof: XCTestCase {
+	func testRetryLadder() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:fail 500")
+		let sent = Date()
+		let weekReply = app.staticTexts.containing(
+			NSPredicate(format: "label CONTAINS %@", TutorialHarness.weekReply)
+		).firstMatch
+		TutorialHarness.wait(weekReply, within: .turn)
+		let reply = XCTAttachment(
+			string: String(format: "send-to-reply %.2f s", Date().timeIntervalSince(sent)))
+		reply.name = "retry-ladder-send-to-reply"
+		reply.lifetime = .keepAlways
+		add(reply)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
+		TutorialHarness.attach(self, name: "retry-ladder-reply", app: app)
+		TutorialHarness.send(app, "fixture:fail 429 7 x4")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"))
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitSevenSeconds),
+			within: .retry)
+		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		assertNoWireDetail(app)
+		TutorialHarness.attach(self, name: "retry-ladder-rate-limited", app: app)
+	}
+}
+
+final class SavedUnverifiedProof: XCTestCase {
+	func testSavedWorkOffersNoTryAgain() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:memory-then-fail")
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.savedUnverified))
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		assertNoWireDetail(app)
+		TutorialHarness.attach(self, name: "saved-unverified", app: app)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 1")
+		TutorialHarness.attach(self, name: "saved-unverified-records", app: app)
+		TutorialHarness.returnToChat(app)
+		TutorialHarness.send(app, "fixture:memory-then-hang")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"))
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 2")
+		TutorialHarness.returnToChat(app)
+		let stop = TutorialHarness.named(app, "chat.stop")
+		TutorialHarness.wait(stop, until: .hittable)
+		stop.tap()
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.interruptedSomeSaved))
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		TutorialHarness.attach(self, name: "stopped-after-save", app: app)
+	}
+}
+
+final class OfflineNoticeProof: XCTestCase {
+	func testOfflineSendShowsNoConnectionAndTryAgainReplies() {
+		offlineSend(textSize: nil, screen: "default")
+	}
+
+	func testOfflineSendAtLargestText() {
+		offlineSend(textSize: .accessibilityXXXL, screen: "largest")
+	}
+
+	func testOfflineTrainingReadShowsNoConnectionWithTryAgain() {
+		offlineTrainingRead(textSize: nil, screen: "default")
+	}
+
+	func testOfflineTrainingReadAtLargestText() {
+		offlineTrainingRead(textSize: .accessibilityXXXL, screen: "largest")
+	}
+
+	private func offlineSend(textSize: FixtureTextSize?, screen: String) {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		if let textSize { TutorialHarness.relaunchKeepingStore(app, textSize: textSize) }
+		TutorialHarness.exchange(app, "fixture:fail network x3")
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.noConnection), within: .turn)
+		XCTAssertFalse(TutorialHarness.text(app, containing: "model provider").exists)
+		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
+		XCTAssertEqual(tryAgain.label, TutorialHarness.tryAgain)
+		assertNoWireDetail(app)
+		TutorialHarness.wait(tryAgain, until: .hittable)
+		TutorialHarness.attach(self, name: "offline-send-no-connection-\(screen)", app: app)
+		tryAgain.tap()
+		TutorialHarness.wait(
+			TutorialHarness.text(app, containing: TutorialHarness.weekReply), within: .turn)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
+		TutorialHarness.attach(self, name: "offline-send-try-again-replied-\(screen)", app: app)
+		assertModelRequests(app, 3 + 1, test: self, name: "offline-send-requests-\(screen)")
+	}
+
+	private func offlineTrainingRead(textSize: FixtureTextSize?, screen: String) {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.relaunchKeepingStore(
+			app, trainingDisplay: .profileOffline, textSize: textSize)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.noConnection))
+		XCTAssertFalse(TutorialHarness.text(app, containing: "Couldn't reach intervals.icu").exists)
+		let offlineTryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
+		XCTAssertEqual(offlineTryAgain.label, TutorialHarness.tryAgain)
+		assertNoWireDetail(app)
+		TutorialHarness.wait(offlineTryAgain, until: .hittable)
+		TutorialHarness.attach(self, name: "offline-read-no-connection-\(screen)", app: app)
+		assertModelRequests(app, 0, test: self, name: "offline-read-requests-\(screen)")
+		TutorialHarness.relaunchKeepingStore(app, clearingReadFaults: true)
+		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
+		TutorialHarness.wait(tryAgain, until: .hittable)
+		tryAgain.tap()
+		TutorialHarness.wait(
+			TutorialHarness.text(app, containing: TutorialHarness.weekReply), within: .turn)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
+		TutorialHarness.attach(self, name: "offline-read-try-again-replied-\(screen)", app: app)
+	}
+}
+
+func assertNoWireDetail(_ app: XCUIApplication) {
+	for raw in ["ProviderFailure", "statusCode", "URLError", "retry-after", "error\":"] {
+		let match = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", raw))
+		XCTAssertFalse(match.firstMatch.exists, "\(raw) is on screen")
+	}
+}

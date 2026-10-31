@@ -1,0 +1,29 @@
+{
+  "bodyVersion": 2,
+  "rows": [
+    {
+      "kind": "planningCommand",
+      "body": "{\"commandId\":\"cmd-1\",\"commandName\":\"plan_creation.start\",\"requestDigest\":\"digest\",\"status\":\"succeeded\"}"
+    },
+    {
+      "kind": "planRevision",
+      "body": "{\"planUlid\":\"00T5D6C10000000000000000S0\",\"snapshot\":{\"name\":\"Base\"},\"status\":\"active\",\"version\":1}"
+    },
+    {
+      "kind": "mirrorJob",
+      "body": "{\"failureCount\":0,\"kind\":\"mirror\",\"planUlid\":\"00T5D6C10000000000000000S0\",\"windowEnd\":19980619,\"windowStart\":19980613}"
+    },
+    {
+      "kind": "workoutMatch",
+      "body": "{\"activityId\":\"123456\",\"decision\":\"confirmed\",\"planWorkoutId\":\"00T5D6C10000000000000000S0\"}"
+    },
+    {
+      "kind": "workoutDrift",
+      "body": "{\"askedAt\":899164800,\"planWorkoutId\":\"00T5D6C10000000000000000S0\"}"
+    }
+  ],
+  "operations": [
+    "planningCommand:00T5D6C10000000000000000TW",
+    "hologram:00T5D6C10000000000000000TX"
+  ]
+}

@@ -1,0 +1,425 @@
+{
+  "description": "Calculate power-zone watt ranges from FTP watts (7-zone numbering)",
+  "parameters": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "ftpWatts": {
+        "type": "integer",
+        "minimum": 50,
+        "maximum": 600,
+        "description": "FTP in watts"
+      }
+    },
+    "required": [
+      "ftpWatts"
+    ],
+    "additionalProperties": false
+  },
+  "halfWattEdgePercents": {
+    "50": [
+      55,
+      75,
+      91,
+      105
+    ],
+    "70": [
+      55,
+      75,
+      105
+    ],
+    "90": [
+      55,
+      75,
+      105
+    ],
+    "110": [
+      55,
+      75,
+      105
+    ],
+    "125": [
+      90,
+      94,
+      106
+    ],
+    "150": [
+      55,
+      75,
+      91,
+      105
+    ],
+    "250": [
+      55,
+      75,
+      91,
+      105
+    ],
+    "375": [
+      90,
+      94,
+      106
+    ],
+    "590": [
+      55,
+      75,
+      105
+    ],
+    "598": [
+      75
+    ]
+  },
+  "cases": [
+    {
+      "arguments": "{\"ftpWatts\":50}",
+      "npm": [
+        {
+          "label": "Z1 Active Recovery",
+          "value": "< 28W"
+        },
+        {
+          "label": "Z2 Endurance",
+          "value": "28-38W"
+        },
+        {
+          "label": "Z3 Tempo",
+          "value": "38-45W"
+        },
+        {
+          "label": "Sweet Spot (88-94%)",
+          "value": "44-47W",
+          "overlaps": true
+        },
+        {
+          "label": "Z4 Threshold",
+          "value": "46-53W"
+        },
+        {
+          "label": "Z5 VO2max",
+          "value": "53-60W"
+        }
+      ]
+    },
+    {
+      "arguments": "{\"ftpWatts\":70}",
+      "npm": [
+        {
+          "label": "Z1 Active Recovery",
+          "value": "< 39W"
+        },
+        {
+          "label": "Z2 Endurance",
+          "value": "39-53W"
+        },
+        {
+          "label": "Z3 Tempo",
+          "value": "53-63W"
+        },
+        {
+          "label": "Sweet Spot (88-94%)",
+          "value": "62-66W",
+          "overlaps": true
+        },
+        {
+          "label": "Z4 Threshold",
+          "value": "64-74W"
+        },
+        {
+          "label": "Z5 VO2max",
+          "value": "74-84W"
+        }
+      ]
+    },
+    {
+      "arguments": "{\"ftpWatts\":90}",
+      "npm": [
+        {
+          "label": "Z1 Active Recovery",
+          "value": "< 50W"
+        },
+        {
+          "label": "Z2 Endurance",
+          "value": "50-68W"
+        },
+        {
+          "label": "Z3 Tempo",
+          "value": "68-81W"
+        },
+        {
+          "label": "Sweet Spot (88-94%)",
+          "value": "79-85W",
+          "overlaps": true
+        },
+        {
+          "label": "Z4 Threshold",
+          "value": "82-95W"
+        },
+        {
+          "label": "Z5 VO2max",
+          "value": "95-108W"
+        }
+      ]
+    },
+    {
+      "arguments": "{\"ftpWatts\":110}",
+      "npm": [
+        {
+          "label": "Z1 Active Recovery",
+          "value": "< 61W"
+        },
+        {
+          "label": "Z2 Endurance",
+          "value": "62-83W"
+        },
+        {
+          "label": "Z3 Tempo",
+          "value": "84-99W"
+        },
+        {
+          "label": "Sweet Spot (88-94%)",
+          "value": "97-103W",
+          "overlaps": true
+        },
+        {
+          "label": "Z4 Threshold",
+          "value": "100-116W"
+        },
+        {
+          "label": "Z5 VO2max",
+          "value": "117-132W"
+        }
+      ]
+    },
+    {
+      "arguments": "{\"ftpWatts\":125}",
+      "npm": [
+        {
+          "label": "Z1 Active Recovery",
+          "value": "< 69W"
+        },
+        {
+          "label": "Z2 Endurance",
+          "value": "70-94W"
+        },
+        {
+          "label": "Z3 Tempo",
+          "value": "95-113W"
+        },
+        {
+          "label": "Sweet Spot (88-94%)",
+          "value": "110-118W",
+          "overlaps": true
+        },
+        {
+          "label": "Z4 Threshold",
+          "value": "114-131W"
+        },
+        {
+          "label": "Z5 VO2max",
+          "value": "133-150W"
+        }
+      ]
+    },
+    {
+      "arguments": "{\"ftpWatts\":150}",
+      "npm": [
+        {
+          "label": "Z1 Active Recovery",
+          "value": "< 83W"
+        },
+        {
+          "label": "Z2 Endurance",
+          "value": "84-113W"
+        },
+        {
+          "label": "Z3 Tempo",
+          "value": "114-135W"
+        },
+        {
+          "label": "Sweet Spot (88-94%)",
+          "value": "132-141W",
+          "overlaps": true
+        },
+        {
+          "label": "Z4 Threshold",
+          "value": "137-158W"
+        },
+        {
+          "label": "Z5 VO2max",
+          "value": "159-180W"
+        }
+      ]
+    },
+    {
+      "arguments": "{\"ftpWatts\":250}",
+      "npm": [
+        {
+          "label": "Z1 Active Recovery",
+          "value": "< 138W"
+        },
+        {
+          "label": "Z2 Endurance",
+          "value": "140-188W"
+        },
+        {
+          "label": "Z3 Tempo",
+          "value": "190-225W"
+        },
+        {
+          "label": "Sweet Spot (88-94%)",
+          "value": "220-235W",
+          "overlaps": true
+        },
+        {
+          "label": "Z4 Threshold",
+          "value": "228-263W"
+        },
+        {
+          "label": "Z5 VO2max",
+          "value": "265-300W"
+        }
+      ]
+    },
+    {
+      "arguments": "{\"ftpWatts\":375}",
+      "npm": [
+        {
+          "label": "Z1 Active Recovery",
+          "value": "< 206W"
+        },
+        {
+          "label": "Z2 Endurance",
+          "value": "210-281W"
+        },
+        {
+          "label": "Z3 Tempo",
+          "value": "285-338W"
+        },
+        {
+          "label": "Sweet Spot (88-94%)",
+          "value": "330-353W",
+          "overlaps": true
+        },
+        {
+          "label": "Z4 Threshold",
+          "value": "341-394W"
+        },
+        {
+          "label": "Z5 VO2max",
+          "value": "398-450W"
+        }
+      ]
+    },
+    {
+      "arguments": "{\"ftpWatts\":590}",
+      "npm": [
+        {
+          "label": "Z1 Active Recovery",
+          "value": "< 325W"
+        },
+        {
+          "label": "Z2 Endurance",
+          "value": "330-443W"
+        },
+        {
+          "label": "Z3 Tempo",
+          "value": "448-531W"
+        },
+        {
+          "label": "Sweet Spot (88-94%)",
+          "value": "519-555W",
+          "overlaps": true
+        },
+        {
+          "label": "Z4 Threshold",
+          "value": "537-620W"
+        },
+        {
+          "label": "Z5 VO2max",
+          "value": "625-708W"
+        }
+      ]
+    },
+    {
+      "arguments": "{\"ftpWatts\":598}",
+      "npm": [
+        {
+          "label": "Z1 Active Recovery",
+          "value": "< 329W"
+        },
+        {
+          "label": "Z2 Endurance",
+          "value": "335-449W"
+        },
+        {
+          "label": "Z3 Tempo",
+          "value": "454-538W"
+        },
+        {
+          "label": "Sweet Spot (88-94%)",
+          "value": "526-562W",
+          "overlaps": true
+        },
+        {
+          "label": "Z4 Threshold",
+          "value": "544-628W"
+        },
+        {
+          "label": "Z5 VO2max",
+          "value": "634-718W"
+        }
+      ]
+    },
+    {
+      "arguments": "{\"ftpWatts\":600}",
+      "npm": [
+        {
+          "label": "Z1 Active Recovery",
+          "value": "< 330W"
+        },
+        {
+          "label": "Z2 Endurance",
+          "value": "336-450W"
+        },
+        {
+          "label": "Z3 Tempo",
+          "value": "456-540W"
+        },
+        {
+          "label": "Sweet Spot (88-94%)",
+          "value": "528-564W",
+          "overlaps": true
+        },
+        {
+          "label": "Z4 Threshold",
+          "value": "546-630W"
+        },
+        {
+          "label": "Z5 VO2max",
+          "value": "636-720W"
+        }
+      ]
+    },
+    {
+      "arguments": "{}",
+      "npm": null
+    },
+    {
+      "arguments": "{\"ftpWatts\":250.5}",
+      "npm": null
+    },
+    {
+      "arguments": "{\"ftpWatts\":49}",
+      "npm": null
+    },
+    {
+      "arguments": "{\"ftpWatts\":601}",
+      "npm": null
+    },
+    {
+      "arguments": "{\"ftpWatts\":\"250\"}",
+      "npm": null
+    }
+  ],
+  "zoneReference": "# Power Zone Reference\n\n## 7 Power Zones (FTP-Based)\n\nThese are the mainstream Coggan/Allen 7-zone bands intervals.icu resolves\nserialized targets against by default. The edges are a labeling convention, not\nsettled physiology — use them so the zone numbers in chat match the athlete's\nhead unit.\n\n| Zone | Name | % FTP | RPE | Description |\n|------|------|-------|-----|-------------|\n| Z1 | Active Recovery | < 55% | 1-2 | Very light spinning. Use after hard days or for warmup/cooldown. |\n| Z2 | Endurance | 56-75% | 3-4 | Aerobic base building. Conversational pace. Bulk of training volume. |\n| Z3 | Tempo | 76-90% | 5-6 | \"Comfortably hard.\" Sustainable for 1-2 hours. Builds aerobic capacity. |\n| Z4 | Threshold | 91-105% | 7-8 | Lactate threshold. Maximum ~1 hour sustainable effort. FTP lives here. |\n| Z5 | VO2max | 106-120% | 9 | High-intensity intervals, 3-8 minute efforts. Develops maximal aerobic power. |\n| Z6 | Anaerobic | 121-150% | 10 | Short, very hard repeats (30s-3min). Develops anaerobic capacity and lactate tolerance. |\n| Z7 | Neuromuscular | > 150% | max | Maximal sprint efforts (5-15s). A brief all-out output, not a holdable percentage — prescribe by duration/effort, never as a sustainable %FTP. |\n\nSweet Spot = 88-94% FTP — a named sub-range spanning the top of Z3 Tempo into\nthe bottom of Z4 Threshold, not a numbered zone (88-94% is upper-tempo into\nlow-threshold, not a symmetric straddle of the boundary). The most\ntime-efficient training intensity; prescribe it by percent or by name, never as\na bare zone integer.\n\n## When to Prescribe Each Zone\n\n- **Z1**: Recovery days, warmup/cooldown, day after a race or hard block\n- **Z2**: Base phase, long rides, majority of weekly volume (60-80% of total time)\n- **Z3**: Tempo blocks, group ride simulation, sustained climbing\n- **Sweet Spot (88-94%)**: Primary build intensity for time-crunched athletes (2x20, 3x15) — most aerobic stress per minute, manageable fatigue. Prescribe by percent, not a bare integer.\n- **Z4 (Threshold)**: Threshold intervals (2x20, 3x10), race prep, FTP improvement\n- **Z5 (VO2max)**: VO2max intervals (5x4min, 4x5min), peak phase, top-end power\n- **Z6 (Anaerobic)**: Short hard repeats (8x1min, 6x90s) with full recovery — attacks, surges, lactate tolerance\n- **Z7 (Neuromuscular)**: Maximal sprints (6-10x 15-30s all-out) — peak power, leadout speed. Prescribe by duration/effort, not %FTP.\n\n## Heart Rate Cross-Reference\n\nThis table anchors every row to **% of LTHR** (lactate-threshold heart rate). HR\nlags power by 30-60 seconds, so use it as a secondary check, not the primary\ntarget. **Above threshold, HR is an unreliable pacing target** — cardiac lag on\nthe way up and the HR plateau near max mean Z5 and above (VO2max, Anaerobic,\nNeuromuscular) should be paced by power/percent, never by heart rate.\n\n- Z1: < 80% LTHR\n- Z2: 80-89% LTHR\n- Z3: 90-94% LTHR\n- Z4 (Threshold): 95-105% LTHR — threshold HR ≈ LTHR. Sweet spot (88-94% FTP) sits at the Z3/Z4 HR boundary, roughly 92-97% LTHR.\n- Z5 and above (VO2max / Anaerobic / Neuromuscular): HR is not a reliable target — pace by power, not heart rate.\n"
+}

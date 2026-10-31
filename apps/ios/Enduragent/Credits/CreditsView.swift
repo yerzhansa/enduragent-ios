@@ -6,43 +6,32 @@ struct CreditsView: View {
 
 	var body: some View {
 		List {
-			if let balance = model.balance {
-				Text(countLine(Catalog.creditsBalance, units: balance.units))
+			if let balance = model.creditsBalanceLine {
+				Text(balance)
 					.accessibilityIdentifier("credits.balance")
 			}
-			if let catalog = model.catalog {
-				ForEach(catalog.packs) { pack in
-					HStack {
-						if let price = model.packPrices[pack.id] {
-							Text(
-								countLine(
-									Catalog.creditsPackPrice, units: pack.credits.units,
-									price: price)
-							)
-						} else {
-							Text(countLine(Catalog.creditsPack, units: pack.credits.units))
-						}
-						Spacer()
-						Button(model.builder.phrasebook.say(Catalog.creditsBuy, [:])) {}
-							.disabled(true)
-					}
-					.accessibilityIdentifier("credits.pack.\(pack.id)")
-				}
+			Button(model.phrasebook.say(Catalog.accessSwitchToOpenRouter)) {
+				model.open(.accessMethod)
 			}
-			Text(model.builder.phrasebook.say(Catalog.creditsTesters, [:]))
-				.accessibilityIdentifier("credits.note")
+			.accessibilityIdentifier("credits.switchToOpenRouter")
+			if let notice = model.creditsNotice {
+				Text(notice.sentence(in: model.displayLocale))
+					.accessibilityIdentifier("credits.notice")
+			}
 		}
-		.navigationTitle(model.builder.phrasebook.say(Catalog.creditsTitle, [:]))
+		.navigationTitle(model.phrasebook.say(Catalog.creditsTitle, [:]))
 		.task {
 			await model.loadCredits()
 		}
 	}
 
-	private func countLine(_ key: CatalogKey, units: Int, price: String? = nil) -> String {
-		var vars = ["count": "\(units)", "formattedCount": "\(units)"]
-		if let price {
-			vars["price"] = price
+}
+
+extension ShellModel {
+	var creditsBalanceLine: String? {
+		balance.map {
+			displayLocale.say(
+				Catalog.creditsBalance, count: $0.units, ["formattedCount": .integer($0.units)])
 		}
-		return model.builder.phrasebook.say(key, vars)
 	}
 }

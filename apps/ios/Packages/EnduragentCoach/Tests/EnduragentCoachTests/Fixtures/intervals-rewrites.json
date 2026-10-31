@@ -1,0 +1,14 @@
+{
+	"rewrites": [
+		{
+			"field": "icu_training_load",
+			"rule": "estimatedFromSteps",
+			"why": "A save that sends a description whose steps intervals.icu parses into a workout_doc stores intervals.icu's own Load estimate from those steps in place of the sent icu_training_load. A ride added with Load 21 read back 16, and an edit that set authored steps after a Load of 33 read back 22. A save that sends no description keeps the sent Load: an edit of icu_training_load alone read back 33, and a strength session or a seeded workout with a description of no steps keeps its Load."
+		},
+		{
+			"field": "workout_doc",
+			"rule": "derivedFromDescription",
+			"why": "A save that sends a description and no workout_doc stores a workout_doc that intervals.icu builds from that description. A description with steps reads back with those steps, and a description with no steps reads back with a document whose steps list is empty and whose duration is 0, not with no workout_doc."
+		}
+	]
+}

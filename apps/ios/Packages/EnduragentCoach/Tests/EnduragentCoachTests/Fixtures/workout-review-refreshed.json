@@ -1,0 +1,100 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000308",
+  "chat": "main",
+  "finished": [],
+  "id": "00T47DW5000000000000000108",
+  "kept": [
+    {
+      "date": "1998-07-05",
+      "durationMinutes": 90,
+      "name": "Club ride"
+    }
+  ],
+  "remaining": [
+    {
+      "action": {
+        "edit": {
+          "patch": {
+            "durationSeconds": 9000
+          },
+          "target": {
+            "reviewed": {
+              "event": 110,
+              "snapshot": {
+                "date": "1998-07-03",
+                "durationSeconds": 10800,
+                "name": "Long ride"
+              }
+            }
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000413",
+      "position": 0
+    },
+    {
+      "action": {
+        "delete": {
+          "target": {
+            "reviewed": {
+              "event": 111,
+              "snapshot": {
+                "date": "1998-07-04",
+                "description": "Openers\n- 3x1m 120%",
+                "load": 30,
+                "structure": "{\"steps\":[{\"duration\":180}]}"
+              }
+            }
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000414",
+      "position": 1
+    }
+  ],
+  "revision": 2,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "approval": {
+          "_0": {
+            "refreshed": {
+              "differences": [
+                {
+                  "after": {
+                    "date": "1998-07-03",
+                    "durationSeconds": 10800,
+                    "name": "Long ride"
+                  },
+                  "before": {
+                    "date": "1998-07-02",
+                    "durationSeconds": 7200,
+                    "name": "Long endurance ride"
+                  },
+                  "change": "00T47DW5000000000000000413"
+                },
+                {
+                  "after": {
+                    "date": "1998-07-04",
+                    "description": "Openers\n- 3x1m 120%",
+                    "load": 30,
+                    "structure": "{\"steps\":[{\"duration\":180}]}"
+                  },
+                  "before": {
+                    "date": "1998-07-04",
+                    "description": "Openers",
+                    "load": 25,
+                    "structure": "{\"steps\":[{\"duration\":120}]}"
+                  },
+                  "change": "00T47DW5000000000000000414"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000208"
+}

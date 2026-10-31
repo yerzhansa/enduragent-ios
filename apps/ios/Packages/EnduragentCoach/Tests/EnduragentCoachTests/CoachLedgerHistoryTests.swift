@@ -1,0 +1,215 @@
+import EnduragentCoachFixtures
+import Foundation
+import Testing
+
+@testable import EnduragentCoach
+
+extension SwiftDataSuites {
+	@Suite(.timeLimit(.minutes(1))) struct CoachLedgerHistoryTests {
+		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
+		let phone = DeviceID(rawValue: "ledger-history-phone")
+
+		@Test(arguments: [LedgerSource.chat, .flush])
+		func allEventKindsSurviveRelaunchWithTheirDatesWordingAndSources(source: LedgerSource)
+			async throws
+		{
+			let directory = try TestTemporaryFolders.make()
+			let store = try makeSwiftDataLog(deviceId: phone, directory: directory)
+			let transport = FakeModelTransport()
+			let before = await makeCoach(transport: transport, store: store, clock: clock)
+			let events = [
+				event("decision", on: "1998-06-01", text: "Keep Saturday free for the group ride."),
+				event(
+					"override", on: "1998-06-02",
+					text: "Replace Tuesday intervals with an easy ride."),
+				event("illness", on: "1998-06-03", text: "Sore throat; skipped the morning ride."),
+				event(
+					"experiment", on: "1998-06-04", text: "Try 60 grams of carbohydrate per hour."),
+				event("outcome", on: "1998-06-05", text: "The fueling trial felt comfortable."),
+			]
+			let results: [JSONValue]
+			if source == .chat {
+				results = try await append(events, using: before, transport: transport)
+			} else {
+				transport.respond = ScriptedReply.sequence(
+					[.text("Noted."), .finish(reason: .stop)],
+					otherwise: { _ in ScriptedReply([.finish(reason: .stop)]) })
+				#expect(
+					replyText(try await before.sendAndSettle("Remember my dated training events."))
+						== "Noted.")
+				transport.respond = ScriptedReply.sequence(
+					events.map {
+						.toolCall(name: "ledger_append", arguments: $0.canonicalDigestInput())
+					} + [.finish(reason: .toolCalls), .finish(reason: .stop)],
+					for: .flush, otherwise: transport.respond)
+				let reset = try await beforeDeadline(within: .hangGuard) {
+					await before.resetAndSettle(in: .main)
+				}
+				#expect(try #require(reset) == .started(memory: .saved))
+				let request = try #require(sent(.memoryFlush, by: transport).last)
+				results = try request.messages.filter { $0.role == .tool }.map {
+					try JSONValue.parse($0.content)
+				}
+			}
+			#expect(results == Array(repeating: .object(["recorded": .bool(true)]), count: 5))
+
+			let (after, relaunchedTransport, reopened) = try await MemoryProbe.relaunch(
+				before, on: phone, in: directory, clock: clock)
+			let history = try await query(
+				from: "1998-06-01", to: "1998-06-05", using: after, transport: relaunchedTransport)
+			for arguments in events {
+				let date = try #require(arguments.objectFields["date"]?.stringValue)
+				#expect(history.contains("## \(date)\n"))
+			}
+			#expect(
+				try MemoryProbe.events(in: history)
+					== events.reversed().map { recorded($0, source: source) })
+			let records = try await reopened.fetch(RecordQuery(scope: .synced([.ledgerEvent])))
+				.records
+			#expect(records.count == 5)
+		}
+
+		@Test func duplicateAndInvalidInputsLeaveOnlyTheOriginalEventAfterRelaunch() async throws {
+			let directory = try TestTemporaryFolders.make()
+			let store = try makeSwiftDataLog(deviceId: phone, directory: directory)
+			let transport = FakeModelTransport()
+			let before = await makeCoach(transport: transport, store: store, clock: clock)
+			let original = event("decision", on: "1998-06-01", text: "Keep Saturday free.")
+			#expect(
+				try await append([original], using: before, transport: transport)
+					== [.object(["recorded": .bool(true)])])
+			let recordQuery = RecordQuery(scope: .synced([.ledgerEvent, .provenance]))
+			let saved = try await store.fetch(recordQuery).records
+			#expect(saved.filter { $0.body.kind == SyncedKind.ledgerEvent.rawValue }.count == 1)
+			#expect(saved.filter { $0.body.kind == SyncedKind.provenance.rawValue }.count == 1)
+			#expect(
+				try await append([original], using: before, transport: transport)
+					== [.object(["duplicate": .bool(true), "recorded": .bool(false)])])
+			#expect(try await store.fetch(recordQuery).records == saved)
+			let dateHelp = "is not a real calendar date. Use YYYY-MM-DD."
+			let kindHelp =
+				"is not an allowed kind. Use one of: decision, override, illness, experiment, outcome."
+			let refusals = [
+				(
+					event("decision", on: "next Tuesday", text: "This date must be refused."),
+					"Error: next Tuesday \(dateHelp)"
+				),
+				(
+					event("decision", on: "2026-02-30", text: "This date must be refused."),
+					"Error: 2026-02-30 \(dateHelp)"
+				),
+				(event("workout", on: "2026-02-30", text: ""), "Error: 2026-02-30 \(dateHelp)"),
+				(
+					event("workout", on: "1998-06-02", text: "This kind must be refused."),
+					"Error: workout \(kindHelp)"
+				),
+				(event("workout", on: "1998-06-02", text: ""), "Error: workout \(kindHelp)"),
+				(
+					event("decision", on: "1998-06-03", text: ""),
+					"Error: text is empty. Write one or two sentences."
+				),
+			]
+			for (arguments, answer) in refusals {
+				let results = try await append([arguments], using: before, transport: transport)
+				#expect(results == [.string(answer)])
+				#expect(try await store.fetch(recordQuery).records == saved)
+			}
+
+			let (after, relaunchedTransport, reopened) = try await MemoryProbe.relaunch(
+				before, on: phone, in: directory, clock: clock)
+			#expect(try await reopened.fetch(recordQuery).records == saved)
+			let history = try await query(
+				from: "1998-06-01", to: "1998-06-13", using: after, transport: relaunchedTransport)
+			#expect(try MemoryProbe.events(in: history) == [recorded(original, source: .chat)])
+		}
+
+		@Test func laterDifferentDecisionKeepsBothDatedEventsAfterRelaunch() async throws {
+			let directory = try TestTemporaryFolders.make()
+			let transport = FakeModelTransport()
+			let before = await makeCoach(
+				transport: transport,
+				store: try makeSwiftDataLog(deviceId: phone, directory: directory), clock: clock)
+			let earlier = event("decision", on: "1998-06-01", text: "Keep Saturday free.")
+			let later = event("decision", on: "1998-06-08", text: "Move the group ride to Sunday.")
+			for arguments in [earlier, later] {
+				#expect(
+					try await append([arguments], using: before, transport: transport)
+						== [.object(["recorded": .bool(true)])])
+			}
+
+			let (after, relaunchedTransport, reopened) = try await MemoryProbe.relaunch(
+				before, on: phone, in: directory, clock: clock)
+			let history = try await query(
+				from: "1998-06-01", to: "1998-06-08", using: after, transport: relaunchedTransport)
+			#expect(history.contains("## 1998-06-01\n"))
+			#expect(history.contains("## 1998-06-08\n"))
+			#expect(
+				try MemoryProbe.events(in: history)
+					== [recorded(later, source: .chat), recorded(earlier, source: .chat)])
+			let records = try await reopened.fetch(RecordQuery(scope: .synced([.ledgerEvent])))
+				.records
+			#expect(records.count == 2)
+		}
+
+		@Test func whitespaceOnlyTextIsAcceptedAndPreservedAfterRelaunch() async throws {
+			let directory = try TestTemporaryFolders.make()
+			let transport = FakeModelTransport()
+			let before = await makeCoach(
+				transport: transport,
+				store: try makeSwiftDataLog(deviceId: phone, directory: directory), clock: clock)
+			let whitespace = event("outcome", on: "1998-06-01", text: " \t\n ")
+			#expect(
+				try await append([whitespace], using: before, transport: transport)
+					== [.object(["recorded": .bool(true)])])
+
+			let (after, relaunchedTransport, reopened) = try await MemoryProbe.relaunch(
+				before, on: phone, in: directory, clock: clock)
+			let history = try await query(
+				from: "1998-06-01", to: "1998-06-01", using: after, transport: relaunchedTransport)
+			#expect(try MemoryProbe.events(in: history) == [recorded(whitespace, source: .chat)])
+			let records = try await reopened.fetch(RecordQuery(scope: .synced([.ledgerEvent])))
+				.records
+			#expect(records.count == 1)
+		}
+
+		private func event(_ kind: String, on date: String, text: String) -> JSONValue {
+			.object(["kind": .string(kind), "date": .string(date), "text": .string(text)])
+		}
+
+		private func recorded(_ arguments: JSONValue, source: LedgerSource) -> JSONValue {
+			var fields = arguments.objectFields
+			fields["source"] = .string(source.rawValue)
+			fields["ts"] = .string("1998-06-13T10:00:00.000Z")
+			return .object(fields)
+		}
+
+		private func append(
+			_ arguments: [JSONValue], using coach: Coach, transport: FakeModelTransport
+		) async throws -> [JSONValue] {
+			let request = try await MemoryProbe.turn(
+				arguments.map {
+					.toolCall(name: "ledger_append", arguments: $0.canonicalDigestInput())
+				}, saying: "Remember this dated training event.", expecting: "Checked.",
+				using: coach, transport: transport)
+			let results = try request.messages.filter { $0.role == .tool }.map(MemoryProbe.data)
+			#expect(results.count == arguments.count)
+			return results
+		}
+
+		private func query(
+			from: String, to: String, using coach: Coach, transport: FakeModelTransport
+		) async throws -> String {
+			let request = try await MemoryProbe.turn(
+				[
+					.toolCall(
+						name: "memory_query",
+						arguments: JSONValue.object(["from": .string(from), "to": .string(to)])
+							.canonicalDigestInput())
+				], saying: "What happened over those dates?", expecting: "History recovered.",
+				using: coach, transport: transport)
+			let results = request.messages.filter { $0.role == .tool }
+			try #require(results.count == 1)
+			return try MemoryProbe.text(in: results[0])
+		}
+	}
+}

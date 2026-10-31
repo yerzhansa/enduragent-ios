@@ -1,0 +1,1603 @@
+{
+	"units": {
+		"1.1": 7,
+		"1.2": 8,
+		"1.3": 8,
+		"1.4": 5,
+		"2.1": 8,
+		"2.2": 8,
+		"2.3": 6,
+		"3.1": 10,
+		"4.1": 12,
+		"5.1": 11,
+		"5.2": 7,
+		"5.3": 8,
+		"6.1": 9,
+		"7.1": 6,
+		"8.1": 6,
+		"8.2": 6,
+		"8.3": 8,
+		"8.4": 6,
+		"9.1": 9,
+		"9.2": 9,
+		"10.1": 3
+	},
+	"criteria": [
+		{
+			"id": "1.1.1",
+			"statement": "FailureCode(_:) gives the named case for one value of each of LedgerFailure, AttemptFailure, ProviderFailure, AccessUnavailable, KeychainStoreError, URLError (its code), CocoaError (its code), a DecodingError and an EncodingError.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FailureCodeTests.swift", "function": "aFailureTheSitesCatchKeepsItsOwnCase"}
+			]
+		},
+		{
+			"id": "1.1.2",
+			"statement": "For every case of PackageErrorType, a value of that type gives .type with that case, so no package error type reaches .unclassified.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FailureCodeTests.swift", "function": "everyPackageErrorTypeIsNamedByItsCase"}
+			]
+		},
+		{
+			"id": "1.1.3",
+			"statement": "A foreign error whose description holds a key, a bearer token and athlete text gives .unclassified with only its reflected type name; Wrapper<Int>.Failure gives EnduragentCoachTests.WrapperSwift.Int.Failure; a 70-character reflected name gives its first 64.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FailureCodeTests.swift", "function": "aForeignErrorIsNamedByItsTypeOnly"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FailureCodeTests.swift", "function": "aGenericErrorIsNamedWithItsArguments"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FailureCodeTests.swift", "function": "aLongTypeNameIsCutToItsFirstSixtyFourCharacters"}
+			]
+		},
+		{
+			"id": "1.1.4",
+			"statement": "ProviderDetail.parse gives .http(status: 402, openRouter: .code(402)) for an OpenRouter error body with code 402; a body with no error.code, a string code, an HTML page and an empty body each give .unparsed, and no case holds text from the body.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProviderDetailTests.swift", "function": "anOpenRouterErrorGivesItsStatusAndNumericCode"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProviderDetailTests.swift", "function": "aBodyWithoutANumericErrorCodeIsUnparsed"}
+			]
+		},
+		{
+			"id": "1.1.5",
+			"statement": "providerFailure, memoryFlushFailed, compactionFailed and replyObservedUnsaved hold codes: a transport failure whose body quotes athlete text leaves none of it in the log, the watchdog timeout records .none, and a flush that returned records its FlushEnding.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "providerBodyLeavesOnlyItsStatusAndCodeInTheLog"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "flushFailureIsRecordedNotDropped"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRunnerTests.swift", "function": "watchdogFireIsATimeoutThatRetriesOnce"}
+			]
+		},
+		{
+			"id": "1.1.6",
+			"statement": "failure-code-covers-errors reports a package file that declares struct NewFailure: Error with no matching case, passes when PackageErrorType names it, and reports a nested enum Failure: Error inside struct Outer as Outer.Failure.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "1.1.7",
+			"statement": "failure-code-covers-errors passes on the package as committed.",
+			"noAutomatedProof": "make check-source runs in CI on every pull request and applies failure-code-covers-errors to every Swift source of the package. The pull request records that the rule finds the 36 non-private error types committed today and that check-source reports no violation."
+		},
+		{
+			"id": "1.2.1",
+			"statement": "Every JournalLine case encodes to one JSON object with no newline and decodes back equal.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "everyJournalLineCaseEncodesToOneObjectAndDecodesBackEqual"}
+			]
+		},
+		{
+			"id": "1.2.2",
+			"statement": "Decoding refuses a problem line with an unknown kind, and one whose code has a character outside its closed set; each throws a DecodingError and nothing crashes.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "decodingRefusesAProblemLineWithAnUnknownKind"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "decodingRefusesACodeWithACharacterOutsideItsSet"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "aJoinedCodeCutAtTheLimitKeepsEveryNumberWhole"}
+			]
+		},
+		{
+			"id": "1.2.3",
+			"statement": "Scrub runs npm's redaction table in npm's order (URLs, Bearer and Basic credentials, sk- keys, ghp_, gho_, ghu_, ghs_ and ghr_ tokens and github_pat_ tokens), removes NUL and cuts to Scrub.limit; decoding a stored skipped row whose kind is sk-or-v1-abc and whose ulid is Bearer xyz gives [redacted] in both fields, and encoding it again holds neither token.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ScrubTests.swift", "function": "npmRedactionTableInNpmOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ScrubTests.swift", "function": "githubTokensAreRedacted"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ScrubTests.swift", "function": "nulIsRemovedBeforeThePatternsRun"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ScrubTests.swift", "function": "textIsCutToTheLimitInUTF16Units"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "decodingAStoredSkippedRowScrubsItAgain"}
+			]
+		},
+		{
+			"id": "1.2.4",
+			"statement": "JournalPrune.kept drops lines whose own at is more than 14 days before now, keeps lines dated after now, and reads no file date.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalPruneTests.swift", "function": "linesOlderThanFourteenDaysByTheirOwnTimeAreDroppedAndLaterLinesKept"}
+			]
+		},
+		{
+			"id": "1.2.5",
+			"statement": "When the kept lines encode to more than 1 MiB, JournalPrune.kept drops the oldest until they encode to at most 768 KiB.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalPruneTests.swift", "function": "aLogOverOneMiBLosesItsOldestLinesUntilItIsAtMost768KiB"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalPruneTests.swift", "function": "aLogAtOneMiBIsKeptWhole"}
+			]
+		},
+		{
+			"id": "1.2.6",
+			"statement": "FailureCode.code gives ledger.unavailable for a ledger failure, url(-1009) for a URL error, type.signInFailure for a .type case, and unclassified.<name> for .unclassified.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalLineTests.swift", "function": "aFailureCodeProjectsToItsProblemCode"}
+			]
+		},
+		{
+			"id": "1.2.7",
+			"statement": "FileJournalStorage.replace(with:) writes diagnostics.jsonl.next and renames it over diagnostics.jsonl, removeLeftover() deletes a .next, and read() of a missing file is nil.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FileJournalStorageTests.swift", "function": "replaceRenamesTheNextFileOverTheJournal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FileJournalStorageTests.swift", "function": "aReplaceThatCannotWriteTheNextFileLeavesTheJournalAsItWas"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FileJournalStorageTests.swift", "function": "removeLeftoverDeletesANextFileAndAcceptsNone"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FileJournalStorageTests.swift", "function": "readingAMissingJournalIsNil"}
+			]
+		},
+		{
+			"id": "1.2.8",
+			"statement": "One value of every DiagnosticsEvent case projects to a ProblemLine that encodes and decodes back equal, and only skippedRecord carries a SkippedRowText.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProblemProjectionTests.swift", "function": "everyEventProjectsToALineThatDecodesBack"}
+			]
+		},
+		{
+			"id": "1.3.1",
+			"statement": "FeedbackText(validating:) trims as JavaScript trim() does, including U+FEFF and line terminators, then refuses .empty, then .containsNul, then .tooLong(units:), in that order. 4,000 UTF-16 units pass and 4,001 are refused. An emoji counts as two units.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "textIsTrimmedAsJavaScriptTrims"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "aTextOfFourThousandUnitsPasses"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "aRefusedTextNamesItsFirstReason"}
+			]
+		},
+		{
+			"id": "1.3.2",
+			"statement": "FeedbackID mints lowercase UUID v4 strings that match the worker's pattern. Decoding a stored id that does not match throws.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "mintedIdsAreLowercaseVersionFourUUIDs"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "aStoredIdOnTheWorkerPatternDecodes"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "aStoredIdOffTheWorkerPatternIsRefused"}
+			]
+		},
+		{
+			"id": "1.3.3",
+			"statement": "FeedbackNote.revised(to:) returns the same note, with its id, for the same text, and a new id for different text. Decoding a kept note runs the text checks again.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "revisingToTheSameTextKeepsTheNoteAndItsId"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "revisingToAnotherTextMintsAnotherId"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "decodingAKeptNoteRunsTheTextChecksAgain"}
+			]
+		},
+		{
+			"id": "1.3.4",
+			"statement": "FeedbackBody encodes to exactly the keys channel, id and text, with channel ios.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "theBodyHoldsExactlyChannelIdAndText"}
+			]
+		},
+		{
+			"id": "1.3.5",
+			"statement": "AttemptAnswer(status:) over 200, 201, 204, 299, 300, 302, 399, 400, 404, 429, 500, 502, 503 and 599 gives stored for 204, unavailable for 503, limited for 429, redirected for 300 to 399, mayHaveLeft(.serverStatus) for any other 5xx and refused for every other status. Leg.of(_:) puts each listed URLError code on its side and an unlisted code on may have left. A thrown URLError(.cannotFindHost), URLError(.timedOut) and CocoaError(.fileReadUnknown) give neverLeft, mayHaveLeft(.transport) and mayHaveLeft(.otherError) with its FailureCode, each retried.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "answerOfAStatus"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aCodeBeforeTheConnectionNeverLeft"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aListedOrUnlistedLaterCodeMayHaveLeft"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "answerOfAThrownError"}
+			]
+		},
+		{
+			"id": "1.3.6",
+			"statement": "retried is true for unavailable, redirected, neverLeft, mayHaveLeft(.transport) and mayHaveLeft(.otherError), and false for stored, limited, refused and mayHaveLeft(.serverStatus). shouldRetry(after:) is false once two answers exist.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "retriedFollowsNpmsRetrySet"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "shouldRetryStopsAtTwoAnswers"}
+			]
+		},
+		{
+			"id": "1.3.7",
+			"statement": "FeedbackDelivery.settle(prior:answers:) over every prior phase and every one- and two-answer list: any stored gives received; else any may have left, or a prior of sending or notConfirmed, gives notConfirmed; else notSent with the newest answer's reason. Two lost answers give notConfirmed. redirected gives notSent(.refused).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "settleFoldsEveryOneAndTwoAnswerList"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aNamedFoldSettlesAsWritten"}
+			]
+		},
+		{
+			"id": "1.3.8",
+			"statement": "KeptPhase.afterRelaunch maps ready to notSent(.stopped) and sending to notConfirmed, and leaves the rest. A KeptNote encodes and decodes back equal.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aRelaunchSettlesAnInterruptedSend"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackDeliveryTests.swift", "function": "aKeptNoteDecodesBackEqual"}
+			]
+		},
+		{
+			"id": "1.4.1",
+			"statement": "A DiagnosticsFile encodes with exactly the top-level keys format, made, app, device, access, training, language, records, journal and lines, and format is 1.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsFileTests.swift", "function": "aFileEncodesItsTenSectionsWithFormatOne"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsFileTests.swift", "function": "aFileStatesAnUnreadableStoreAndALogThatIsNotSaving"}
+			]
+		},
+		{
+			"id": "1.4.2",
+			"statement": "Built from inputs seeded with an OpenRouter key, an intervals.icu athlete id made at run time, a message sentence and training values (an FTP, a weight and a workout name), the encoded bytes hold none of them.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsFileTests.swift", "function": "aFileFromSeededInputsHoldsNoKeyAthleteIdMessageOrTrainingValue"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsFileTests.swift", "function": "anAppIdentityRefusesTextOutsideItsShapes"}
+			]
+		},
+		{
+			"id": "1.4.3",
+			"statement": "ShareOutcome.of(activityType:completed:error:) gives saved for com.apple.DocumentManagerUICore.SaveToFiles completed, shared for any other activity completed, canceled when not completed with no error, and failed for any error.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsFileTests.swift", "function": "shareOutcomeMapsTheShareSheetCompletion"}
+			]
+		},
+		{
+			"id": "1.4.4",
+			"statement": "PhoneModel and SystemVersion parse a bad string to nil, and the file encodes nil as unknown.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsFileTests.swift", "function": "aBadPhoneModelIsNil"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsFileTests.swift", "function": "aBadSystemVersionIsNil"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsFileTests.swift", "function": "aDeviceThatDidNotParseIsWrittenAsUnknown"}
+			]
+		},
+		{
+			"id": "1.4.5",
+			"statement": "ShareFolder names each file with its handle's id under tmp/EnduragentDiagnostics/, and sweep() removes every file in it.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShareFolderTests.swift", "function": "eachFileIsNamedWithItsHandlesIdUnderTheShareFolder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShareFolderTests.swift", "function": "sweepRemovesEveryFileInTheFolder"}
+			]
+		},
+		{
+			"id": "2.1.1",
+			"statement": "Over FileJournalStorage in a temporary folder, an appended line is one line in diagnostics.jsonl when append returns, and a new Journal over the same folder returns it from window(endingAt:).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "anAppendedLineSurvivesANewJournal"}
+			]
+		},
+		{
+			"id": "2.1.2",
+			"statement": "A real file whose last line is cut mid-object opens with openings [.linesDropped(1)], and the file then holds only whole lines.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "aTornLastLineIsDroppedAndTheFileRewritten"}
+			]
+		},
+		{
+			"id": "2.1.3",
+			"statement": "Over MemoryJournalStorage with failReads, the journal opens empty with openings [.restarted(.unreadable)], and the next append replaces the file.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "anUnreadableFileRestartsTheJournal"}
+			]
+		},
+		{
+			"id": "2.1.4",
+			"statement": "After failNextWrites(1), health is notSaving(since: t, firstCause: .appendFailed) with the time of the failure. The next successful append rewrites every kept line and sets saving.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "aFailedAppendStopsSavingUntilTheNextWrite"}
+			]
+		},
+		{
+			"id": "2.1.5",
+			"statement": "With three whole lines in diagnostics.jsonl and half a line in diagnostics.jsonl.next, opening deletes .next, window returns the three lines, and openings is empty.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "aLeftoverNextIsDeletedAndTheOldFileKept"}
+			]
+		},
+		{
+			"id": "2.1.6",
+			"statement": "A file with lines older than 14 days and more than 1 MiB of lines opens to only what JournalPrune.kept keeps, and the file is written back.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "openingPrunesByAgeAndSize"}
+			]
+		},
+		{
+			"id": "2.1.7",
+			"statement": "With lines appended at t0 and at t0 + 13 days, window(endingAt:) at t0 + 14 days + 1 second holds only the second line, and a line dated after now is still returned.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "windowHoldsOnlyTheLast14Days"}
+			]
+		},
+		{
+			"id": "2.1.8",
+			"statement": "Over FileJournalStorage, when the append whose line takes the encoded sum past 1,048,576 bytes returns, the file is at most 786,432 bytes, the newest line is in it, and the oldest is not.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JournalTests.swift", "function": "aLongSessionStaysUnderOneMebibyte"}
+			]
+		},
+		{
+			"id": "2.2.1",
+			"statement": "Over a file journal in a temporary folder, a recorded event and a recorded usage line are each one line in diagnostics.jsonl when the call returns, and a new log over the same folder returns both from window(endingAt:).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "aRecordedLineSurvivesANewLog"}
+			]
+		},
+		{
+			"id": "2.2.2",
+			"statement": "A log opened over a torn file records journalLinesDropped(count: 1), and one opened with failReads records journalRestarted(.unreadable); each is in entries and in the file.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "aTornFileIsRecordedAsADroppedLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "anUnreadableFileIsRecordedAsARestart"}
+			]
+		},
+		{
+			"id": "2.2.3",
+			"statement": "entries holds only the typed events recorded by this process, and with 101 skipped rows in the ledger, 100 are reported.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "entriesHoldEveryEventOfThisProcessAndNothingElse"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "aLedgerReportsTheFirstHundredSkippedRows"}
+			]
+		},
+		{
+			"id": "2.2.4",
+			"statement": "A skipped row whose stored kind is a URL holding an sk-or-v1 key and whose ulid is a ghp_ token built at run time is written to diagnostics.jsonl with neither token nor the URL, and with [redacted].",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DiagnosticsLogTests.swift", "function": "aSkippedRowIsWrittenScrubbed"}
+			]
+		},
+		{
+			"id": "2.2.5",
+			"statement": "diagnostics-log-one-maker reports an app file and a package file that make a DiagnosticsLog outside SupportService.swift, and accepts the support service, tests, fixtures and names of the type. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "2.2.6",
+			"statement": "AppIdentity(infoDictionary:) reads Enduragent, 0.1.0 and 3 from a dictionary, throws missing with the key for each of the three keys when it is absent and malformed with the key when its value is not a string, and reads the app bundle's Info.plist without throwing, with the name Enduragent.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/AppIdentityTests.swift", "function": "readsNameVersionAndBuild"},
+				{"file": "apps/ios/EnduragentTests/AppIdentityTests.swift", "function": "aMissingKeyIsNamed"},
+				{"file": "apps/ios/EnduragentTests/AppIdentityTests.swift", "function": "aNonStringValueIsNamed"},
+				{"file": "apps/ios/EnduragentTests/AppIdentityTests.swift", "function": "theAppBundleHasAllThree"}
+			]
+		},
+		{
+			"id": "2.2.7",
+			"statement": "Fixture-mode services write diagnostics.jsonl into the fixture directory when the coach records its first event.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/FixtureJournalTests.swift", "function": "theFirstRecordedEventIsWrittenIntoTheFixtureDirectory"}
+			]
+		},
+		{
+			"id": "2.2.8",
+			"statement": "PublicSurfaceTests.publicSymbolsMatchTheDesignList passes with SupportService, SupportService.onDevice(app:), AppIdentity with its members and init(infoDictionary:), AppIdentityFailure, CoachPorts.support and the new CoachPorts.init listed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
+			]
+		},
+		{
+			"id": "2.3.1",
+			"statement": "A Send whose turn makes two model calls, with request delays of 0.7 s and 0.8 s on a FixedClock whose sleep advances uptime, writes one turn usage line after the turn settles, with calls 2, failedCalls 0, the summed tokens and cost, the model, durationMilliseconds 1,500, the turn and the attempt.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UsageLineTests.swift", "function": "aTurnLineSumsItsCalls"}
+			]
+		},
+		{
+			"id": "2.3.2",
+			"statement": "Try again on that turn writes a second turn line with the same turn and a new attempt.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UsageLineTests.swift", "function": "tryAgainWritesASecondLineForTheSameTurn"}
+			]
+		},
+		{
+			"id": "2.3.3",
+			"statement": "A stream that fails once and then recovers gives calls 1, failedCalls 1, ending replied; a turn whose every call fails gives ending failed, with failedCalls equal to the attempts.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UsageLineTests.swift", "function": "aStreamThatFailsOnceAndRecoversCountsTheFailure"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UsageLineTests.swift", "function": "aTurnWhoseEveryCallFailsCountsEachAttempt"}
+			]
+		},
+		{
+			"id": "2.3.4",
+			"statement": "A flush job writes one memorySave line, and a New conversation flush writes one; a turn that runs a memory save writes exactly one line, with origin turn, whose calls include the save's call, and no memorySave line.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UsageLineTests.swift", "function": "aFlushJobWritesOneMemorySaveLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UsageLineTests.swift", "function": "aNewConversationFlushWritesOneMemorySaveLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UsageLineTests.swift", "function": "anInTurnMemorySaveIsCountedInTheTurnLine"}
+			]
+		},
+		{
+			"id": "2.3.5",
+			"statement": "A turn whose history is compacted counts the compaction call in its turn line.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UsageLineTests.swift", "function": "anInTurnCompactionIsCountedInTheTurnLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UsageLineTests.swift", "function": "anInTurnMemorySaveIsCountedInTheTurnLine"}
+			]
+		},
+		{
+			"id": "2.3.6",
+			"statement": "A turn whose messages and memory hold a seeded sentence leaves that sentence in no usage line.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UsageLineTests.swift", "function": "aSeededSentenceIsInNoUsageLine"}
+			]
+		},
+		{
+			"id": "3.1.1",
+			"statement": "coach.support.about holds the AppIdentity the SupportService port was given, its name, version and build, and About.privacyPolicy is https://enduragent.icu/privacy.html.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aboutHoldsTheIdentityThePortWasGiven"}
+			]
+		},
+		{
+			"id": "3.1.2",
+			"statement": "makeDiagnosticsFile() publishes preparing, then ready(handle); the handle's file is the one file in the share folder and holds the census, the log's window and its health at that moment. With the census held by a CensusGate a second call returns preparing. A file made 14 days and 1 second after a line holds no such line.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "makingAFilePublishesPreparingThenReadyWithTheCensusWindowAndHealth"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aFileMadeFourteenDaysAndASecondLaterHoldsNoEarlierLine"}
+			]
+		},
+		{
+			"id": "3.1.3",
+			"statement": "finishShare with each ShareOutcome removes the handle's file and publishes saved, shared, canceled or failed(.shareFailed). A later finishShare for an older handle changes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "finishingAShareRemovesTheFileAndPublishesItsOutcome"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aLateFinishForAnOlderHandleChangesNothing"}
+			]
+		},
+		{
+			"id": "3.1.4",
+			"statement": "A file left in the share folder is removed when Support opens.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aFileLeftInTheShareFolderIsRemovedWhenSupportOpens"}
+			]
+		},
+		{
+			"id": "3.1.5",
+			"statement": "While a subscriber follows observe(), a failed log write publishes a snapshot whose journal is notSaving, and the next successful write publishes one whose journal is saving, with no Support method called in between.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aFailedLogWriteAndTheNextGoodOneArePublishedWithNoCall"}
+			]
+		},
+		{
+			"id": "3.1.6",
+			"statement": "A file made while the log is not saving carries notSaving(since:firstCause:) in its journal field.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aFileMadeWhileTheLogIsNotSavingSaysSo"}
+			]
+		},
+		{
+			"id": "3.1.7",
+			"statement": "Ledger.census() counts each synced, device-local and legacy kind and the skipped rows, and is unavailable when the store cannot be read. The record sync probe counts each kind by its name through it, as before.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LedgerCensusTests.swift", "function": "theCensusCountsEachKindAndTheSkippedRows"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LedgerCensusTests.swift", "function": "anUnreadableStoreIsCountedAsUnavailable"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LedgerCensusTests.swift", "function": "theRecordSyncProbeCountsEachKindByItsName"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RecordSyncProbeTests.swift", "function": "localSampleIsAReplyObservedRowOnTheDebugSampleChat"}
+			]
+		},
+		{
+			"id": "3.1.8",
+			"statement": "A write failure in the share folder records diagnosticsFileFailed(.couldNotWrite, code) and publishes failed(.couldNotWrite).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aWriteFailureInTheShareFolderIsRecordedAndShown"}
+			]
+		},
+		{
+			"id": "3.1.9",
+			"statement": "A file made from a coach whose secrets hold an OpenRouter key and an intervals.icu connection, after a turn whose provider failure quoted the athlete's sentence and with a skipped row whose ulid is the key, holds none of the key, the athlete id, the intervals key, the sentence or its training values, and holds exactly one usage line and the providerFailure problem.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportDiagnosticsTests.swift", "function": "aFileFromASeededCoachHoldsNoSecretOrAthleteText"}
+			]
+		},
+		{
+			"id": "3.1.10",
+			"statement": "PublicSurfaceTests.publicSymbolsMatchTheDesignList passes with Support, SupportSnapshot, About, DiagnosticsFileState, DiagnosticsFileHandle, DiagnosticsFileFailure, ShareOutcome, JournalHealth and JournalFault and their public members listed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
+			]
+		},
+		{
+			"id": "4.1.1",
+			"statement": "Each attempt of FeedbackClient is one POST to the feedback endpoint with content-type application/json, the FeedbackBody bytes and no cookie header, over a session with request and resource timeouts of 10 seconds and no cookie storage. FeedbackClient.live is the same initializer with no protocol classes, so this is its proof.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackClientTests.swift", "function": "eachAttemptIsOnePostWithTheBodyAndATenSecondCap"}
+			]
+		},
+		{
+			"id": "4.1.2",
+			"statement": "A 302 script word sends no request to the Location; the answers are redirected(302) twice and both bodies are byte-equal. The control under a delegate that follows reaches the Location once.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackClientTests.swift", "function": "aRedirectIsRefusedAndRetriedWithTheSameBody"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackClientTests.swift", "function": "aFollowingDelegateWouldReachTheLocation"}
+			]
+		},
+		{
+			"id": "4.1.3",
+			"statement": "Through the fake protocol Send ends received after 503 then 204 with one id, notSent(.noConnection) after offline twice, notSent(.busy) after 429, notSent(.refused) after 400, notConfirmed after 502, and notConfirmed after timeout twice, each after the stated number of requests.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackClientTests.swift", "function": "sendEndsWithItsOutcome"}
+			]
+		},
+		{
+			"id": "4.1.4",
+			"statement": "With the script lost,lost Send ends notConfirmed after 2 requests and 1 stored note, and Try again ends received after a third request with the same id, one stored note and no feedback-note.json. With lost,lost,offline,offline Try again stays notConfirmed after 4 requests with one id and the kept file holds notConfirmed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "theTraceScriptIsReceivedOnTryAgainWithOneStoredNote"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "tryAgainAfterNotConfirmedStaysNotConfirmedWhenOffline"}
+			]
+		},
+		{
+			"id": "4.1.5",
+			"statement": "The kept note is saved with phase ready, then sending, before the first request leaves.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "theNoteIsKeptReadyThenSendingBeforeTheFirstRequest"}
+			]
+		},
+		{
+			"id": "4.1.6",
+			"statement": "A relaunch over a kept ready note shows notSent(.stopped), over sending shows notConfirmed, and notSent and notConfirmed stay; each keeps its text in keptText and saves the phase shown. Try again after a relaunch over {A, sending} resends A once, ends received, keeps storedCount at 1 and removes feedback-note.json.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "aRelaunchShowsWhatTheKeptPhaseProves"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "tryAgainAfterARelaunchResendsTheKeptId"}
+			]
+		},
+		{
+			"id": "4.1.7",
+			"statement": "Send with the kept text after notConfirmed stays notConfirmed with the kept id. Send with edited text starts a second id, ends notSent(.noConnection), and the kept file holds that id and phase.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "sendWithTheKeptTextAfterNotConfirmedStaysNotConfirmed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "editedTextStartsClean"}
+			]
+		},
+		{
+			"id": "4.1.8",
+			"statement": "A refused text throws its FeedbackRefusal; nothing is kept, the fake sees no request and the status stays idle.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "aRefusedTextIsNeitherKeptNorSent"}
+			]
+		},
+		{
+			"id": "4.1.9",
+			"statement": "notSent and notConfirmed record feedbackNotDelivered with each answer's code, received records nothing, and a kept note that cannot be saved records feedbackNoteUnsaved and is still sent.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "anUndeliveredNoteRecordsEachAnswer"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "aReceivedNoteRecordsNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "aKeptNoteThatCannotBeSavedIsRecordedAndStillSent"}
+			]
+		},
+		{
+			"id": "4.1.10",
+			"statement": "feedback-fake-only reports a fixture file for each of its five conditions, the host, a client made outside its makers, the live client, the device support service and a UI proof that launches the app, accepts the host in tools sources and each maker in its own file, and rejects the host in an app test. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "4.1.11",
+			"statement": "The live feedback gate refuses without the feedback selector, refuses when the log holds a row, allows only feedback with no log or a header-only log, and a refused run makes no request.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LiveFeedbackGateTests.swift", "function": "refusesWithoutTheSelector"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LiveFeedbackGateTests.swift", "function": "refusesWhenTheLogHoldsARow"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LiveFeedbackGateTests.swift", "function": "allowsOnlyFeedbackAndAnEmptyLog"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LiveFeedbackGateTests.swift", "function": "aRefusedRunMakesNoRequest"}
+			]
+		},
+		{
+			"id": "4.1.12",
+			"statement": "Two sends during a held delivery return the same outcome after one request and one ready save, and a send whose caller is canceled still reaches received and removes the kept file.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "aSecondSendDuringDeliveryJoinsIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SupportFeedbackTests.swift", "function": "cancelingTheCallerDoesNotCancelDelivery"}
+			]
+		},
+		{
+			"id": "5.1.1",
+			"statement": "Settings shows the Support section after Session, titled Support, with Feedback, Diagnostics and About in that order; each row opens its screen and Back returns to Settings.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "SupportSectionProof", "method": "testSectionOrderAndRows"}
+			]
+		},
+		{
+			"id": "5.1.2",
+			"statement": "Send on an empty draft shows \"Write a note first.\" and fixture.feedbackRequests stays 0; a 4,001-character draft shows the too-long sentence with 4,000 and sends nothing.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "FeedbackScreenProof", "method": "testRefusals"}
+			]
+		},
+		{
+			"id": "5.1.3",
+			"statement": "With the script lost,lost, Send shows the not-confirmed sentence and Try again and keeps the draft; Try again shows \"Received. Thank you for the note.\"; fixture.feedbackRequests reads 3 and fixture.feedbackStored reads 1.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "FeedbackScreenProof", "method": "testTraceLostLostThenTryAgain"}
+			]
+		},
+		{
+			"id": "5.1.4",
+			"statement": "FeedbackLine.of gives a refusal its sentence and Send, sending Sending with the button disabled, received its sentence and Send, and not sent and not confirmed their sentence with Try again while the trimmed draft equals the kept text, and Send after an edit.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/FeedbackLineTests.swift", "function": "aRefusalShowsItsSentenceAndOffersSend"},
+				{"file": "apps/ios/EnduragentTests/FeedbackLineTests.swift", "function": "eachSettledOrSendingStateShowsItsLine"},
+				{"file": "apps/ios/EnduragentTests/FeedbackLineTests.swift", "function": "aKeptNoteOffersTryAgainUntilTheDraftChanges"}
+			]
+		},
+		{
+			"id": "5.1.5",
+			"statement": "A relaunch with a kept not-confirmed note shows the kept text, the not-confirmed sentence and Try again; Try again shows \"Received. Thank you for the note.\" and fixture.feedbackStored reads 1.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "FeedbackScreenProof", "method": "testRelaunchKeepsNotConfirmedNoteAndTryAgainSendsIt"}
+			]
+		},
+		{
+			"id": "5.1.6",
+			"statement": "Make diagnostics file shows the share sheet; Close shows \"Canceled. The file was not shared.\" and the button again, which shows the share sheet again; Copy shows the shared sentence; Save to Files, On My iPhone, Save shows \"Saved to Files.\".",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "DiagnosticsScreenProof", "method": "testCancelShowsCanceled"},
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "DiagnosticsScreenProof", "method": "testCopyShowsShared"},
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "DiagnosticsScreenProof", "method": "testSaveToFilesOnMyIPhoneShowsSaved"}
+			]
+		},
+		{
+			"id": "5.1.7",
+			"statement": "With -EnduragentFixtureJournal notSaving, Diagnostics shows the not-saving sentence with the date and time the journal stopped saving, in the coach clock's zone.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "DiagnosticsScreenProof", "method": "testNotSavingLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DisplayLocaleTests.swift", "function": "momentShowsTheDayAndClockOfTheZoneItIsGiven"}
+			]
+		},
+		{
+			"id": "5.1.8",
+			"statement": "About shows \"Enduragent\", the version line with the bundle's version and build (\"Version 0.1.0 (3)\"), and Privacy policy; tapping the link brings Safari to the foreground.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "AboutScreenProof", "method": "testNameVersionAndLink"}
+			]
+		},
+		{
+			"id": "5.1.9",
+			"statement": "journalLine(_:) is nil while saving and diagnostics.notSaving while not saving.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/FeedbackLineTests.swift", "function": "theJournalLineAppearsOnlyWhileTheLogIsNotSaving"}
+			]
+		},
+		{
+			"id": "5.1.10",
+			"statement": "ShellModel.swift has at most 393 lines.",
+			"noAutomatedProof": "The reviewer runs wc -l apps/ios/Enduragent/App/ShellModel.swift on the pull request head and checks it reads at most 393; it read 393 when the Support model joined the shell."
+		},
+		{
+			"id": "5.1.11",
+			"statement": "SupportModel.shareFinished with the literal activities SaveToFiles completed, AirDrop completed, nil not completed and nil with CocoaError(.fileWriteUnknown) shows the diagnostics.saved, diagnostics.shared, diagnostics.canceled and diagnostics.shareFailed sentence, and the share folder is empty after each.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/SupportShareTests.swift", "function": "eachShareCompletionShowsItsLine"}
+			]
+		},
+		{
+			"id": "5.2.1",
+			"statement": "SlashRouting.parse(\"/feedback  the lap table is cut off \") is .feedback with route .screen(.feedback), and argument(of:) is \"the lap table is cut off\"; /version is .version with route .screen(.about).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "parseReadsLeadingToken"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "feedbackAndVersionOpenScreensAndFeedbackCarriesItsTrimmedText"}
+			]
+		},
+		{
+			"id": "5.2.2",
+			"statement": "Coach.send of /feedback text or /version returns .openScreen, stores no message, makes no model request, and leaves a waiting workout review, a waiting plan-save card and an open coalescing window as they were; when the window ends, one turn sends the buffered text alone.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "aScreenRouteLeavesAWaitingReviewAndPlanCardAsTheyWere"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "aScreenRouteLeavesTheCoalescingWindowOpen"}
+			]
+		},
+		{
+			"id": "5.2.3",
+			"statement": "The slash list and the welcome list eight commands in the order /start, /workout, /plan, /status, /review, /language, /feedback, /version, with /feedback titled \"Send a note to the Enduragent authors\" and /version \"Show current version\".",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/SlashListTests.swift", "function": "startIsListedWithItsMenuTitleAndPlanFollowsWorkout"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "welcomeAdvertisesOnlySupportedCommands"},
+				{"file": "apps/ios/EnduragentUITests/ShortcutProofs.swift", "class": "PlanShortcutProof", "method": "testSlashListShowsPlanAfterWorkout"}
+			]
+		},
+		{
+			"id": "5.2.4",
+			"statement": "Typing /feedback the lap table is cut off and Send opens Feedback with that draft and an empty composer; one Back returns to the conversation; fixture.feedbackRequests stays 0 until Send is tapped on Feedback.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "SupportCommandProof", "method": "testFeedbackCommandOpensDraft"}
+			]
+		},
+		{
+			"id": "5.2.5",
+			"statement": "/feedback with no text opens Feedback and keeps the draft it had.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "SupportCommandProof", "method": "testBareFeedbackKeepsDraft"}
+			]
+		},
+		{
+			"id": "5.2.6",
+			"statement": "/version opens About with fixture.modelRequestCount unchanged.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "SupportCommandProof", "method": "testVersionOpensAbout"}
+			]
+		},
+		{
+			"id": "5.2.7",
+			"statement": "With a not-confirmed note kept, /feedback other text opens Feedback with other text as the draft and Send while the kept note stays, so editing the field back to the kept text shows Try again; Send with other text mints a new id and replaces the kept note, and Try again then resends that id: fixture.feedbackRequests reads 5 and fixture.feedbackStored reads 2.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "SupportCommandProof", "method": "testFeedbackCommandWithAKeptNote"}
+			]
+		},
+		{
+			"id": "5.3.1",
+			"statement": "At accessibilityXXXL each Support row shows its whole label inside the window, spans the row, and can be tapped.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testSupportRowsWrap"},
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testSupportRowsWrap"}
+			]
+		},
+		{
+			"id": "5.3.2",
+			"statement": "At accessibilityXXXL the Feedback field, the outcome line and the button are stacked in that order, the button is full width, the field grows with the text, and with the keyboard up the button can be scrolled into view and tapped.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testFeedbackStacks"},
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testFeedbackStacks"}
+			]
+		},
+		{
+			"id": "5.3.3",
+			"statement": "At accessibilityXXXL with the not-saving fixture, Diagnostics shows the not-saving line, the explanation, the full-width button and the outcome line, in that order, each inside the window.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testDiagnosticsOrder"},
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testDiagnosticsOrder"}
+			]
+		},
+		{
+			"id": "5.3.4",
+			"statement": "At accessibilityXXXL About's version value sits under its label, and the privacy policy link can be tapped.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testAboutValueUnderLabel"},
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testAboutValueUnderLabel"}
+			]
+		},
+		{
+			"id": "5.3.5",
+			"statement": "At accessibilityXXXL each Session field's label sits above its full-width field; after an edit, Save and Cancel are each whole and can be tapped, and a rejected value's sentence shows under its field.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextProof", "method": "testFieldsStackAndSaveCancelAreWhole"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextDeProof", "method": "testFieldsStackAndSaveCancelAreWhole"}
+			]
+		},
+		{
+			"id": "5.3.6",
+			"statement": "VoiceOver order on Feedback, Diagnostics, About and Session settings follows the largest-text layout, top to bottom.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testReadingOrder"},
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testReadingOrder"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextProof", "method": "testReadingOrder"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextDeProof", "method": "testReadingOrder"}
+			]
+		},
+		{
+			"id": "5.3.7",
+			"statement": "At accessibilityXXXL every button, link, toggle and text field on Settings, Access method, Model picker, Credits, Training and the language picker can be scrolled into view, lies inside the window and is hittable; the sweep launches with the OpenRouter account with model choices, reaches each screen's title, matches a committed per-screen control count above 0, and runs Training once connected and once not connected.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SettingsSweepProofs.swift", "class": "SettingsLargestTextSweepProof", "method": "testEveryControlReachable"},
+				{"file": "apps/ios/EnduragentUITests/SettingsSweepProofs.swift", "class": "SettingsLargestTextSweepProof", "method": "testTrainingNotConnected"}
+			]
+		},
+		{
+			"id": "5.3.8",
+			"statement": "At the default size About's version value has the same minY as its label within 2 points, a Session field has the same minY as its label, the Feedback button is under the field, and the Session proofs pass unchanged.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testDefaultSizeKeepsInlineRows"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testEditsSurviveRelaunchWithCredits"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testEditsSurviveRelaunchWithAnOpenRouterAccount"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testCancelLeavesTheEditUnapplied"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testFailedSaveKeepsTheSavedValueAndConversation"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionRejectionProof", "method": "testSessionRejection"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "RatioAppliesProof", "method": "testRatioApplies"},
+				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "RatioAppliesProof", "method": "testContextWindowApplies"}
+			]
+		},
+		{
+			"id": "6.1.1",
+			"statement": "privacy-manifest reports a missing manifest, one under the app target's excludes, one declaring tracking true, one declaring UserDefaults without CA92.1, and one with a third accessed API type; it reports a product file holding .modificationDate or volumeAvailableCapacity, and a manifest declaring UserDefaults over sources with no UserDefaults; it accepts a test file holding .creationDate. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.2",
+			"statement": "privacy-label-sheet reports a type in the manifest missing from the sheet, a type in the sheet missing from the manifest, a linked value that differs, tracking true in the sheet only, a purpose NSPrivacyCollectedDataTypePurposeAnalytics in the manifest only, and a sheet that says the app tracks. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.3",
+			"statement": "export-options reports a method other than app-store-connect, a signingStyle other than automatic, and a teamID other than the app target's DEVELOPMENT_TEAM. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.4",
+			"statement": "no-app-package-dependency reports a second package in project.yml, a package-level dependencies argument and a .package( call in the coach package's Package.swift, and accepts target-level dependencies. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.5",
+			"statement": "known-hosts reports a product Swift file with https://itunes.apple.com/lookup, one setting URLComponents' host to \"itunes.apple.com\", one with \"http://example.com\", an Info property UpdateURL: https://itunes.apple.com/lookup in project.yml, and an Info property whose build setting names an unlisted host; it accepts the Credits worker base and hosts in debug views, fixtures and tests. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.6",
+			"statement": "The app bundle built by the xcodebuild command holds PrivacyInfo.xcprivacy as a readable property list.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/PrivacyManifestTests.swift", "function": "theAppBundleHoldsThePrivacyManifest"}
+			]
+		},
+		{
+			"id": "6.1.7",
+			"statement": "notice-iphone-line reports a NOTICE.md without the iPhone line, a file under apps/ that names fit-file-parser, and a file under packages/ that names pi-ai. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.1.8",
+			"statement": "RELEASE.md has, before the archive step, the step that deploys the CloudKit schema to Production with its stop-and-report line, and the line that the App Privacy label is filled from release/app-privacy.json.",
+			"noAutomatedProof": "The reviewer reads RELEASE.md and checks that the CloudKit Production step, with its stop-and-report line, comes before the archive step, and that the App Store Connect section fills the label from release/app-privacy.json."
+		},
+		{
+			"id": "6.1.9",
+			"statement": "supported-devices reports a project.yml with deployment target 25.0, one with TARGETED_DEVICE_FAMILY \"1,2\", and one that adds a landscape orientation. It passes on the committed files, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "7.1.1",
+			"statement": "In each of the 17 languages, testSupport finds every string on the Support section, Feedback, Diagnostics and About equal to that language's catalog value, and its sweep finds no raw key, no unresolved placeholder and no English except values the language's catalog keeps in English (CatalogSharedValues.tsv).",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEnSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEsSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFrSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixItSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDeProof", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNlSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDaSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixSvSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNbSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFiSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtPTProof", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtBRSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPlSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixKoSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixJaSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHansSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHantProof", "method": "testSupport"}
+			]
+		},
+		{
+			"id": "7.1.2",
+			"statement": "In each of the 17 languages, launched with -EnduragentFixtureFeedback offline,offline,lost,lost,204, Feedback shows feedback.notSent.noConnection after Send, feedback.notConfirmed after Try again, feedback.received after Try again, then feedback.refused.empty after an empty Send, in that order and in that language; Debug then reads 5 feedback requests and 1 feedback notes stored.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEnSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEsSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFrSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixItSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDeProof", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNlSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDaSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixSvSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNbSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFiSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtPTProof", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtBRSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPlSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixKoSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixJaSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHansSweep", "method": "testSupport"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHantProof", "method": "testSupport"}
+			]
+		},
+		{
+			"id": "7.1.3",
+			"statement": "In each of the 17 languages, testShortcuts scrolls to the /feedback and /version rows of the slash list and finds each with its command name and its translated title.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEnSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEsSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFrSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixItSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDeProof", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNlSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDaSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixSvSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixNbSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixFiSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtPTProof", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtBRSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPlSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixKoSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixJaSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHansSweep", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHantProof", "method": "testShortcuts"}
+			]
+		},
+		{
+			"id": "7.1.4",
+			"statement": "With French chosen in Settings, the Support section and Feedback, Diagnostics and About read the French catalog values with no English; after Automatic on an English phone they read the English values.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "SupportLanguageProof", "method": "testFrenchThenAutomaticOnAnEnglishPhone"}
+			]
+		},
+		{
+			"id": "7.1.5",
+			"statement": "B05.03, carried: the review language proofs pass on this milestone's build.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguageDeProof", "method": "testEveryReviewStringIsTranslatedAndNoControlIsClipped"},
+				{"file": "apps/ios/EnduragentUITests/ReviewLanguageProofs.swift", "class": "ReviewLanguagePtPTProof", "method": "testEveryReviewStringIsTranslatedAndNoControlIsClipped"}
+			]
+		},
+		{
+			"id": "7.1.6",
+			"statement": "B05.04, carried: Automatic follows the phone's preferred languages, as Milestone 2 decided, and the one picker offers Automatic and the 17 fixed choices.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "AutomaticFrenchPhoneProof", "method": "testAutomaticFromSettings"},
+				{"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "LanguagePickerProof", "method": "testLanguagePickerFromSettings"}
+			]
+		},
+		{
+			"id": "8.1.1",
+			"statement": "On a specification-shaped fixture, the extract gives the work items with their milestones, a package in two milestones giving both, the X, G and D ids, and the MOB ids from cross_cutting mobile_ids, each once, in a stable order.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "extractGivesEveryRetainedIdOnceWithItsMilestonesInAStableOrder"}
+			]
+		},
+		{
+			"id": "8.1.2",
+			"statement": "On an ADR excerpt, the agreed differences are the backticked sub-ids that start the list items of \"Agreed differences from npm\", each with ADR-0085; an item naming two sub-ids gives both, other sections are ignored, and a decision without the section is refused.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "agreedDifferencesAreTheBacktickedSubIdsThatStartTheItemsOfTheirSection"},
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "aDecisionWithoutTheAgreedDifferencesSectionIsRefused"}
+			]
+		},
+		{
+			"id": "8.1.3",
+			"statement": "The approvals are the 51 A, B, C and D ids, and a test fails when they differ from those listed by the Milestone 4 scope.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "approvalsAreTheApprovalIdsOfMilestoneFour"}
+			]
+		},
+		{
+			"id": "8.1.4",
+			"statement": "The digest is the SHA-256 of the canonical text of the three lists: check-coverage over a copy of retained.json with one id changed exits 1 with retained-digest-mismatch, and the unedited copy passes.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "aHandEditFailsCheckCoverage"},
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "theCommittedListPassesCheckCoverageUnedited"}
+			]
+		},
+		{
+			"id": "8.1.5",
+			"statement": "--retained-drift reports added, removed, moved, difference-added and difference-removed, one line each, and exits 1 on any; it reports nothing and exits 0 against the sources the list was written from.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "driftReportsEachChangeOnItsOwnLineAndFails"},
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "noDriftAfterWritingFromTheSameSources"}
+			]
+		},
+		{
+			"id": "8.1.6",
+			"statement": "The committed retained.json has 138 requirements, 9 differences and 51 approvals, the specification's SHA-256, and a digest that matches.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RetainedTests.swift", "function": "committedListHoldsTheRetainedIdsOfTheSpecification"}
+			]
+		},
+		{
+			"id": "8.2.1",
+			"statement": "A table named milestone-6.json is checked against a scope built from retained.json: its listed ids are the 14 retained ids of Milestone 6, its agreed differences the nine of ADR-0085, and its decision record ADR-0085; without retained.json the table cannot be read.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeTests.swift", "function": "milestoneSixScopeIsTheRetainedIdsOfMilestoneSixAndTheDifferencesOfADR0085"},
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeTests.swift", "function": "milestoneSixTableWithoutTheRetainedListCannotBeRead"}
+			]
+		},
+		{
+			"id": "8.2.2",
+			"statement": "A table named milestone-7.json, or named for no milestone, that lists requirements fails with unknown-scope.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeCases.swift", "function": "tableIsCheckedAgainstTheScopeItsFileNameNames"}
+			]
+		},
+		{
+			"id": "8.2.3",
+			"statement": "B11/three-outcomes places as a part though B11 is not a listed id, because it is an agreed difference; B11/other still fails with unknown-parent.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeTests.swift", "function": "agreedDifferencePlacesAsAPartThoughItsParentIsNotListed"},
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeCases.swift", "function": "milestoneSixPlacesOnlyAnAgreedDifferenceUnderAnUnlistedParent"}
+			]
+		},
+		{
+			"id": "8.2.4",
+			"statement": "An agreed difference whose parent is neither a listed nor a retained id names the retained ids it reaches: B11/three-outcomes without reaches fails with difference-reach-missing, with B11.03 fails with unknown-reach, and with B11.01 passes; G09/no-refresh, whose parent G09 is retained, passes without reaches.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "differenceWhoseParentIsNoRetainedIdNamesTheRetainedIdsItReaches"}
+			]
+		},
+		{
+			"id": "8.2.5",
+			"statement": "Deleting any one of the nine agreed-difference rows from the committed milestone-6.json fails with missing-agreed-difference for that row.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "deletingAnAgreedDifferenceRowFromTheCommittedTableFails"}
+			]
+		},
+		{
+			"id": "8.2.6",
+			"statement": "check-coverage passes on the committed milestone-6.json.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CoverageCheckerTests.swift", "function": "theCommittedMilestoneSixTablePasses"}
+			]
+		},
+		{
+			"id": "8.3.1",
+			"statement": "The closeout derivation gives every retained id a requirement pointer for each Milestone 4, 5 and 6 requirement row with that id that is not an approval criterion, after which come its hand evidence, and an open reason for each table whose open list holds the id, before its hand open reasons; a row is open when it waits on anything, else a deviation when it has a difference, else met.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutDerivationTests.swift", "function": "everyRetainedIdPointsAtItsRequirementRowsAndTakesTheStatusItsReasonsGive"}
+			]
+		},
+		{
+			"id": "8.3.2",
+			"statement": "An agreed-difference row P/slug gives an agreed difference to the id P and to every id that starts with P., and a row with reaches only to the ids it names: B11/three-outcomes reaches B11.01 and not B11.02.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutDerivationTests.swift", "function": "anAgreedDifferenceReachesItsParentAndChildrenOrOnlyTheIdsItNames"}
+			]
+		},
+		{
+			"id": "8.3.3",
+			"statement": "Each pointer kind fails its own rule: missing-test-file, missing-test-function, missing-proof-method, unknown-table, unknown-criterion-pointer, unproven-criterion-pointer, unknown-requirement-pointer, open-requirement-pointer, unknown-phone-step, record-off-decision, unknown-record, and unknown-live-scenario for a scenario no Swift file of the live checks names.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "eachPointerKindFailsItsOwnRule"}
+			]
+		},
+		{
+			"id": "8.3.4",
+			"statement": "At building and at final, stale-row naming the field, stale-stage, missing-closeout-section, missing-closeout-row, unknown-closeout-row, duplicate-closeout-row, no-evidence and hand-for-unretained each fail on a crafted table, and the crafted table as written passes.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "theCommittedSectionMustBeTheDerivedOneAtEveryStage"},
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "theFixturePassesAsWritten"}
+			]
+		},
+		{
+			"id": "8.3.5",
+			"statement": "At final, a phone pointer whose verdict is missing, fail x or blocked y gives phone-step-not-passed and pass gives none; open-at-closeout fires per open row and per entry in any table's open; at building neither rule fires.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "everyVerdictButPassFailsAtFinal"},
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "openRowsAndOpenEntriesFailOnlyAtFinal"}
+			]
+		},
+		{
+			"id": "8.3.6",
+			"statement": "--require-final fails with closeout-not-final while the stage is building, and passes at final.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutCheckerTests.swift", "function": "requireFinalFailsWhileTheStageIsBuilding"}
+			]
+		},
+		{
+			"id": "8.3.7",
+			"statement": "--write-closeout appends the section after open and turns the open closer into a comma line on a table without one, replaces only the section's lines on a table with one, leaves every other byte unchanged, changes nothing on a second run, and writes a hand-edited row back as derived.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutWriterTests.swift", "function": "aTableWithNoSectionGainsItAfterOpenAndKeepsEveryOtherByte"},
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutWriterTests.swift", "function": "aTableWithASectionHasOnlyThoseLinesReplaced"},
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutWriterTests.swift", "function": "aSecondRunChangesNothing"},
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutWriterTests.swift", "function": "aHandEditedRowIsWrittenBackAsDerived"}
+			]
+		},
+		{
+			"id": "8.3.8",
+			"statement": "SittingRecord decodes pass, fail <check> and blocked <reason> with a date, and refuses any other verdict.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/SittingRecordTests.swift", "function": "eachVerdictDecodesWithItsDate"},
+				{"file": "tools/Tests/ToolSupportTests/SittingRecordTests.swift", "function": "anyOtherVerdictIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/SittingRecordTests.swift", "function": "aVerdictWithoutADayIsRefused"}
+			]
+		},
+		{
+			"id": "8.4.1",
+			"statement": "The committed closeout section equals the derivation, has one row per retained id, and make check-coverage passes with the open rows listed.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CoverageCheckerTests.swift", "function": "theCommittedMilestoneSixTablePasses"}
+			]
+		},
+		{
+			"id": "8.4.2",
+			"statement": "B01.01, carried: a clean install reaches a conversation, and a relaunch keeps it.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"},
+				{"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "RelaunchKeepsChatProof", "method": "testRelaunchKeepsChat"}
+			]
+		},
+		{
+			"id": "8.4.3",
+			"statement": "D04, D11, D12, D13 and D15 are met by ADR-0085, and D15 also by the supported-devices rule.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutEvidenceTests.swift", "function": "theFiveDecisionsAdrEightyFiveSettlesAreMetByIt"}
+			]
+		},
+		{
+			"id": "8.4.4",
+			"statement": "X03, G01 and G02 are met, each pointing at its existing proofs, with a proof named for every part the first list left without one.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutEvidenceTests.swift", "function": "crossCuttingAndJourneyRowsAreMetByTheirExistingProofs"}
+			]
+		},
+		{
+			"id": "8.4.5",
+			"statement": "Each MOB id's pointers, differences and open reasons in evidence.json equal the mobile table, written as literals in the test.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutEvidenceTests.swift", "function": "everyMobileRowClosesAsListed"}
+			]
+		},
+		{
+			"id": "8.4.6",
+			"statement": "Each of the 25 device-check ids closes through the listed phone steps, live scenarios or live read check, waits on each listed phone step, and closeout/reads plans 2 and 1 messages for its two lines, 3 in all.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CloseoutEvidenceTests.swift", "function": "everyDeviceCheckRowClosesAsListed"}
+			]
+		},
+		{
+			"id": "9.1.1",
+			"statement": "PhoneSessionPlan.load reads the three committed session files, m4.json, plan.json and closeout.json. Their planned totals are 15, 13 and 32, and their caps 40, 30 and 50.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "theCommittedFilesPlanTheirTotalsUnderTheirCaps"}
+			]
+		},
+		{
+			"id": "9.1.2",
+			"statement": "SittingOrder.problems is empty for the committed sitting.json.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "theCommittedSittingHasNoProblem"}
+			]
+		},
+		{
+			"id": "9.1.3",
+			"statement": "SittingOrder.problems reports a missing step, a step listed twice, closeout/update not second, a TestFlight step after closeout/debug-install, and closeout/second-device-diagnostics before closeout/two-phone.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "aSittingThatBreaksARuleIsReported"}
+			]
+		},
+		{
+			"id": "9.1.4",
+			"statement": "PhoneDriver decodes each of its four forms, and a runner step names its scheme, class, method and actions attachment.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "eachDriverFormDecodesWithItsBuild"},
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "aDriverOutsideTheFourFormsIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "everyCommittedRunnerStepNamesItsTest"}
+			]
+		},
+		{
+			"id": "9.1.5",
+			"statement": "PhoneBudget.approve refuses a non-number, a budget below the steps' planned count, and one that passes the cap after what the ledger spent, for each of the three sessions.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetBelowTheStepsPlannedCountIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "anAnswerThatIsNotABudgetIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetThatWouldTakeTheMilestonePastThirtyIsRefused"}
+			]
+		},
+		{
+			"id": "9.1.6",
+			"statement": "phone-check plan passes 2, 1, 2, 2, 3, 1 and 2 for the seven steps in ENDURAGENT_PLAN_PHONE_STEPS, read through PhoneSessionPlan.load, and PlanPhoneRun plans exactly the counts that variable holds.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theWholeSessionPlansTwelveSendsAndOneNewConversation"},
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "aStepsVariableThatCannotBeReadPlansNothing"}
+			]
+		},
+		{
+			"id": "9.1.7",
+			"statement": "phone-tests-unhosted reports a project with TEST_TARGET_NAME on EnduragentPhoneTests, one whose phone test target depends on the app, and one whose EnduragentPhone scheme builds the app. It passes on the committed project, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "9.1.8",
+			"statement": "On the simulator, PhoneUnhostedProof drives the separately installed app by bundle id. After xcodebuild test, xcrun simctl appinfo still reports CFBundleVersion 9001, and the conversation written before the run is shown.",
+			"tests": [
+				{"file": "apps/ios/EnduragentPhoneTests/PhoneUnhostedProof.swift", "class": "PhoneUnhostedProof", "method": "testWritesAConversationInTheInstalledApp"},
+				{"file": "apps/ios/EnduragentPhoneTests/PhoneUnhostedProof.swift", "class": "PhoneUnhostedProof", "method": "testShowsTheConversationWrittenBeforeTheRun"}
+			],
+			"checkedByHand": {"part": "That xcodebuild test installed nothing over the app. The simulator agent reads CFBundleVersion with xcrun simctl appinfo after each run and records 9001 both times in the review.", "described": ".agents/skills/verify-ios/phone.md"}
+		},
+		{
+			"id": "9.1.9",
+			"statement": "PhoneSessionTests.everyStepHasDecidableChecks: every step in the three committed files has at least one check with a non-empty pass, and an endsWith.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "everyStepHasDecidableChecks"}
+			]
+		},
+		{
+			"id": "9.2.1",
+			"statement": "PhoneInvocationPlan books m4 into enduragent-m4/PHONE/messages.tsv with cap 40, plan into enduragent-m5/PHONE/messages.tsv with cap 30, and closeout into enduragent-m6/PHONE/messages.tsv with cap 50. A bad budget and one that would pass the cap throw before the factory builds any Subprocess. The keychain-proof and two-phone invocations list the proof build, the devicectl install and the test, in that order.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "eachCommandBooksItsOwnLedger"},
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "aProofStepBuildsAndInstallsTheProofAppBeforeItsTest"},
+				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "runnerStepsOfOneTestShareOneRunThatPlansEachStep"}
+			]
+		},
+		{
+			"id": "9.2.2",
+			"statement": "A verdict entered at the prompt lands in coverage/closeout/sitting.json under its step, an answer that is not pass, fail <check> or blocked <reason> is refused, and a second verdict for the same step replaces the first.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/SittingRecordTests.swift", "function": "aVerdictTypedAtThePromptReplacesTheStepsEarlierOne"}
+			]
+		},
+		{
+			"id": "9.2.3",
+			"statement": "On the simulator in fixture mode, CloseoutPhoneRun passes the about, feedback and language steps against the separately installed app, and its closeout-phone-actions log holds 0, 0 and 4 Message action lines for them.",
+			"tests": [
+				{"file": "apps/ios/EnduragentPhoneTests/CloseoutPhoneRun.swift", "class": "CloseoutPhoneRun", "method": "testCloseoutPhoneRun"}
+			],
+			"checkedByHand": {"part": "The simulator agent counts the Message action lines per step in the exported closeout-phone-actions attachment and records the counts in the review.", "described": ".agents/skills/verify-ios/phone.md"}
+		},
+		{
+			"id": "9.2.4",
+			"statement": "The about step shows Enduragent and a version with its build on About from the Support row, /version opens About, and the privacy policy link brings Safari to the foreground.",
+			"tests": [
+				{"file": "apps/ios/EnduragentPhoneTests/CloseoutPhoneRun.swift", "class": "CloseoutPhoneRun", "method": "testCloseoutPhoneRun"}
+			],
+			"checkedByHand": {"part": "The simulator agent inspects the about, about-privacy-policy and about-from-version screenshots and records them in the review.", "described": ".agents/skills/verify-ios/phone.md"}
+		},
+		{
+			"id": "9.2.5",
+			"statement": "The feedback step opens Feedback from the Support row and from /feedback the lap table is cut off with that draft, shows the empty and too-long refusals through FeedbackSendGate, handles a pasted NUL, and fixture.feedbackRequests stays 0. The language step taps neither feedback.send nor feedback.tryAgain.",
+			"tests": [
+				{"file": "apps/ios/EnduragentPhoneTests/CloseoutPhoneRun.swift", "class": "CloseoutPhoneRun", "method": "testCloseoutPhoneRun"}
+			],
+			"checkedByHand": {"part": "Which NUL branch the simulator took, NUL entered or NUL not enterable, read from the actions log; the simulator agent records it in the review.", "described": ".agents/skills/verify-ios/phone.md"}
+		},
+		{
+			"id": "9.2.6",
+			"statement": "FeedbackStepGuard.mayTapSend trims a note at both ends with FeedbackText's JavaScript whitespace set. It allows an empty value, whitespace and newlines, NUL alone, a NUL inside text, 4,001 a, and 4,001 units with a space inside, and refuses ab, the lap table is cut off, 4,000 a, 4,000 a with a space at each end, U+0085, U+200B, and 3,999 a after two U+FEFF. Each of the 25 trimmed scalars alone is allowed and around 4,000 a is refused; each near-miss alone is refused and before 4,000 a is allowed. FeedbackTextTests pins the same scalars and near-misses on the app side.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aNoteTheAppMustRefuseMayBeSent"},
+				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aNoteTheAppWouldDeliverIsNeverSent"},
+				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aScalarTheAppTrimsIsTrimmed"},
+				{"file": "tools/Tests/ToolSupportTests/FeedbackStepGuardTests.swift", "function": "aScalarTheAppKeepsIsCounted"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "eachJavaScriptWhitespaceScalarIsTrimmed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeedbackTextTests.swift", "function": "aScalarOutsideTheJavaScriptSetIsKept"}
+			]
+		},
+		{
+			"id": "9.2.7",
+			"statement": "phone-feedback-send-gate reports a phone test file that names feedback.send outside FeedbackSendGate.swift, a FeedbackSendGate.swift that does not call FeedbackStepGuard.mayTapSend, and a phone test file that names feedback.tryAgain. It passes on the committed sources, which make check-source checks in CI on every pull request.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "9.2.8",
+			"statement": "The build-0f943324 store, opened by this code with the clock nine minutes after the seed settled, shows its plan-save confirmation waiting, and Expired one minute later. Its four turns, the memory text, the saved plan Threshold Block, the waiting review's one change, the receipt for event 1 and the language fr match the seed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreFromM5Tests.swift", "function": "waitingConfirmationKeepsItsExpiry"}
+			]
+		},
+		{
+			"id": "9.2.9",
+			"statement": "DiagnosticsFileScan fails a file holding i1234567, the test account's athlete id, sk-or-v1- followed by hex built at run time, the intervals key, or one of closeout.json's fixed fill and update messages, and a file with no usage line. A clean file with a usage line that has a model and tokens passes.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "aCleanFileWithAUsageLinePasses"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "anAthleteIdShapeFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "theTestAccountsAthleteIdFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "anOpenRouterKeyShapeFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "theIntervalsKeyFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "aFixedCloseoutMessageFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "aFileWithoutAUsageLineFails"},
+				{"file": "tools/Tests/ToolSupportTests/DiagnosticsFileScanTests.swift", "function": "theCommittedCloseoutPlanFixesTheFillAndUpdateMessages"}
+			]
+		},
+		{
+			"id": "10.1.1",
+			"statement": "closeout/fill and closeout/update passed: the Milestone 5 build, installed clean from TestFlight, opened to onboarding, connected the test account and reached a conversation; the Milestone 6 TestFlight build installed over the filled build opened the same conversation, memory, waiting review, receipt, access and language, and one Turn answered.",
+			"phoneSession": "closeout/fill and closeout/update install TestFlight builds on the operator's iPhone, so no simulator test can run them. Their pass verdicts in coverage/closeout/sitting.json close this criterion."
+		},
+		{
+			"id": "10.1.2",
+			"statement": "closeout/language passed: a fixed language, then Automatic, read on the phone, the Support screens included.",
+			"phoneSession": "closeout/language reads the app's languages on the operator's iPhone, so no simulator test can run it. Its pass verdict in coverage/closeout/sitting.json closes this criterion."
+		},
+		{
+			"id": "10.1.3",
+			"statement": "closeout/diagnostics passed: canceled, then saved to On My iPhone, each said truthfully on screen, and DiagnosticsFileScan passed on the saved file.",
+			"phoneSession": "closeout/diagnostics uses the share sheet and Files on the operator's iPhone, so no simulator test can run it. Its pass verdict in coverage/closeout/sitting.json closes this criterion."
+		}
+	],
+	"requirements": [
+		{
+			"id": "B10.02/no-snapshot",
+			"statement": "The phone exports no full Reference snapshot and offers no export help.",
+			"agreedDifference": "ADR-0085 records it: the phone keeps no Reference snapshot (ADR-0082), so there is nothing like npm's /snapshot raw to export."
+		},
+		{
+			"id": "B10.03/no-snapshot",
+			"statement": "The phone exports no per-section snapshot.",
+			"agreedDifference": "ADR-0085 records it: the phone keeps no Reference snapshot (ADR-0082), so there is no section to export."
+		},
+		{
+			"id": "B10.01/one-file",
+			"statement": "Usage lines live in the diagnostics file as their own event kind.",
+			"agreedDifference": "ADR-0085 records it: one diagnostics file holds the usage lines, in place of the separate usage ledger with 10 MiB rotation the specification asks for."
+		},
+		{
+			"id": "B10.01/one-severity",
+			"statement": "The diagnostics log has one severity, because every recorded event is a failure.",
+			"agreedDifference": "ADR-0085 records it: the athlete cannot set a log level on a phone, in place of the selectable severity the specification asks for."
+		},
+		{
+			"id": "B01.02/store-notes",
+			"statement": "The app shows no release notes and has no /whatsnew.",
+			"agreedDifference": "ADR-0085 records it: TestFlight and the App Store show each version's notes."
+		},
+		{
+			"id": "B01.04/no-notice",
+			"statement": "The app makes no update check, shows no update notice, keeps no opt-out or once-per-version rule, sends no telemetry and has no /update.",
+			"agreedDifference": "ADR-0085 records it: iOS installs updates."
+		},
+		{
+			"id": "B01.03/no-update-state",
+			"statement": "The app gives no current, available, unavailable or failed update guidance; preserved state across an update stays required.",
+			"agreedDifference": "ADR-0085 records it: iOS exposes no update state to the app."
+		},
+		{
+			"id": "B11/three-outcomes",
+			"statement": "A feedback note ends received, not sent or not confirmed, so the app claims neither success nor non-delivery when the answer is lost.",
+			"agreedDifference": "ADR-0085 records it: the three outcomes replace npm's one failure sentence, as the specification proposes for B11.01.",
+			"reaches": ["B11.01"]
+		},
+		{
+			"id": "G09/no-refresh",
+			"statement": "Journey G09 has no refresh half.",
+			"agreedDifference": "ADR-0085 records it: the refresh went with the Reference snapshot (ADR-0082)."
+		},
+		{
+			"id": "B01.02",
+			"statement": "The athlete reads the app's name, version and build from the bundle on About, with no connection needed, from the Support row or with /version, which stores no message and makes no model call. Release notes and /whatsnew are absent by B01.02/store-notes.",
+			"criteria": ["3.1.1", "5.1.8", "5.2.6"]
+		},
+		{
+			"id": "B01.04",
+			"statement": "The app has no update check and no host it does not need: known-hosts fails on any URL or host name in product Swift or the app's Info properties that is not listed with its reason, so no update or App Store lookup can creep in.",
+			"criteria": ["6.1.5"]
+		},
+		{
+			"id": "B05.02",
+			"statement": "Every retained screen reads in each of the 17 languages, Milestone 6's included: the Support section, Feedback through each of its outcomes, Diagnostics through Canceled, About, and the /feedback and /version rows of the slash list, with no English but values a language keeps in English for a recorded reason.",
+			"criteria": ["7.1.1", "7.1.2", "7.1.3"]
+		},
+		{
+			"id": "B05.03",
+			"statement": "Saved workout reviews render in the current language on this milestone's build.",
+			"criteria": ["7.1.5"]
+		},
+		{
+			"id": "B05.04",
+			"statement": "The language precedence is the one Milestone 2 decided: a fixed choice wins, and Automatic follows the phone's preferred languages, through one picker with no hidden override.",
+			"criteria": ["7.1.6"]
+		},
+		{
+			"id": "B10.01",
+			"statement": "The phone keeps 14 days of problems and model usage in one persisted diagnostics log, bounded at 1 MiB, as typed lines with npm's scrub patterns on every free-text field. Each Send or Try again writes one usage line carrying its turn, and each memory save outside a turn writes one, with the model, tokens, cost and duration and no message text. The separate usage ledger and log levels are absent by B10.01/one-file and B10.01/one-severity.",
+			"criteria": ["1.1.5", "1.2.3", "1.2.4", "1.2.5", "2.1.1", "2.1.2", "2.1.4", "2.1.7", "2.1.8", "2.2.1", "2.2.4", "2.3.1", "2.3.6"]
+		},
+		{
+			"id": "B10.02",
+			"statement": "The diagnostics file is the phone's full export: one complete JSON file, made on request and handed to the share sheet, holding the census, the log's 14-day window and its health, with no key, athlete id or message text. The training snapshot export is absent by B10.02/no-snapshot.",
+			"criteria": ["1.4.2", "3.1.2", "3.1.9"]
+		},
+		{
+			"id": "B10.03",
+			"statement": "The diagnostics file holds its sections in the athlete's scope: the app, the phone, the access method kind, the connection state, the language, the record counts and the journal, with no key, athlete id, message text or training data. The per-section training snapshot is absent by B10.03/no-snapshot.",
+			"criteria": ["1.4.1", "1.4.2"]
+		},
+		{
+			"id": "B11.01",
+			"statement": "Feedback has a deliberate entry: the Support row, and /feedback, which opens the form with any text after it as the draft and makes no model call. The note is trimmed; an empty note, a NUL or more than 4,000 UTF-16 units is refused with no request; the draft stays after a failure; one note keeps one id across its two attempts and Try again. npm's one failure message is replaced by B11/three-outcomes.",
+			"criteria": ["1.3.1", "4.1.3", "4.1.8", "5.1.2", "5.2.4", "5.2.7"]
+		},
+		{
+			"id": "B11.02",
+			"statement": "Feedback acknowledges only a successful submission: the app says Received only after the service accepted the note, shows a not-sent or not-confirmed outcome explicitly, keeps the note, and sends it again only when the athlete taps Try again.",
+			"criteria": ["1.3.4", "1.3.7", "4.1.1", "4.1.4", "5.1.3"]
+		},
+		{
+			"id": "B01.01",
+			"statement": "A distributed build installs and stays usable: a clean TestFlight install reaches onboarding and then a coaching conversation, and a relaunch opens the saved conversation without repeating setup.",
+			"criteria": ["8.4.2", "10.1.1"]
+		},
+		{
+			"id": "B01.03",
+			"statement": "An installed-build update keeps usable state: a newer TestFlight build installed over a filled older one opens the same conversation, memory, waiting review, receipt, access and language, and a Turn answers.",
+			"criteria": ["9.2.8", "10.1.1"]
+		},
+		{
+			"id": "B10.04",
+			"statement": "Sharing the diagnostics file claims only what iOS reports: Close says the file was not shared, Save to Files says it was saved, any other completed activity says shared, an error says it failed, and the file holds no secret or personal message.",
+			"criteria": ["1.4.3", "3.1.3", "5.1.6", "5.1.11", "10.1.3"]
+		}
+	],
+	"plan": {
+		"units": {
+			"1.1": 7,
+			"1.2": 8,
+			"1.3": 8,
+			"1.4": 5,
+			"2.1": 8,
+			"2.2": 8,
+			"2.3": 6,
+			"3.1": 10,
+			"4.1": 12,
+			"5.1": 11,
+			"5.2": 7,
+			"5.3": 8,
+			"6.1": 9,
+			"7.1": 6,
+			"8.1": 6,
+			"8.2": 6,
+			"8.3": 8,
+			"8.4": 6,
+			"9.1": 9,
+			"9.2": 9,
+			"10.1": 3
+		},
+		"requirements": {
+			"B01.01": ["8.4.2", "10.1.1"],
+			"B01.02": ["3.1.1", "5.1.8", "5.2.6"],
+			"B01.03": ["9.2.8", "10.1.1"],
+			"B01.04": ["6.1.5"],
+			"B05.01": ["7.1.4", "10.1.2"],
+			"B05.02": ["7.1.1", "7.1.2", "7.1.3"],
+			"B05.03": ["7.1.5"],
+			"B05.04": ["7.1.6"],
+			"B10.01": ["1.1.5", "1.2.3", "1.2.4", "1.2.5", "2.1.1", "2.1.2", "2.1.4", "2.1.7", "2.1.8", "2.2.1", "2.2.4", "2.3.1", "2.3.6"],
+			"B10.02": ["1.4.2", "3.1.2", "3.1.9"],
+			"B10.03": ["1.4.1", "1.4.2"],
+			"B10.04": ["1.4.3", "3.1.3", "5.1.6", "5.1.11", "10.1.3"],
+			"B11.01": ["1.3.1", "4.1.3", "4.1.8", "5.1.2", "5.2.4", "5.2.7"],
+			"B11.02": ["1.3.4", "1.3.7", "4.1.1", "4.1.4", "5.1.3"]
+		}
+	},
+	"open": [
+		"B05.01"
+	],
+	"closeout": {
+		"stage": "building",
+		"rows": [
+			{"id": "B01.01", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B01.01"}}, {"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}}, {"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "RelaunchKeepsChatProof", "method": "testRelaunchKeepsChat"}}, {"phone": {"session": "closeout", "step": "closeout/fill"}}, {"phone": {"session": "closeout", "step": "closeout/update"}}], "differences": [], "waitsOn": []},
+			{"id": "B01.02", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B01.02"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B01.02/store-notes", "record": "ADR-0085"}}], "waitsOn": []},
+			{"id": "B01.03", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B01.03"}}, {"phone": {"session": "closeout", "step": "closeout/update"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B01.03/no-update-state", "record": "ADR-0085"}}], "waitsOn": []},
+			{"id": "B01.04", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B01.04"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B01.04/no-notice", "record": "ADR-0085"}}], "waitsOn": []},
+			{"id": "B02.01", "group": "work", "status": "deviation", "evidence": [{"test": {"file": "apps/ios/EnduragentTests/TrainingSettingsTests.swift", "function": "persistenceAndCancelledReplacementKeepConversationHistoryAndPreferences"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ConnectLaterTests.swift", "function": "unofferedTrainingToolsThenSavedKeyOwnerReachTheModel"}}, {"test": {"file": "apps/ios/EnduragentUITests/ConnectIntervalsProofs.swift", "class": "ConnectIntervalsProof", "method": "testConnectIntervals"}}, {"test": {"file": "apps/ios/EnduragentUITests/ConnectIntervalsProofs.swift", "class": "ConnectIntervalsProof", "method": "testConnectLaterWithLatinKeyboard"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B02.01/key-owner: The athlete is always the owner of the connected intervals.icu key; no other athlete ID."}}], "waitsOn": []},
+			{"id": "B02.02", "group": "work", "status": "deviation", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ConnectionResultTests.swift", "function": "blankAndFailedWriteHaveSeparateSaveGuidanceAndKeepConnection"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ConnectionResultTests.swift", "function": "networkProfileFailureRecoversUsingSavedKeyAndID"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ConnectionResultTests.swift", "function": "wellnessRetryReadsOnlyWellnessAndRetainsAthlete"}}, {"test": {"file": "apps/ios/EnduragentTests/TrainingSettingsTests.swift", "function": "savedDisplayFailuresHaveCorrectionAndRetryRoutes"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B02.02/profile-display: iOS addition: Settings shows the resolved athlete and Fitness, Fatigue and Form after connecting."}}], "waitsOn": []},
+			{"id": "B02.03", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SyncedTrainingIdentityTests.swift", "function": "foregroundTurnResolvesPeerReplacement"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteScopedCoachingTests.swift", "function": "localAndSyncedReconnectReadOnlySelectedAthlete"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteScopedExtractionTests.swift", "function": "delayedExtractionKeepsSourceAthlete"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteOwnershipSnapshotTests.swift", "function": "savedOwnershipSurvivesRotationSwitchAndRelaunch"}}, {"phone": {"session": "closeout", "step": "closeout/two-phone"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/two-phone"}}]},
+			{"id": "B02.04", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}}, {"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "RelaunchKeepsChatProof", "method": "testRelaunchKeepsChat"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LegacyIntervalsIdentityTests.swift", "function": "legacyTrainingStaysConnectedWhenWritesFail"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}}], "differences": [], "waitsOn": []},
+			{"id": "B03.01", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AccessChoiceTests.swift", "function": "savedOpenRouterChoiceSurvivesReopen"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AccessChoiceTests.swift", "function": "choosingCreditsPublishesAndSurvivesReopen"}}, {"test": {"file": "apps/ios/EnduragentTests/AccessSettingsTests.swift", "function": "creditsSetupPersistsBeforeSelectingAndReopensWithBuiltInModel"}}, {"test": {"file": "apps/ios/EnduragentTests/AccessOnboardingTests.swift", "function": "starterSetupThenCreditsChoiceReopensForToolTurn"}}, {"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B03.01/typed-model-id: The OpenRouter model is picked from the catalog only, with no typed model ID."}}], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}]},
+			{"id": "B03.02", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelCatalogRefreshTests.swift", "function": "rejectedRefreshRetainsDownloadedChoices"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelCatalogRefreshTests.swift", "function": "omittedSelectionKeepsItsNameAndRequestAfterRestart"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelChoiceTests.swift", "function": "nonCatalogChoicesCannotBeSelectedOrInvoked"}}, {"test": {"file": "apps/ios/EnduragentUITests/ModelPickerProof.swift", "class": "ModelPickerProof", "method": "testFailedRefreshesKeepChoicesTappableAndCoachingAvailable"}}], "differences": [], "waitsOn": []},
+			{"id": "B03.03", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/OpenRouterPKCETests.swift", "function": "knownS256VectorAuthorizesAndExchangesCode"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/OpenRouterSignInTests.swift", "function": "firstSignInUsesCreditsModelAndResignInPreservesChoice"}}, {"test": {"file": "apps/ios/EnduragentTests/OpenRouterSignInSessionTests.swift", "function": "systemCancellationReturnsTypedCanceled"}}, {"test": {"file": "apps/ios/EnduragentUITests/OpenRouterAccessProof.swift", "class": "OpenRouterAccessProof", "method": "testSettingsSignInAndCancelKeepSavedMarksAndToolRepliesAfterRelaunch"}}, {"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}]},
+			{"id": "B03.04", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/OpenRouterSignInTests.swift", "function": "overlappingIntentsJoinAndSwitchOnlyAfterSave"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnAccessRejectionTests.swift", "function": "overlappingRejectionsRecoverOnce"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnAccessRejectionTests.swift", "function": "rejectedKeyStaysQuarantinedAfterReopen"}}, {"test": {"file": "apps/ios/EnduragentUITests/OpenRouterRecoveryProof.swift", "class": "OpenRouterRecoveryProof", "method": "testRejectedKeySurvivesRelaunchAndDirectSignInKeepsConversation"}}, {"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}]},
+			{"id": "B03.05", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/EnduragentUITests/AccessSettingsProof.swift", "class": "AccessSettingsProof", "method": "testCreditsSetupSelectsOnlyAfterPersistenceAndKeepsTheChoice"}}, {"test": {"file": "apps/ios/EnduragentUITests/AccessOnboardingProof.swift", "class": "AccessOnboardingProof", "method": "testCreditsFirstThenSignInAndPersistedChoice"}}], "differences": [], "waitsOn": []},
+			{"id": "B03.06", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsOperationsKeepOpenRouterAndReportFailures"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsItsActionAfterReopeningAndInHistory"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialReadTests.swift", "function": "resolverReadsOnlyTheSelectedMethodKey"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CreditsClientTests.swift", "function": "claimSettlementFinishesOnlyAfterTerminalOutcome"}}], "differences": [], "waitsOn": []},
+			{"id": "B04.01", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialReadTests.swift", "function": "lockedStoreReportsSecureStorageLocked"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialReadTests.swift", "function": "malformedItemReportsSlotWithoutContent"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialCorrectionTests.swift", "function": "storageRecoveryClearsNoticeWithoutLeakingContent"}}, {"test": {"file": "apps/ios/EnduragentUITests/CredentialProofs.swift", "class": "LockedKeychainProof", "method": "testLockedKeychainKeepsTheConversation"}}, {"phone": {"session": "closeout", "step": "closeout/keychain-proof"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/keychain-proof"}}]},
+			{"id": "B04.02", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultTests.swift", "function": "failedWriteKeepsPreviousItemAndNextAttemptUsesIt"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultTests.swift", "function": "cancelKeepsTheWorkingKey"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialSafeguardTests.swift", "function": "failedRecoveryKeepsThePreviousAccountDuringTheNextReplacement"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultRegressionTests.swift", "function": "concurrentReplacementThenDisconnectKeepsDisconnect"}}], "differences": [], "waitsOn": []},
+			{"id": "B04.03", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KeychainStoreTests.swift", "function": "everyItemIsSynchronizableAndReadableAfterFirstUnlock"}}, {"phone": {"session": "closeout", "step": "closeout/two-phone"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B04.03/keychain-only: The Keychain, synced through iCloud Keychain, is the only secret store; no external secret source."}}], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/two-phone"}}]},
+			{"id": "B05.01", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/EnduragentTests/FixtureSessionTests.swift", "function": "languageChoiceRewritesTheChatAndTheNextReplyRequest"}}, {"test": {"file": "apps/ios/EnduragentTests/FixtureSessionTests.swift", "function": "aLanguageThatCannotBeSavedKeepsTheCurrentChoice"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "uiTagUsesFirstSupportedSystemLanguageElseEnglish"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "fixedPreferenceChangesAppTextAndReplySection"}}, {"test": {"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "LanguagePickerProof", "method": "testLanguagePickerFromSettings"}}, {"phone": {"session": "closeout", "step": "closeout/language"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B05.01/preferred-languages: Automatic uses the iPhone's preferred-languages list, never the message language."}}], "waitsOn": [{"table": {"table": "coverage/milestone-6.json", "id": "B05.01"}}, {"phone": {"session": "closeout", "step": "closeout/language"}}]},
+			{"id": "B05.02", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B05.02"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CatalogCompletenessTests.swift", "function": "everyEnglishKeyHasAValueInEveryLocale"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CatalogPhrasebookTests.swift", "function": "missingKeyReturnsEnglishNeverTheRawKey"}}, {"test": {"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDeProof", "method": "testFailureNotices"}}], "differences": [], "waitsOn": []},
+			{"id": "B05.03", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B05.03"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "everyLineOfAReviewAndItsProgressReadsInTheDisplayLanguage"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCardLanguageTests.swift", "function": "authoredStepsOnTheCardFollowTheDisplayLanguageAndKeepItAfterRelaunch"}}, {"test": {"file": "apps/ios/EnduragentTests/ShellLanguageTests.swift", "function": "visibleReviewOutcomeChangesWithTheLanguagePreference"}}], "differences": [], "waitsOn": []},
+			{"id": "B05.04", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B05.04"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LanguageTests.swift", "function": "registryMatchesSeventeenTagTable"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyLanguageSectionTests.swift", "function": "everyTagUsesTheResolvedLanguage"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DisplayLocaleTests.swift", "function": "refreshFollowsThePhoneAndKeepsFixedWords"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B05.04/no-override: One language picker, with no hidden override such as ENDURAGENT_LANGUAGE."}}], "waitsOn": []},
+			{"id": "B06.01", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "startRoutesToResetAndPlanIsAModelTurn"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AcceptTests.swift", "function": "blankTextIsIgnoredAndLanguageSlashRoutesWithoutARecord"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FirstTurnTests.swift", "function": "replyFinishesWithTheAssembledRequest"}}, {"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}}], "differences": [], "waitsOn": []},
+			{"id": "B06.02", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FragmentOrderingTests.swift", "function": "shortcutsCloseBufferedTextInSendOrder"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FragmentOrderingTests.swift", "function": "fragmentsExtendTheRealTrailingWindow"}}, {"test": {"file": "apps/ios/EnduragentUITests/FragmentOrderingProof.swift", "class": "FragmentOrderingProof", "method": "testBufferedTextClosesBeforeLanguagePicker"}}], "differences": [], "waitsOn": []},
+			{"id": "B06.03", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolProgressTests.swift", "function": "workingPersistsAcrossIndependentModelAndToolWaits"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolResultCapTests.swift", "function": "oversizedArrayReportsEveryOmittedRow"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnFinalizationTests.swift", "function": "finalizationSettlesDurably"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "eachRungStopsAtItsNpmLimit"}}, {"test": {"file": "apps/ios/EnduragentUITests/ToolProgressProof.swift", "class": "ToolProgressProof", "method": "testToolProgress"}}], "differences": [], "waitsOn": []},
+			{"id": "B06.04", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyDocumentTests.swift", "function": "longSharedFixtureRetainsWholeCodeAndBothSafeLinks"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyDocumentTests.swift", "function": "tableKeepsAlignmentStylesAndEmptyCells"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ResetWindowTests.swift", "function": "aReplyStreamingAtTheTapIsSavedWithItsQuestion"}}, {"test": {"file": "apps/ios/EnduragentUITests/ReplyFormattingProofs.swift", "class": "ReplyFormattingProof", "method": "testFormattedReplyInChatAndHistory"}}], "differences": [], "waitsOn": []},
+			{"id": "B07.01", "group": "work", "status": "deviation", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SessionSettingsTests.swift", "function": "setSessionStoresOneRecordThatTheNextCoachReads"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ContextWindowTests.swift", "function": "contextWindowOverrideShrinksTheHistoryBudget"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelChoiceTests.swift", "function": "replyCompactionAndExtractionUseTheAccessModel"}}, {"test": {"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testEditsSurviveRelaunchWithCredits"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B07.01/removed-controls: No idle-reset, daily-reset-hour, timezone or archive-retention control."}}, {"recorded": {"record": "ADR-0080", "says": "B07.01/one-model: Compaction and memory extraction use the reply model."}}], "waitsOn": []},
+			{"id": "B07.02", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRunnerTests.swift", "function": "trimSummarizesDroppedMessagesWithCompactionModel"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FlushGateTests.swift", "function": "softFlushNeedsFiveMessagesAndEightyPercent"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FlushDrainTests.swift", "function": "aKilledFlushIsDrainedAtTheNextLaunch"}}], "differences": [], "waitsOn": []},
+			{"id": "B07.03", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ResetTests.swift", "function": "resetFlushesThenCommitsBoundaryThenSettlesFlush"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ResetTests.swift", "function": "resetQueuesBehindRunningTurn"}}, {"test": {"file": "apps/ios/EnduragentUITests/NewConversationProofs.swift", "class": "SlashStartProof", "method": "testSlashStart"}}], "differences": [], "waitsOn": []},
+			{"id": "B07.04", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AcceptTests.swift", "function": "acceptWritesUserMessageBeforeAnyModelRequest"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatRecordFailureTests.swift", "function": "failedSettlementSurvivesRecoveryAndReopening"}}, {"requirement": {"table": "coverage/milestone-5.json", "id": "B07.04/saved-plan"}}], "differences": [], "waitsOn": []},
+			{"id": "B07.05", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxLifecycleTests.swift", "function": "relaunchAfterExpiryMidReplyDoesNotRerunTheModel"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxLifecycleTests.swift", "function": "willTerminateInterruptsTheRunningAttemptAndLeavesQueuedTurnsUnclaimed"}}, {"test": {"file": "apps/ios/EnduragentUITests/LeaseProofs.swift", "class": "FinishedWhileAwayProof", "method": "testFinishedWhileAway"}}, {"phone": {"session": "closeout", "step": "closeout/lifecycle"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}]},
+			{"id": "B07.06", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/HistoryTests.swift", "function": "openingAnArchiveShowsOnlyItsReplies"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/HistoryMigrationTests.swift", "function": "historyIssuesNoModelRequest"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRestoreTests.swift", "function": "aReviewPreparedMoreThanTenMinutesAgoIsRestoredWithItsControls"}}], "differences": [], "waitsOn": []},
+			{"id": "B08.01", "group": "work", "status": "deviation", "evidence": [], "differences": [{"recorded": {"record": "ADR-0082", "says": "The phone keeps no Reference snapshot, so startup and a return to the app read training data live, with no refresh."}}], "waitsOn": []},
+			{"id": "B08.02", "group": "work", "status": "deviation", "evidence": [], "differences": [{"recorded": {"record": "ADR-0082", "says": "The phone runs no refresh, so there is no refresh result; each turn reads live or says the data is unavailable."}}], "waitsOn": []},
+			{"id": "B08.03", "group": "work", "status": "met", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.5"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.8"}}, {"live": {"scenario": "reads-failing"}}], "differences": [], "waitsOn": []},
+			{"id": "B08.04", "group": "work", "status": "deviation", "evidence": [], "differences": [{"recorded": {"record": "ADR-0082", "says": "The 43 Reference outputs are not calculated on the phone, which keeps no snapshot."}}], "waitsOn": []},
+			{"id": "B08.05", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.6"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "1.2.7"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "No Reference validation gate, refresh time or stale warning; the FTP, weight and resting heart rate bands guard the live reads."}}], "waitsOn": []},
+			{"id": "B09.01", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteNoticesTests.swift", "function": "everyFailureCaseHasARowAndNoneIsUnknownExceptTheThree"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "serverErrorRetriesTwiceWithJitteredWaits"}}, {"test": {"file": "apps/ios/EnduragentUITests/FailureProofs.swift", "class": "FailureNoticesProof", "method": "testFailureNotices"}}, {"test": {"file": "apps/ios/EnduragentUITests/RetryProofs.swift", "class": "RateLimitWaitProof", "method": "testRateLimitWait"}}, {"requirement": {"table": "coverage/milestone-5.json", "id": "B09.01/plan-save"}}], "differences": [], "waitsOn": []},
+			{"id": "B09.02", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "committedMemoryWriteSettlesSavedUnverified"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "savedWorkReachesTheNextPromptAsTheCoachsReply"}}, {"test": {"file": "apps/ios/EnduragentUITests/FailureProofs.swift", "class": "SavedUnverifiedProof", "method": "testSavedWorkOffersNoTryAgain"}}], "differences": [], "waitsOn": []},
+			{"id": "B09.03", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatRecordFailureTests.swift", "function": "fetchFailureAtSettlementStillPersistsTheExactReply"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxTests.swift", "function": "tryAgainAfterSavedWorkIsRefusedWithoutAModelRequest"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "approvalAfterAnotherTurnRunsTheSavedReviewWithNoModelRequest"}}], "differences": [], "waitsOn": []},
+			{"id": "B10.01", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B10.01"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B10.01/one-file", "record": "ADR-0085"}}, {"agreed": {"table": "coverage/milestone-6.json", "sub": "B10.01/one-severity", "record": "ADR-0085"}}], "waitsOn": []},
+			{"id": "B10.02", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B10.02"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B10.02/no-snapshot", "record": "ADR-0085"}}], "waitsOn": []},
+			{"id": "B10.03", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B10.03"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B10.03/no-snapshot", "record": "ADR-0085"}}], "waitsOn": []},
+			{"id": "B10.04", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B10.04"}}, {"phone": {"session": "closeout", "step": "closeout/diagnostics"}}], "differences": [], "waitsOn": []},
+			{"id": "B11.01", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B11.01"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "B11/three-outcomes", "record": "ADR-0085"}}], "waitsOn": []},
+			{"id": "B11.02", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-6.json", "id": "B11.02"}}], "differences": [], "waitsOn": []},
+			{"id": "B12.01", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "newConversationRecoversAllNineSections"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "relaunchRecoversCorrectedFactsAndDatedHistory"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "rememberedInstructionsStayInsideDataBoundaries"}}], "differences": [], "waitsOn": []},
+			{"id": "B12.02", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachDailyMemoryTests.swift", "function": "duplicateFatigueNoteSurvivesRelaunchWithoutChangingCurrentFacts"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachDailyMemoryTests.swift", "function": "notesAcrossLocalMidnightKeepTheirDaysAfterRelaunch"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryTests.swift", "function": "appendDailyNoteSkipsWholeLineDuplicateWithoutJournal"}}], "differences": [], "waitsOn": []},
+			{"id": "B12.03", "group": "work", "status": "deviation", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachLedgerHistoryTests.swift", "function": "allEventKindsSurviveRelaunchWithTheirDatesWordingAndSources"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachLedgerHistoryTests.swift", "function": "duplicateAndInvalidInputsLeaveOnlyTheOriginalEventAfterRelaunch"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachLedgerHistoryTests.swift", "function": "laterDifferentDecisionKeepsBothDatedEventsAfterRelaunch"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B12.03/real-dates: A memory event date must be a real calendar date."}}], "waitsOn": []},
+			{"id": "B12.04", "group": "work", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryQueryTests.swift", "function": "queryRendersDailyThenEventThenHistory"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryQueryTests.swift", "function": "aSaveAndItsReplacementShowAsHistoryWithNpmsPreviewsAndNoReviewDoes"}}, {"requirement": {"table": "coverage/milestone-5.json", "id": "B12.04/saved-plan"}}], "differences": [], "waitsOn": []},
+			{"id": "B13.01", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "1.3.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "1.3.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "1.3.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "1.3.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "1.3.7"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "2.1.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "2.1.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "2.1.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.5"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.6"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "2.2.7"}}, {"live": {"scenario": "not-connected"}}, {"live": {"scenario": "ftp-not-usable"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReadsCheck.swift", "function": "readsTheKeyOwnerThroughTheAppsReadCode"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "A read with no end date ends on today in the phone's time zone, not UTC today (D10)."}}, {"recorded": {"record": "ADR-0082", "says": "The coach gets the athlete's sex and age in whole years; the date of birth stays on the phone."}}, {"recorded": {"record": "ADR-0082", "says": "An FTP outside 50 to 600 watts is shown to the coach marked not usable."}}], "waitsOn": []},
+			{"id": "B13.02", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.8"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "3.1.9"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "3.2.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "3.2.5"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "3.2.8"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "The detail read keeps the list fields, laps and a closed set of detail-only fields, not the whole response."}}], "waitsOn": []},
+			{"id": "B13.03", "group": "work", "status": "met", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.6"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.6"}}, {"live": {"scenario": "review-deep"}}], "differences": [], "waitsOn": []},
+			{"id": "B13.04", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.5"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.6"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.7"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.11"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.5"}}, {"live": {"scenario": "review-brief"}}, {"live": {"scenario": "review-default"}}, {"live": {"scenario": "review-deep"}}, {"live": {"scenario": "review-ambiguous"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "A review may state the Load, Intensity, power and heart-rate values intervals.icu supplies, as recorded values."}}], "waitsOn": []},
+			{"id": "B13.05", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.4"}}, {"live": {"scenario": "review-close-pair"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "Legs are always inferred from starts within 30 minutes; intervals.icu sends no workout id or sequence."}}], "waitsOn": []},
+			{"id": "B13.06", "group": "work", "status": "open", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.8"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.9"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.1.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.2.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.3.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.4"}}, {"live": {"scenario": "review-brief"}}, {"live": {"scenario": "review-default"}}, {"live": {"scenario": "review-deep"}}, {"phone": {"session": "closeout", "step": "closeout/reads"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "A start is shown as the athlete's local time and never labelled UTC; intervals.icu sends no offset."}}], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/reads"}}]},
+			{"id": "B13.07", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.3.1"}}, {"live": {"scenario": "status"}}, {"live": {"scenario": "status-with-text"}}, {"live": {"scenario": "not-connected"}}, {"live": {"scenario": "workout-45-minutes-indoors"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "Text typed after /status reaches the coach (D09)."}}], "waitsOn": []},
+			{"id": "B14.01", "group": "work", "status": "open", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.5"}}, {"requirement": {"table": "coverage/milestone-5.json", "id": "B14.01/saved-plan"}}, {"live": {"scenario": "changed-goal"}}, {"phone": {"session": "closeout", "step": "closeout/reads"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/reads"}}]},
+			{"id": "B14.02", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.5"}}, {"live": {"scenario": "zones-from-ftp"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "The zones calculator accepts an FTP sent as text."}}], "waitsOn": []},
+			{"id": "B14.03", "group": "work", "status": "met", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "8.4.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.4.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.4.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.4.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.4.5"}}, {"live": {"scenario": "designed-workout"}}], "differences": [], "waitsOn": []},
+			{"id": "B14.04", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "7.2.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.2.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.2.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.2.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.2.5"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.3.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.3.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.3.4"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "Text typed after /workout reaches the coach (D09)."}}], "waitsOn": []},
+			{"id": "B15.01", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-5.json", "id": "B15.01"}}], "differences": [{"agreed": {"table": "coverage/milestone-5.json", "sub": "B15.01/acknowledgement", "record": "ADR-0084"}}, {"agreed": {"table": "coverage/milestone-5.json", "sub": "B15.01/arguments", "record": "ADR-0084"}}], "waitsOn": []},
+			{"id": "B15.02", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-5.json", "id": "B15.02"}}], "differences": [{"agreed": {"table": "coverage/milestone-5.json", "sub": "B15.02/exact-numbers", "record": "ADR-0084"}}], "waitsOn": []},
+			{"id": "B15.03", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-5.json", "id": "B15.03"}}], "differences": [{"agreed": {"table": "coverage/milestone-5.json", "sub": "B15.03/phone-day", "record": "ADR-0083"}}], "waitsOn": []},
+			{"id": "B15.04", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-5.json", "id": "B15.04"}}], "differences": [], "waitsOn": []},
+			{"id": "B15.05", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-5.json", "id": "B15.05"}}], "differences": [{"agreed": {"table": "coverage/milestone-5.json", "sub": "B15.05/size", "record": "ADR-0084"}}, {"agreed": {"table": "coverage/milestone-5.json", "sub": "B15.05/sorted-keys", "record": "ADR-0084"}}, {"agreed": {"table": "coverage/milestone-5.json", "sub": "B15.05/plan-unavailable", "record": "ADR-0084"}}, {"agreed": {"table": "coverage/milestone-5.json", "sub": "B15.05/two-calls", "record": "ADR-0084"}}, {"agreed": {"table": "coverage/milestone-5.json", "sub": "B15.05/plan-schema", "record": "ADR-0084"}}, {"agreed": {"table": "coverage/milestone-5.json", "sub": "B15.05/save-plan-sentence", "record": "ADR-0084"}}, {"agreed": {"table": "coverage/milestone-5.json", "sub": "B15.05/save-draft", "record": "ADR-0084"}}], "waitsOn": []},
+			{"id": "B16.01", "group": "work", "status": "open", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChoicesInConversationTests.swift", "function": "startAfterUnansweredChoiceArchivesItAndStartsNewConversation"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnToolInputTests.swift", "function": "promptOmitsUnavailableToolsAndKeepsNumberedChoiceSafetyRules"}}, {"requirement": {"table": "coverage/milestone-5.json", "id": "B16.01/plan-save"}}, {"phone": {"session": "closeout", "step": "closeout/choices"}}], "differences": [{"recorded": {"record": "ADR-0080", "says": "B16.01/numbered-only: Choices are numbered text only, with no decision tool or decision state."}}], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/choices"}}]},
+			{"id": "B17.01", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B17.01"}}], "differences": [{"agreed": {"table": "coverage/milestone-4.json", "sub": "B17.01/utc", "record": "ADR-0083"}}], "waitsOn": []},
+			{"id": "B17.02", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B17.02"}}], "differences": [], "waitsOn": []},
+			{"id": "B17.03", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B17.03"}}], "differences": [], "waitsOn": []},
+			{"id": "B17.04", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B17.04"}}], "differences": [], "waitsOn": []},
+			{"id": "B17.05", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B17.05"}}], "differences": [], "waitsOn": []},
+			{"id": "B17.06", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B17.06"}}], "differences": [{"agreed": {"table": "coverage/milestone-4.json", "sub": "B17.06/head-unit", "record": "ADR-0083"}}], "waitsOn": []},
+			{"id": "B18.01", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B18.01"}}], "differences": [], "waitsOn": []},
+			{"id": "B18.02", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B18.02"}}], "differences": [], "waitsOn": []},
+			{"id": "B18.03", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B18.03"}}], "differences": [], "waitsOn": []},
+			{"id": "B18.04", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B18.04"}}], "differences": [], "waitsOn": []},
+			{"id": "B18.05", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B18.05"}}], "differences": [], "waitsOn": []},
+			{"id": "B18.06", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B18.06"}}], "differences": [], "waitsOn": []},
+			{"id": "B18.07", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B18.07"}}], "differences": [{"agreed": {"table": "coverage/milestone-4.json", "sub": "B18.07/model-call", "record": "ADR-0083"}}], "waitsOn": []},
+			{"id": "B19.01", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B19.01"}}], "differences": [], "waitsOn": []},
+			{"id": "B19.02", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B19.02"}}], "differences": [], "waitsOn": []},
+			{"id": "B19.03", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-5.json", "id": "B19.03"}}], "differences": [{"agreed": {"table": "coverage/milestone-5.json", "sub": "B19.03/step-limit", "record": "ADR-0084"}}, {"agreed": {"table": "coverage/milestone-5.json", "sub": "B19.03/durable", "record": "ADR-0084"}}], "waitsOn": []},
+			{"id": "B20.01", "group": "work", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B20.01"}}], "differences": [{"agreed": {"table": "coverage/milestone-4.json", "sub": "B20.01/zones", "record": "ADR-0083"}}], "waitsOn": []},
+			{"id": "B20.02", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B20.02"}}], "differences": [], "waitsOn": []},
+			{"id": "B20.03", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B20.03"}}], "differences": [], "waitsOn": []},
+			{"id": "B20.04", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B20.04"}}], "differences": [], "waitsOn": []},
+			{"id": "B20.05", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B20.05"}}], "differences": [], "waitsOn": []},
+			{"id": "B21.01", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B21.01"}}], "differences": [], "waitsOn": []},
+			{"id": "B21.02", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B21.02"}}], "differences": [], "waitsOn": []},
+			{"id": "B21.03", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B21.03"}}], "differences": [], "waitsOn": []},
+			{"id": "B21.04", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B21.04"}}], "differences": [], "waitsOn": []},
+			{"id": "B21.05", "group": "work", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "B21.05"}}], "differences": [], "waitsOn": []},
+			{"id": "X01", "group": "crossCutting", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X01"}}], "differences": [], "waitsOn": []},
+			{"id": "X02", "group": "crossCutting", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X02"}}], "differences": [], "waitsOn": []},
+			{"id": "X03", "group": "crossCutting", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "bothReadsFailingGiveTheFallbackAndNoLines"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "missedDeadlineCancelsBothReadsAndGivesTheFallback"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachUpgradeTests.swift", "function": "anOpenReviewOpensOfflineAsAskTheCoachAgainWithNoControlAndStaysSoOnline"}}, {"test": {"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEnSweep", "method": "testFailureNotices"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}}], "differences": [], "waitsOn": []},
+			{"id": "X04", "group": "crossCutting", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X04"}}], "differences": [{"agreed": {"table": "coverage/milestone-4.json", "sub": "X04/zone", "record": "ADR-0083"}}], "waitsOn": []},
+			{"id": "X05", "group": "crossCutting", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X05"}}], "differences": [], "waitsOn": []},
+			{"id": "X06", "group": "crossCutting", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X06"}}], "differences": [], "waitsOn": []},
+			{"id": "X07", "group": "crossCutting", "status": "open", "evidence": [{"criterion": {"table": "coverage/milestone-6.json", "id": "1.1.3"}}, {"criterion": {"table": "coverage/milestone-6.json", "id": "1.2.3"}}, {"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.2"}}, {"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.3"}}, {"criterion": {"table": "coverage/milestone-6.json", "id": "2.2.4"}}, {"phone": {"session": "closeout", "step": "closeout/diagnostics"}}, {"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}]},
+			{"id": "X08", "group": "crossCutting", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-5.json", "id": "X08"}}], "differences": [], "waitsOn": []},
+			{"id": "G01", "group": "journey", "status": "met", "evidence": [{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}}, {"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "RelaunchKeepsChatProof", "method": "testRelaunchKeepsChat"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "relaunchRecoversCorrectedFactsAndDatedHistory"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "theFirstSnapshotAndRetryAfterRelaunchSeeTheSavedWorkOfADeadClaim"}}, {"test": {"file": "apps/ios/EnduragentUITests/RecoveryProofs.swift", "class": "SavedWorkInterruptedProof", "method": "testSavedWorkInterrupted"}}], "differences": [], "waitsOn": []},
+			{"id": "G02", "group": "journey", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "sevenDayListLeadsToOneActivitysDetailAndThenToItsStreams"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "twoActivitiesWithTheSameDayAndTitleAreListedApartAndEachIsReadAsItself"}}, {"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "ReviewProof", "method": "testReview"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "startsShowTheTimeOfDayThatTheThirtyMinuteRuleReadsAndADateOnlyStartShowsTheDate"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "detailReadThatFailsAfterAGoodListGivesItsFailureAnswerAndNoActivityData"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/NumbersFollowUpTests.swift", "function": "detailReadAfterABriefReviewIsAnsweredAndBringsNoStreamStatistics"}}], "differences": [], "waitsOn": []},
+			{"id": "G03", "group": "journey", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "G03"}}], "differences": [], "waitsOn": []},
+			{"id": "G04", "group": "journey", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "G04"}}], "differences": [], "waitsOn": []},
+			{"id": "G05", "group": "journey", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "G05"}}, {"phone": {"session": "m4", "step": "m4/offline-approve"}}], "differences": [], "waitsOn": []},
+			{"id": "G06", "group": "journey", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "G06"}}], "differences": [{"agreed": {"table": "coverage/milestone-4.json", "sub": "G06/midnight", "record": "ADR-0083"}}], "waitsOn": []},
+			{"id": "G07", "group": "journey", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-5.json", "id": "G07"}}], "differences": [], "waitsOn": []},
+			{"id": "G08", "group": "journey", "status": "open", "evidence": [{"test": {"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "LanguagePickerProof", "method": "testLanguagePickerFromSettings"}}, {"test": {"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "AutomaticFrenchPhoneProof", "method": "testAutomaticFromSettings"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultTests.swift", "function": "blankReplacementKeepsTheWorkingKey"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}}, {"test": {"file": "apps/ios/EnduragentUITests/OpenRouterRecoveryProof.swift", "class": "OpenRouterRecoveryProof", "method": "testRejectedKeySurvivesRelaunchAndDirectSignInKeepsConversation"}}, {"phone": {"session": "closeout", "step": "closeout/language"}}, {"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/language"}}, {"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}]},
+			{"id": "G09", "group": "journey", "status": "open", "evidence": [{"criterion": {"table": "coverage/milestone-6.json", "id": "1.3.4"}}, {"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.1"}}, {"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.3"}}, {"phone": {"session": "closeout", "step": "closeout/diagnostics"}}, {"phone": {"session": "closeout", "step": "closeout/feedback"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "G09/no-refresh", "record": "ADR-0085"}}], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/feedback"}}]},
+			{"id": "G10", "group": "journey", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "G10"}}], "differences": [], "waitsOn": []},
+			{"id": "D01", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0080"}], "differences": [], "waitsOn": []},
+			{"id": "D02", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0080"}], "differences": [], "waitsOn": []},
+			{"id": "D03", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0080"}], "differences": [], "waitsOn": []},
+			{"id": "D04", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0085"}], "differences": [], "waitsOn": []},
+			{"id": "D05", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0083"}, {"record": "ADR-0085"}], "differences": [], "waitsOn": []},
+			{"id": "D06", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0080"}, {"record": "ADR-0081"}, {"requirement": {"table": "coverage/milestone-5.json", "id": "D06/plan"}}], "differences": [], "waitsOn": []},
+			{"id": "D07", "group": "decision", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X05"}}], "differences": [], "waitsOn": []},
+			{"id": "D08", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0080"}], "differences": [], "waitsOn": []},
+			{"id": "D09", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0082"}], "differences": [], "waitsOn": []},
+			{"id": "D10", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0082"}, {"record": "ADR-0083"}], "differences": [], "waitsOn": []},
+			{"id": "D11", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0085"}], "differences": [], "waitsOn": []},
+			{"id": "D12", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0085"}], "differences": [], "waitsOn": []},
+			{"id": "D13", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0085"}], "differences": [], "waitsOn": []},
+			{"id": "D14", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0084"}, {"requirement": {"table": "coverage/milestone-5.json", "id": "D14/plan"}}], "differences": [], "waitsOn": []},
+			{"id": "D15", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0085"}, {"criterion": {"table": "coverage/milestone-6.json", "id": "6.1.9"}}], "differences": [], "waitsOn": []},
+			{"id": "D16", "group": "decision", "status": "met", "evidence": [{"record": "ADR-0080"}, {"record": "ADR-0083"}], "differences": [], "waitsOn": []},
+			{"id": "MOB01", "group": "mobile", "status": "open", "evidence": [{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}]},
+			{"id": "MOB02", "group": "mobile", "status": "met", "evidence": [{"phone": {"session": "m4", "step": "m4/offline-approve"}}], "differences": [], "waitsOn": []},
+			{"id": "MOB03", "group": "mobile", "status": "open", "evidence": [{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}]},
+			{"id": "MOB04", "group": "mobile", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X04/zone"}}, {"requirement": {"table": "coverage/milestone-4.json", "id": "G06/midnight"}}], "differences": [{"recorded": {"record": "ADR-0083", "says": "The phone's time zone decides the athlete's day, as X04/zone and G06/midnight record."}}], "waitsOn": []},
+			{"id": "MOB05", "group": "mobile", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "G06"}}], "differences": [], "waitsOn": []},
+			{"id": "MOB06", "group": "mobile", "status": "open", "evidence": [{"phone": {"session": "closeout", "step": "closeout/two-phone"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/two-phone"}}]},
+			{"id": "MOB07", "group": "mobile", "status": "met", "evidence": [{"phone": {"session": "closeout", "step": "closeout/update"}}], "differences": [], "waitsOn": []},
+			{"id": "MOB08", "group": "mobile", "status": "open", "evidence": [{"phone": {"session": "m4", "step": "m4/largest-text"}}, {"phone": {"session": "plan", "step": "plan/6"}}], "differences": [], "waitsOn": [{"phone": {"session": "m4", "step": "m4/largest-text"}}, {"phone": {"session": "plan", "step": "plan/6"}}]},
+			{"id": "MOB09", "group": "mobile", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsItsActionAfterReopeningAndInHistory"}}, {"test": {"file": "apps/ios/EnduragentUITests/BillingIdentityProof.swift", "class": "BillingIdentityProof", "method": "testExhaustedCreditsKeepMemoryAndMessagesAndOfferWorkingRoutes"}}], "differences": [], "waitsOn": []},
+			{"id": "MOB10", "group": "mobile", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X02"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FragmentOrderingTests.swift", "function": "fragmentsExtendTheRealTrailingWindow"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxTests.swift", "function": "sendsInsideTheWindowJoinOneTurn"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AcceptTests.swift", "function": "concurrentAcceptsOfOneDraftWriteOneMessage"}}], "differences": [], "waitsOn": []},
+			{"id": "MOB11", "group": "mobile", "status": "open", "evidence": [{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}]},
+			{"id": "MOB12", "group": "mobile", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-5.json", "id": "X08"}}], "differences": [], "waitsOn": []}
+		]
+	}
+}

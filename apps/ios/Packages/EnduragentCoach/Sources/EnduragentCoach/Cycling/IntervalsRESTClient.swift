@@ -1,162 +1,87 @@
 import Foundation
 
-public struct IntervalsRESTClient: IntervalsClient, Sendable {
+package struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private let credential: IntervalsCredential
 	private let session: URLSession
-	private let athletePath: String
-	private let clock: any Clock
+	private let baseURL: URL
+	let athletePath: String
 
-	public init(
-		credential: IntervalsCredential, session: URLSession? = nil,
-		clock: any Clock = SystemClock()
+	package init(
+		credential: IntervalsCredential, athlete: AthleteSelection = .keyOwner,
+		session: URLSession? = nil,
+		baseURL: URL = IntervalsPolicy.baseURL
 	) {
 		self.credential = credential
-		self.athletePath = IntervalsPolicy.athletePath
-		self.clock = clock
-		if let session {
-			self.session = session
-		} else {
-			let configuration = URLSessionConfiguration.ephemeral
-			configuration.timeoutIntervalForRequest = IntervalsPolicy.requestTimeout
-			configuration.timeoutIntervalForResource = IntervalsPolicy.requestTimeout
-			self.session = URLSession(configuration: configuration)
+		self.baseURL = baseURL
+		switch athlete {
+		case .keyOwner:
+			self.athletePath = IntervalsPolicy.athletePath
+		case .athlete(let id):
+			self.athletePath = id.rawValue
 		}
+		self.session =
+			session
+			?? ephemeralSession(
+				requestTimeout: IntervalsPolicy.requestTimeout,
+				resourceTimeout: IntervalsPolicy.requestTimeout)
 	}
 
-	public func fetchAthlete() async throws -> AthleteProfile {
-		let json = try await getJSON(path: ["athlete", athletePath])
-		let fields = json.objectFields
-		return AthleteProfile(
-			id: fields["id"]?.stringValue ?? athletePath,
-			name: fields["name"]?.stringValue ?? "",
-			ftp: fields["icu_ftp"]?.intValue() ?? fields["icuFtp"]?.intValue()
-		)
-	}
-
-	public func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
-		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
-		let data = try await get(
-			path: ["athlete", athletePath, "wellness"],
-			query: [
-				URLQueryItem(name: "oldest", value: oldest.rawValue),
-				URLQueryItem(name: "newest", value: newest.rawValue),
-			]
-		)
-		let rows = try JSONDecoder().decode([IntervalsWellnessJSON].self, from: data)
-		return rows.map(WellnessDay.init(json:))
-	}
-
-	public func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws
-		-> [ActivitySummary]
-	{
-		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
-		let json = try await getJSON(
-			path: ["athlete", athletePath, "activities"],
-			query: [
-				URLQueryItem(name: "oldest", value: oldest.rawValue),
-				URLQueryItem(name: "newest", value: newest.rawValue),
-			]
-		)
-		return (json.arrayValue ?? []).compactMap(Self.activitySummary(from:))
-	}
-
-	public func fetchActivity(id: ActivityID) async throws -> JSONValue {
-		try await getJSON(path: ["activity", id.rawValue])
-	}
-
-	public func fetchStreams(id: ActivityID) async throws -> JSONValue {
-		let json = try await getJSON(
-			path: ["activity", id.rawValue, "streams.json"],
-			query: [
-				URLQueryItem(
-					name: "types", value: IntervalsPolicy.defaultStreamTypes.joined(separator: ","))
-			]
-		)
-		return IntervalsStreamSummary.summarize(json)
-	}
-
-	public func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
-		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
-		var query = [
-			URLQueryItem(name: "oldest", value: oldest.rawValue),
-			URLQueryItem(name: "newest", value: newest.rawValue),
+	package func listEvents(in range: ReadRange) async throws -> [CalendarEvent] {
+		let query = [
+			URLQueryItem(name: "oldest", value: range.oldest.rawValue),
+			URLQueryItem(name: "newest", value: range.newest.rawValue),
 		]
-		query.append(
-			contentsOf: IntervalsPolicy.eventCategories.map {
-				URLQueryItem(name: "category", value: $0)
-			})
 		let json = try await getJSON(path: ["athlete", athletePath, "events"], query: query)
-		return (json.arrayValue ?? []).compactMap(Self.calendarEvent(from:))
-	}
-
-	public func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
-		let json = try await sendJSON(
-			method: "POST",
-			path: ["athlete", athletePath, "events"],
-			query: [URLQueryItem(name: "upsertOnUid", value: "false")],
-			body: IntervalsPolicy.chatCreateBody(draft)
-		)
-		guard let event = Self.calendarEvent(from: json) else {
+		guard let rows = json.arrayValue else {
 			throw IntervalsError(
-				code: "invalid_json", details: "create event response was not an event")
+				code: "invalid_json", details: "calendar response was not an array")
 		}
-		return event
+		return try rows.map(Self.calendarEvent(from:))
 	}
 
-	public func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		_ = draft
-		throw IntervalsError(
-			code: "not_implemented", details: "Plan mirror writes are not available.")
-	}
-
-	public func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
-		async throws -> CalendarEvent
-	{
-		let existing = try await fetchEvent(id: id)
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		try IntervalsPolicy.refuseMutableEvent(
-			existing,
-			today: today,
-			eventId: id,
-			action: "update",
-			nextDate: date
-		)
-		var fields: [String: JSONValue] = [:]
-		if let name {
-			fields["name"] = .string(name)
+	package func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer {
+		let eventsPath = ["athlete", athletePath, "events"]
+		let answer: IntervalsAnswer
+		do {
+			switch write {
+			case .create(let payload, let identity):
+				answer = try await exchange(
+					method: "POST", path: eventsPath + ["bulk"],
+					query: [
+						URLQueryItem(name: "upsert", value: "true"),
+						URLQueryItem(name: "upsertOnUid", value: "false"),
+						URLQueryItem(name: "updatePlanApplied", value: "false"),
+					],
+					body: .json(.array([payload.requestBody(identity)])))
+			case .update(let id, let patch):
+				answer = try await exchange(
+					method: "PUT", path: eventsPath + [String(id.rawValue)],
+					body: .json(patch.requestBody))
+			case .delete(let id):
+				answer = try await exchange(
+					method: "DELETE", path: eventsPath + [String(id.rawValue)])
+			}
+		} catch let error as URLError where error.code == .cancelled {
+			return .lost(.canceled)
+		} catch {
+			return .lost(.transport)
 		}
-		if let description {
-			fields["description"] = .string(description)
+		guard (200..<300).contains(answer.status) else { return .httpStatus(answer.status) }
+		do {
+			switch write {
+			case .create:
+				guard let rows = try parseJSON(answer.body).arrayValue, rows.count == 1,
+					let row = rows.first
+				else { return .lost(.unreadableBody) }
+				return .saved(try Self.calendarEvent(from: row))
+			case .update:
+				return .saved(try Self.calendarEvent(from: try parseJSON(answer.body)))
+			case .delete:
+				return .saved(nil)
+			}
+		} catch {
+			return .lost(.unreadableBody)
 		}
-		if let date {
-			fields["start_date_local"] = .string("\(date.rawValue)T00:00:00")
-		}
-		let json = try await sendJSON(
-			method: "PUT",
-			path: ["athlete", athletePath, "events", String(id.rawValue)],
-			body: .object(fields)
-		)
-		guard let event = Self.calendarEvent(from: json) else {
-			throw IntervalsError(
-				code: "invalid_json", details: "update event response was not an event")
-		}
-		return event
-	}
-
-	public func deleteEvent(id: EventID) async throws {
-		let existing = try await fetchEvent(id: id)
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		try IntervalsPolicy.refuseMutableEvent(
-			existing,
-			today: today,
-			eventId: id,
-			action: "delete",
-			nextDate: nil
-		)
-		_ = try await send(
-			method: "DELETE",
-			path: ["athlete", athletePath, "events", String(id.rawValue)]
-		)
 	}
 
 	private var authorization: String {
@@ -169,39 +94,32 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		}
 	}
 
-	private func fetchEvent(id: EventID) async throws -> CalendarEvent {
+	package func fetchEvent(id: EventID) async throws -> CalendarEvent {
 		let json = try await getJSON(path: ["athlete", athletePath, "events", String(id.rawValue)])
-		guard let event = Self.calendarEvent(from: json) else {
+		return try Self.calendarEvent(from: json)
+	}
+
+	func getJSON(path: [String], query: [URLQueryItem] = []) async throws -> JSONValue {
+		try parseJSON(
+			try Self.accepted(try await exchange(method: "GET", path: path, query: query)))
+	}
+
+	static func accepted(_ answer: IntervalsAnswer) throws(IntervalsError) -> Data {
+		guard (200..<300).contains(answer.status) else {
 			throw IntervalsError(
-				code: "invalid_json", details: "event \(id.rawValue) was not an event")
+				code: "http", details: "status \(answer.status)", status: answer.status)
 		}
-		return event
+		return answer.body
 	}
 
-	private func getJSON(path: [String], query: [URLQueryItem] = []) async throws -> JSONValue {
-		try parseJSON(try await send(method: "GET", path: path, query: query))
-	}
-
-	private func sendJSON(
+	func exchange(
 		method: String,
 		path: [String],
 		query: [URLQueryItem] = [],
-		body: JSONValue
-	) async throws -> JSONValue {
-		try parseJSON(try await send(method: method, path: path, query: query, body: body))
-	}
-
-	private func get(path: [String], query: [URLQueryItem] = []) async throws -> Data {
-		try await send(method: "GET", path: path, query: query)
-	}
-
-	private func send(
-		method: String,
-		path: [String],
-		query: [URLQueryItem] = [],
-		body: JSONValue? = nil
-	) async throws -> Data {
-		var url = IntervalsPolicy.baseURL
+		body: IntervalsBody? = nil,
+		timeout: TimeInterval = IntervalsPolicy.requestTimeout
+	) async throws -> IntervalsAnswer {
+		var url = baseURL
 		for component in path {
 			url.append(path: component)
 		}
@@ -218,23 +136,24 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		request.httpMethod = method
 		request.setValue(authorization, forHTTPHeaderField: "Authorization")
 		request.setValue("application/json", forHTTPHeaderField: "Accept")
-		request.timeoutInterval = IntervalsPolicy.requestTimeout
+		request.timeoutInterval = timeout
 		if let body {
-			request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-			request.httpBody = Data(body.canonicalDigestInput().utf8)
+			request.setValue(body.contentType, forHTTPHeaderField: "Content-Type")
+			request.httpBody = body.data
 		}
-		let (data, response) = try await session.data(for: request)
+		let (data, response): (Data, URLResponse)
+		do {
+			(data, response) = try await session.data(for: request)
+		} catch let error as URLError where error.code != .cancelled {
+			throw IntervalsError.unreachable(error)
+		}
 		guard let http = response as? HTTPURLResponse else {
 			throw IntervalsError(code: "network", details: "missing http response")
 		}
-		guard (200..<300).contains(http.statusCode) else {
-			throw IntervalsError(
-				code: "http", details: "status \(http.statusCode)", status: http.statusCode)
-		}
-		return data
+		return IntervalsAnswer(status: http.statusCode, body: data)
 	}
 
-	private func parseJSON(_ data: Data) throws -> JSONValue {
+	func parseJSON(_ data: Data) throws -> JSONValue {
 		guard let text = String(data: data, encoding: .utf8) else {
 			throw IntervalsError(code: "invalid_json", details: "response was not UTF-8")
 		}
@@ -245,98 +164,37 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		}
 	}
 
-	private static func activitySummary(from json: JSONValue) -> ActivitySummary? {
-		let fields = json.objectFields
-		guard let name = fields["name"]?.stringValue else { return nil }
-		let local = fields["start_date_local"]?.stringValue ?? fields["startDateLocal"]?.stringValue
-		guard let local, let date = CivilDate(rawValue: String(local.prefix(10))) else {
-			return nil
+	static func calendarEvent(from json: JSONValue) throws -> CalendarEvent {
+		let data = Data(json.canonicalDigestInput().utf8)
+		let payload = try JSONDecoder().decode(CalendarEventPayload.self, from: data)
+		guard CivilDate(rawValue: String(payload.start.prefix(10))) != nil else {
+			throw IntervalsError(
+				code: "invalid_json", details: "calendar event has an invalid date")
 		}
-		let duration = fields["moving_time"]?.intValue() ?? fields["movingTime"]?.intValue() ?? 0
-		let load = fields["icu_training_load"]?.intValue() ?? fields["icuTrainingLoad"]?.intValue()
-		return ActivitySummary(name: name, date: date, durationS: duration, trainingLoad: load)
+		return CalendarEvent(
+			description: payload.description, type: payload.type,
+			id: EventID(rawValue: payload.id), startDateLocal: payload.start,
+			name: payload.name, category: payload.category,
+			externalId: payload.externalID, uid: payload.uid, tags: payload.tags ?? [],
+			coachCreated: IntervalsPolicy.isCoachOwned(
+				externalId: payload.externalID, tags: payload.tags ?? []),
+			movingTime: payload.movingTime, trainingLoad: payload.trainingLoad,
+			workoutDocument: payload.workoutDocument?.value)
 	}
 
-	private static func calendarEvent(from json: JSONValue) -> CalendarEvent? {
-		let fields = json.objectFields
-		guard let id = fields["id"]?.intValue() else { return nil }
-		let start =
-			fields["start_date_local"]?.stringValue ?? fields["startDateLocal"]?.stringValue ?? ""
-		let name = fields["name"]?.stringValue ?? ""
-		let category = fields["category"]?.stringValue ?? ""
-		let externalId = fields["external_id"]?.stringValue ?? fields["externalId"]?.stringValue
-		let uid = fields["uid"]?.stringValue
-		let tags = (fields["tags"]?.arrayValue ?? []).compactMap(\.stringValue)
-		return CalendarEvent(
-			id: EventID(rawValue: id),
-			startDateLocal: start,
-			name: name,
-			category: category,
-			externalId: externalId,
-			uid: uid,
-			tags: tags,
-			coachCreated: IntervalsPolicy.isCoachOwned(externalId: externalId, tags: tags)
-		)
-	}
 }
 
-package enum IntervalsStreamSummary {
-	package static func summarize(_ raw: JSONValue) -> JSONValue {
-		var channels: [String: JSONValue] = [:]
-		var sampleCount = 0
-		for (name, values) in channelArrays(raw) {
-			guard let summary = summarizeChannel(values) else { continue }
-			channels[name] = summary
-			if values.count > sampleCount {
-				sampleCount = values.count
-			}
-		}
-		return .object([
-			"sampleCount": .number(Double(sampleCount)),
-			"channels": .object(channels),
-		])
-	}
+struct IntervalsAnswer: Sendable {
+	let status: Int
+	let body: Data
+}
 
-	private static func channelArrays(_ raw: JSONValue) -> [(String, [JSONValue])] {
-		if let items = raw.arrayValue {
-			var out: [(String, [JSONValue])] = []
-			for element in items {
-				let fields = element.objectFields
-				guard let type = fields["type"]?.stringValue, let data = fields["data"]?.arrayValue
-				else {
-					continue
-				}
-				out.append((type, data))
-			}
-			return out
-		}
-		if case .object(let object) = raw {
-			return object.compactMap { key, value in
-				guard let data = value.arrayValue else { return nil }
-				return (key, data)
-			}
-		}
-		return []
-	}
+struct IntervalsBody: Sendable {
+	let data: Data
+	let contentType: String
 
-	private static func summarizeChannel(_ values: [JSONValue]) -> JSONValue? {
-		var min = Double.infinity
-		var max = -Double.infinity
-		var sum = 0.0
-		var count = 0
-		for value in values {
-			guard let number = value.numberValue, number.isFinite else { continue }
-			if number < min { min = number }
-			if number > max { max = number }
-			sum += number
-			count += 1
-		}
-		guard count > 0 else { return nil }
-		let mean = (sum / Double(count) * 10).rounded() / 10
-		return .object([
-			"min": .number(min),
-			"max": .number(max),
-			"mean": .number(mean),
-		])
+	static func json(_ value: JSONValue) -> IntervalsBody {
+		IntervalsBody(
+			data: Data(value.canonicalDigestInput().utf8), contentType: "application/json")
 	}
 }

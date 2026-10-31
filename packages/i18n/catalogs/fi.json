@@ -191,7 +191,8 @@
         "historyTokenBudgetRatio": "Anna historian osuudeksi yli 0 % ja enintään 100 %.",
         "idleMinutes": "Anna minuuttimääräksi sallittu kokonaisluku, vähintään 0.",
         "resetArchiveRetentionDays": "Anna päivien määräksi sallittu kokonaisluku, vähintään 0.",
-        "timezone": "Anna kelvollinen IANA-aikavyöhyke, esimerkiksi {{timezone}}."
+        "timezone": "Anna kelvollinen IANA-aikavyöhyke, esimerkiksi {{timezone}}.",
+        "contextWindowTokens": "Anna tokenien määräksi kokonaisluku sallitulta väliltä, vähintään 1."
       }
     },
     "credentials": {
@@ -512,6 +513,35 @@
         "remove": "Poista webhook",
         "title": "Poista nykyinen webhook"
       }
+    },
+    "modelAccessTitle": "Mallin käyttö",
+    "session": {
+      "title": "Istunto",
+      "contextWindow": {
+        "label": "Konteksti-ikkuna",
+        "help": "Mallin kontekstin yläraja. Jätä tyhjäksi, jos haluat käyttää oletusta.",
+        "default": "Oletus"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokenia"
+      }
+    },
+    "training": {
+      "section": "Harjoitteluyhteys",
+      "title": "intervals.icu",
+      "replace": "Vaihda avain",
+      "keep": "Säilytä nykyinen yhteys",
+      "disconnect": "Katkaise yhteys",
+      "disconnectTitle": "Katkaistaanko intervals.icu-yhteys?",
+      "disconnectDetail": "Keskustelusi ja historiasi ovat edelleen käytettävissä.",
+      "switchTitle": "Käytetäänkö toista urheilijaa?",
+      "switchDetail": "Tämä avain kuuluu urheilijalle {{new}}. Keskustelusi, historiasi ja muistisi pysyvät tallennettuina urheilijalle {{current}}, eikä niitä käytetä urheilijalle {{new}}. Vaihdetaanko tämän avaimen käyttöön?",
+      "switch": "Vaihda urheilija",
+      "athlete": "Urheilija {{id}}"
+    },
+    "support": {
+      "title": "Tuki"
     }
   },
   "archive": {
@@ -530,13 +560,13 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Aiemmat keskustelut eivät ole tilapäisesti käytettävissä.",
-    "loadEarlier": "Lataa aiempia viestejä",
     "loading": "Ladataan aiempia keskusteluja…",
     "pageFailure": "Tämä keskustelu ei ole tilapäisesti käytettävissä.",
     "readOnly": "Aiempia keskusteluja voi vain lukea.",
     "reason": {
       "explicit": "Aloitit uuden keskustelun",
-      "stale": "Suljettu tauon jälkeen"
+      "stale": "Suljettu tauon jälkeen",
+      "earlierChat": "Aiempi keskustelu"
     },
     "retry": "Yritä uudelleen",
     "timestamp": "{{day}}.{{month}}.{{year}} {{hour}}:{{minute}} {{timezone}}",
@@ -544,7 +574,9 @@
     "truncated": "Luettelossa näkyvät vain uusimmat aiemmat keskustelut.",
     "turnCount_one": "{{formattedCount}} viesti",
     "turnCount_other": "{{formattedCount}} viestiä",
-    "unavailable": "Tämä keskustelu ei ole enää käytettävissä."
+    "unavailable": "Tämä keskustelu ei ole enää käytettävissä.",
+    "history": "Historia",
+    "savedForAnotherAthlete": "Tallennettu toiselle intervals.icu-urheilijalle ({{id}})"
   },
   "setup": {
     "ai": {
@@ -945,7 +977,8 @@
       "messagePlaceholder": "Lähetä viesti valmentajallesi",
       "responding": "Valmentaja vastaa…",
       "send": "Lähetä viesti",
-      "stop": "Pysäytä vastaus"
+      "stop": "Pysäytä vastaus",
+      "notSent": "Ei lähetetty. Luonnoksesi on yhä täällä."
     },
     "date": {
       "civil": "{{day}}. {{month}} {{year}}",
@@ -978,7 +1011,6 @@
     },
     "history": {
       "failure": "Keskusteluhistoria ei ole tilapäisesti käytettävissä.",
-      "loadEarlier": "Lataa aiemmat viestit",
       "retry": "Yritä historian latausta uudelleen"
     },
     "newConversation": {
@@ -987,6 +1019,7 @@
       "cancel": "Peruuta",
       "confirm": "Aloita uusi keskustelu",
       "hydrated": "Näkyvä keskustelusi ja tietokoneelle {{computer}} palautetut aiemmat viestit tyhjennetään. Harjoitustietosi ja valmentajan tallennettu muisti säilyvät.",
+      "label": "Uusi keskustelu",
       "title": "Aloitetaanko uusi keskustelu?"
     },
     "notice": {
@@ -1010,13 +1043,17 @@
       "planningRequestLoadFailure": "Tallennettuja suunnitelmapyyntöjä ei voitu tarkistaa. Yhdistä uudelleen ja yritä uudelleen.",
       "protocolFailure": "Valmentajan vastausta ei voitu varmistaa. Yritä uudelleen.",
       "questionSkipped": "Kysymys ohitettu",
+      "replyUnsaved": "Tätä vastausta ei voitu tallentaa. Pidä sovellus auki, kun tallennusta yritetään uudelleen.",
       "queueLoadFailure": "Tallennettuja viestejäsi ei voitu tarkistaa. Yhdistä uudelleen ja yritä uudelleen.",
       "queueRemoveFailure": "Tallennettua viestiä ei voitu poistaa. Yritä uudelleen.",
       "responseFailure": "Valmentaja ei voinut vastata. Yritä uudelleen.",
-      "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy.",
       "retryMessage": "Yritä viestiä uudelleen",
       "savedChoice": "Tallennettu valinta",
-      "working": "Valmentaja työskentelee…"
+      "working": "Valmentaja työskentelee…",
+      "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy.",
+      "calendarUnverified": "Kalenterimuutos on saatettu tallentaa. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
+      "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen.",
+      "startingNewConversation": "Aloitetaan uusi keskustelu…"
     },
     "planChange": {
       "activePlan": "Aktiivinen suunnitelma",
@@ -1447,6 +1484,49 @@
       "hideContext": "Piilota harjoittelun taustatiedot",
       "showContext": "Näytä harjoittelun taustatiedot",
       "title": "Keskustelu"
+    },
+    "menu": "Valikko",
+    "turn": {
+      "chooseAccessMethod": "Valitse yhteystapa",
+      "finishedWhileLocked": "Valmistui puhelimen ollessa lukittuna.",
+      "interruptedNothingChanged": "Tämä vastaus keskeytyi ennen valmistumistaan. Mitään ei muutettu.",
+      "interruptedSomeSaved": "Tämä vastaus keskeytyi ennen valmistumistaan. Osa tiedoista ehdittiin tallentaa.",
+      "receivedBeforeClose": "Vastaanotettu ennen sovelluksen sulkeutumista. Lähetä viesti napauttamalla Yritä uudelleen.",
+      "signInAgain": "Kirjaudu uudelleen"
+    },
+    "welcome": "Tervetuloa käyttämään sovellusta {{product}}!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun {{service}} tietojen avulla.\n\nKomennot:\n{{commands}}\n\nVoit myös vain jutella kanssani harjoittelustasi!",
+    "welcomeCommand": "{{command}}: {{description}}",
+    "planSave": {
+      "notPrepared": "Harjoitussuunnitelmaa ei voitu valmistella tallennettavaksi.",
+      "title": "Tallennetaanko tämä harjoitussuunnitelma?",
+      "phase": "Vaihe {{number}}",
+      "focusLabel": "Painopiste",
+      "weeklyHours": "Tunteja viikossa",
+      "replaces": "Korvaa tallennetun suunnitelmasi: {{name}}",
+      "save": "Tallenna suunnitelma",
+      "saving": "Suunnitelmaa tallennetaan…",
+      "saved": "Tallennettu. Tämä on nyt harjoitussuunnitelmasi.",
+      "canceled": "Peruttu. Tätä suunnitelmaa ei tallennettu.",
+      "expired": "Vanhentunut. Pyydä valmentajaa tallentamaan tämä suunnitelma uudelleen.",
+      "storageUnavailable": "Tätä suunnitelmaa ei voitu tallentaa, koska tämän iPhonen tallennustila ei ole käytettävissä.",
+      "notSaved": {
+        "expired": "Ei tallennettu: tämän suunnitelman tallentamiseen varatut kymmenen minuuttia ovat kuluneet.",
+        "replaced": "Ei tallennettu: uudempi suunnitelma odottaa tallentamista.",
+        "alreadyDecided": "Tämä suunnitelma on jo tallennettu tai peruttu.",
+        "athleteChanged": "Ei tallennettu: tämä suunnitelma valmisteltiin toiselle urheilijalle palvelussa {{service}}.",
+        "notPresented": "Ei vielä tallennettu. Vieritä suunnitelman kohdalle ja napauta sitten uudelleen Tallenna suunnitelma."
+      },
+      "focus": {
+        "baseBuilding": "Peruskunnon rakentaminen",
+        "aerobicDevelopment": "Aerobinen kehitys",
+        "threshold": "Kynnys",
+        "vo2max": "VO2max",
+        "racePrep": "Kilpailuun valmistautuminen",
+        "taper": "Kevennys",
+        "recovery": "Palautuminen",
+        "maintenance": "Ylläpito",
+        "generalFitness": "Yleiskunto"
+      }
     }
   },
   "plan": {
@@ -2604,6 +2684,7 @@
     "error": {
       "intervalsCredentials": "{{service}} hylkäsi pyynnön. Tarkista {{service}}-yhteytesi tai API-avaimesi.",
       "intervalsTransient": "En saanut juuri nyt yhteyttä palveluun {{service}}. Yritä pian uudelleen.",
+      "noConnection": "Ei yhteyttä. Viestisi on tallessa. Yritä uudelleen, kun olet verkossa.",
       "providerCredentials": "Mallin palveluntarjoaja hylkäsi API-avaimen. Tarkista palveluntarjoajan tunnistautumistietosi.",
       "providerDown": "Mallin palveluntarjoajalla on ongelmia. Yritä uudelleen muutaman minuutin kuluttua.",
       "rateLimit": "Pyyntöjä on nyt liikaa. Yritä pian uudelleen.",
@@ -2647,7 +2728,9 @@
       "structure": "harjoituksen rakenne",
       "trainingLoad": "harjoituskuormaksi {{load}}",
       "unnamed": "Nimetön harjoitus",
-      "update": "Päivitä harjoitus \"{{name}}\" päivälle {{date}}. {{detail}}"
+      "update": "Päivitä harjoitus \"{{name}}\" päivälle {{date}}. {{detail}}",
+      "deleteFallback": "Poista harjoitus",
+      "updateFallback": "Päivitä harjoitus. {{detail}}"
     }
   },
   "telegram": {
@@ -2678,7 +2761,6 @@
       "start": "Aloita uusi keskustelu",
       "status": "Tarkista nykyinen kunto, väsymys ja tuoreus",
       "sync": "Pakota harjoitustietojen päivitys palvelusta {{service}}",
-      "update": "Tarkista ja asenna päivitykset",
       "version": "Näytä nykyinen versio",
       "whatsnew": "Katso uusimman version muutokset",
       "workout": "Hae tämän päivän harjoitus"
@@ -2795,7 +2877,6 @@
       "managedInstruction": "Katso muutokset lähettämällä {{whatsnew}}. {{notice}}",
       "prepareFailed": "Päivitystä ei voitu juuri nyt valmistella turvallisesti. Yritä komentoa {{command}} hetken kuluttua uudelleen."
     },
-    "welcome": "Tervetuloa käyttämään sovellusta {{product}}!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun {{service}} tietojen avulla.\n\nKomennot:\n{{plan}}: Luo harjoitussuunnitelma\n{{workout}}: Hae tämän päivän harjoitus\n{{status}}: Tarkista nykyinen kunto, väsymys ja tuoreus\n{{review}}: Tarkista viimeisin harjoituksesi\n{{sync}}: Pakota harjoitustietojen päivitys palvelusta {{service}}\n{{version}}: Näytä nykyinen versio\n{{whatsnew}}: Katso uusimman version muutokset\n{{update}}: {{updateDescription}}\n\nVoit myös vain jutella kanssani harjoittelustasi!",
     "workout": {
       "working": "Tarkistan tuoreuttasi ja suunnitelmaasi…"
     }
@@ -2883,6 +2964,234 @@
         "tokenRejected": "Telegram-tunniste hylättiin",
         "transferRequired": "Botti on siirrettävä"
       }
+    }
+  },
+  "diagnostics": {
+    "title": "Diagnostiikka",
+    "explanation": "Luo tiedosto, jossa on sovelluksen versio, tämän iPhonen malli ja iOS-versio, asetuksesi, sovelluksen tallentamien kohteiden määrät sekä viimeisten 14 päivän ongelmat ja mallin käyttö. Siinä ei ole avaimia, viestejä eikä harjoitustietoja. Mitään ei lähde iPhonesta ennen kuin jaat sen.",
+    "make": "Luo diagnostiikkatiedosto",
+    "preparing": "Valmistellaan tiedostoa…",
+    "shared": "Jaettu. iOS antoi tiedoston valitsemallesi sovellukselle.",
+    "saved": "Tallennettu Tiedostot-appiin.",
+    "canceled": "Peruttu. Tiedostoa ei jaettu.",
+    "failed": "Tiedostoa ei voitu luoda.",
+    "shareFailed": "Tiedostoa ei voitu jakaa.",
+    "notSaving": "Tämä iPhone ei ole tallentanut ongelmalokia {{time}} jälkeen. Tiedosto sisältää vain sen, mikä tallennettiin ennen sitä, ja sen, mitä tämä istunto kirjasi."
+  },
+  "feedback": {
+    "title": "Palaute",
+    "command": "Lähetä viesti Enduragentin tekijöille",
+    "prompt": "Kirjoita viesti Enduragentin tekijöille. Se lähtee yksinään, ilman keskusteluasi, muistia, harjoitustietoja tai diagnostiikkaa.",
+    "send": "Lähetä",
+    "sending": "Lähetetään…",
+    "received": "Vastaanotettu. Kiitos viestistä.",
+    "notSent": {
+      "noConnection": "Ei lähetetty. iPhonella ei ollut yhteyttä. Viestisi on tallessa.",
+      "busy": "Ei lähetetty. Palautepalvelu on varattu. Yritä uudelleen minuutin kuluttua. Viestisi on tallessa.",
+      "refused": "Ei lähetetty. Palautepalvelu hylkäsi viestin. Viestisi on tallessa.",
+      "stopped": "Ei lähetetty. Sovellus pysähtyi ennen kuin viesti lähti tästä iPhonesta. Viestisi on tallessa."
+    },
+    "notConfirmed": "Ei vahvistettu. Viesti on ehkä perillä, mutta vastausta ei tullut. Viestisi on tallessa, ja Yritä uudelleen lähettää saman viestin.",
+    "refused": {
+      "empty": "Kirjoita ensin viesti.",
+      "tooLong": "Pidä viestisi enintään {{limit}} merkissä. Mitään ei lähetetty.",
+      "invalidCharacter": "Viestissä on merkki, jota ei voi lähettää. Mitään ei lähetetty."
+    }
+  },
+  "review": {
+    "accountChanged": "Tämä harjoitus valmisteltiin toiselle urheilijalle palvelussa {{service}}. Pyydä minua uudelleen valmistelemaan se yhdistetylle urheilijalle.",
+    "add": "Lisää kalenteriin",
+    "cannotVerify": "En voinut tarkistaa yhteyttäsi palveluun {{service}}, joten mitään ei muutettu. Yritä pian uudelleen.",
+    "cancelledUnknown": "Peruttu. Tämä harjoitus on silti saatettu tallentaa. Tarkista kalenterisi.",
+    "saveFailed": "Valintaasi ei voitu tallentaa tähän iPhoneen, joten mitään ei muutettu. Yritä uudelleen.",
+    "storageUnavailable": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Sen painikkeet on poistettu tilapäisesti käytöstä.",
+    "title": "Harjoituksen tarkistus",
+    "workout": {
+      "warmup": "Lämmittely",
+      "mainSet": "Pääsarja",
+      "cooldown": "Jäähdyttely",
+      "ramp": "tehon nousu"
+    }
+  },
+  "credits": {
+    "title": "Krediitit",
+    "balance_one": "{{formattedCount}} krediitti",
+    "balance_other": "{{formattedCount}} krediittiä",
+    "error": {
+      "accessRejected": "Krediittejäsi ei voitu käyttää. Voit vaihtaa OpenRouter-tiliisi.",
+      "exhausted": "Krediittisi ovat loppuneet. Voit vaihtaa OpenRouter-tiliisi.",
+      "unavailable": "Krediitit eivät ole juuri nyt käytettävissä. Yritä myöhemmin uudelleen.",
+      "accountChanged": "Krediittitilisi vaihtui tämän pyynnön viimeistelyn aikana. Nykyinen tilisi säilytettiin."
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Yhdistä",
+      "apiKey": "intervals.icu-API-avain",
+      "fatigue": "Väsymys {{value}}",
+      "fitness": "Kunto {{value}}",
+      "form": "Vire {{value}}",
+      "skip": "Ohita toistaiseksi"
+    },
+    "starter": {
+      "start": "Aloita keskustelu",
+      "progress": "Pyydetään aloituskrediittejä",
+      "alreadyGranted": "Tämä laite on jo käyttänyt aloituskrediittinsä.",
+      "added_one": "Lisätty {{formattedCount}} krediitti",
+      "added_other": "Lisätty {{formattedCount}} krediittiä"
+    },
+    "notice": {
+      "health": "Harjoitteluehdotuksia, ei lääketieteellisiä neuvoja. Keskustele lääkärin kanssa ennen suuria muutoksia."
+    },
+    "consent": {
+      "title": "Valmentajasi käyttää tekoälyä",
+      "body": "Vastatakseen Enduragent lähettää viestisi, valmennusmuistisi ja intervals.icu-palvelusta yhdistämäsi harjoitustiedot OpenRouterille, joka välittää ne palveluntarjoajalle {{provider}} mallin {{model}} suorittamista varten. Tietoja käytetään vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen hyväksyntääsi.",
+      "accept": "Hyväksy ja jatka",
+      "decline": "Ei nyt",
+      "saveFailed": "Suostumustasi ei voitu tallentaa. Yritä uudelleen."
+    }
+  },
+  "about": {
+    "title": "Tietoja",
+    "privacyPolicy": "Tietosuojakäytäntö",
+    "version": "Versio"
+  },
+  "access": {
+    "error": {
+      "locked": "Avaa iPhonen lukitus jatkaaksesi. Viestisi on tallennettu.",
+      "notConfigured": "Valitse, miten valmentaja saa yhteyden malliin, jotta voit jatkaa.",
+      "requestBlocked": "OpenRouter esti tämän pyynnön. Kokeile toista mallia tai viestiä.",
+      "providerConsentRequired": "Lupasi tarvitaan ennen keskustelutietojen jakamista tekoälypalvelujen tarjoajille.",
+      "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin.",
+      "storageUnavailable": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Keskustelusi, historiasi ja muistisi ovat edelleen täällä. Yritä uudelleen.",
+      "malformed": "Tallennettua käyttötapaasi ei voitu lukea. Valitse käyttötapa jatkaaksesi."
+    },
+    "title": "Käyttötapa",
+    "openRouterAccount": "OpenRouter-tili",
+    "signIn": "Kirjaudu OpenRouterilla",
+    "signInCancelled": "Kirjautuminen peruutettu. Käyttötapaasi ei muutettu.",
+    "signInIncomplete": "OpenRouter-kirjautuminen ei valmistunut. Käyttötapaasi ei muutettu. Yritä uudelleen.",
+    "switchToOpenRouter": "Vaihda OpenRouteriin"
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu ei hyväksynyt avainta.",
+      "blank": "Anna intervals.icu API-avain. Nykyinen yhteytesi ei muuttunut.",
+      "notSaved": "Korvaavaa avainta ei tallennettu. Aiempi yhteytesi ei muuttunut. Yritä uudelleen.",
+      "profileUnavailable": "Urheilijaprofiilisi ei ole tilapäisesti saatavilla. Yritä uudelleen.",
+      "wellnessRejected": "intervals.icu ei sallinut tämän päivän hyvinvointitietojen lukemista. Tarkista yhteytesi.",
+      "wellnessUnavailable": "Tämän päivän hyvinvointitiedot eivät ole tilapäisesti saatavilla. Yritä uudelleen.",
+      "blankConnection": "Anna intervals.icu-API-avain.",
+      "connectionNotSaved": "Yhteyttä ei tallennettu. Yritä uudelleen.",
+      "storageLocked": "Avaa iPhonen lukitus, jotta intervals.icu-yhteytesi voidaan lukea. Yritä sitten uudelleen.",
+      "storageUnavailable": "intervals.icu-yhteytesi on tilapäisesti poissa käytöstä, koska suojattua tallennustilaa ei voitu lukea. Yritä uudelleen.",
+      "storageMalformed": "Tallennettua intervals.icu-yhteyttä ei voitu lukea. Vaihda avain yhdistääksesi uudelleen."
+    },
+    "wellness": {
+      "empty": "Tälle päivälle ei ole hyvinvointitietoja.",
+      "waiting": "Luetaan tämän päivän hyvinvointitietoja…"
+    },
+    "review": "Tarkista yhteys",
+    "profile": {
+      "waiting": "Luetaan urheilijaprofiilia…"
+    },
+    "missing": "intervals.icu ei ole yhdistetty. Yhdistä lisätäksesi harjoituksia kalenteriisi."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Tämä harjoitus tarkistettiin ennen sovelluksen päivitystä. Pyydä valmentajaa uudelleen.",
+      "missing": "Tämän tarkistuksen harjoitus ei ole enää kalenterissasi palvelussa {{service}}, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen.",
+      "pastProtected": "Tämän tarkistuksen harjoitus on nyt menneisyydessä, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen.",
+      "coachOnly": "Valmentaja ei lisännyt tämän tarkistuksen harjoitusta, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen.",
+      "workoutOnly": "Tämän tarkistuksen merkintä ei ole harjoitus, joten tarkistusta ei voi jatkaa. Peru se ja pyydä valmentajaa uudelleen."
+    },
+    "refreshed": {
+      "nothingChanged": "Tämän tarkistuksen harjoituksia muutettiin palvelussa {{service}} sen jälkeen, kun tarkistit ne, joten mitään ei muutettu. Tarkista ne uudelleen ennen hyväksymistä.",
+      "nothingElseChanged": "Tämän tarkistuksen harjoituksia muutettiin palvelussa {{service}} sen jälkeen, kun tarkistit ne, joten muuta ei muutettu. Tarkista ne uudelleen ennen hyväksymistä.",
+      "date": "{{workout}}: päivämäärä muuttui {{from}} → {{to}}.",
+      "name": "{{workout}}: nimeksi muuttui {{to}}.",
+      "duration": "{{workout}}: kesto muuttui {{from}} → {{to}} minuuttia.",
+      "description": "{{workout}}: kuvaus muuttui.",
+      "load": "{{workout}}: harjoituskuorma muuttui {{from}} → {{to}}.",
+      "structure": "{{workout}}: harjoituksen vaiheet muuttuivat."
+    },
+    "notPrepared": "Harjoituksen tarkistusta ei voitu valmistella.",
+    "notPreparedInformationSaved": "Tietosi tallennettiin, mutta harjoituksen tarkistusta ei voitu valmistella.",
+    "stopped": "Harjoituksen tarkistus pysähtyi ennen kuin kaikki muutokset tehtiin. Jo tehdyt muutokset säilyvät.",
+    "sending": "Tarkistettuja muutoksia tehdään kalenteriisi palvelussa {{service}}…",
+    "partial": "{{service}} hylkäsi muutoksen, joten jäljellä olevat muutokset pysäytettiin. Jo tehdyt muutokset säilyvät. Tarkista loput ennen kuin yrität uudelleen.",
+    "unconfirmed": "Muutos on saatettu tallentaa kalenteriisi palvelussa {{service}}. Tarkista uudelleen ennen kuin mitään muuta muutetaan.",
+    "completed": "Kaikki tarkistetut muutokset on tehty.",
+    "canceled": "Jäljellä olevat muutokset peruttiin.",
+    "finishedTitle": "Jo tehty",
+    "outcome": {
+      "closedAtUpgrade": "Tämä harjoituksen tarkistus valmisteltiin ennen sovelluksen päivitystä. Pyydä valmentajaa uudelleen.",
+      "saved": "{{workout}}, {{date}}: muutos tallennettu.",
+      "seenOnCalendar": "{{workout}}, {{date}}: muutos näkyy kalenterissa.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: ei enää kalenterissa.",
+      "givenUp": "{{workout}}, {{date}}: muutosta ei tehty.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: muutos on ehkä tallennettu. Tarkista kalenterisi."
+    },
+    "preparedEarlier": "Valmisteltu aiemmin",
+    "approve": "Ota muutokset käyttöön",
+    "card": {
+      "add": "Lisää",
+      "edit": "Muokkaa",
+      "delete": "Poista",
+      "heading": "{{action}} · {{position}}/{{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "kesto tuntematon",
+      "unknown": "tuntematon",
+      "load": "Arvioitu harjoituskuorma: {{load}}",
+      "removed": "Tämä harjoitus poistetaan kalenterista.",
+      "changed": {
+        "date": "Päivä: {{from}} → {{to}}",
+        "name": "Nimi: {{from}} → {{to}}",
+        "duration": "Kesto: {{from}} → {{to}}",
+        "load": "Arvioitu harjoituskuorma: {{from}} → {{to}}",
+        "description": "Kuvaus muuttuu.",
+        "steps": "Harjoituksen vaiheet muuttuvat."
+      },
+      "progress": {
+        "sending": "Lähetetään…",
+        "refused": "Ei tallennettu",
+        "mayHaveBeenSaved": "Ehkä tallennettu",
+        "notRemoved": "Ei poistettu",
+        "mayHaveBeenRemoved": "Ehkä poistettu"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Prosenttia FTP:stä",
+      "watts": "Teho watteina"
+    },
+    "totals": {
+      "additions_one": "{{count}} lisäys",
+      "additions_other": "{{count}} lisäystä",
+      "edits_one": "{{count}} muokkaus",
+      "edits_other": "{{count}} muokkausta",
+      "deletions_one": "{{count}} poisto",
+      "deletions_other": "{{count}} poistoa",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} lisätyille tai muokatuille harjoituksille",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · kokonaiskesto tuntematon"
+    },
+    "kept": {
+      "title": "Säilyvät harjoitukset",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Lisätäänkö tämä harjoitus kalenteriisi?",
+        "add_other": "Lisätäänkö nämä harjoitukset kalenteriisi?",
+        "edit_one": "Päivitetäänkö tämä harjoitus kalenterissasi?",
+        "edit_other": "Päivitetäänkö nämä harjoitukset kalenterissasi?",
+        "delete_one": "Poistetaanko tämä harjoitus kalenteristasi?",
+        "delete_other": "Poistetaanko nämä harjoitukset kalenteristasi?",
+        "mixed": "Otetaanko kaikki tarkistetut muutokset käyttöön?"
+      },
+      "approveEdits": "Päivitä kalenteri",
+      "approveDeletions": "Poista kalenterista",
+      "unseen": "Vieritä kaikkien korttien läpi jatkaaksesi.",
+      "cardFailed": "Korttia {{position}}/{{count}} ei voitu näyttää. Mitään ei muutettu.",
+      "showAgain": "Näytä uudelleen"
     }
   }
 }

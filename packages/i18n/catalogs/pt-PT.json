@@ -15,13 +15,13 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "As conversas anteriores estão temporariamente indisponíveis.",
-    "loadEarlier": "Carregar mensagens anteriores",
     "loading": "A carregar conversas anteriores…",
     "pageFailure": "Esta conversa está temporariamente indisponível.",
     "readOnly": "As conversas anteriores são apenas de leitura.",
     "reason": {
       "explicit": "Iniciaste uma nova conversa",
-      "stale": "Fechada após uma pausa"
+      "stale": "Fechada após uma pausa",
+      "earlierChat": "Conversa anterior"
     },
     "retry": "Tentar novamente",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -29,7 +29,9 @@
     "truncated": "Só são apresentadas as conversas anteriores mais recentes.",
     "turnCount_one": "{{formattedCount}} mensagem",
     "turnCount_other": "{{formattedCount}} mensagens",
-    "unavailable": "Esta conversa já não está disponível."
+    "unavailable": "Esta conversa já não está disponível.",
+    "history": "Histórico",
+    "savedForAnotherAthlete": "Guardado para outro atleta do intervals.icu ({{id}})"
   },
   "common": {
     "automatic": "Automático",
@@ -206,7 +208,8 @@
         "historyTokenBudgetRatio": "Introduz um limite de histórico superior a 0% e não superior a 100%.",
         "idleMinutes": "Introduz um número inteiro de minutos dentro do intervalo seguro, igual ou superior a 0.",
         "resetArchiveRetentionDays": "Introduz um número inteiro de dias dentro do intervalo seguro, igual ou superior a 0.",
-        "timezone": "Introduz um fuso horário IANA válido, como {{timezone}}."
+        "timezone": "Introduz um fuso horário IANA válido, como {{timezone}}.",
+        "contextWindowTokens": "Introduz um número inteiro de tokens dentro do intervalo válido, no mínimo 1."
       }
     },
     "credentials": {
@@ -544,6 +547,35 @@
       "saving": "A guardar unidades…",
       "title": "Unidades",
       "unavailable": "Preferência de unidades indisponível"
+    },
+    "modelAccessTitle": "Acesso ao modelo",
+    "session": {
+      "title": "Sessão",
+      "contextWindow": {
+        "label": "Janela de contexto",
+        "help": "Limite máximo do contexto do modelo. Deixa vazio para usar a predefinição.",
+        "default": "Predefinição"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokens"
+      }
+    },
+    "training": {
+      "section": "Ligação de treino",
+      "title": "intervals.icu",
+      "replace": "Substituir chave",
+      "keep": "Manter ligação atual",
+      "disconnect": "Desligar",
+      "disconnectTitle": "Desligar intervals.icu?",
+      "disconnectDetail": "A conversa e o histórico continuam disponíveis.",
+      "switchTitle": "Usar outro atleta?",
+      "switchDetail": "Esta chave pertence ao atleta {{new}}. A sua conversa, o histórico e a memória continuam guardados para o atleta {{current}} e não são usados para o atleta {{new}}. Mudar para usar esta chave?",
+      "switch": "Mudar atleta",
+      "athlete": "Atleta {{id}}"
+    },
+    "support": {
+      "title": "Suporte"
     }
   },
   "setup": {
@@ -945,7 +977,8 @@
       "messagePlaceholder": "Envia uma mensagem ao teu treinador",
       "responding": "O treinador está a responder…",
       "send": "Enviar mensagem",
-      "stop": "Parar resposta"
+      "stop": "Parar resposta",
+      "notSent": "Não enviada. O teu rascunho continua aqui."
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -978,7 +1011,6 @@
     },
     "history": {
       "failure": "O histórico da conversa está temporariamente indisponível.",
-      "loadEarlier": "Carregar mensagens anteriores",
       "retry": "Tentar carregar o histórico novamente"
     },
     "newConversation": {
@@ -987,6 +1019,7 @@
       "cancel": "Cancelar",
       "confirm": "Iniciar nova conversa",
       "hydrated": "A conversa visível e as mensagens anteriores restauradas em {{computer}} serão limpas. Os teus dados de treino e a memória guardada do treinador mantêm-se.",
+      "label": "Nova conversa",
       "title": "Iniciar uma nova conversa?"
     },
     "notice": {
@@ -1010,13 +1043,17 @@
       "planningRequestLoadFailure": "Não foi possível verificar os pedidos guardados do Plano. Volta a ligar e tenta novamente.",
       "protocolFailure": "Não foi possível verificar a resposta do treinador. Tenta novamente.",
       "questionSkipped": "Pergunta saltada",
+      "replyUnsaved": "Não foi possível guardar esta resposta. Mantém a aplicação aberta enquanto se tenta guardar novamente.",
       "queueLoadFailure": "Não foi possível verificar as tuas mensagens guardadas. Volta a ligar e tenta novamente.",
       "queueRemoveFailure": "Não foi possível remover essa mensagem guardada. Tenta novamente.",
       "responseFailure": "O treinador não conseguiu responder. Tenta novamente.",
-      "responseStopped": "Resposta interrompida. A resposta parcial mantém-se.",
       "retryMessage": "Tentar enviar a mensagem novamente",
       "savedChoice": "Escolha guardada",
-      "working": "O treinador está a trabalhar…"
+      "working": "O treinador está a trabalhar…",
+      "responseStopped": "Resposta interrompida. A resposta parcial mantém-se.",
+      "calendarUnverified": "A alteração no calendário pode ter sido guardada. Verifica o teu calendário antes de pedires novamente.",
+      "savedUnverified": "Guardei as tuas informações, mas não consegui verificar a minha resposta. Tenta novamente.",
+      "startingNewConversation": "A iniciar uma nova conversa…"
     },
     "planChange": {
       "activePlan": "Plano ativo",
@@ -1447,6 +1484,49 @@
       "hideContext": "Ocultar contexto de treino",
       "showContext": "Mostrar contexto de treino",
       "title": "Conversa"
+    },
+    "menu": "Menu",
+    "turn": {
+      "chooseAccessMethod": "Escolher método de acesso",
+      "finishedWhileLocked": "Concluído enquanto o telemóvel estava bloqueado.",
+      "interruptedNothingChanged": "Esta resposta foi interrompida antes de terminar. Nada foi alterado.",
+      "interruptedSomeSaved": "Esta resposta foi interrompida antes de terminar. Algumas informações já tinham sido guardadas.",
+      "receivedBeforeClose": "Recebida antes de a aplicação fechar. Toca em Tentar novamente para a enviar.",
+      "signInAgain": "Iniciar sessão novamente"
+    },
+    "welcome": "Boas-vindas ao {{product}}!\n\nSou o teu treinador de ciclismo com IA. Posso criar planos de treino, sugerir treinos e acompanhar a tua condição física com os dados de {{service}}.\n\nComandos:\n{{commands}}\n\nOu fala comigo sobre o teu treino!",
+    "welcomeCommand": "{{command}} : {{description}}",
+    "planSave": {
+      "notPrepared": "Não foi possível preparar o plano de treino para guardar.",
+      "title": "Guardar este plano de treino?",
+      "phase": "Fase {{number}}",
+      "focusLabel": "Foco",
+      "weeklyHours": "Horas por semana",
+      "replaces": "Substitui o teu plano guardado: {{name}}",
+      "save": "Guardar plano",
+      "saving": "A guardar o plano…",
+      "saved": "Guardado. Este é agora o teu plano de treino.",
+      "canceled": "Cancelado. Este plano não foi guardado.",
+      "expired": "Expirado. Pede novamente ao treinador para guardar este plano.",
+      "storageUnavailable": "Não foi possível guardar este plano porque o armazenamento deste iPhone não está disponível.",
+      "notSaved": {
+        "expired": "Não guardado: os dez minutos para guardar este plano já passaram.",
+        "replaced": "Não guardado: há um plano mais recente à espera de ser guardado.",
+        "alreadyDecided": "Este plano já foi guardado ou cancelado.",
+        "athleteChanged": "Não guardado: este plano foi preparado para outro atleta no {{service}}.",
+        "notPresented": "Ainda não guardado. Desloca-te até ao plano e toca novamente em Guardar plano."
+      },
+      "focus": {
+        "baseBuilding": "Construção de base",
+        "aerobicDevelopment": "Desenvolvimento aeróbio",
+        "threshold": "Limiar",
+        "vo2max": "VO2máx",
+        "racePrep": "Preparação para a prova",
+        "taper": "Afinação",
+        "recovery": "Recuperação",
+        "maintenance": "Manutenção",
+        "generalFitness": "Condição física geral"
+      }
     }
   },
   "plan": {
@@ -2604,6 +2684,7 @@
     "error": {
       "intervalsCredentials": "{{service}} rejeitou o pedido. Verifica a tua ligação a {{service}} ou a chave de API.",
       "intervalsTransient": "Não consegui contactar {{service}} agora. Tenta novamente daqui a pouco.",
+      "noConnection": "Sem ligação. A tua mensagem foi guardada. Tenta novamente quando estiveres online.",
       "providerCredentials": "O fornecedor do modelo rejeitou a chave de API. Verifica as tuas credenciais do fornecedor.",
       "providerDown": "O fornecedor do modelo está com dificuldades. Tenta novamente daqui a uns minutos.",
       "rateLimit": "Limite de pedidos atingido. Tenta novamente daqui a pouco.",
@@ -2647,7 +2728,9 @@
       "structure": "estrutura do treino",
       "trainingLoad": "carga de treino para {{load}}",
       "unnamed": "Treino sem nome",
-      "update": "Atualizar o treino \"{{name}}\" em {{date}}. {{detail}}"
+      "update": "Atualizar o treino \"{{name}}\" em {{date}}. {{detail}}",
+      "deleteFallback": "Eliminar um treino",
+      "updateFallback": "Atualizar um treino. {{detail}}"
     }
   },
   "telegram": {
@@ -2678,7 +2761,6 @@
       "start": "Iniciar uma nova conversa",
       "status": "Ver a condição física, a fadiga e a forma atuais",
       "sync": "Forçar a atualização dos dados de treino de {{service}}",
-      "update": "Procurar e instalar atualizações",
       "version": "Mostrar a versão atual",
       "whatsnew": "Ver o que mudou na versão mais recente",
       "workout": "Ver o treino de hoje"
@@ -2795,7 +2877,6 @@
       "managedInstruction": "Envia {{whatsnew}} para veres o que mudou. {{notice}}",
       "prepareFailed": "Não consegui preparar a atualização em segurança agora. Tenta {{command}} novamente daqui a pouco."
     },
-    "welcome": "Boas-vindas ao {{product}}!\n\nSou o teu treinador de ciclismo com IA. Posso criar planos de treino, sugerir treinos e acompanhar a tua condição física com os dados de {{service}}.\n\nComandos:\n{{plan}} : Gerar um plano de treino\n{{workout}} : Ver o treino de hoje\n{{status}} : Ver a condição física, a fadiga e a forma atuais\n{{review}} : Rever o teu último treino\n{{sync}} : Forçar a atualização dos dados de treino de {{service}}\n{{version}} : Mostrar a versão atual\n{{whatsnew}} : Ver o que mudou na versão mais recente\n{{update}} : {{updateDescription}}\n\nOu fala comigo sobre o teu treino!",
     "workout": {
       "working": "A verificar a tua forma e o teu plano..."
     }
@@ -2883,6 +2964,234 @@
         "tokenRejected": "Token do Telegram rejeitado",
         "transferRequired": "É necessário transferir o bot"
       }
+    }
+  },
+  "diagnostics": {
+    "title": "Diagnóstico",
+    "explanation": "Cria um ficheiro com a versão da app, o modelo e a versão do iOS deste iPhone, as tuas definições, contagens do que a app guardou e os últimos 14 dias de problemas e utilização do modelo. Não contém chaves, mensagens nem dados de treino. Nada sai do iPhone até o partilhares.",
+    "make": "Criar ficheiro de diagnóstico",
+    "preparing": "A preparar o ficheiro…",
+    "shared": "Partilhado. O iOS entregou o ficheiro à app que escolheste.",
+    "saved": "Guardado em Ficheiros.",
+    "canceled": "Cancelado. O ficheiro não foi partilhado.",
+    "failed": "Não foi possível criar o ficheiro.",
+    "shareFailed": "Não foi possível partilhar o ficheiro.",
+    "notSaving": "Este iPhone não guarda o registo de problemas desde {{time}}. O ficheiro contém apenas o que foi guardado antes disso e o que esta sessão registou."
+  },
+  "feedback": {
+    "title": "Comentários",
+    "command": "Enviar uma nota aos autores do Enduragent",
+    "prompt": "Escreve uma nota aos autores do Enduragent. Segue sozinha, sem a tua conversa, memória, dados de treino ou diagnósticos.",
+    "send": "Enviar",
+    "sending": "A enviar…",
+    "received": "Recebida. Obrigado pela nota.",
+    "notSent": {
+      "noConnection": "Não enviada. O iPhone não tinha ligação. A tua nota foi guardada.",
+      "busy": "Não enviada. O serviço de comentários está ocupado. Tenta novamente dentro de um minuto. A tua nota foi guardada.",
+      "refused": "Não enviada. O serviço de comentários recusou a nota. A tua nota foi guardada.",
+      "stopped": "Não enviada. A app parou antes de a nota sair deste iPhone. A tua nota foi guardada."
+    },
+    "notConfirmed": "Não confirmada. A nota pode ter chegado, mas não houve resposta. A tua nota foi guardada, e Tentar novamente envia a mesma nota.",
+    "refused": {
+      "empty": "Escreve primeiro uma nota.",
+      "tooLong": "Mantém a nota com {{limit}} carateres ou menos. Nada foi enviado.",
+      "invalidCharacter": "A nota tem um caráter que não pode ser enviado. Nada foi enviado."
+    }
+  },
+  "review": {
+    "accountChanged": "Este treino foi preparado para outro atleta no {{service}}. Pede-me novamente para o preparar para o atleta ligado.",
+    "add": "Adicionar ao calendário",
+    "cannotVerify": "Não consegui verificar a tua ligação a {{service}}, por isso nada foi alterado. Tenta novamente daqui a pouco.",
+    "cancelledUnknown": "Cancelado. Este treino pode ter sido guardado na mesma. Verifica o teu calendário.",
+    "saveFailed": "Não foi possível guardar a tua escolha neste iPhone, por isso nada foi alterado. Tenta novamente.",
+    "storageUnavailable": "Não foi possível ler a revisão do treino guardada. Os botões estão temporariamente desativados.",
+    "title": "Revisão do treino",
+    "workout": {
+      "warmup": "Aquecimento",
+      "mainSet": "Série principal",
+      "cooldown": "Arrefecimento",
+      "ramp": "rampa"
+    }
+  },
+  "credits": {
+    "title": "Créditos",
+    "balance_one": "{{formattedCount}} crédito",
+    "balance_other": "{{formattedCount}} créditos",
+    "error": {
+      "accessRejected": "Não foi possível usar os teus créditos. Podes mudar para a tua conta OpenRouter.",
+      "exhausted": "Os teus créditos acabaram. Podes mudar para a tua conta OpenRouter.",
+      "unavailable": "Os créditos estão indisponíveis de momento. Tenta novamente mais tarde.",
+      "accountChanged": "A tua conta de créditos mudou enquanto este pedido estava a ser concluído. A tua conta atual foi mantida."
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Ligar",
+      "apiKey": "Chave API do intervals.icu",
+      "fatigue": "Fadiga {{value}}",
+      "fitness": "Condição física {{value}}",
+      "form": "Forma {{value}}",
+      "skip": "Ignorar por agora"
+    },
+    "starter": {
+      "start": "Começar a conversar",
+      "progress": "A pedir créditos iniciais",
+      "alreadyGranted": "Este dispositivo já utilizou os seus créditos iniciais.",
+      "added_one": "{{formattedCount}} crédito adicionado",
+      "added_other": "{{formattedCount}} créditos adicionados"
+    },
+    "notice": {
+      "health": "Sugestões de treino, não aconselhamento médico. Consulta um médico antes de fazer grandes alterações."
+    },
+    "consent": {
+      "title": "O teu treinador usa IA",
+      "body": "Para responder, o Enduragent envia as suas mensagens, a memória de acompanhamento e os dados de treino ligados do intervals.icu ao OpenRouter, que os transmite a {{provider}} para executar {{model}}. Estes dados são usados apenas para gerar as respostas do seu treinador. Nada é enviado até concordar.",
+      "accept": "Concordar e continuar",
+      "decline": "Agora não",
+      "saveFailed": "Não foi possível guardar o teu consentimento. Tenta novamente."
+    }
+  },
+  "about": {
+    "title": "Acerca de",
+    "privacyPolicy": "Política de privacidade",
+    "version": "Versão"
+  },
+  "access": {
+    "error": {
+      "locked": "Desbloqueia o teu iPhone para continuar. A tua mensagem está guardada.",
+      "notConfigured": "Escolhe como o treinador acede a um modelo para continuar.",
+      "requestBlocked": "O OpenRouter bloqueou este pedido. Experimenta outro modelo ou mensagem.",
+      "providerConsentRequired": "Precisamos da tua permissão antes de partilhar dados da conversa com fornecedores de IA.",
+      "openRouterFunds": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos.",
+      "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. A sua conversa, o histórico e a memória continuam aqui. Tente novamente.",
+      "malformed": "Não foi possível ler o seu método de acesso guardado. Escolha um método de acesso para continuar."
+    },
+    "title": "Método de acesso",
+    "openRouterAccount": "Conta OpenRouter",
+    "signIn": "Iniciar sessão com OpenRouter",
+    "signInCancelled": "Início de sessão cancelado. O seu método de acesso não foi alterado.",
+    "signInIncomplete": "O início de sessão no OpenRouter não foi concluído. O seu método de acesso não foi alterado. Tente novamente.",
+    "switchToOpenRouter": "Mudar para OpenRouter"
+  },
+  "connect": {
+    "error": {
+      "rejected": "O intervals.icu não aceitou essa chave.",
+      "blank": "Introduza uma chave de API do intervals.icu. A sua ligação atual não foi alterada.",
+      "notSaved": "A substituição não foi guardada. A sua ligação anterior não foi alterada. Tente novamente.",
+      "profileUnavailable": "O seu perfil de atleta está temporariamente indisponível. Tente novamente.",
+      "wellnessRejected": "O intervals.icu não permitiu a leitura dos dados de bem-estar de hoje. Reveja a sua ligação.",
+      "wellnessUnavailable": "Os dados de bem-estar de hoje estão temporariamente indisponíveis. Tente novamente.",
+      "blankConnection": "Introduza uma chave de API do intervals.icu.",
+      "connectionNotSaved": "A ligação não foi guardada. Tente novamente.",
+      "storageLocked": "Desbloqueie o iPhone para ler a sua ligação ao intervals.icu. Depois, tente novamente.",
+      "storageUnavailable": "A sua ligação ao intervals.icu está temporariamente indisponível porque não foi possível ler o armazenamento seguro. Tente novamente.",
+      "storageMalformed": "Não foi possível ler a ligação guardada ao intervals.icu. Substitua a chave para se ligar novamente."
+    },
+    "wellness": {
+      "empty": "Não há dados de bem-estar para hoje.",
+      "waiting": "A ler os dados de bem-estar de hoje…"
+    },
+    "review": "Rever ligação",
+    "profile": {
+      "waiting": "A ler o perfil de atleta…"
+    },
+    "missing": "intervals.icu não está ligado. Ligue para adicionar treinos ao calendário."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Este treino foi revisto antes da atualização da app. Pede novamente ao treinador.",
+      "missing": "Um treino desta revisão já não está no teu calendário no {{service}}, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador.",
+      "pastProtected": "Um treino desta revisão está agora no passado, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador.",
+      "coachOnly": "Um treino desta revisão não foi adicionado pelo treinador, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador.",
+      "workoutOnly": "Um item desta revisão não é um treino, por isso a revisão não pode continuar. Cancela-a e pede novamente ao treinador."
+    },
+    "refreshed": {
+      "nothingChanged": "Treinos desta revisão foram alterados no {{service}} depois de os reveres, por isso nada foi alterado. Verifica-os novamente antes de aprovar.",
+      "nothingElseChanged": "Treinos desta revisão foram alterados no {{service}} depois de os reveres, por isso mais nada foi alterado. Verifica-os novamente antes de aprovar.",
+      "date": "{{workout}}: data alterada de {{from}} para {{to}}.",
+      "name": "{{workout}}: nome alterado para {{to}}.",
+      "duration": "{{workout}}: duração alterada de {{from}} para {{to}} minutos.",
+      "description": "{{workout}}: descrição alterada.",
+      "load": "{{workout}}: carga de treino alterada de {{from}} para {{to}}.",
+      "structure": "{{workout}}: passos do treino alterados."
+    },
+    "notPrepared": "Não foi possível preparar a revisão do treino.",
+    "notPreparedInformationSaved": "As tuas informações foram guardadas, mas não foi possível preparar a revisão do treino.",
+    "stopped": "A revisão do treino parou antes de todas as alterações serem feitas. As alterações já feitas mantêm-se.",
+    "sending": "A aplicar as alterações revistas ao teu calendário no {{service}}…",
+    "partial": "O {{service}} recusou uma alteração, por isso as alterações restantes foram interrompidas. As alterações já feitas mantêm-se. Verifica o resto antes de tentares novamente.",
+    "unconfirmed": "Uma alteração pode ter sido guardada no teu calendário no {{service}}. Verifica novamente antes de mais alguma coisa ser alterada.",
+    "completed": "Todas as alterações revistas foram concluídas.",
+    "canceled": "As alterações restantes foram canceladas.",
+    "finishedTitle": "Já concluído",
+    "outcome": {
+      "closedAtUpgrade": "Esta revisão do treino foi preparada antes da atualização da app. Pede novamente ao treinador.",
+      "saved": "{{workout}}, {{date}}: alteração guardada.",
+      "seenOnCalendar": "{{workout}}, {{date}}: alteração vista no calendário.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: já não está no calendário.",
+      "givenUp": "{{workout}}, {{date}}: alteração não feita.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: a alteração pode ter sido guardada. Verifica o teu calendário."
+    },
+    "preparedEarlier": "Preparado anteriormente",
+    "approve": "Aplicar alterações",
+    "card": {
+      "add": "Adicionar",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "heading": "{{action}} · {{position}} de {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "duração desconhecida",
+      "unknown": "desconhecida",
+      "load": "Carga de treino estimada: {{load}}",
+      "removed": "Este treino vai ser removido do calendário.",
+      "changed": {
+        "date": "Data: {{from}} → {{to}}",
+        "name": "Nome: {{from}} → {{to}}",
+        "duration": "Duração: {{from}} → {{to}}",
+        "load": "Carga de treino estimada: {{from}} → {{to}}",
+        "description": "A descrição muda.",
+        "steps": "Os passos do treino mudam."
+      },
+      "progress": {
+        "sending": "A enviar…",
+        "refused": "Não guardado",
+        "mayHaveBeenSaved": "Pode ter sido guardado",
+        "notRemoved": "Não removido",
+        "mayHaveBeenRemoved": "Pode ter sido removido"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Percentagem do FTP",
+      "watts": "Potência em watts"
+    },
+    "totals": {
+      "additions_one": "{{count}} adição",
+      "additions_other": "{{count}} adições",
+      "edits_one": "{{count}} edição",
+      "edits_other": "{{count}} edições",
+      "deletions_one": "{{count}} eliminação",
+      "deletions_other": "{{count}} eliminações",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} para treinos adicionados ou editados",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · duração total desconhecida"
+    },
+    "kept": {
+      "title": "Treinos existentes mantidos",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Adicionar este treino ao seu calendário?",
+        "add_other": "Adicionar estes treinos ao seu calendário?",
+        "edit_one": "Atualizar este treino no seu calendário?",
+        "edit_other": "Atualizar estes treinos no seu calendário?",
+        "delete_one": "Remover este treino do seu calendário?",
+        "delete_other": "Remover estes treinos do seu calendário?",
+        "mixed": "Aplicar todas as alterações revistas?"
+      },
+      "approveEdits": "Atualizar calendário",
+      "approveDeletions": "Remover do calendário",
+      "unseen": "Percorra todos os cartões para continuar.",
+      "cardFailed": "Não foi possível mostrar o cartão {{position}} de {{count}}. Nada foi alterado.",
+      "showAgain": "Mostrar novamente"
     }
   }
 }
