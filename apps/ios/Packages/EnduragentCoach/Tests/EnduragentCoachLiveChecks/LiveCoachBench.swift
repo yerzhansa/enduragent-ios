@@ -115,6 +115,52 @@ struct LiveCoachBench: Sendable {
 		let requests = LiveCalendarRequests()
 		let coach = try await coach(
 			for: scenario.setting, log: log, requests: requests, approvals: approvals)
+		let played: (turns: [LiveTurnRecord], cancel: LiveCancelRecord?)
+		do {
+			played = try await play(
+				scenario, on: coach, log: log, requests: requests, approvals: approvals)
+		} catch {
+			let left = await end(coach, approvals)
+			guard left.isEmpty else {
+				let stopped = "the scenario stopped on \(LiveCalendarSweep.describe(error))"
+				throw LiveCheckStop(description: ([stopped] + left).joined(separator: "; "))
+			}
+			throw error
+		}
+		let (turns, cancel) = played
+		var violations = await end(coach, approvals)
+		for (number, pair) in zip(turns, scenario.turns).enumerated() {
+			violations += LiveVerdict.violations(of: pair.0, against: pair.1.expectations).map {
+				"turn \(number + 1): \($0)"
+			}
+			if pair.1.tapsSavePlan {
+				violations += LivePlanVerdict.violations(ofTap: pair.0.tap).map {
+					"turn \(number + 1) tap: \($0)"
+				}
+			}
+			if pair.1.approvesReview {
+				violations += LiveVerdict.violations(ofApproval: pair.0.approval).map {
+					"turn \(number + 1) approval: \($0)"
+				}
+			}
+		}
+		if turns.count < scenario.turns.count {
+			violations.append("the scenario stopped after turn \(turns.count)")
+		}
+		if scenario.endsWithCancel {
+			violations += LiveVerdict.violations(ofCancel: cancel).map { "cancel: \($0)" }
+		}
+		let transcript = LiveTranscript.markdown(
+			scenario, attempt: attempt, turns: turns, cancel: cancel, violations: violations)
+		return LiveScenarioRun(
+			attempt: attempt, turns: turns, cancel: cancel, violations: violations,
+			transcript: transcript)
+	}
+
+	private func play(
+		_ scenario: LiveScenario, on coach: Coach, log: LiveExchangeLog,
+		requests: LiveCalendarRequests, approvals: LiveApprovalCalendar?
+	) async throws -> (turns: [LiveTurnRecord], cancel: LiveCancelRecord?) {
 		var turns: [LiveTurnRecord] = []
 		var latestDraft: JSONValue?
 		for plan in scenario.turns {
@@ -160,38 +206,14 @@ struct LiveCoachBench: Sendable {
 		}
 		let cancel =
 			scenario.endsWithCancel ? try await cancelWaitingReview(of: coach, requests) : nil
+		return (turns, cancel)
+	}
+
+	private func end(_ coach: Coach, _ approvals: LiveApprovalCalendar?) async -> [String] {
 		await coach.lifecycle(.willTerminate)
-		var violations: [String] = []
-		if let approvals {
-			violations += await approvals.removeCreated(
-				through: accountReads(.apiKey(intervalsKey), .keyOwner))
-		}
-		for (number, pair) in zip(turns, scenario.turns).enumerated() {
-			violations += LiveVerdict.violations(of: pair.0, against: pair.1.expectations).map {
-				"turn \(number + 1): \($0)"
-			}
-			if pair.1.tapsSavePlan {
-				violations += LivePlanVerdict.violations(ofTap: pair.0.tap).map {
-					"turn \(number + 1) tap: \($0)"
-				}
-			}
-			if pair.1.approvesReview {
-				violations += LiveVerdict.violations(ofApproval: pair.0.approval).map {
-					"turn \(number + 1) approval: \($0)"
-				}
-			}
-		}
-		if turns.count < scenario.turns.count {
-			violations.append("the scenario stopped after turn \(turns.count)")
-		}
-		if scenario.endsWithCancel {
-			violations += LiveVerdict.violations(ofCancel: cancel).map { "cancel: \($0)" }
-		}
-		let transcript = LiveTranscript.markdown(
-			scenario, attempt: attempt, turns: turns, cancel: cancel, violations: violations)
-		return LiveScenarioRun(
-			attempt: attempt, turns: turns, cancel: cancel, violations: violations,
-			transcript: transcript)
+		guard let approvals else { return [] }
+		return await approvals.removeCreated(
+			through: accountReads(.apiKey(intervalsKey), .keyOwner))
 	}
 
 	private static func unrun(_ scenario: LiveScenario, attempt: Int, _ violations: [String])
