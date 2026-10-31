@@ -222,6 +222,15 @@ package actor CredentialVault {
 			hasCreditsKey: account?.key.flatMap(NonEmptySecret.init) != nil)
 	}
 
+	package func eraseSecrets() throws {
+		try store.deleteEverything()
+	}
+
+	package func forgetCreditsAccount() throws(AccessUnavailable) {
+		try keychain(.creditsAccount) { try store.delete(.creditsAccount) }
+		accessUpdate.yield()
+	}
+
 	package func prepareCreditsAccount() throws(AccessUnavailable) -> UUID {
 		try keychain(.creditsAccount) { try store.prepareCreditsAccount().appAccountToken }
 	}

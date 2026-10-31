@@ -5,7 +5,8 @@ extension TutorialHarness {
 		_ app: XCUIApplication, recovery: String = "readable", clock: String? = nil,
 		keychain: FixtureKeychainPolicy? = nil, language: String? = nil, locale: String? = nil,
 		clearingReadFaults: Bool = false, clearingFeedbackScript: Bool = false,
-		trainingDisplay: FixtureTrainingDisplay? = nil, textSize: FixtureTextSize? = nil
+		trainingDisplay: FixtureTrainingDisplay? = nil, textSize: FixtureTextSize? = nil,
+		erasure: FixtureErasure? = nil
 	) {
 		app.terminate()
 		XCTAssertEqual(app.state, .notRunning)
@@ -30,6 +31,7 @@ extension TutorialHarness {
 		if let keychain { arguments.keychain = keychain }
 		if let language { arguments.language = language }
 		if let locale { arguments.locale = locale }
+		if let erasure { arguments.erasure = erasure }
 		launch(app, arguments: arguments)
 	}
 }

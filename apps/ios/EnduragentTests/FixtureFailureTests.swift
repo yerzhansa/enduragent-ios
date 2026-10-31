@@ -142,7 +142,8 @@ extension FixtureLaunchTests {
 			builtInModel: AppServices.builtInModel, displayLocale: testLocaleResolver(),
 			coalescing: CoalescingPolicy(window: .milliseconds(200)))
 		let services = AppServices(
-			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(),
+			coach: coach, device: DeviceDefaults(suiteName: FixtureLaunch.defaultsSuiteName),
+			deviceCheck: FakeDeviceCheckTokenProvider(),
 			clock: clock,
 			leases: { host.leases })
 		await model(services).agreeAndStartChatting()

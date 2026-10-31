@@ -102,6 +102,8 @@ package protocol RecordLog: Sendable {
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws
 	func fetch(_ query: RecordQuery) async throws -> RecordPage
 	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
+	func erase(_ locality: RecordLocality, writtenBefore cutoff: Date?) async throws -> Int
+	func confirmSyncedExport(after saved: Date) async throws -> Bool
 	var imports: AsyncStream<Void> { get }
 }
 
@@ -142,8 +144,9 @@ package struct RecordDecodeFailure: Error, Sendable, Equatable {
 }
 
 package struct SwiftDataRecordLog: RecordLog {
+	package static let erasePage = 200
 	package let deviceId: DeviceID
-	private let synced: ModelContainerHandle
+	let synced: ModelContainerHandle
 	private let local: ModelContainerHandle
 
 	package init(deviceId: DeviceID, synced: ModelContainerHandle, local: ModelContainerHandle) {
@@ -241,31 +244,23 @@ package struct SwiftDataRecordLog: RecordLog {
 		return RecordPage(records: records.sorted { $0.hlc < $1.hlc }, skipped: skipped)
 	}
 
-	package var imports: AsyncStream<Void> {
-		AsyncStream { continuation in
-			let urls = Set(synced.container.configurations.map(\.url))
-			let changes = NotificationCenter.default.notifications(
-				named: NSPersistentCloudKitContainer.eventChangedNotification)
-			let task = Task {
-				for await notification in changes {
-					guard
-						let event = notification.userInfo?[
-							NSPersistentCloudKitContainer.eventNotificationUserInfoKey]
-							as? NSPersistentCloudKitContainer.Event,
-						event.type == .import, event.endDate != nil,
-						let container = notification.object as? NSPersistentCloudKitContainer,
-						container.persistentStoreCoordinator.persistentStores.contains(where: {
-							$0.identifier == event.storeIdentifier
-								&& $0.url.map(urls.contains) == true
-						})
-					else { continue }
-					continuation.yield()
-				}
-				continuation.finish()
-			}
-			continuation.onTermination = { _ in
-				task.cancel()
-			}
+	package func erase(_ locality: RecordLocality, writtenBefore cutoff: Date?) async throws
+		-> Int
+	{
+		let context = ModelContext(container(for: locality))
+		context.autosaveEnabled = false
+		let bounded = cutoff != nil
+		let cutoffMs = cutoff.map(wallMs) ?? 0
+		var descriptor = FetchDescriptor<StoredAthleteRecord>(
+			predicate: #Predicate { !bounded || $0.hlcWallMs < cutoffMs })
+		descriptor.fetchLimit = Self.erasePage
+		var erased = 0
+		while true {
+			let page = try context.fetch(descriptor)
+			guard !page.isEmpty else { return erased }
+			for row in page { context.delete(row) }
+			try context.save()
+			erased += page.count
 		}
 	}
 
@@ -334,10 +329,12 @@ extension SwiftDataRecordLog: ReviewChainLog {
 
 package final class ModelContainerHandle: Sendable {
 	let container: ModelContainer
+	let cloudKitContainer: String?
 	let chain = Mutex(())
 
-	init(container: ModelContainer) {
+	init(container: ModelContainer, cloudKitContainer: String?) {
 		self.container = container
+		self.cloudKitContainer = cloudKitContainer
 	}
 }
 

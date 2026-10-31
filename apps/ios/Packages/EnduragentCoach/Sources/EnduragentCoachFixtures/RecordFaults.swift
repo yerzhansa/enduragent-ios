@@ -35,6 +35,16 @@ public final class RecordFaults: Sendable {
 		set { log.failRecoveryReads = newValue }
 	}
 
+	package var failErasures: Set<RecordLocality> {
+		get { log.failErasures }
+		set { log.failErasures = newValue }
+	}
+
+	public var export: FixtureExport {
+		get { log.export }
+		set { log.export = newValue }
+	}
+
 	public var failSyncedAppends: Bool {
 		get { log.failSyncedAppends }
 		set { log.failSyncedAppends = newValue }

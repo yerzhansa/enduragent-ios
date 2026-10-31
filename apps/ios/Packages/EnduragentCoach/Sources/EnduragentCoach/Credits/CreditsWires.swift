@@ -5,6 +5,10 @@ struct GrantBody: Encodable {
 	var deviceCheckToken: String
 }
 
+struct EraseBody: Encodable {
+	var athleteId: String
+}
+
 struct SignedTransactionBody: Encodable {
 	var signedTransaction: String
 }

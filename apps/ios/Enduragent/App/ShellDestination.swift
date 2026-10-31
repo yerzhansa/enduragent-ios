@@ -12,6 +12,7 @@ enum ShellDestination: Hashable {
 	case feedback
 	case diagnostics
 	case about
+	case yourData
 	#if DEBUG
 		case debug
 		case debugCredits

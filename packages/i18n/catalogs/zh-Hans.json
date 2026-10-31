@@ -3149,5 +3149,28 @@
       "cardFailed": "无法显示第 {{position}}/{{count}} 张卡片。未做任何更改。",
       "showAgain": "再次显示"
     }
+  },
+  "yourData": {
+    "title": "你的数据",
+    "deleteEverything": "删除所有内容",
+    "confirm": {
+      "title": "删除所有内容？",
+      "body": "此操作无法撤销。这会从此 iPhone 和你的 iCloud 中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失，且每台 iPhone 只能获得一次初始积分。"
+    },
+    "keeps": "你的 intervals.icu 账户和训练会保留在 intervals.icu 上。如果你使用自己的 OpenRouter 账户登录，请在 OpenRouter 上删除其密钥。",
+    "progress": "正在删除…",
+    "done": "所有内容已从此 iPhone、你的 iCloud 和积分服务中删除。",
+    "notStarted": "没有删除任何内容。请连接互联网后重试。",
+    "iCloudLater": "已从此 iPhone 和积分服务中删除。下次你在此 iPhone 联网并登录 iCloud 的情况下打开 Enduragent 时，你的 iCloud 副本会被删除。如果你在此之前删除了应用，请在 iOS 的“设置”中的“iCloud 储存空间”里删除它的数据。",
+    "busy": "请等待教练完成后重试。",
+    "notFinished": "此 iPhone 上的部分内容未能删除。请重试。",
+    "progressTime": "这最多可能需要一分钟。",
+    "tryLater": "此 iPhone 和你的 iCloud 中没有删除任何内容。积分服务目前繁忙。请稍后重试。",
+    "creditsUnconfirmed": "没有删除任何内容。积分服务无法确认此 iPhone 拥有你的积分记录，因此该记录会保留在服务中。你仍然可以删除此 iPhone 和你的 iCloud 中的所有内容。",
+    "deleteHere": "从 iPhone 和 iCloud 删除",
+    "creditsKept": {
+      "done": "所有内容已从此 iPhone 和你的 iCloud 中删除。你的积分记录会保留在积分服务中。没有人持有它的密钥，因此没有人能使用它。",
+      "iCloudLater": "已从此 iPhone 删除。下次你在此 iPhone 联网并登录 iCloud 的情况下打开 Enduragent 时，你的 iCloud 副本会被删除。如果你在此之前删除了应用，请在 iOS 的“设置”中的“iCloud 储存空间”里删除它的数据。你的积分记录会保留在积分服务中。没有人持有它的密钥，因此没有人能使用它。"
+    }
   }
 }

@@ -21,6 +21,8 @@ xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configurat
 
 CI runs the tool tests, source checks, package tests, app tests, and Release builds on every pull request and every push to main. `make test-app` runs the app tests on the first available iPhone simulator. Set `DERIVED_DATA` to choose the build folder and `ONLY=EnduragentTests/<Suite>` to run one suite.
 
+`make test-keychain` runs `KeychainErasureTests` against the real simulator Keychain. It signs the test host ad hoc and sets `ENDURAGENT_KEYCHAIN_TESTS=1`, which `make test-app` and CI leave unset, so they skip it. Run it after every change to `SecretStore.swift` or `KeychainQuery`. Set `SIMULATOR=<udid>` to choose the simulator.
+
 `make check-catalogs` runs `make generate-catalogs` and fails when a generated catalog file changes. `make check-source` runs the source checker. `make lint-swift` enforces the rules in `.swiftlint.yml`.
 
 Run `make test-tools` when you change `tools/` or `.swiftlint.yml`. The Swift package in `tools/` holds the checker, the catalog generator, the `verify-ios` helpers, the upgrade-store generator, and the tests of the custom SwiftLint rules. CI runs this gate before `make check-source` on every pull request.

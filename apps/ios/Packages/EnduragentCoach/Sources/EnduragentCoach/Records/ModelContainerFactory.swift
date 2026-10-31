@@ -20,40 +20,39 @@ extension ModelContainerHandle {
 	}
 
 	package static func syncedCloudKit(directory: URL) throws -> ModelContainerHandle {
-		try make(
-			name: "synced-records",
-			storeURL: directory.appending(path: syncedStoreFileName),
-			cloudKitDatabase: .private(cloudKitContainerIdentifier)
-		)
+		try shared(
+			name: "synced-records", storeURL: directory.appending(path: syncedStoreFileName),
+			cloudKitContainer: cloudKitContainerIdentifier)
 	}
 
 	package static func deviceLocal(directory: URL) throws -> ModelContainerHandle {
-		let storeURL = directory.appending(path: localStoreFileName).standardizedFileURL
-			.resolvingSymlinksInPath()
-		return try deviceLocalHandles.withLock { handles in
+		try shared(
+			name: "local-records", storeURL: directory.appending(path: localStoreFileName),
+			cloudKitContainer: nil)
+	}
+
+	private static func shared(name: String, storeURL: URL, cloudKitContainer: String?) throws
+		-> ModelContainerHandle
+	{
+		let storeURL = storeURL.standardizedFileURL.resolvingSymlinksInPath()
+		return try openHandles.withLock { handles in
 			if let handle = handles[storeURL]?.handle { return handle }
 			let handle = try make(
-				name: "local-records", storeURL: storeURL, cloudKitDatabase: .none)
+				name: name, storeURL: storeURL, cloudKitContainer: cloudKitContainer)
 			handles[storeURL] = HeldHandle(handle)
 			return handle
 		}
 	}
 
-	private static let deviceLocalHandles = Mutex<[URL: HeldHandle]>([:])
+	private static let openHandles = Mutex<[URL: HeldHandle]>([:])
 
 	package static func withoutCloudKit(storeURL: URL) throws -> ModelContainerHandle {
-		try make(
-			name: storeURL.lastPathComponent,
-			storeURL: storeURL,
-			cloudKitDatabase: .none
-		)
+		try make(name: storeURL.lastPathComponent, storeURL: storeURL, cloudKitContainer: nil)
 	}
 
-	private static func make(
-		name: String,
-		storeURL: URL,
-		cloudKitDatabase: ModelConfiguration.CloudKitDatabase
-	) throws -> ModelContainerHandle {
+	private static func make(name: String, storeURL: URL, cloudKitContainer: String?) throws
+		-> ModelContainerHandle
+	{
 		let schema = Schema([StoredAthleteRecord.self])
 		let parent = storeURL.deletingLastPathComponent()
 		try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
@@ -61,10 +60,11 @@ extension ModelContainerHandle {
 			name,
 			schema: schema,
 			url: storeURL,
-			cloudKitDatabase: cloudKitDatabase
+			cloudKitDatabase: cloudKitContainer.map { .private($0) } ?? .none
 		)
 		return ModelContainerHandle(
-			container: try ModelContainer(for: schema, configurations: [configuration]))
+			container: try ModelContainer(for: schema, configurations: [configuration]),
+			cloudKitContainer: cloudKitContainer)
 	}
 }
 

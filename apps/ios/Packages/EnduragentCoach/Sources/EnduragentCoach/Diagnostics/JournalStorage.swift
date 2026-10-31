@@ -5,6 +5,7 @@ package protocol JournalStorage: Sendable {
 	func append(_ line: Data) throws
 	func replace(with lines: Data) throws
 	func removeLeftover() throws
+	func erase() throws
 }
 
 package struct FileJournalStorage: JournalStorage {
@@ -45,8 +46,17 @@ package struct FileJournalStorage: JournalStorage {
 	}
 
 	package func removeLeftover() throws {
+		try remove(next)
+	}
+
+	package func erase() throws {
+		try remove(file)
+		try remove(next)
+	}
+
+	private func remove(_ url: URL) throws {
 		do {
-			try FileManager.default.removeItem(at: next)
+			try FileManager.default.removeItem(at: url)
 		} catch let error as CocoaError where error.code == .fileNoSuchFile {
 			return
 		}

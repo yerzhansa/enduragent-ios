@@ -233,7 +233,7 @@ private func isoFromWallMs(_ wallMs: Int64) -> String {
 	return GregorianStamp.isoMillis(date)
 }
 
-func wallMs(_ date: Date) -> Int64 {
+package func wallMs(_ date: Date) -> Int64 {
 	Int64((date.timeIntervalSince1970 * 1000).rounded(.down))
 }
 

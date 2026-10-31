@@ -6,10 +6,11 @@ enum AppLaunch {
 	case ready(ShellModel)
 	case storageUnavailable(DisplayLocale, failure: any Error)
 
-	static func start() async -> AppLaunch {
+	static func start(afterErasure: Bool) async -> AppLaunch {
 		await open(displayLocale: AppServices.resolveDisplayLocale) { displayLocale in
 			#if DEBUG
-				if let fixture = try fixtureLaunch() {
+				if let launch = try fixtureLaunch() {
+					let fixture = afterErasure ? launch.afterErasure() : launch
 					let defaults = try fixture.prepare()
 					return (
 						try AppServices.fixture(
@@ -29,6 +30,7 @@ enum AppLaunch {
 	) async -> AppLaunch {
 		do {
 			let (built, defaults) = try services(displayLocale)
+			await built.coach.eraseReturningRows(built.device)
 			let statuses = await built.coach.observeStatus()
 			let model = await ShellModel.open(
 				environment: AppEnvironment(services: built, defaults: defaults), statuses: statuses

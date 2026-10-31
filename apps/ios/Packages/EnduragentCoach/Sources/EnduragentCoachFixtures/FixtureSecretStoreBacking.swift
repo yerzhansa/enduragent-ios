@@ -181,13 +181,28 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		}
 	}
 
-	private func check(_ account: String, writing: Bool = false) throws {
+	package func deleteEverything() throws {
+		try lock.withLock {
+			try checkAvailable()
+			for account in items.keys.sorted() {
+				try check(account, writing: true)
+			}
+			deleted.append(contentsOf: items.keys.sorted())
+			try persist(replacing: [:])
+		}
+	}
+
+	private func checkAvailable() throws {
 		if isLocked {
 			throw KeychainStoreError.keychain(errSecInteractionNotAllowed)
 		}
 		if isUnavailable {
 			throw KeychainStoreError.keychain(errSecNotAvailable)
 		}
+	}
+
+	private func check(_ account: String, writing: Bool = false) throws {
+		try checkAvailable()
 		let slot = account.split(separator: "/").first.map(String.init) ?? account
 		if let status = failures[account] ?? failures[slot]
 			?? (writing ? writeFailures[account] ?? writeFailures[slot] : nil)
@@ -203,6 +218,10 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 	private func persist(account: String, data: Data?) throws {
 		var replacement = items
 		replacement[account] = data
+		try persist(replacing: replacement)
+	}
+
+	private func persist(replacing replacement: [String: Data]) throws {
 		if let file {
 			try JSONEncoder().encode(replacement).write(to: file, options: .atomic)
 		}
