@@ -82,6 +82,7 @@ struct LiveCoachBench: Sendable {
 	let modelTransport: @Sendable (DiagnosticsLog) -> any ModelTransport
 	let accountReads: TrainingService.ClientFactory
 	var seedLedger: URL? = nil
+	var records: @Sendable () -> any ReviewChainLog = { InMemoryRecordLog() }
 
 	static func builtInModel() throws -> ModelID {
 		let ios = (0..<5).reduce(URL(fileURLWithPath: #filePath)) { path, _ in
@@ -339,7 +340,7 @@ struct LiveCoachBench: Sendable {
 		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
-				records: RecordStore(log: InMemoryRecordLog()), secrets: secrets,
+				records: RecordStore(log: records()), secrets: secrets,
 				models: ModelService { [modelTransport] diagnostics in
 					LiveMeteredTransport(
 						inner: modelTransport(diagnostics), ledger: ledger, log: log)

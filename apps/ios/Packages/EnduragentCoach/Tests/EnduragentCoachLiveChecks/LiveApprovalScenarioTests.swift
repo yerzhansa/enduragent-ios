@@ -7,6 +7,8 @@ import Testing
 private struct ApprovalBenchTraining: TrainingClient {
 	let reads: FakeIntervalsClient
 	let calendar: FakeSeedCalendar
+	var breaksAfterAdd: FaultInjectingRecordLog? = nil
+	var refusesDeletes = false
 
 	func profile() async throws -> AthleteProfile { try await reads.profile() }
 
@@ -32,7 +34,18 @@ private struct ApprovalBenchTraining: TrainingClient {
 		calendar.listEvents(in: range)
 	}
 
-	func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer { calendar.write(write) }
+	func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer {
+		switch write {
+		case .delete where refusesDeletes:
+			return .httpStatus(500)
+		case .create:
+			let answer = calendar.write(write)
+			breaksAfterAdd?.failFetches = true
+			return answer
+		case .update, .delete:
+			return calendar.write(write)
+		}
+	}
 }
 
 private struct ApprovalBenchRig {
@@ -96,10 +109,31 @@ private struct ApprovalBenchRig {
 	}
 
 	func runAll() async throws -> [LiveScenarioRun] {
-		let training = ApprovalBenchTraining(
-			reads: FakeIntervalsClient(athleteName: "Ada", ftp: 250), calendar: calendar)
+		let bench = try bench(
+			ApprovalBenchTraining(
+				reads: FakeIntervalsClient(athleteName: "Ada", ftp: 250), calendar: calendar))
+		var runs: [LiveScenarioRun] = []
+		for scenario in scenarios {
+			runs.append(try await bench.run(scenario, attempt: 1))
+		}
+		return runs
+	}
+
+	func runFirstWithRecordsThatBreakAfterTheAdd(refusingDeletes: Bool) async throws
+		-> LiveScenarioRun
+	{
+		let records = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		var bench = try bench(
+			ApprovalBenchTraining(
+				reads: FakeIntervalsClient(athleteName: "Ada", ftp: 250), calendar: calendar,
+				breaksAfterAdd: records, refusesDeletes: refusingDeletes))
+		bench.records = { records }
+		return try await bench.run(try #require(scenarios.first), attempt: 1)
+	}
+
+	private func bench(_ training: ApprovalBenchTraining) throws -> LiveCoachBench {
 		let model = model
-		let bench = LiveCoachBench(
+		return LiveCoachBench(
 			intervalsKey: "synthetic-intervals-key", openRouterKey: "synthetic-model-key",
 			athlete: IntervalsAthleteID(rawValue: Self.athlete),
 			model: try LiveCoachBench.builtInModel(),
@@ -108,11 +142,6 @@ private struct ApprovalBenchRig {
 				milestone: .m4, limit: 100),
 			today: today, modelTransport: { _ in model }, accountReads: { _, _ in training },
 			seedLedger: ledgerFile)
-		var runs: [LiveScenarioRun] = []
-		for scenario in scenarios {
-			runs.append(try await bench.run(scenario, attempt: 1))
-		}
-		return runs
 	}
 
 	var creates: Int {
@@ -149,6 +178,38 @@ private struct ApprovalBenchRig {
 			))
 		#expect(repeated.contains("cancel: no review waited to cancel"))
 		#expect(rig.calendar.events.map(\.id) == rig.seeded.map(\.id))
+	}
+
+	@Test func aLedgerReadThatThrowsAfterTheApprovalStillRemovesTheApprovedAdd() async throws {
+		let rig = try ApprovalBenchRig(coach: .faithful, ledgerAthlete: ApprovalBenchRig.athlete)
+
+		await #expect(throws: LedgerFailure.unavailable) {
+			try await rig.runFirstWithRecordsThatBreakAfterTheAdd(refusingDeletes: false)
+		}
+
+		#expect(rig.creates == 1)
+		#expect(rig.calendar.events.map(\.id) == rig.seeded.map(\.id))
+		#expect(try LiveSeedLedger(file: rig.ledgerFile).calendar.isEmpty)
+	}
+
+	@Test func anAddThatCannotBeRemovedAfterALedgerReadThrowsReachesTheCallerBesideThatError()
+		async throws
+	{
+		let rig = try ApprovalBenchRig(coach: .faithful, ledgerAthlete: ApprovalBenchRig.athlete)
+
+		let stop = try await #require(throws: LiveCheckStop.self) {
+			try await rig.runFirstWithRecordsThatBreakAfterTheAdd(refusingDeletes: true)
+		}
+
+		let seeded = Set(rig.seeded.map(\.id))
+		let kept = try #require(rig.calendar.events.first { !seeded.contains($0.id) })
+		let added = try #require(kept.externalId)
+		#expect(rig.creates == 1)
+		#expect(try LiveSeedLedger(file: rig.ledgerFile).calendar.keys.sorted() == [added])
+		#expect(
+			stop.description
+				== "the scenario stopped on \(LedgerFailure.unavailable); left on the calendar: \(added): DELETE of event \(kept.id.rawValue) answered httpStatus(500)"
+		)
 	}
 
 	@Test(arguments: [
