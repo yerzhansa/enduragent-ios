@@ -3199,7 +3199,7 @@
     "deleteEverything": "Alles verwijderen",
     "confirm": {
       "title": "Alles verwijderen?",
-      "body": "Dit kan niet ongedaan worden gemaakt. Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone en uit je iCloud, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren."
+      "body": "Dit kan niet ongedaan worden gemaakt. Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone en uit je iCloud, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren, en starttegoed krijg je maar één keer per iPhone."
     },
     "keeps": "Je intervals.icu-account en trainingen blijven op intervals.icu. Als je bent ingelogd met je eigen OpenRouter-account, verwijder dan de sleutel daarvan bij OpenRouter.",
     "progress": "Verwijderen…",

@@ -392310,103 +392310,103 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This can't be undone. It deletes your conversation, memory, saved plan, settings and keys from this iPhone and your iCloud, and your Credits record. Unused Credits are lost."
+            "value": "This can't be undone. It deletes your conversation, memory, saved plan, settings and keys from this iPhone and your iCloud, and your Credits record. Unused Credits are lost, and starter Credits are given only once per iPhone."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se puede deshacer. Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone y de tu iCloud, además de tu registro de Créditos. Los Créditos no usados se pierden."
+            "value": "No se puede deshacer. Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone y de tu iCloud, además de tu registro de Créditos. Los Créditos no usados se pierden y los Créditos iniciales solo se dan una vez por iPhone."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cette action est irréversible. Elle supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone et de ton iCloud, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus."
+            "value": "Cette action est irréversible. Elle supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone et de ton iCloud, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus, et les Crédits de départ ne sont accordés qu’une seule fois par iPhone."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’operazione non si può annullare. Elimina la conversazione, la memoria, il piano salvato, le impostazioni e le chiavi da questo iPhone e dal tuo iCloud, oltre al tuo record dei Crediti. I Crediti non usati vanno persi."
+            "value": "L’operazione non si può annullare. Elimina la conversazione, la memoria, il piano salvato, le impostazioni e le chiavi da questo iPhone e dal tuo iCloud, oltre al tuo record dei Crediti. I Crediti non usati vanno persi e i Crediti iniziali vengono dati una sola volta per iPhone."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das kann nicht rückgängig gemacht werden. Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone und aus deiner iCloud gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen."
+            "value": "Das kann nicht rückgängig gemacht werden. Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone und aus deiner iCloud gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen, und Startguthaben gibt es nur einmal pro iPhone."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dit kan niet ongedaan worden gemaakt. Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone en uit je iCloud, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren."
+            "value": "Dit kan niet ongedaan worden gemaakt. Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone en uit je iCloud, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren, en starttegoed krijg je maar één keer per iPhone."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Det kan ikke fortrydes. Det sletter din samtale, hukommelse, gemte plan, indstillinger og nøgler fra denne iPhone og din iCloud samt din kredittpost. Ubrugte kreditter går tabt."
+            "value": "Det kan ikke fortrydes. Det sletter din samtale, hukommelse, gemte plan, indstillinger og nøgler fra denne iPhone og din iCloud samt din kredittpost. Ubrugte kreditter går tabt, og startkreditter gives kun én gang pr. iPhone."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Det går inte att ångra. Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen och din iCloud, samt din kreditpost. Oanvända krediter går förlorade."
+            "value": "Det går inte att ångra. Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen och din iCloud, samt din kreditpost. Oanvända krediter går förlorade, och startkrediter ges bara en gång per iPhone."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dette kan ikke angres. Det sletter samtalen, minnet, den lagrede planen, innstillingene og nøklene dine fra denne iPhonen og iCloud, i tillegg til kredittoppføringen din. Ubrukte kreditter går tapt."
+            "value": "Dette kan ikke angres. Det sletter samtalen, minnet, den lagrede planen, innstillingene og nøklene dine fra denne iPhonen og iCloud, i tillegg til kredittoppføringen din. Ubrukte kreditter går tapt, og startkreditter gis bare én gang per iPhone."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tätä ei voi perua. Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta ja iCloudistasi sekä krediittitietosi. Käyttämättömät krediitit menetetään."
+            "value": "Tätä ei voi perua. Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta ja iCloudistasi sekä krediittitietosi. Käyttämättömät krediitit menetetään, ja aloituskrediitit annetaan vain kerran iPhonea kohden."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não é possível anular. Isto apaga a tua conversa, memória, plano guardado, definições e chaves deste iPhone e do teu iCloud, bem como o teu registo de Créditos. Os Créditos não usados perdem-se."
+            "value": "Não é possível anular. Isto apaga a tua conversa, memória, plano guardado, definições e chaves deste iPhone e do teu iCloud, bem como o teu registo de Créditos. Os Créditos não usados perdem-se, e os Créditos iniciais só são atribuídos uma vez por iPhone."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não é possível desfazer. Isso apaga sua conversa, memória, plano salvo, ajustes e chaves deste iPhone e do seu iCloud, além do seu registro de Créditos. Créditos não usados são perdidos."
+            "value": "Não é possível desfazer. Isso apaga sua conversa, memória, plano salvo, ajustes e chaves deste iPhone e do seu iCloud, além do seu registro de Créditos. Créditos não usados são perdidos, e os Créditos iniciais são concedidos só uma vez por iPhone."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tego nie można cofnąć. To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a i z twojego iCloud, a także twój rekord kredytów. Niewykorzystane kredyty przepadną."
+            "value": "Tego nie można cofnąć. To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a i z twojego iCloud, a także twój rekord kredytów. Niewykorzystane kredyty przepadną, a kredyty na start są przyznawane tylko raz na iPhone’a."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이 작업은 되돌릴 수 없습니다. 이 iPhone과 iCloud에서 대화, 메모리, 저장된 계획, 설정, 키를 삭제하고 크레딧 기록도 삭제합니다. 사용하지 않은 크레딧은 사라집니다."
+            "value": "이 작업은 되돌릴 수 없습니다. 이 iPhone과 iCloud에서 대화, 메모리, 저장된 계획, 설정, 키를 삭제하고 크레딧 기록도 삭제합니다. 사용하지 않은 크레딧은 사라지며, 시작 크레딧은 iPhone당 한 번만 지급됩니다."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この操作は取り消せません。このiPhoneとiCloudから会話、メモリ、保存したプラン、設定、キーを削除し、クレジットの記録も削除します。未使用のクレジットは失われます。"
+            "value": "この操作は取り消せません。このiPhoneとiCloudから会話、メモリ、保存したプラン、設定、キーを削除し、クレジットの記録も削除します。未使用のクレジットは失われ、初回クレジットはiPhoneごとに1回だけ付与されます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此操作无法撤销。这会从此 iPhone 和你的 iCloud 中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失。"
+            "value": "此操作无法撤销。这会从此 iPhone 和你的 iCloud 中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失，且每台 iPhone 只能获得一次初始积分。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此動作無法復原。這會從此 iPhone 和你的 iCloud 刪除你的對話、記憶、已儲存的計畫、設定和金鑰，並刪除你的點數紀錄。未使用的點數將會遺失。"
+            "value": "此動作無法復原。這會從此 iPhone 和你的 iCloud 刪除你的對話、記憶、已儲存的計畫、設定和金鑰，並刪除你的點數紀錄。未使用的點數將會遺失，且每支 iPhone 只能獲得一次初始點數。"
           }
         }
       }

@@ -3155,7 +3155,7 @@
     "deleteEverything": "删除所有内容",
     "confirm": {
       "title": "删除所有内容？",
-      "body": "此操作无法撤销。这会从此 iPhone 和你的 iCloud 中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失。"
+      "body": "此操作无法撤销。这会从此 iPhone 和你的 iCloud 中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失，且每台 iPhone 只能获得一次初始积分。"
     },
     "keeps": "你的 intervals.icu 账户和训练会保留在 intervals.icu 上。如果你使用自己的 OpenRouter 账户登录，请在 OpenRouter 上删除其密钥。",
     "progress": "正在删除…",

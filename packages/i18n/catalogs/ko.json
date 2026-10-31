@@ -3155,7 +3155,7 @@
     "deleteEverything": "모두 삭제",
     "confirm": {
       "title": "모두 삭제할까요?",
-      "body": "이 작업은 되돌릴 수 없습니다. 이 iPhone과 iCloud에서 대화, 메모리, 저장된 계획, 설정, 키를 삭제하고 크레딧 기록도 삭제합니다. 사용하지 않은 크레딧은 사라집니다."
+      "body": "이 작업은 되돌릴 수 없습니다. 이 iPhone과 iCloud에서 대화, 메모리, 저장된 계획, 설정, 키를 삭제하고 크레딧 기록도 삭제합니다. 사용하지 않은 크레딧은 사라지며, 시작 크레딧은 iPhone당 한 번만 지급됩니다."
     },
     "keeps": "intervals.icu 계정과 운동은 intervals.icu에 남아 있습니다. 직접 OpenRouter 계정으로 로그인했다면 OpenRouter에서 해당 키를 삭제하세요.",
     "progress": "삭제 중…",

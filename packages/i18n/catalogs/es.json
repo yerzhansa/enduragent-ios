@@ -3199,7 +3199,7 @@
     "deleteEverything": "Eliminar todo",
     "confirm": {
       "title": "¿Eliminar todo?",
-      "body": "No se puede deshacer. Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone y de tu iCloud, además de tu registro de Créditos. Los Créditos no usados se pierden."
+      "body": "No se puede deshacer. Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone y de tu iCloud, además de tu registro de Créditos. Los Créditos no usados se pierden y los Créditos iniciales solo se dan una vez por iPhone."
     },
     "keeps": "Tu cuenta de intervals.icu y tus entrenamientos se quedan en intervals.icu. Si iniciaste sesión con tu propia cuenta de OpenRouter, elimina su clave en OpenRouter.",
     "progress": "Eliminando…",

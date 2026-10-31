@@ -3199,7 +3199,7 @@
     "deleteEverything": "Slet alt",
     "confirm": {
       "title": "Slet alt?",
-      "body": "Det kan ikke fortrydes. Det sletter din samtale, hukommelse, gemte plan, indstillinger og nøgler fra denne iPhone og din iCloud samt din kredittpost. Ubrugte kreditter går tabt."
+      "body": "Det kan ikke fortrydes. Det sletter din samtale, hukommelse, gemte plan, indstillinger og nøgler fra denne iPhone og din iCloud samt din kredittpost. Ubrugte kreditter går tabt, og startkreditter gives kun én gang pr. iPhone."
     },
     "keeps": "Din intervals.icu-konto og dine træninger bliver på intervals.icu. Hvis du loggede ind med din egen OpenRouter-konto, skal du slette dens nøgle på OpenRouter.",
     "progress": "Sletter…",

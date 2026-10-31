@@ -3199,7 +3199,7 @@
     "deleteEverything": "Tout supprimer",
     "confirm": {
       "title": "Tout supprimer ?",
-      "body": "Cette action est irréversible. Elle supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone et de ton iCloud, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus."
+      "body": "Cette action est irréversible. Elle supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone et de ton iCloud, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus, et les Crédits de départ ne sont accordés qu’une seule fois par iPhone."
     },
     "keeps": "Ton compte intervals.icu et tes entraînements restent sur intervals.icu. Si tu t’es connecté avec ton propre compte OpenRouter, supprime sa clé sur OpenRouter.",
     "progress": "Suppression…",

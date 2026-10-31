@@ -3199,7 +3199,7 @@
     "deleteEverything": "Radera allt",
     "confirm": {
       "title": "Radera allt?",
-      "body": "Det går inte att ångra. Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen och din iCloud, samt din kreditpost. Oanvända krediter går förlorade."
+      "body": "Det går inte att ångra. Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen och din iCloud, samt din kreditpost. Oanvända krediter går förlorade, och startkrediter ges bara en gång per iPhone."
     },
     "keeps": "Ditt intervals.icu-konto och dina pass finns kvar på intervals.icu. Om du loggade in med ditt eget OpenRouter-konto raderar du dess nyckel hos OpenRouter.",
     "progress": "Raderar…",

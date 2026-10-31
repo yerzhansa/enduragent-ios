@@ -3199,7 +3199,7 @@
     "deleteEverything": "Apagar tudo",
     "confirm": {
       "title": "Apagar tudo?",
-      "body": "Não é possível desfazer. Isso apaga sua conversa, memória, plano salvo, ajustes e chaves deste iPhone e do seu iCloud, além do seu registro de Créditos. Créditos não usados são perdidos."
+      "body": "Não é possível desfazer. Isso apaga sua conversa, memória, plano salvo, ajustes e chaves deste iPhone e do seu iCloud, além do seu registro de Créditos. Créditos não usados são perdidos, e os Créditos iniciais são concedidos só uma vez por iPhone."
     },
     "keeps": "Sua conta do intervals.icu e seus treinos continuam no intervals.icu. Se você entrou com sua própria conta do OpenRouter, apague a chave dela no OpenRouter.",
     "progress": "Apagando…",

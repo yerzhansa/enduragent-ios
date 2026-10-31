@@ -3199,7 +3199,7 @@
     "deleteEverything": "Elimina tutto",
     "confirm": {
       "title": "Eliminare tutto?",
-      "body": "L’operazione non si può annullare. Elimina la conversazione, la memoria, il piano salvato, le impostazioni e le chiavi da questo iPhone e dal tuo iCloud, oltre al tuo record dei Crediti. I Crediti non usati vanno persi."
+      "body": "L’operazione non si può annullare. Elimina la conversazione, la memoria, il piano salvato, le impostazioni e le chiavi da questo iPhone e dal tuo iCloud, oltre al tuo record dei Crediti. I Crediti non usati vanno persi e i Crediti iniziali vengono dati una sola volta per iPhone."
     },
     "keeps": "Il tuo account intervals.icu e i tuoi allenamenti restano su intervals.icu. Se hai effettuato l’accesso con il tuo account OpenRouter, elimina la sua chiave su OpenRouter.",
     "progress": "Eliminazione…",

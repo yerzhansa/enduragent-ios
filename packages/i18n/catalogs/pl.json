@@ -3287,7 +3287,7 @@
     "deleteEverything": "Usuń wszystko",
     "confirm": {
       "title": "Usunąć wszystko?",
-      "body": "Tego nie można cofnąć. To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a i z twojego iCloud, a także twój rekord kredytów. Niewykorzystane kredyty przepadną."
+      "body": "Tego nie można cofnąć. To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a i z twojego iCloud, a także twój rekord kredytów. Niewykorzystane kredyty przepadną, a kredyty na start są przyznawane tylko raz na iPhone’a."
     },
     "keeps": "Twoje konto intervals.icu i treningi zostają w intervals.icu. Jeśli zalogowano cię własnym kontem OpenRouter, usuń jego klucz w OpenRouter.",
     "progress": "Usuwanie…",

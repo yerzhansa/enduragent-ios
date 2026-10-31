@@ -3199,7 +3199,7 @@
     "deleteEverything": "Alles löschen",
     "confirm": {
       "title": "Alles löschen?",
-      "body": "Das kann nicht rückgängig gemacht werden. Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone und aus deiner iCloud gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen."
+      "body": "Das kann nicht rückgängig gemacht werden. Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone und aus deiner iCloud gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen, und Startguthaben gibt es nur einmal pro iPhone."
     },
     "keeps": "Dein intervals.icu-Konto und deine Trainings bleiben auf intervals.icu. Wenn du dich mit deinem eigenen OpenRouter-Konto angemeldet hast, lösche dessen Schlüssel bei OpenRouter.",
     "progress": "Wird gelöscht…",

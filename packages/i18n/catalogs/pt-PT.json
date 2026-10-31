@@ -3199,7 +3199,7 @@
     "deleteEverything": "Apagar tudo",
     "confirm": {
       "title": "Apagar tudo?",
-      "body": "Não é possível anular. Isto apaga a tua conversa, memória, plano guardado, definições e chaves deste iPhone e do teu iCloud, bem como o teu registo de Créditos. Os Créditos não usados perdem-se."
+      "body": "Não é possível anular. Isto apaga a tua conversa, memória, plano guardado, definições e chaves deste iPhone e do teu iCloud, bem como o teu registo de Créditos. Os Créditos não usados perdem-se, e os Créditos iniciais só são atribuídos uma vez por iPhone."
     },
     "keeps": "A tua conta do intervals.icu e os teus treinos ficam no intervals.icu. Se iniciaste sessão com a tua própria conta do OpenRouter, apaga a chave dela no OpenRouter.",
     "progress": "A apagar…",

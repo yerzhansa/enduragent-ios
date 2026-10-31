@@ -3199,7 +3199,7 @@
     "deleteEverything": "Poista kaikki",
     "confirm": {
       "title": "Poistetaanko kaikki?",
-      "body": "Tätä ei voi perua. Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta ja iCloudistasi sekä krediittitietosi. Käyttämättömät krediitit menetetään."
+      "body": "Tätä ei voi perua. Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta ja iCloudistasi sekä krediittitietosi. Käyttämättömät krediitit menetetään, ja aloituskrediitit annetaan vain kerran iPhonea kohden."
     },
     "keeps": "intervals.icu-tilisi ja harjoituksesi jäävät intervals.icuun. Jos kirjauduit omalla OpenRouter-tililläsi, poista sen avain OpenRouterissa.",
     "progress": "Poistetaan…",

@@ -3199,7 +3199,7 @@
     "deleteEverything": "Delete everything",
     "confirm": {
       "title": "Delete everything?",
-      "body": "This can't be undone. It deletes your conversation, memory, saved plan, settings and keys from this iPhone and your iCloud, and your Credits record. Unused Credits are lost."
+      "body": "This can't be undone. It deletes your conversation, memory, saved plan, settings and keys from this iPhone and your iCloud, and your Credits record. Unused Credits are lost, and starter Credits are given only once per iPhone."
     },
     "keeps": "Your intervals.icu account and workouts stay on intervals.icu. If you signed in with your own OpenRouter account, delete its key on OpenRouter.",
     "progress": "Deleting…",
