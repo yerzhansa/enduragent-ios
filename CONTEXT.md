@@ -14,6 +14,14 @@ _Avoid_: Billing mode, plan, provider
 Units spent on the built-in model. Each iPhone gets a starter amount once, and the app sells none.
 _Avoid_: Balance, tokens, coins
 
+**Credits record**:
+What the Credits service keeps for the app's Credits: the Credits id, the Credits balance, and the record of the key it made. iPhones that share an iCloud Keychain share one Credits record.
+_Avoid_: Account, Credits account
+
+**Credits id**:
+The random id the app makes for its Credits record. It is not the intervals.icu athlete id.
+_Avoid_: Athlete id (in athlete text), user id
+
 **Built-in model**:
 The model Credits pay for, chosen by Enduragent and not by the athlete.
 _Avoid_: Default model, our model
