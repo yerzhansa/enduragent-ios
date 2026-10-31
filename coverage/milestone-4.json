@@ -38,7 +38,7 @@
 		},
 		{
 			"id": "0.1.2",
-			"statement": "A requirement row with both proofs or neither fails, an agreed difference that does not name ADR-0083 fails, an agreed difference on an id that is not a sub-id fails with difference-on-parent, and a sub-id whose parent is not in the fixed list fails.",
+			"statement": "A requirement row with both proofs or neither fails, an agreed difference whose text names neither ADR-0083 nor ADR-0086 fails, an agreed difference on an id that is not a sub-id fails with difference-on-parent, and a sub-id whose parent is not in the fixed list fails.",
 			"tests": [
 				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "requirementRowCarriesOneProofAndAnAgreedDifferenceOnlyOnAPart"}
 			]
