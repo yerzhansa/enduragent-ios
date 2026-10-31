@@ -37,8 +37,7 @@ public final class FixtureTrainingPeer: Sendable {
 		rejected.fail(
 			.profile,
 			with: IntervalsError(code: "http", details: "Rejected fixture key", status: 401))
-		unavailable.fail(
-			.profile, with: IntervalsError.unreachable(URLError(.notConnectedToInternet)))
+		unavailable.loseConnection(for: .profile)
 	}
 
 	public func client(for credential: IntervalsCredential) -> FakeIntervalsClient {

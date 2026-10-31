@@ -57,6 +57,13 @@ enum OnboardingConnectionProofScreen {
 				XCTAssertFalse(TutorialHarness.named(app, "connect.apiKey").exists)
 				XCTAssertEqual(TutorialHarness.named(app, "connect.saved").label, "Saved")
 				capture(test, app, name: "onboarding-\(display.rawValue)-recovered")
+			case .profileOffline:
+				let retry = TutorialHarness.named(app, "connect.displayAction")
+				TutorialHarness.wait(retry, until: .hittable)
+				XCTAssertEqual(retry.label, "Try again")
+				retry.tap()
+				assertDisplay(app, display)
+				capture(test, app, name: "onboarding-\(display.rawValue)-still-offline")
 			case .emptyWellness, .partialWellness:
 				XCTAssertFalse(TutorialHarness.named(app, "connect.displayAction").exists)
 			}
@@ -121,7 +128,7 @@ enum OnboardingConnectionProofScreen {
 		switch display {
 		case .profileRejected: notice = Catalog.connectErrorRejected
 		case .profileRequestRejected: notice = Catalog.coachErrorIntervalsCredentials
-		case .profileUnavailable: notice = Catalog.connectErrorProfileUnavailable
+		case .profileUnavailable, .profileOffline: notice = Catalog.connectErrorProfileUnavailable
 		case .wellnessRejected: notice = Catalog.connectErrorWellnessRejected
 		case .wellnessUnavailable: notice = Catalog.connectErrorWellnessUnavailable
 		case .emptyWellness: notice = Catalog.connectWellnessEmpty
@@ -136,7 +143,7 @@ enum OnboardingConnectionProofScreen {
 			XCTAssertFalse(TutorialHarness.named(app, "connect.notice").exists)
 		}
 		if display == .profileRejected || display == .profileRequestRejected
-			|| display == .profileUnavailable
+			|| display == .profileUnavailable || display == .profileOffline
 		{
 			XCTAssertFalse(TutorialHarness.named(app, "connect.athleteName").exists)
 		} else {

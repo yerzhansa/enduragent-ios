@@ -2744,6 +2744,7 @@
     "error": {
       "intervalsCredentials": "{{service}} odrzucił żądanie — sprawdź połączenie z {{service}} lub klucz API.",
       "intervalsTransient": "Nie mogę teraz połączyć się z {{service}} — spróbuj ponownie za chwilę.",
+      "noConnection": "Brak połączenia. Twoja wiadomość została zachowana. Spróbuj ponownie, gdy będziesz online.",
       "providerCredentials": "Dostawca modelu odrzucił klucz API — sprawdź dane dostępowe dostawcy.",
       "providerDown": "Dostawca modelu ma problemy — spróbuj ponownie za kilka minut.",
       "rateLimit": "Osiągnięto limit żądań — spróbuj ponownie za chwilę.",

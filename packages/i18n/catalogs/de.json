@@ -2684,6 +2684,7 @@
     "error": {
       "intervalsCredentials": "{{service}} hat die Anfrage abgelehnt. Prüfe deine Verbindung zu {{service}} oder deinen API-Schlüssel.",
       "intervalsTransient": "Ich kann {{service}} gerade nicht erreichen. Versuche es gleich noch einmal.",
+      "noConnection": "Keine Verbindung. Deine Nachricht bleibt erhalten. Versuche es erneut, wenn du online bist.",
       "providerCredentials": "Der Modellanbieter hat den API-Schlüssel abgelehnt. Prüfe deine Zugangsdaten beim Anbieter.",
       "providerDown": "Der Modellanbieter hat gerade Probleme. Versuche es in ein paar Minuten erneut.",
       "rateLimit": "Anfragelimit erreicht. Versuche es gleich noch einmal.",

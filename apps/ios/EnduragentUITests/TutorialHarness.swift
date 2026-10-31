@@ -21,6 +21,7 @@ enum TutorialHarness {
 	static let warmup = "Warmup"
 	static let working = "Coach is working…"
 	static let providerDown = "The model provider is having trouble — try again in a few minutes."
+	static let noConnection = "No connection. Your message is kept. Try again when you're online."
 	static let accessRejected =
 		"Your Credits couldn't be used. You can switch to your OpenRouter account."
 	static let creditsExhausted =
@@ -67,34 +68,6 @@ enum TutorialHarness {
 	static func launchUpgrade(_ app: XCUIApplication, store: FixtureStorePolicy) {
 		launch(app, arguments: FixtureArguments(store: store, onboarded: true))
 		agreeToProviderConsent(app)
-	}
-
-	static func relaunchKeepingStore(
-		_ app: XCUIApplication, recovery: String = "readable", clock: String? = nil,
-		keychain: FixtureKeychainPolicy? = nil, language: String? = nil, locale: String? = nil,
-		clearingReadFaults: Bool = false, clearingFeedbackScript: Bool = false
-	) {
-		app.terminate()
-		XCTAssertEqual(app.state, .notRunning)
-		var arguments = FixtureArguments()
-		do {
-			try arguments.update(from: app.launchArguments)
-		} catch {
-			XCTFail("could not read fixture arguments: \(error)")
-			return
-		}
-		arguments.store = .keep
-		arguments.recovery = recovery
-		if clearingReadFaults {
-			arguments.calendarReadFault = nil
-			arguments.recordReadFault = nil
-		}
-		if clearingFeedbackScript { arguments.feedback = nil }
-		if let clock { arguments.clock = clock }
-		if let keychain { arguments.keychain = keychain }
-		if let language { arguments.language = language }
-		if let locale { arguments.locale = locale }
-		launch(app, arguments: arguments)
 	}
 
 	static func attach(_ test: XCTestCase, name: String, app: XCUIApplication) {

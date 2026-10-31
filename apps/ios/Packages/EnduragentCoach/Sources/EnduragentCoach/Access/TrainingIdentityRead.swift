@@ -16,6 +16,11 @@ struct TrainingIdentityRead: Sendable {
 		self.state = state
 	}
 
+	var reusable: Bool {
+		guard case .checked(.failed(let failure)) = state else { return true }
+		return !failure.isTemporary
+	}
+
 	var profile: IntervalsProfileState {
 		guard case .checked(let profile) = state else { return .waiting }
 		return profile

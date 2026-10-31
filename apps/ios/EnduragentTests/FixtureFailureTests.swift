@@ -46,7 +46,7 @@ extension FixtureLaunchTests {
 			[Catalog.chatTranscriptRetry], 4
 		),
 		(
-			"fixture:fail network x3", Catalog.coachErrorProviderDown,
+			"fixture:fail network x3", Catalog.coachErrorNoConnection,
 			[Catalog.chatTranscriptRetry], 3
 		),
 		(

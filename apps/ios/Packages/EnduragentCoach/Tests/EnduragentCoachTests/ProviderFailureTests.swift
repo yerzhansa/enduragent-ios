@@ -67,11 +67,18 @@ import Testing
 	}
 
 	@Test(arguments: [
-		URLError.Code.notConnectedToInternet, .networkConnectionLost, .cannotFindHost,
-		.cannotConnectToHost, .dnsLookupFailed,
+		URLError.Code.notConnectedToInternet, .dataNotAllowed, .internationalRoamingOff,
 	])
-	func connectivityCodesBecomeNetwork(code: URLError.Code) async throws {
-		#expect(try await failure(of: .fail(code)) == .network)
+	func noConnectionURLErrorsAreNoConnection(code: URLError.Code) async throws {
+		#expect(try await failure(of: .fail(code)) == .network(.noConnection))
+	}
+
+	@Test(arguments: [
+		URLError.Code.networkConnectionLost, .cannotFindHost, .cannotConnectToHost,
+		.dnsLookupFailed,
+	])
+	func aLostConnectionStaysUnreachable(code: URLError.Code) async throws {
+		#expect(try await failure(of: .fail(code)) == .network(.unreachable))
 	}
 
 	@Test(arguments: [

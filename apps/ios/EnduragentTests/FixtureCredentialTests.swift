@@ -14,8 +14,7 @@ extension FixtureLaunchTests {
 		await onboarding.connect()
 		await onboarding.agreeAndStartChatting()
 		#expect(onboarding.didConnect)
-		try #require(services.fixture).intervals.fail(
-			.profile, with: URLError(.notConnectedToInternet))
+		try #require(services.fixture).intervals.loseConnection(for: .profile)
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let model = await model(services)
 		await model.appear()
@@ -28,7 +27,7 @@ extension FixtureLaunchTests {
 			model.status.notice?.sentence(in: model.displayLocale)
 				== "Your athlete profile is temporarily unavailable. Try again.")
 		#expect(model.connected?.athleteName == nil)
-		#expect(model.connected?.profile == .failed(.temporarilyUnavailable))
+		#expect(model.connected?.profile == .failed(.noConnection))
 		let connection = try #require(model.connected)
 		#expect(connection.action == .retry(connection.connectionID))
 	}

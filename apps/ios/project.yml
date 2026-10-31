@@ -104,6 +104,7 @@ targets:
       - path: EnduragentUITests/TutorialHarness.swift
       - path: EnduragentUITests/TutorialFields.swift
       - path: EnduragentUITests/TutorialOnboarding.swift
+      - path: EnduragentUITests/TutorialRelaunch.swift
       - path: EnduragentUITests/TutorialScrolling.swift
       - path: Enduragent/Fixtures/FixtureArguments.swift
       - path: ../../tools/Sources/ToolSupport/PlannedPhoneStep.swift

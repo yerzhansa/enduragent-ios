@@ -22,6 +22,8 @@
 					once: true)
 			case .profileUnavailable:
 				intervals.fail(.profile, with: unavailable, once: true)
+			case .profileOffline:
+				intervals.loseConnection(for: .profile)
 			case .wellnessRejected:
 				intervals.fail(.wellness, with: rejected, once: true)
 			case .wellnessUnavailable:

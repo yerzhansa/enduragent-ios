@@ -2684,6 +2684,7 @@
     "error": {
       "intervalsCredentials": "{{service}} rejeitou o pedido. Verifica a tua ligação a {{service}} ou a chave de API.",
       "intervalsTransient": "Não consegui contactar {{service}} agora. Tenta novamente daqui a pouco.",
+      "noConnection": "Sem ligação. A tua mensagem foi guardada. Tenta novamente quando estiveres online.",
       "providerCredentials": "O fornecedor do modelo rejeitou a chave de API. Verifica as tuas credenciais do fornecedor.",
       "providerDown": "O fornecedor do modelo está com dificuldades. Tenta novamente daqui a uns minutos.",
       "rateLimit": "Limite de pedidos atingido. Tenta novamente daqui a pouco.",

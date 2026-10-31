@@ -2684,6 +2684,7 @@
     "error": {
       "intervalsCredentials": "{{service}} ha rifiutato la richiesta. Controlla la connessione a {{service}} o la chiave API.",
       "intervalsTransient": "Non riesco a raggiungere {{service}} in questo momento. Riprova tra poco.",
+      "noConnection": "Nessuna connessione. Il tuo messaggio è conservato. Riprova quando sei online.",
       "providerCredentials": "Il fornitore del modello ha rifiutato la chiave API. Controlla le credenziali del fornitore.",
       "providerDown": "Il fornitore del modello sta avendo problemi. Riprova tra qualche minuto.",
       "rateLimit": "Limite di richieste raggiunto. Riprova tra poco.",

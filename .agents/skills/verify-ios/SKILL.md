@@ -218,7 +218,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `review-card-failed` | The bar after the last card failed to present, with Show again and no approve button, `u8-2-review-card-failed` from `ReviewLongPresentationProof` |
 | `chat-working` | Within one second of sending `fixture:slow`: `chat.working` reads `Coach is working…` and no reply text yet |
 | `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary with the working row still under it |
-| `chat-failed` | After `fixture:fail network x3`: `chat.turn.notice` under the message reads `The model provider is having trouble — try again in a few minutes.` with `Try again` in `chat.turn.tryAgain` |
+| `chat-failed` | After `fixture:fail 500 x3`: `chat.turn.notice` under the message reads `The model provider is having trouble — try again in a few minutes.` with `Try again` in `chat.turn.tryAgain`. `fixture:fail network x3` shows the no-connection notice instead |
 | `interruption-accepted` | After `sim launch <run id> -EnduragentFixtureCoalescing 60000`, onboarding, `fixture:hang`, and `sim launch <run id> --keep` before the minute ends: the message once with `Received before the app closed. Tap Try again to send it.` and `Try again`. `AcceptSurvivesKillProof` attachment `accept-kill-reopen` shows it |
 | `interruption-draft` | After tapping `fixture.failNextAppend` in Debug and sending a message: the composer keeps the text with `Not sent. Your draft is still here.` under it. `StorageFaultProof` attachment `storage-fault-not-sent` shows it |
 | `interruption-completed` | A reply that landed while the app was in the background: the whole reply with `Finished while the phone was locked.` under it, after `FinishedWhileAwayProof` |

@@ -30,8 +30,7 @@ struct TrainingDisplayReader: Sendable {
 					?? .noData(on: today))
 		} catch {
 			return .failed(
-				TrainingFailure(error) == .temporarilyUnavailable
-					? .temporarilyUnavailable : .requestRejected)
+				TrainingFailure(error).isTemporary ? .temporarilyUnavailable : .requestRejected)
 		}
 	}
 

@@ -113,7 +113,8 @@ package actor CredentialVault {
 	{
 		while let active = try activeConnection() {
 			let read: TrainingIdentityRead
-			if let current = trainingIdentity, current.connection.matches(active) {
+			if let current = trainingIdentity, current.connection.matches(active), current.reusable
+			{
 				read = current
 			} else {
 				let display = self.display

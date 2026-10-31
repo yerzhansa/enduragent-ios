@@ -2674,6 +2674,7 @@
     "error": {
       "intervalsCredentials": "{{service}} avviste forespørselen — sjekk tilkoblingen eller API-nøkkelen din for {{service}}.",
       "intervalsTransient": "Jeg fikk ikke kontakt med {{service}} akkurat nå — prøv igjen om litt.",
+      "noConnection": "Ingen tilkobling. Meldingen din er tatt vare på. Prøv igjen når du er på nett.",
       "providerCredentials": "Modellleverandøren avviste API-nøkkelen — sjekk tilgangsopplysningene dine hos leverandøren.",
       "providerDown": "Modellleverandøren har problemer — prøv igjen om noen minutter.",
       "rateLimit": "Grensen for forespørsler er nådd — prøv igjen om litt.",

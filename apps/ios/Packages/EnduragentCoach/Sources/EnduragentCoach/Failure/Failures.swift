@@ -20,9 +20,25 @@ public enum TrainingFailure: String, Sendable, Equatable {
 	case credentialRejected
 	case temporarilyUnavailable
 	case requestRejected
+	case noConnection
+
+	var isTemporary: Bool {
+		switch self {
+		case .temporarilyUnavailable, .noConnection: true
+		case .credentialRejected, .requestRejected: false
+		}
+	}
 
 	init(_ error: any Error) {
-		guard let intervals = error as? IntervalsError, let status = intervals.status else {
+		guard let intervals = error as? IntervalsError else {
+			self = .temporarilyUnavailable
+			return
+		}
+		if intervals.loss == .noConnection {
+			self = .noConnection
+			return
+		}
+		guard let status = intervals.status else {
 			self = .temporarilyUnavailable
 			return
 		}
@@ -39,6 +55,7 @@ public enum ProviderTrouble: String, Sendable {
 	case outage
 	case network
 	case timeout
+	case noConnection
 }
 
 public enum GenerationFault: String, Sendable {
@@ -220,6 +237,9 @@ package enum AthleteNotices {
 		case .model(.rateLimited(let retryAfter)):
 			let offer = waiting ? RecoveryAction.wait(thenTryAgain:) : RecoveryAction.tryAgain
 			return rateLimitNotice(after: retryAfter, actions: turn.map { [offer($0)] } ?? [])
+		case .model(.providerDown(.noConnection)),
+			.model(.accessUnavailable(.trainingIdentityUnverified(.noConnection))):
+			return AthleteNotice(key: Catalog.coachErrorNoConnection, actions: tryAgain)
 		case .model(.providerDown):
 			return AthleteNotice(key: Catalog.coachErrorProviderDown, actions: tryAgain)
 		case .model(.contextOverflow), .model(.invalidRequest), .model(.budgetExhausted):
@@ -291,6 +311,8 @@ package enum AthleteNotices {
 				key: Catalog.coachErrorIntervalsTransient, vars: ["service": .text(intervals)],
 				actions: []
 			)
+		case .noConnection:
+			AthleteNotice(key: Catalog.coachErrorNoConnection, actions: [])
 		}
 	}
 

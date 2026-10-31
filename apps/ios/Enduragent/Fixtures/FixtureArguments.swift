@@ -129,6 +129,7 @@
 		case profileRejected = "profile-rejected"
 		case profileRequestRejected = "profile-request-rejected"
 		case profileUnavailable = "profile-unavailable"
+		case profileOffline = "profile-offline"
 		case wellnessRejected = "wellness-rejected"
 		case wellnessUnavailable = "wellness-unavailable"
 		case emptyWellness = "empty-wellness"

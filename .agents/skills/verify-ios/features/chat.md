@@ -36,7 +36,8 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 
 | Turn or composer state | Visible notice and action |
 | --- | --- |
-| Server, network, timeout, or watchdog failure | `The model provider is having trouble — try again in a few minutes.` with Try again. |
+| The phone has no internet connection, for the model request (`fixture:fail network x3`) or the intervals.icu training read (`-EnduragentFixtureTrainingDisplay profile-offline`) | `No connection. Your message is kept. Try again when you're online.` with Try again. The notice names neither intervals.icu nor the model provider. A training read that failed offline is read again on the next Send or Try again. |
+| Server, lost connection, timeout, or watchdog failure | `The model provider is having trouble — try again in a few minutes.` with Try again. |
 | Rejected Credits access | `Your Credits couldn't be used. You can switch to your OpenRouter account.` with `chat.turn.switchToOpenRouter`, which opens Access method. |
 | Exhausted Credits | `You're out of Credits. You can switch to your OpenRouter account.` with `chat.turn.switchToOpenRouter`, which opens Access method. |
 | OpenRouter account out of funds | `Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.` with `chat.turn.chooseAccessMethod`, which opens the Access method screen. No UI proof or hosted app test reaches this notice. |
@@ -105,7 +106,8 @@ Preconditions:
 | `sim test <run id> FailureNoticesProof` | Timeout, exhausted Credits, and overflow show distinct recovery choices, `failure-timeout`, `failure-exhausted`, `failure-overflow`. |
 | `sim test <run id> FailNoticeLatencyProbe` | `fail-notice-latency-ms` measures Send through the server retry ladder to the notice; `fail-notice` shows it. |
 | `sim test <run id> RetryLadderProof` | One server failure recovers with no notice; exhausted rate limits end with a notice, `retry-ladder-reply`, `retry-ladder-rate-limited`. |
-| `sim test <run id> NetworkRetryProof` | Two failed requests recover, three fail the turn; fake model count is six across both turns, `network-retry`, `network-exhausted`, `network-requests`. |
+| `sim test <run id> NetworkRetryProof` | Two failed requests recover, three fail the turn with the no-connection notice; fake model count is six across both turns, `network-retry`, `network-exhausted`, `network-requests`. |
+| `sim test <run id> OfflineNoticeProof` | An offline Send and an offline training read each show the no-connection notice with Try again, and Try again once online gets the reply on the same turn; the offline training read makes no model request. Each case runs at the default and the largest accessibility text size, and each capture name ends in `-default` or `-largest`: `offline-send-no-connection`, `offline-send-try-again-replied`, `offline-send-requests`, `offline-read-no-connection`, `offline-read-requests`, `offline-read-try-again-replied`. |
 | `sim test <run id> RateLimitWaitProof` | A hinted seven-second wait retains working before success, then four failures exhaust the ladder, `rate-limit-wait`, `rate-limit-wait-reply`, `rate-limit-wait-exhausted`. |
 | `sim test <run id> RateLimitTryAgainOpensProof` | Try again changes from disabled to enabled after the wait, then succeeds, `rate-limit-waiting`, `rate-limit-try-again-open`, `rate-limit-tried-again`. |
 | `sim test <run id> OverflowExhaustedProof` | Four overflow failures plus one memory flush end in a notice, without durable compaction, `overflow-exhausted`, `overflow-exhausted-records`, `overflow-requests`. |

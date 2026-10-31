@@ -174,6 +174,40 @@ import Testing
 		#expect(transport.requests.isEmpty)
 	}
 
+	@Test func aSendWithNoConnectionSettlesNoConnectionWithoutAModelRequest() async throws {
+		ada.fail(.profile, with: IntervalsError.unreachable(URLError(.notConnectedToInternet)))
+		let coach = await coach(keyedSecrets())
+		let turn = try #require(
+			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
+		let state = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(
+			failure(state) == .model(.accessUnavailable(.trainingIdentityUnverified(.noConnection)))
+		)
+		#expect(turnNotice(of: state)?.key == Catalog.coachErrorNoConnection)
+		#expect(turnNotice(of: state)?.actions == [.tryAgain(turn)])
+		#expect(transport.requests.isEmpty)
+	}
+
+	@Test func tryAgainOnlineRereadsTheProfileAndRepliesOnTheSameTurn() async throws {
+		ada.fail(.profile, with: IntervalsError.unreachable(URLError(.notConnectedToInternet)))
+		let coach = await coach(keyedSecrets())
+		let turn = try #require(
+			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
+		let offline = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(
+			failure(offline)
+				== .model(.accessUnavailable(.trainingIdentityUnverified(.noConnection))))
+		ada.restore(.profile)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], otherwise: transport.respond)
+
+		try await coach.retry(turn, in: .main)
+
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(replyText(settled) == "Thursday is on.")
+		#expect(await coach.transcript(.main) == ["Is Thursday on?", "Thursday is on."])
+	}
+
 	@Test func differentAthleteWithoutBoundWorkFlips() async throws {
 		let secrets = keyedSecrets()
 		let outcome = await coach(secrets).changeTraining(

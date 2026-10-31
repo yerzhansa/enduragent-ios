@@ -85,7 +85,7 @@ import Testing
 			[.text("Thursday is "), .fail(.connection(.networkConnectionLost))], for: .chat,
 			otherwise: transport.respond)
 		var received: [TransportEvent] = []
-		await #expect(throws: ProviderFailure.network) {
+		await #expect(throws: ProviderFailure.network(.unreachable)) {
 			for try await event in transport.stream(request("Thursday?")) {
 				received.append(event)
 			}

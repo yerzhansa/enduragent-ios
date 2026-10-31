@@ -110393,6 +110393,112 @@
         }
       }
     },
+    "coach.error.noConnection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection. Your message is kept. Try again when you're online."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conexión. Tu mensaje se conserva. Vuelve a intentarlo cuando tengas conexión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas de connexion. Ton message est conservé. Réessaie quand tu seras en ligne."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna connessione. Il tuo messaggio è conservato. Riprova quando sei online."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Verbindung. Deine Nachricht bleibt erhalten. Versuche es erneut, wenn du online bist."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen verbinding. Je bericht blijft bewaard. Probeer het opnieuw wanneer je online bent."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingen forbindelse. Din besked er gemt. Prøv igen, når du er online."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingen anslutning. Ditt meddelande finns kvar. Försök igen när du är online."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingen tilkobling. Meldingen din er tatt vare på. Prøv igjen når du er på nett."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ei yhteyttä. Viestisi on tallessa. Yritä uudelleen, kun olet verkossa."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem ligação. A tua mensagem foi guardada. Tenta novamente quando estiveres online."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem conexão. Sua mensagem foi mantida. Tente novamente quando estiver online."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak połączenia. Twoja wiadomość została zachowana. Spróbuj ponownie, gdy będziesz online."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결되어 있지 않습니다. 메시지는 보관됩니다. 온라인 상태가 되면 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続がありません。メッセージは保持されています。オンラインになったら、もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有网络连接。你的消息已保留。联网后请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有網路連線。你的訊息已保留。連上網路後請重試。"
+          }
+        }
+      }
+    },
     "coach.error.providerCredentials": {
       "localizations": {
         "en": {

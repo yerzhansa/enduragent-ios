@@ -50,7 +50,11 @@ struct FailureRow: Sendable, CustomTestStringConvertible {
 			key: Catalog.coachErrorProviderDown, buttons: ["Try again"],
 			english: "The model provider is having trouble — try again in a few minutes."),
 		FailureRow(
-			scripted: .connection(.notConnectedToInternet), failure: .providerDown(.network),
+			scripted: .connection(.notConnectedToInternet), failure: .providerDown(.noConnection),
+			key: Catalog.coachErrorNoConnection, buttons: ["Try again"],
+			english: "No connection. Your message is kept. Try again when you're online."),
+		FailureRow(
+			scripted: .connection(.networkConnectionLost), failure: .providerDown(.network),
 			key: Catalog.coachErrorProviderDown, buttons: ["Try again"],
 			english: "The model provider is having trouble — try again in a few minutes."),
 		FailureRow(

@@ -68,7 +68,7 @@ struct SyncedTrainingIdentityAppTests {
 		let finished = try #require(model.chat)
 		model.draft.text = "What about Friday?"
 		let draft = model.draft
-		fixture.intervals.fail(.profile, with: URLError(.notConnectedToInternet))
+		fixture.intervals.loseConnection(for: .profile)
 		for background in [true, false] {
 			if background { await model.sceneChanged(.enteredBackground) }
 			let profileReads = fixture.intervals.count(of: .profile)

@@ -2684,6 +2684,7 @@
     "error": {
       "intervalsCredentials": "{{service}} avvisade begäran. Kontrollera din anslutning till {{service}} eller din API-nyckel.",
       "intervalsTransient": "Kunde inte nå {{service}} just nu. Försök igen om en liten stund.",
+      "noConnection": "Ingen anslutning. Ditt meddelande finns kvar. Försök igen när du är online.",
       "providerCredentials": "Modellleverantören avvisade API-nyckeln. Kontrollera dina inloggningsuppgifter hos leverantören.",
       "providerDown": "Modellleverantören har problem. Försök igen om några minuter.",
       "rateLimit": "Gränsen för antal förfrågningar är nådd. Försök igen om en liten stund.",

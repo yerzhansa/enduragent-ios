@@ -73,6 +73,26 @@ import Testing
 		#expect(row.ulid.text == "[redacted]")
 	}
 
+	@Test(arguments: [
+		(
+			DiagnosticsEvent.providerFailure(
+				AttemptID(ulid: fixedUlid(11)), .network(.noConnection), detail: .url(-1009)),
+			"provider.network.noConnection"
+		),
+		(
+			.providerFailure(
+				AttemptID(ulid: fixedUlid(11)), .network(.unreachable), detail: .url(-1005)),
+			"provider.network.unreachable"
+		),
+		(
+			.snapshotReadFailed(AttemptID(ulid: fixedUlid(11)), .profile, .noConnection),
+			"training.noConnection"
+		),
+	])
+	func aConnectionFailureNamesWhetherThePhoneWasOffline(event: DiagnosticsEvent, cause: String) {
+		#expect(event.line.cause?.rawValue == cause)
+	}
+
 	@Test func aConversationIdOutsideTheReferenceSetIsLeftOut() throws {
 		let chat = try #require(ChatID(rawValue: "telegram:4242"))
 		#expect(DiagnosticsEvent.reviewUnavailable(chat, .unavailable).line.subject == nil)
