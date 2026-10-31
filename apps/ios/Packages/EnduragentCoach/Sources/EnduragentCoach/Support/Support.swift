@@ -33,6 +33,10 @@ public actor Support {
 		feedback = relaunched.map { FeedbackStatus(kept: $0.phase) } ?? .idle
 	}
 
+	package func eraseFiles() throws {
+		try service.eraseFiles()
+	}
+
 	public func observe() -> AsyncStream<SupportSnapshot> {
 		if following == nil {
 			let changes = healthChanges

@@ -42,6 +42,10 @@ package final class MemoryJournalStorage: JournalStorage {
 
 	package func removeLeftover() {}
 
+	package func erase() throws {
+		try write { $0 = nil }
+	}
+
 	private func write(_ change: (inout Data?) -> Void) throws {
 		try state.withLock { state in
 			guard state.failingWrites == 0 else {

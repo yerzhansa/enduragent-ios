@@ -66,6 +66,8 @@
 			let credits = FakeCreditsClient()
 			FirstWeekFixture.install(on: credits)
 			FirstWeekFixture.install(launch.creditsOutcome, on: credits)
+			credits.eraseResult = launch.erasure.result
+			records.export = launch.erasure.export
 			let response = FirstWeekFixture.responses(intervals: intervals, credits: credits)
 			let transport = FakeModelTransport { request in
 				if launch.accessMethod == .rejectedOpenRouter,
@@ -121,6 +123,7 @@
 			)
 			return AppServices(
 				coach: coach,
+				device: DeviceDefaults(suiteName: launch.defaultsSuiteName),
 				deviceCheck: FakeDeviceCheckTokenProvider(),
 				clock: clock,
 				leases: leases,

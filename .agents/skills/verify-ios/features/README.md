@@ -52,6 +52,7 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 | [Plan-save card](./plan-save-card.md) | The card a plan save ends with, its fields and "replaces" line, arming, Save plan and Cancel, every state and refused tap, carried cards, the largest text size, VoiceOver order, three languages and a waiting review beside it. |
 | [Settings](./settings.md) | Toolbar navigation, Credits and the model picker under Model access, intervals.icu connection and calendar guidance, Session, draft and setup continuity, and French icon actions. |
 | [Support](./support.md) | The Support section, Feedback with refusals, not-confirmed notes and Try again, the Diagnostics file and its share outcomes, the not-saving line, and About. |
+| [Your data](./your-data.md) | The Your data section, Delete everything, its confirmation, busy, done, not started, iCloud later and resume after a kill, and the largest text size. |
 | [History](./history.md) | Archived conversations, close reasons, read-only content, upgrade, and open-time probes. |
 | [Credits](./credits.md) | Credit count, Switch to OpenRouter, unavailable notice, recovery links from a turn, and Access method in Settings. |
 

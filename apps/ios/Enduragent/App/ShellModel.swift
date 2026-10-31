@@ -37,6 +37,7 @@ final class ShellModel {
 	let sessionSettings: SessionSettingsModel
 	let planDecisions: PlanDecisions
 	let support: SupportModel
+	let yourData: YourDataModel
 	private let submission: ChatSubmission
 	var drafts: DraftStore { submission.drafts }
 	private let onboarding: OnboardingModel
@@ -59,11 +60,15 @@ final class ShellModel {
 		self.sessionSettings = SessionSettingsModel(coach: environment.services.coach)
 		self.planDecisions = PlanDecisions(services: environment.services)
 		self.support = SupportModel(support: environment.services.coach.support)
+		self.yourData = YourDataModel(
+			coach: environment.services.coach, device: environment.services.device)
 		self.onboarding = OnboardingModel(environment: environment)
 		self.credits = CreditsModel(services: environment.services)
 		self.archive = HistoryModel(coach: environment.services.coach)
 		self.submission = ChatSubmission(defaults: environment.defaults)
-		if onboarding.isCompleted {
+		if yourData.isErasing {
+			route = .erasing
+		} else if onboarding.isCompleted {
 			route = .loading
 		}
 	}
@@ -196,6 +201,7 @@ final class ShellModel {
 			}
 		}
 		updateRoute()
+		if route == .erasing { await yourData.run() }
 	}
 
 	private func receiveStatus(_ current: CoachStatus) {
@@ -204,7 +210,7 @@ final class ShellModel {
 		updateRoute()
 	}
 
-	private func updateRoute() {
+	func updateRoute() {
 		switch route {
 		case .loading, .chat, .onboarding(.consent), .onboarding(.consentDeferred):
 			if status.needsProviderConsent {
@@ -213,12 +219,13 @@ final class ShellModel {
 				route = .chat
 				observeChat()
 			}
-		case .onboarding(.notice), .onboarding(.connect), .onboarding(.starter):
+		case .onboarding(.notice), .onboarding(.connect), .onboarding(.starter), .erasing:
 			break
 		}
 	}
 
 	func sceneChanged(_ event: AppLifecycleEvent) async {
+		guard route != .erasing else { return }
 		await lifecycle.forward(event)
 	}
 

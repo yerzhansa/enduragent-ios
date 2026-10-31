@@ -53,6 +53,9 @@ import Testing
 			])
 		case .feedbackNoteUnsaved: return .feedbackNoteUnsaved(.cocoa(640))
 		case .diagnosticsFileFailed: return .diagnosticsFileFailed(.couldNotWrite, .cocoa(513))
+		case .erasureNotStarted: return .erasureNotStarted(.url(-1009))
+		case .erasureNotFinished: return .erasureNotFinished(.files, .cocoa(513))
+		case .erasureUnconfirmed: return .erasureUnconfirmed(.url(-1009))
 		}
 	}
 

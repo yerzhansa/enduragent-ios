@@ -29,6 +29,12 @@ public struct SupportService: Sendable {
 			feedback: FeedbackClient.live, app: app, device: .current())
 	}
 
+	package func eraseFiles() throws {
+		try journal.erase()
+		try keptNotes.clear()
+		try shareFolder.sweep()
+	}
+
 	package func openLog(clock: any Clock) -> DiagnosticsLog {
 		DiagnosticsLog(clock: clock, storage: journal)
 	}

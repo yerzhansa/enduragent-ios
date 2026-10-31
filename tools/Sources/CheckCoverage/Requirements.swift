@@ -15,10 +15,10 @@ struct RequirementScope {
 			+ ["X01", "X02", "X04", "X05", "X06", "G03", "G04", "G05", "G06", "G10"],
 		parts: [],
 		agreedDifferences: [
-			"B17.01/utc", "B17.06/head-unit", "B18.07/model-call", "B20.01/zones", "X04/zone",
-			"G06/midnight",
+			"B17.01/utc", "B17.06/head-unit", "B18.07/model-call", "B18.07/review-status",
+			"B20.01/zones", "X04/zone", "G06/midnight",
 		],
-		decisionRecords: ["ADR-0083"], retained: [])
+		decisionRecords: ["ADR-0083", "ADR-0086"], retained: [])
 
 	static let milestoneFive = RequirementScope(
 		table: "milestone-5.json",

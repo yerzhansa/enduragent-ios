@@ -6,7 +6,7 @@ final class SettingsLargestTextSweepProof: XCTestCase {
 	func testEveryControlReachable() {
 		let app = SettingsSweep.launch(connected: true)
 		let screens: [(screen: SettingsSweep.Screen, ready: String, count: Int)] = [
-			(.settings, "settings.model", 10),
+			(.settings, "settings.model", 11),
 			(.accessMethod, "access.credits", 2),
 			(.modelPicker, "model.choices", 2),
 			(.credits, "credits.switchToOpenRouter", 1),

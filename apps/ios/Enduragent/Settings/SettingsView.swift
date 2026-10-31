@@ -50,6 +50,7 @@ struct SettingsView: View {
 				.accessibilityIdentifier("settings.session")
 			}
 			SupportSection(model: model)
+			YourDataSection(model: model)
 			#if DEBUG
 				Section {
 					NavigationLink(SettingsDebugView.title, value: ShellDestination.debug)

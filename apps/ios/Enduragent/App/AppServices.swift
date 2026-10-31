@@ -5,6 +5,7 @@ enum ShellRoute: Equatable {
 	case loading
 	case onboarding(OnboardingStep)
 	case chat
+	case erasing
 }
 
 enum OnboardingStep: Equatable {
@@ -43,6 +44,7 @@ struct AppServices: Sendable {
 	}
 
 	var coach: Coach
+	var device: DeviceDefaults
 	var deviceCheck: any DeviceCheckTokenProviding
 	var clock: any Clock
 	var leases: @Sendable () async -> [LeaseRecord]
@@ -76,6 +78,7 @@ struct AppServices: Sendable {
 		)
 		return AppServices(
 			coach: coach,
+			device: DeviceDefaults(suiteName: nil),
 			deviceCheck: DeviceCheckTokenProvider(),
 			clock: clock,
 			leases: { await host.leases }
