@@ -38,7 +38,7 @@
 		},
 		{
 			"id": "0.1.2",
-			"statement": "A requirement row with both proofs or neither fails, an agreed difference that does not name ADR-0083 fails, an agreed difference on an id that is not a sub-id fails with difference-on-parent, and a sub-id whose parent is not in the fixed list fails.",
+			"statement": "A requirement row with both proofs or neither fails, an agreed difference whose text names neither ADR-0083 nor ADR-0086 fails, an agreed difference on an id that is not a sub-id fails with difference-on-parent, and a sub-id whose parent is not in the fixed list fails.",
 			"tests": [
 				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "requirementRowCarriesOneProofAndAnAgreedDifferenceOnlyOnAPart"}
 			]
@@ -61,7 +61,7 @@
 		},
 		{
 			"id": "0.1.5",
-			"statement": "The table holds an agreed-difference row under its own sub-id for B17.01/utc, B17.06/head-unit, B18.07/model-call, B20.01/zones, X04/zone and G06/midnight, and none of them closes its parent.",
+			"statement": "The table holds an agreed-difference row under its own sub-id for B17.01/utc, B17.06/head-unit, B18.07/model-call, B18.07/review-status, B20.01/zones, X04/zone and G06/midnight, and none of them closes its parent.",
 			"tests": [
 				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "tableRecordsEveryAgreedDifferenceOfADR0083"}
 			]
@@ -1557,6 +1557,11 @@
 			"id": "B18.07/model-call",
 			"statement": "No model call judges an unfinished calendar request, and the reply's text is not held back.",
 			"agreedDifference": "ADR-0083 drops npm's extra model call for an unfinished request, and replies keep streaming while the card appears after the reply ends."
+		},
+		{
+			"id": "B18.07/review-status",
+			"statement": "Every turn's prompt carries the workout review status, and only this turn's preparation or that status may say a review waits.",
+			"agreedDifference": "ADR-0086 adds a Workout review status section to every turn's volatile block, which names the waiting review by setId, revision, change count and the controls it offers, or says none waits, and gives the newest ended review with its outcome lines; and it turns npm's sentence \"Say a review is ready only after the call succeeds\" into a rule that the status, not earlier replies, says which review waits, and that a review waits only when this turn's prepare_workout_changes returned prepared or the status names one. npm's prompt has neither. Shown by TurnReviewStatusTests and PromptAssemblyTests."
 		},
 		{
 			"id": "B20.01/zones",
