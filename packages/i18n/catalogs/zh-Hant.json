@@ -3149,5 +3149,28 @@
       "cardFailed": "無法顯示第 {{position}}/{{count}} 張卡片。未進行任何變更。",
       "showAgain": "再次顯示"
     }
+  },
+  "yourData": {
+    "title": "你的資料",
+    "deleteEverything": "刪除所有內容",
+    "confirm": {
+      "title": "要刪除所有內容嗎？",
+      "body": "此動作無法復原。這會從此 iPhone 和你的 iCloud 刪除你的對話、記憶、已儲存的計畫、設定和金鑰，並刪除你的點數紀錄。未使用的點數將會遺失，且每支 iPhone 只能獲得一次初始點數。"
+    },
+    "keeps": "你的 intervals.icu 帳戶和訓練會保留在 intervals.icu 上。如果你使用自己的 OpenRouter 帳戶登入，請在 OpenRouter 上刪除其金鑰。",
+    "progress": "正在刪除…",
+    "done": "所有內容已從此 iPhone、你的 iCloud 和點數服務中刪除。",
+    "notStarted": "沒有刪除任何內容。請連線到網際網路後再試一次。",
+    "iCloudLater": "已從此 iPhone 和點數服務中刪除。下次你在此 iPhone 連上網路並登入 iCloud 的情況下打開 Enduragent 時，你的 iCloud 副本會被刪除。如果你在此之前刪除了 App，請在 iOS 的「設定」中的「iCloud 儲存空間」刪除它的資料。",
+    "busy": "請等待教練完成後再試一次。",
+    "notFinished": "此 iPhone 上的部分內容未能刪除。請再試一次。",
+    "progressTime": "這最多可能需要一分鐘。",
+    "tryLater": "此 iPhone 和你的 iCloud 中沒有刪除任何內容。點數服務目前忙碌中。請稍後再試一次。",
+    "creditsUnconfirmed": "沒有刪除任何內容。點數服務無法確認此 iPhone 擁有你的點數紀錄，因此該紀錄會保留在服務中。你仍然可以刪除此 iPhone 和你的 iCloud 中的所有內容。",
+    "deleteHere": "從 iPhone 和 iCloud 刪除",
+    "creditsKept": {
+      "done": "所有內容已從此 iPhone 和你的 iCloud 中刪除。你的點數紀錄會保留在點數服務中。沒有人持有它的金鑰，因此沒有人能使用它。",
+      "iCloudLater": "已從此 iPhone 刪除。下次你在此 iPhone 連上網路並登入 iCloud 的情況下打開 Enduragent 時，你的 iCloud 副本會被刪除。如果你在此之前刪除了 App，請在 iOS 的「設定」中的「iCloud 儲存空間」刪除它的資料。你的點數紀錄會保留在點數服務中。沒有人持有它的金鑰，因此沒有人能使用它。"
+    }
   }
 }

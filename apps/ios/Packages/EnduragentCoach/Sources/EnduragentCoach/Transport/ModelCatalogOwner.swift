@@ -49,6 +49,10 @@ package actor ModelCatalogOwner {
 		refreshTask = Task { await download(from: source, into: cache, origin: origin) }
 	}
 
+	package func eraseCache() throws {
+		try cache?.erase()
+	}
+
 	package func cancelRefresh() {
 		refreshTask?.cancel()
 	}

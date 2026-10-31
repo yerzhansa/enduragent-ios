@@ -141,6 +141,16 @@
 		case failSelection = "fail-selection"
 	}
 
+	enum FixtureErasure: String, CaseIterable {
+		case erased
+		case unreachable
+		case iCloudLater = "icloud-later"
+		case exportHeld = "export-held"
+		case refused
+		case refusedICloudLater = "refused-icloud-later"
+		case rateLimited = "rate-limited"
+	}
+
 	enum FixtureTextSize: String {
 		case accessibilityXXXL = "UICTContentSizeCategoryAccessibilityXXXL"
 	}
@@ -188,6 +198,7 @@
 		var textSize: FixtureTextSize?
 		var feedback: FixtureFeedbackScript?
 		var journal: FixtureJournal?
+		var erasure: FixtureErasure?
 
 		var launchArguments: [String] {
 			var values = [
@@ -238,6 +249,7 @@
 			if let textSize { values += [Self.textSizeArgument, textSize.rawValue] }
 			if let feedback { values += ["-EnduragentFixtureFeedback", feedback.rawValue] }
 			if let journal { values += ["-EnduragentFixtureJournal", journal.rawValue] }
+			if let erasure { values += ["-EnduragentFixtureErasure", erasure.rawValue] }
 			return values
 		}
 
@@ -284,6 +296,7 @@
 			textSize = try policy(values, Self.textSizeArgument)
 			feedback = try policy(values, "-EnduragentFixtureFeedback")
 			journal = try policy(values, "-EnduragentFixtureJournal")
+			erasure = try policy(values, "-EnduragentFixtureErasure")
 		}
 
 		private static let textSizeArgument = "-UIPreferredContentSizeCategoryName"

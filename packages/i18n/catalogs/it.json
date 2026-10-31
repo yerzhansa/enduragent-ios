@@ -3193,5 +3193,28 @@
       "cardFailed": "Impossibile mostrare la scheda {{position}} di {{count}}. Non è stato modificato nulla.",
       "showAgain": "Mostra di nuovo"
     }
+  },
+  "yourData": {
+    "title": "I tuoi dati",
+    "deleteEverything": "Elimina tutto",
+    "confirm": {
+      "title": "Eliminare tutto?",
+      "body": "L’operazione non si può annullare. Elimina la conversazione, la memoria, il piano salvato, le impostazioni e le chiavi da questo iPhone e dal tuo iCloud, oltre al tuo record dei Crediti. I Crediti non usati vanno persi e i Crediti iniziali vengono dati una sola volta per iPhone."
+    },
+    "keeps": "Il tuo account intervals.icu e i tuoi allenamenti restano su intervals.icu. Se hai effettuato l’accesso con il tuo account OpenRouter, elimina la sua chiave su OpenRouter.",
+    "progress": "Eliminazione…",
+    "done": "Tutto è stato eliminato da questo iPhone, dal tuo iCloud e dal servizio Crediti.",
+    "notStarted": "Non è stato eliminato nulla. Connettiti a internet e riprova.",
+    "iCloudLater": "Eliminato da questo iPhone e dal servizio Crediti. La tua copia su iCloud verrà eliminata la prossima volta che apri Enduragent mentre questo iPhone è online e ha effettuato l’accesso a iCloud. Se elimini l’app prima di allora, elimina i suoi dati in Impostazioni di iOS, alla voce Spazio iCloud.",
+    "busy": "Aspetta che il coach finisca, poi riprova.",
+    "notFinished": "Non tutto è stato eliminato da questo iPhone. Riprova.",
+    "progressTime": "Può richiedere fino a un minuto.",
+    "tryLater": "Non è stato eliminato nulla da questo iPhone né dal tuo iCloud. Il servizio Crediti è occupato in questo momento. Riprova più tardi.",
+    "creditsUnconfirmed": "Non è stato eliminato nulla. Il servizio Crediti non ha potuto confermare che questo iPhone possiede il tuo record dei Crediti, quindi il record resta lì. Puoi comunque eliminare tutto da questo iPhone e dal tuo iCloud.",
+    "deleteHere": "Elimina da iPhone e iCloud",
+    "creditsKept": {
+      "done": "Tutto è stato eliminato da questo iPhone e dal tuo iCloud. Il tuo record dei Crediti resta nel servizio Crediti. Nessuno ha la sua chiave, quindi nessuno può usarlo.",
+      "iCloudLater": "Eliminato da questo iPhone. La tua copia su iCloud verrà eliminata la prossima volta che apri Enduragent mentre questo iPhone è online e ha effettuato l’accesso a iCloud. Se elimini l’app prima di allora, elimina i suoi dati in Impostazioni di iOS, alla voce Spazio iCloud. Il tuo record dei Crediti resta nel servizio Crediti. Nessuno ha la sua chiave, quindi nessuno può usarlo."
+    }
   }
 }

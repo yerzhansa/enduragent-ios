@@ -59,10 +59,12 @@ CreditsClient
 CreditsClient.balance()
 CreditsClient.catalog()
 CreditsClient.claim(signedTransaction:appAccountToken:)
+CreditsClient.erase()
 CreditsClient.grant(deviceCheck:)
 CreditsClient.recover(signedTransaction:)
 CreditsFailure
 CreditsFailure.accountChanged
+CreditsFailure.athleteDeleted
 CreditsFailure.banned
 CreditsFailure.identityMismatch
 CreditsFailure.noAthleteKey

@@ -321,7 +321,7 @@ package enum AthleteNotices {
 			return notice(outsideTurn: unavailable)
 		}
 		switch failure as? CreditsFailure {
-		case .noAthleteKey?:
+		case .noAthleteKey?, .athleteDeleted?:
 			return notice(outsideTurn: .notConfigured(.credits))
 		case .accountChanged?:
 			return AthleteNotice(key: Catalog.creditsErrorAccountChanged, actions: [])

@@ -89,7 +89,7 @@ extension SwiftDataSuites {
 			let context = ModelContext(container)
 			context.insert(row)
 			try context.save()
-			let handle = ModelContainerHandle(container: container)
+			let handle = ModelContainerHandle(container: container, cloudKitContainer: nil)
 			let log = SwiftDataRecordLog(deviceId: device, synced: handle, local: handle)
 			let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 			let written = try await ledger.commit(

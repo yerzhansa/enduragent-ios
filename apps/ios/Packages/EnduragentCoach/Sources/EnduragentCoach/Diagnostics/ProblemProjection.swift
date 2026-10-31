@@ -24,6 +24,9 @@ package enum ProblemKind: String, Sendable, Codable, CaseIterable {
 	case feedbackNotDelivered
 	case feedbackNoteUnsaved
 	case diagnosticsFileFailed
+	case erasureNotStarted
+	case erasureNotFinished
+	case erasureUnconfirmed
 }
 
 extension DiagnosticsEvent {
@@ -93,6 +96,12 @@ extension DiagnosticsEvent {
 			ProblemLine(.feedbackNoteUnsaved, cause: failure.code)
 		case .diagnosticsFileFailed(let failure, let code):
 			ProblemLine(.diagnosticsFileFailed, cause: code.code, detail: failure.code)
+		case .erasureNotStarted(let failure):
+			ProblemLine(.erasureNotStarted, cause: failure.code)
+		case .erasureNotFinished(let step, let failure):
+			ProblemLine(.erasureNotFinished, cause: failure.code, detail: ProblemCode(caseOf: step))
+		case .erasureUnconfirmed(let failure):
+			ProblemLine(.erasureUnconfirmed, cause: failure.code)
 		}
 	}
 

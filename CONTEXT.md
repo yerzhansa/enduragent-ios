@@ -14,6 +14,14 @@ _Avoid_: Billing mode, plan, provider
 Units spent on the built-in model. Each iPhone gets a starter amount once, and the app sells none.
 _Avoid_: Balance, tokens, coins
 
+**Credits record**:
+What the Credits service keeps for the app's Credits: the Credits id, the Credits balance, and the record of the key it made. iPhones that share an iCloud Keychain share one Credits record.
+_Avoid_: Account, Credits account
+
+**Credits id**:
+The random id the app makes for its Credits record. It is not the intervals.icu athlete id.
+_Avoid_: Athlete id (in athlete text), user id
+
 **Built-in model**:
 The model Credits pay for, chosen by Enduragent and not by the athlete.
 _Avoid_: Default model, our model
@@ -183,3 +191,11 @@ _Avoid_: Bug report, support request, ticket, message, report
 **Diagnostics file**:
 A file the athlete makes in Settings, under Support, and shares on purpose. It holds the version, the phone model and iOS version, the access method kind, the connection state, the language preference, counts of what the app has saved, and the last 14 days of the app's problems and model usage, with no keys, no message text and no training data. Nothing leaves the phone until the athlete shares it.
 _Avoid_: Logs, snapshot, export, debug dump, crash report
+
+**Your data**:
+The Settings section after Support. Its one row is Delete everything.
+_Avoid_: Privacy, account, data management
+
+**Delete everything**:
+The athlete deletes their conversation, memory, saved plan, settings and keys from this iPhone and their iCloud, and their Credits record. Another device removes the synced records only when the app runs there, and keeps what it holds only on itself. Nothing on this iPhone or in iCloud is deleted until the Credits service confirms its part. When iCloud does not confirm, the iCloud copy is deleted the next time the athlete opens the app while this iPhone is online and signed in to iCloud. When the Credits service cannot confirm that this iPhone owns the Credits record, the athlete can delete everything else, and the Credits record stays on the service. A run cut off by a kill finishes at the next launch. Unused Credits are lost. intervals.icu data and an OpenRouter account stay with the athlete.
+_Avoid_: Delete account, reset, wipe, erase (in athlete text)

@@ -3193,5 +3193,28 @@
       "cardFailed": "Karte {{position}} von {{count}} konnte nicht angezeigt werden. Nichts wurde geändert.",
       "showAgain": "Erneut anzeigen"
     }
+  },
+  "yourData": {
+    "title": "Deine Daten",
+    "deleteEverything": "Alles löschen",
+    "confirm": {
+      "title": "Alles löschen?",
+      "body": "Das kann nicht rückgängig gemacht werden. Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone und aus deiner iCloud gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen, und Startguthaben gibt es nur einmal pro iPhone."
+    },
+    "keeps": "Dein intervals.icu-Konto und deine Trainings bleiben auf intervals.icu. Wenn du dich mit deinem eigenen OpenRouter-Konto angemeldet hast, lösche dessen Schlüssel bei OpenRouter.",
+    "progress": "Wird gelöscht…",
+    "done": "Alles wurde von diesem iPhone, aus deiner iCloud und aus dem Guthabenpunkte-Dienst gelöscht.",
+    "notStarted": "Es wurde nichts gelöscht. Verbinde dich mit dem Internet und versuche es erneut.",
+    "iCloudLater": "Von diesem iPhone und aus dem Guthabenpunkte-Dienst gelöscht. Deine iCloud-Kopie wird gelöscht, wenn du Enduragent das nächste Mal öffnest, während dieses iPhone online und bei iCloud angemeldet ist. Wenn du die App vorher löschst, lösche ihre Daten in den iOS-Einstellungen unter „iCloud-Speicher“.",
+    "busy": "Warte, bis der Coach fertig ist, und versuche es dann erneut.",
+    "notFinished": "Nicht alles wurde von diesem iPhone gelöscht. Versuche es erneut.",
+    "progressTime": "Das kann bis zu einer Minute dauern.",
+    "tryLater": "Von diesem iPhone und aus deiner iCloud wurde nichts gelöscht. Der Guthabenpunkte-Dienst ist gerade ausgelastet. Versuche es später erneut.",
+    "creditsUnconfirmed": "Es wurde nichts gelöscht. Der Guthabenpunkte-Dienst konnte nicht bestätigen, dass dieses iPhone dein Guthabenpunkte-Konto besitzt, deshalb bleibt das Konto dort. Du kannst trotzdem alles auf diesem iPhone und in deiner iCloud löschen.",
+    "deleteHere": "Von iPhone und iCloud löschen",
+    "creditsKept": {
+      "done": "Alles wurde von diesem iPhone und aus deiner iCloud gelöscht. Dein Guthabenpunkte-Konto bleibt im Guthabenpunkte-Dienst. Niemand hat seinen Schlüssel, daher kann es niemand nutzen.",
+      "iCloudLater": "Von diesem iPhone gelöscht. Deine iCloud-Kopie wird gelöscht, wenn du Enduragent das nächste Mal öffnest, während dieses iPhone online und bei iCloud angemeldet ist. Wenn du die App vorher löschst, lösche ihre Daten in den iOS-Einstellungen unter „iCloud-Speicher“. Dein Guthabenpunkte-Konto bleibt im Guthabenpunkte-Dienst. Niemand hat seinen Schlüssel, daher kann es niemand nutzen."
+    }
   }
 }

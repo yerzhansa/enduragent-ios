@@ -15,6 +15,7 @@ public protocol SecretStore: Sendable {
 	func prepareAccessSelection(_ reference: SavedAccessReference, at commit: UUID) throws
 	func commitAccessSelection(at commit: UUID) throws
 	func delete(_ slot: CredentialSlot) throws
+	func deleteEverything() throws
 }
 
 public enum KeychainStoreError: Error, Sendable, Equatable {
@@ -43,6 +44,7 @@ package protocol SecretStoreBacking: Sendable {
 	func copy(account: String) throws -> Data?
 	func update(account: String, data: Data) throws
 	func delete(account: String) throws
+	func deleteEverything() throws
 }
 
 public struct ICloudKeychainStore: SecretStore {
@@ -182,6 +184,10 @@ public struct ICloudKeychainStore: SecretStore {
 		try backing.delete(account: slot.rawValue)
 	}
 
+	public func deleteEverything() throws {
+		try backing.deleteEverything()
+	}
+
 	private func readString(account: String) throws -> String? {
 		guard let data = try backing.copy(account: account) else { return nil }
 		guard let string = String(data: data, encoding: .utf8) else {
@@ -227,6 +233,14 @@ package enum KeychainQuery {
 			kSecAttrService as String: service,
 			kSecAttrAccount as String: account,
 			kSecAttrSynchronizable as String: kCFBooleanTrue as Any,
+		]
+	}
+
+	package static func everyItem(service: String) -> [String: Any] {
+		[
+			kSecClass as String: kSecClassGenericPassword,
+			kSecAttrService as String: service,
+			kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
 		]
 	}
 
@@ -301,6 +315,15 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 		let status = SecItemDelete(
 			KeychainQuery.item(service: service, account: account) as CFDictionary)
 		recordAttempt?(.init(operation: "delete", slot: account, status: status, start: start))
+		guard status == errSecSuccess || status == errSecItemNotFound else {
+			throw KeychainStoreError.keychain(status)
+		}
+	}
+
+	func deleteEverything() throws {
+		let start = DispatchTime.now().uptimeNanoseconds
+		let status = SecItemDelete(KeychainQuery.everyItem(service: service) as CFDictionary)
+		recordAttempt?(.init(operation: "deleteEverything", slot: "", status: status, start: start))
 		guard status == errSecSuccess || status == errSecItemNotFound else {
 			throw KeychainStoreError.keychain(status)
 		}

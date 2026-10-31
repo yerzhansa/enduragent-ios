@@ -35,6 +35,10 @@ final class InterruptedSecretStoreBacking: SecretStoreBacking, @unchecked Sendab
 		try write { try base.delete(account: account) }
 	}
 
+	func deleteEverything() throws {
+		try write { try base.deleteEverything() }
+	}
+
 	private func write(_ body: () throws -> Void) throws {
 		try lock.withLock {
 			if let remainingWrites, remainingWrites == 0 {

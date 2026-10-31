@@ -3,6 +3,7 @@ import Foundation
 package protocol ModelCatalogCache: Sendable {
 	func load() throws -> ModelCatalog?
 	func replaceAtomically(_ catalog: ModelCatalog) throws
+	func erase() throws
 }
 
 package struct FileModelCatalogCache: ModelCatalogCache {
@@ -24,5 +25,13 @@ package struct FileModelCatalogCache: ModelCatalogCache {
 		try FileManager.default.createDirectory(
 			at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
 		try catalog.encoded().write(to: file, options: .atomic)
+	}
+
+	package func erase() throws {
+		do {
+			try FileManager.default.removeItem(at: file)
+		} catch let error as CocoaError where error.code == .fileNoSuchFile {
+			return
+		}
 	}
 }

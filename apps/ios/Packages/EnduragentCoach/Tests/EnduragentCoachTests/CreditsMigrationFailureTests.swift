@@ -47,4 +47,6 @@ private struct FailedLegacyDeletionBacking: SecretStoreBacking {
 		if account == failedSlot { throw KeychainStoreError.keychain(errSecNotAvailable) }
 		try base.delete(account: account)
 	}
+
+	func deleteEverything() throws { try base.deleteEverything() }
 }
