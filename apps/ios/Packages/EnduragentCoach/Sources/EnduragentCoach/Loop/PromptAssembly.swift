@@ -44,12 +44,14 @@ package enum PromptAssembly {
 	package static func volatile(
 		context: String,
 		snapshot: TrainingSnapshot,
+		reviewStatus: WorkoutReviewStatus,
 		timeZoneName: String,
 		displayLocale: DisplayLocale
 	) -> String {
 		var parts: [String] = [
 			"# Athlete Context\n\n" + wrapAthleteContext(context),
 			snapshotSection(snapshot),
+			reviewStatus.promptSection,
 		]
 		parts.append("# Current Date & Time\n\nTime zone: \(timeZoneName)")
 		parts.append(replyLanguageSection(displayLocale.language))

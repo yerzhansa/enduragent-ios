@@ -24,6 +24,7 @@ final class LiveCalendarRequests: Sendable {
 struct LiveReadOnlyTraining: TrainingReads, IntervalsClient {
 	let inner: any TrainingClient
 	let requests: LiveCalendarRequests
+	var approvals: LiveApprovalCalendar? = nil
 
 	func profile() async throws -> AthleteProfile { try await inner.profile() }
 
@@ -54,7 +55,10 @@ struct LiveReadOnlyTraining: TrainingReads, IntervalsClient {
 	}
 
 	func write(_ write: CalendarWrite) async -> IntervalsWriteAnswer {
-		requests.refuse()
+		if let approvals, let answer = await approvals.write(write, through: inner) {
+			return answer
+		}
+		return requests.refuse()
 	}
 }
 
@@ -77,6 +81,8 @@ struct LiveCoachBench: Sendable {
 	let today: CivilDate
 	let modelTransport: @Sendable (DiagnosticsLog) -> any ModelTransport
 	let accountReads: TrainingService.ClientFactory
+	var seedLedger: URL? = nil
+	var records: @Sendable () -> any ReviewChainLog = { InMemoryRecordLog() }
 
 	static func builtInModel() throws -> ModelID {
 		let ios = (0..<5).reduce(URL(fileURLWithPath: #filePath)) { path, _ in
@@ -96,15 +102,65 @@ struct LiveCoachBench: Sendable {
 	func run(_ scenario: LiveScenario, attempt: Int) async throws -> LiveScenarioRun {
 		ledger.label("\(scenario.name)#\(attempt)")
 		let missing = try await missingTargets(of: scenario)
-		guard missing.isEmpty else {
-			return LiveScenarioRun(
-				attempt: attempt, turns: [], violations: missing,
-				transcript: LiveTranscript.markdown(
-					scenario, attempt: attempt, turns: [], cancel: nil, violations: missing))
+		guard missing.isEmpty else { return Self.unrun(scenario, attempt: attempt, missing) }
+		var approvals: LiveApprovalCalendar?
+		if scenario.setting == .approving {
+			do {
+				approvals = try LiveApprovalCalendar.open(seedLedger, for: athlete)
+			} catch {
+				return Self.unrun(scenario, attempt: attempt, [LiveCalendarSweep.describe(error)])
+			}
 		}
 		let log = LiveExchangeLog()
 		let requests = LiveCalendarRequests()
-		let coach = try await coach(for: scenario.setting, log: log, requests: requests)
+		let coach = try await coach(
+			for: scenario.setting, log: log, requests: requests, approvals: approvals)
+		let played: (turns: [LiveTurnRecord], cancel: LiveCancelRecord?)
+		do {
+			played = try await play(
+				scenario, on: coach, log: log, requests: requests, approvals: approvals)
+		} catch {
+			let left = await end(coach, approvals)
+			guard left.isEmpty else {
+				let stopped = "the scenario stopped on \(LiveCalendarSweep.describe(error))"
+				throw LiveCheckStop(description: ([stopped] + left).joined(separator: "; "))
+			}
+			throw error
+		}
+		let (turns, cancel) = played
+		var violations = await end(coach, approvals)
+		for (number, pair) in zip(turns, scenario.turns).enumerated() {
+			violations += LiveVerdict.violations(of: pair.0, against: pair.1.expectations).map {
+				"turn \(number + 1): \($0)"
+			}
+			if pair.1.tapsSavePlan {
+				violations += LivePlanVerdict.violations(ofTap: pair.0.tap).map {
+					"turn \(number + 1) tap: \($0)"
+				}
+			}
+			if pair.1.approvesReview {
+				violations += LiveVerdict.violations(ofApproval: pair.0.approval).map {
+					"turn \(number + 1) approval: \($0)"
+				}
+			}
+		}
+		if turns.count < scenario.turns.count {
+			violations.append("the scenario stopped after turn \(turns.count)")
+		}
+		if scenario.endsWithCancel {
+			violations += LiveVerdict.violations(ofCancel: cancel).map { "cancel: \($0)" }
+		}
+		let transcript = LiveTranscript.markdown(
+			scenario, attempt: attempt, turns: turns, cancel: cancel, violations: violations)
+		return LiveScenarioRun(
+			attempt: attempt, turns: turns, cancel: cancel, violations: violations,
+			transcript: transcript)
+	}
+
+	private func play(
+		_ scenario: LiveScenario, on coach: Coach, log: LiveExchangeLog,
+		requests: LiveCalendarRequests, approvals: LiveApprovalCalendar?
+	) async throws -> (turns: [LiveTurnRecord], cancel: LiveCancelRecord?) {
 		var turns: [LiveTurnRecord] = []
 		var latestDraft: JSONValue?
 		for plan in scenario.turns {
@@ -141,35 +197,32 @@ struct LiveCoachBench: Sendable {
 			record.draft = latestDraft
 			record.prepared = try await preparedPlan(of: coach, for: record.waitingPlans.last)
 			if plan.tapsSavePlan { record.tap = await tapSavePlan(on: coach) }
+			if plan.approvesReview {
+				record.approval = try await approveWaitingReview(of: coach, approvals)
+			}
 			record.savedAfter = try await savedPlan(of: coach)
 			turns.append(record)
 			if record.reply == nil { break }
 		}
 		let cancel =
 			scenario.endsWithCancel ? try await cancelWaitingReview(of: coach, requests) : nil
+		return (turns, cancel)
+	}
+
+	private func end(_ coach: Coach, _ approvals: LiveApprovalCalendar?) async -> [String] {
 		await coach.lifecycle(.willTerminate)
-		var violations: [String] = []
-		for (number, pair) in zip(turns, scenario.turns).enumerated() {
-			violations += LiveVerdict.violations(of: pair.0, against: pair.1.expectations).map {
-				"turn \(number + 1): \($0)"
-			}
-			if pair.1.tapsSavePlan {
-				violations += LivePlanVerdict.violations(ofTap: pair.0.tap).map {
-					"turn \(number + 1) tap: \($0)"
-				}
-			}
-		}
-		if turns.count < scenario.turns.count {
-			violations.append("the scenario stopped after turn \(turns.count)")
-		}
-		if scenario.endsWithCancel {
-			violations += LiveVerdict.violations(ofCancel: cancel).map { "cancel: \($0)" }
-		}
-		let transcript = LiveTranscript.markdown(
-			scenario, attempt: attempt, turns: turns, cancel: cancel, violations: violations)
-		return LiveScenarioRun(
-			attempt: attempt, turns: turns, cancel: cancel, violations: violations,
-			transcript: transcript)
+		guard let approvals else { return [] }
+		return await approvals.removeCreated(
+			through: accountReads(.apiKey(intervalsKey), .keyOwner))
+	}
+
+	private static func unrun(_ scenario: LiveScenario, attempt: Int, _ violations: [String])
+		-> LiveScenarioRun
+	{
+		LiveScenarioRun(
+			attempt: attempt, turns: [], violations: violations,
+			transcript: LiveTranscript.markdown(
+				scenario, attempt: attempt, turns: [], cancel: nil, violations: violations))
 	}
 
 	private func missingTargets(of scenario: LiveScenario) async throws -> [String] {
@@ -179,16 +232,51 @@ struct LiveCoachBench: Sendable {
 		return scenario.targets.compactMap { $0.presence(in: calendar) }
 	}
 
+	private enum Armed {
+		case nothingWaits
+		case refused(String)
+		case armed(ReviewControlToken)
+	}
+
+	private func armWaitingReview(of coach: Coach) async throws -> Armed {
+		guard let shown = try await coach.desk.snapshot(chat: .main) else { return .nothingWaits }
+		let presented = await coach.decide(.presented(shown.ref), in: .main)
+		guard case .armed(_, let token)? = try await coach.desk.snapshot(chat: .main)?.controls
+		else { return .refused("never armed: the presentation answered \(presented)") }
+		return .armed(token)
+	}
+
+	private func approveWaitingReview(of coach: Coach, _ approvals: LiveApprovalCalendar?)
+		async throws -> LiveApprovalRecord?
+	{
+		guard let approvals else {
+			return LiveApprovalRecord(
+				outcome: "not approved: only the approving setting writes to the calendar",
+				completed: false, creates: 0, problems: [], waitingAfter: true)
+		}
+		switch try await armWaitingReview(of: coach) {
+		case .nothingWaits:
+			return nil
+		case .refused(let outcome):
+			return LiveApprovalRecord(
+				outcome: outcome, completed: false, creates: 0, problems: [], waitingAfter: true)
+		case .armed(let token):
+			return try await approvals.approve(token, on: coach)
+		}
+	}
+
 	private func cancelWaitingReview(of coach: Coach, _ requests: LiveCalendarRequests)
 		async throws -> LiveCancelRecord?
 	{
-		guard let shown = try await coach.desk.snapshot(chat: .main) else { return nil }
-		let presented = await coach.decide(.presented(shown.ref), in: .main)
-		guard case .armed(_, let token)? = try await coach.desk.snapshot(chat: .main)?.controls
-		else {
+		let token: ReviewControlToken
+		switch try await armWaitingReview(of: coach) {
+		case .nothingWaits:
+			return nil
+		case .refused(let outcome):
 			return LiveCancelRecord(
-				outcome: "never armed: the presentation answered \(presented)", canceled: false,
-				calendarRequests: 0, waitingAfter: true)
+				outcome: outcome, canceled: false, calendarRequests: 0, waitingAfter: true)
+		case .armed(let armed):
+			token = armed
 		}
 		let sent = requests.total
 		let outcome = await coach.decide(.cancel(token), in: .main)
@@ -241,14 +329,15 @@ struct LiveCoachBench: Sendable {
 	}
 
 	private func coach(
-		for setting: LiveSetting, log: LiveExchangeLog, requests: LiveCalendarRequests
+		for setting: LiveSetting, log: LiveExchangeLog, requests: LiveCalendarRequests,
+		approvals: LiveApprovalCalendar?
 	) async throws -> Coach {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: openRouterKey))
 		let reads: TrainingService.ClientFactory
 		var snapshotFailing: FakeIntervalsClient?
 		switch setting {
-		case .connected, .reviewing:
+		case .connected, .reviewing, .approving:
 			try secrets.storeIntervalsConnection(
 				IntervalsConnection(
 					id: ConnectionID(), credential: .apiKey(intervalsKey), selection: .keyOwner,
@@ -273,13 +362,15 @@ struct LiveCoachBench: Sendable {
 		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
-				records: RecordStore(log: InMemoryRecordLog()), secrets: secrets,
+				records: RecordStore(log: records()), secrets: secrets,
 				models: ModelService { [modelTransport] diagnostics in
 					LiveMeteredTransport(
 						inner: modelTransport(diagnostics), ledger: ledger, log: log)
 				},
 				training: TrainingService { credential, selection in
-					LiveReadOnlyTraining(inner: reads(credential, selection), requests: requests)
+					LiveReadOnlyTraining(
+						inner: reads(credential, selection), requests: requests,
+						approvals: approvals)
 				},
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
 				clock: SystemClock(), support: .inMemory(app: .fixture)),

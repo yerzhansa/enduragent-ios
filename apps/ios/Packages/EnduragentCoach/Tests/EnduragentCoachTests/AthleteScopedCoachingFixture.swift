@@ -70,6 +70,7 @@ struct AthleteScopedCoachingFixture {
 		#expect(system.contains("\(label)_FACT"))
 		#expect(system.contains("\(label)_DAILY"))
 		#expect(system.contains("\(label)_EVENT"))
+		#expect(system.contains("\(label)_WORKOUT"))
 		#expect(request.messages.contains { $0.content.contains("\(label)_SUMMARY") })
 		#expect(request.messages.contains { $0.content.contains("\(label)_QUESTION") })
 		#expect(request.messages.contains { $0.content.contains("\(label)_REPLY") })
@@ -120,6 +121,16 @@ struct AthleteScopedCoachingFixture {
 			.synced(
 				.compactionSummary(
 					CompactionSummaryBody(chatId: .main, markdown: "\(label)_SUMMARY"))),
+			.synced(
+				.reviewOutcome(
+					ReviewOutcomeBody(
+						chatId: .main, review: WorkoutReviewID(ulid: fixedUlid(offset + 9)),
+						revision: ReviewRevision(rawValue: 1), after: turn, ending: .completed,
+						lines: [
+							OutcomeLine(
+								position: 0, action: .add, name: "\(label)_WORKOUT",
+								date: "1998-06-14", result: .saved)
+						]))),
 		]
 		let records = bodies.enumerated().map { index, body in
 			storedRecord(

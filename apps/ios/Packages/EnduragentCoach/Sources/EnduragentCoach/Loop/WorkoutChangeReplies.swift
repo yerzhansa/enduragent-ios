@@ -94,7 +94,7 @@ extension PendingReview {
 		switch self {
 		case .none:
 			.object(["kind": .string("none")])
-		case .busy(let base):
+		case .running(let base), .unconfirmed(let base):
 			.object([
 				"kind": .string("unavailable"),
 				"reference": base.json,
@@ -102,7 +102,7 @@ extension PendingReview {
 					"The review is being written or has an unconfirmed change, so it cannot be revised now."
 				),
 			])
-		case .waiting(let base, let remaining, let finished):
+		case .waiting(let base, let remaining, let finished, _):
 			.object([
 				"kind": .string("pending"),
 				"reference": base.json,

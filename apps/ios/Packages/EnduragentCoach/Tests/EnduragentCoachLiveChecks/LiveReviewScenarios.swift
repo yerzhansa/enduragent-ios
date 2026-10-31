@@ -178,7 +178,46 @@ extension LiveCoachPlan {
 							.review(.showsNotPrepared), .review(.leavesNoReview),
 						])
 				], targets: seeded),
+			LiveScenario(
+				name: "workout-review-approved", setting: .approving,
+				turns: [
+					approvedAdd(
+						"Add a 60-minute endurance ride on \(day(thursday)).", on: thursday),
+					LiveTurnPlan(
+						message: "Is anything still waiting for my approval?",
+						expectations: [
+							.promptHolds(nothingWaits), .promptHolds(approvedEnding),
+							.neverCalls(.prepareWorkoutChanges), .review(.unchanged),
+						]),
+				]),
+			LiveScenario(
+				name: "workout-review-repeat", setting: .approving,
+				turns: [
+					approvedAdd(
+						"Add a 60-minute endurance ride on \(day(thursday)).", on: thursday),
+					approvedAdd(
+						"Add a 30-minute strength session on \(day(saturday)).", on: saturday),
+					LiveTurnPlan(
+						message:
+							"Add a 15-minute ride with 3 x 2 minutes at threshold tomorrow.",
+						expectations: [
+							.promptHolds(nothingWaits), .review(.preparesOnce(.complete)),
+							.review(.holds(revision: 1, changes: [.add(today.adding(days: 1))])),
+						]),
+				], endsWithCancel: true),
 		])
+	}
+
+	static let nothingWaits = "No workout review waits for the athlete."
+	static let approvedEnding = "was approved and completed:"
+
+	private static func approvedAdd(_ message: String, on date: CivilDate) -> LiveTurnPlan {
+		LiveTurnPlan(
+			message: message,
+			expectations: [
+				.promptHolds(nothingWaits), .review(.preparesOnce(.complete)),
+				.review(.holds(revision: 1, changes: [.add(date)])),
+			], approvesReview: true)
 	}
 
 	static func raceRefusal(of race: EventID) -> String {

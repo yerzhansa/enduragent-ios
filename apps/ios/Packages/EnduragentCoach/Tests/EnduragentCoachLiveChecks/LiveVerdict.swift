@@ -33,6 +33,15 @@ enum LiveVerdict {
 		return found
 	}
 
+	static func violations(ofApproval approval: LiveApprovalRecord?) -> [String] {
+		guard let approval else { return ["no review waited to approve"] }
+		var found = approval.problems
+		if !approval.completed { found.append("Approve answered \(approval.outcome)") }
+		if approval.creates == 0 { found.append("Approve added nothing to the calendar") }
+		if approval.waitingAfter { found.append("a workout review still waits after Approve") }
+		return found
+	}
+
 	struct ParsedCall {
 		let id: String
 		let name: String
