@@ -140,9 +140,12 @@
 			XCTAssertFalse(element("chat.stop").exists)
 			XCTAssertEqual(composer.placeholderValue, "Écris à ton coach")
 			let transcript = element("chat.transcript")
+			let asked = transcript.staticTexts.matching(
+				NSPredicate(format: "label == %@", question)
+			).firstMatch
 			for page in 0..<12 {
 				capture("\(name)-page-\(page)")
-				if transcript.staticTexts[question].isHittable {
+				if asked.isHittable {
 					let reply = try replyNodes(after: question)
 					guard reply.contains(where: { $0.type == .staticText && !$0.label.isEmpty }),
 						!reply.contains(where: {
