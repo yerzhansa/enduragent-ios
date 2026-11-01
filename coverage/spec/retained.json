@@ -1,9 +1,9 @@
 {
 	"sources": {
 		"specification": "998c7cad0f8e1bf075aa4aafd6672bbf621b764f614fe1f32d46aeeb3bc1413e",
-		"decision": "3bbda00836e471771b1d7cf455eadf863290a219a8834bb982509050dcba20a8"
+		"decision": "afc281e3f568a8e4105bc7fa1a5743e2a5ead7e2de055976fb5d383fba68be70"
 	},
-	"digest": "e034a84d6fd513fd0bb1164213c678eb26c67c59e6138cbb4c94ea26dc989c14",
+	"digest": "428d3a538d148bd0a9593cb731e34b1463eef17182d3ec5959c5405e09123aee",
 	"requirements": [
 		{"id": "B01.01", "group": "work", "milestones": [6]},
 		{"id": "B01.02", "group": "work", "milestones": [6]},
@@ -153,7 +153,14 @@
 		{"sub": "B01.04/no-notice", "record": "ADR-0085"},
 		{"sub": "B01.03/no-update-state", "record": "ADR-0085"},
 		{"sub": "B11/three-outcomes", "record": "ADR-0085"},
-		{"sub": "G09/no-refresh", "record": "ADR-0085"}
+		{"sub": "G09/no-refresh", "record": "ADR-0085"},
+		{"sub": "B04.01/write-timing", "record": "ADR-0085"},
+		{"sub": "G09/paste-limits", "record": "ADR-0085"},
+		{"sub": "B02.03/one-phone", "record": "ADR-0085"},
+		{"sub": "B04.03/one-phone", "record": "ADR-0085"},
+		{"sub": "MOB06/one-phone", "record": "ADR-0085"},
+		{"sub": "X07/one-device", "record": "ADR-0085"},
+		{"sub": "MOB11/one-device", "record": "ADR-0085"}
 	],
 	"approvals": [
 		"A01",

@@ -26,8 +26,7 @@
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SyncedTrainingIdentityTests.swift", "function": "foregroundTurnResolvesPeerReplacement"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteScopedCoachingTests.swift", "function": "localAndSyncedReconnectReadOnlySelectedAthlete"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteScopedExtractionTests.swift", "function": "delayedExtractionKeepsSourceAthlete"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteOwnershipSnapshotTests.swift", "function": "savedOwnershipSurvivesRotationSwitchAndRelaunch"}},
-			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteOwnershipSnapshotTests.swift", "function": "savedOwnershipSurvivesRotationSwitchAndRelaunch"}}
 		],
 		"B02.04": [
 			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}},
@@ -76,8 +75,7 @@
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialReadTests.swift", "function": "lockedStoreReportsSecureStorageLocked"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialReadTests.swift", "function": "malformedItemReportsSlotWithoutContent"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialCorrectionTests.swift", "function": "storageRecoveryClearsNoticeWithoutLeakingContent"}},
-			{"test": {"file": "apps/ios/EnduragentUITests/CredentialProofs.swift", "class": "LockedKeychainProof", "method": "testLockedKeychainKeepsTheConversation"}},
-			{"phone": {"session": "closeout", "step": "closeout/keychain-proof"}}
+			{"test": {"file": "apps/ios/EnduragentUITests/CredentialProofs.swift", "class": "LockedKeychainProof", "method": "testLockedKeychainKeepsTheConversation"}}
 		],
 		"B04.02": [
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultTests.swift", "function": "failedWriteKeepsPreviousItemAndNextAttemptUsesIt"}},
@@ -86,8 +84,7 @@
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultRegressionTests.swift", "function": "concurrentReplacementThenDisconnectKeepsDisconnect"}}
 		],
 		"B04.03": [
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KeychainStoreTests.swift", "function": "everyItemIsSynchronizableAndReadableAfterFirstUnlock"}},
-			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KeychainStoreTests.swift", "function": "everyItemIsSynchronizableAndReadableAfterFirstUnlock"}}
 		],
 		"B05.01": [
 			{"test": {"file": "apps/ios/EnduragentTests/FixtureSessionTests.swift", "function": "languageChoiceRewritesTheChatAndTheNextReplyRequest"}},
@@ -367,8 +364,7 @@
 			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.2"}},
 			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.3"}},
 			{"criterion": {"table": "coverage/milestone-6.json", "id": "2.2.4"}},
-			{"phone": {"session": "closeout", "step": "closeout/diagnostics"}},
-			{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}
+			{"phone": {"session": "closeout", "step": "closeout/diagnostics"}}
 		],
 		"G01": [
 			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}},
@@ -401,8 +397,7 @@
 			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.3.4"}},
 			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.1"}},
 			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.3"}},
-			{"phone": {"session": "closeout", "step": "closeout/diagnostics"}},
-			{"phone": {"session": "closeout", "step": "closeout/feedback"}}
+			{"phone": {"session": "closeout", "step": "closeout/diagnostics"}}
 		],
 		"D01": [
 			{"record": "ADR-0080"}
@@ -475,9 +470,6 @@
 		"MOB05": [
 			{"requirement": {"table": "coverage/milestone-4.json", "id": "G06"}}
 		],
-		"MOB06": [
-			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
-		],
 		"MOB07": [
 			{"phone": {"session": "closeout", "step": "closeout/update"}}
 		],
@@ -495,9 +487,6 @@
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FragmentOrderingTests.swift", "function": "fragmentsExtendTheRealTrailingWindow"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxTests.swift", "function": "sendsInsideTheWindowJoinOneTurn"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AcceptTests.swift", "function": "concurrentAcceptsOfOneDraftWriteOneMessage"}}
-		],
-		"MOB11": [
-			{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}
 		],
 		"MOB12": [
 			{"requirement": {"table": "coverage/milestone-5.json", "id": "X08"}}
@@ -575,9 +564,6 @@
 		]
 	},
 	"waitsOn": {
-		"B02.03": [
-			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
-		],
 		"B03.01": [
 			{"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}
 		],
@@ -586,12 +572,6 @@
 		],
 		"B03.04": [
 			{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}
-		],
-		"B04.01": [
-			{"phone": {"session": "closeout", "step": "closeout/keychain-proof"}}
-		],
-		"B04.03": [
-			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
 		],
 		"B05.01": [
 			{"phone": {"session": "closeout", "step": "closeout/language"}}
@@ -608,15 +588,9 @@
 		"B16.01": [
 			{"phone": {"session": "closeout", "step": "closeout/choices"}}
 		],
-		"X07": [
-			{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}
-		],
 		"G08": [
 			{"phone": {"session": "closeout", "step": "closeout/language"}},
 			{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}
-		],
-		"G09": [
-			{"phone": {"session": "closeout", "step": "closeout/feedback"}}
 		],
 		"MOB01": [
 			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
@@ -624,15 +598,9 @@
 		"MOB03": [
 			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
 		],
-		"MOB06": [
-			{"phone": {"session": "closeout", "step": "closeout/two-phone"}}
-		],
 		"MOB08": [
 			{"phone": {"session": "m4", "step": "m4/largest-text"}},
 			{"phone": {"session": "plan", "step": "plan/6"}}
-		],
-		"MOB11": [
-			{"phone": {"session": "closeout", "step": "closeout/second-device-diagnostics"}}
 		]
 	}
 }

@@ -89,7 +89,8 @@ extension RequirementCase {
 	static let sixAgreed = [
 		"B10.02/no-snapshot", "B10.03/no-snapshot", "B10.01/one-file", "B10.01/one-severity",
 		"B01.02/store-notes", "B01.04/no-notice", "B01.03/no-update-state", "B11/three-outcomes",
-		"G09/no-refresh",
+		"G09/no-refresh", "B04.01/write-timing", "G09/paste-limits", "B02.03/one-phone",
+		"B04.03/one-phone", "MOB06/one-phone", "X07/one-device", "MOB11/one-device",
 	]
 	static let sixRows = sixAgreed.map { identifier in
 		identifier == "B11/three-outcomes"

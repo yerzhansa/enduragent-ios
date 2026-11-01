@@ -131,7 +131,7 @@ struct RetainedTests {
 		let groups = Dictionary(grouping: committed.requirements, by: \.group).mapValues(\.count)
 		#expect(committed.requirements.count == 138)
 		#expect(groups == [.work: 92, .crossCutting: 8, .journey: 10, .decision: 16, .mobile: 12])
-		#expect(committed.differences.count == 9)
+		#expect(committed.differences.count == 16)
 		#expect(committed.differences.allSatisfy { $0.record == "ADR-0085" })
 		#expect(committed.approvals.count == 51)
 		#expect(committed.digest.specification == Self.specificationSHA256)

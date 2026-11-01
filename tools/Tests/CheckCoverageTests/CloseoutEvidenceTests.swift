@@ -31,7 +31,7 @@ struct CloseoutEvidenceTests {
 					]
 				),
 				"MOB05": ([.requirement(table: four, id: "G06")], []),
-				"MOB06": ([closeout("two-phone")], []),
+				"MOB06": ([], []),
 				"MOB07": ([closeout("update")], []),
 				"MOB08": ([m4("largest-text"), .phone(session: "plan", step: "plan/6")], []),
 				"MOB09": (
@@ -55,17 +55,14 @@ struct CloseoutEvidenceTests {
 						test("AcceptTests", "concurrentAcceptsOfOneDraftWriteOneMessage"),
 					], []
 				),
-				"MOB11": ([closeout("second-device-diagnostics")], []),
+				"MOB11": ([], []),
 				"MOB12": ([.requirement(table: five, id: "X08")], []),
 			]
 
 	static let deviceCheckRows: [String: [EvidencePointer]] = [
-		"B02.03": [closeout("two-phone")],
-		"B04.03": [closeout("two-phone")],
 		"B03.01": [closeout("openrouter-signin")],
 		"B03.03": [closeout("openrouter-signin")],
 		"B03.04": [closeout("openrouter-recovery")],
-		"B04.01": [closeout("keychain-proof")],
 		"B05.01": [closeout("language")],
 		"B07.05": [closeout("lifecycle")],
 		"B08.03": live("reads-failing"),
@@ -88,7 +85,6 @@ struct CloseoutEvidenceTests {
 		"MOB01": [closeout("lifecycle")],
 		"MOB03": [closeout("lifecycle")],
 		"MOB02": [m4("offline-approve")],
-		"MOB06": [closeout("two-phone")],
 		"MOB08": [m4("largest-text"), .phone(session: "plan", step: "plan/6")],
 	]
 
@@ -179,7 +175,6 @@ struct CloseoutEvidenceTests {
 		let root = RetainedTests.repository.path
 		let hand = try HandEvidence.load(root: root)
 		let sitting = try SittingRecord.load(root: root)
-		#expect(Self.deviceCheckRows.count == 25)
 		for (id, closing) in Self.deviceCheckRows {
 			#expect(
 				hand.evidence[id, default: []].filter(Self.closesOnTheRealServices) == closing,
@@ -209,6 +204,30 @@ struct CloseoutEvidenceTests {
 				["the reply to a power-curve question on an athlete with no curve data"],
 			])
 		#expect(reads.planned == 3)
+	}
+
+	@Test(.timeLimit(.minutes(1)))
+	func theApprovedOnePhoneAndPasteDeviationsCloseWithoutTheirPhoneSteps() throws {
+		let rows = try Self.committedRows()
+		let approved = [
+			"B04.01": "B04.01/write-timing", "G09": "G09/paste-limits",
+			"B02.03": "B02.03/one-phone", "B04.03": "B04.03/one-phone",
+			"MOB06": "MOB06/one-phone", "X07": "X07/one-device", "MOB11": "MOB11/one-device",
+		]
+		for (id, sub) in approved {
+			let row = try #require(rows[id], "\(id)")
+			#expect(row.status == .deviation, "\(id)")
+			#expect(
+				row.differences.contains(.agreed(table: Self.six, sub: sub, record: "ADR-0085")),
+				"\(id)")
+		}
+		let steps = ["two-phone", "keychain-proof", "feedback", "second-device-diagnostics"]
+		let pointers = steps.map(Self.closeout)
+		let waits = steps.map { OpenReason.phone(session: "closeout", step: "closeout/" + $0) }
+		for row in rows.values {
+			#expect(row.evidence.allSatisfy { !pointers.contains($0) }, "\(row.id)")
+			#expect(row.waitsOn.allSatisfy { !waits.contains($0) }, "\(row.id)")
+		}
 	}
 
 	private static func committedRows() throws -> [String: CloseoutRow] {
