@@ -1,0 +1,73 @@
+{
+  "npmRevision": "d192cb974e715e1527645e0acf0d8353ed4d0edc",
+  "reason": "The review topic differs because npm's text describes npm's own activity store, and the phone reads intervals.icu live, which sends no workout id, no session sequence and no time-zone offset, and does send Load, Intensity, power and heart rate. Agreed by the operator for Milestone 3. The phone has no single-workout calendar tool from Milestone 4, so the intervals.icu and prescription topics name prepare_workout_changes, which prepares one workout review, where npm names intervals_create_workout (ADR-0083).",
+  "topics": {
+    "cycling-intervals-icu": {
+      "npmSHA256": "12dc55e81cdce1509794be12e8c48fd80a29ad55952c9901df9b6d9262ee104e",
+      "differences": [
+        {
+          "npm": "### Pushing Workouts — use `intervals_create_workout`",
+          "phone": "### Pushing Workouts — prepare them with `prepare_workout_changes`"
+        }
+      ]
+    },
+    "cycling-periodization": {
+      "npmSHA256": "89cf5982e01de04fce1112c6803f46ee814b7651bbed3c4e102815fab9195eb5",
+      "differences": []
+    },
+    "cycling-prescription-posture": {
+      "npmSHA256": "76311fe54186c18a0b97981eeb5e6ffbfd1ad19211344520f4dbf9f7b4c372bc",
+      "differences": [
+        {
+          "npm": "`get_sample_week`, or `intervals_create_workout`.",
+          "phone": "`get_sample_week`, or `prepare_workout_changes`."
+        },
+        {
+          "npm": "Use `intervals_create_workout` only when the current message asks for calendar creation, scheduling, pushing, or updating; a prose-only request never authorizes a calendar write.",
+          "phone": "Use `prepare_workout_changes` only when the current message asks for calendar creation, scheduling, pushing, or updating; a prose-only request never prepares a calendar change."
+        }
+      ]
+    },
+    "cycling-race-prep": {
+      "npmSHA256": "787ecae108709000bac5a50c500f0e1633fa381ecc952f7fc0516078396db99b",
+      "differences": []
+    },
+    "cycling-recovery": {
+      "npmSHA256": "0d5c56a7dbecaf9e20f7fcac8bf66f345ebfbe898dea1bbb975dfec0052db88c",
+      "differences": []
+    },
+    "cycling-review": {
+      "npmSHA256": "b65c370f6c0e183688cd10e2d9d874cee16a72176e1da6ec5b66cc36c2810542",
+      "differences": [
+        {
+          "npm": "## Canonical activity evidence",
+          "phone": "## Activity evidence"
+        },
+        {
+          "npm": "The activity list provides a bounded summary: `workoutId`, `sessionSequence`,\n`isMultisport`, `sport`, `subSport`, `isTransition`, start/local date, elapsed/timer/\nmoving duration, and distance. Activity detail adds bounded `laps` with sequence,\nstart, elapsed/timer duration, and distance.\n\nThese fields do not contain planned targets, plan compliance, intensity, load, power,\nheart rate, cadence, or wellness. Do not infer those values from lap timing or distance.",
+          "phone": "The activity list gives each activity an `id`, a title, a sport, a local start, a\nduration, and a distance and, when recorded, Load, Intensity, average and weighted\naverage power, average and maximum heart rate, elevation gain, and FTP. Activity detail\nadds, when recorded, the athlete's notes, indoor or not, RPE, feel, average cadence,\naverage and maximum speed, calories, work, variability index, efficiency factor,\ndecoupling, and the time in each power zone and each heart-rate zone. It also adds\n`laps` when intervals.icu supplies them: each lap has its number, a label or kind,\nand the same measurements as a listed activity.\n\nThese reads hold no planned targets, no plan compliance, and no wellness. A measurement\nthat is absent is unavailable. Do not infer it from another measurement."
+        },
+        {
+          "npm": "Summarize every same-`workoutId` activity in `sessionSequence` order.",
+          "phone": "intervals.icu does not mark which activities belong to one workout, so legs are inferred\nfrom starts within 30 minutes of each other. Summarize every leg in start-time order\nand say the grouping is inferred."
+        },
+        {
+          "npm": "| Metric                   | Value                                                                          |\n| ------------------------ | ------------------------------------------------------------------------------ |\n| Date / start             | local date; local time only with timezone offset, otherwise UTC or unavailable |\n| Sport                    | sport / sub-sport                                                              |\n| Elapsed / timer / moving | hh:mm:ss / hh:mm:ss / hh:mm:ss                                                 |\n| Distance                 | km                                                                             |\n| Recorded workout         | session sequence; multisport / transition when applicable                      |",
+          "phone": "| Metric                           | Value                                              |\n| -------------------------------- | -------------------------------------------------- |\n| Date / start                     | local date and local time; date alone when no time |\n| Sport                            | sport                                              |\n| Duration                         | hh:mm:ss                                           |\n| Distance                         | km                                                 |\n| Load                             | recorded value                                     |\n| Intensity                        | %                                                  |\n| Average / weighted average power | W / W                                              |\n| Average / max HR                 | bpm / bpm                                          |\n| Elevation gain                   | m                                                  |\n| FTP                              | W                                                  |\n\nAfter an activity detail read, append only the rows it supplied:\n\n| Metric                                | Value             |\n| ------------------------------------- | ----------------- |\n| Indoor                                | yes / no          |\n| RPE / feel                            | recorded values   |\n| Average cadence                       | rpm               |\n| Average / max speed                   | km/h              |\n| Calories                              | kcal              |\n| Work                                  | kJ                |\n| Variability index / efficiency factor | recorded values   |\n| Decoupling                            | %                 |\n| Time in power / heart-rate zones      | hh:mm:ss per zone |"
+        },
+        {
+          "npm": "When bounded `laps` are present, the lap table columns are:\n\n| Lap | Start (with timezone basis) | Elapsed | Timer | Distance |\n| --- | --------------------------- | ------- | ----- | -------- |\n\nRender nullable values as unavailable rather than zero.",
+          "phone": "When `laps` are supplied, the lap table columns are:\n\n| Lap | Label / kind | Duration | Distance |\n| --- | ------------ | -------- | -------- |\n\nAdd an average power column and an average HR column when any lap has that measurement.\n\nRender a missing value as unavailable rather than zero."
+        }
+      ]
+    },
+    "cycling-workout-design": {
+      "npmSHA256": "d68461b520c77cd80933bc882c567746f25047b01ad4229cf181e624d74d53e7",
+      "differences": []
+    },
+    "cycling-zone-reference": {
+      "npmSHA256": "11f74428df64fc168828ee7d7c89c4cf2d56e2a74ba7ecf3bd1e5cb761950223",
+      "differences": []
+    }
+  }
+}

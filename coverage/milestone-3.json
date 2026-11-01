@@ -1,0 +1,1058 @@
+{
+	"units": {
+		"1.1": 6,
+		"1.2": 10,
+		"1.3": 7,
+		"2.1": 7,
+		"2.2": 7,
+		"3.1": 10,
+		"3.2": 8,
+		"4.1": 7,
+		"5.1": 12,
+		"5.2": 6,
+		"6.1": 5,
+		"6.2": 5,
+		"6.3": 4,
+		"6.4": 5,
+		"7.1": 4,
+		"7.2": 5,
+		"7.3": 5,
+		"8.1": 5,
+		"8.2": 5,
+		"8.3": 5,
+		"8.4": 6
+	},
+	"criteria": [
+		{
+			"id": "1.1.1",
+			"statement": "The training service port has no profile or wellness method, and the app sees a wellness day only as a read-only value it cannot build.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
+			]
+		},
+		{
+			"id": "1.1.2",
+			"statement": "A wellness row keeps every field the source sent: a missing or null field has no entry, a zero stays a zero, and reported fatigue is separate from calculated Fatigue.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTReadsTests.swift", "function": "wellnessDecodesEveryField"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTReadsTests.swift", "function": "wellnessKeepsSourceOrderZerosAndGaps"}
+			]
+		},
+		{
+			"id": "1.1.3",
+			"statement": "Each profile value comes from the first source that has it, cycling settings row before the athlete's own field (weight the other way round), and the cycling row is the first row with a cycling sport, else the first row.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTReadsTests.swift", "function": "profileUsesTheFirstSourceThatHasAValue"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTReadsTests.swift", "function": "cyclingRowIsTheFirstRowWithACyclingSport"}
+			]
+		},
+		{
+			"id": "1.1.4",
+			"statement": "FTP is absent, usable from 50 to 600 W, or implausible with its number kept.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingReadsTests.swift", "function": "ftpInsideTheBandIsUsable"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingReadsTests.swift", "function": "ftpOutsideTheBandIsImplausibleWithItsNumber"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingReadsTests.swift", "function": "ftpWithoutANumberIsAbsentOrImplausible"}
+			]
+		},
+		{
+			"id": "1.1.5",
+			"statement": "A read range refuses reversed bounds and more than 366 inclusive days, accepts exactly 366, and ends on today when the end is left out.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadRangeTests.swift", "function": "reversedBoundsAreRefused"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadRangeTests.swift", "function": "exactly366InclusiveDaysAreAccepted"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadRangeTests.swift", "function": "aRangeOf367InclusiveDaysIsRefused"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadRangeTests.swift", "function": "omittedNewestEndsOnToday"}
+			]
+		},
+		{
+			"id": "1.1.6",
+			"statement": "Settings shows what it showed before the port, with Form the difference of Fitness and Fatigue rounded once to a whole number; the two read tools now show the wider results of units 2.1 and 2.2.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ConnectionResultTests.swift", "function": "connectedFormIsRoundedToAWholeNumberOnce"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingReadsTests.swift", "function": "formIsFitnessMinusFatigueUnrounded"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "profileToolShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "wellnessToolShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "1.2.1",
+			"statement": "The wellness line comes from the newest dated row that has something to show and carries that row's date, whatever order the rows arrive in.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "latestWellnessRowIsChosenByDateWhateverTheOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotNpmParityTests.swift", "function": "snapshotTextMatchesNpmOutsideTheNamedDifferences"}
+			]
+		},
+		{
+			"id": "1.2.2",
+			"statement": "The profile line and the wellness line show each reading that is present and leave an absent one out instead of printing zero.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "turnPromptCarriesBothLinesAndLeavesAbsentFieldsOut"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotNpmParityTests.swift", "function": "snapshotTextMatchesNpmOutsideTheNamedDifferences"}
+			]
+		},
+		{
+			"id": "1.2.3",
+			"statement": "A changed profile reaches the next turn, because nothing is kept between turns.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "changedProfileReachesTheNextTurn"}
+			]
+		},
+		{
+			"id": "1.2.4",
+			"statement": "One failed read drops only its own line; the other line still renders and the fallback sentence stays away.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "oneFailedReadDropsOnlyItsOwnLine"}
+			]
+		},
+		{
+			"id": "1.2.5",
+			"statement": "Both reads failing, both empty, or the reads passing the five-second deadline give the fetch-before-prescribing fallback and no lines, and the deadline cancels both reads.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "bothReadsFailingGiveTheFallbackAndNoLines"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "missedDeadlineCancelsBothReadsAndGivesTheFallback"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "readFinishedBeforeAMissedDeadlineStillGivesNoLines"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotNpmParityTests.swift", "function": "snapshotTextMatchesNpmOutsideTheNamedDifferences"}
+			]
+		},
+		{
+			"id": "1.2.6",
+			"statement": "A weight or resting heart rate outside its plausible band is left out, and a row holding only such values counts as empty.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "latestWellnessRowIsChosenByDateWhateverTheOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotNpmParityTests.swift", "function": "snapshotTextMatchesNpmOutsideTheNamedDifferences"}
+			]
+		},
+		{
+			"id": "1.2.7",
+			"statement": "An implausible FTP is shown marked as not usable and followed by one sentence that keeps intensity guidance qualitative; a usable or absent FTP adds no sentence.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "implausibleFTPIsMarkedAndFollowedByTheQualitativeSentence"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "usableOrAbsentFTPAddsNoSentence"}
+			]
+		},
+		{
+			"id": "1.2.8",
+			"statement": "For the same wire responses the snapshot text equals the npm renderer's, apart from the named differences each fixture case declares.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotNpmParityTests.swift", "function": "snapshotTextMatchesNpmOutsideTheNamedDifferences"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotNpmParityTests.swift", "function": "wellnessIsReadForSevenDaysEndingOnThePhonesToday"}
+			]
+		},
+		{
+			"id": "1.2.9",
+			"statement": "Each failed read and each missed deadline is recorded in diagnostics without any measurement value.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "oneFailedReadDropsOnlyItsOwnLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "missedDeadlineCancelsBothReadsAndGivesTheFallback"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/EvidencePrivacyTests.swift", "function": "snapshotDiagnosticsCarryNoAddressAndNoMeasurement"}
+			]
+		},
+		{
+			"id": "1.2.10",
+			"statement": "A turn with no connection makes neither read and records no failure.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "unconnectedTurnMakesNoReadAndRecordsNoFailure"}
+			]
+		},
+		{
+			"id": "1.3.1",
+			"statement": "With no connection the request offers only the local tools, with the hidden-memory read only when hidden memory has content, and no training tool.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "unconnectedTurnIsOfferedLocalToolsAndMemoryReadOnlyOnceMemoryIsHidden"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryToolsTests.swift", "function": "memoryReadOmittedWhenNotesAreStampOnly"}
+			]
+		},
+		{
+			"id": "1.3.2",
+			"statement": "With a connection the request carries the same tools in the same order as before the tool table, so the cached prefix is unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "connectedTurnIsOfferedEveryToolInOneOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "everyToolAConnectedTurnCanOfferTakesItsPinnedParameters"}
+			]
+		},
+		{
+			"id": "1.3.3",
+			"statement": "With no connection the snapshot section says training data is not connected, in place of the fetch-first fallback.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "unconnectedPromptSaysTrainingDataIsNotConnected"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "snapshotSectionTextForEachState"}
+			]
+		},
+		{
+			"id": "1.3.4",
+			"statement": "A call to a tool the turn did not offer is answered as an unknown tool and reaches no client, even with malformed arguments.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "unconnectedCallToAnUnofferedToolReturnsUnknownToolAndReachesNoClient"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "unofferedToolCalledWithMalformedArgumentsReturnsUnknownTool"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnToolInputTests.swift", "function": "unofferedToolCallsReturnUnknownTool"}
+			]
+		},
+		{
+			"id": "1.3.5",
+			"statement": "A handler that reads training data cannot be written without a connection.",
+			"noAutomatedProof": "This is a property of the types: such a handler takes a value that only a connected turn can build, so the compiler holds it and no test can show it. The reviewer confirmed it from the definitions."
+		},
+		{
+			"id": "1.3.6",
+			"statement": "A new tool name does not compile until it has a definition and an effect.",
+			"noAutomatedProof": "This is a property of the types: both switches over the tool names are exhaustive with no default, so the compiler holds it and no test can show it. The reviewer confirmed it from the definitions."
+		},
+		{
+			"id": "1.3.7",
+			"statement": "A connected turn behaves as before: reads are memoized per attempt, a write evicts memory reads, a workout proposal is saved for approval, and results stay inside the envelope and the token cap.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "repeatedReadInOneAttemptReachesTheClientOnceAndStaysEnveloped"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "memoryReadAfterAWriteInTheSameAttemptSeesTheWrite"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolResultCapTests.swift", "function": "resultJustAboveCapIsOmitted"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationToolTests.swift", "function": "aMixedRequestIsPreparedWithoutACalendarWriteOrAnOldProposal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aPreparedTurnCommitsRevisionOneOnlyWhenItsReplyEnds"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "cardsFollowPositionAcrossFinishedWorkTheUnconfirmedChangeAndTheRemainingWork"}
+			]
+		},
+		{
+			"id": "2.1.1",
+			"statement": "A full profile gives the coach every reading, both zone ladders with names, the sports of the settings row used, sex, age and one units object.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "profileToolShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "2.1.2",
+			"statement": "Every key of npm's projection of the same profile is accounted for, as the same value under the phone's key or as a named difference.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "everyKeyOfNpmsProjectionIsAccountedFor"}
+			]
+		},
+		{
+			"id": "2.1.3",
+			"statement": "A profile field the source did not supply has no key: no null and no zero.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "profileToolShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "2.1.4",
+			"statement": "The date of birth reaches no tool result, prompt or diagnostics entry, and age is whole years on the phone's today.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "dateOfBirthReachesNoPromptNoToolResultAndNoDiagnosticsEntry"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "ageIsWholeYearsOnThePhonesToday"}
+			]
+		},
+		{
+			"id": "2.1.5",
+			"statement": "An implausible FTP keeps its number with a not-usable flag and the snapshot's instruction; an FTP that is not a number has no key and the same flag.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "profileToolShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "2.1.6",
+			"statement": "The profile tool follows the source order of unit 1.1, and each added field is read from its one source on the cycling row or the athlete.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTReadsTests.swift", "function": "profileKeepsTheAddedFieldsOfTheCyclingRowAndTheAthlete"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTReadsTests.swift", "function": "profileUsesTheFirstSourceThatHasAValue"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "profileToolShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "2.1.7",
+			"statement": "The snapshot's profile line is unchanged by the wider profile: it names only the five readings it named before.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotWiderProfileTests.swift", "function": "profileLineNamesOnlyTheSliceOneReadingsOfAFullProfile"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotWiderProfileTests.swift", "function": "profileHoldingOnlyAddedReadingsHasNoProfileLine"}
+			]
+		},
+		{
+			"id": "2.2.1",
+			"statement": "A full wellness history gives the coach every field plus Form for each day, with the day's date and one units object.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "wellnessToolShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "2.2.2",
+			"statement": "Sparse wellness rows keep their gaps: a null field has no key, a real zero is 0, and a day with no readings is its date alone.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "wellnessToolShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "everyKeyOfNpmsProjectionIsAccountedFor"}
+			]
+		},
+		{
+			"id": "2.2.3",
+			"statement": "Calculated Fatigue and reported fatigue are different keys, and Form is Fitness minus Fatigue to one decimal, absent unless both are present.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "wellnessToolShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "2.2.4",
+			"statement": "Wellness days are ordered by date whatever order the source sent.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "wellnessToolShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "wellnessRangeOf366DaysIsReadAndIncludesBothEnds"}
+			]
+		},
+		{
+			"id": "2.2.5",
+			"statement": "An invalid date, reversed bounds and a 367-day wellness range are refused before any read; a 366-day range is read and includes both ends.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "wellnessRangeThatIsNotValidIsRefusedBeforeAnyRead"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "wellnessRangeOf366DaysIsReadAndIncludesBothEnds"}
+			]
+		},
+		{
+			"id": "2.2.6",
+			"statement": "An omitted end date is today in the phone's time zone.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "omittedNewestIsTodayInThePhonesTimeZone"}
+			]
+		},
+		{
+			"id": "2.2.7",
+			"statement": "Every key of npm's projection of the same wellness rows is accounted for, as the same value under the phone's key or as a named difference.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "everyKeyOfNpmsProjectionIsAccountedFor"}
+			]
+		},
+		{
+			"id": "3.1.1",
+			"statement": "Each listed activity carries the identifier the source gave it, and the detail and stream tools accept that identifier.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "listedIdentifiersAreAcceptedByTheDetailAndStreamTools"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "activityListShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "3.1.2",
+			"statement": "Each listed activity shows its title, sport, local start and every measurement the source supplies, with one units object.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivitiesTests.swift", "function": "completeActivityRowKeepsEveryMeasurement"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "activityListShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "everyKeyOfNpmsProjectionIsAccountedFor"}
+			]
+		},
+		{
+			"id": "3.1.3",
+			"statement": "A row without a duration, a distance or a title is listed without that key; no zero or empty title is made up.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivitiesTests.swift", "function": "activityRowWithoutDurationAndDistanceHasNeitherReading"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "activityListShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "3.1.4",
+			"statement": "Two activities on the same day with the same title stay two rows with different identifiers and start times.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivitiesTests.swift", "function": "twoActivitiesWithTheSameDayAndTitleStayTwoRows"}
+			]
+		},
+		{
+			"id": "3.1.5",
+			"statement": "A row Strava hides is counted and not listed, and the result carries the notice with the hidden count and the total of all rows returned.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivitiesTests.swift", "function": "rowIsClassifiedByTheStravaRuleThenByWhetherItCouldBeRead"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityListingTests.swift", "function": "countsAddUpToEveryRowTheSourceReturned"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "rangeWithNoActivityStillCarriesWhatItHides"}
+			]
+		},
+		{
+			"id": "3.1.6",
+			"statement": "A row with no usable identifier or start is counted as unreadable, and the count is shown when above zero.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityListingTests.swift", "function": "countsAddUpToEveryRowTheSourceReturned"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivitiesTests.swift", "function": "activitiesAreAskedForTheRangeAndCountedByKind"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "activityListShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "3.1.7",
+			"statement": "An empty range is an empty activity list that still carries its counts.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "rangeWithNoActivityStillCarriesWhatItHides"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "activityListShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "3.1.8",
+			"statement": "The activity range follows the wellness range rules, checked before any request, and an omitted end is the phone's today.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "activityRangeThatIsNotValidIsRefusedBeforeAnyRead"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "omittedNewestOfAnActivityRangeIsTodayInThePhonesTimeZone"}
+			]
+		},
+		{
+			"id": "3.1.9",
+			"statement": "A start with a time of day reaches the coach as local time with no offset, and a start that is a date alone reaches it as the date alone.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "activityListShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivitiesTests.swift", "function": "startWithoutATimeOfDayIsTheDateAlone"}
+			]
+		},
+		{
+			"id": "3.1.10",
+			"statement": "The retired days argument is refused on all three ranged tools: a call with it and no oldest date is an invalid date.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "daysWithoutOldestIsRefusedAsAMissingDate"}
+			]
+		},
+		{
+			"id": "3.2.1",
+			"statement": "A detail read for a listed identifier returns that activity's row and its laps, each lap with its number, label, kind and measurements.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "twoActivitiesWithTheSameDayAndTitleAreEachReadWithTheirOwnLaps"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "detailKeepsEachLapInSourceOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailReadoutTests.swift", "function": "activityDetailShowsTheExpectedResultForEveryCase"}
+			]
+		},
+		{
+			"id": "3.2.2",
+			"statement": "An answer whose identifier differs from the one asked is refused as a mismatch and never shown as the asked activity, a Strava-hidden answer included.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "answerForAnotherIdentifierIsRefusedAsAMismatch"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "answerForAnotherIdentifierIsAMismatchWhateverItsShape"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "storedAnswerForAnotherIdentifierIsNeverShownAsTheAskedActivity"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "detailIsBuiltOnlyForTheIdentifierThatWasAsked"}
+			]
+		},
+		{
+			"id": "3.2.3",
+			"statement": "Laps the source did not supply are told apart from laps recorded as an empty list.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "lapsNotSuppliedAndLapsRecordedAsAnEmptyListAreToldApart"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "lapsTheSourceDidNotSupplyAreNotAnEmptyLapList"}
+			]
+		},
+		{
+			"id": "3.2.4",
+			"statement": "A missing activity is answered as not found with its identifier, and one Strava hides is answered as hidden with the import guidance, by the rule of the list.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "identifierIntervalsDoesNotHaveIsNotFound"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "activityStravaHidesCarriesTheImportGuidance"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "singleActivityIsHiddenByTheRuleOfTheList"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "missingActivityIsNotFoundAndAnotherRefusalIsThrown"}
+			]
+		},
+		{
+			"id": "3.2.5",
+			"statement": "A detail read that fails after a good list names the identifier and the cause, a network failure included, and is never an empty list or another activity.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "detailThatFailsAfterAGoodListNamesTheActivityAndTheCause"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "detailThatCannotReachIntervalsNamesTheActivityAndTheCause"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "unreachableServiceIsANetworkFailureAndCancellationIsNotRenamed"}
+			]
+		},
+		{
+			"id": "3.2.6",
+			"statement": "An identifier the detail tool cannot accept is refused before any request.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "identifierTheToolCannotAcceptIsRefusedBeforeAnyRead"}
+			]
+		},
+		{
+			"id": "3.2.7",
+			"statement": "A long lap list stays inside the token cap for a tool result by the existing truncation.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "lapListBeyondTheTokenCapIsOmittedAndCounted"}
+			]
+		},
+		{
+			"id": "3.2.8",
+			"statement": "The detail carries each detail-only field the source sent and no key for one it did not, and no other source field reaches the coach.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailTests.swift", "function": "detailOnlyFieldsTheSourceSentAreShownAndTheOthersHaveNoKey"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IntervalsRESTActivityDetailTests.swift", "function": "detailKeepsTheRowAndEveryDetailOnlyField"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityDetailReadoutTests.swift", "function": "everyKeyNpmPassesIsAccountedFor"}
+			]
+		},
+		{
+			"id": "4.1.1",
+			"statement": "A request for a custom stream channel sends that name to the source and returns its summary under that name.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamSummaryTests.swift", "function": "customChannelIsAskedForByItsNameAndSummarizedUnderIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamReadTests.swift", "function": "namedChannelsAreForwardedAndSummarizedFromTheStoredSamples"}
+			]
+		},
+		{
+			"id": "4.1.2",
+			"statement": "An omitted channel list and an empty one both ask for the five standard channels.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamSummaryTests.swift", "function": "standardFiveAreAskedForWhenNoChannelIsNamed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReadToolsTests.swift", "function": "streamReadWithNoChannelNamedAsksForTheStandardFive"}
+			]
+		},
+		{
+			"id": "4.1.3",
+			"statement": "Each channel with a valid sample gets a minimum, a maximum and a mean to one decimal, with one sample count, equal to npm's summary for the same input.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamSummaryTests.swift", "function": "everyChannelWithAValidSampleIsSummarizedAsNpmDoes"}
+			]
+		},
+		{
+			"id": "4.1.4",
+			"statement": "A channel with no valid samples, or one the source did not return, has no statistics and is listed as unanswered.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamSummaryTests.swift", "function": "channelsWithNothingToSummarizeAreUnansweredAndHaveNoStatistics"}
+			]
+		},
+		{
+			"id": "4.1.5",
+			"statement": "When every asked channel answered, the result has npm's shape exactly: the sample count and the channels.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamSummaryTests.swift", "function": "everyChannelWithAValidSampleIsSummarizedAsNpmDoes"}
+			]
+		},
+		{
+			"id": "4.1.6",
+			"statement": "No series leaves the client, and both source layouts of a stream answer decode to the same summary.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamSummaryTests.swift", "function": "listAndKeyedLayoutsGiveTheSameSummary"}
+			],
+			"checkedByHand": {"part": "That no series leaves the client. It is a property of the types: the stream read of the training port returns only the summary type, which holds three numbers per channel. The reviewer confirmed it from the definitions.", "described": "apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Cycling/TrainingReads.swift"}
+		},
+		{
+			"id": "4.1.7",
+			"statement": "The stream tool checks the identifier before any request.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamReadTests.swift", "function": "identifierOrChannelListTheToolCannotAcceptIsRefusedBeforeAnyRead"}
+			]
+		},
+		{
+			"id": "5.1.1",
+			"statement": "The review rules treat activities that start within 30 minutes as possible legs of one workout, say the grouping is inferred, and group nothing when a start has no time of day.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "legsAreInferredFromStartsWithinThirtyMinutesAndNeverFromAGroupingField"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.1.2",
+			"statement": "The rules for legs hold: every leg is summarized, one is detailed, and one leg never judges the whole workout or changes the next session.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "everyLegIsSummarizedAndOneLegNeverJudgesTheWholeWorkout"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.1.3",
+			"statement": "The rules state truthfully what the list and the detail hold and what they do not, and that an absent measurement is not inferred.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "evidenceStatementNamesWhatTheListAndTheDetailHoldAndWhatTheyDoNot"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.1.4",
+			"statement": "A brief review uses the list only and may state its recorded measurements, with no per-lap claim.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "briefReviewUsesTheListOnlyAndMayStateItsRecordedMeasurements"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.1.5",
+			"statement": "A default review reads the chosen activity by its listed identifier and may state lap measurements, without renaming laps or inventing a target.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "defaultReviewReadsTheChosenActivityByItsListedIdAndMayStateLapMeasurements"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.1.6",
+			"statement": "Only a deep review reads the stream summary.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "onlyADeepReviewReadsTheStreamSummary"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.1.7",
+			"statement": "Measurements alone never establish session quality, recovery, readiness or plan compliance.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "measurementsAloneNeverEstablishQualityRecoveryReadinessOrPlanCompliance"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.1.8",
+			"statement": "A start is shown as the athlete's local time, never labelled as another zone, with the time left out of a date-only start.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "startIsShownAsTheAthletesLocalTimeAndTheTimeIsLeftOutOfADateOnlyStart"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.1.9",
+			"statement": "The numbers tables name only the rows and lap columns the phone supplies, and a missing cell reads as unavailable.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "numbersTablesNameOnlyTheRowsAndLapColumnsThePhoneSupplies"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.1.10",
+			"statement": "The rules name exactly the answers a failed detail read can give and tell the coach to state the limit in plain words.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "failureRulesNameExactlyTheAnswersAFailedDetailReadGives"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.1.11",
+			"statement": "The coach still asks before looking further back, before reviewing an old session, and when more than one activity matches.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "coachStillAsksBeforeLookingFurtherBackReviewingAnOldSessionOrChoosingAMatch"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.1.12",
+			"statement": "The three activity tool descriptions say how the identifier travels and state no limit the phone does not enforce.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "toolDescriptionsSayHowTheIdTravelsAndStateNoLimitThePhoneDoesNotEnforce"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewRulesTests.swift", "function": "carriedTextIsNpmsOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "5.2.1",
+			"statement": "Each review command and a natural-language scope reach the coach with the athlete's words unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "athletesWordsReachTheCoachUnchanged"}
+			]
+		},
+		{
+			"id": "5.2.2",
+			"statement": "A scripted turn lists seven days, reads one activity by a listed identifier and then its streams, and each result carries what the next step needs.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "sevenDayListLeadsToOneActivitysDetailAndThenToItsStreams"}
+			]
+		},
+		{
+			"id": "5.2.3",
+			"statement": "Two activities with the same day and title are listed apart, and a detail read for either returns that one.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "twoActivitiesWithTheSameDayAndTitleAreListedApartAndEachIsReadAsItself"}
+			]
+		},
+		{
+			"id": "5.2.4",
+			"statement": "Starts 29 and 31 minutes apart both show their time of day, and a date-only start shows the date alone.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "startsShowTheTimeOfDayThatTheThirtyMinuteRuleReadsAndADateOnlyStartShowsTheDate"}
+			]
+		},
+		{
+			"id": "5.2.5",
+			"statement": "An empty seven-day list is an empty list with counts, and an explicit older range reaches the newest activity.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "emptySevenDayListHasItsCountsAndAnOlderRangeReachesTheNewestActivity"}
+			]
+		},
+		{
+			"id": "5.2.6",
+			"statement": "After a good list, a failed detail read gives the coach its failure answer and no activity data.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReviewEvidenceTests.swift", "function": "detailReadThatFailsAfterAGoodListGivesItsFailureAnswerAndNoActivityData"}
+			]
+		},
+		{
+			"id": "6.1.1",
+			"statement": "A two-column table reports the stacked layout; one column, or three and more, report the grid.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyTableTests.swift", "function": "onlyATwoColumnTableStacks"}
+			]
+		},
+		{
+			"id": "6.1.2",
+			"statement": "Each body row has one description: metric then value when stacked, each cell after its own header in a grid.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyTableTests.swift", "function": "stackedRowsReadTheMetricThenItsValueInSourceOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyTableTests.swift", "function": "gridRowsReadEachCellAfterItsOwnHeaderAndSkipEmptyCells"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyTableTests.swift", "function": "aCellUnderAnEmptyHeaderIsReadWithoutBorrowingAnotherHeader"}
+			]
+		},
+		{
+			"id": "6.1.3",
+			"statement": "An empty cell is left out of the description together with its header, and no value is described under another column's header.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyTableTests.swift", "function": "gridRowsReadEachCellAfterItsOwnHeaderAndSkipEmptyCells"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyTableTests.swift", "function": "stackedRowsReadTheMetricThenItsValueInSourceOrder"}
+			]
+		},
+		{
+			"id": "6.1.4",
+			"statement": "Row descriptions keep the cell text exactly, signs, separators and units included.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyTableTests.swift", "function": "stackedRowsReadTheMetricThenItsValueInSourceOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyTableTests.swift", "function": "gridRowsReadEachCellAfterItsOwnHeaderAndSkipEmptyCells"}
+			]
+		},
+		{
+			"id": "6.1.5",
+			"statement": "Row and cell order match the source, and the row descriptions replace the tab-joined table text.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyTableTests.swift", "function": "theSpokenTableIsItsRowDescriptionsLineByLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyTableTests.swift", "function": "stackedRowsReadTheMetricThenItsValueInSourceOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyDocumentTests.swift", "function": "tableKeepsAlignmentStylesAndEmptyCells"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReplyLiteralTests.swift", "function": "emptyUnsafeLinkAloneAndInATableDoesNotRequireSourceRecovery"}
+			]
+		},
+		{
+			"id": "6.2.1",
+			"statement": "On a phone-width screen a two-column table fits the reply width, with every metric and value visible in source order without sideways scrolling.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ReplyTableProofs.swift", "class": "ReplyTableProof", "method": "testNumbersTablesStackScrollAndReadRowByRowInChatAndHistory"}
+			]
+		},
+		{
+			"id": "6.2.2",
+			"statement": "A table with three or more columns keeps the grid, scrolls sideways to its last column, and keeps the header above its columns.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ReplyTableProofs.swift", "class": "ReplyTableProof", "method": "testNumbersTablesStackScrollAndReadRowByRowInChatAndHistory"}
+			],
+			"checkedByHand": {"part": "That each header cell is drawn over its own column. Table cells are hidden from accessibility, so the proof compares only the extent of the header row with the extent of each row below it; the columns are inspected on the reply-table-laps-last-column screenshot.", "described": ".agents/skills/verify-ios/features/chat.md"}
+		},
+		{
+			"id": "6.2.3",
+			"statement": "VoiceOver reads a table one row at a time, each row labelled with its description. ADR-0088 dropped the header-trait half, which only VoiceOver or the Accessibility Inspector could check.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ReplyTableProofs.swift", "class": "ReplyTableProof", "method": "testNumbersTablesStackScrollAndReadRowByRowInChatAndHistory"},
+				{"file": "apps/ios/EnduragentUITests/ReplyFormattingProofs.swift", "class": "ReplyFormattingProof", "method": "testFormattedReplyInChatAndHistory"}
+			]
+		},
+		{
+			"id": "6.2.4",
+			"statement": "An empty cell shows as empty and keeps its column, so later cells do not shift.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ReplyTableProofs.swift", "class": "ReplyTableProof", "method": "testNumbersTablesStackScrollAndReadRowByRowInChatAndHistory"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/NumbersReplyFixtureTests.swift", "function": "theNumbersReplyHoldsALongSummaryTableAndALapTableWithEmptyCells"}
+			],
+			"checkedByHand": {"part": "That the empty cell is drawn blank in its own column with the later cells under their own headers. Table cells are hidden from accessibility, so the proof reads only the row labels; the drawn columns are inspected on the reply-table-laps-last-column screenshot.", "described": ".agents/skills/verify-ios/features/chat.md"}
+		},
+		{
+			"id": "6.2.5",
+			"statement": "A reply still arriving, a reply stopped inside a table and an archived conversation draw tables the same way, and a part-arrived row is never read under the wrong header.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ReplyTableProofs.swift", "class": "ReplyTableProof", "method": "testArrivedRowsKeepTheirLabelsWhileTheReplyIsHeldAndAfterStop"},
+				{"file": "apps/ios/EnduragentUITests/ReplyTableProofs.swift", "class": "ReplyTableProof", "method": "testNumbersTablesStackScrollAndReadRowByRowInChatAndHistory"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/NumbersReplyFixtureTests.swift", "function": "aLapRowThatHasPartlyArrivedIsReadUnderItsOwnHeaders"}
+			]
+		},
+		{
+			"id": "6.3.1",
+			"statement": "At the largest accessibility text size every metric and value of the summary table is drawn in full, the value under its metric.",
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
+		},
+		{
+			"id": "6.3.2",
+			"statement": "At that size the lap table still scrolls to its last column and each cell stays under its header.",
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
+		},
+		{
+			"id": "6.3.3",
+			"statement": "Row labels at the largest text size equal the labels at the default size.",
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
+		},
+		{
+			"id": "6.3.4",
+			"statement": "In German, Portuguese of Portugal and Traditional Chinese every cell of the numbers fixture's summary table is drawn with the same characters as in English. The lap-table half, read on the largest-text screenshots, went with ADR-0088.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/ReplyTableRenderingTests.swift", "function": "theSummaryTableIsDrawnTheSameInEveryRegion"}
+			]
+		},
+		{
+			"id": "6.4.1",
+			"statement": "A show-numbers message after a brief, a default and a deep review reaches the coach with its rules in the prompt, the review reply in the history and the activity reads in the tool list.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/NumbersFollowUpTests.swift", "function": "showNumbersReachesTheCoachWithItsRulesTheReviewReplyAndTheActivityReads"}
+			]
+		},
+		{
+			"id": "6.4.2",
+			"statement": "A detail read on the follow-up turn returns the recorded summary and lap values unchanged, and a missing lap value is absent, never zero.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/NumbersFollowUpTests.swift", "function": "detailReadOnTheFollowUpReturnsTheRecordedSummaryAndLapValuesUnchanged"}
+			]
+		},
+		{
+			"id": "6.4.3",
+			"statement": "A start reaches the coach as the recorded local time, or as the date alone, and nothing labels it UTC.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/NumbersFollowUpTests.swift", "function": "startReachesTheCoachAsTheRecordedLocalTimeOrTheDateAloneAndNothingCallsItUTC"}
+			]
+		},
+		{
+			"id": "6.4.4",
+			"statement": "Stream statistics reach the coach only as the result of a stream read, and a follow-up after a brief review can call the detail read.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/NumbersFollowUpTests.swift", "function": "detailReadAfterABriefReviewIsAnsweredAndBringsNoStreamStatistics"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/NumbersFollowUpTests.swift", "function": "streamStatisticsReachTheCoachOnlyAsTheResultOfAStreamReadOnThatTurn"}
+			]
+		},
+		{
+			"id": "6.4.5",
+			"statement": "With no connection the follow-up turn offers no activity read.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/NumbersFollowUpTests.swift", "function": "followUpWithNoConnectionOffersNoActivityRead"}
+			]
+		},
+		{
+			"id": "7.1.1",
+			"statement": "The status shortcut makes one model request, and the command with any text after it reaches the coach whole.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "shortcutReachesTheCoachOnceWithAllItsText"}
+			]
+		},
+		{
+			"id": "7.1.2",
+			"statement": "A status shortcut and the ordinary question give the coach the same system prompt and tool list, and the ordinary message is stored with no command.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "shortcutAndOrdinaryMessageGiveTheCoachTheSamePromptAndTools"}
+			]
+		},
+		{
+			"id": "7.1.3",
+			"statement": "The status prompt carries the wellness line with its row's date, keeps only the profile line without usable wellness, holds the fallback only when both reads have nothing, and says so when nothing is connected.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "statusPromptCarriesTheWellnessLineWithItsRowsDate"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "statusPromptWithoutUsableWellnessKeepsOnlyTheProfileLine"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "statusPromptHoldsTheFallbackWhenBothReadsHaveNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "unconnectedShortcutPromptSaysSoAndOffersNoTrainingTool"}
+			]
+		},
+		{
+			"id": "7.1.4",
+			"statement": "A status turn that ends in text leaves no workout review and makes no calendar call, and a workout tool called from it waits for the athlete.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "shortcutEndingInTextLeavesNoReviewAndMakesNoCalendarCall"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationToolTests.swift", "function": "aMixedRequestIsPreparedWithoutACalendarWriteOrAnOldProposal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aPreparedTurnCommitsRevisionOneOnlyWhenItsReplyEnds"}
+			]
+		},
+		{
+			"id": "7.2.1",
+			"statement": "The workout shortcut makes one model request, and the command with any text after it reaches the coach whole.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "shortcutReachesTheCoachOnceWithAllItsText"}
+			]
+		},
+		{
+			"id": "7.2.2",
+			"statement": "A workout shortcut and the ordinary question give the coach the same system prompt, prescription rules included, and the same tool list.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "shortcutAndOrdinaryMessageGiveTheCoachTheSamePromptAndTools"}
+			]
+		},
+		{
+			"id": "7.2.3",
+			"statement": "While the workout turn runs, the conversation shows the athlete's message and a working state, with no reply presented as finished.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "runningWorkoutShowsTheMessageAndAWorkingStateWithNoFinishedReply"}
+			]
+		},
+		{
+			"id": "7.2.4",
+			"statement": "When model access fails before or after partial text, the turn ends with a notice and leaves no finished reply, no workout review and no calendar call.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "workoutLosingModelAccessEndsWithANoticeAndNoReplyReviewOrCalendarCall"}
+			]
+		},
+		{
+			"id": "7.2.5",
+			"statement": "A workout turn that ends in text leaves no workout review and makes no calendar call.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "shortcutEndingInTextLeavesNoReviewAndMakesNoCalendarCall"}
+			]
+		},
+		{
+			"id": "7.3.1",
+			"statement": "Typing a slash lists both shortcuts with their titles, and picking one fills the composer with the command and a space without sending.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ShortcutProofs.swift", "class": "ShortcutProof", "method": "testShortcutIsPickedSentWithItsTextAndAnsweredInText"},
+				{"file": "apps/ios/EnduragentTests/FixtureShortcutTests.swift", "function": "pickedShortcutFillsTheComposerAndSendsNothing"}
+			]
+		},
+		{
+			"id": "7.3.2",
+			"statement": "After Send the athlete's message shows the command with its text, and the working line stays until the reply starts.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ShortcutProofs.swift", "class": "ShortcutProof", "method": "testShortcutIsPickedSentWithItsTextAndAnsweredInText"},
+				{"file": "apps/ios/EnduragentTests/FixtureShortcutTests.swift", "function": "sentShortcutShowsItsTextAndWorksUntilTheReplyInText"}
+			]
+		},
+		{
+			"id": "7.3.3",
+			"statement": "When model access is interrupted during the workout shortcut, the screen shows the notice and its action and no finished reply or review card.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ShortcutProofs.swift", "class": "ShortcutProof", "method": "testWorkoutLosingModelAccessShowsTheNoticeAndNoReply"},
+				{"file": "apps/ios/EnduragentTests/FixtureShortcutTests.swift", "function": "workoutLosingModelAccessMidReplyShowsTheNoticeWithTryAgainAndNoReply"}
+			]
+		},
+		{
+			"id": "7.3.4",
+			"statement": "A finished workout shortcut reply is text, with no review card and no calendar success line.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/ShortcutProofs.swift", "class": "ShortcutProof", "method": "testShortcutIsPickedSentWithItsTextAndAnsweredInText"},
+				{"file": "apps/ios/EnduragentTests/FixtureShortcutTests.swift", "function": "sentShortcutShowsItsTextAndWorksUntilTheReplyInText"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "shortcutEndingInTextLeavesNoReviewAndMakesNoCalendarCall"}
+			]
+		},
+		{
+			"id": "7.3.5",
+			"statement": "In German, Portuguese of Portugal and Traditional Chinese the two titles and the working line come from the catalog, and the command names stay untranslated.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixDeProof", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixPtPTProof", "method": "testShortcuts"},
+				{"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixZhHantProof", "method": "testShortcuts"}
+			]
+		},
+		{
+			"id": "8.1.1",
+			"statement": "The system prompt of a request holds each of the eight knowledge topics whole under its own heading.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KnowledgeTopicsTests.swift", "function": "requestHoldsEveryBundledTopicWholeUnderItsOwnHeading"}
+			]
+		},
+		{
+			"id": "8.1.2",
+			"statement": "The topic keys are exactly the eight bundled files: a ninth file or a missing one fails.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KnowledgeTopicsTests.swift", "function": "topicKeysAreExactlyTheBundledFilesTheRequestHeadingsAndNpmsTopics"}
+			]
+		},
+		{
+			"id": "8.1.3",
+			"statement": "Five topics equal npm's byte for byte and three equal it once their recorded differences are applied; any other change fails.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KnowledgeTopicsTests.swift", "function": "bundledTopicEqualsNpmOnceItsRecordedDifferencesAreApplied"}
+			]
+		},
+		{
+			"id": "8.1.4",
+			"statement": "The tool list of a turn names no knowledge topic: topics reach the coach only as prompt text.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KnowledgeTopicsTests.swift", "function": "toolListOfATurnNamesNoKnowledgeTopic"}
+			]
+		},
+		{
+			"id": "8.1.5",
+			"statement": "The three differences from npm are recorded with their reason in the decision records kept outside this repository.",
+			"noAutomatedProof": "The records live in another repository, so no test here can read them and the reviewer did not judge them. The removed passages and their reason are in the test fixture that 8.1.3 reads."
+		},
+		{
+			"id": "8.2.1",
+			"statement": "Each athlete's request holds that athlete's goals and availability and none of the other's.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "eachAthletesRequestCarriesOnlyTheirOwnGoalsAndAvailability"}
+			]
+		},
+		{
+			"id": "8.2.2",
+			"statement": "Equipment stays out of the prompt, the hidden-memory read is offered only when a held-back section has content, and it returns that athlete's equipment.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "equipmentStaysOutOfThePromptAndComesBackOnlyThroughMemoryRead"}
+			]
+		},
+		{
+			"id": "8.2.3",
+			"statement": "After a goal is rewritten the next prompt holds the new goal and not the old one, and the old one stays in the record of changes.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "rewrittenGoalReplacesTheOldOneAndStaysInTheRecordOfChanges"}
+			]
+		},
+		{
+			"id": "8.2.4",
+			"statement": "The prompt holds the \"## Current Plan\" block, which says \"No plan saved yet.\" until a plan is saved, and the tool list offers build_plan_skeleton, assess_feasibility, get_sample_week and plan_load but not plan_save. Reversed by ADR-0084 in Milestone 5.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad"}
+			]
+		},
+		{
+			"id": "8.2.5",
+			"statement": "Remembered text sits inside the athlete-data fence and after the cache boundary.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "rememberedTextSitsInsideTheAthleteDataFenceAfterTheCacheBoundary"}
+			]
+		},
+		{
+			"id": "8.3.1",
+			"statement": "At FTP 50, 600 and values where a range edge lands on a half watt, all six zone rows equal npm's output byte for byte.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DisplayZonesTests.swift", "function": "rowsEqualNpmAtEveryBoundaryFtp"}
+			]
+		},
+		{
+			"id": "8.3.2",
+			"statement": "The calculator returns six rows in a fixed order, with no sixth or seventh numbered zone, and only Sweet Spot carries the overlap flag.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DisplayZonesTests.swift", "function": "sixRowsInOrderAndOnlySweetSpotOverlaps"}
+			]
+		},
+		{
+			"id": "8.3.3",
+			"statement": "A missing, fractional or out-of-range FTP returns an error and no rows, and a whole number sent as text returns the rows.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DisplayZonesTests.swift", "function": "unusableFtpReturnsAnErrorAndTextFtpReturnsTheRows"}
+			]
+		},
+		{
+			"id": "8.3.4",
+			"statement": "The calculator's description and schema equal npm's at the pinned revision.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DisplayZonesTests.swift", "function": "offeredDescriptionAndSchemaEqualNpm"}
+			]
+		},
+		{
+			"id": "8.3.5",
+			"statement": "The zone reference topic still describes seven numbered zones and the Sweet Spot overlap.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/DisplayZonesTests.swift", "function": "zoneReferenceTopicStillHasSevenZonesAndTheSweetSpotOverlap"}
+			]
+		},
+		{
+			"id": "8.4.1",
+			"statement": "Every request holds the prescription rules: a workout needs a request in the current message, and a prose request never allows a calendar tool.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutAuthorizationTests.swift", "function": "everyRequestHoldsThePrescriptionRules"}
+			]
+		},
+		{
+			"id": "8.4.2",
+			"statement": "Every request holds the workout families, the session structure, the progression patterns and the indoor and outdoor guidance.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutAuthorizationTests.swift", "function": "everyRequestHoldsTheWorkoutFamiliesAndTheirStructure"}
+			]
+		},
+		{
+			"id": "8.4.3",
+			"statement": "A prose workout request that ends in text leaves no workout review and an unchanged calendar.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutAuthorizationTests.swift", "function": "proseWorkoutEndingInTextLeavesNoReviewAndAnUnchangedCalendar"}
+			]
+		},
+		{
+			"id": "8.4.4",
+			"statement": "A fatigue report, a remembered FTP or goal, or an activity read leaves no workout review and makes no calendar call.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutAuthorizationTests.swift", "function": "contextOnlyTurnLeavesNoReviewAndMakesNoCalendarCall"}
+			]
+		},
+		{
+			"id": "8.4.5",
+			"statement": "A later request to schedule makes one workout review that waits for the athlete, with no calendar write before approval, for the create, update, delete and strength tools.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PreparationToolTests.swift", "function": "aMixedRequestIsPreparedWithoutACalendarWriteOrAnOldProposal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewCommitTests.swift", "function": "aPreparedTurnCommitsRevisionOneOnlyWhenItsReplyEnds"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewProjectionTests.swift", "function": "cardsFollowPositionAcrossFinishedWorkTheUnconfirmedChangeAndTheRemainingWork"}
+			]
+		},
+		{
+			"id": "8.4.6",
+			"statement": "With no connection no calendar tool is offered.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "unconnectedTurnIsOfferedLocalToolsAndMemoryReadOnlyOnceMemoryIsHidden"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "unconnectedCallToAnUnofferedToolReturnsUnknownToolAndReachesNoClient"}
+			]
+		}
+	]
+}

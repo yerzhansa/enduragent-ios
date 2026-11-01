@@ -1,0 +1,121 @@
+{
+	"name": "m4",
+	"cap": 40,
+	"ledger": "enduragent-m4/PHONE/messages.tsv",
+	"steps": [
+		{
+			"id": "m4/list",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 1,
+			"setup": [
+				"The phone is connected to the test account make live-seed seeded, in English, with no workout review waiting."
+			],
+			"checks": [
+				{"look": "the reply to \"What is on my calendar next week?\"", "pass": "names the seeded race as a race"},
+				{"look": "the same reply beside the intervals.icu website", "pass": "gives each seeded workout with the duration the website shows"},
+				{"look": "the same reply", "pass": "does not mention the seeded note"}
+			],
+			"endsWith": "No review waiting."
+		},
+		{
+			"id": "m4/repeat-ride",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 1,
+			"setup": [
+				"No workout review is waiting."
+			],
+			"checks": [
+				{"look": "the reply to \"Add a 15-minute ride with 3 x 2 minutes at threshold tomorrow\"", "pass": "a workout review card with one add"},
+				{"look": "the card after Approve", "pass": "reads as completed"},
+				{"look": "tomorrow's workout on the intervals.icu website", "pass": "15 minutes, with the 3 x 2 minutes at threshold as one repeat block"}
+			],
+			"endsWith": "No review waiting; the repeat ride is on the calendar."
+		},
+		{
+			"id": "m4/mixed-request",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 3,
+			"setup": [
+				"No workout review is waiting. Note the time this step starts: m4/approve-later approves more than ten minutes after it."
+			],
+			"checks": [
+				{"look": "the reply to \"Make T1 75 minutes, delete T2, and add two easy 45-minute rides this weekend\"", "pass": "one review card listing the T1 edit, the T2 delete and two adds, revision 1, with no calendar change on the website"},
+				{"look": "the card after \"Make Thursday easier\"", "pass": "revision 2, with one item changed and the rest as in revision 1"},
+				{"look": "the card after an unrelated question, such as \"What is a tempo ride?\"", "pass": "revision 2 still waiting, unchanged"}
+			],
+			"endsWith": "Revision 2 waiting."
+		},
+		{
+			"id": "m4/approve-later",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 0,
+			"setup": [
+				"Revision 2 from m4/mixed-request is waiting, and more than ten minutes have passed since that step began."
+			],
+			"checks": [
+				{"look": "the card after Approve, tapped with no message", "pass": "reads as completed"},
+				{"look": "the intervals.icu website", "pass": "T1 at 75 minutes, T2 gone, the two adds present, K unchanged"}
+			],
+			"endsWith": "No review waiting."
+		},
+		{
+			"id": "m4/race-move",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 1,
+			"setup": [
+				"No workout review is waiting."
+			],
+			"checks": [
+				{"look": "the reply to \"Move my race to next Sunday\"", "pass": "the notice that the request cannot be prepared whole"},
+				{"look": "the conversation after that reply", "pass": "no workout review card"}
+			],
+			"endsWith": "No review waiting."
+		},
+		{
+			"id": "m4/external-edit",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 1,
+			"setup": [
+				"No workout review is waiting. The operator has the intervals.icu website open on T3."
+			],
+			"checks": [
+				{"look": "the reply to \"Make T3 75 minutes\"", "pass": "a review card editing T3 from 60 to 75 minutes"},
+				{"look": "the card after the operator changes T3 to 90 minutes on the website and taps Approve", "pass": "the Refreshed review naming 60 to 90"},
+				{"look": "T3 on the website after Approve on the Refreshed review", "pass": "75 minutes, and nothing else changed"}
+			],
+			"endsWith": "No review waiting."
+		},
+		{
+			"id": "m4/edit-and-delete",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 3,
+			"setup": [
+				"No workout review is waiting."
+			],
+			"checks": [
+				{"look": "the reply to \"Make T4 an hour long\"", "pass": "an edit-only review card for T4"},
+				{"look": "the card and the website after typing \"yes, apply it\" while it waits", "pass": "the card still waits and the website shows T4 unchanged"},
+				{"look": "T4 on the website after Approve", "pass": "one hour"},
+				{"look": "the reply to \"Delete T5\", then the website after Approve", "pass": "a delete-only review card, then T5 gone"}
+			],
+			"endsWith": "No review waiting."
+		},
+		{
+			"id": "m4/offline-approve",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 2,
+			"setup": [
+				"No workout review is waiting. The operator switches Airplane Mode on and off when the checks say."
+			],
+			"checks": [
+				{"look": "the reply to \"Add two easy 30-minute rides on Tuesday and Thursday\"", "pass": "a review card with two adds"},
+				{"look": "the card after Approve with Airplane Mode on", "pass": "says the phone could not check, the website shows nothing written, and the card asks for approval again"},
+				{"look": "the app after the operator kills it and reopens it with Airplane Mode still on", "pass": "the same review and revision with the same controls once the card shows, and no new turn in the conversation"},
+				{"look": "the website after Approve with Airplane Mode off", "pass": "both rides written once, and the card reads as completed"},
+				{"look": "the reply to \"Add an easy 40-minute ride on Saturday\", then the conversation after New conversation", "pass": "the review shows once at the top, marked prepared earlier"},
+				{"look": "the conversation after Cancel", "pass": "the card reads as canceled with a note, and the website shows no Saturday ride"}
+			],
+			"endsWith": "No review waiting."
+		}
+	]
+}

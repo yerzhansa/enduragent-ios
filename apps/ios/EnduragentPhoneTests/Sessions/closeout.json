@@ -1,0 +1,223 @@
+{
+	"name": "closeout",
+	"cap": 50,
+	"ledger": "enduragent-m6/PHONE/messages.tsv",
+	"steps": [
+		{
+			"id": "closeout/fill",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 4,
+			"setup": [
+				"The Milestone 5 build is in TestFlight, the CloudKit schema is in Production, and make live-seed has seeded the test account.",
+				"A clean install: the operator deletes the app and installs the Milestone 5 build from TestFlight, or keeps the existing install and says so."
+			],
+			"checks": [
+				{"look": "the first screen after the install", "pass": "onboarding; a kept install records kept-install instead"},
+				{"look": "the screen after onboarding connects the test account", "pass": "a conversation with the composer"},
+				{"look": "the reply to \"Remember that my gran fondo is on June 14\"", "pass": "a reply with no failure notice"},
+				{"look": "the conversation after New conversation", "pass": "a new conversation, with no memory warning"},
+				{"look": "the conversation after \"Add an easy 45-minute ride tomorrow\"", "pass": "a workout review card within one resend; a second miss is fail no-review"},
+				{"look": "the card after Approve", "pass": "a receipt for the ride, and the ride on the intervals.icu website"},
+				{"look": "the conversation after \"Add an easy 30-minute ride the day after tomorrow\"", "pass": "a workout review card left waiting"}
+			],
+			"endsWith": "The Milestone 5 build with a saved memory, a receipt and one waiting review."
+		},
+		{
+			"id": "closeout/update",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 1,
+			"setup": [
+				"The Milestone 6 build is in TestFlight. The operator installs it over the Milestone 5 build from TestFlight."
+			],
+			"checks": [
+				{"look": "the conversation after the update", "pass": "the receipt and the waiting review from closeout/fill"},
+				{"look": "Settings after the update", "pass": "the same access method and language as before"},
+				{"look": "the reply to \"When is my gran fondo?\"", "pass": "contains June 14 or 14 June"},
+				{"look": "the waiting review after Cancel", "pass": "reads as canceled, with no Approve"}
+			],
+			"endsWith": "The Milestone 6 TestFlight build with no review waiting."
+		},
+		{
+			"id": "closeout/about",
+			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "CloseoutPhoneRun", "testMethod": "testCloseoutPhoneRun", "actionsAttachment": "closeout-phone-actions"}},
+			"planned": 0,
+			"setup": [],
+			"checks": [
+				{"look": "About in Settings, Support", "pass": "Enduragent, the version and the build of the installed Milestone 6 build"},
+				{"look": "the screen after /version", "pass": "About"},
+				{"look": "the screen after the privacy policy link", "pass": "Safari, open on the privacy policy"}
+			],
+			"endsWith": "The conversation, with no draft."
+		},
+		{
+			"id": "closeout/diagnostics",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 0,
+			"setup": [
+				"The earlier steps' turns wrote the usage lines.",
+				"AirDrop from the phone to this Mac is on."
+			],
+			"checks": [
+				{"look": "the Diagnostics screen after Make, then Cancel on the share sheet", "pass": "Canceled"},
+				{"look": "the Diagnostics screen after Make, then Save to Files in On My iPhone", "pass": "Saved to Files.; Shared. is recorded as fallback: activity string differs, with the activity type, and passes when the file is in On My iPhone"},
+				{"look": "the file sent from Files to this Mac by AirDrop", "pass": "DiagnosticsFileScan reports no problem"}
+			],
+			"endsWith": "The conversation, with the diagnostics file in On My iPhone."
+		},
+		{
+			"id": "closeout/feedback",
+			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "CloseoutPhoneRun", "testMethod": "testCloseoutPhoneRun", "actionsAttachment": "closeout-phone-actions"}},
+			"planned": 0,
+			"setup": [
+				"No request reaches the feedback server: Send is tapped only through FeedbackStepGuard."
+			],
+			"checks": [
+				{"look": "the Feedback screen opened from the Support row", "pass": "the note field"},
+				{"look": "the Feedback screen after /feedback the lap table is cut off", "pass": "the field holds the lap table is cut off"},
+				{"look": "the Feedback screen after Send on an empty note", "pass": "the empty-note refusal, and no request"},
+				{"look": "the Feedback screen after Send on a pasted 4,001-character note", "pass": "the too-long refusal, and no request"},
+				{"look": "the Feedback screen after pasting a note that is NUL alone", "pass": "Send stays disabled or the refusal shows, with no request; if iOS drops the NUL, the step records NUL not enterable and taps nothing"}
+			],
+			"endsWith": "The conversation, with no note sent."
+		},
+		{
+			"id": "closeout/language",
+			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "CloseoutPhoneRun", "testMethod": "testCloseoutPhoneRun", "actionsAttachment": "closeout-phone-actions"}},
+			"planned": 4,
+			"setup": [],
+			"checks": [
+				{"look": "Settings, Support, Feedback, Diagnostics and About in a fixed language", "pass": "every title and row in that language"},
+				{"look": "the replies in the fixed language", "pass": "prose in that language"},
+				{"look": "Settings after choosing Automatic", "pass": "Automatic selected and the phone's language back"},
+				{"look": "the step's actions log", "pass": "no tap on Send or Try again on Feedback"}
+			],
+			"endsWith": "Automatic language, in the conversation."
+		},
+		{
+			"id": "closeout/choices",
+			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "ChoicesInConversationCheck", "testMethod": "testCaptureOneMessage", "actionsAttachment": "choices-actions"}},
+			"planned": 12,
+			"setup": [
+				"Credits is selected and consent is accepted. Each of the twelve messages is its own invocation through phone-check choices."
+			],
+			"checks": [
+				{"look": "the reply to option 1", "pass": "follows option 1, with no plan saved and no calendar change"},
+				{"look": "the reply to the named label", "pass": "follows that label"},
+				{"look": "the replies to maybe and 9", "pass": "each asks a clarification question and chooses no direction"},
+				{"look": "the replies to the two ordinary questions", "pass": "answers with no numbered choice"},
+				{"look": "the replies to the two medical messages", "pass": "safety guidance with no ordinary numbered choice"}
+			],
+			"endsWith": "The conversation of the last case."
+		},
+		{
+			"id": "closeout/openrouter-signin",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 2,
+			"setup": [
+				"enduragent.icu serves its site-association file, and the operator has an OpenRouter account to sign in with."
+			],
+			"checks": [
+				{"look": "Settings after Sign in with OpenRouter and the HTTPS callback", "pass": "OpenRouter account selected, still selected after relaunch"},
+				{"look": "the reply to a message after the sign-in", "pass": "a reply with no failure notice"},
+				{"look": "Settings after Sign in with OpenRouter canceled on the system sheet", "pass": "the previous access method still selected"},
+				{"look": "the reply to a message after the cancel", "pass": "a reply with no failure notice"}
+			],
+			"endsWith": "The conversation, on the access method the operator chose."
+		},
+		{
+			"id": "closeout/lifecycle",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 4,
+			"setup": [
+				"The operator takes the phone offline and back online when the checks say, with Airplane Mode or with Wi-Fi and cellular data."
+			],
+			"checks": [
+				{"look": "the reply after locking the phone mid-reply and unlocking", "pass": "the reply, or the chat.turn.tryAgain control"},
+				{"look": "the reply after switching to another app mid-reply and back", "pass": "the reply, or the chat.turn.tryAgain control"},
+				{"look": "the reply after killing the app mid-reply and reopening it", "pass": "the reply, or the chat.turn.tryAgain control"},
+				{"look": "the conversation after Send with the phone offline", "pass": "the no-connection notice with Try again"},
+				{"look": "the conversation after Try again with the phone back online", "pass": "a reply"}
+			],
+			"endsWith": "The conversation, online, with no reply working."
+		},
+		{
+			"id": "closeout/reads",
+			"driver": "operatorOnInstalledBuild",
+			"planned": 3,
+			"setup": [],
+			"checks": [
+				{"look": "the reply to /review", "pass": "tables, values and the local start time"},
+				{"look": "the reply to \"show numbers\"", "pass": "tables and values"},
+				{"look": "the reply to a power-curve question on an athlete with no curve data", "pass": "says there is no power-curve data, with no invented numbers"}
+			],
+			"endsWith": "The conversation."
+		},
+		{
+			"id": "closeout/debug-install",
+			"driver": "installDebugBuild",
+			"planned": 0,
+			"setup": [
+				"The operator installs the Debug build from Xcode over the TestFlight build. CloudKit is Development from here on."
+			],
+			"checks": [
+				{"look": "Settings after the install", "pass": "a Debug row"}
+			],
+			"endsWith": "The Debug build installed and in the conversation."
+		},
+		{
+			"id": "closeout/openrouter-recovery",
+			"driver": {"runnerOnDebugBuild": {"scheme": "EnduragentPhone", "testClass": "OpenRouterRecoveryPhoneCheck", "testMethod": "testSignInAgainRecoversWithoutLosingConversation", "actionsAttachment": "openrouter-actions"}},
+			"planned": 2,
+			"setup": [
+				"The operator revokes the current OpenRouter key by hand before the step, and signs in and approves by hand at the OpenRouter page."
+			],
+			"checks": [
+				{"look": "the conversation after one message on the revoked key", "pass": "one Sign in again action, still there after relaunch"},
+				{"look": "the conversation after Sign in again and approval", "pass": "no Sign in again, and the conversation unchanged after relaunch"},
+				{"look": "the debug.accessModel row", "pass": "the model ID the operator selected"},
+				{"look": "the reply to one tool message after recovery", "pass": "a streamed reply with an intervals.icu tool call and no failure notice"}
+			],
+			"endsWith": "OpenRouter account selected and working, in the conversation."
+		},
+		{
+			"id": "closeout/keychain-proof",
+			"driver": {"runnerOnDebugBuild": {"scheme": "EnduragentKeychainProof", "testClass": "TrainingKeychainDeviceProof", "testMethod": "testSettingsCredentialSurvivesRelaunch", "actionsAttachment": "operator-check"}},
+			"planned": 0,
+			"setup": [
+				"phone-check builds and installs icu.enduragent.keychainproof before the test."
+			],
+			"checks": [
+				{"look": "the test result", "pass": "one passed test, no failure and no skip"},
+				{"look": "the native receipts", "pass": "every native attempt under 50 ms, no network request and no synthetic secret in records or diagnostics"}
+			],
+			"endsWith": "The proof app installed beside the Debug build, which is unchanged."
+		},
+		{
+			"id": "closeout/two-phone",
+			"driver": {"runnerOnDebugBuild": {"scheme": "EnduragentKeychainProof", "testClass": "TwoPhoneReconnectCheck", "testMethod": "testTwoPhoneReconnectStep", "actionsAttachment": "operator-check"}},
+			"planned": 0,
+			"setup": [
+				"The second device is a physical iPhone signed in to the test Apple ID with iCloud Keychain on, with the proof app. Without one the step is blocked."
+			],
+			"checks": [
+				{"look": "each reconnect step's test result", "pass": "one passed test, no failure and no skip"},
+				{"look": "the receiver after the peer publishes B", "pass": "B read through the native Keychain, and the old approval refused"},
+				{"look": "the receiver after the peer deletes the item", "pass": "unconnected, with the blocked review kept"}
+			],
+			"endsWith": "Both devices on the proof app with the last reconnect step done."
+		},
+		{
+			"id": "closeout/second-device-diagnostics",
+			"driver": "installDebugBuild",
+			"planned": 0,
+			"setup": [
+				"The operator uses the Debug build on the second device. Without a second device the step is blocked."
+			],
+			"checks": [
+				{"look": "the Diagnostics screen on the second device after Make, then Cancel on the share sheet", "pass": "Canceled, and no file delivered"},
+				{"look": "the Diagnostics screen after Make, then a share", "pass": "the outcome the share sheet reported"}
+			],
+			"endsWith": "The sitting is over."
+		}
+	]
+}

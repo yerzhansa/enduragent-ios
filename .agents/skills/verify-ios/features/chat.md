@@ -1,0 +1,200 @@
+# The ongoing conversation
+
+The athlete sends messages into one ongoing conversation. Each turn saves the message before the coach answers, shows working or streamed text, and ends with a reply or a catalog notice. Try again starts another attempt only when it is safe. New conversation archives earlier messages in History; it does not create another selectable ongoing conversation.
+
+## Sub-features
+
+- `chat-welcome` shows `chat.welcome` until the first message. It lists `/start`, `/workout`, `/plan`, `/status`, `/review`, `/language`, `/feedback` and `/version` with localized titles, `/plan` as Generate a training plan, `/feedback` as Send a note to the Enduragent authors and `/version` as Show current version, whether or not intervals.icu is connected. The health disclaimer, `Not medical advice, and not a substitute for a doctor or a certified coach.`, remains below the composer; at accessibility text sizes it is the transcript's last row instead, after the newest message and any review or plan-save bar, so the composer stays one field high and a chat with no review opens with the disclaimer on screen. It has no accessibility identifier; find it by its label inside `chat.transcript`.
+- `chat-send` saves the athlete message before it appears as accepted, then clears the composer. Send is disabled during acceptance, so another tap cannot duplicate that draft.
+- `chat-draft` keeps unsent text across relaunch. A failed save leaves the draft and shows `Not sent. Your draft is still here.` in `chat.composer.notSent`.
+- `chat-composer-navigation` keeps the draft visible and hittable after returning from Settings, its children, History and an archived conversation. The composer stays above a visible keyboard or at the screen bottom when the keyboard is absent.
+- `chat-reply` shows the settled reply without a working row. `chat-working` shows `Coach is working…` during collection, queued work, generation, and retry waits. `chat-streaming` keeps that row below the growing reply until settlement.
+- `chat-formatted-reply` draws headings, inline styles, nested lists, code and tables through the package reply document. A two-column table stacks each metric beside its value at the reply width. A table with any other column count is a grid that scrolls sideways. VoiceOver reads either one row at a time: `reply.table.header` and `reply.table.row` carry the row descriptions of the package reply table, and no cell is its own element. Only HTTP and HTTPS links are tappable. Literal markup and parser fallback keep their literal VoiceOver text. The same renderer draws streaming and stopped replies and archived conversations.
+- `chat-coalesce` joins free-text messages inside a trailing 1.5-second collection window. Each fragment extends the window. Every slash command that reaches the conversation closes buffered text in send order; `/language` opens its picker without waiting for the reply or making its own model request. `/feedback` and `/version` open a screen and leave buffered text collecting, so it is sent when its window ends.
+- `chat-stop` stops the running and queued turns when the athlete taps `chat.stop`. A later message can still run. Saved work determines which interruption notice appears and whether Try again is offered.
+- `chat-expiry` settles interrupted work when its execution lease expires. The running turn keeps observed partial text; queued turns do not start.
+- `chat-finished-away` adds `Finished while the phone was locked.` under a reply completed in the background. It lasts until relaunch. The app posts no notification for it.
+- `chat-failed` displays `chat.turn.notice` and up to two recovery actions for that turn. Provider details, status codes, and Swift error names do not belong in these notices.
+- `chat-retry` keeps working visible while the coach retries a recoverable failure. Server and network failures allow two retries, timeouts one, rate limits three, and context overflow three. Once reply text or saved work prevents replay, the coach settles instead.
+- `chat-saved-unverified` shows the saved-work notice without Try again when information was saved before the response failed. The athlete must send a new message.
+- `chat-step-limit` makes one final model request without tools after ten tool steps. An empty finalization shows the catalog fallback in the chosen language, including after relaunch and in History. A prior memory change stays saved without replay or Try again.
+- `chat-try-again` answers the same accepted message in a new attempt. It does not add another athlete-message row.
+- `chat-relaunch` keeps settled turns and the draft. `chat-accepted-relaunch` marks an accepted but unstarted message as received before close; it waits for Try again.
+- `chat-interrupted-relaunch` marks started work interrupted after a process kill. It makes no automatic model request and restores no uncommitted partial reply.
+- `chat-unrecovered-relaunch` shows the history-unavailable notice without Try again while recovery cannot read the earlier attempt. A later readable launch settles it.
+- `chat-background` keeps the turn running when the app backgrounds and resumes. Backgrounding starts collected work without waiting out the join window.
+- `chat-memory-flush` saves learned information after a large conversation, during overflow handling, or when New conversation closes it. Pending work can resume after relaunch without duplicating saved events. It adds no athlete-visible turn.
+- `chat-summary` summarizes older whole turns when the prompt budget is exceeded while preserving the visible transcript. Debug can show the summary at the head of the next prompt.
+- `chat-review` sends `/review` as a turn. The fixture replies with the Saturday group ride summary.
+- `chat-workout-review` places a workout review after the turn that prepared it, only once that turn has settled. The [workout review page](./workout-review.md) covers the cards, the bar and their notes.
+- `chat-slash-list` lists `/start`, `/workout`, `/plan`, `/status`, `/review`, `/language`, `/feedback` and `/version` in that order. `chat-slash-fill` fills a selected command followed by a space. `chat-plan` lists `/plan` as Generate a training plan after `/workout` and sends it with the text typed after it, unchanged, as an ordinary turn: the athlete's message, `chat.working` until the reply starts, then the reply, with no acknowledgement row such as `Analyzing your data and building a plan...`.
+- `chat-shortcut` sends `/workout`, `/plan` or `/status` with the text typed after it as an ordinary turn. The athlete's message shows the command and that text, `chat.working` stays until the reply starts, and the reply is text: no workout review and no `chat.note`. When model access is lost during the reply, the turn shows the provider notice with Try again and no reply.
+- `chat-new-conversation` accepts the compose icon labeled New conversation or `/start` without confirmation. Admission clears the submitted draft and frees Send while it waits behind current work. The old conversation stays with one `Starting a new conversation…` row during the reply and memory save. It then archives earlier turns and shows the welcome, a result notice, and messages accepted during the wait. A later failure preserves the conversation and shows the uncertain notice. A pending workout review remains pending.
+- `chat-overnight-continuity` keeps one conversation across any gap between messages. Only New conversation or `/start` closes it into History. The package test `LongGapTests` proves the 13-hour gap with and without a relaunch; no UI proof repeats it.
+- `chat-title` localizes the visible title, Chat in English and Conversation in French, with the same preference as the composer and reply language.
+- `chat-session-settings` edits history ratio and context-window override through Settings > Session. A rejected value preserves the saved value; a saved value affects later turns. See [settings.md](./settings.md).
+
+| Turn or composer state | Visible notice and action |
+| --- | --- |
+| The phone has no internet connection, for the model request (`fixture:fail network x3`) or the intervals.icu training read (`-EnduragentFixtureTrainingDisplay profile-offline`) | `No connection. Your message is kept. Try again when you're online.` with Try again. The notice names neither intervals.icu nor the model provider. A training read that failed offline is read again on the next Send or Try again. |
+| Server, lost connection, timeout, or watchdog failure | `The model provider is having trouble — try again in a few minutes.` with Try again. |
+| Rejected Credits access | `Your Credits couldn't be used. You can switch to your OpenRouter account.` with `chat.turn.switchToOpenRouter`, which opens Access method. |
+| Exhausted Credits | `You're out of Credits. You can switch to your OpenRouter account.` with `chat.turn.switchToOpenRouter`, which opens Access method. |
+| OpenRouter account out of funds | `Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.` with `chat.turn.chooseAccessMethod`, which opens the Access method screen. No UI proof or hosted app test reaches this notice. |
+| Rate limited | A duration such as `~7 seconds`, `~2 minutes`, or `about a minute` in the rate-limit sentence. `chat.turn.tryAgain` stays disabled until the wait ends. |
+| Bad request, overflow, or exhausted turn budget | `Sorry, something went wrong. Please try again.` with Try again. |
+| Unknown or broken provider stream | `The coach couldn't respond. Please try again.` with Try again. |
+| Locked keychain | `Unlock your iPhone to continue. Your message is saved.` with Try again under the turn; a coach-wide notice also uses `chat.composer.notice`. |
+| No configured access | `Choose how the coach reaches a model to continue.` with `chat.turn.chooseAccessMethod`, which opens the Access method screen. |
+| Rejected OpenRouter account | The turn shows no notice. The transcript shows `chat.access.notice` with `chat.access.signInAgain`, which starts sign-in without leaving the conversation. `OpenRouterRecoveryProof` proves it. |
+| Information saved, reply unverified | `I saved your information, but couldn't verify my response. Please try again.` with no recovery button. Send a new message. |
+| Interrupted without saved work | `This reply stopped before it finished. Nothing was changed.` with Try again. |
+| Interrupted after saved work | `This reply stopped before it finished. Some information was saved first.` with no recovery button. |
+| Accepted before close, never started | `Received before the app closed. Tap Try again to send it.` in `chat.turn.receivedBeforeClose`, with Try again. |
+| Recovery cannot read records | `Conversation history is temporarily unavailable.` with no recovery button. |
+| Message save failed | `Not sent. Your draft is still here.` in `chat.composer.notSent`; the message remains unsent. |
+| Reply save failed | `Couldn't save this reply. Keep the app open while saving is retried.` in `chat.turn.saveFailure`. |
+| Workout review refused | `The workout review could not be prepared.`, or `Your information was saved, but the workout review could not be prepared.`, in `chat.turn.reviewNotice`. See the [workout review page](./workout-review.md). |
+
+Request blocked, provider consent, secure storage, malformed credential with `chat.turn.connectTraining`, unverified training identity, full disk and unverified calendar saved-work notices have no fixture UI proof in this page.
+
+New conversation reports `New conversation started.` in `chat.newConversation.notice`. If memory saving was incomplete, it adds `Some recent details may not have been saved to coach memory.` If the boundary could not be confirmed, the prior visible conversation stays and the notice says `We couldn’t confirm whether the new conversation started. Your visible conversation is preserved.`
+
+## How to get to it (user POV)
+
+- Finish onboarding, tap `chat.composer`, type, and tap `chat.send`.
+- Type `/` at the beginning of the composer to open the slash list; choose a command and send it.
+- Tap Stop responding while work is running, or the recovery action beneath a settled notice.
+- Tap the compose icon labeled New conversation in the top bar or send `/start`.
+- Relaunch the next morning with the store kept and send another message.
+- Choose Settings, Debug, then Records or Leases for the corresponding diagnostic view. The [index](./README.md) lists their identifiers.
+
+## Driving it with sim and XCUITest
+
+Preconditions:
+
+- Follow the [index](./README.md) setup and require a passing doctor. Each proof prepares its fixture state.
+- Let `TutorialHarness.exchange` wait for settlement.
+
+### Sending, commands, and records
+
+| Command | Observable result and attachment |
+| --- | --- |
+| `sim test <run id> ComposerNavigationProof` | A focused draft survives every pushed destination, including a language edit under Settings. Each return checks hittability, draft value and the composer container's position within the normal screen deadline, then taps the composer and checks keyboard avoidance again. Attachments use `composer-navigation-*` with frame measurements and screenshots. Run in light appearance. |
+| `sim test <run id> FirstConversationProof` | Week question and memory reminder each receive their expected reply, `04-first-conversation`. |
+| `sim test <run id> ReceivedBeforeReplyProof` | The accepted message and working row appear before the reply, `received`. |
+| `sim test <run id> SlowReplyProof` | Working, partial reply with working, then completed reply, `slow-reply-working`, `slow-reply-streaming`, `slow-reply-done`. |
+| `sim test <run id> ToolProgressProof` | `fixture:slow-tool` delays the first model output for 8 seconds and the activity read independently for 20 seconds. The accepted question and working row precede model output, the partial reply keeps the working row during the read and a History round trip, then the same question finishes with its reply and workout review. Inspect `tool-progress-model-wait`, `tool-progress-read-wait`, `tool-progress-history`, `tool-progress-returned`, `tool-progress-review`, and `tool-progress-question-and-reply`. |
+| `sim test <run id> CoalesceProof` | Thursday and Friday join one turn; Records has two messages and one claim and settlement, `coalesce`, `coalesce-records`. The proof widens collection to ten seconds for UI taps. |
+| `sim test <run id> FragmentOrderingProof` | Thursday and Friday stay buffered until `/language` opens its picker. Closing the sheet returns to one combined question with its reply below it, two message records and one claim and settlement. Attachments are `fragment-ordering-buffered`, `fragment-ordering-picker`, `fragment-ordering-reply` and `fragment-ordering-records`. The proof widens collection to 60 seconds so UI typing cannot close it first; `FragmentOrderingTests` proves the real 1.5-second timing with `HeldClock`. |
+| `sim test <run id> DraftSurvivesKillProof` | An unsent draft survives relaunch without a saved message, `draft-survives`. |
+| `sim test <run id> StorageFaultProof` | A failed append leaves the draft and no accepted message, including after relaunch, `storage-fault-not-sent`, `storage-fault-nothing-saved`, `storage-fault-records`. |
+| `sim test <run id> LongRepliesProof` | Three long replies and a fourth turn each settle in the transcript, and Records has four settlements, `long-replies`. |
+| `sim test <run id> ReviewProof` | `/review` yields Saturday group ride and Training Load, `05-review`. |
+| `sim test <run id> ShortcutProof` | `testShortcutIsPickedSentWithItsTextAndAnsweredInText` opens the slash list, checks the `/workout`, `/plan` and `/status` rows and their titles, and picks `/status`: the composer reads `/status ` and nothing is sent. It adds text and sends; the message shows the command with its text and `chat.working` stays until the reply starts. The reply is text with no workout review and no `chat.note`. It repeats the path with `/workout 45 minutes indoors`. Attachments are `shortcut-list`, `shortcut-filled`, `shortcut-status-working`, `shortcut-status-finished`, `shortcut-workout-working` and `shortcut-workout-finished`. `testWorkoutLosingModelAccessShowsTheNoticeAndNoReply` sends `/workout fixture:lost` and checks the provider notice, one enabled Try again, no reply text and no workout review, `shortcut-interrupted`. Run in light appearance. |
+| `sim test <run id> PlanShortcutProof` | `testSlashListShowsPlanAfterWorkout` opens the slash list and checks its eight rows top to bottom: `/start`, `/workout`, `/plan`, `/status`, `/review`, `/language`, `/feedback`, `/version`, with Send a note to the Enduragent authors and Show current version under the last two, `slash-list-plan`. `testPlanForwardsItsTextWithNoAcknowledgement` picks `/plan`, adds `for my gran fondo in June` and sends: the message shows `/plan for my gran fondo in June`, `chat.working` stays until the reply starts, the reply is text, and no acknowledgement row, turn notice or workout review appears, `shortcut-plan-working`, `shortcut-plan-finished`. Run in light appearance. |
+| `sim test <run id> RecordsAfterReplyProof` | Debug, Records shows the saved message, claim, and settlement, `records-after-reply`. |
+| `sim test <run id> RecordsClockOrderProof` | A question, then a workout request whose review is added. Records show unique logical clocks, two message, claim and settlement sets, and the `workoutReview` rows between the second claim and the `reviewOutcome`, `records-clock-order`. |
+| `sim test <run id> SendLatencyProbe` | `send-latency-ms` measures Send to the accepted message. |
+| `sim test <run id> LaunchLatencyProbe/testSeedTwoHundredTurns`, then `sim test <run id> LaunchLatencyProbe/testLaunchWithTwoHundredTurns` | The kept store has 200 settled turns; `launch-latency-ms` and `launch-with-two-hundred-turns` measure and show relaunch. |
+
+### Failures, notices, and retry waits
+
+| Command | Observable result and attachment |
+| --- | --- |
+| `sim test <run id> FailedReplyProof` | Three server failures end in the provider notice and Try again without wire details, `failed-reply`. |
+| `sim test <run id> FailureNoticesProof` | Timeout, exhausted Credits, and overflow show distinct recovery choices, `failure-timeout`, `failure-exhausted`, `failure-overflow`. |
+| `sim test <run id> FailNoticeLatencyProbe` | `fail-notice-latency-ms` measures Send through the server retry ladder to the notice; `fail-notice` shows it. |
+| `sim test <run id> RetryLadderProof` | One server failure recovers with no notice; exhausted rate limits end with a notice, `retry-ladder-reply`, `retry-ladder-rate-limited`. |
+| `sim test <run id> NetworkRetryProof` | Two failed requests recover, three fail the turn with the no-connection notice; fake model count is six across both turns, `network-retry`, `network-exhausted`, `network-requests`. |
+| `sim test <run id> OfflineNoticeProof` | An offline Send and an offline training read each show the no-connection notice with Try again, and Try again once online gets the reply on the same turn; the offline training read makes no model request. Captures: `offline-send-no-connection`, `offline-send-try-again-replied`, `offline-send-requests`, `offline-read-no-connection`, `offline-read-requests`, `offline-read-try-again-replied`. |
+| `sim test <run id> RateLimitWaitProof` | A hinted seven-second wait retains working before success, then four failures exhaust the ladder, `rate-limit-wait`, `rate-limit-wait-reply`, `rate-limit-wait-exhausted`. |
+| `sim test <run id> RateLimitTryAgainOpensProof` | Try again changes from disabled to enabled after the wait, then succeeds, `rate-limit-waiting`, `rate-limit-try-again-open`, `rate-limit-tried-again`. |
+| `sim test <run id> OverflowExhaustedProof` | Four overflow failures plus one memory flush end in a notice, without durable compaction, `overflow-exhausted`, `overflow-exhausted-records`, `overflow-requests`. |
+| `sim test <run id> HangWatchdogProof` | A hung reply stays working, then ends with the provider notice after the watchdog attempts, `hang-working`, `hang-watchdog`, `hang-watchdog-records`. |
+| `sim test <run id> ReplyObservedProof` | Text already shown is recorded and suppresses replay after the watchdog, `observed-text`, `observed-text-records`, `observed-text-timeout`. |
+| `sim test <run id> SavedUnverifiedProof` | A saved memory write followed by failure or Stop offers no Try again, `saved-unverified`, `saved-unverified-records`, `stopped-after-save`. |
+| `sim test <run id> StepLimitFallbackProof` | Choose French, save memory before the step limit, and read the French fallback in Chat, after relaunch, and in History. Check eleven model requests before relaunch, zero after, one memory record, and no Try again. Inspect `step-limit-french`, `step-limit-french-restored`, and `step-limit-french-history`. |
+| `sim test <run id> NoticeCopyProof` | Exhausted and rejected Credits each offer Switch to OpenRouter without Try again, `notice-copy-credits-exhausted`, `notice-copy-access-rejected`; saved-work failure has no replay action, `notice-copy-saved-unverified`. |
+| `sim test <run id> AccessNoticeProof` | Missing access opens Access method; locked keychain keeps the message and offers Try again, `access-not-configured-access-method`, `access-locked`. |
+
+### Stop, expiry, background, and relaunch
+
+| Command | Observable result and attachment |
+| --- | --- |
+| `sim test <run id> StopProof` | Stop preserves partial text with the nothing-changed notice; Records says `interrupted athleteStopped`, `stop`, `stop-records`. |
+| `sim test <run id> ComposerIconButtonsProof` | On a 390 pt wide iPhone, English and Brazilian Portuguese keep the full placeholder beside single-line Stop and Send icons while a reply hangs. Frames do not overlap and button labels match the catalogs, `composer-icons-en-light`, `composer-icons-pt-BR-light`. |
+| `sim test <run id> StopNoticeProof` | Stop settles running and queued turns with two Try again actions, `stop-running-and-queued`. |
+| `sim test <run id> StopTryAgainProof` | Try again after Stop produces one completed reply and a second claim, `retry-after-stop`, `retry-after-stop-records`. |
+| `sim test <run id> ExpiryProof` | An `expire-after 3` lease interrupts without a tap; Records says `interrupted systemExpired`, `expiry`, `expiry-timing`, `expiry-records`. |
+| `sim test <run id> QueuedExpiryProof` | Expiry interrupts the running and queued turns; the queued one has no reply, `queued-expiry`. |
+| `sim test <run id> ExpiryAfterSaveProof` | Saved work changes the expiry notice and removes Try again, `expiry-after-save`. |
+| `sim test <run id> FinishedWhileAwayProof` | A reply completed in the background has the finished-while-locked marker, `finished-while-away`. |
+| `sim test <run id> BackgroundResumeProof` | Background and resume preserve the reply with no interruption notice, `background-resume`. |
+| `sim test <run id> LeaseReportProof` | Debug, Leases shows the finished athlete lease, `lease-report`. |
+| `sim test <run id> RelaunchKeepsChatProof` | Completed message and reply reopen without onboarding, `relaunch-keeps-chat`. |
+| `sim test <run id> AcceptSurvivesKillProof` | Accepted but unclaimed work reopens as received before close; Try again starts it once, `accept-kill-reopen`, `accept-kill-try-again-records`. |
+| `sim test <run id> InterruptedAfterKillProof` | A claimed turn reopens interrupted and waits for Try again, `interrupted-after-kill`, `interrupted-after-kill-try-again`. |
+| `sim test <run id> SavedWorkInterruptedProof` | Saved work before the kill reopens without Try again, `saved-work-interrupted`, `saved-work-interrupted-records`. |
+| `sim test <run id> UnrecoveredClaimProof` | An unreadable recovery shows history unavailable without settlement; a later readable launch shows the saved-work interruption, `unrecovered-claim`, `unrecovered-claim-recovered`. |
+| `sim test <run id> QueuedTurnAfterKillProof` | The running turn reopens interrupted; the queued turn says received before close and runs only after its Try again, `queued-turn-after-kill`, `queued-turn-after-kill-try-again`. |
+| `sim test <run id> ObservedReplyKillProof` | A kill after visible text restores the interruption notice with no partial text or automatic model request, `observed-reply-before-kill`, `observed-reply-after-kill`, `observed-reply-after-kill-records`. |
+
+### Memory, New conversation, and overnight continuity
+
+| Command | Observable result and attachment |
+| --- | --- |
+| `sim test <run id> FlushSurvivesKillProof` | A partial memory save remains pending; relaunch settles it without another saved event, `flush-pending-before-kill`, `flush-settled-after-relaunch`. |
+| `sim test <run id> SoftFlushGateProof` | Long replies first remain under the memory-save gate, then open it, `soft-gate-holds`, `soft-gate-opens`. |
+| `sim test <run id> DrainAtLaunchProof` | Relaunch settles both pending memory work and an interrupted turn, `drain-at-launch-notice`, `drain-at-launch-records`. |
+| `sim test <run id> SummaryFirstProof` | Records show compaction; later prompts begin `[Previous conversation summary]`, `summary-records`, `summary-first-next-turn`. |
+| `sim test <run id> NewConversationProof` | The compose icon carries the New conversation label at icon width, `new-conversation-compose-icon`. The toolbar reset archives the old messages, saves memory, and restores the welcome, `new-conversation`, `new-conversation-records`; `new-conversation-latency-ms` measures it. |
+| `sim test <run id> SlashStartProof` | `/start` opens the same new-conversation path, `slash-start`, `slash-start-records`. |
+| `sim test <run id> QueuedConversationProof` | Both `/start` and toolbar admission leave the old conversation and exactly one starting row during the reply and memory save, free Send, and then show the welcome with the queued message. Its third test checks the later boundary-failure notice. Attachments use `queued-slash-*`, `queued-toolbar-*`, and `queued-reset-failure`. |
+| `sim test <run id> NewConversationWorkingProof` | The old conversation shows working while reset memory saving runs, then opens the welcome, `new-conversation-working`. |
+| `sim test <run id> PartialFlushResetProof` | An incomplete save still opens the new conversation with the memory warning, `partial-flush`, `partial-flush-records`. |
+| `sim test <run id> ResetKeepsReviewProof` | A pending workout review survives the reset, `reset-keeps-review`, `reset-keeps-review-records`. |
+| `sim test <run id> SessionRejectionProof` | Through Settings > Session, each invalid value shows its field's catalog sentence, Cancel restores the saved value, and no settings record is written. `session-rejected-<field>-light`. |
+| `sim test <run id> RatioAppliesProof` | A 5% history budget, and separately a 64000-token context window, each saved in Settings > Session and followed by a relaunch, cause earlier compaction than the default. `ratio-applies-turns`, `ratio-applies`, `context-window-applies-turns`, `context-window-applies`. Each test runs up to 18 long turns. |
+
+Settings > Session uses the field names `historyBudgetRatio` and `contextWindowOverride`. The history budget is entered as a percentage, so `5` saves a ratio of 0.05. Replace the text in `session.<field>.input`, tap `session.save`, and read the saved value back from the same input. End typed input with Return so the keyboard does not hide Save and Cancel.
+
+### Formatted replies
+
+| Command | Observable result and attachment |
+| --- | --- |
+| `sim test <run id> ReplyFormattingProof` | Complete long reply and code, two tappable links, supported formatting without markup in accessibility labels, and identical History rendering. `reply-chat-long-light` captures the approved `chat-long` comparison state. The chat and History end attachments show `END FORMATTED REPLY`. |
+| `sim test <run id> ReplyStreamingStoppedProof` | A heading and markup-free formatted paragraph while `chat.working` shows, Stop, unchanged partial text, and equal stopped labels in Chat and History. Inspect `reply-formatted-streaming-deltas`, `reply-formatted-streaming-prefix`, `reply-formatted-stopped-end`, `reply-formatted-stopped-dimmed` and `reply-formatted-stopped-history`. |
+| `sim test <run id> ReplyTableProof` | `fixture:numbers` shows a 16-row summary table and a nine-lap table. Every row label equals its description from the fixture source, in Chat and in History. The summary rows start at the reply's leading edge, end inside its width and sit in no sideways scroll view. The lap table starts wider than its scroll view, scrolls to its last column, and its header keeps the horizontal extent of the rows below it. `fixture:numbers-held` shows the same labels for the arrived rows while `chat.working` shows and after Stop. Inspect `reply-table-summary`, `reply-table-laps-last-column`, `reply-table-history`, `reply-table-held` and `reply-table-stopped`: every metric sits beside its value, and the two empty lap cells (Normalized power of Interval 2, Distance of Recovery 3) are blank with the later cells still under their own headers. |
+| `sim test <run id> ReplyFallbackProof` | The Debug parser fault shows the complete literal source, with zero links, in Chat and History. `reply-fallback-chat-top`, `reply-fallback-chat-end` and `reply-fallback-history` capture it. |
+
+Compare the `reply-chat-long-light` attachment with `chat-long` using the verify-ios parity command with `--from <attachment png>`. Inspect the headings, indented lists, table alignment, code and links. Literal links, unknown blocks, code and fallback retain literal characters in accessibility labels. The markup-free assertion applies to supported formatting.
+
+Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks use slow swipes so both links settle hittable. After the History end capture, the proof returns to the heading before returning with `TutorialHarness.returnToChat`. The streaming proof checks the heading and first formatted paragraph before Stop, then collects and validates every label after Stop. Keep the full label sweeps after Stop so the fixture's 30-second watchdog cannot end the turn first.
+
+## Gotchas
+
+- `fixture:formatted` finishes the shared long reply. `fixture:formatted-then-hang` streams its first half in 128-character deltas and then waits for Stop. `-EnduragentFixtureReplyParser fail` selects the whole-source fallback only in Debug. `fixture:numbers` finishes the numbers reply; `fixture:numbers-held` streams it through the third lap row and then waits for Stop.
+- XCUITest cannot read an accessibility trait, so no proof checks the header trait of `reply.table.header`. Table cells are hidden from accessibility; a proof reads a table through its header and row elements. So no simulator proof can see a cut cell: the app tests in `ReplyTableRenderingTests` prove that a standard text size keeps each value beside its metric and that the summary table draws the same in every region.
+- XCUITest cannot read a custom accessibility action. A link in a table cell is an action of its row element, named with the link's text, and no fixture table holds a link, so no proof checks it.
+- A fixture reply to `/workout` or `/status` waits 8 seconds before its first word, so `chat.working` can be checked and captured before the reply. `/workout fixture:lost` and `/status fixture:lost` end model access after the first words instead.
+- A plain fixture reply is fast. Use `fixture:slow` for working and streaming captures, `fixture:hang` for the watchdog, `fixture:text-then-hang` for observed reply text, and `fixture:memory-then-hang` for saved work before interruption.
+- `fixture:fail <kind>` fails one model request. Exhaustion needs `500 x3`, `network x3`, `timeout x2`, `overflow x4`, or `429 <seconds> x4`. A single retryable failure normally ends with a successful reply.
+- Retry waits use real elapsed time even though the fixture date is fixed. A 90-second rate limit takes several minutes to exhaust and keeps Try again disabled after the notice appears.
+- `fixture:memory-then-fail` saves memory before the failure; `fixture:teach` saves it and replies. `fixture:long` expands replies enough to reach memory and summary budgets. `fixture:flush-partial` arms the next memory save, including a New conversation save.
+- `fixture:step-limit` performs ten tool steps and returns an empty tool-free finalization. `fixture:memory-then-step-limit` saves memory on the first step, then reads training data for the remaining nine steps before the same empty finalization.
+- In Debug, tap `fixture.failNextAppend`, return with `TutorialHarness.returnToChat`, then send a message. Its acceptance fails and its draft stays in the composer. Unknown model directives receive a diagnostic assistant reply. Turn failures use `chat.turn.notice`.
+- Each queued request keeps its own script and delays. To queue behind work, wait for `turnClaim 1` in Records after `fixture:hang` before sending another message.
+- Try again on a fixture directive message replays the scripted reply, not the directive. A retried hang can therefore complete.
+- The Debug button `fixture.expire` expires current leases without sending a message. `-EnduragentFixtureHost "expire-after N"` expires every lease N seconds after it starts.
+- The default fixture execution host, `ImmediateExecutionHost`, does not exercise iOS background time. `-EnduragentFixtureHost background-time` runs the live `BackgroundTimeHost` instead and removes `fixture.expire`. Record when iOS ends a real reply's background time as unverified by the simulator. The app shows no system banner and posts no notification. The phone check is in [No system banner or notification](../phone.md#no-system-banner-or-notification).
+- Killing within the collection window leaves an accepted message. Wait for a claim before testing interrupted work. A process kill loses uncommitted partial text; it differs from a delivered termination notification.
+- Use `sim launch <run id> --keep -EnduragentFixtureRecovery unreadable` only after a claimed turn was killed to reach unreadable recovery.
+- Transcript rows are virtualized. Check the newest content or record counts instead of counting every label in a long conversation.
+- Records and Leases read when opened or refreshed. Records has `records.refresh`; Leases has a visible Refresh button without an identifier.
+- `fixture.historyHead` and `fixture.replyLanguage` show the most recent model request. Inspect them after that turn settles and before another request changes them.
+- The default clock is `1998-06-15T08:00:00Z` in Europe/Ljubljana. Use `-EnduragentFixtureClock <instant>` on relaunch to move it; the clock stays fixed during a launch.
+- Settings and History push onto the conversation navigation stack. Use `TutorialHarness.returnToChat` until `chat.settings` is hittable before interacting with the conversation.
+- `fixture:fail finish` reaches the unknown-stream notice, but no UI proof sends it. Some device lifecycle paths also have no dedicated fixture UI proof. Keep those gaps explicit when reporting coverage.
+
+`OpenRouterRecoveryProof` covers missing/rejected/403 recovery and overlapping requests. `OpenRouterAccessProof` covers Settings and onboarding sign-in/cancel marks, relaunch and tool replies. The guarded live procedure is in the [real-phone OpenRouter recovery section](../phone.md#prove-openrouter-recovery-selected-model-sync-and-phone-lock).

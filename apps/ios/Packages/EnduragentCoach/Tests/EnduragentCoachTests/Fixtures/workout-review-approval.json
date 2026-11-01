@@ -1,0 +1,88 @@
+{
+  "account": "intervals:6F9619FF-8B86-D011-B42D-00C04FC964FF:",
+  "attempt": "00T47DW5000000000000000300",
+  "chat": "main",
+  "finished": [],
+  "id": "00T47DW5000000000000000100",
+  "kept": [
+    {
+      "date": "1998-06-20",
+      "durationMinutes": 120,
+      "name": "Group ride"
+    }
+  ],
+  "remaining": [
+    {
+      "action": {
+        "add": {
+          "identity": "E621E1F8-C36C-495A-93FC-0C247A3E6E5F",
+          "payload": {
+            "date": "1998-06-16",
+            "description": "Warmup\n- 10m 60%\nMain set\n- 3x10m 85%",
+            "movingTime": 3000,
+            "name": "Tempo ride",
+            "trainingLoad": 55,
+            "type": "Ride"
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000401",
+      "position": 0
+    },
+    {
+      "action": {
+        "edit": {
+          "patch": {
+            "durationSeconds": 4500
+          },
+          "target": {
+            "reviewed": {
+              "event": 101,
+              "snapshot": {
+                "date": "1998-06-17",
+                "description": "Steady ride",
+                "durationSeconds": 3600,
+                "load": 50,
+                "name": "Endurance"
+              }
+            }
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000402",
+      "position": 1
+    },
+    {
+      "action": {
+        "delete": {
+          "target": {
+            "reviewed": {
+              "event": 102,
+              "snapshot": {
+                "date": "1998-06-18",
+                "durationSeconds": 1800,
+                "load": 20,
+                "name": "Recovery spin"
+              }
+            }
+          }
+        }
+      },
+      "id": "00T47DW5000000000000000403",
+      "position": 2
+    }
+  ],
+  "revision": 1,
+  "stage": {
+    "waiting": {
+      "_0": {
+        "approval": {
+          "_0": {
+            "prepared": {}
+          }
+        }
+      }
+    }
+  },
+  "turn": "00T47DW5000000000000000200"
+}

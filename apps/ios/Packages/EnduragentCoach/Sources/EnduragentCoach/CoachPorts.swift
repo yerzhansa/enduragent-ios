@@ -1,0 +1,94 @@
+import Foundation
+
+public struct CoachPorts: Sendable {
+	public let records: RecordStore
+	public let secrets: any SecretStore
+	public let models: ModelService
+	public let training: TrainingService
+	public let credits: CreditsService
+	public let host: any ExecutionHost
+	public let clock: any Clock
+	public let support: SupportService
+	public let openRouterSignIn: OpenRouterSignInService?
+	package var watchdogSleep: @Sendable (Duration) async throws(CancellationError) -> Void =
+		SystemClock().sleep
+	package var coalescingSleep: @Sendable (Duration) async throws -> Void = SystemClock().sleep
+
+	public init(
+		records: RecordStore,
+		secrets: any SecretStore,
+		models: ModelService,
+		training: TrainingService,
+		credits: CreditsService,
+		host: any ExecutionHost,
+		clock: any Clock,
+		support: SupportService,
+		openRouterSignIn: OpenRouterSignInService? = nil
+	) {
+		self.records = records
+		self.secrets = secrets
+		self.models = models
+		self.training = training
+		self.credits = credits
+		self.host = host
+		self.clock = clock
+		self.support = support
+		self.openRouterSignIn = openRouterSignIn
+	}
+}
+
+public struct RecordStore: Sendable {
+	package let log: any RecordLog
+	package let chain: any ReviewChainLog
+
+	package init(log: any RecordLog, chain: any ReviewChainLog) {
+		self.log = log
+		self.chain = chain
+	}
+
+	package init(log: any ReviewChainLog) {
+		self.init(log: log, chain: log)
+	}
+
+	public static func onDevice(deviceId: DeviceID) throws -> RecordStore {
+		let directory = try ModelContainerHandle.applicationSupportDirectory()
+		return RecordStore(
+			log: SwiftDataRecordLog(
+				deviceId: deviceId,
+				synced: try ModelContainerHandle.syncedCloudKit(directory: directory),
+				local: try ModelContainerHandle.deviceLocal(directory: directory)))
+	}
+}
+
+public struct ModelService: Sendable {
+	public static let openRouterAPI: URL = {
+		guard let url = URL(string: "https://openrouter.ai/api/v1") else {
+			fatalError("https://openrouter.ai/api/v1 is invalid")
+		}
+		return url
+	}()
+
+	package let makeTransport: @Sendable (DiagnosticsLog) -> any ModelTransport
+	package let catalogs: ModelCatalogOwner
+
+	package init(
+		catalog: ModelCatalog = .bundled,
+		catalogSource: (any ModelCatalogSource)? = nil,
+		catalogCache: (any ModelCatalogCache)? = nil,
+		makeTransport: @escaping @Sendable (DiagnosticsLog) -> any ModelTransport
+	) {
+		self.catalogs = ModelCatalogOwner(
+			bundled: catalog, source: catalogSource, cache: catalogCache)
+		self.makeTransport = makeTransport
+	}
+
+	public static func openRouter(baseURL: URL) throws -> ModelService {
+		let directory = try ModelContainerHandle.applicationSupportDirectory()
+		return ModelService(
+			catalogSource: HTTPModelCatalogSource(),
+			catalogCache: FileModelCatalogCache(directory: directory)
+		) { diagnostics in
+			OpenRouterTransport(baseURL: baseURL, diagnostics: diagnostics)
+		}
+	}
+}

@@ -191,7 +191,8 @@
         "historyTokenBudgetRatio": "Ange ett utrymme för historik över 0 % och högst 100 %.",
         "idleMinutes": "Ange ett säkert heltalsvärde för antal minuter, minst 0.",
         "resetArchiveRetentionDays": "Ange ett säkert heltalsvärde för antal dagar, minst 0.",
-        "timezone": "Ange en giltig IANA-tidszon, till exempel {{timezone}}."
+        "timezone": "Ange en giltig IANA-tidszon, till exempel {{timezone}}.",
+        "contextWindowTokens": "Ange ett helt antal token inom det giltiga intervallet, minst 1."
       }
     },
     "credentials": {
@@ -512,6 +513,35 @@
         "remove": "Ta bort webhook",
         "title": "Ta bort den befintliga webhooken"
       }
+    },
+    "modelAccessTitle": "Modellåtkomst",
+    "session": {
+      "title": "Session",
+      "contextWindow": {
+        "label": "Kontextfönster",
+        "help": "Övre gräns för modellens kontext. Lämna tomt för att använda standardvärdet.",
+        "default": "Standard"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "token"
+      }
+    },
+    "training": {
+      "section": "Träningsanslutning",
+      "title": "intervals.icu",
+      "replace": "Byt nyckel",
+      "keep": "Behåll nuvarande anslutning",
+      "disconnect": "Koppla från",
+      "disconnectTitle": "Koppla från intervals.icu?",
+      "disconnectDetail": "Din konversation och historik är fortfarande tillgängliga.",
+      "switchTitle": "Använda en annan idrottare?",
+      "switchDetail": "Denna nyckel tillhör idrottare {{new}}. Ditt samtal, din historik och ditt minne förblir sparade för idrottare {{current}} och används inte för idrottare {{new}}. Byta för att använda denna nyckel?",
+      "switch": "Byt idrottare",
+      "athlete": "Idrottare {{id}}"
+    },
+    "support": {
+      "title": "Support"
     }
   },
   "archive": {
@@ -530,13 +560,13 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Tidigare samtal är tillfälligt otillgängliga.",
-    "loadEarlier": "Läs in äldre meddelanden",
     "loading": "Läser in tidigare samtal…",
     "pageFailure": "Det här samtalet är tillfälligt otillgängligt.",
     "readOnly": "Tidigare samtal går bara att läsa.",
     "reason": {
       "explicit": "Du startade ett nytt samtal",
-      "stale": "Avslutades efter en paus"
+      "stale": "Avslutades efter en paus",
+      "earlierChat": "Tidigare chatt"
     },
     "retry": "Försök igen",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -544,7 +574,9 @@
     "truncated": "Endast de senaste tidigare samtalen visas.",
     "turnCount_one": "{{formattedCount}} meddelande",
     "turnCount_other": "{{formattedCount}} meddelanden",
-    "unavailable": "Det här samtalet är inte längre tillgängligt."
+    "unavailable": "Det här samtalet är inte längre tillgängligt.",
+    "history": "Historik",
+    "savedForAnotherAthlete": "Sparat för en annan intervals.icu-idrottare ({{id}})"
   },
   "setup": {
     "ai": {
@@ -931,7 +963,7 @@
       "plan": "Börja skapa en plan i Chatten",
       "review": "Granska ditt senaste träningspass",
       "start": "Starta en ny session",
-      "status": "Kontrollera aktuell CTL, trötthet och TSB",
+      "status": "Kontrollera aktuell kondition, trötthet och form",
       "sync": "Hämta nya träningsdata från {{intervals}}",
       "update": "Sök efter och installera uppdateringar",
       "version": "Visa aktuell version",
@@ -945,7 +977,8 @@
       "messagePlaceholder": "Skriv till din tränare",
       "responding": "Tränaren svarar…",
       "send": "Skicka meddelande",
-      "stop": "Stoppa svaret"
+      "stop": "Stoppa svaret",
+      "notSent": "Inte skickat. Ditt utkast finns kvar här."
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -978,7 +1011,6 @@
     },
     "history": {
       "failure": "Samtalshistoriken är tillfälligt otillgänglig.",
-      "loadEarlier": "Läs in tidigare meddelanden",
       "retry": "Försök läsa in historiken igen"
     },
     "newConversation": {
@@ -987,6 +1019,7 @@
       "cancel": "Avbryt",
       "confirm": "Starta nytt samtal",
       "hydrated": "Ditt synliga samtal och de tidigare meddelanden som återställdes på {{computer}} rensas. Dina träningsdata och tränarens sparade minne finns kvar.",
+      "label": "Nytt samtal",
       "title": "Starta ett nytt samtal?"
     },
     "notice": {
@@ -1010,13 +1043,17 @@
       "planningRequestLoadFailure": "Det gick inte att kontrollera sparade planförfrågningar. Anslut på nytt och försök igen.",
       "protocolFailure": "Tränarens svar kunde inte verifieras. Försök igen.",
       "questionSkipped": "Frågan hoppades över",
+      "replyUnsaved": "Det gick inte att spara svaret. Håll appen öppen medan ett nytt försök att spara görs.",
       "queueLoadFailure": "Det gick inte att kontrollera dina sparade meddelanden. Anslut på nytt och försök igen.",
       "queueRemoveFailure": "Det sparade meddelandet kunde inte tas bort. Försök igen.",
       "responseFailure": "Tränaren kunde inte svara. Försök igen.",
-      "responseStopped": "Svaret stoppades. Den del av svaret som kom fram finns kvar.",
       "retryMessage": "Försök skicka meddelandet igen",
       "savedChoice": "Sparat val",
-      "working": "Tränaren arbetar…"
+      "working": "Tränaren arbetar…",
+      "responseStopped": "Svaret stoppades. Den del av svaret som kom fram finns kvar.",
+      "calendarUnverified": "Kalenderändringen kan ha sparats. Kontrollera din kalender innan du frågar igen.",
+      "savedUnverified": "Jag sparade din information men kunde inte kontrollera mitt svar. Försök igen.",
+      "startingNewConversation": "Startar en ny konversation…"
     },
     "planChange": {
       "activePlan": "Aktiv plan",
@@ -1447,6 +1484,49 @@
       "hideContext": "Dölj träningsunderlag",
       "showContext": "Visa träningsunderlag",
       "title": "Chatt"
+    },
+    "menu": "Meny",
+    "turn": {
+      "chooseAccessMethod": "Välj åtkomstmetod",
+      "finishedWhileLocked": "Blev klart medan telefonen var låst.",
+      "interruptedNothingChanged": "Svaret avbröts innan det var klart. Inget ändrades.",
+      "interruptedSomeSaved": "Svaret avbröts innan det var klart. Viss information sparades först.",
+      "receivedBeforeClose": "Mottaget innan appen stängdes. Tryck på Försök igen för att skicka meddelandet.",
+      "signInAgain": "Logga in igen"
+    },
+    "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{commands}}\n\nDu kan också bara prata med mig om din träning!",
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "Träningsplanen kunde inte förberedas för att sparas.",
+      "title": "Spara den här träningsplanen?",
+      "phase": "Fas {{number}}",
+      "focusLabel": "Fokus",
+      "weeklyHours": "Timmar per vecka",
+      "replaces": "Ersätter din sparade plan: {{name}}",
+      "save": "Spara plan",
+      "saving": "Sparar planen…",
+      "saved": "Sparad. Det här är nu din träningsplan.",
+      "canceled": "Avbruten. Den här planen sparades inte.",
+      "expired": "Har gått ut. Be coachen igen att spara den här planen.",
+      "storageUnavailable": "Den här planen kunde inte sparas eftersom lagringen på den här iPhonen inte är tillgänglig.",
+      "notSaved": {
+        "expired": "Inte sparad: De tio minuterna för att spara den här planen har gått.",
+        "replaced": "Inte sparad: En nyare plan väntar på att sparas.",
+        "alreadyDecided": "Den här planen har redan sparats eller avbrutits.",
+        "athleteChanged": "Inte sparad: Den här planen förbereddes för en annan idrottare på {{service}}.",
+        "notPresented": "Inte sparad än. Rulla till planen och tryck sedan på Spara plan igen."
+      },
+      "focus": {
+        "baseBuilding": "Grunduppbyggnad",
+        "aerobicDevelopment": "Aerob utveckling",
+        "threshold": "Tröskel",
+        "vo2max": "VO2max",
+        "racePrep": "Tävlingsförberedelse",
+        "taper": "Nedtrappning",
+        "recovery": "Återhämtning",
+        "maintenance": "Underhåll",
+        "generalFitness": "Allmän kondition"
+      }
     }
   },
   "training": {
@@ -2268,7 +2348,7 @@
       },
       "predictionsSummary": {
         "predictions": "Prognoser",
-        "raceDayForm": "TSB på tävlingsdagen",
+        "raceDayForm": "Form på tävlingsdagen",
         "riskDescription": "Risk att målet inte nås. Här är orsaken.",
         "viewRaceReadiness": "Visa tävlingsberedskap"
       },
@@ -2321,7 +2401,7 @@
         "cpEvidenceResult": "Dessa två insatser ger en uppskattad CP på {{value1}} W.",
         "cpEvidenceSummary": "Uppskattad CP · {{value1}} W",
         "cpEvidenceUnavailable": "Underlaget för uppskattad CP är inte tillgängligt.",
-        "currentForm": "TSB {{value1}}",
+        "currentForm": "Form {{value1}}",
         "effortDevice": "Enhet · {{value1}}",
         "effortPower": "{{value1}} vid {{value2}} W",
         "estimateConfidence": "Tillförlitlighet: {{value1}}",
@@ -2329,11 +2409,11 @@
         "estimateUnavailableTitle": "Uppskattad sluttid är inte tillgänglig",
         "experimental": "Experimentellt",
         "formModelDescription": "Beräknat utifrån planerad träningsbelastning och normal återhämtning.",
-        "formTrajectory": "TSB-utveckling",
-        "formUnavailableTitle": "TSB är inte tillgängligt",
+        "formTrajectory": "Formutveckling",
+        "formUnavailableTitle": "Form är inte tillgänglig",
         "goalFeasibility": "Målets genomförbarhet",
         "hardWorkoutNotAdded": "Hårt träningspass lades inte till",
-        "incompleteLoadDescription": "Den senaste träningsbelastningen är ofullständig, så inget TSB-intervall för tävlingsdagen kan visas.",
+        "incompleteLoadDescription": "Den senaste träningsbelastningen är ofullständig, så inget formintervall för tävlingsdagen kan visas.",
         "invalidPowerEstimate": "Uppskattad CP är inte tillgänglig utifrån aktuella data.",
         "keptInPlan": "Behålls i planen",
         "lastSuccessfulRefresh": "Senaste lyckade uppdatering",
@@ -2345,10 +2425,10 @@
         "powerEffortsUsed": "Effektinsatser som används",
         "prescribed": "Föreskrivet",
         "previous": "Tidigare",
-        "raceDayTrajectory": "TSB-utveckling fram till tävlingsdagen",
+        "raceDayTrajectory": "Formutveckling fram till tävlingsdagen",
         "raceReadiness": "Tävlingsberedskap",
         "recommendation": "Rekommendation",
-        "refreshDescription": "Kontrollerar den senaste träningen innan TSB-intervallet beräknas om. Den senast tillgängliga beredskapsvyn finns kvar.",
+        "refreshDescription": "Kontrollerar den senaste träningen innan formintervallet beräknas om. Den senast tillgängliga beredskapsvyn finns kvar.",
         "refreshingTrainingLoad": "Uppdaterar träningsbelastning",
         "refreshPending": "Ingen lyckad uppdatering än",
         "rejectedRequestDescription": "Planen för tävlingsveckan förblir oförändrad.",
@@ -2604,6 +2684,7 @@
     "error": {
       "intervalsCredentials": "{{service}} avvisade begäran. Kontrollera din anslutning till {{service}} eller din API-nyckel.",
       "intervalsTransient": "Kunde inte nå {{service}} just nu. Försök igen om en liten stund.",
+      "noConnection": "Ingen anslutning. Ditt meddelande finns kvar. Försök igen när du är online.",
       "providerCredentials": "Modellleverantören avvisade API-nyckeln. Kontrollera dina inloggningsuppgifter hos leverantören.",
       "providerDown": "Modellleverantören har problem. Försök igen om några minuter.",
       "rateLimit": "Gränsen för antal förfrågningar är nådd. Försök igen om en liten stund.",
@@ -2647,7 +2728,9 @@
       "structure": "träningspassets upplägg",
       "trainingLoad": "träningsbelastning till {{load}}",
       "unnamed": "Namnlöst träningspass",
-      "update": "Uppdatera träningspasset \"{{name}}\" den {{date}}. {{detail}}"
+      "update": "Uppdatera träningspasset \"{{name}}\" den {{date}}. {{detail}}",
+      "deleteFallback": "Ta bort ett träningspass",
+      "updateFallback": "Uppdatera ett träningspass. {{detail}}"
     }
   },
   "telegram": {
@@ -2676,9 +2759,8 @@
       "plan": "Skapa en träningsplan",
       "review": "Gå igenom ditt senaste träningspass",
       "start": "Starta en ny session",
-      "status": "Kontrollera aktuell CTL, trötthet och TSB",
+      "status": "Kontrollera aktuell kondition, trötthet och form",
       "sync": "Tvinga uppdatering av träningsdata från {{service}}",
-      "update": "Sök efter och installera uppdateringar",
       "version": "Visa aktuell version",
       "whatsnew": "Se vad som ändrats i den senaste versionen",
       "workout": "Hämta dagens träningspass"
@@ -2761,7 +2843,7 @@
       "unknownSection": "Okänt avsnitt: `{{section}}`.\n\nGiltiga avsnitt: {{sections}}."
     },
     "status": {
-      "working": "Hämtar dina data om fysisk form..."
+      "working": "Hämtar dina konditionsdata..."
     },
     "sync": {
       "complete": "Synkronisering ✅",
@@ -2795,9 +2877,8 @@
       "managedInstruction": "Skicka {{whatsnew}} för att se vad som ändrats. {{notice}}",
       "prepareFailed": "Kunde inte förbereda uppdateringen på ett säkert sätt just nu. Prova {{command}} igen om en liten stund."
     },
-    "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{plan}} — Skapa en träningsplan\n{{workout}} — Hämta dagens träningspass\n{{status}} — Kontrollera aktuell CTL, trötthet och TSB\n{{review}} — Gå igenom ditt senaste träningspass\n{{sync}} — Tvinga uppdatering av träningsdata från {{service}}\n{{version}} — Visa aktuell version\n{{whatsnew}} — Se vad som ändrats i den senaste versionen\n{{update}} — {{updateDescription}}\n\nDu kan också bara prata med mig om din träning!",
     "workout": {
-      "working": "Kontrollerar din TSB och träningsplan..."
+      "working": "Kontrollerar din form och träningsplan..."
     }
   },
   "desktop": {
@@ -2883,6 +2964,257 @@
         "tokenRejected": "Telegram-token avvisad",
         "transferRequired": "Boten behöver överföras"
       }
+    }
+  },
+  "diagnostics": {
+    "title": "Diagnostik",
+    "explanation": "Skapa en fil med appens version, den här iPhonens modell och iOS-version, dina inställningar, antal av det appen har sparat och de senaste 14 dagarnas problem och modellanvändning. Den innehåller inga nycklar, meddelanden eller träningsdata. Inget lämnar iPhonen förrän du delar den.",
+    "make": "Skapa diagnostikfil",
+    "preparing": "Förbereder filen…",
+    "shared": "Delad. iOS lämnade filen till appen du valde.",
+    "saved": "Sparad i Filer.",
+    "canceled": "Avbruten. Filen delades inte.",
+    "failed": "Filen kunde inte skapas.",
+    "shareFailed": "Filen kunde inte delas.",
+    "notSaving": "Den här iPhonen har inte sparat problemloggen sedan {{time}}. Filen innehåller bara det som sparades innan dess och det som den här sessionen registrerade."
+  },
+  "feedback": {
+    "title": "Feedback",
+    "command": "Skicka en anteckning till Enduragents författare",
+    "prompt": "Skriv en anteckning till Enduragents författare. Den skickas för sig, utan din konversation, ditt minne, dina träningsdata eller diagnostikdata.",
+    "send": "Skicka",
+    "sending": "Skickar…",
+    "received": "Mottagen. Tack för anteckningen.",
+    "notSent": {
+      "noConnection": "Inte skickad. iPhonen hade ingen anslutning. Din anteckning finns kvar.",
+      "busy": "Inte skickad. Feedbacktjänsten är upptagen. Försök igen om en minut. Din anteckning finns kvar.",
+      "refused": "Inte skickad. Feedbacktjänsten avvisade anteckningen. Din anteckning finns kvar.",
+      "stopped": "Inte skickad. Appen stoppades innan anteckningen lämnade den här iPhonen. Din anteckning finns kvar."
+    },
+    "notConfirmed": "Inte bekräftad. Anteckningen kan ha kommit fram, men inget svar kom. Din anteckning finns kvar, och Försök igen skickar samma anteckning.",
+    "refused": {
+      "empty": "Skriv en anteckning först.",
+      "tooLong": "Håll anteckningen till högst {{limit}} tecken. Inget skickades.",
+      "invalidCharacter": "Anteckningen innehåller ett tecken som inte kan skickas. Inget skickades."
+    }
+  },
+  "review": {
+    "accountChanged": "Det här träningspasset förbereddes för en annan idrottare på {{service}}. Be mig igen att förbereda det för den anslutna idrottaren.",
+    "add": "Lägg till i kalendern",
+    "cannotVerify": "Jag kunde inte kontrollera din anslutning till {{service}}, så inget ändrades. Försök igen om en liten stund.",
+    "cancelledUnknown": "Avbrutet. Det här träningspasset kan ändå ha sparats. Kontrollera din kalender.",
+    "saveFailed": "Det gick inte att spara ditt val på denna iPhone, så ingenting ändrades. Försök igen.",
+    "storageUnavailable": "Kunde inte läsa den sparade granskningen av träningspasset. Knapparna är tillfälligt inaktiverade.",
+    "title": "Granskning av träningspass",
+    "workout": {
+      "warmup": "Uppvärmning",
+      "mainSet": "Huvuddel",
+      "cooldown": "Nedvarvning",
+      "ramp": "gradvis ökning"
+    }
+  },
+  "credits": {
+    "title": "Krediter",
+    "balance_one": "{{formattedCount}} kredit",
+    "balance_other": "{{formattedCount}} krediter",
+    "error": {
+      "accessRejected": "Dina krediter kunde inte användas. Du kan byta till ditt OpenRouter-konto.",
+      "exhausted": "Dina krediter är slut. Du kan byta till ditt OpenRouter-konto.",
+      "unavailable": "Krediter är inte tillgängliga just nu. Försök igen senare.",
+      "accountChanged": "Ditt kreditkonto ändrades medan den här begäran slutfördes. Ditt nuvarande konto behölls."
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Anslut",
+      "apiKey": "intervals.icu API-nyckel",
+      "fatigue": "Trötthet {{value}}",
+      "fitness": "Kondition {{value}}",
+      "form": "Form {{value}}",
+      "skip": "Hoppa över tills vidare"
+    },
+    "starter": {
+      "start": "Börja chatta",
+      "progress": "Begär startkrediter",
+      "alreadyGranted": "Den här enheten har redan använt sina startkrediter.",
+      "added_one": "Lade till {{formattedCount}} kredit",
+      "added_other": "Lade till {{formattedCount}} krediter"
+    },
+    "notice": {
+      "health": "Träningsförslag, inte medicinska råd. Rådgör med en läkare före stora förändringar."
+    },
+    "consent": {
+      "title": "Din coach använder AI",
+      "body": "För att svara skickar Enduragent dina meddelanden, ditt tränarminne och träningsdata som du ansluter från intervals.icu till OpenRouter, som skickar dem vidare till {{provider}} för att köra {{model}}. De använder bara dessa data för att generera din tränares svar. Inget skickas innan du godkänner.",
+      "accept": "Godkänn och fortsätt",
+      "decline": "Inte nu",
+      "saveFailed": "Det gick inte att spara ditt samtycke. Försök igen."
+    }
+  },
+  "about": {
+    "title": "Om",
+    "privacyPolicy": "Integritetspolicy",
+    "version": "Version"
+  },
+  "access": {
+    "error": {
+      "locked": "Lås upp din iPhone för att fortsätta. Ditt meddelande är sparat.",
+      "notConfigured": "Välj hur tränaren får tillgång till en modell för att fortsätta.",
+      "requestBlocked": "OpenRouter blockerade den här begäran. Prova en annan modell eller ett annat meddelande.",
+      "providerConsentRequired": "Ditt samtycke krävs innan chattdata delas med AI-leverantörer.",
+      "openRouterFunds": "Ditt OpenRouter-konto har slut på pengar. Fyll på hos OpenRouter eller byt till krediter.",
+      "storageUnavailable": "Säker lagring är tillfälligt otillgänglig. Ditt samtal, din historik och ditt minne finns kvar. Försök igen.",
+      "malformed": "Din sparade åtkomstmetod kunde inte läsas. Välj en åtkomstmetod för att fortsätta."
+    },
+    "title": "Åtkomstmetod",
+    "openRouterAccount": "OpenRouter-konto",
+    "signIn": "Logga in med OpenRouter",
+    "signInCancelled": "Inloggningen avbröts. Ditt åtkomstsätt ändrades inte.",
+    "signInIncomplete": "Inloggningen med OpenRouter slutfördes inte. Ditt åtkomstsätt ändrades inte. Försök igen.",
+    "switchToOpenRouter": "Byt till OpenRouter"
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu accepterade inte den nyckeln.",
+      "blank": "Ange en intervals.icu API-nyckel. Din nuvarande anslutning är oförändrad.",
+      "notSaved": "Ersättningen sparades inte. Din tidigare anslutning är oförändrad. Försök igen.",
+      "profileUnavailable": "Din idrottsprofil är tillfälligt otillgänglig. Försök igen.",
+      "wellnessRejected": "intervals.icu tillät inte läsning av dagens välmåendedata. Kontrollera din anslutning.",
+      "wellnessUnavailable": "Dagens välmåendedata är tillfälligt otillgängliga. Försök igen.",
+      "blankConnection": "Ange en intervals.icu-API-nyckel.",
+      "connectionNotSaved": "Anslutningen sparades inte. Försök igen.",
+      "storageLocked": "Lås upp din iPhone för att läsa din intervals.icu-anslutning. Försök sedan igen.",
+      "storageUnavailable": "Din intervals.icu-anslutning är tillfälligt otillgänglig eftersom säker lagring inte kunde läsas. Försök igen.",
+      "storageMalformed": "Den sparade intervals.icu-anslutningen kunde inte läsas. Byt ut nyckeln för att ansluta igen."
+    },
+    "wellness": {
+      "empty": "Inga välmåendedata för idag.",
+      "waiting": "Läser dagens välmåendedata…"
+    },
+    "review": "Kontrollera anslutning",
+    "profile": {
+      "waiting": "Läser idrottsprofil…"
+    },
+    "missing": "intervals.icu är inte anslutet. Anslut för att lägga till träningspass i kalendern."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Det här passet granskades innan appen uppdaterades. Fråga tränaren igen.",
+      "missing": "Ett träningspass i den här granskningen finns inte längre i din kalender på {{service}}, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen.",
+      "pastProtected": "Ett träningspass i den här granskningen ligger nu bakåt i tiden, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen.",
+      "coachOnly": "Ett träningspass i den här granskningen lades inte till av tränaren, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen.",
+      "workoutOnly": "En post i den här granskningen är inte ett träningspass, så granskningen kan inte fortsätta. Avbryt den och fråga tränaren igen."
+    },
+    "refreshed": {
+      "nothingChanged": "Träningspass i den här granskningen ändrades i {{service}} efter att du granskade dem, så inget ändrades. Kontrollera dem igen innan du godkänner.",
+      "nothingElseChanged": "Träningspass i den här granskningen ändrades i {{service}} efter att du granskade dem, så inget annat ändrades. Kontrollera dem igen innan du godkänner.",
+      "date": "{{workout}}: datumet ändrades från {{from}} till {{to}}.",
+      "name": "{{workout}}: namnet ändrades till {{to}}.",
+      "duration": "{{workout}}: längden ändrades från {{from}} till {{to}} minuter.",
+      "description": "{{workout}}: beskrivningen ändrades.",
+      "load": "{{workout}}: träningsbelastningen ändrades från {{from}} till {{to}}.",
+      "structure": "{{workout}}: passets steg ändrades."
+    },
+    "notPrepared": "Granskningen av träningspasset kunde inte förberedas.",
+    "notPreparedInformationSaved": "Din information sparades, men granskningen av träningspasset kunde inte förberedas.",
+    "stopped": "Granskningen av träningspasset stoppades innan alla ändringar gjordes. Ändringar som redan gjorts behålls.",
+    "sending": "Gör de granskade ändringarna i din kalender på {{service}} …",
+    "partial": "{{service}} avvisade en ändring, så de återstående ändringarna stoppades. Ändringar som redan gjorts behålls. Kontrollera resten innan du försöker igen.",
+    "unconfirmed": "En ändring kan ha sparats i din kalender på {{service}}. Kontrollera igen innan något annat ändras.",
+    "completed": "Alla granskade ändringar är klara.",
+    "canceled": "De återstående ändringarna avbröts.",
+    "finishedTitle": "Redan klart",
+    "outcome": {
+      "closedAtUpgrade": "Den här granskningen av träningspasset förbereddes innan appen uppdaterades. Fråga tränaren igen.",
+      "saved": "{{workout}}, {{date}}: ändringen sparades.",
+      "seenOnCalendar": "{{workout}}, {{date}}: ändringen syns i kalendern.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: finns inte längre i kalendern.",
+      "givenUp": "{{workout}}, {{date}}: ändringen gjordes inte.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: ändringen kan ha sparats. Kontrollera din kalender."
+    },
+    "preparedEarlier": "Förberett tidigare",
+    "approve": "Tillämpa ändringarna",
+    "card": {
+      "add": "Lägg till",
+      "edit": "Redigera",
+      "delete": "Radera",
+      "heading": "{{action}} · {{position}} av {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "längd okänd",
+      "unknown": "okänd",
+      "load": "Uppskattad träningsbelastning: {{load}}",
+      "removed": "Det här träningspasset tas bort från kalendern.",
+      "changed": {
+        "date": "Datum: {{from}} → {{to}}",
+        "name": "Namn: {{from}} → {{to}}",
+        "duration": "Längd: {{from}} → {{to}}",
+        "load": "Uppskattad träningsbelastning: {{from}} → {{to}}",
+        "description": "Beskrivningen ändras.",
+        "steps": "Passets steg ändras."
+      },
+      "progress": {
+        "sending": "Skickar …",
+        "refused": "Inte sparat",
+        "mayHaveBeenSaved": "Kan ha sparats",
+        "notRemoved": "Inte borttaget",
+        "mayHaveBeenRemoved": "Kan ha tagits bort"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Procent av FTP",
+      "watts": "Effekt i watt"
+    },
+    "totals": {
+      "additions_one": "{{count}} tillägg",
+      "additions_other": "{{count}} tillägg",
+      "edits_one": "{{count}} ändring",
+      "edits_other": "{{count}} ändringar",
+      "deletions_one": "{{count}} borttagning",
+      "deletions_other": "{{count}} borttagningar",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} för tillagda eller ändrade träningspass",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · total längd okänd"
+    },
+    "kept": {
+      "title": "Befintliga träningspass som behålls",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Vill du lägga till det här träningspasset i kalendern?",
+        "add_other": "Vill du lägga till de här träningspassen i kalendern?",
+        "edit_one": "Vill du uppdatera det här träningspasset i kalendern?",
+        "edit_other": "Vill du uppdatera de här träningspassen i kalendern?",
+        "delete_one": "Vill du ta bort det här träningspasset från kalendern?",
+        "delete_other": "Vill du ta bort de här träningspassen från kalendern?",
+        "mixed": "Vill du tillämpa alla granskade ändringar?"
+      },
+      "approveEdits": "Uppdatera kalendern",
+      "approveDeletions": "Ta bort från kalendern",
+      "unseen": "Bläddra igenom alla kort för att fortsätta.",
+      "cardFailed": "Kort {{position}} av {{count}} kunde inte visas. Inget ändrades.",
+      "showAgain": "Visa igen"
+    }
+  },
+  "yourData": {
+    "title": "Dina data",
+    "deleteEverything": "Radera allt",
+    "confirm": {
+      "title": "Radera allt?",
+      "body": "Det går inte att ångra. Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen och din iCloud, samt din kreditpost. Oanvända krediter går förlorade, och startkrediter ges bara en gång per iPhone."
+    },
+    "keeps": "Ditt intervals.icu-konto och dina pass finns kvar på intervals.icu. Om du loggade in med ditt eget OpenRouter-konto raderar du dess nyckel hos OpenRouter.",
+    "progress": "Raderar…",
+    "done": "Allt är raderat från den här iPhonen, din iCloud och kredittjänsten.",
+    "notStarted": "Inget raderades. Anslut till internet och försök igen.",
+    "iCloudLater": "Raderat från den här iPhonen och kredittjänsten. Din iCloud-kopia raderas nästa gång du öppnar Enduragent medan den här iPhonen är online och inloggad på iCloud. Om du raderar appen innan dess raderar du dess data i Inställningar i iOS under iCloud-lagring.",
+    "busy": "Vänta tills coachen är klar och försök sedan igen.",
+    "notFinished": "Allt raderades inte från den här iPhonen. Försök igen.",
+    "progressTime": "Det kan ta upp till en minut.",
+    "tryLater": "Inget raderades från den här iPhonen eller din iCloud. Kredittjänsten är upptagen just nu. Försök igen senare.",
+    "creditsUnconfirmed": "Inget raderades. Kredittjänsten kunde inte bekräfta att den här iPhonen äger din kreditpost, så posten finns kvar där. Du kan ändå radera allt på den här iPhonen och i din iCloud.",
+    "deleteHere": "Radera från iPhone och iCloud",
+    "creditsKept": {
+      "done": "Allt är raderat från den här iPhonen och din iCloud. Din kreditpost finns kvar i kredittjänsten. Ingen har dess nyckel, så ingen kan använda den.",
+      "iCloudLater": "Raderat från den här iPhonen. Din iCloud-kopia raderas nästa gång du öppnar Enduragent medan den här iPhonen är online och inloggad på iCloud. Om du raderar appen innan dess raderar du dess data i Inställningar i iOS under iCloud-lagring. Din kreditpost finns kvar i kredittjänsten. Ingen har dess nyckel, så ingen kan använda den."
     }
   }
 }

@@ -1,0 +1,1081 @@
+[
+  {
+    "name": "every detail-only field, and source fields that do not pass",
+    "arguments": {
+      "activityId": "i1234567"
+    },
+    "status": 200,
+    "response": {
+      "id": "i1234567",
+      "name": "Sunday long ride",
+      "type": "Ride",
+      "start_date_local": "1998-06-07T08:00:00",
+      "moving_time": 7200,
+      "elapsed_time": 7500,
+      "distance": 62400.5,
+      "icu_training_load": 120,
+      "icu_intensity": 78.5,
+      "icu_average_watts": 172,
+      "icu_weighted_avg_watts": 196,
+      "average_heartrate": 141,
+      "max_heartrate": 173,
+      "icu_ftp": 250,
+      "total_elevation_gain": 640.5,
+      "source": "GARMIN_CONNECT",
+      "description": "Legs felt heavy on the last climb.",
+      "trainer": false,
+      "icu_rpe": 6,
+      "feel": 2,
+      "average_cadence": 86.5,
+      "average_speed": 8.667,
+      "max_speed": 17.2,
+      "calories": 1480,
+      "icu_joules": 1238400,
+      "icu_variability_index": 1.14,
+      "icu_efficiency_factor": 1.39,
+      "decoupling": 3.2,
+      "icu_zone_times": [
+        {
+          "id": "Z1",
+          "secs": 1200
+        },
+        {
+          "id": "Z2",
+          "secs": 3600
+        },
+        {
+          "id": "Z3",
+          "secs": 1500
+        },
+        {
+          "id": "Z4",
+          "secs": 600
+        },
+        {
+          "id": "Z5",
+          "secs": 240
+        },
+        {
+          "id": "SS",
+          "secs": 60
+        }
+      ],
+      "icu_hr_zone_times": [
+        900,
+        3900,
+        1800,
+        500,
+        100
+      ],
+      "paired_event_id": 4242,
+      "icu_athlete_id": "i1001",
+      "external_id": "garmin-98765",
+      "device_name": "Edge 530",
+      "average_watts": 210,
+      "icu_weight": 71.5,
+      "timezone": "Europe/Amsterdam",
+      "stream_types": [
+        "watts",
+        "heartrate"
+      ],
+      "gear": {
+        "id": "b1",
+        "name": "Road bike"
+      }
+    },
+    "npm": {
+      "passes": {
+        "id": "i1234567",
+        "startDateLocal": "1998-06-07T08:00:00",
+        "type": "Ride",
+        "name": "Sunday long ride",
+        "description": "Legs felt heavy on the last climb.",
+        "distance": 62400.5,
+        "movingTime": 7200,
+        "elapsedTime": 7500,
+        "icuTrainingLoad": 120,
+        "icuIntensity": 78.5,
+        "icuFtp": 250,
+        "icuWeightedAvgWatts": 196,
+        "icuAverageWatts": 172,
+        "averageHeartrate": 141,
+        "maxHeartrate": 173,
+        "averageCadence": 86.5,
+        "calories": 1480,
+        "averageSpeed": 8.667,
+        "maxSpeed": 17.2,
+        "totalElevationGain": 640.5,
+        "source": "GARMIN_CONNECT",
+        "trainer": false,
+        "icuZoneTimes": [
+          {
+            "id": "Z1",
+            "secs": 1200
+          },
+          {
+            "id": "Z2",
+            "secs": 3600
+          },
+          {
+            "id": "Z3",
+            "secs": 1500
+          },
+          {
+            "id": "Z4",
+            "secs": 600
+          },
+          {
+            "id": "Z5",
+            "secs": 240
+          },
+          {
+            "id": "SS",
+            "secs": 60
+          }
+        ],
+        "icuRpe": 6,
+        "feel": 2,
+        "icuJoules": 1238400,
+        "icuVariabilityIndex": 1.14,
+        "icuEfficiencyFactor": 1.39,
+        "decoupling": 3.2,
+        "icuHrZoneTimes": [
+          900,
+          3900,
+          1800,
+          500,
+          100
+        ],
+        "pairedEventId": 4242,
+        "icuAthleteId": "i1001",
+        "externalId": "garmin-98765",
+        "deviceName": "Edge 530",
+        "averageWatts": 210,
+        "icuWeight": 71.5,
+        "timezone": "Europe/Amsterdam",
+        "streamTypes": [
+          "watts",
+          "heartrate"
+        ],
+        "gear": {
+          "id": "b1",
+          "name": "Road bike"
+        }
+      }
+    },
+    "phone": {
+      "activity": {
+        "id": "i1234567",
+        "name": "Sunday long ride",
+        "sport": "Ride",
+        "start": "1998-06-07T08:00:00",
+        "durationSeconds": 7200,
+        "distance": 62400.5,
+        "load": 120,
+        "intensity": 78.5,
+        "averagePower": 172,
+        "weightedPower": 196,
+        "averageHeartRate": 141,
+        "maxHeartRate": 173,
+        "ftp": 250,
+        "elevationGain": 640.5,
+        "notes": "Legs felt heavy on the last climb.",
+        "indoor": false,
+        "rpe": 6,
+        "feel": 2,
+        "averageCadence": 86.5,
+        "averageSpeed": 8.667,
+        "maxSpeed": 17.2,
+        "calories": 1480,
+        "work": 1238400,
+        "variabilityIndex": 1.14,
+        "efficiencyFactor": 1.39,
+        "decoupling": 3.2,
+        "powerZoneSeconds": [
+          {
+            "zone": "Z1",
+            "seconds": 1200
+          },
+          {
+            "zone": "Z2",
+            "seconds": 3600
+          },
+          {
+            "zone": "Z3",
+            "seconds": 1500
+          },
+          {
+            "zone": "Z4",
+            "seconds": 600
+          },
+          {
+            "zone": "Z5",
+            "seconds": 240
+          },
+          {
+            "zone": "SS",
+            "seconds": 60
+          }
+        ],
+        "heartRateZoneSeconds": [
+          900,
+          3900,
+          1800,
+          500,
+          100
+        ]
+      },
+      "lapsSupplied": false,
+      "units": {
+        "durationSeconds": "s",
+        "distance": "m",
+        "intensity": "%",
+        "averagePower": "W",
+        "weightedPower": "W",
+        "averageHeartRate": "bpm",
+        "maxHeartRate": "bpm",
+        "ftp": "W",
+        "elevationGain": "m",
+        "averageCadence": "rpm",
+        "averageSpeed": "m/s",
+        "maxSpeed": "m/s",
+        "calories": "kcal",
+        "work": "J",
+        "decoupling": "%",
+        "powerZoneSeconds": "s",
+        "heartRateZoneSeconds": "s"
+      }
+    }
+  },
+  {
+    "name": "laps in source order, each with its number, label, kind and measurements",
+    "arguments": {
+      "activityId": "i1234568"
+    },
+    "status": 200,
+    "response": {
+      "id": "i1234568",
+      "name": "Tuesday sweet spot",
+      "type": "VirtualRide",
+      "start_date_local": "1998-06-09T18:30:00",
+      "moving_time": 2100,
+      "elapsed_time": 2100,
+      "icu_training_load": 38,
+      "trainer": true,
+      "source": "ZWIFT",
+      "icu_intervals": [
+        {
+          "id": 1,
+          "label": "Warm-up",
+          "type": "RECOVERY",
+          "moving_time": 600,
+          "elapsed_time": 600,
+          "distance": 4800,
+          "training_load": 6,
+          "intensity": 55,
+          "average_watts": 138,
+          "weighted_average_watts": 140,
+          "average_heartrate": 112,
+          "max_heartrate": 124,
+          "total_elevation_gain": 12.5,
+          "average_cadence": 84,
+          "start_index": 0,
+          "end_index": 600,
+          "zone": 1
+        },
+        {
+          "id": 2,
+          "label": "Sweet spot",
+          "type": "WORK",
+          "moving_time": 1200,
+          "elapsed_time": 1200,
+          "distance": 11400,
+          "training_load": 30,
+          "intensity": 90,
+          "average_watts": 224,
+          "weighted_average_watts": 226,
+          "average_heartrate": 156,
+          "max_heartrate": 164,
+          "total_elevation_gain": 0,
+          "average_cadence": 91,
+          "start_index": 600,
+          "end_index": 1800,
+          "zone": 4
+        },
+        {
+          "id": 3,
+          "type": "RECOVERY",
+          "moving_time": 300,
+          "start_index": 1800,
+          "end_index": 2100
+        }
+      ],
+      "icu_groups": [
+        {
+          "id": "1200s@224w",
+          "count": 1,
+          "moving_time": 1200
+        }
+      ],
+      "paired_event_id": 4243
+    },
+    "npm": {
+      "passes": {
+        "id": "i1234568",
+        "startDateLocal": "1998-06-09T18:30:00",
+        "type": "VirtualRide",
+        "name": "Tuesday sweet spot",
+        "movingTime": 2100,
+        "elapsedTime": 2100,
+        "icuTrainingLoad": 38,
+        "source": "ZWIFT",
+        "trainer": true,
+        "icuIntervals": [
+          {
+            "id": 1,
+            "label": "Warm-up",
+            "type": "RECOVERY",
+            "movingTime": 600,
+            "elapsedTime": 600,
+            "distance": 4800,
+            "trainingLoad": 6,
+            "intensity": 55,
+            "averageWatts": 138,
+            "weightedAverageWatts": 140,
+            "averageHeartrate": 112,
+            "maxHeartrate": 124,
+            "totalElevationGain": 12.5,
+            "averageCadence": 84,
+            "startIndex": 0,
+            "endIndex": 600,
+            "zone": 1
+          },
+          {
+            "id": 2,
+            "label": "Sweet spot",
+            "type": "WORK",
+            "movingTime": 1200,
+            "elapsedTime": 1200,
+            "distance": 11400,
+            "trainingLoad": 30,
+            "intensity": 90,
+            "averageWatts": 224,
+            "weightedAverageWatts": 226,
+            "averageHeartrate": 156,
+            "maxHeartrate": 164,
+            "totalElevationGain": 0,
+            "averageCadence": 91,
+            "startIndex": 600,
+            "endIndex": 1800,
+            "zone": 4
+          },
+          {
+            "id": 3,
+            "type": "RECOVERY",
+            "movingTime": 300,
+            "startIndex": 1800,
+            "endIndex": 2100
+          }
+        ],
+        "icuGroups": [
+          {
+            "id": "1200s@224w",
+            "count": 1,
+            "movingTime": 1200
+          }
+        ],
+        "pairedEventId": 4243
+      }
+    },
+    "phone": {
+      "activity": {
+        "id": "i1234568",
+        "name": "Tuesday sweet spot",
+        "sport": "VirtualRide",
+        "start": "1998-06-09T18:30:00",
+        "durationSeconds": 2100,
+        "load": 38,
+        "indoor": true
+      },
+      "laps": [
+        {
+          "number": 1,
+          "label": "Warm-up",
+          "kind": "RECOVERY",
+          "durationSeconds": 600,
+          "distance": 4800,
+          "load": 6,
+          "intensity": 55,
+          "averagePower": 138,
+          "weightedPower": 140,
+          "averageHeartRate": 112,
+          "maxHeartRate": 124,
+          "elevationGain": 12.5
+        },
+        {
+          "number": 2,
+          "label": "Sweet spot",
+          "kind": "WORK",
+          "durationSeconds": 1200,
+          "distance": 11400,
+          "load": 30,
+          "intensity": 90,
+          "averagePower": 224,
+          "weightedPower": 226,
+          "averageHeartRate": 156,
+          "maxHeartRate": 164,
+          "elevationGain": 0
+        },
+        {
+          "number": 3,
+          "kind": "RECOVERY",
+          "durationSeconds": 300
+        }
+      ],
+      "units": {
+        "durationSeconds": "s",
+        "distance": "m",
+        "intensity": "%",
+        "averagePower": "W",
+        "weightedPower": "W",
+        "averageHeartRate": "bpm",
+        "maxHeartRate": "bpm",
+        "elevationGain": "m"
+      }
+    }
+  },
+  {
+    "name": "laps recorded as an empty list",
+    "arguments": {
+      "activityId": "i1234569"
+    },
+    "status": 200,
+    "response": {
+      "id": "i1234569",
+      "start_date_local": "1998-06-10T12:15:00",
+      "icu_intervals": []
+    },
+    "npm": {
+      "passes": {
+        "id": "i1234569",
+        "startDateLocal": "1998-06-10T12:15:00",
+        "icuIntervals": []
+      }
+    },
+    "phone": {
+      "activity": {
+        "id": "i1234569",
+        "start": "1998-06-10T12:15:00"
+      },
+      "laps": []
+    }
+  },
+  {
+    "name": "an identifier and a start alone, with laps not supplied",
+    "arguments": {
+      "activityId": "i1234570"
+    },
+    "status": 200,
+    "response": {
+      "id": "i1234570",
+      "start_date_local": "1998-06-10"
+    },
+    "npm": {
+      "passes": {
+        "id": "i1234570",
+        "startDateLocal": "1998-06-10"
+      }
+    },
+    "phone": {
+      "activity": {
+        "id": "i1234570",
+        "start": "1998-06-10"
+      },
+      "lapsSupplied": false
+    }
+  },
+  {
+    "name": "nulls have no key, and zeros, false and empty notes stay",
+    "arguments": {
+      "activityId": "i1234571"
+    },
+    "status": 200,
+    "response": {
+      "id": "i1234571",
+      "name": null,
+      "type": "Ride",
+      "start_date_local": "1998-06-11T17:00:00",
+      "moving_time": 0,
+      "elapsed_time": 0,
+      "description": "",
+      "trainer": false,
+      "icu_rpe": null,
+      "feel": null,
+      "average_cadence": 0,
+      "average_speed": null,
+      "max_speed": null,
+      "calories": 0,
+      "icu_joules": null,
+      "icu_variability_index": null,
+      "icu_efficiency_factor": null,
+      "decoupling": 0,
+      "icu_zone_times": [],
+      "icu_hr_zone_times": null,
+      "icu_intervals": null,
+      "paired_event_id": null
+    },
+    "npm": {
+      "passes": {
+        "id": "i1234571",
+        "startDateLocal": "1998-06-11T17:00:00",
+        "type": "Ride",
+        "name": null,
+        "description": "",
+        "movingTime": 0,
+        "elapsedTime": 0,
+        "averageCadence": 0,
+        "calories": 0,
+        "averageSpeed": null,
+        "maxSpeed": null,
+        "trainer": false,
+        "icuZoneTimes": [],
+        "icuRpe": null,
+        "feel": null,
+        "icuJoules": null,
+        "icuVariabilityIndex": null,
+        "icuEfficiencyFactor": null,
+        "decoupling": 0,
+        "icuHrZoneTimes": null,
+        "icuIntervals": null,
+        "pairedEventId": null
+      }
+    },
+    "phone": {
+      "activity": {
+        "id": "i1234571",
+        "sport": "Ride",
+        "start": "1998-06-11T17:00:00",
+        "durationSeconds": 0,
+        "notes": "",
+        "indoor": false,
+        "averageCadence": 0,
+        "calories": 0,
+        "decoupling": 0
+      },
+      "lapsSupplied": false,
+      "units": {
+        "durationSeconds": "s",
+        "averageCadence": "rpm",
+        "calories": "kcal",
+        "decoupling": "%"
+      }
+    }
+  },
+  {
+    "name": "a value of the wrong type has no key",
+    "arguments": {
+      "activityId": "i1234572"
+    },
+    "status": 200,
+    "response": {
+      "id": "i1234572",
+      "type": "Ride",
+      "start_date_local": "1998-06-11T17:29:00",
+      "moving_time": 2400,
+      "elapsed_time": 2400,
+      "description": 7,
+      "trainer": "yes",
+      "icu_rpe": "hard",
+      "feel": [
+        3
+      ],
+      "average_cadence": {
+        "value": 88
+      },
+      "calories": true,
+      "icu_joules": 540000,
+      "icu_zone_times": [
+        600,
+        {
+          "id": "Z2",
+          "secs": 1500
+        },
+        {
+          "id": "Z3"
+        },
+        {
+          "secs": 300
+        },
+        {
+          "id": "Z4",
+          "secs": -5
+        },
+        {
+          "id": "Z5",
+          "secs": 1.5
+        }
+      ],
+      "icu_hr_zone_times": [
+        600,
+        "1500",
+        300
+      ],
+      "icu_intervals": [
+        {
+          "label": 4,
+          "type": 5,
+          "moving_time": "600",
+          "average_watts": 150
+        },
+        "lap"
+      ]
+    },
+    "npm": {
+      "refused": true
+    },
+    "phone": {
+      "activity": {
+        "id": "i1234572",
+        "sport": "Ride",
+        "start": "1998-06-11T17:29:00",
+        "durationSeconds": 2400,
+        "work": 540000,
+        "powerZoneSeconds": [
+          {
+            "zone": "Z2",
+            "seconds": 1500
+          }
+        ]
+      },
+      "laps": [
+        {
+          "number": 1,
+          "averagePower": 150
+        },
+        {
+          "number": 2
+        }
+      ],
+      "units": {
+        "durationSeconds": "s",
+        "work": "J",
+        "powerZoneSeconds": "s",
+        "averagePower": "W"
+      }
+    }
+  },
+  {
+    "name": "the identifier forms an activity list shows are read back",
+    "arguments": {
+      "activityId": "17654321"
+    },
+    "status": 200,
+    "response": {
+      "id": 17654321,
+      "start_date_local": "1998-06-10T09:00:00",
+      "type": "Ride",
+      "moving_time": 600,
+      "elapsed_time": 600
+    },
+    "npm": {
+      "passes": {
+        "id": 17654321,
+        "startDateLocal": "1998-06-10T09:00:00",
+        "type": "Ride",
+        "movingTime": 600,
+        "elapsedTime": 600
+      }
+    },
+    "phone": {
+      "activity": {
+        "id": "17654321",
+        "sport": "Ride",
+        "start": "1998-06-10T09:00:00",
+        "durationSeconds": 600
+      },
+      "lapsSupplied": false,
+      "units": {
+        "durationSeconds": "s"
+      }
+    }
+  },
+  {
+    "name": "a canonical identifier is read back",
+    "arguments": {
+      "activityId": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    },
+    "status": 200,
+    "response": {
+      "id": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "start_date_local": "1998-06-12T09:00:00"
+    },
+    "npm": {
+      "passes": {
+        "id": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "startDateLocal": "1998-06-12T09:00:00"
+      }
+    },
+    "phone": {
+      "activity": {
+        "id": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "start": "1998-06-12T09:00:00"
+      },
+      "lapsSupplied": false
+    }
+  },
+  {
+    "name": "a complete Strava activity is shown",
+    "arguments": {
+      "activityId": "17654330"
+    },
+    "status": 200,
+    "response": {
+      "id": "17654330",
+      "start_date_local": "1998-06-08T09:00:00",
+      "source": "STRAVA",
+      "type": "Ride",
+      "moving_time": 600,
+      "elapsed_time": 600
+    },
+    "npm": {
+      "passes": {
+        "id": "17654330",
+        "startDateLocal": "1998-06-08T09:00:00",
+        "type": "Ride",
+        "movingTime": 600,
+        "elapsedTime": 600,
+        "source": "STRAVA"
+      }
+    },
+    "phone": {
+      "activity": {
+        "id": "17654330",
+        "sport": "Ride",
+        "start": "1998-06-08T09:00:00",
+        "durationSeconds": 600
+      },
+      "lapsSupplied": false,
+      "units": {
+        "durationSeconds": "s"
+      }
+    }
+  },
+  {
+    "name": "an activity Strava hides",
+    "arguments": {
+      "activityId": "17654331"
+    },
+    "status": 200,
+    "response": {
+      "id": "17654331",
+      "icu_athlete_id": "i1001",
+      "start_date_local": "1998-06-09T09:00:00",
+      "source": "STRAVA",
+      "_note": "STRAVA activities are not available via the API"
+    },
+    "npm": {
+      "passes": {
+        "id": "17654331",
+        "startDateLocal": "1998-06-09T09:00:00",
+        "source": "STRAVA",
+        "icuAthleteId": "i1001",
+        "Note": "STRAVA activities are not available via the API"
+      }
+    },
+    "phone": {
+      "error": "activity_hidden_by_strava",
+      "activityId": "17654331",
+      "details": "Activity 17654331 is hidden by Strava, so it can’t be read. Strava does not allow third-party AI tools to use data from its API. For future rides, connect your recording source directly to intervals.icu and keep Strava connected. For past rides, use Import All Strava Data in intervals.icu settings; it requires an intervals.icu supporter subscription."
+    }
+  },
+  {
+    "name": "a Strava activity with no elapsed time is hidden",
+    "arguments": {
+      "activityId": "17654332"
+    },
+    "status": 200,
+    "response": {
+      "id": "17654332",
+      "name": "Morning ride",
+      "start_date_local": "1998-06-09T09:00:00",
+      "source": "STRAVA",
+      "type": "Ride",
+      "moving_time": 600
+    },
+    "npm": {
+      "passes": {
+        "id": "17654332",
+        "startDateLocal": "1998-06-09T09:00:00",
+        "type": "Ride",
+        "name": "Morning ride",
+        "movingTime": 600,
+        "source": "STRAVA"
+      }
+    },
+    "phone": {
+      "error": "activity_hidden_by_strava",
+      "activityId": "17654332",
+      "details": "Activity 17654332 is hidden by Strava, so it can’t be read. Strava does not allow third-party AI tools to use data from its API. For future rides, connect your recording source directly to intervals.icu and keep Strava connected. For past rides, use Import All Strava Data in intervals.icu settings; it requires an intervals.icu supporter subscription."
+    }
+  },
+  {
+    "name": "an answer for another identifier",
+    "arguments": {
+      "activityId": "i1234567"
+    },
+    "status": 200,
+    "response": {
+      "id": "i1234568",
+      "name": "Somebody else's ride",
+      "type": "VirtualRide",
+      "start_date_local": "1998-06-09T18:30:00",
+      "moving_time": 2100,
+      "elapsed_time": 2100,
+      "icu_training_load": 38,
+      "trainer": true,
+      "source": "ZWIFT",
+      "icu_intervals": [
+        {
+          "id": 1,
+          "label": "Warm-up",
+          "type": "RECOVERY",
+          "moving_time": 600,
+          "elapsed_time": 600,
+          "distance": 4800,
+          "training_load": 6,
+          "intensity": 55,
+          "average_watts": 138,
+          "weighted_average_watts": 140,
+          "average_heartrate": 112,
+          "max_heartrate": 124,
+          "total_elevation_gain": 12.5,
+          "average_cadence": 84,
+          "start_index": 0,
+          "end_index": 600,
+          "zone": 1
+        },
+        {
+          "id": 2,
+          "label": "Sweet spot",
+          "type": "WORK",
+          "moving_time": 1200,
+          "elapsed_time": 1200,
+          "distance": 11400,
+          "training_load": 30,
+          "intensity": 90,
+          "average_watts": 224,
+          "weighted_average_watts": 226,
+          "average_heartrate": 156,
+          "max_heartrate": 164,
+          "total_elevation_gain": 0,
+          "average_cadence": 91,
+          "start_index": 600,
+          "end_index": 1800,
+          "zone": 4
+        },
+        {
+          "id": 3,
+          "type": "RECOVERY",
+          "moving_time": 300,
+          "start_index": 1800,
+          "end_index": 2100
+        }
+      ],
+      "icu_groups": [
+        {
+          "id": "1200s@224w",
+          "count": 1,
+          "moving_time": 1200
+        }
+      ],
+      "paired_event_id": 4243
+    },
+    "npm": {
+      "passes": {
+        "id": "i1234568",
+        "startDateLocal": "1998-06-09T18:30:00",
+        "type": "VirtualRide",
+        "name": "Somebody else's ride",
+        "movingTime": 2100,
+        "elapsedTime": 2100,
+        "icuTrainingLoad": 38,
+        "source": "ZWIFT",
+        "trainer": true,
+        "icuIntervals": [
+          {
+            "id": 1,
+            "label": "Warm-up",
+            "type": "RECOVERY",
+            "movingTime": 600,
+            "elapsedTime": 600,
+            "distance": 4800,
+            "trainingLoad": 6,
+            "intensity": 55,
+            "averageWatts": 138,
+            "weightedAverageWatts": 140,
+            "averageHeartrate": 112,
+            "maxHeartrate": 124,
+            "totalElevationGain": 12.5,
+            "averageCadence": 84,
+            "startIndex": 0,
+            "endIndex": 600,
+            "zone": 1
+          },
+          {
+            "id": 2,
+            "label": "Sweet spot",
+            "type": "WORK",
+            "movingTime": 1200,
+            "elapsedTime": 1200,
+            "distance": 11400,
+            "trainingLoad": 30,
+            "intensity": 90,
+            "averageWatts": 224,
+            "weightedAverageWatts": 226,
+            "averageHeartrate": 156,
+            "maxHeartrate": 164,
+            "totalElevationGain": 0,
+            "averageCadence": 91,
+            "startIndex": 600,
+            "endIndex": 1800,
+            "zone": 4
+          },
+          {
+            "id": 3,
+            "type": "RECOVERY",
+            "movingTime": 300,
+            "startIndex": 1800,
+            "endIndex": 2100
+          }
+        ],
+        "icuGroups": [
+          {
+            "id": "1200s@224w",
+            "count": 1,
+            "movingTime": 1200
+          }
+        ],
+        "pairedEventId": 4243
+      }
+    },
+    "phone": {
+      "error": "activity_detail_unavailable",
+      "activityId": "i1234567",
+      "cause": "activity_mismatch",
+      "details": "The detail of activity i1234567 could not be read. The read failed: the activity is not empty or missing, and no other activity stands in for it. Cause: intervals.icu answered with a different activity than i1234567. Nothing from that answer is shown."
+    }
+  },
+  {
+    "name": "an answer with no start",
+    "arguments": {
+      "activityId": "i1234573"
+    },
+    "status": 200,
+    "response": {
+      "id": "i1234573",
+      "name": "First leg",
+      "type": "Ride",
+      "moving_time": 1500,
+      "elapsed_time": 1500
+    },
+    "npm": {
+      "refused": true
+    },
+    "phone": {
+      "error": "activity_detail_unavailable",
+      "activityId": "i1234573",
+      "cause": "invalid_json",
+      "details": "The detail of activity i1234573 could not be read. The read failed: the activity is not empty or missing, and no other activity stands in for it. Cause: activity response had no usable identifier or start"
+    }
+  },
+  {
+    "name": "an answer that is a list",
+    "arguments": {
+      "activityId": "i1234574"
+    },
+    "status": 200,
+    "response": [
+      {
+        "id": "i1234574",
+        "start_date_local": "1998-06-12T17:31:00"
+      }
+    ],
+    "npm": {
+      "refused": true
+    },
+    "phone": {
+      "error": "activity_detail_unavailable",
+      "activityId": "i1234574",
+      "cause": "invalid_json",
+      "details": "The detail of activity i1234574 could not be read. The read failed: the activity is not empty or missing, and no other activity stands in for it. Cause: activity response was not an object"
+    }
+  },
+  {
+    "name": "laps that are not a list",
+    "arguments": {
+      "activityId": "i1234575"
+    },
+    "status": 200,
+    "response": {
+      "id": "i1234575",
+      "start_date_local": "1998-06-13",
+      "icu_intervals": {
+        "count": 3
+      }
+    },
+    "npm": {
+      "passes": {
+        "id": "i1234575",
+        "startDateLocal": "1998-06-13",
+        "icuIntervals": {
+          "count": 3
+        }
+      }
+    },
+    "phone": {
+      "error": "activity_detail_unavailable",
+      "activityId": "i1234575",
+      "cause": "invalid_json",
+      "details": "The detail of activity i1234575 could not be read. The read failed: the activity is not empty or missing, and no other activity stands in for it. Cause: activity laps were not a list"
+    }
+  },
+  {
+    "name": "an activity intervals.icu does not have",
+    "arguments": {
+      "activityId": "i1234576"
+    },
+    "status": 404,
+    "response": {
+      "status": 404,
+      "error": "Not Found"
+    },
+    "npm": {
+      "refused": true
+    },
+    "phone": {
+      "error": "activity_not_found",
+      "activityId": "i1234576",
+      "details": "intervals.icu has no activity i1234576. Pass an id exactly as intervals_fetch_activities listed it."
+    }
+  },
+  {
+    "name": "intervals.icu fails",
+    "arguments": {
+      "activityId": "i1234567"
+    },
+    "status": 503,
+    "response": {
+      "status": 503,
+      "error": "Service Unavailable"
+    },
+    "npm": {
+      "refused": true
+    },
+    "phone": {
+      "error": "activity_detail_unavailable",
+      "activityId": "i1234567",
+      "cause": "http",
+      "details": "The detail of activity i1234567 could not be read. The read failed: the activity is not empty or missing, and no other activity stands in for it. Cause: status 503"
+    }
+  }
+]

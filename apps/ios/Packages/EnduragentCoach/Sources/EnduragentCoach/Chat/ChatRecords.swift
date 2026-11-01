@@ -1,0 +1,311 @@
+import Foundation
+
+final class ChatRecords {
+	private let chat: ChatID
+	private let ledger: Ledger
+	private let desk: WorkoutReviewDesk
+	private let plans: Plans
+	private let clock: any Clock
+	private(set) var conversation: Conversation
+	private(set) var review: ReviewSnapshot?
+	private var reviewReads = 0
+	private var shownRead = 0
+	private(set) var planCards: [PlanCard] = []
+	private var planReads = 0
+	private var shownPlanRead = 0
+	private(set) var jobs: [FlushJob] = []
+	private var applied: [ULID: AthleteRecord] = [:]
+	private var pendingSettlements: [ULID: AthleteRecord] = [:]
+
+	var unsavedTurns: Set<TurnID> {
+		Set(pendingSettlements.values.compactMap { $0.body.turn })
+	}
+
+	init(
+		chat: ChatID, ledger: Ledger, clock: any Clock, desk: WorkoutReviewDesk, plans: Plans
+	) {
+		self.chat = chat
+		self.ledger = ledger
+		self.desk = desk
+		self.plans = plans
+		self.clock = clock
+		self.conversation = Conversation(chat: chat, segments: [])
+	}
+
+	func refresh(
+		recoveryRecords: [AthleteRecord]? = nil,
+		isolation: isolated (any Actor)? = #isolation
+	) async throws(LedgerFailure) {
+		try await readingReview { () throws(LedgerFailure) in
+			let imported: [AthleteRecord]
+			if let recoveryRecords {
+				let synced = try await ledger.read(
+					RecordQuery(scope: ConversationFold.syncedScope, chatId: chat)
+				).records
+				imported =
+					synced
+					+ recoveryRecords.filter {
+						$0.chatId == chat && ConversationFold.localScope.admits($0.body)
+					}
+			} else {
+				imported = try await ledger.conversationRecords(chat)
+			}
+			let saved = Set(imported.filter { $0.locality == .synced }.map(\.ulid))
+			for record in imported {
+				if case .deviceLocal(.pendingSettlement(let body)) = record.body,
+					record.deviceId == ledger.deviceId, !saved.contains(record.ulid)
+				{
+					pendingSettlements[record.ulid] = record.replacingBody(
+						.synced(.turnSettled(body)))
+				}
+			}
+			for record in imported { applied[record.ulid] = record }
+			await retrySettlements()
+			var folded = ConversationFold.fold(
+				chat: chat, synced: Array(applied.values), device: ledger.deviceId,
+				ownership: try await ledger.informationOwnership())
+			let jobs: [FlushJob]
+			if let recoveryRecords {
+				jobs =
+					try await ledger.flushJobsByChat(in: [chat: folded], local: recoveryRecords)[
+						chat]
+					?? []
+			} else {
+				jobs = try await ledger.flushJobs(in: folded)
+			}
+			try await readReview()
+			folded.apply(Array(applied.values), device: ledger.deviceId)
+			conversation = folded
+			self.jobs = jobs
+		}
+		await refreshPlans()
+	}
+
+	func refreshInformationOwnership(isolation: isolated (any Actor)? = #isolation)
+		async throws(LedgerFailure)
+	{
+		let ownership = try await ledger.informationOwnership()
+		guard ownership != conversation.ownership else { return }
+		conversation = ConversationFold.fold(
+			chat: chat, synced: Array(applied.values), device: ledger.deviceId, ownership: ownership
+		)
+	}
+
+	var hasLocalWork: Bool { conversation.hasLocalWork(on: ledger.deviceId) }
+
+	func refreshReview(isolation: isolated (any Actor)? = #isolation) async -> ReviewOutcome {
+		do {
+			try await updateReview()
+			return .presentationRecorded
+		} catch {
+			return .storageUnavailable
+		}
+	}
+
+	func decide(
+		_ decision: ReviewDecision, isolation: isolated (any Actor)? = #isolation
+	) async -> ReviewOutcome {
+		let outcome = await desk.decide(decision)
+		do {
+			try await updateReview()
+		} catch {
+			switch error {
+			case .unavailable, .rejectedBatch: return outcome
+			}
+		}
+		return outcome
+	}
+
+	func decide(
+		_ decision: PlanDecision, isolation: isolated (any Actor)? = #isolation
+	) async -> PlanDecisionOutcome {
+		let outcome = await plans.decide(decision)
+		await refreshPlans()
+		return outcome
+	}
+
+	func refreshPlans(isolation: isolated (any Actor)? = #isolation) async {
+		planReads += 1
+		let read = planReads
+		do throws(LedgerFailure) {
+			let cards = try await plans.snapshot(chat: chat)
+			guard read > shownPlanRead else { return }
+			planCards = cards
+			shownPlanRead = read
+		} catch {
+			ledger.report(.planConfirmationUnavailable(chat, error))
+		}
+	}
+
+	func updateReview(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
+		try await readingReview { () throws(LedgerFailure) in
+			try await refreshNotes()
+			try await readReview()
+		}
+	}
+
+	private func readReview(isolation: isolated (any Actor)? = #isolation)
+		async throws(LedgerFailure)
+	{
+		reviewReads += 1
+		let read = reviewReads
+		let snapshot = try await desk.snapshot(chat: chat)
+		guard read > shownRead else { return }
+		review = snapshot
+		shownRead = read
+	}
+
+	private func readingReview(
+		isolation: isolated (any Actor)? = #isolation,
+		_ read: nonisolated(nonsending) () async throws(LedgerFailure) -> Void
+	) async throws(LedgerFailure) {
+		do {
+			try await read()
+		} catch {
+			review = review?.disablingButtons()
+			ledger.report(.reviewUnavailable(chat, error))
+			throw error
+		}
+	}
+
+	func refreshJobs(
+		from flushes: FlushWork, isolation: isolated (any Actor)? = #isolation
+	) async -> [FlushJobID] {
+		switch await flushes.jobs(in: conversation) {
+		case .success(let saved):
+			jobs = saved
+		case .failure:
+			break
+		}
+		return FlushJob.outstanding(jobs, in: conversation).map(\.id)
+	}
+
+	func apply(_ committed: [AthleteRecord]) {
+		for record in committed { applied[record.ulid] = record }
+		conversation.apply(committed, device: ledger.deviceId)
+	}
+
+	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
+		let notes = try await ledger.read(
+			RecordQuery(
+				scope: .synced(
+					[.reviewOutcome],
+					includeLegacy: [.reviewApplied, .reviewWrite, .reviewCancelledUnknown]),
+				chatId: chat))
+		apply(notes.records)
+	}
+
+	func settle(
+		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, stamp: OperationStamp,
+		isolation: isolated (any Actor)? = #isolation
+	) async {
+		let key = DraftKey(turn: turn, attempt: attempt)
+		let ending = TurnEnding(settlement)
+		let review = await desk.settle(key, in: chat, ending: ending)
+		if case .committed = review { _ = await refreshReview() }
+		let plan = await plans.settle(key, in: chat, ending: ending)
+		if case .leftWaiting = plan { await refreshPlans() }
+		await save(
+			TurnLifecycle.settled(
+				attempt, plan.counted(in: settlement), on: conversation.turn(turn), chat: chat,
+				reviewNotPrepared: review.notPrepared, planSaveNotPrepared: plan.notPrepared),
+			stamp: stamp)
+	}
+
+	private func save(
+		_ settled: TurnSettledBody?, stamp: OperationStamp,
+		isolation: isolated (any Actor)? = #isolation
+	) async {
+		guard let settled else { return }
+		await retrySettlements()
+		let record = await ledger.prepare(.synced(.turnSettled(settled)), stamp: stamp)
+		await saveSettlement(record, mode: .initial)
+	}
+
+	func retrySettlements(isolation: isolated (any Actor)? = #isolation) async {
+		for record in pendingSettlements.values.sorted(by: { $0.ulid < $1.ulid }) {
+			await saveSettlement(record, mode: .retry)
+		}
+	}
+
+	func stopBeforeStart(
+		_ turns: [TurnID], isolation: isolated (any Actor)? = #isolation
+	) async {
+		for turn in turns {
+			let stamp = OperationStamp.turn(
+				turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
+			let stopped = TurnLifecycle.stopBeforeStart(
+				stamp.attempt, on: conversation.turn(turn), chat: chat)
+			guard case .success(let settled) = stopped else { continue }
+			await save(settled, stamp: stamp)
+		}
+	}
+
+	func recover(_ claims: [DeadClaim], isolation: isolated (any Actor)? = #isolation) async {
+		for dead in claims {
+			let account =
+				conversation.turn(dead.turn)?.claims.first { $0.attempt == dead.attempt }?.account
+				?? .unconnected
+			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock).bound(
+				to: account)
+			await settle(
+				dead.turn, attempt: dead.attempt,
+				.interrupted(partial: "", cause: .processEnded, saved: dead.saved), stamp: stamp)
+		}
+	}
+
+	private func saveSettlement(
+		_ record: AthleteRecord, mode: Ledger.CommitMode,
+		isolation: isolated (any Actor)? = #isolation
+	) async {
+		guard case .synced(.turnSettled(let body)) = record.body else { return }
+		do {
+			try await ledger.commit(record, mode: mode)
+			pendingSettlements[record.ulid] = nil
+			apply([record])
+		} catch {
+			pendingSettlements[record.ulid] = record
+			apply([record])
+			ledger.report(.settlementUnsaved(body.turn, error))
+			do {
+				try await ledger.commit(
+					record.replacingBody(.deviceLocal(.pendingSettlement(body))), mode: mode)
+			} catch {
+				ledger.report(.settlementUnsaved(body.turn, error))
+			}
+		}
+	}
+
+	func settleUnsaved(
+		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement,
+		isolation: isolated (any Actor)? = #isolation
+	) async {
+		let ulid = await ledger.nextULID()
+		if let record = conversation.settleInMemory(
+			turn, attempt: attempt, settlement, ulid: ulid, now: clock.now, device: ledger.deviceId)
+		{
+			applied[record.ulid] = record
+		}
+	}
+
+	func observeReply(
+		_ turn: TurnID, stamp: OperationStamp, isolation: isolated (any Actor)? = #isolation
+	) async {
+		guard
+			let mark = TurnLifecycle.observeReply(
+				stamp.attempt, on: conversation.turn(turn), chat: chat)
+		else {
+			return
+		}
+		do {
+			apply(try await ledger.commit(local: [.replyObserved(mark)], stamp: stamp))
+		} catch {
+			if let record = conversation.observeInMemory(
+				turn, attempt: stamp.attempt, device: ledger.deviceId)
+			{
+				applied[record.ulid] = record
+			}
+			ledger.report(.replyObservedUnsaved(stamp.attempt, FailureCode(error)))
+		}
+	}
+}

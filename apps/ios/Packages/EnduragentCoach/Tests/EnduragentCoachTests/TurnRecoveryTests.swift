@@ -1,0 +1,353 @@
+import EnduragentCoachFixtures
+import Foundation
+import Testing
+
+@testable import EnduragentCoach
+
+@Suite struct TurnRecoveryTests {
+	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+	let transport = FakeModelTransport()
+	let store = InMemoryRecordLog()
+	let memorySaved = WriteSummary(
+		memorySections: 1, ledgerEvents: 0, planConfirmations: 0, calendarWrites: 0)
+
+	func processBeforeTheKill(coalescing: CoalescingPolicy = quickWindow) async -> (
+		Coach, FaultInjectingRecordLog
+	) {
+		let dying = FaultInjectingRecordLog(wrapping: store)
+		return (
+			await makeCoach(
+				transport: transport, store: dying, clock: clock, coalescing: coalescing),
+			dying
+		)
+	}
+
+	func relaunched(over log: (any ReviewChainLog)? = nil) async -> Coach {
+		let coach = await makeCoach(transport: transport, store: log ?? store, clock: clock)
+		await coach.lifecycle(.becameActive)
+		return coach
+	}
+
+	func settlements(of turn: TurnID) async throws -> [AthleteRecord] {
+		try await store.fetch(RecordQuery(scope: .synced([.turnSettled]), turn: turn)).records
+	}
+
+	func claims(of turn: TurnID) async throws -> [AthleteRecord] {
+		try await store.fetch(RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)).records
+	}
+
+	@Test func deadClaimIsInterruptedWithProcessEndedAndStampedWrites() async throws {
+		transport.respond = ScriptedReply.sequence(
+			[
+				.saturdayScheduleWrite,
+				.finish(reason: .toolCalls),
+				.hang,
+			], otherwise: transport.respond)
+		let (before, dying) = await processBeforeTheKill()
+		let turn = try #require(
+			try await before.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
+		try await waitForRecords(.synced([.memorySection]), count: 1, in: store)
+		try await before.dieWithoutWriting(to: dying)
+		let after = await relaunched()
+		let state = try #require(await after.state(of: turn))
+		guard case .interrupted(let interrupted) = state else {
+			Issue.record("expected interrupted, got \(state)")
+			return
+		}
+		#expect(interrupted.cause == .processEnded)
+		#expect(interrupted.partial.isEmpty)
+		#expect(interrupted.saved == memorySaved)
+		#expect(
+			interrupted.notice
+				== AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, actions: []))
+		let claim = try #require(try await claims(of: turn).first)
+		guard case .deviceLocal(.turnClaim(let claimed)) = claim.body else {
+			Issue.record("expected a claim, got \(claim.body)")
+			return
+		}
+		let settled = try await settlements(of: turn)
+		#expect(
+			settled.map(\.body) == [
+				.synced(
+					.turnSettled(
+						TurnSettledBody(
+							chatId: .main, turn: turn, attempt: claimed.attempt,
+							settlement: .interrupted(
+								partial: "", cause: .processEnded, saved: memorySaved))))
+			])
+		#expect(settled.first?.cause == claim.cause)
+	}
+
+	@Test func claimedThenKilledTurnIsInterruptedAndTryAgainAnswersIt() async throws {
+		transport.respond = { _ in ScriptedReply([.hang]) }
+		let (before, dying) = await processBeforeTheKill()
+		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
+		await before.waitUntilProcessing(turn)
+		try await before.dieWithoutWriting(to: dying)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat)
+		let after = await relaunched()
+		let state = try #require(await after.state(of: turn))
+		#expect(state != .accepted(.awaitingRestart))
+		guard case .interrupted(let interrupted) = state else {
+			Issue.record("expected interrupted, got \(state)")
+			return
+		}
+		#expect(interrupted.cause == .processEnded)
+		#expect(interrupted.saved == .none)
+		#expect(
+			interrupted.notice
+				== AthleteNotice(
+					key: Catalog.chatTurnInterruptedNothingChanged, actions: [.tryAgain(turn)]))
+		try await after.retry(turn, in: .main)
+		let replied = try #require(await after.settledState(of: turn, in: .main))
+		#expect(replyText(replied) == "Thursday is on.")
+		#expect(try await claims(of: turn).count == 2)
+		#expect(try await settlements(of: turn).count == 2)
+		#expect(await after.transcript(.main) == ["Thursday?", "Thursday is on."])
+	}
+
+	@Test func theFirstSnapshotAndRetryAfterRelaunchSeeTheSavedWorkOfADeadClaim() async throws {
+		transport.respond = ScriptedReply.sequence(
+			[
+				.saturdayScheduleWrite,
+				.finish(reason: .toolCalls),
+				.hang,
+			], otherwise: transport.respond)
+		let (before, dying) = await processBeforeTheKill()
+		let turn = try #require(
+			try await before.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
+		try await waitForRecords(.synced([.memorySection]), count: 1, in: store)
+		try await before.dieWithoutWriting(to: dying)
+		let after = await makeCoach(transport: transport, store: store, clock: clock)
+		let first = try #require(await after.currentSnapshot(.main)?.turns.first?.state)
+		guard case .interrupted(let interrupted) = first else {
+			Issue.record("expected interrupted, got \(first)")
+			return
+		}
+		#expect(interrupted.saved == memorySaved)
+		#expect(interrupted.notice.actions.isEmpty)
+		let retried = await makeCoach(transport: transport, store: store, clock: clock)
+		await #expect(throws: RetryRefusal.alreadyAnswered) {
+			try await retried.retry(turn, in: .main)
+		}
+	}
+
+	@Test func unclaimedTurnStaysAcceptedAwaitingRestart() async throws {
+		let (before, dying) = await processBeforeTheKill(
+			coalescing: CoalescingPolicy(window: .seconds(60)))
+		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
+		try await before.dieWithoutWriting(to: dying)
+		let recording = BatchRecordingLog(inner: store)
+		let after = await relaunched(over: recording)
+		let state = try #require(await after.state(of: turn))
+		#expect(state == .accepted(.awaitingRestart))
+		try await Task.sleep(for: .milliseconds(100))
+		#expect(recording.batches == [["trainingIdentityObserved"]])
+		#expect(transport.requests.isEmpty)
+		#expect(try await claims(of: turn).isEmpty)
+	}
+
+	@Test func settledClaimIsNotTouched() async throws {
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
+		let before = await makeCoach(transport: transport, store: store, clock: clock)
+		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
+		let settled = try #require(await before.settledState(of: turn, in: .main))
+		let recording = BatchRecordingLog(inner: store)
+		let after = await relaunched(over: recording)
+		#expect(await after.state(of: turn) == settled)
+		#expect(recording.batches.isEmpty)
+		#expect(try await settlements(of: turn).count == 1)
+	}
+
+	@Test func planRunTwiceWritesNothingTheSecondTime() async throws {
+		transport.respond = { _ in ScriptedReply([.hang]) }
+		let (before, dying) = await processBeforeTheKill()
+		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
+		await before.waitUntilProcessing(turn)
+		try await before.dieWithoutWriting(to: dying)
+		let first = await relaunched()
+		#expect(try await settlements(of: turn).count == 1)
+		let recording = BatchRecordingLog(inner: store)
+		let second = await relaunched(over: recording)
+		#expect(recording.batches.isEmpty)
+		#expect(await second.state(of: turn) == (await first.state(of: turn)))
+		let synced = try await store.fetch(RecordQuery(scope: ConversationFold.syncedScope))
+		let local = try await store.fetch(RecordQuery(scope: ConversationFold.localScope))
+		let turns = ConversationFold.fold(
+			chat: .main, synced: synced.records, local: local.records, device: store.deviceId
+		).segments.flatMap(\.turns)
+		#expect(
+			TurnRecovery.plan(
+				turns: turns, writes: [:], device: store.deviceId,
+				process: ProcessID(ulid: fixedUlid(60)))
+				== RecoveryPlan(interrupt: []))
+	}
+
+	@Test func stampedWritesAreCountedPerAttempt() async throws {
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let turn = TurnID(ulid: fixedUlid(1))
+		let dead = AttemptID(ulid: fixedUlid(2))
+		let other = AttemptID(ulid: fixedUlid(3))
+		let zone = AthleteCalendar(clock: clock).deviceZone
+		func stamp(_ attempt: AttemptID) -> OperationStamp {
+			OperationStamp(
+				operation: .turn(turn), attempt: attempt,
+				binding: ActionBinding(account: .unconnected, zone: zone))
+		}
+		let memory = Memory(ledger: ledger, clock: clock)
+		try await memory.writeSection(
+			SectionName(rawValue: "schedule"), content: "Saturdays.", source: .chat,
+			stamp: stamp(dead))
+		_ = try await memory.appendEvent(
+			date: "1998-06-13", kind: .decision, text: "Rest on Monday.", source: .chat,
+			stamp: stamp(dead))
+		try await memory.writeSection(
+			SectionName(rawValue: "goals"), content: "Gran fondo.", source: .chat,
+			stamp: stamp(other))
+		let records = try await store.fetch(RecordQuery(scope: TurnRecovery.stampedWrites))
+			.records
+		#expect(
+			TurnRecovery.writes(of: [dead], in: records) == [
+				dead: WriteSummary(
+					memorySections: 1, ledgerEvents: 1, planConfirmations: 0, calendarWrites: 0)
+			])
+	}
+
+	@Test func aKillBeforeThePreparationMarkerSettlesWithoutAReviewNotice() async throws {
+		let turns = ReviewTurns()
+		turns.transport.respond = { _ in ScriptedReply([.hang]) }
+		let (before, dying) = await turns.dyingCoach()
+		let turn = try #require(
+			try await before.send(draft("Plan my week"), to: .main).acceptedTurn)
+		await before.waitUntilProcessing(turn)
+		try await before.dieWithoutWriting(to: dying)
+
+		let after = await turns.relaunched()
+
+		#expect(await after.interruption(of: turn) == .processEnded)
+		#expect(try await turns.markers(of: turn) == 0)
+		#expect(try await turns.settled(turn).map(\.reviewNotPrepared) == [nil])
+		#expect(try await turns.view(of: turn, on: after).reviewNotice == nil)
+	}
+
+	@Test func aKillDuringThePreparationReadsLeavesNothingApprovable() async throws {
+		let turns = ReviewTurns()
+		let read = turns.intervals.hold(.event)
+		turns.script([
+			turns.prepare(
+				#"{"kind":"complete","changes":[{"kind":"edit","eventId":201,"patch":{"name":"Tempo"}}]}"#
+			), .finish(reason: .toolCalls), .hang,
+		])
+		let (before, dying) = await turns.dyingCoach()
+		let turn = try #require(
+			try await before.send(draft("Plan my week"), to: .main).acceptedTurn)
+		try #require(
+			try await beforeDeadline(within: .hangGuard) { await read.waitUntilEntered() } != nil)
+		#expect(try await turns.markers(of: turn) == 1)
+		try await before.dieWithoutWriting(to: dying)
+
+		let after = await turns.relaunched()
+
+		try await expectNothingApprovable(after: turn, on: after, turns: turns)
+	}
+
+	@Test func aKillAfterAnUnreadablePreparationStillFindsTheMarkerOfTheNextOne() async throws {
+		let turns = ReviewTurns()
+		let read = turns.intervals.hold(.event)
+		turns.script([
+			turns.prepare(#"{"kind":"bogus"}"#), .finish(reason: .toolCalls),
+			turns.prepare(
+				#"{"kind":"complete","changes":[{"kind":"edit","eventId":201,"patch":{"name":"Tempo"}}]}"#
+			), .finish(reason: .toolCalls), .hang,
+		])
+		let (before, dying) = await turns.dyingCoach()
+		let turn = try #require(
+			try await before.send(draft("Plan my week"), to: .main).acceptedTurn)
+		try #require(
+			try await beforeDeadline(within: .hangGuard) { await read.waitUntilEntered() } != nil)
+		try await before.dieWithoutWriting(to: dying)
+
+		let after = await turns.relaunched()
+
+		#expect(try await turns.markers(of: turn) == 1)
+		try await expectNothingApprovable(after: turn, on: after, turns: turns)
+	}
+
+	@Test func aKillDuringARevisionsReadsLeavesTheWaitingReviewAsItWas() async throws {
+		let turns = ReviewTurns()
+		let first = await turns.coach()
+		let waiting = try await turns.committed(
+			#"{"kind":"complete","changes":[{"kind":"edit","eventId":201,"patch":{"name":"Tempo"}}]}"#,
+			on: first)
+		let item = try #require(waiting.work.remaining.first)
+		let renamed = #"{"kind":"edit","eventId":201,"patch":{"name":"Threshold"}}"#
+		let read = turns.intervals.hold(.event)
+		turns.script([
+			turns.prepare(turns.revise(waiting, [(item.reference, renamed)])),
+			.finish(reason: .toolCalls), .hang,
+		])
+		let (before, dying) = await turns.dyingCoach()
+		let turn = try #require(
+			try await before.send(draft("Make Thursday harder"), to: .main).acceptedTurn)
+		try #require(
+			try await beforeDeadline(within: .hangGuard) { await read.waitUntilEntered() } != nil)
+		try await before.dieWithoutWriting(to: dying)
+
+		let after = await turns.relaunched()
+
+		#expect(await after.interruption(of: turn) == .processEnded)
+		#expect(try await turns.settled(turn).map(\.reviewNotPrepared) == [.processEnded])
+		#expect(try await turns.view(of: turn, on: after).reviewNotice == ReviewTurns.notPrepared)
+		#expect(try await turns.head(of: after).1 == waiting)
+		#expect(try await after.desk.snapshot(chat: .main)?.ref.revision == waiting.revision)
+	}
+
+	@Test func aKillAfterTheReplyAndBeforeTheCommitLeavesNothingApprovable() async throws {
+		let turns = ReviewTurns()
+		let (before, dying) = await turns.dyingCoach()
+		for kind in ["workoutReview", "turnSettled", "pendingSettlement"] {
+			try dying.failAppends(ofKind: kind)
+		}
+		let turn = try await turns.reply(after: [turns.prepare(ReviewTurns.oneRide)], on: before)
+		try await before.dieWithoutWriting(to: dying)
+
+		let after = await turns.relaunched()
+
+		#expect(try await turns.markers(of: turn) == 1)
+		try await expectNothingApprovable(after: turn, on: after, turns: turns)
+	}
+
+	@Test func aKillAfterTheCommitFindsTheReviewOnRelaunch() async throws {
+		let turns = ReviewTurns()
+		let (before, dying) = await turns.dyingCoach()
+		for kind in ["turnSettled", "pendingSettlement"] {
+			try dying.failAppends(ofKind: kind)
+		}
+		let turn = try await turns.reply(after: [turns.prepare(ReviewTurns.oneRide)], on: before)
+		let committed = try #require(try await turns.head(of: before).1)
+		try await before.dieWithoutWriting(to: dying)
+
+		let after = await turns.relaunched()
+
+		#expect(await after.interruption(of: turn) == .processEnded)
+		#expect(try await turns.settled(turn).map(\.reviewNotPrepared) == [nil])
+		#expect(try await turns.view(of: turn, on: after).reviewNotice == nil)
+		let card = try #require(try await after.desk.snapshot(chat: .main))
+		#expect(card.ref.review == committed.id)
+		#expect(card.cards.count == 1)
+		#expect(card.placement == .afterTurn(turn))
+	}
+
+	private func expectNothingApprovable(after turn: TurnID, on coach: Coach, turns: ReviewTurns)
+		async throws
+	{
+		#expect(await coach.interruption(of: turn) == .processEnded)
+		#expect(try await turns.settled(turn).map(\.reviewNotPrepared) == [.processEnded])
+		#expect(try await coach.desk.snapshot(chat: .main) == nil)
+		#expect(try await coach.desk.pending(chat: .main) == .none)
+		#expect(try await turns.view(of: turn, on: coach).reviewNotice == ReviewTurns.notPrepared)
+	}
+}

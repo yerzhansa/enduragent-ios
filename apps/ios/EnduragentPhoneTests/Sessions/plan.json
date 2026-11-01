@@ -1,0 +1,80 @@
+{
+	"name": "plan",
+	"cap": 30,
+	"ledger": "enduragent-m5/PHONE/messages.tsv",
+	"steps": [
+		{
+			"id": "plan/1",
+			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "PlanPhoneRun", "testMethod": "testPlanPhoneRun", "actionsAttachment": "plan-phone-actions"}},
+			"planned": 2,
+			"setup": [
+				"The phone starts with no saved plan and no plan-save card."
+			],
+			"checks": [
+				{"look": "the reply to /plan chosen from the slash list", "pass": "a question back, and no plan-save card"},
+				{"look": "the reply to the details message", "pass": "calls build_plan_skeleton and get_sample_week, and no plan-save card"}
+			],
+			"endsWith": "A drafted plan in the conversation, not saved."
+		},
+		{
+			"id": "plan/2",
+			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "PlanPhoneRun", "testMethod": "testPlanPhoneRun", "actionsAttachment": "plan-phone-actions"}},
+			"planned": 1,
+			"setup": [],
+			"checks": [
+				{"look": "the reply to \"Can I get from 250 to 300 W?\"", "pass": "calls assess_feasibility, and no plan-save card"}
+			],
+			"endsWith": "No plan-save card."
+		},
+		{
+			"id": "plan/3",
+			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "PlanPhoneRun", "testMethod": "testPlanPhoneRun", "actionsAttachment": "plan-phone-actions"}},
+			"planned": 2,
+			"setup": [],
+			"checks": [
+				{"look": "the card after \"Save that plan\"", "pass": "card A with no replaces line, still waiting after a kill"},
+				{"look": "card A after Save plan and a second kill", "pass": "reads Saved"},
+				{"look": "the reply to \"What is my current plan?\"", "pass": "names A"}
+			],
+			"endsWith": "Plan A saved."
+		},
+		{
+			"id": "plan/4",
+			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "PlanPhoneRun", "testMethod": "testPlanPhoneRun", "actionsAttachment": "plan-phone-actions"}},
+			"planned": 2,
+			"setup": [],
+			"checks": [
+				{"look": "the card after \"Make it 10 weeks and save it\"", "pass": "card B replacing A, which reads Saved after Save plan"},
+				{"look": "the reply to \"When did my plan change?\"", "pass": "names A and B"}
+			],
+			"endsWith": "Plan B saved."
+		},
+		{
+			"id": "plan/5",
+			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "PlanPhoneRun", "testMethod": "testPlanPhoneRun", "actionsAttachment": "plan-phone-actions"}},
+			"planned": 3,
+			"setup": [
+				"Auto-Lock is Never: the step waits eleven minutes with the app in the foreground. It makes the session's one calendar Approve."
+			],
+			"checks": [
+				{"look": "the reply to \"Add an easy 45-minute ride tomorrow\"", "pass": "a workout review waiting with Approve"},
+				{"look": "the card after \"Make the plan 12 weeks\" and \"Save that plan\"", "pass": "a card replacing B, still waiting at 580 seconds"},
+				{"look": "the same card before 615 seconds", "pass": "reads Expired with no Save plan and no Cancel"},
+				{"look": "the intervals.icu website after the one Approve", "pass": "exactly one new workout"}
+			],
+			"endsWith": "Plan B saved, the expired card, and no review waiting."
+		},
+		{
+			"id": "plan/7",
+			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "PlanPhoneRun", "testMethod": "testPlanPhoneRun", "actionsAttachment": "plan-phone-actions"}},
+			"planned": 2,
+			"setup": [],
+			"checks": [
+				{"look": "the card after \"Make the plan 16 weeks and save it\"", "pass": "a card waiting"},
+				{"look": "the new conversation after New conversation", "pass": "the card shown once at the top, marked Prepared earlier"},
+				{"look": "the card after Cancel", "pass": "reads Canceled with no controls"}
+			],
+			"endsWith": "Plan B saved, and a new conversation with the canceled card."
+		}
+	]
+}

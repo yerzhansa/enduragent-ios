@@ -191,7 +191,8 @@
         "historyTokenBudgetRatio": "Angi et historikkbudsjett over 0 % og ikke mer enn 100 %.",
         "idleMinutes": "Angi et sikkert heltall for antall minutter, 0 eller mer.",
         "resetArchiveRetentionDays": "Angi et sikkert heltall for antall dager, 0 eller mer.",
-        "timezone": "Skriv inn en gyldig IANA-tidssone, som {{timezone}}."
+        "timezone": "Skriv inn en gyldig IANA-tidssone, som {{timezone}}.",
+        "contextWindowTokens": "Skriv inn et helt antall tokener innenfor det gyldige området, minst 1."
       }
     },
     "credentials": {
@@ -512,7 +513,36 @@
         "title": "Fjern den eksisterende webhooken"
       }
     },
-    "title": "Innstillinger"
+    "title": "Innstillinger",
+    "modelAccessTitle": "Modelltilgang",
+    "session": {
+      "title": "Sesjon",
+      "contextWindow": {
+        "label": "Kontekstvindu",
+        "help": "Øvre grense for modellens kontekst. La feltet stå tomt for å bruke standarden.",
+        "default": "Standard"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokener"
+      }
+    },
+    "training": {
+      "section": "Treningsforbindelse",
+      "title": "intervals.icu",
+      "replace": "Bytt nøkkel",
+      "keep": "Behold nåværende forbindelse",
+      "disconnect": "Koble fra",
+      "disconnectTitle": "Koble fra intervals.icu?",
+      "disconnectDetail": "Samtalen og historikken din er fortsatt tilgjengelige.",
+      "switchTitle": "Bruke en annen utøver?",
+      "switchDetail": "Denne nøkkelen tilhører utøver {{new}}. Samtalen, historikken og minnet ditt forblir lagret for utøver {{current}} og brukes ikke for utøver {{new}}. Bytte for å bruke denne nøkkelen?",
+      "switch": "Bytt utøver",
+      "athlete": "Utøver {{id}}"
+    },
+    "support": {
+      "title": "Brukerstøtte"
+    }
   },
   "archive": {
     "athlete": "Du",
@@ -530,13 +560,13 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Tidligere samtaler er midlertidig utilgjengelige.",
-    "loadEarlier": "Last inn tidligere meldinger",
     "loading": "Laster inn tidligere samtaler…",
     "pageFailure": "Denne samtalen er midlertidig utilgjengelig.",
     "readOnly": "Tidligere samtaler kan bare leses.",
     "reason": {
       "explicit": "Du startet en ny samtale",
-      "stale": "Avsluttet etter en pause"
+      "stale": "Avsluttet etter en pause",
+      "earlierChat": "Tidligere chat"
     },
     "retry": "Prøv igjen",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -544,7 +574,9 @@
     "truncated": "Bare de nyeste tidligere samtalene vises.",
     "turnCount_one": "{{formattedCount}} melding",
     "turnCount_other": "{{formattedCount}} meldinger",
-    "unavailable": "Denne samtalen er ikke lenger tilgjengelig."
+    "unavailable": "Denne samtalen er ikke lenger tilgjengelig.",
+    "history": "Historikk",
+    "savedForAnotherAthlete": "Lagret for en annen intervals.icu-utøver ({{id}})"
   },
   "setup": {
     "ai": {
@@ -931,7 +963,7 @@
       "plan": "Start en plan i chatten",
       "review": "Se gjennom den siste samtalen din",
       "start": "Start en ny samtale",
-      "status": "Sjekk nåværende form (CTL), tretthet (ATL) og form",
+      "status": "Sjekk nåværende kondisjon, tretthet og form",
       "sync": "Tving oppdatering av treningsdata fra {{intervals}}",
       "update": "Se etter og installer oppdateringer",
       "version": "Vis nåværende versjon",
@@ -945,7 +977,8 @@
       "messagePlaceholder": "Skriv til treneren din",
       "responding": "Treneren svarer…",
       "send": "Send melding",
-      "stop": "Stopp svaret"
+      "stop": "Stopp svaret",
+      "notSent": "Ikke sendt. Utkastet ditt er fortsatt her."
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -978,7 +1011,6 @@
     },
     "history": {
       "failure": "Samtalehistorikken er midlertidig utilgjengelig.",
-      "loadEarlier": "Last inn tidligere meldinger",
       "retry": "Prøv å laste inn historikken igjen"
     },
     "newConversation": {
@@ -987,6 +1019,7 @@
       "cancel": "Avbryt",
       "confirm": "Start ny samtale",
       "hydrated": "Den synlige samtalen og de tidligere meldingene som ble gjenopprettet på {{computer}}, tømmes. Treningsdata og trenerens lagrede hukommelse beholdes.",
+      "label": "Ny samtale",
       "title": "Starte en ny samtale?"
     },
     "notice": {
@@ -1010,13 +1043,17 @@
       "planningRequestLoadFailure": "Vi kunne ikke sjekke lagrede planforespørsler. Koble til på nytt og prøv igjen.",
       "protocolFailure": "Trenerens svar kunne ikke bekreftes. Prøv igjen.",
       "questionSkipped": "Spørsmålet er hoppet over",
+      "replyUnsaved": "Dette svaret kunne ikke lagres. Hold appen åpen mens lagringen forsøkes på nytt.",
       "queueLoadFailure": "Vi kunne ikke sjekke de lagrede meldingene dine. Koble til på nytt og prøv igjen.",
       "queueRemoveFailure": "Vi kunne ikke fjerne den lagrede meldingen. Prøv igjen.",
       "responseFailure": "Treneren kunne ikke svare. Prøv igjen.",
-      "responseStopped": "Svaret er stoppet. Den ferdige delen av svaret er bevart.",
       "retryMessage": "Prøv meldingen igjen",
       "savedChoice": "Lagret valg",
-      "working": "Treneren jobber…"
+      "working": "Treneren jobber…",
+      "responseStopped": "Svaret er stoppet. Den ferdige delen av svaret er bevart.",
+      "calendarUnverified": "Kalenderendringen kan ha blitt lagret. Sjekk kalenderen din før du spør igjen.",
+      "savedUnverified": "Jeg lagret opplysningene dine, men kunne ikke kontrollere svaret mitt. Prøv igjen.",
+      "startingNewConversation": "Starter en ny samtale…"
     },
     "planChange": {
       "activePlan": "Aktiv plan",
@@ -1447,6 +1484,49 @@
       "hideContext": "Skjul treningskontekst",
       "showContext": "Vis treningskontekst",
       "title": "Chat"
+    },
+    "menu": "Meny",
+    "turn": {
+      "chooseAccessMethod": "Velg tilgangsmåte",
+      "finishedWhileLocked": "Ble ferdig mens telefonen var låst.",
+      "interruptedNothingChanged": "Dette svaret ble avbrutt før det var ferdig. Ingenting ble endret.",
+      "interruptedSomeSaved": "Dette svaret ble avbrutt før det var ferdig. Noen opplysninger ble lagret først.",
+      "receivedBeforeClose": "Mottatt før appen lukket seg. Trykk på Prøv igjen for å sende meldingen.",
+      "signInAgain": "Logg inn igjen"
+    },
+    "welcome": "Velkommen til {{product}}!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra {{service}}.\n\nKommandoer:\n{{commands}}\n\nDu kan også bare prate med meg om treningen din!",
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "Treningsplanen kunne ikke klargjøres for lagring.",
+      "title": "Lagre denne treningsplanen?",
+      "phase": "Fase {{number}}",
+      "focusLabel": "Fokus",
+      "weeklyHours": "Timer per uke",
+      "replaces": "Erstatter den lagrede planen din: {{name}}",
+      "save": "Lagre plan",
+      "saving": "Lagrer planen…",
+      "saved": "Lagret. Dette er nå treningsplanen din.",
+      "canceled": "Avbrutt. Denne planen ble ikke lagret.",
+      "expired": "Utløpt. Be treneren om å lagre denne planen på nytt.",
+      "storageUnavailable": "Denne planen kunne ikke lagres fordi lagringen på denne iPhonen ikke er tilgjengelig.",
+      "notSaved": {
+        "expired": "Ikke lagret: De ti minuttene til å lagre denne planen har gått.",
+        "replaced": "Ikke lagret: En nyere plan venter på å bli lagret.",
+        "alreadyDecided": "Denne planen er allerede lagret eller avbrutt.",
+        "athleteChanged": "Ikke lagret: Denne planen ble klargjort for en annen utøver på {{service}}.",
+        "notPresented": "Ikke lagret ennå. Rull til planen, og trykk deretter på Lagre plan igjen."
+      },
+      "focus": {
+        "baseBuilding": "Grunnlagsbygging",
+        "aerobicDevelopment": "Aerob utvikling",
+        "threshold": "Terskel",
+        "vo2max": "VO2maks",
+        "racePrep": "Konkurranseforberedelse",
+        "taper": "Nedtrapping",
+        "recovery": "Restitusjon",
+        "maintenance": "Vedlikehold",
+        "generalFitness": "Generell form"
+      }
     }
   },
   "plan": {
@@ -2462,9 +2542,8 @@
       "plan": "Lag en treningsplan",
       "review": "Se gjennom den siste treningsøkten din",
       "start": "Start en ny samtale",
-      "status": "Sjekk form (CTL), tretthet (ATL) og form (TSB)",
+      "status": "Sjekk kondisjon, tretthet og form",
       "sync": "Hent oppdaterte treningsdata fra {{service}}",
-      "update": "Se etter og installer oppdateringer",
       "version": "Vis nåværende versjon",
       "whatsnew": "Se hva som er nytt i den nyeste versjonen",
       "workout": "Hent dagens treningsøkt"
@@ -2547,7 +2626,7 @@
       "unknownSection": "Ukjent del: `{{section}}`.\n\nGyldige deler: {{sections}}."
     },
     "status": {
-      "working": "Henter data om formen din…"
+      "working": "Henter data om kondisjonen din…"
     },
     "sync": {
       "complete": "Synkronisert ✅",
@@ -2581,7 +2660,6 @@
       "managedInstruction": "Send {{whatsnew}} for å se hva som er nytt. {{notice}}",
       "prepareFailed": "Kunne ikke klargjøre oppdateringen trygt akkurat nå. Prøv {{command}} igjen om litt."
     },
-    "welcome": "Velkommen til {{product}}!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra {{service}}.\n\nKommandoer:\n{{plan}} — Lag en treningsplan\n{{workout}} — Hent dagens treningsøkt\n{{status}} — Sjekk form (CTL), tretthet (ATL) og form (TSB)\n{{review}} — Se gjennom den siste treningsøkten din\n{{sync}} — Hent oppdaterte treningsdata fra {{service}}\n{{version}} — Vis nåværende versjon\n{{whatsnew}} — Se hva som er nytt i den nyeste versjonen\n{{update}} — {{updateDescription}}\n\nDu kan også bare prate med meg om treningen din!",
     "workout": {
       "working": "Sjekker formen og planen din…"
     }
@@ -2596,6 +2674,7 @@
     "error": {
       "intervalsCredentials": "{{service}} avviste forespørselen — sjekk tilkoblingen eller API-nøkkelen din for {{service}}.",
       "intervalsTransient": "Jeg fikk ikke kontakt med {{service}} akkurat nå — prøv igjen om litt.",
+      "noConnection": "Ingen tilkobling. Meldingen din er tatt vare på. Prøv igjen når du er på nett.",
       "providerCredentials": "Modellleverandøren avviste API-nøkkelen — sjekk tilgangsopplysningene dine hos leverandøren.",
       "providerDown": "Modellleverandøren har problemer — prøv igjen om noen minutter.",
       "rateLimit": "Grensen for forespørsler er nådd — prøv igjen om litt.",
@@ -2639,7 +2718,9 @@
       "structure": "treningsøktens oppbygging",
       "trainingLoad": "treningsbelastning til {{load}}",
       "unnamed": "Treningsøkt uten navn",
-      "update": "Oppdater treningsøkten «{{name}}» den {{date}} — {{detail}}"
+      "update": "Oppdater treningsøkten «{{name}}» den {{date}} — {{detail}}",
+      "deleteFallback": "Slett en treningsøkt",
+      "updateFallback": "Oppdater en treningsøkt — {{detail}}"
     }
   },
   "cli": {
@@ -2883,6 +2964,257 @@
         "tokenRejected": "Telegram-token avvist",
         "transferRequired": "Boten må overføres"
       }
+    }
+  },
+  "diagnostics": {
+    "title": "Diagnostikk",
+    "explanation": "Lag en fil med appversjonen, denne iPhonens modell og iOS-versjon, innstillingene dine, antall ting appen har lagret, og de siste 14 dagene med problemer og modellbruk. Den inneholder ingen nøkler, meldinger eller treningsdata. Ingenting forlater iPhonen før du deler den.",
+    "make": "Lag diagnosefil",
+    "preparing": "Forbereder filen…",
+    "shared": "Delt. iOS ga filen til appen du valgte.",
+    "saved": "Lagret i Filer.",
+    "canceled": "Avbrutt. Filen ble ikke delt.",
+    "failed": "Filen kunne ikke lages.",
+    "shareFailed": "Filen kunne ikke deles.",
+    "notSaving": "Denne iPhonen har ikke lagret problemloggen siden {{time}}. Filen inneholder bare det som ble lagret før det, og det denne økten registrerte."
+  },
+  "feedback": {
+    "title": "Tilbakemelding",
+    "command": "Send et notat til forfatterne av Enduragent",
+    "prompt": "Skriv et notat til forfatterne av Enduragent. Det sendes alene, uten samtalen din, minnet, treningsdataene eller diagnostikken.",
+    "send": "Send",
+    "sending": "Sender…",
+    "received": "Mottatt. Takk for notatet.",
+    "notSent": {
+      "noConnection": "Ikke sendt. iPhonen hadde ingen tilkobling. Notatet ditt er tatt vare på.",
+      "busy": "Ikke sendt. Tilbakemeldingstjenesten er opptatt. Prøv igjen om et minutt. Notatet ditt er tatt vare på.",
+      "refused": "Ikke sendt. Tilbakemeldingstjenesten avviste notatet. Notatet ditt er tatt vare på.",
+      "stopped": "Ikke sendt. Appen stoppet før notatet forlot denne iPhonen. Notatet ditt er tatt vare på."
+    },
+    "notConfirmed": "Ikke bekreftet. Notatet kan ha kommet frem, men det kom ikke noe svar. Notatet ditt er tatt vare på, og Prøv igjen sender det samme notatet.",
+    "refused": {
+      "empty": "Skriv et notat først.",
+      "tooLong": "Hold notatet på høyst {{limit}} tegn. Ingenting ble sendt.",
+      "invalidCharacter": "Notatet har et tegn som ikke kan sendes. Ingenting ble sendt."
+    }
+  },
+  "review": {
+    "accountChanged": "Denne treningsøkten ble klargjort for en annen utøver på {{service}}. Be meg på nytt om å klargjøre den for den tilkoblede utøveren.",
+    "add": "Legg til i kalender",
+    "cannotVerify": "Jeg kunne ikke kontrollere tilkoblingen din til {{service}}, så ingenting ble endret. Prøv igjen om litt.",
+    "cancelledUnknown": "Avbrutt. Denne treningsøkten kan likevel ha blitt lagret. Sjekk kalenderen din.",
+    "saveFailed": "Kunne ikke lagre valget ditt på denne iPhonen, så ingenting ble endret. Prøv igjen.",
+    "storageUnavailable": "Kunne ikke lese den lagrede gjennomgangen av treningsøkten. Knappene er midlertidig deaktivert.",
+    "title": "Gjennomgang av treningsøkt",
+    "workout": {
+      "warmup": "Oppvarming",
+      "mainSet": "Hoveddel",
+      "cooldown": "Nedtrapping",
+      "ramp": "gradvis økning"
+    }
+  },
+  "credits": {
+    "title": "Kreditter",
+    "balance_one": "{{formattedCount}} kreditt",
+    "balance_other": "{{formattedCount}} kreditter",
+    "error": {
+      "accessRejected": "Kredittene dine kunne ikke brukes. Du kan bytte til OpenRouter-kontoen din.",
+      "exhausted": "Du er tom for kreditter. Du kan bytte til OpenRouter-kontoen din.",
+      "unavailable": "Kreditter er ikke tilgjengelige akkurat nå. Prøv igjen senere.",
+      "accountChanged": "Kredittkontoen din ble endret mens denne forespørselen ble fullført. Den nåværende kontoen din ble beholdt."
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Koble til",
+      "apiKey": "intervals.icu API-nøkkel",
+      "fatigue": "Tretthet {{value}}",
+      "fitness": "Kondisjon {{value}}",
+      "form": "Form {{value}}",
+      "skip": "Hopp over foreløpig"
+    },
+    "starter": {
+      "start": "Start en chat",
+      "progress": "Ber om startkreditter",
+      "alreadyGranted": "Denne enheten har allerede brukt startkredittene sine.",
+      "added_one": "La til {{formattedCount}} kreditt",
+      "added_other": "La til {{formattedCount}} kreditter"
+    },
+    "notice": {
+      "health": "Treningsforslag, ikke medisinske råd. Snakk med en lege før store endringer."
+    },
+    "consent": {
+      "title": "Treneren din bruker KI",
+      "body": "For å svare sender Enduragent meldingene dine, trenerminnet og treningsdataene du kobler til fra intervals.icu, til OpenRouter, som videresender dem til {{provider}} for å kjøre {{model}}. De bruker bare disse dataene til å generere trenerens svar. Ingenting sendes før du godtar.",
+      "accept": "Samtykk og fortsett",
+      "decline": "Ikke nå",
+      "saveFailed": "Samtykket ditt kunne ikke lagres. Prøv igjen."
+    }
+  },
+  "about": {
+    "title": "Om",
+    "privacyPolicy": "Personvernerklæring",
+    "version": "Versjon"
+  },
+  "access": {
+    "error": {
+      "locked": "Lås opp iPhonen for å fortsette. Meldingen din er lagret.",
+      "notConfigured": "Velg hvordan treneren får tilgang til en modell for å fortsette.",
+      "requestBlocked": "OpenRouter blokkerte denne forespørselen. Prøv en annen modell eller melding.",
+      "providerConsentRequired": "Ditt samtykke kreves før chatdata deles med KI-leverandører.",
+      "openRouterFunds": "OpenRouter-kontoen din er tom for penger. Fyll på hos OpenRouter, eller bytt til kreditter.",
+      "storageUnavailable": "Sikker lagring er midlertidig utilgjengelig. Samtalen, historikken og minnet ditt er fortsatt her. Prøv igjen.",
+      "malformed": "Den lagrede tilgangsmåten din kunne ikke leses. Velg en tilgangsmåte for å fortsette."
+    },
+    "title": "Tilgangsmåte",
+    "openRouterAccount": "OpenRouter-konto",
+    "signIn": "Logg inn med OpenRouter",
+    "signInCancelled": "Innlogging avbrutt. Tilgangsmåten din ble ikke endret.",
+    "signInIncomplete": "Innlogging med OpenRouter ble ikke fullført. Tilgangsmåten din ble ikke endret. Prøv igjen.",
+    "switchToOpenRouter": "Bytt til OpenRouter"
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu godtok ikke den nøkkelen.",
+      "blank": "Skriv inn en intervals.icu API-nøkkel. Din nåværende tilkobling er uendret.",
+      "notSaved": "Erstatningen ble ikke lagret. Din tidligere tilkobling er uendret. Prøv igjen.",
+      "profileUnavailable": "Utøverprofilen din er midlertidig utilgjengelig. Prøv igjen.",
+      "wellnessRejected": "intervals.icu tillot ikke lesing av dagens velværedata. Kontroller tilkoblingen din.",
+      "wellnessUnavailable": "Dagens velværedata er midlertidig utilgjengelige. Prøv igjen.",
+      "blankConnection": "Skriv inn en intervals.icu-API-nøkkel.",
+      "connectionNotSaved": "Tilkoblingen ble ikke lagret. Prøv igjen.",
+      "storageLocked": "Lås opp iPhone for å lese intervals.icu-tilkoblingen din. Prøv deretter igjen.",
+      "storageUnavailable": "intervals.icu-tilkoblingen din er midlertidig utilgjengelig fordi sikker lagring ikke kunne leses. Prøv igjen.",
+      "storageMalformed": "Den lagrede intervals.icu-tilkoblingen kunne ikke leses. Bytt nøkkelen for å koble til igjen."
+    },
+    "wellness": {
+      "empty": "Ingen velværedata for i dag.",
+      "waiting": "Leser dagens velværedata…"
+    },
+    "review": "Kontroller tilkobling",
+    "profile": {
+      "waiting": "Leser utøverprofil…"
+    },
+    "missing": "intervals.icu er ikke tilkoblet. Koble til for å legge treningsøkter i kalenderen."
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "Denne økten ble gjennomgått før appen ble oppdatert. Spør treneren på nytt.",
+      "missing": "En treningsøkt i denne gjennomgangen er ikke lenger i kalenderen din på {{service}}, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt.",
+      "pastProtected": "En treningsøkt i denne gjennomgangen ligger nå i fortiden, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt.",
+      "coachOnly": "En treningsøkt i denne gjennomgangen ble ikke lagt til av treneren, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt.",
+      "workoutOnly": "En oppføring i denne gjennomgangen er ikke en treningsøkt, så gjennomgangen kan ikke fortsette. Avbryt den, og spør treneren på nytt."
+    },
+    "refreshed": {
+      "nothingChanged": "Treningsøkter i denne gjennomgangen ble endret i {{service}} etter at du gjennomgikk dem, så ingenting ble endret. Sjekk dem igjen før du godkjenner.",
+      "nothingElseChanged": "Treningsøkter i denne gjennomgangen ble endret i {{service}} etter at du gjennomgikk dem, så ingenting annet ble endret. Sjekk dem igjen før du godkjenner.",
+      "date": "{{workout}}: datoen ble endret fra {{from}} til {{to}}.",
+      "name": "{{workout}}: navnet ble endret til {{to}}.",
+      "duration": "{{workout}}: varigheten ble endret fra {{from}} til {{to}} minutter.",
+      "description": "{{workout}}: beskrivelsen ble endret.",
+      "load": "{{workout}}: treningsbelastningen ble endret fra {{from}} til {{to}}.",
+      "structure": "{{workout}}: treningstrinnene ble endret."
+    },
+    "notPrepared": "Gjennomgangen av treningsøkten kunne ikke klargjøres.",
+    "notPreparedInformationSaved": "Informasjonen din ble lagret, men gjennomgangen av treningsøkten kunne ikke klargjøres.",
+    "stopped": "Gjennomgangen av treningsøkten stoppet før alle endringene ble gjort. Endringer som allerede er gjort, beholdes.",
+    "sending": "Gjør de gjennomgåtte endringene i kalenderen din på {{service}} …",
+    "partial": "{{service}} avviste en endring, så de gjenværende endringene ble stoppet. Endringer som allerede er gjort, beholdes. Sjekk resten før du prøver igjen.",
+    "unconfirmed": "En endring kan ha blitt lagret i kalenderen din på {{service}}. Sjekk igjen før noe annet endres.",
+    "completed": "Alle gjennomgåtte endringer er fullført.",
+    "canceled": "De gjenværende endringene ble avbrutt.",
+    "finishedTitle": "Allerede fullført",
+    "outcome": {
+      "closedAtUpgrade": "Denne gjennomgangen av treningsøkten ble forberedt før appen ble oppdatert. Spør treneren på nytt.",
+      "saved": "{{workout}}, {{date}}: endringen er lagret.",
+      "seenOnCalendar": "{{workout}}, {{date}}: endringen vises i kalenderen.",
+      "noLongerOnCalendar": "{{workout}}, {{date}}: er ikke lenger i kalenderen.",
+      "givenUp": "{{workout}}, {{date}}: endringen ble ikke gjort.",
+      "mayHaveBeenSaved": "{{workout}}, {{date}}: endringen kan ha blitt lagret. Sjekk kalenderen din."
+    },
+    "preparedEarlier": "Forberedt tidligere",
+    "approve": "Bruk endringene",
+    "card": {
+      "add": "Legg til",
+      "edit": "Rediger",
+      "delete": "Slett",
+      "heading": "{{action}} · {{position}} av {{count}} · {{date}} · {{duration}}",
+      "durationUnknown": "varighet ukjent",
+      "unknown": "ukjent",
+      "load": "Anslått treningsbelastning: {{load}}",
+      "removed": "Denne treningsøkten blir fjernet fra kalenderen.",
+      "changed": {
+        "date": "Dato: {{from}} → {{to}}",
+        "name": "Navn: {{from}} → {{to}}",
+        "duration": "Varighet: {{from}} → {{to}}",
+        "load": "Anslått treningsbelastning: {{from}} → {{to}}",
+        "description": "Beskrivelsen endres.",
+        "steps": "Treningstrinnene endres."
+      },
+      "progress": {
+        "sending": "Sender …",
+        "refused": "Ikke lagret",
+        "mayHaveBeenSaved": "Kanskje lagret",
+        "notRemoved": "Ikke fjernet",
+        "mayHaveBeenRemoved": "Kanskje fjernet"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "Prosent av FTP",
+      "watts": "Effekt i watt"
+    },
+    "totals": {
+      "additions_one": "{{count}} tillegg",
+      "additions_other": "{{count}} tillegg",
+      "edits_one": "{{count}} endring",
+      "edits_other": "{{count}} endringer",
+      "deletions_one": "{{count}} sletting",
+      "deletions_other": "{{count}} slettinger",
+      "line": "{{additions}}, {{edits}}, {{deletions}} · {{duration}} for treningsøkter som legges til eller endres",
+      "lineDurationUnknown": "{{additions}}, {{edits}}, {{deletions}} · total varighet ukjent"
+    },
+    "kept": {
+      "title": "Eksisterende treningsøkter som beholdes",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_one": "Vil du legge til denne treningsøkten i kalenderen?",
+        "add_other": "Vil du legge til disse treningsøktene i kalenderen?",
+        "edit_one": "Vil du oppdatere denne treningsøkten i kalenderen?",
+        "edit_other": "Vil du oppdatere disse treningsøktene i kalenderen?",
+        "delete_one": "Vil du fjerne denne treningsøkten fra kalenderen?",
+        "delete_other": "Vil du fjerne disse treningsøktene fra kalenderen?",
+        "mixed": "Vil du bruke alle de gjennomgåtte endringene?"
+      },
+      "approveEdits": "Oppdater kalender",
+      "approveDeletions": "Fjern fra kalender",
+      "unseen": "Bla gjennom alle kortene for å fortsette.",
+      "cardFailed": "Kort {{position}} av {{count}} kunne ikke vises. Ingenting ble endret.",
+      "showAgain": "Vis igjen"
+    }
+  },
+  "yourData": {
+    "title": "Dine data",
+    "deleteEverything": "Slett alt",
+    "confirm": {
+      "title": "Slette alt?",
+      "body": "Dette kan ikke angres. Det sletter samtalen, minnet, den lagrede planen, innstillingene og nøklene dine fra denne iPhonen og iCloud, i tillegg til kredittoppføringen din. Ubrukte kreditter går tapt, og startkreditter gis bare én gang per iPhone."
+    },
+    "keeps": "intervals.icu-kontoen og øktene dine blir værende på intervals.icu. Hvis du logget på med din egen OpenRouter-konto, sletter du nøkkelen hos OpenRouter.",
+    "progress": "Sletter…",
+    "done": "Alt er slettet fra denne iPhonen, iCloud og kreditttjenesten.",
+    "notStarted": "Ingenting ble slettet. Koble til internett og prøv igjen.",
+    "iCloudLater": "Slettet fra denne iPhonen og kreditttjenesten. iCloud-kopien slettes neste gang du åpner Enduragent mens denne iPhonen er tilkoblet internett og logget på iCloud. Hvis du sletter appen før det, sletter du dataene dens i Innstillinger i iOS under iCloud-lagring.",
+    "busy": "Vent til coachen er ferdig, og prøv igjen.",
+    "notFinished": "Ikke alt ble slettet fra denne iPhonen. Prøv igjen.",
+    "progressTime": "Dette kan ta opptil ett minutt.",
+    "tryLater": "Ingenting ble slettet fra denne iPhonen eller iCloud. Kreditttjenesten er opptatt akkurat nå. Prøv igjen senere.",
+    "creditsUnconfirmed": "Ingenting ble slettet. Kreditttjenesten kunne ikke bekrefte at denne iPhonen eier kredittoppføringen din, så oppføringen blir værende der. Du kan likevel slette alt på denne iPhonen og i iCloud.",
+    "deleteHere": "Slett fra iPhone og iCloud",
+    "creditsKept": {
+      "done": "Alt er slettet fra denne iPhonen og iCloud. Kredittoppføringen din blir værende i kreditttjenesten. Ingen har nøkkelen til den, så ingen kan bruke den.",
+      "iCloudLater": "Slettet fra denne iPhonen. iCloud-kopien slettes neste gang du åpner Enduragent mens denne iPhonen er tilkoblet internett og logget på iCloud. Hvis du sletter appen før det, sletter du dataene dens i Innstillinger i iOS under iCloud-lagring. Kredittoppføringen din blir værende i kreditttjenesten. Ingen har nøkkelen til den, så ingen kan bruke den."
     }
   }
 }

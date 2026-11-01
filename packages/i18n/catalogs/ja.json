@@ -190,7 +190,8 @@
         "historyTokenBudgetRatio": "履歴の割り当てを0%より大きく、100%以下で入力してください。",
         "idleMinutes": "分数を0以上の安全に扱える整数で入力してください。",
         "resetArchiveRetentionDays": "日数を0以上の安全に扱える整数で入力してください。",
-        "timezone": "{{timezone}}などの有効なIANAタイムゾーンを入力してください。"
+        "timezone": "{{timezone}}などの有効なIANAタイムゾーンを入力してください。",
+        "contextWindowTokens": "トークン数は有効な範囲内の1以上の整数で入力してください。"
       }
     },
     "credentials": {
@@ -511,6 +512,35 @@
         "remove": "Webhookを削除",
         "title": "既存のWebhookを削除"
       }
+    },
+    "modelAccessTitle": "モデルへのアクセス",
+    "session": {
+      "title": "セッション",
+      "contextWindow": {
+        "label": "コンテキストウィンドウ",
+        "help": "モデルが参照できる情報量の上限です。既定値を使う場合は空欄のままにします。",
+        "default": "既定値"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "トークン"
+      }
+    },
+    "training": {
+      "section": "トレーニング接続",
+      "title": "intervals.icu",
+      "replace": "キーを置き換える",
+      "keep": "現在の接続を保持",
+      "disconnect": "接続解除",
+      "disconnectTitle": "intervals.icuの接続を解除しますか？",
+      "disconnectDetail": "会話と履歴は引き続き閲覧できます。",
+      "switchTitle": "別のアスリートを使用しますか？",
+      "switchDetail": "このキーはアスリート{{new}}のものです。会話、履歴、記憶はアスリート{{current}}のものとして保存されたままで、アスリート{{new}}には使用されません。このキーを使うために切り替えますか？",
+      "switch": "アスリートを切り替える",
+      "athlete": "アスリート{{id}}"
+    },
+    "support": {
+      "title": "サポート"
     }
   },
   "archive": {
@@ -529,20 +559,22 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "過去の会話を一時的に利用できません。",
-    "loadEarlier": "以前のメッセージを読み込む",
     "loading": "過去の会話を読み込み中…",
     "pageFailure": "この会話を一時的に利用できません。",
     "readOnly": "過去の会話は閲覧専用です。",
     "reason": {
       "explicit": "新しい会話を開始しました",
-      "stale": "しばらく利用がなかったため終了しました"
+      "stale": "しばらく利用がなかったため終了しました",
+      "earlierChat": "以前のチャット"
     },
     "retry": "再試行",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
     "title": "過去のチャット",
     "truncated": "最近の過去の会話のみを表示しています。",
     "turnCount_other": "{{formattedCount}}件のメッセージ",
-    "unavailable": "この会話は利用できなくなりました。"
+    "unavailable": "この会話は利用できなくなりました。",
+    "history": "履歴",
+    "savedForAnotherAthlete": "別の intervals.icu アスリート用に保存 ({{id}})"
   },
   "setup": {
     "ai": {
@@ -937,7 +969,8 @@
       "messagePlaceholder": "コーチにメッセージを送る",
       "responding": "コーチが回答中…",
       "send": "メッセージを送信",
-      "stop": "回答を停止"
+      "stop": "回答を停止",
+      "notSent": "送信されていません。下書きは残っています。"
     },
     "date": {
       "civil": "{{year}}年{{month}}{{day}}日",
@@ -970,7 +1003,6 @@
     },
     "history": {
       "failure": "会話履歴を一時的に利用できません。",
-      "loadEarlier": "以前のメッセージを読み込む",
       "retry": "履歴を再読み込み"
     },
     "newConversation": {
@@ -979,6 +1011,7 @@
       "cancel": "キャンセル",
       "confirm": "新しい会話を開始",
       "hydrated": "表示中の会話と{{computer}}に復元された以前のメッセージを消去します。トレーニングデータと保存されたコーチの記憶は残ります。",
+      "label": "新しい会話",
       "title": "新しい会話を始めますか？"
     },
     "notice": {
@@ -1002,13 +1035,17 @@
       "planningRequestLoadFailure": "保存済みのプランへのリクエストを確認できませんでした。再接続して、もう一度お試しください。",
       "protocolFailure": "コーチの回答を検証できませんでした。もう一度お試しください。",
       "questionSkipped": "質問をスキップしました",
+      "replyUnsaved": "この返信を保存できませんでした。保存を再試行する間、アプリを開いたままにしてください。",
       "queueLoadFailure": "保存済みのメッセージを確認できませんでした。再接続して、もう一度お試しください。",
       "queueRemoveFailure": "保存済みのメッセージを削除できませんでした。もう一度お試しください。",
       "responseFailure": "コーチが回答できませんでした。もう一度お試しください。",
-      "responseStopped": "回答を停止しました。途中までの回答は残っています。",
       "retryMessage": "メッセージを再試行",
       "savedChoice": "保存済みの選択",
-      "working": "コーチが処理中…"
+      "working": "コーチが処理中…",
+      "responseStopped": "回答を停止しました。途中までの回答は残っています。",
+      "calendarUnverified": "カレンダーの変更は保存されている可能性があります。もう一度依頼する前に、カレンダーを確認してください。",
+      "savedUnverified": "情報は保存しましたが、回答を確認できませんでした。もう一度お試しください。",
+      "startingNewConversation": "新しい会話を開始しています…"
     },
     "planChange": {
       "activePlan": "有効なプラン",
@@ -1434,6 +1471,49 @@
       "hideContext": "トレーニング情報を非表示",
       "showContext": "トレーニング情報を表示",
       "title": "チャット"
+    },
+    "menu": "メニュー",
+    "turn": {
+      "chooseAccessMethod": "接続方法を選択",
+      "finishedWhileLocked": "端末がロックされている間に完了しました。",
+      "interruptedNothingChanged": "回答が完了する前に中断されました。変更はありません。",
+      "interruptedSomeSaved": "回答が完了する前に中断されました。一部の情報はその前に保存されました。",
+      "receivedBeforeClose": "アプリが閉じる前に受信しました。「再試行」をタップして送信してください。",
+      "signInAgain": "再度サインイン"
+    },
+    "welcome": "{{product}}へようこそ！\n\nAIサイクリングコーチです。{{service}}のデータを使ってトレーニングプランを作成し、ワークアウトを提案し、フィットネスの変化を確認できます。\n\nコマンド:\n{{commands}}\n\nトレーニングについて、気軽に話しかけてください！",
+    "welcomeCommand": "{{command}} — {{description}}",
+    "planSave": {
+      "notPrepared": "トレーニングプランの保存を準備できませんでした。",
+      "title": "このトレーニングプランを保存しますか？",
+      "phase": "フェーズ{{number}}",
+      "focusLabel": "重点",
+      "weeklyHours": "週あたりの時間",
+      "replaces": "保存済みのプランを置き換えます：{{name}}",
+      "save": "プランを保存",
+      "saving": "プランを保存中…",
+      "saved": "保存しました。これが現在のトレーニングプランです。",
+      "canceled": "キャンセルしました。このプランは保存されていません。",
+      "expired": "期限切れです。このプランを保存するよう、もう一度コーチに依頼してください。",
+      "storageUnavailable": "このiPhoneのストレージを利用できないため、このプランを保存できませんでした。",
+      "notSaved": {
+        "expired": "保存されていません：このプランを保存できる10分間が過ぎました。",
+        "replaced": "保存されていません：新しいプランが保存を待っています。",
+        "alreadyDecided": "このプランはすでに保存またはキャンセルされています。",
+        "athleteChanged": "保存されていません：このプランは{{service}}の別のアスリート向けに準備されました。",
+        "notPresented": "まだ保存されていません。プランまでスクロールしてから、もう一度「プランを保存」をタップしてください。"
+      },
+      "focus": {
+        "baseBuilding": "ベースづくり",
+        "aerobicDevelopment": "有酸素能力の向上",
+        "threshold": "閾値",
+        "vo2max": "VO2max",
+        "racePrep": "レース準備",
+        "taper": "テーパリング",
+        "recovery": "回復",
+        "maintenance": "維持",
+        "generalFitness": "全般的なフィットネス"
+      }
     }
   },
   "plan": {
@@ -2574,6 +2654,7 @@
     "error": {
       "intervalsCredentials": "{{service}}がリクエストを拒否しました。{{service}}の接続またはAPIキーを確認してください。",
       "intervalsTransient": "今は{{service}}に接続できません。少し待ってから、もう一度お試しください。",
+      "noConnection": "接続がありません。メッセージは保持されています。オンラインになったら、もう一度お試しください。",
       "providerCredentials": "モデルのプロバイダーがAPIキーを拒否しました。プロバイダーの認証情報を確認してください。",
       "providerDown": "モデルのプロバイダーで問題が起きています。数分後に、もう一度お試しください。",
       "rateLimit": "リクエストの上限に達しました。少し待ってから、もう一度お試しください。",
@@ -2614,7 +2695,9 @@
       "structure": "ワークアウトの構成",
       "trainingLoad": "トレーニング負荷を{{load}}に",
       "unnamed": "名前のないワークアウト",
-      "update": "{{date}}のワークアウト「{{name}}」を更新: {{detail}}"
+      "update": "{{date}}のワークアウト「{{name}}」を更新: {{detail}}",
+      "deleteFallback": "ワークアウトを削除",
+      "updateFallback": "ワークアウトを更新: {{detail}}"
     }
   },
   "telegram": {
@@ -2645,7 +2728,6 @@
       "start": "新しい会話を開始",
       "status": "現在のフィットネス、ファティーグ、フォームを確認",
       "sync": "{{service}}からトレーニングデータを強制更新",
-      "update": "更新を確認してインストール",
       "version": "現在のバージョンを表示",
       "whatsnew": "最新バージョンの変更内容を見る",
       "workout": "今日のワークアウトを確認"
@@ -2759,7 +2841,6 @@
       "managedInstruction": "変更内容を見るには{{whatsnew}}を送ってください。{{notice}}",
       "prepareFailed": "今回は更新を安全に準備できませんでした。少し待ってから{{command}}をもう一度お試しください。"
     },
-    "welcome": "{{product}}へようこそ！\n\nAIサイクリングコーチです。{{service}}のデータを使ってトレーニングプランを作成し、ワークアウトを提案し、フィットネスの変化を確認できます。\n\nコマンド:\n{{plan}} — トレーニングプランを作成\n{{workout}} — 今日のワークアウトを確認\n{{status}} — 現在のフィットネス、ファティーグ、フォームを確認\n{{review}} — 前回のトレーニングを振り返る\n{{sync}} — {{service}}からトレーニングデータを強制更新\n{{version}} — 現在のバージョンを表示\n{{whatsnew}} — 最新バージョンの変更内容を見る\n{{update}} — {{updateDescription}}\n\nトレーニングについて、気軽に話しかけてください！",
     "workout": {
       "working": "フォームとプランを確認しています..."
     }
@@ -2847,6 +2928,249 @@
         "tokenRejected": "Telegramのトークンが拒否されました",
         "transferRequired": "ボットの移行が必要です"
       }
+    }
+  },
+  "diagnostics": {
+    "title": "診断",
+    "explanation": "アプリのバージョン、このiPhoneの機種とiOSバージョン、設定、アプリが保存した項目の数、過去14日間の問題とモデル使用状況を含むファイルを作成します。キー、メッセージ、トレーニングデータは含まれません。共有するまで何もiPhoneの外に出ません。",
+    "make": "診断ファイルを作成",
+    "preparing": "ファイルを準備中…",
+    "shared": "共有しました。iOSが選択したアプリにファイルを渡しました。",
+    "saved": "「ファイル」に保存しました。",
+    "canceled": "キャンセルしました。ファイルは共有されませんでした。",
+    "failed": "ファイルを作成できませんでした。",
+    "shareFailed": "ファイルを共有できませんでした。",
+    "notSaving": "このiPhoneは{{time}}以降、問題ログを保存していません。ファイルには、それ以前に保存された内容と、このセッションで記録された内容だけが含まれます。"
+  },
+  "feedback": {
+    "title": "フィードバック",
+    "command": "Enduragentの作者にメモを送る",
+    "prompt": "Enduragentの作者にメモを送ります。会話、メモリ、トレーニングデータ、診断情報は含まれず、メモだけが送信されます。",
+    "send": "送信",
+    "sending": "送信中…",
+    "received": "受信しました。メモをありがとうございます。",
+    "notSent": {
+      "noConnection": "送信されませんでした。iPhoneが接続されていませんでした。メモは保持されています。",
+      "busy": "送信されませんでした。フィードバックサービスが混み合っています。1分後にもう一度お試しください。メモは保持されています。",
+      "refused": "送信されませんでした。フィードバックサービスがメモを拒否しました。メモは保持されています。",
+      "stopped": "送信されませんでした。メモがこのiPhoneから送信される前にアプリが停止しました。メモは保持されています。"
+    },
+    "notConfirmed": "確認できませんでした。メモは届いた可能性がありますが、応答がありませんでした。メモは保持されています。「再試行」で同じメモを送信します。",
+    "refused": {
+      "empty": "先にメモを書いてください。",
+      "tooLong": "メモは{{limit}}文字以内にしてください。何も送信されませんでした。",
+      "invalidCharacter": "メモに送信できない文字が含まれています。何も送信されませんでした。"
+    }
+  },
+  "review": {
+    "accountChanged": "このワークアウトは、{{service}}の別のアスリート向けに準備されました。接続中のアスリート向けに準備するよう、もう一度依頼してください。",
+    "add": "カレンダーに追加",
+    "cannotVerify": "{{service}}への接続を確認できなかったため、何も変更していません。少し待ってから、もう一度お試しください。",
+    "cancelledUnknown": "キャンセルしました。このワークアウトは保存されている可能性があります。カレンダーを確認してください。",
+    "saveFailed": "このiPhoneに選択内容を保存できなかったため、何も変更されていません。もう一度お試しください。",
+    "storageUnavailable": "保存されたワークアウトの確認内容を読み取れませんでした。ボタンは一時的に無効になっています。",
+    "title": "ワークアウトの確認",
+    "workout": {
+      "warmup": "ウォームアップ",
+      "mainSet": "メインセット",
+      "cooldown": "クールダウン",
+      "ramp": "ランプ"
+    }
+  },
+  "credits": {
+    "title": "クレジット",
+    "balance_other": "{{formattedCount}}クレジット",
+    "error": {
+      "accessRejected": "クレジットを使用できませんでした。OpenRouterアカウントに切り替えることができます。",
+      "exhausted": "クレジットがなくなりました。OpenRouterアカウントに切り替えることができます。",
+      "unavailable": "現在クレジットを利用できません。しばらくしてからもう一度お試しください。",
+      "accountChanged": "このリクエストの完了処理中にクレジットアカウントが変更されました。現在のアカウントは保持されました。"
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "接続",
+      "apiKey": "intervals.icu APIキー",
+      "fatigue": "疲労度 {{value}}",
+      "fitness": "フィットネス {{value}}",
+      "form": "フォーム {{value}}",
+      "skip": "今はスキップ"
+    },
+    "starter": {
+      "start": "チャットを始める",
+      "progress": "初回クレジットをリクエスト中",
+      "alreadyGranted": "このデバイスはすでに初回クレジットを使用しています。",
+      "added_other": "{{formattedCount}}クレジットを追加しました"
+    },
+    "notice": {
+      "health": "トレーニングの提案であり、医療上の助言ではありません。大きな変更を行う前に医師に相談してください。"
+    },
+    "consent": {
+      "title": "コーチはAIを使用します",
+      "body": "返信するために、Enduragent はあなたのメッセージ、コーチングの記憶、intervals.icu から接続したトレーニングデータを OpenRouter に送信します。OpenRouter は {{model}} を実行するために、そのデータを {{provider}} に渡します。データはコーチの返信を生成するためにのみ使用されます。同意するまで何も送信されません。",
+      "accept": "同意して続ける",
+      "decline": "今はしない",
+      "saveFailed": "同意を保存できませんでした。もう一度お試しください。"
+    }
+  },
+  "about": {
+    "title": "情報",
+    "privacyPolicy": "プライバシーポリシー",
+    "version": "バージョン"
+  },
+  "access": {
+    "error": {
+      "locked": "続けるにはiPhoneのロックを解除してください。メッセージは保存されています。",
+      "notConfigured": "続けるには、コーチがモデルに接続する方法を選んでください。",
+      "requestBlocked": "OpenRouterがこのリクエストをブロックしました。別のモデルやメッセージを試してください。",
+      "providerConsentRequired": "チャットのデータをAIプロバイダーと共有する前に、あなたの許可が必要です。",
+      "openRouterFunds": "OpenRouterアカウントの残高が不足しています。OpenRouterで入金するか、クレジットに切り替えてください。",
+      "storageUnavailable": "安全なストレージを一時的に利用できません。会話、履歴、記憶は残っています。もう一度お試しください。",
+      "malformed": "保存されたアクセス方法を読み取れませんでした。アクセス方法を選択して続けてください。"
+    },
+    "title": "アクセス方法",
+    "openRouterAccount": "OpenRouterアカウント",
+    "signIn": "OpenRouterでサインイン",
+    "signInCancelled": "サインインをキャンセルしました。アクセス方法は変更されていません。",
+    "signInIncomplete": "OpenRouter へのサインインが完了しませんでした。アクセス方法は変更されていません。もう一度お試しください。",
+    "switchToOpenRouter": "OpenRouterに切り替える"
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icuにキーが拒否されました。",
+      "blank": "intervals.icuのAPIキーを入力してください。現在の接続は変更されていません。",
+      "notSaved": "新しい接続は保存されませんでした。以前の接続は変更されていません。もう一度お試しください。",
+      "profileUnavailable": "アスリートプロフィールを一時的に取得できません。もう一度お試しください。",
+      "wellnessRejected": "intervals.icuが今日のウェルネスデータの読み取りを許可しませんでした。接続を確認してください。",
+      "wellnessUnavailable": "今日のウェルネスデータを一時的に取得できません。もう一度お試しください。",
+      "blankConnection": "intervals.icuのAPIキーを入力してください。",
+      "connectionNotSaved": "接続を保存できませんでした。もう一度お試しください。",
+      "storageLocked": "intervals.icuの接続を読み取るには、iPhoneのロックを解除してください。その後、もう一度お試しください。",
+      "storageUnavailable": "安全なストレージを読み取れなかったため、intervals.icuの接続を一時的に利用できません。もう一度お試しください。",
+      "storageMalformed": "保存されたintervals.icuの接続を読み取れませんでした。キーを変更して再接続してください。"
+    },
+    "wellness": {
+      "empty": "今日のウェルネスデータはありません。",
+      "waiting": "今日のウェルネスデータを読み取り中…"
+    },
+    "review": "接続を確認",
+    "profile": {
+      "waiting": "アスリートプロフィールを読み取り中…"
+    },
+    "missing": "intervals.icuに接続されていません。ワークアウトをカレンダーに追加するには接続してください。"
+  },
+  "workouts": {
+    "blocked": {
+      "reviewedBeforeUpgrade": "このワークアウトはアプリのアップデート前に確認されたものです。もう一度コーチに依頼してください。",
+      "missing": "この確認のワークアウトが{{service}}のカレンダーにもうないため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。",
+      "pastProtected": "この確認のワークアウトはすでに過去の日付のため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。",
+      "coachOnly": "この確認のワークアウトはコーチが追加したものではないため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。",
+      "workoutOnly": "この確認の項目はワークアウトではないため、確認を続けられません。キャンセルして、もう一度コーチに依頼してください。"
+    },
+    "refreshed": {
+      "nothingChanged": "確認後に{{service}}でこの確認のワークアウトが変更されたため、何も変更していません。承認する前にもう一度確認してください。",
+      "nothingElseChanged": "確認後に{{service}}でこの確認のワークアウトが変更されたため、これ以上は何も変更していません。承認する前にもう一度確認してください。",
+      "date": "{{workout}}：日付が{{from}}から{{to}}に変更されました。",
+      "name": "{{workout}}：名前が{{to}}に変更されました。",
+      "duration": "{{workout}}：時間が{{from}}分から{{to}}分に変更されました。",
+      "description": "{{workout}}：説明が変更されました。",
+      "load": "{{workout}}：トレーニング負荷が{{from}}から{{to}}に変更されました。",
+      "structure": "{{workout}}：ワークアウトのステップが変更されました。"
+    },
+    "notPrepared": "ワークアウトの確認内容を準備できませんでした。",
+    "notPreparedInformationSaved": "情報は保存されましたが、ワークアウトの確認内容を準備できませんでした。",
+    "stopped": "すべての変更が完了する前に、ワークアウトの確認が停止しました。すでに行われた変更はそのまま残ります。",
+    "sending": "確認した変更を{{service}}のカレンダーに反映しています…",
+    "partial": "{{service}}が変更を拒否したため、残りの変更を停止しました。すでに行われた変更はそのまま残ります。再試行する前に残りを確認してください。",
+    "unconfirmed": "変更が{{service}}のカレンダーに保存された可能性があります。ほかの変更を行う前に再確認してください。",
+    "completed": "確認したすべての変更が完了しました。",
+    "canceled": "残りの変更はキャンセルされました。",
+    "finishedTitle": "完了済み",
+    "outcome": {
+      "closedAtUpgrade": "このワークアウトの確認はアプリのアップデート前に準備されたものです。もう一度コーチに依頼してください。",
+      "saved": "{{workout}}（{{date}}）：変更を保存しました。",
+      "seenOnCalendar": "{{workout}}（{{date}}）：変更がカレンダーで確認されました。",
+      "noLongerOnCalendar": "{{workout}}（{{date}}）：カレンダーにはもうありません。",
+      "givenUp": "{{workout}}（{{date}}）：変更は行われませんでした。",
+      "mayHaveBeenSaved": "{{workout}}（{{date}}）：変更が保存された可能性があります。カレンダーを確認してください。"
+    },
+    "preparedEarlier": "以前に準備済み",
+    "approve": "変更を適用",
+    "card": {
+      "add": "追加",
+      "edit": "編集",
+      "delete": "削除",
+      "heading": "{{action}} · {{position}}/{{count}}件目 · {{date}} · {{duration}}",
+      "durationUnknown": "時間不明",
+      "unknown": "不明",
+      "load": "推定トレーニング負荷：{{load}}",
+      "removed": "このワークアウトはカレンダーから削除されます。",
+      "changed": {
+        "date": "日付：{{from}} → {{to}}",
+        "name": "名前：{{from}} → {{to}}",
+        "duration": "時間：{{from}} → {{to}}",
+        "load": "推定トレーニング負荷：{{from}} → {{to}}",
+        "description": "説明が変わります。",
+        "steps": "ワークアウトのステップが変わります。"
+      },
+      "progress": {
+        "sending": "送信中…",
+        "refused": "未保存",
+        "mayHaveBeenSaved": "保存された可能性があります",
+        "notRemoved": "未削除",
+        "mayHaveBeenRemoved": "削除された可能性があります"
+      }
+    },
+    "chart": {
+      "percentOfFTP": "FTPに対する割合",
+      "watts": "パワー（ワット）"
+    },
+    "totals": {
+      "additions_other": "追加 {{count}} 件",
+      "edits_other": "編集 {{count}} 件",
+      "deletions_other": "削除 {{count}} 件",
+      "line": "{{additions}}、{{edits}}、{{deletions}} · 追加または編集したワークアウトで {{duration}}",
+      "lineDurationUnknown": "{{additions}}、{{edits}}、{{deletions}} · 合計時間は不明"
+    },
+    "kept": {
+      "title": "そのまま残る既存のワークアウト",
+      "workout": "{{name}} · {{duration}}"
+    },
+    "bar": {
+      "question": {
+        "add_other": "ワークアウトをカレンダーに追加しますか？",
+        "edit_other": "カレンダーのワークアウトを更新しますか？",
+        "delete_other": "ワークアウトをカレンダーから削除しますか？",
+        "mixed": "確認したすべての変更を適用しますか？"
+      },
+      "approveEdits": "カレンダーを更新",
+      "approveDeletions": "カレンダーから削除",
+      "unseen": "続けるには、すべてのカードをスクロールしてください。",
+      "cardFailed": "カード {{position}}/{{count}} を表示できませんでした。何も変更されていません。",
+      "showAgain": "もう一度表示"
+    }
+  },
+  "yourData": {
+    "title": "あなたのデータ",
+    "deleteEverything": "すべて削除",
+    "confirm": {
+      "title": "すべて削除しますか？",
+      "body": "この操作は取り消せません。このiPhoneとiCloudから会話、メモリ、保存したプラン、設定、キーを削除し、クレジットの記録も削除します。未使用のクレジットは失われ、初回クレジットはiPhoneごとに1回だけ付与されます。"
+    },
+    "keeps": "intervals.icuのアカウントとワークアウトはintervals.icuに残ります。自分のOpenRouterアカウントでサインインした場合は、OpenRouterでそのキーを削除してください。",
+    "progress": "削除中…",
+    "done": "このiPhone、iCloud、クレジットサービスからすべて削除しました。",
+    "notStarted": "何も削除されませんでした。インターネットに接続して、もう一度お試しください。",
+    "iCloudLater": "このiPhoneとクレジットサービスから削除しました。iCloudのコピーは、このiPhoneがオンラインでiCloudにサインインしている状態で、次にEnduragentを開いたときに削除されます。それまでにアプリを削除した場合は、iOSの設定の「iCloudストレージ」でそのデータを削除してください。",
+    "busy": "コーチが終わるまで待ってから、もう一度お試しください。",
+    "notFinished": "このiPhoneから一部のデータを削除できませんでした。もう一度お試しください。",
+    "progressTime": "最大1分ほどかかることがあります。",
+    "tryLater": "このiPhoneとiCloudからは何も削除されていません。クレジットサービスは現在混み合っています。しばらくしてからもう一度お試しください。",
+    "creditsUnconfirmed": "何も削除されませんでした。クレジットサービスは、このiPhoneがあなたのクレジットの記録の所有者であることを確認できなかったため、記録はサービスに残ります。このiPhoneとiCloudのデータはすべて削除できます。",
+    "deleteHere": "iPhoneとiCloudから削除",
+    "creditsKept": {
+      "done": "このiPhoneとiCloudからすべて削除しました。クレジットの記録はクレジットサービスに残ります。そのキーは誰も持っていないため、誰も使用できません。",
+      "iCloudLater": "このiPhoneから削除しました。iCloudのコピーは、このiPhoneがオンラインでiCloudにサインインしている状態で、次にEnduragentを開いたときに削除されます。それまでにアプリを削除した場合は、iOSの設定の「iCloudストレージ」でそのデータを削除してください。クレジットの記録はクレジットサービスに残ります。そのキーは誰も持っていないため、誰も使用できません。"
     }
   }
 }

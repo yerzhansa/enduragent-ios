@@ -1,0 +1,1719 @@
+{
+	"units": {
+		"0.1": 7,
+		"1.1": 8,
+		"2.1": 8,
+		"2.2": 5,
+		"2.3": 4,
+		"2.4": 2,
+		"3.1": 3,
+		"3.2": 4,
+		"3.3": 2,
+		"3.4": 4,
+		"4.1": 7,
+		"4.2": 4,
+		"5.1": 9,
+		"5.2": 6,
+		"6.1": 3,
+		"6.2": 4,
+		"6.3": 13,
+		"6.4": 17,
+		"6.5": 5,
+		"7.1": 13,
+		"7.2": 5,
+		"8.1": 7,
+		"8.2": 4
+	},
+	"criteria": [
+		{
+			"id": "0.1.1",
+			"statement": "coverage/milestone-4.json passes unchanged, with the Milestone 4 scope picked by the table's file name: a Milestone 4 table with every requirement accounted for passes, and B19.03 and G07 stay outside it.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "requirementRowNamesOnlyCriteriaOfItsTable"},
+				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "openAndRowsAccountForTheRequirementsInScope"}
+			]
+		},
+		{
+			"id": "0.1.2",
+			"statement": "A table named milestone-5.json is checked against the Milestone 5 scope, so a Milestone 4 requirement in it fails with unknown-requirement. A table with a requirements section and any other name fails with unknown-scope.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeCases.swift", "function": "tableIsCheckedAgainstTheScopeItsFileNameNames"}
+			]
+		},
+		{
+			"id": "0.1.3",
+			"statement": "In milestone-5.json an agreed difference whose text names ADR-0084 or ADR-0083 passes, and one that names neither fails with difference-without-adr. In milestone-4.json one that names only ADR-0084 fails with difference-without-adr.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeCases.swift", "function": "agreedDifferenceNamesADecisionRecordOfItsScope"}
+			]
+		},
+		{
+			"id": "0.1.4",
+			"statement": "A part of Milestone 5, such as B14.01/saved-plan, is placed though its parent is not listed and is closed by its planned criteria. A part that is neither a row nor in open fails with missing-requirement, a part with agreedDifference fails with difference-on-parent, and a sub-id of an unlisted parent that is not a part fails with unknown-parent.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeCases.swift", "function": "partOfAnEarlierRequirementIsPlacedAndClosedOnlyByCriteria"},
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeCases.swift", "function": "everyRequirementAndPartOfMilestoneFiveIsOpenOrARow"}
+			]
+		},
+		{
+			"id": "0.1.5",
+			"statement": "Every agreed difference of the scope is a row or in open, and one that is neither fails with missing-agreed-difference.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeCases.swift", "function": "everyAgreedDifferenceOfMilestoneFiveIsOpenOrARow"},
+				{"file": "tools/Tests/CheckCoverageTests/RequirementScopeCases.swift", "function": "tableIsCheckedAgainstTheScopeItsFileNameNames"}
+			]
+		},
+		{
+			"id": "0.1.6",
+			"statement": "A carried row retired by ADR-0084 passes in milestone-4.json and in milestone-5.json.",
+			"tests": [
+				{"file": "tools/Tests/CheckCoverageTests/CarriedCases.swift", "function": "carriedRowStatesItsBehaviorAndNamesOneReplacementOrAnADR"}
+			]
+		},
+		{
+			"id": "0.1.7",
+			"statement": "The first coverage/milestone-5.json passes make check-coverage with every requirement, part and agreed difference of the scope in open, a plan for 0.1 and every unit of slices 1 to 8, and no unit but 0.1.",
+			"noAutomatedProof": "This criterion is about the committed table itself. make check-coverage, which CI runs on every pull request, checks it, and the reviewer checked its plan against the Coverage sections of slices 1 to 8."
+		},
+		{
+			"id": "1.1.1",
+			"statement": "Before any deletion, a search of the upgrade seeds and the test fixtures for the five deleted planning kinds, a planningCommand: stamp and a save-plan journal operation, and a read of every committed store for rows of those kinds and save-plan journal rows, finds only the v1 planningDevice row in the v1 record fixture.",
+			"noAutomatedProof": "This criterion is a search run once on the base before the deletion. The pull request body records the rg and sqlite3 commands and their output: no seed, fixture or committed store holds a row of the five kinds, a planningCommand: stamp or a save-plan journal row, and the one planningDevice row is line 16 of the v1 record fixture."
+		},
+		{
+			"id": "1.1.2",
+			"statement": "A stored row of each of the five deleted planning kinds reads as newerKind and never crashes or stops the read.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RemovedPlanningKindsTests.swift", "function": "rowsOfTheDeletedPlanningKindsReadAsNewerKinds"}
+			]
+		},
+		{
+			"id": "1.1.3",
+			"statement": "The v1 planningDevice row decodes as a read-only legacy body, the v1 store still reads 13 synced rows with no skipped row, and encoding a planningDevice legacy body throws, as every legacy kind does.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/EnvelopeMigrationTests.swift", "function": "v1RowsDecodeAsLegacyBodies"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RemovedPlanningKindsTests.swift", "function": "planningDeviceIsReadOnlyAtItsV1Version"}
+			]
+		},
+		{
+			"id": "1.1.4",
+			"statement": "A planningCommand:<ulid> stamp makes its row malformed, as any unknown stored operation does.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RemovedPlanningKindsTests.swift", "function": "aRemovedOperationStampMakesItsRowMalformed"}
+			]
+		},
+		{
+			"id": "1.1.5",
+			"statement": "The debug sample writes and reads a replyObserved row for the chat debug-sample, and the record sync debug view labels it replyObserved. The record log tests pass with the moved sample.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RecordSyncProbeTests.swift", "function": "localSampleIsAReplyObservedRowOnTheDebugSampleChat"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RecordLogTests.swift", "function": "fetchHonoursEveryQueryField"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SwiftDataRecordLogTests.swift", "function": "appendRoutesByLocality"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SwiftDataRecordLogTests.swift", "function": "fetchSyncedIsUnionAndLocalIsThisDevice"}
+			],
+			"checkedByHand": {"part": "The simulator run: in Settings > Debug > Records, Append one device-local record writes the sample and the refreshed list reads it back as a replyObserved row labelled replyObserved. The slice asks for one simulator run of the Records screen, recorded in the pull request, and no UI proof.", "described": ".agents/skills/verify-ios/features/README.md"}
+		},
+		{
+			"id": "1.1.6",
+			"statement": "The prompt of every existing prompt and memory test is unchanged, because the deleted Current Plan branch never rendered. Unit 5.2 adds the plan block under ADR-0084, so these tests now expect the prompt to hold \"## Current Plan\" with \"No plan saved yet.\"",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryTests.swift", "function": "contextInjectsOrphansAndStripsCompaction"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "rememberedTextSitsInsideTheAthleteDataFenceAfterTheCacheBoundary"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "prefixCarriesTheCyclingSkillsUnderTheTokenCeilings"}
+			]
+		},
+		{
+			"id": "1.1.7",
+			"statement": "A whole-word search of the Swift sources under apps/ios and tools, without generated files, finds none of the deleted planning kinds, PlanningCommandID, the plan headline types, PlanStatus, savePlan or PlanningCommandName, and the public surface lists name none of them.",
+			"noAutomatedProof": "This criterion is a search checked by hand on the final head. The pull request body records the rg command and its empty output; the old stored kind names live only in the removed-planning-records.json fixture that the tests of 1.1.2 and 1.1.4 read."
+		},
+		{
+			"id": "1.1.8",
+			"statement": "coverage/milestone-3.json rows whose tests changed still point at those tests, and row 8.2.4 still holds: the prompt has no plan block and no plan tool is offered. Unit 4.1 reverses the offer half under ADR-0084: the three planning tools are offered and plan_save is not. Unit 5.2 reverses the plan-block half: the prompt holds \"## Current Plan\" with \"No plan saved yet.\", and plan_load is offered.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift", "function": "promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad"}
+			]
+		},
+		{
+			"id": "2.1.1",
+			"statement": "make plan-fixtures NPM=<pinned checkout> writes every fixture file and the manifest under Fixtures/plan, and a second run leaves git status clean.",
+			"noAutomatedProof": "Running the generator needs Node v24.11.1 and the pinned npm checkout, which CI does not have. The pull request records both runs and the clean git status after the second."
+		},
+		{
+			"id": "2.1.2",
+			"statement": "make plan-fixtures-check NPM=<pinned checkout> exits 0 on the committed fixtures and writes nothing tracked. It exits nonzero and names the file after one byte of one fixture changes, and also after that file's sha256 in manifest.json is rewritten to match.",
+			"noAutomatedProof": "The check runs npm, which CI cannot. make test-swift passes a fixture edited together with its manifest sha256, so the pull request's recorded check runs are the proof, and each reviewer of a change to the fixtures or the generator runs the check again."
+		},
+		{
+			"id": "2.1.3",
+			"statement": "Each refusal prints npm-fixtures: <reason>, exits 1 and writes nothing: Node v22.14.0 and v24.21.0, a checkout at another revision, a checkout with local changes, a build that changes a tracked file, a build that fails, a case outside the tool schema, and a case that reaches randomUUID.",
+			"noAutomatedProof": "The refusals need Node binaries, local clones of the npm checkout and its build, which CI does not have. The pull request records each refusal's command, output, exit status and the folder it did not write."
+		},
+		{
+			"id": "2.1.4",
+			"statement": "Every fixture's first line names d192cb974e715e1527645e0acf0d8353ed4d0edc, each case is one line, no file reaches 4,000,000 bytes, and the manifest lists every plan-draft file.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "committedFixturesMatchTheirManifestAndTheGenerator"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "pinChangedInOneFixtureHeaderOnlyIsARevisionProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "twoCasesOnOneLineIsALayoutProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureThatReachesTheSizeCapIsALayoutProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureAddedWithoutTheManifestIsUnlisted"}
+			]
+		},
+		{
+			"id": "2.1.5",
+			"statement": "Every case of total-weeks.json and the plan-draft files carries instant, timeZone, today and weekday, and the zones put today both before and after the UTC date.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "everyDatedCaseCarriesItsClockAndTheZonesFallOnBothSidesOfTheUTCDay"}
+			]
+		},
+		{
+			"id": "2.1.6",
+			"statement": "PlanFixtureProvenanceTests pass on the committed files and fail for one changed fixture byte, a generator file changed without a new run, the pin changed in one place only, and a fixture file added or removed without the manifest. For each file the decoded case count equals the manifest's and is above 0.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "committedFixturesMatchTheirManifestAndTheGenerator"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "oneChangedFixtureByteIsADigestProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "generatorFileChangedWithoutANewRunIsAGeneratorProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "pinChangedInTheManifestOnlyIsARevisionProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "pinChangedInOneFixtureHeaderOnlyIsARevisionProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "pinChangedEverywhereButTheLoaderIsARevisionProblemOfEveryFile"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureAddedWithoutTheManifestIsUnlisted"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureRemovedWithoutTheManifestIsAbsent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "decodedCaseCountThatDiffersFromTheManifestIsACountProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "toolCountThatDiffersFromTheManifestIsACountProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "rehashedFixtureWhoseToolsNoLongerMatchTheManifestIsACountProblem"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanFixtureProvenanceTests.swift", "function": "fixtureWithNoCasesIsACountProblemEvenWhenTheManifestAgrees"}
+			]
+		},
+		{
+			"id": "2.1.7",
+			"statement": "The manifest records the sha256 of every file under the dist folders of the six closure packages, and Node v24.11.1.",
+			"noAutomatedProof": "The dist folders exist only in the pinned npm checkout after the generator's build. The pull request records the manifest's dist member, file counts per package and node member, and the generator's run that wrote them."
+		},
+		{
+			"id": "2.1.8",
+			"statement": "make check-source passes over tools/npm-fixtures and the plan fixtures (fixture-date, forbidden-path, unexpected-binary, public-language on the README), and the repository gains no package.json, lockfile, tsx or tsconfig.",
+			"noAutomatedProof": "make check-source runs in CI on every pull request and applies those rules to every tracked file, the new ones included. The pull request lists the tracked files it adds, none of them a package.json, lockfile, tsx or tsconfig."
+		},
+		{
+			"id": "2.2.1",
+			"statement": "JavaScriptNumber.text of every number token in the outputs of feasibility.json, the plan drafts and headline.json gives the token's own text, over as many cases as the manifest counts and more than 0 tokens. The table cases pass: 1e21, 1e-7, 1e16, -0 and 2^53 + 2 print as JavaScript prints them, fixed(2.25, digits: 1) is 2.3 and fixed(1.005, digits: 2) is 1.00, round(-2.5) is -2 and round(2.5) is 3, roundToTenths(0.25) is 0.3 and roundToTenths(-0.25) is -0.2, and json of a non-finite number is null.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "everyNumberInTheFeasibilityPlanDraftAndHeadlineOutputsPrintsAsJavaScriptWroteIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "textIsJavaScriptsStringOfTheNumber"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "fixedRoundsTheExactBinaryValueAndBreaksATieUpward"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "roundBreaksATieTowardPositiveInfinity"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "roundToTenthsBreaksATieTowardPositiveInfinity"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "jsonOfANonFiniteNumberIsNull"}
+			]
+		},
+		{
+			"id": "2.2.2",
+			"statement": "encodeJSONNumber is gone, and canonicalDigestInput and canonicalJSON print numbers through JavaScriptNumber.json.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "canonicalTextPrintsNumbersAsJavaScript"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IdentityTests.swift", "function": "jsonParseCanonicalSha256AndStringify"}
+			]
+		},
+		{
+			"id": "2.2.3",
+			"statement": "Every committed digest is unchanged: the ledger digest table still matches, and the stored structure of each of workout-review-refreshed.json, workout-review-try-again.json and workout-review-try-again-load-only.json is the snapshot of its own steps again. Every finite number and every string the printer writes is parsed back exactly by JSONValue.parse, the one JSON reader: over a seeded random spread of doubles, both reprinted ranges, their edges and long-digit values such as 1.2345678901234568e-05 and 1.2345678901234568e+20, each number comes back bit for bit, and a string with a leading U+FEFF comes back whole. A stored review change holding such a long-digit number, as a workout document, authored steps or an added ride, refuses the same change sent again as unchanged. A Milestone 4 review compares as it did on the build that stored it, for every number that build's reader read exactly: the build-d6f89d9b/reprinted-numbers review, whose stored structure holds 5e-05, 1e-09, 9007199254740992.0, 1e+16, 1.2345678901234568e-05 and 1.2345678901234568e+20 as d6f89d9b printed them, approves with no refresh and refuses a revision that changes nothing; the build-d6f89d9b/reprinted-authored-steps review refuses the same steps sent again as a workout document; a changed number is still named as a structure change; a stored structure that does not parse is a change from every other structure; and the build-d6f89d9b/misread-intervals-number review, whose stored structure holds 0.05185376836363068, the value d6f89d9b's reader misread from intervals.icu's 0.051853768363630676, names only its structure as changed when approved over the event read exactly from that text, writes nothing, and then approves with one write.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UnionMergeTests.swift", "function": "ledgerDigestMatchesDesktop"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IdentityTests.swift", "function": "estimateTokensMatchesDesktop"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutSnapshotTests.swift", "function": "aStoredReviewsStructureIsTheSnapshotOfItsOwnStepsAgain"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "everyFiniteNumberThePrinterWritesIsParsedBackBitForBit"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "everyStringThePrinterWritesIsParsedBackWhole"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRestoreTests.swift", "function": "aStoredChangeHoldingALongDigitNumberRefusesTheSameChangeAgain"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bReviewOfReprintedNumbersApprovesWithoutARefresh"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bReviewOfReprintedNumbersRefusesARevisionThatChangesNothing"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bAuthoredEditOfReprintedNumbersRefusesTheSameStepsAsAWorkoutDocument"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bReviewOfReprintedNumbersNamesAChangedNumberAsAStructureChange"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bReviewOfANumberItsReaderMisreadRefreshesOnceAndThenApproves"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChangeTests.swift", "function": "aStructureThatDoesNotParseIsAChangeFromEveryOtherStructure"}
+			]
+		},
+		{
+			"id": "2.2.4",
+			"statement": "The build-d6f89d9b/waiting-review seed opens on this build: its waiting Milestone 4 review restores at revision 1 with the structure this build computes for the same steps, Approve is offered and completes without a refresh, and its memory section, journal row and two settled turns read without a skipped row. The four older seeds pass unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bWaitingReviewKeepsItsDigestAndApprovesWithoutARefresh"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreWaitingReviewTests.swift", "function": "buildD6f89d9bKeepsItsMemoryJournalAndSettledTurns"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build6833d90fUnknownAddNotFoundIsApprovedAgainUnderTheSameExternalID"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "build2bbe2eeKeepsMemoryHistoryAndConsent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "preVaultClaimsStayUnconnectedAndTheNextTurnUsesTheLegacyKey"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreTests.swift", "function": "testUpgradeHistory"}
+			]
+		},
+		{
+			"id": "2.2.5",
+			"statement": "The tools' JavaScriptNumber in tools/Sources/ToolSupport/JSONText.swift gives the same text for every table case of 2.2.1 that text and fixedToOneDecimal cover.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/JavaScriptNumberTextTests.swift", "function": "textIsJavaScriptsStringOfTheNumber"},
+				{"file": "tools/Tests/ToolSupportTests/JavaScriptNumberTextTests.swift", "function": "fixedToOneDecimalBreaksATieUpward"}
+			]
+		},
+		{
+			"id": "2.3.1",
+			"statement": "The serializer's refusal messages and its workout description print numbers through JavaScriptNumber.text, the serializer cases of serializer-cases.json pass unchanged, and Serializer.jsString is gone.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SerializerTests.swift", "function": "matchesDesktopCases"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SerializerRefusalTests.swift", "function": "refusalMessagePrintsNumbersAsJavaScriptDoes"}
+			]
+		},
+		{
+			"id": "2.3.2",
+			"statement": "SnapshotNumber.text stays the snapshot's one display rule, whole numbers bare and others to one decimal, and prints only through JavaScriptNumber.text and fixed, with the form rounded through JavaScriptNumber.roundToTenths. The training snapshot and npm snapshot parity tests pass unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "negativeValueOnATieRoundsAwayFromZeroLikeJavaScriptToFixed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "turnPromptCarriesBothLinesAndLeavesAbsentFieldsOut"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "latestWellnessRowIsChosenByDateWhateverTheOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SnapshotNpmParityTests.swift", "function": "snapshotTextMatchesNpmOutsideTheNamedDifferences"}
+			]
+		},
+		{
+			"id": "2.3.3",
+			"statement": "The wellness readout's form and each stream channel's mean round to tenths through JavaScriptNumber.roundToTenths, the activity, profile and wellness readout tests pass unchanged, and OneDecimal is gone.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WellnessReadoutTests.swift", "function": "wellnessToolShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/StreamSummaryTests.swift", "function": "customChannelIsAskedForByItsNameAndSummarizedUnderIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityReadoutTests.swift", "function": "activityListShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ActivityListingTests.swift", "function": "countsAddUpToEveryRowTheSourceReturned"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ProfileReadoutTests.swift", "function": "profileToolShowsTheExpectedResultForEveryCase"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/JavaScriptNumberTests.swift", "function": "roundToTenthsRoundsToTheNearestTenth"}
+			]
+		},
+		{
+			"id": "2.3.4",
+			"statement": "rg 'jsString|OneDecimal' apps/ios finds nothing.",
+			"noAutomatedProof": "A deleted name is a property of the tree, and the compiler refuses any remaining reference. The pull request body records the search and its empty result."
+		},
+		{
+			"id": "2.4.1",
+			"statement": "CivilDate.weekday gives the Gregorian weekday and days(until:) the signed day count, negative when the other day is earlier, across 1900-02-28 to 1900-03-01, 2000-02-28 to 2000-03-01, year ends and spans in both directions, and adding that count reaches the other day.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "weekdayIsTheGregorianWeekday"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "dayCountIsSignedAndAddingItReachesTheOtherDay"
+				}
+			]
+		},
+		{
+			"id": "2.4.2",
+			"statement": "The weekday of every today recorded in total-weeks.json and the plan-draft files equals npm's recorded weekday, over as many cases as the manifest counts for those files, and more than 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "weekdayOfEveryRecordedTodayIsNpmsWeekday"
+				}
+			]
+		},
+		{
+			"id": "3.1.1",
+			"statement": "For every case of feasibility.json, Planning.feasibility of PlanningArguments.feasibility of the case input, as JSON, equals the recorded output, null where npm returned nothing, with the warning and the ambitious message templates equal as text. A case the parser refuses is a mismatch.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeasibilityParityTests.swift",
+					"function": "everyRecordedGoalGetsNpmsFeasibilityCheck"
+				}
+			]
+		},
+		{
+			"id": "3.1.2",
+			"statement": "The number of feasibility cases compared equals the manifest count for feasibility.json and is above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FeasibilityParityTests.swift",
+					"function": "everyRecordedGoalGetsNpmsFeasibilityCheck"
+				}
+			]
+		},
+		{
+			"id": "3.1.3",
+			"statement": "A file under the package Planning folder that names a Clock type, Date(), Date.now, UUID(), TimeZone.current, Ledger or actor fails check-source with planning-pure, and a pure Planning file passes.",
+			"tests": [
+				{
+					"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift",
+					"function": "givesTheVerdictForATrackedTree"
+				}
+			]
+		},
+		{
+			"id": "3.2.1",
+			"statement": "For every case of total-weeks.json, IntervalsPolicy.today of the case's instant and time zone equals the recorded today, then Planning.totalWeeks of PlanningArguments.profile of the case input equals the recorded output. A race whose date is today or earlier gives 8 weeks. A case the parser refuses is a mismatch.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TotalWeeksParityTests.swift",
+					"function": "everyRecordedGoalGetsNpmsWeekCountOnThePhonesDay"
+				}
+			]
+		},
+		{
+			"id": "3.2.2",
+			"statement": "For every case of the plan-draft files the manifest lists, IntervalsPolicy.today of the case's instant and time zone equals the recorded today, then Planning.draft of PlanningArguments.profile of the case input, with the fixture id and timestamp, as JSON, equals the recorded output. A case recorded as thrown throws, and no case recorded with an output throws or is refused.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDraftParityTests.swift",
+					"function": "everyRecordedProfileGetsNpmsPlanDraftOnThePhonesDay"
+				}
+			]
+		},
+		{
+			"id": "3.2.3",
+			"statement": "The plan draft's zone table holds the names and ranges DisplayZones.table(ftpWatts:) gives, for every FTP from 50 to 600 W, so the package has one zone calculator.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDraftParityTests.swift",
+					"function": "draftZonesAreTheZoneCalculatorsRows"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDraftParityTests.swift",
+					"function": "everyRecordedProfileGetsNpmsPlanDraftOnThePhonesDay"
+				}
+			]
+		},
+		{
+			"id": "3.2.4",
+			"statement": "The numbers of cases compared equal the manifest's counts for total-weeks.json and for the plan-draft files, and each is above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TotalWeeksParityTests.swift",
+					"function": "everyRecordedGoalGetsNpmsWeekCountOnThePhonesDay"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDraftParityTests.swift",
+					"function": "everyRecordedProfileGetsNpmsPlanDraftOnThePhonesDay"
+				}
+			]
+		},
+		{
+			"id": "3.3.1",
+			"statement": "For every case of sample-week.json, the hand cases included, Planning.sampleWeek of PlanningArguments.sampleWeek of the case input, as JSON, equals the recorded output, and a low-volume flexible request for six sessions returns three sessions, as npm does. A case the parser refuses is a mismatch.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SampleWeekParityTests.swift",
+					"function": "everyRecordedRequestGetsNpmsSampleWeek"
+				}
+			]
+		},
+		{
+			"id": "3.3.2",
+			"statement": "The number of sample-week cases compared equals the manifest count for sample-week.json and is above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SampleWeekParityTests.swift",
+					"function": "everyRecordedRequestGetsNpmsSampleWeek"
+				}
+			]
+		},
+		{
+			"id": "3.4.1",
+			"statement": "CivilDate.isRealDateKey and CivilDate(rawValue:) give npm's isRealDateKey verdict, confirmed with node, for 0000-01-01, 0000-02-29, 0100-02-29 (refused), 0400-02-29, 1500-02-28, 1582-10-10, 1582-10-15, 0001-01-01, 9999-12-31 and the refusals 2026-02-30, 2026-13-01, 2026-00-10, +0010-01-01 and 0000-1-01.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateValidationTests.swift",
+					"function": "givesNpmsVerdictOnTheProlepticGregorianCalendar"
+				}
+			]
+		},
+		{
+			"id": "3.4.2",
+			"statement": "From 1583-01-01 to 9999-12-31, adding(days:), days(until:) and weekday equal Foundation's Gregorian calendar over every day of 1583, 1600, 1899 to 1901, 1970, 2000, 2024 to 2030 and 9999 and a seeded sample; before 1583 they equal JavaScript's proleptic Gregorian count and weekday, every day of an early year follows the day before, and an intervals.icu range across year 0 counts 367 days as npm does.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "dayArithmeticFrom1583IsFoundationsGregorianCalendar"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "daysBefore1583CountAsJavaScriptDoes"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "everyDayOfAnEarlyYearFollowsTheDayBefore"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateArithmeticTests.swift",
+					"function": "movingPastEitherEndOfTheRangeStillCountsBack"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnToolInputTests.swift",
+					"function": "aRangeAcrossYearZeroCountsEveryProlepticDay"
+				}
+			]
+		},
+		{
+			"id": "3.4.3",
+			"statement": "1500-02-28, 1582-10-10 and 0001-01-01 are real days, and intervals_fetch_activities with each of them as oldest and newest passes the date check and lists that day, as npm does.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CivilDateValidationTests.swift",
+					"function": "givesNpmsVerdictOnTheProlepticGregorianCalendar"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnToolInputTests.swift",
+					"function": "historicalDateKeysPassTheDateCheck"
+				}
+			]
+		},
+		{
+			"id": "3.4.4",
+			"statement": "Nothing else changes: every committed digest, fixture, seed store and PublicSurface file stays byte for byte, and every other existing test passes unchanged except that 0000-01-01 leaves the impossible-date list.",
+			"noAutomatedProof": "This criterion is a property of the diff, checked on the final head. The pull request body records git diff --stat, which names no fixture, digest, seed store or PublicSurface file, and the full make test-swift run."
+		},
+		{
+			"id": "4.1.1",
+			"statement": "For every case of tool-inputs.json that names assess_feasibility, build_plan_skeleton or get_sample_week, the offered tool run through ToolRuntime refuses with invalid_input exactly the arguments zod refused, an unknown availableDays entry included, and answers npm's recorded result for every case that has one: invalid_date for a pattern-valid impossible race date, the \"Goal appears achievable within one plan cycle.\" fallback for a W/kg goal with no weight, and every feasibility check and sample week, whole. An accepted build_plan_skeleton case with no recorded result gets a plan draft. The cases compared equal the manifest's casesByTool count for each of the three tools, and each count is above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolInputTests.swift",
+					"function": "everyRecordedCallGetsZodsVerdictAndNpmsResult"
+				}
+			]
+		},
+		{
+			"id": "4.1.2",
+			"statement": "The name, description and parameters of build_plan_skeleton, assess_feasibility and get_sample_week as a turn offers them, and PlanToolSchemas.planSave and PlanToolSchemas.planLoad, equal tool-schemas.json once $schema and every additionalProperties are stripped, except that planSave's plan adds the draft's phases and zoneTables (B15.05/plan-schema). Five schemas are compared, the manifest's count for tool-schemas.json.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift",
+					"function": "everyPlanToolSchemaEqualsNpmsAndPlanSaveAddsOnlyTheDraftsPhasesAndZoneTables"
+				}
+			]
+		},
+		{
+			"id": "4.1.3",
+			"statement": "A connected and an unconnected turn offer build_plan_skeleton, assess_feasibility and get_sample_week right after calculate_zones, offered-tool-parameters.json pins their parameters, and calls to plan_save and plan_load still answer unknown_tool. Unit 5.2 offers plan_load after ledger_append, and plan_save still answers unknown_tool.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
+					"function": "connectedTurnIsOfferedEveryToolInOneOrder"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
+					"function": "unconnectedTurnIsOfferedLocalToolsAndMemoryReadOnlyOnceMemoryIsHidden"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
+					"function": "everyToolAConnectedTurnCanOfferTakesItsPinnedParameters"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
+					"function": "unconnectedCallToAnUnofferedToolReturnsUnknownToolAndReachesNoClient"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnToolInputTests.swift",
+					"function": "unofferedToolCallsReturnUnknownTool"
+				}
+			]
+		},
+		{
+			"id": "4.1.4",
+			"statement": "The same build_plan_skeleton call twice in one step and again in the next step of one attempt runs the tool once: the three tool results are the same text, with one draft id.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
+					"function": "repeatedPlanningCallInOneAttemptRunsTheToolOnce"
+				}
+			]
+		},
+		{
+			"id": "4.1.5",
+			"statement": "With the clock at 1998-06-13T20:30:00Z in Asia/Almaty, which is 1998-06-14 there, a build_plan_skeleton call for a race 56 days after 1998-06-14 gets 8 weeks and the draft Planning.draft builds for 1998-06-14, where the UTC day would give 9 weeks. The draft's id is a ULID minted at the clock's instant, and its createdAt is 1998-06-13T20:30:00.000Z, npm's toISOString form.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanningToolTests.swift",
+					"function": "theDraftCountsWeeksFromThePhonesDay"
+				}
+			]
+		},
+		{
+			"id": "4.1.6",
+			"statement": "A fixture-transport turn that calls build_plan_skeleton and then replies gets the plan draft as its tool result inside the untrusted-data envelope, as every read does, writes exactly the record kinds a turn that only replies writes, so no saved plan, memory, ledger, workout review or plan-save confirmation record, and makes no calendar call.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanningToolTests.swift",
+					"function": "aDraftIsEnvelopedLikeEveryReadAndWritesNothingElse"
+				}
+			]
+		},
+		{
+			"id": "4.1.7",
+			"statement": "The rewritten tests name only what is still unknown: unofferedToolCallsReturnUnknownTool keeps plan_save, plan_load and the retired names; everyToolIsDefinedUnderTheNameItsEffectCarries still excludes planSave; the Milestone 3 plan-offer test becomes promptNamesNoPlanAndThePlanningToolsAreOfferedWithoutPlanSave, which proves the three planning tools are offered and plan_save is not. coverage/milestone-3.json rows 1.3.4 and 8.2.4 name the rewritten tests, and 8.2.4's statement ends \"Reversed by ADR-0084 in Milestone 5.\" Unit 5.2 drops plan_load from unofferedToolCallsReturnUnknownTool and replaces the plan-offer test with promptSaysNoPlanIsSavedAndOffersPlanLoadWithoutPlanSave.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnToolInputTests.swift",
+					"function": "unofferedToolCallsReturnUnknownTool"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
+					"function": "everyToolIsDefinedUnderTheNameItsEffectCarries"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift",
+					"function": "promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad"
+				}
+			]
+		},
+		{
+			"id": "4.2.1",
+			"statement": "cycling-periodization and cycling-race-prep equal npm's bytes at d192cb974e715e1527645e0acf0d8353ed4d0edc, their recorded npmSHA256, with both build_plan_skeleton passages, \"and let the tool supply the exact figures\" and \"## Taper Length by Race Type\" restored and no \"## Per-phase emphasis\" heading, and they leave topicsThatDifferFromNpm. The npm copies of the two topics are deleted, and no npmSHA256 or npmRevision changes.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KnowledgeTopicsTests.swift",
+					"function": "bundledTopicEqualsNpmOnceItsRecordedDifferencesAreApplied"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KnowledgeTopicsTests.swift",
+					"function": "requestHoldsEveryBundledTopicWholeUnderItsOwnHeading"
+				}
+			]
+		},
+		{
+			"id": "4.2.2",
+			"statement": "cycling-prescription-posture names build_plan_skeleton and get_sample_week as npm's does and records exactly its two intervals_create_workout differences, and no recorded difference of any topic changes how often it names build_plan_skeleton, assess_feasibility or get_sample_week. cycling-intervals-icu and cycling-review are unchanged.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/KnowledgeTopicsTests.swift",
+					"function": "bundledTopicEqualsNpmOnceItsRecordedDifferencesAreApplied"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WorkoutAuthorizationTests.swift",
+					"function": "everyRequestHoldsThePrescriptionRules"
+				}
+			]
+		},
+		{
+			"id": "4.2.3",
+			"statement": "The cycling prefix with the restored passages stays under the 13,600-token ceiling: 11,582 tokens before the change and 11,928 after.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift",
+					"function": "prefixCarriesTheCyclingSkillsUnderTheTokenCeilings"
+				}
+			]
+		},
+		{
+			"id": "4.2.4",
+			"statement": "make check-source passes: no shipped .md names intervals_create_workout, the restored topics included.",
+			"tests": [
+				{
+					"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift",
+					"function": "givesTheVerdictForATrackedTree"
+				}
+			]
+		},
+		{
+			"id": "5.1.1",
+			"statement": "PlanDocument.parse(arguments:) accepts exactly the plan_save arguments zod accepted in tool-inputs.json and plan-object.json, refuses the rest with invalid_input, and keeps every key of an accepted plan: JSONValue.parse of npm's saved text equals the document's value for every accepted case of plan-object.json, and the arguments' plan for every accepted case of tool-inputs.json. The cases compared equal the manifest's plan-object.json count plus tool-inputs.json's plan_save count, and each is above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanObjectParityTests.swift",
+					"function": "everyPlanSaveVerdictIsZodsAndAnAcceptedPlanKeepsEveryKey"
+				}
+			]
+		},
+		{
+			"id": "5.1.2",
+			"statement": "A document's text is canonicalJSON of its value, so a plan whose keys arrive out of order saves sorted text, and npm's saved text in plan-object.json differs from it only in key order, for every accepted case, more than 0, and at least one case whose npm text is in another order.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanObjectParityTests.swift",
+					"function": "savedTextSortsKeysAndDiffersFromNpmsTextOnlyInKeyOrder"
+				}
+			]
+		},
+		{
+			"id": "5.1.3",
+			"statement": "pendingSummary equals npm's summary for every accepted case of plan-object.json, both the form with a name or goal and the form without one, and the number compared equals the accepted count, above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanObjectParityTests.swift",
+					"function": "pendingSummaryIsNpmsSummaryForEveryAcceptedPlan"
+				}
+			]
+		},
+		{
+			"id": "5.1.4",
+			"statement": "A plan whose plan_load result would not fit ToolResultCap.fits is refused with plan_too_large, and one exactly at the cap is accepted; the runtime returns the accepted plan whole and omits the refused one. The runtime decides with the same ToolResultCap.fits, and ToolResultCapTests pass unchanged.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDocumentTests.swift",
+					"function": "aPlanAtTheToolResultCapIsAcceptedAndOneTokenOverIsRefusedAsTooLarge"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolResultCapTests.swift",
+					"function": "resultsAtOrBelowCapStayIntact"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolResultCapTests.swift",
+					"function": "resultJustAboveCapIsOmitted"
+				}
+			]
+		},
+		{
+			"id": "5.1.5",
+			"statement": "A document's digest is sha256Hex of its value's canonicalDigestInput. PlanDocument.restore(text:digest:) refuses a text whose digest differs or that is not its canonical rendering, so a savedPlan row with a hand-edited document decodes as malformed. Restore does not re-check the size rule.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDocumentTests.swift",
+					"function": "digestIsTheSha256OfTheCanonicalDigestInputAndRestoresTheSameDocument"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDocumentTests.swift",
+					"function": "aSavedPlanRowWhoseDocumentWasEditedByHandIsMalformed"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanDocumentTests.swift",
+					"function": "restoreKeepsAStoredPlanThatNoLongerFitsTheCap"
+				}
+			]
+		},
+		{
+			"id": "5.1.6",
+			"statement": "A savedPlan body encodes at body version 7 and round-trips through SwiftDataRecordLog. A savedPlan row at version 8 is skipped as newerVersion. Every other kind keeps its version.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SavedPlanTests.swift",
+					"function": "aSavedPlanIsStoredAtBodyVersion7AndReadsBackWhole"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SavedPlanTests.swift",
+					"function": "aSavedPlanRowFromALaterBodyVersionIsSkippedAsNewer"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SavedPlanTests.swift",
+					"function": "everyOtherKindKeepsTheBodyVersionItWasStoredAt"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SwiftDataRecordLogTests.swift",
+					"function": "bodyRoundTripForEveryKind"
+				}
+			]
+		},
+		{
+			"id": "5.1.7",
+			"statement": "SavedPlans(owned:) orders saves by decided, then by the row's HLC: a save whose decided is older but whose row landed later sits behind the newer decision. A second row with a seen id counts once. newest is the last.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SavedPlanTests.swift",
+					"function": "theSavedPlanIsTheNewestDecisionEvenWhenAnOlderDecisionLandedLater"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SavedPlanTests.swift",
+					"function": "aSecondRowWithAnIdAlreadySeenCountsOnce"
+				}
+			]
+		},
+		{
+			"id": "5.1.8",
+			"statement": "The build-d6f89d9b/waiting-review seed opens on this build with every row as 2.2 found it. A saved plan committed into it reads back whole after the store is closed and opened again, as after a relaunch.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/UpgradeStoreSavedPlanTests.swift",
+					"function": "buildD6f89d9bKeepsEveryRowAndASavedPlanCommittedIntoItReadsBackAfterARelaunch"
+				}
+			]
+		},
+		{
+			"id": "5.1.9",
+			"statement": "make check-source fails .savedPlan or SavedPlanBody named in the coach package outside Plans/*.swift and the codec files (plan-records-private), and SavedPlanBody built or extended outside Plans/PlanSave.swift (minted-in-one-file). Each has passing and failing cases.",
+			"tests": [
+				{
+					"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift",
+					"function": "givesTheVerdictForATrackedTree"
+				}
+			]
+		},
+		{
+			"id": "5.2.1",
+			"statement": "For every case of headline.json, the phone saves a plan exactly when the recorded verdict of npm's plan_save input schema (zod 4.5.4) accepts it. An accepted plan is stored as a saved plan, and the prompt's \"## Current Plan\" block and plan_load's result equal npm's, with headline fields present, absent or empty and every totalWeeks npm prints; a refused plan, such as one with an absent, null or ill-typed headline field, or a totalWeeks of 0, 1.5, -1, 1e21 or past 2^53, gets invalid_input, so the phone never holds it. With no plan saved, the block is npm's NO_PLAN_CONTEXT, \"## Current Plan\\nNo plan saved yet.\" (system-prompt.ts:25 at d192cb97), and plan_load answers {\"message\": \"No plan saved yet.\"}. The cases compared equal the manifest's headline.json count and the sum of the accepted, refused and no-plan cases; the phone's saved and refused counts equal the fixture's accepted and refused counts (20 and 26 at d192cb97), each above 0, and there is one no-plan case.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanHeadlineParityTests.swift",
+					"function": "everyPlanZodAcceptsShowsNpmsHeadlineAndPlanLoadAndEveryPlanZodRefusesIsRefused"
+				}
+			]
+		},
+		{
+			"id": "5.2.2",
+			"statement": "Every turn's prompt ends its Athlete Context with the plan block: \"## Current Plan\" and \"No plan saved yet.\" with an empty memory and with remembered sections and notes, and the saved plan's headline lines once a plan is saved.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift",
+					"function": "everyPromptEndsItsAthleteContextWithThePlanBlock"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryTests.swift",
+					"function": "contextInjectsOrphansAndStripsCompaction"
+				}
+			]
+		},
+		{
+			"id": "5.2.3",
+			"statement": "After the phone reconnects to a second athlete, the first athlete's saved plan is absent from the prompt, from memory_query and from plan_load, which answers \"No plan saved yet.\", and from Memory snapshots read for the second athlete by account and by stamp, while the first athlete's account and stamp still read it.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AthleteOwnershipSnapshotTests.swift",
+					"function": "theFirstAthletesSavedPlanStaysAwayFromTheSecondAfterAReconnect"
+				}
+			]
+		},
+		{
+			"id": "5.2.4",
+			"statement": "memory_query over a range holding a save of plan A and its replacement by plan B returns history: save-plan — was: … / now: … lines with npm's previews, newest date first; the first save's was is empty; a query matches the old or the new plan text; and neither a waiting workout review nor a prepared plan-save confirmation appears. On one day, save-plan and write-section lines follow the order they happened in, as npm's journal append order does: a save decided before a section write comes before it, and one decided after comes after it.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryQueryTests.swift",
+					"function": "aSaveAndItsReplacementShowAsHistoryWithNpmsPreviewsAndNoReviewDoes"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/MemoryQueryTests.swift",
+					"function": "plansAndSectionWritesOfOneDayShowInTheOrderTheyHappened"
+				}
+			]
+		},
+		{
+			"id": "5.2.5",
+			"statement": "plan_load is offered after ledger_append, where plan_save's slot is, on connected and unconnected turns, with the name, description and parameters of tool-schemas.json; it is memoized within an attempt, evicted by a memory write in the same attempt, and returns the newest owned saved plan whole. For every plan_load call of tool-inputs.json, it refuses with invalid_input exactly the arguments zod refuses (null, [], \"plan\" and 7) and answers every accepted call with npm's result; the plan_load cases compared equal the manifest's count, which is above 0.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolInputTests.swift",
+					"function": "everyRecordedCallGetsZodsVerdictAndNpmsResult"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
+					"function": "connectedTurnIsOfferedEveryToolInOneOrder"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
+					"function": "unconnectedTurnIsOfferedLocalToolsAndMemoryReadOnlyOnceMemoryIsHidden"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
+					"function": "everyToolAConnectedTurnCanOfferTakesItsPinnedParameters"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
+					"function": "planLoadIsMemoizedUntilAMemoryWriteAndReturnsTheNewestSavedPlanWhole"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift",
+					"function": "everyPlanToolSchemaEqualsNpmsAndPlanSaveAddsOnlyTheDraftsPhasesAndZoneTables"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanHeadlineParityTests.swift",
+					"function": "everyPlanZodAcceptsShowsNpmsHeadlineAndPlanLoadAndEveryPlanZodRefusesIsRefused"
+				}
+			]
+		},
+		{
+			"id": "5.2.6",
+			"statement": "everyToolIsDefinedUnderTheNameItsEffectCarries excludes only planSave, unofferedToolCallsReturnUnknownTool no longer lists plan_load, and promptNamesNoPlanAndThePlanningToolsAreOfferedWithoutPlanSave is replaced by promptSaysNoPlanIsSavedAndOffersPlanLoadWithoutPlanSave, which proves the prompt holds \"## Current Plan\" with \"No plan saved yet.\" and plan_load is the only plan tool offered; coverage/milestone-3.json row 8.2.4 points at it.",
+			"tests": [
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift",
+					"function": "everyToolIsDefinedUnderTheNameItsEffectCarries"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnToolInputTests.swift",
+					"function": "unofferedToolCallsReturnUnknownTool"
+				},
+				{
+					"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PersonalContextTests.swift",
+					"function": "promptSaysNoPlanIsSavedAndOffersPlanSaveThenPlanLoad"
+				}
+			]
+		},
+		{
+			"id": "6.1.1",
+			"statement": "ChainAppend.swift holds head(of:), newest(_:), append(_:stamp:after:in:) and chats(holding:) on Ledger with RecordHead, NewestRecord, HeadMoved and TransitionFailure, moved from ReviewChain.swift, and Loop/TurnEnding.swift holds TurnEnding, moved from ReviewCommit.swift. The only changed lines that are not moves are the three named edits: commit(_:stamp:after:in:) renamed append, chats(holding:) taking the kind with reviewChats() calling it for .workoutReview, and newest(_:) and append losing private.",
+			"noAutomatedProof": "This criterion is a property of the diff, checked by hand on the final head. The pull request body records git diff -M --stat and lists every changed line that is not a move."
+		},
+		{
+			"id": "6.1.2",
+			"statement": "Every review, record log and turn test passes with no test edited.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "twoWritersAfterOneHeadLandExactlyOneRecord"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "aFailedSaveLeavesTheHeadAndIsAStorageFailure"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "theReviewChatsAreEachChatWithAReviewChainOnce"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "anUnreadableNewestReviewStopsTheChainInsteadOfShowingTheOlderReview"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewChainLogTests.swift", "function": "anUnreadableNewestOutcomeStillTakesTheNextOutcome"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillBeforeThePreparationMarkerSettlesWithoutAReviewNotice"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "aKillAfterTheCommitFindsTheReviewOnRelaunch"}
+			]
+		},
+		{
+			"id": "6.1.3",
+			"statement": "Under the package's main target, a call append( with stamp: and after: labels, .newest( or an awaited bare newest(, or chats(holding: outside Records/ChainAppend.swift, Records/ReviewChain.swift, Records/RecordLog.swift and Plans/*.swift fails check-source with chain-append-callers, and calls that only share a name or a label pass. review-chain-only and review-outcome-writer still pass and fail their cases with ChainAppend.swift named.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.2.1",
+			"statement": "OperationID.planSave(PlanConfirmationID) is stored as planSave:<ulid> and parses back, and a planSave stamp whose tail is not a ULID is malformed: OperationID(storedValue:) refuses it and a stored row carrying it is skipped as malformed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/IdentityTests.swift", "function": "aPlanSaveOperationIsStoredAsPlanSaveAndItsULIDAndNoOtherTailParses"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRecordTests.swift", "function": "aPlanSaveStampWhoseTailIsNotAULIDIsSkippedAsMalformed"}
+			]
+		},
+		{
+			"id": "6.2.2",
+			"statement": "Each plan-save confirmation chain step, prepared, claimed, saved and canceled, round-trips at body version 7 through SwiftDataRecordLog with its chat, turn and planSave stamp, and a prepared step whose document was edited by hand is skipped as malformed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRecordTests.swift", "function": "everyChainStepRoundTripsThroughTheStoreAtBodyVersion7"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRecordTests.swift", "function": "aPreparedStepWithAHandEditedDocumentIsSkippedAsMalformed"}
+			]
+		},
+		{
+			"id": "6.2.3",
+			"statement": "PlanChain, built from step records with no store: phase(of:at:) is live one second before expiresAt and expired at exactly expiresAt; replaced when a later confirmation exists; saving, saved and canceled follow the newest step; committed(by:) finds the confirmation an attempt prepared; unfinishedClaims lists every claim with no saved step, two at once included.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanChainTests.swift", "function": "aWaitingConfirmationIsLiveOneSecondBeforeItExpiresAndExpiredAtExactlyItsExpiry"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanChainTests.swift", "function": "aLaterConfirmationInTheConversationReplacesTheOlderOne"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanChainTests.swift", "function": "theNewestStepDecidesSavingSavedAndCanceledPastExpiryAndReplacement"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanChainTests.swift", "function": "committedFindsTheConfirmationTheAttemptPrepared"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanChainTests.swift", "function": "unfinishedClaimsListEveryClaimWithNoSavedStepTwoAtOnceIncluded"}
+			]
+		},
+		{
+			"id": "6.2.4",
+			"statement": "make check-source fails a Review[A-Z] or WorkoutReview type name in the coach package's Plans folder and a Plan...Confirmation, SavedPlan or PlanDocument name in its Review folder (plan-save-separate, which allows ReviewSummary.planSave), and .planConfirmation or PlanConfirmationBody outside Plans/*.swift and the codec files (plan-records-private). Each has passing and failing cases.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.3.1",
+			"statement": "With HeldClock, a turn calls plan_save and the reply after the call waits 90 seconds before it ends well. The chat's chain then holds one prepared step stamped with the turn's stamp, whose expiresAt is the settle's clock.now plus 600 seconds, the call's instant plus 690 seconds, and the turn settles leftWaiting. The tool answered {pendingConfirmation: true, summary} with npm's summary, no savedPlan row exists, and the training client saw no write. When the conversation holds a build_plan_skeleton draft, from an earlier step of the attempt or an earlier finished turn since the last New conversation, the prepared plan keeps the coach's name, primaryGoal, status and every other key it sent and takes totalWeeks, phases and zoneTables from the newest successful draft, which within one turn is its last draft even after an earlier turn's draft; a failed build_plan_skeleton call is no draft, and with no draft the plan is prepared as sent (B15.05/save-draft). The card, its summary, the tool's answer and the plan Save plan saves all come from the prepared plan.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aReplyThatEndsWellLeavesOneConfirmationThatExpiresTenMinutesAfterTheSettle"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aSaveAfterADraftInAnEarlierTurnPreparesAndSavesTheDraftsWeeksPhasesAndZones"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "theNewestOfTwoDraftsIsTheOneSaved"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aDraftFromAnEarlierStepOfTheSameTurnIsSaved"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aTurnThatDraftsTwiceSavesItsSecondDraftOverTheEarlierTurnsDraft"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aDraftFromBeforeNewConversationIsNotSavedAndTheCoachsPlanIsSavedAsSent"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveDraftTests.swift", "function": "aFailedDraftIsNotADraft"}
+			]
+		},
+		{
+			"id": "6.3.2",
+			"statement": "A later plan_save in the same attempt replaces the held plan, and only the last one is prepared.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aLaterPlanSaveInTheSameAttemptReplacesTheHeldPlan"}
+			]
+		},
+		{
+			"id": "6.3.3",
+			"statement": "Two plan_save calls in one step both answer {\"error\": \"concurrent_plan_save\"}, the attempt's later calls are refused, no confirmation is prepared, and the turn records planSaveNotPrepared refused.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "twoPlanSavesInOneStepAreRefusedWithEveryLaterCallOfTheAttempt"}
+			]
+		},
+		{
+			"id": "6.3.4",
+			"statement": "A turn that fails, is stopped, or is retried by the ladder leaves no confirmation; a failed or stopped turn records turnDidNotFinish and shows chat.planSave.notPrepared.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aTurnThatSavesAPlanAndDoesNotFinishLeavesNoConfirmationAndSaysSo"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "aHeldPlanSaveIsNotSavedWorkSoAServerErrorRetriesAndDropsIt"}
+			]
+		},
+		{
+			"id": "6.3.5",
+			"statement": "A turn that reaches the step limit and then replies with its summary keeps its confirmation, also when the summary call returns nothing and the catalog's fallback reply ends the turn.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aStepLimitSummaryReplyKeepsTheConfirmation"}
+			]
+		},
+		{
+			"id": "6.3.6",
+			"statement": "A storage failure on settle's append, an unreadable chain head, or a head moved before each of Plans.settleAppendAttempts appends records planSaveNotPrepared notSaved, and the turn shows planSaveNotice with chat.planSave.notPrepared while the reply still counts as answered. A head moved before Plans.settleAppendAttempts - 1 appends still gets the prepared step on the last attempt and settles leftWaiting.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aConfirmationThatCannotBeStoredIsReportedBesideTheAnsweredReply"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "theSettleRereadsAMovedHeadUpToItsAttemptLimit"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "anUnreadableChainHeadRecordsNotSavedBesideTheAnsweredReply"}
+			]
+		},
+		{
+			"id": "6.3.7",
+			"statement": "A stored turnSettled row without planSaveNotPrepared decodes with it nil, and one with an unknown value is malformed.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WriteSummaryCodecTests.swift", "function": "aSettledRowKeepsItsPlanCauseAndAnUnknownCauseMakesItMalformed"}
+			]
+		},
+		{
+			"id": "6.3.8",
+			"statement": "A turn whose process died after its prepared step was appended settles interrupted(processEnded) with planConfirmations 1, and Try again is refused. One whose process died before the append settles with nothing waiting, and Try again is offered.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aKillAfterThePlanConfirmationWasStoredCountsItAndRefusesTryAgain"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "aKillBeforeThePlanConfirmationWasStoredLeavesNothingWaitingAndOffersTryAgain"}
+			]
+		},
+		{
+			"id": "6.3.9",
+			"statement": "A Milestone 4 row with planSaves decodes into planConfirmations and encodes back to planSaves. A held plan_save is not saved work, so the ladder's saved-work guard does not stop a server-error retry after it.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WriteSummaryCodecTests.swift", "function": "aMilestone4PlanSavesCountDecodesIntoPlanConfirmationsAndEncodesBack"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RetryLadderTests.swift", "function": "aHeldPlanSaveIsNotSavedWorkSoAServerErrorRetriesAndDropsIt"}
+			]
+		},
+		{
+			"id": "6.3.10",
+			"statement": "An unconnected turn on a device that connected before gets plan_unavailable and nothing is held.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSettleTests.swift", "function": "anUnconnectedTurnOnADeviceThatConnectedBeforeGetsPlanUnavailable"}
+			]
+		},
+		{
+			"id": "6.3.11",
+			"statement": "plan_save is offered in ToolName.allCases order just before plan_load, with npm's description and schema from tool-schemas.json, except that plan_save's plan also types the draft's phases and zoneTables (B15.05/plan-schema), every recorded plan_save input gets zod's verdict, and every ToolName has a definition.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "connectedTurnIsOfferedEveryToolInOneOrder"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolOfferTests.swift", "function": "everyToolIsDefinedUnderTheNameItsEffectCarries"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift", "function": "everyPlanToolSchemaEqualsNpmsAndPlanSaveAddsOnlyTheDraftsPhasesAndZoneTables"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolSchemaTests.swift", "function": "planSaveTypesEveryKeyAnNpmDraftWritesIntoAPhaseOrAZoneTable"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanToolInputTests.swift", "function": "everyRecordedCallGetsZodsVerdictAndNpmsResult"}
+			]
+		},
+		{
+			"id": "6.3.12",
+			"statement": "The prompt holds npm's plan rule byte for byte, then one sentence saying the athlete saves the plan by tapping Save plan on the plan card (B15.05/save-plan-sentence), and no other sentence naming plan_save or the plan card; its \"Name your basis\" rule holds npm's text byte for byte, then one sentence telling the coach to give a number from a tool result exactly as the tool returned it, as digits (B15.02/exact-numbers), which appears nowhere else; and the cycling prefix stays under its token ceilings.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "thePromptHoldsNpmsPlanSaveRuleThenTheSavePlanSentenceAndNoOtherPlanSaveSentence"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "thePromptHoldsNpmsVoiceRulesWithOnlyTheExactNumbersSentenceAfterNameYourBasis"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PromptAssemblyTests.swift", "function": "prefixCarriesTheCyclingSkillsUnderTheTokenCeilings"}
+			]
+		},
+		{
+			"id": "6.3.13",
+			"statement": "The public-surface fixture lists the plan card types, TurnView.planSaveNotice and WriteSummary.planConfirmations.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
+			]
+		},
+		{
+			"id": "6.4.1",
+			"statement": "Before .presented, a waiting card is waiting(.unarmed) and no token exists. After .presented(ref) it is waiting(.armed(token)). A token from an older delivery, or for another digest, saves nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "aCardArmsOnlyWhenItsOwnDeliveryIsPresented"}
+			]
+		},
+		{
+			"id": "6.4.2",
+			"statement": "Save plan appends claimed, commits one savedPlan whose id is the claim's, whose decided is the claim record's HLC and whose stamp is .planSave(c) with the claim's attempt and the confirmation's account, then appends saved and answers .saved. plan_load returns that object byte for byte. A second Save, or a Cancel after it, answers .notSaved(.alreadyDecided) and writes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "savePlanClaimsThenCommitsOneSavedPlanStampedForTheConfirmation"}
+			]
+		},
+		{
+			"id": "6.4.3",
+			"statement": "Two Save taps on one card, the second run by InterleavingChainLog between the first tap's chain read and its claim append, leave one claimed step and one raw savedPlan row, and the other tap answers .notSaved(.alreadyDecided).",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "twoSaveTapsOnOneCardLeaveOneClaimAndOneSavedPlan"}
+			]
+		},
+		{
+			"id": "6.4.4",
+			"statement": "Cancel appends canceled and writes no plan; the saved plan before it is unchanged. Saving plan B after A makes plan_load return B, and memory_query shows the A to B line. Each card's \"replaces\" line names the saved plan that was newest when its confirmation ended, and a card that has not ended names the newest saved plan now. A waiting card, carried ones included, follows a plan saved after it was prepared. A waiting card names the newest saved plan even when another device decided it after the card's ten minutes by its own clock. A Saving or Saved card names the newest plan decided before its claim, never its own. A Canceled card names the newest plan decided before its cancel, a replaced card the newest decided before the next prepared step, the one that replaced it and not a later one, even when that card is saved only after the replaced card's ten minutes, and an expired card the newest decided before the instant it reads Expired, whichever of replacement and expiry came first, even when its prepared step's HLC ran ahead of the clock. A plan decided at that instant is not on the line, one decided a millisecond before it or earlier within that millisecond is, and a replacement prepared at that same instant leaves the expiry as the end. The line compares and orders plans by when they were decided, not by when their records arrived. No such plan means no line: saving A leaves A's card with none, and after B is saved, B names A and A still has none.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "cancelWritesNoPlanAndALaterSaveReplacesTheSavedPlanInHistory"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanCardReplacesTests.swift", "function": "eachSavedCardNamesThePlanThatWasNewestBeforeItsSave"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanCardReplacesTests.swift", "function": "anEndedCardKeepsThePlanThatWasNewestWhenItEnded"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanCardReplacesTests.swift", "function": "anExpiredCardsLineEndsAtTheInstantItReadsExpired"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanCardReplacesTests.swift", "function": "anExpiredCardIgnoresAPlanSavedAfterItReadExpired"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanCardReplacesTests.swift", "function": "aCarriedWaitingCardNamesAPlanSavedAfterTheReset"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanCardReplacesTests.swift", "function": "aCardComparesWhenAPlanWasDecidedNotWhenItsRecordArrived"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanCardReplacesTests.swift", "function": "aWaitingCardNamesThePlanSavedOnADeviceWhoseClockRunsAhead"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRaceTests.swift", "function": "aSaveStalledByStorageMarksOnlyItsCardWhileAnotherConfirmationSaves"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aWaitingCardIsCarriedArmedToTheTopAndReadsCanceledThereUntilTheNextReset"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aCarriedCardWhoseTenMinutesEndReadsExpiredAtTheTopUntilTheNextReset"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "noCardIsCarriedForAConfirmationThatEndedBeforeTheReset"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "onlyTheNewestConfirmationIsCarried"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aConfirmationWhoseTenMinutesEndAtTheResetIsNotCarriedAndOneASecondYoungerIs"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aConfirmationIsCarriedUntilTheTenMinutesFromItsPreparedStepsHLCEnd"}
+			]
+		},
+		{
+			"id": "6.4.5",
+			"statement": "A newer prepared in the same conversation makes the older one .replaced: its card reads Expired with no controls, and Save on it answers .notSaved(.replaced) and writes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "aNewerConfirmationMakesTheOlderCardExpiredAndItsSaveReplaced"}
+			]
+		},
+		{
+			"id": "6.4.6",
+			"statement": "Trace 2's race, both orders, through InterleavingChainLog. When card 1's Save runs between settle's read and its append of card 2, card 1 reads Saved, its plan is the saved plan, and card 2 is waiting. When settle's append of card 2 runs between card 1's read and its claim append, card 1's Save answers .notSaved(.replaced) and no savedPlan row exists.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRaceTests.swift", "function": "aSaveThatClaimsBeforeTheNextSettleAppendsKeepsItsPlanAndTheNewCardWaits"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRaceTests.swift", "function": "aSettleThatAppendsBeforeTheClaimMakesTheSaveReplaced"}
+			]
+		},
+		{
+			"id": "6.4.7",
+			"statement": "With HeldClock, after waitUntilHeld(.seconds(600)) for the settle's wake: advanced 599 seconds, Save saves. In a second run advanced exactly 600 seconds, the wake yields changes, the card reads Expired with no controls, Save answers .notSaved(.expired), and the record count does not change.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRaceTests.swift", "function": "saveWorksUntilTheTenMinutesEndAndTheWakeExpiresTheCardAtThem"}
+			]
+		},
+		{
+			"id": "6.4.8",
+			"statement": "After the phone switches to another athlete, Save answers .notSaved(.athleteChanged) and writes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationTests.swift", "function": "savePlanAfterTheAppSwitchesToAnotherAthleteIsRefused"}
+			]
+		},
+		{
+			"id": "6.4.9",
+			"statement": "After New conversation, a waiting card is shown once at the top as preparedEarlier, keeps its armed controls, and Cancel works; it then reads Canceled at the top until the next New conversation. A carried card whose ten minutes end reads Expired at the top until the next New conversation, and is not shown after that. No card is carried for a confirmation saved or canceled before the reset, one whose ten minutes ended before the reset, or one that is not the newest. At the edge, one whose ten minutes end exactly at the reset boundary is not carried, and one prepared a second later is carried. The ten minutes run from the prepared step's HLC wall time, so a step that ran ahead of the clock is carried past its expiry and reads Expired at the top.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aWaitingCardIsCarriedArmedToTheTopAndReadsCanceledThereUntilTheNextReset"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aCarriedCardWhoseTenMinutesEndReadsExpiredAtTheTopUntilTheNextReset"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "noCardIsCarriedForAConfirmationThatEndedBeforeTheReset"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "onlyTheNewestConfirmationIsCarried"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aConfirmationWhoseTenMinutesEndAtTheResetIsNotCarriedAndOneASecondYoungerIs"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aConfirmationIsCarriedUntilTheTenMinutesFromItsPreparedStepsHLCEnd"}
+			]
+		},
+		{
+			"id": "6.4.10",
+			"statement": "A storage failure after the claim answers .storageUnavailable, marks that card storageUnavailable, and records planSaveStalled. Meanwhile another confirmation is prepared and saved, and its card reads Saved.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationRaceTests.swift", "function": "aSaveStalledByStorageMarksOnlyItsCardWhileAnotherConfirmationSaves"}
+			]
+		},
+		{
+			"id": "6.4.11",
+			"statement": "No step of a save or a cancel calls the calendar. Approving a workout review saves no plan and leaves the saved plan unchanged.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "saveAndCancelCallNoCalendarAndApprovingAWorkoutReviewSavesNoPlan"}
+			]
+		},
+		{
+			"id": "6.4.12",
+			"statement": "With HeldClock, a workout review waiting more than ten minutes beside a plan-save confirmation stays approvable after the confirmation expires.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "aWorkoutReviewWaitingPastTheConfirmationsTenMinutesStaysApprovable"}
+			]
+		},
+		{
+			"id": "6.4.13",
+			"statement": "A second device that shares the synced store sees the saved plan in its prompt and plan_load, and no card and no control.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationSyncTests.swift", "function": "aSecondDeviceSeesTheSavedPlanInItsPromptAndPlanLoadButNoCard"}
+			]
+		},
+		{
+			"id": "6.4.14",
+			"statement": "Choosing a coaching option while a card waits saves no plan and writes no claim.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChoicesInConversationTests.swift", "function": "choosingACoachingOptionWhileAPlanCardWaitsSavesNoPlan"}
+			]
+		},
+		{
+			"id": "6.4.15",
+			"statement": "With plan A saved, one turn calls build_plan_skeleton twice, a draft and then a revision, and get_sample_week, and replies. Then plan_load returns A byte for byte, the raw savedPlan row count is unchanged, no card and no planConfirmation record exists, and FakeIntervalsClient.calls is empty.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanConfirmationCarryTests.swift", "function": "draftsAndASampleWeekLeaveTheSavedPlanAndTheCalendarAlone"}
+			]
+		},
+		{
+			"id": "6.4.16",
+			"statement": "ChatSnapshot.plans reaches the app through Coach, and the public-surface fixtures list Coach.decide(_: PlanDecision, in:) and ChatSnapshot.plans.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatSnapshotTests.swift", "function": "theObservedSnapshotCarriesThePlanCardAndThenItsArmedControls"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}
+			]
+		},
+		{
+			"id": "6.4.17",
+			"statement": "make check-source fails ClaimedSave( outside PlanSave.swift, LiveConfirmation( outside PlanConfirmation.swift and PlanSaveToken( outside PlanCard.swift, each with a passing and a failing case.",
+			"tests": [
+				{"file": "tools/Tests/CheckSourceTests/SourceCheckerTests.swift", "function": "givesTheVerdictForATrackedTree"}
+			]
+		},
+		{
+			"id": "6.5.1",
+			"statement": "A turn leaves a waiting confirmation, the process stops, and a new Coach opens over the same store at +5 minutes. The card is waiting(.unarmed), .presented arms it, and Save answers .saved and writes the plan once. The same stop, relaunched at +11 minutes, reads Expired, and Save answers .notSaved(.expired) and writes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanRecoveryTests.swift", "function": "aWaitingConfirmationSurvivesTheAppBeingEndedUntilItsTenMinutesEnd"}
+			]
+		},
+		{
+			"id": "6.5.2",
+			"statement": "PlanSaveCrashTests run one case per PlanCrashPoint. Each case asserts, after the relaunch and before recover(), then after the first and after the second becameActive: the card's state, whether Try again is offered for the turn, and the raw count of synced savedPlan rows with the claim's id, which is exactly 0 or 1. S0 no card and Try again offered; S1 and S2 the card waiting and unarmed, and Try again refused; S3 Saving before recover(), then Saved with one row; S4 and S4a Saved with one row, never two; S5 Saved with one row; E1 Expired with nothing written; C1 waiting, as S1; C2 Canceled with no row. The second becameActive changes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveCrashTests.swift", "function": "everyCrashPointConvergesAfterTheRelaunchAndAgainOnTheSecondBecameActive"}
+			]
+		},
+		{
+			"id": "6.5.3",
+			"statement": "S6: card 1's claim lands and its synced commit fails, card 2 is prepared and saved in the same process, and the process stops with card 1's save unfinished. After the relaunch, recover() lands card 1's plan, card 2's plan is still the saved plan because it was decided later, and history reads s0, s1, s2.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanSaveCrashTests.swift", "function": "aClaimLeftUnfinishedBesideALaterSaveLandsBehindItAfterTheRelaunch"}
+			]
+		},
+		{
+			"id": "6.5.4",
+			"statement": "In one process, a save stalled by storage lands on the next recover(), behind the newer save by decided, and history reads s0, s1, s2.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanRecoveryTests.swift", "function": "aStalledSaveLandsOnTheNextRecoverBehindTheNewerSave"}
+			]
+		},
+		{
+			"id": "6.5.5",
+			"statement": "After Save, a new Coach over the same stores, as after a relaunch, shows the saved plan in the prompt and the card as Saved.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PlanRecoveryTests.swift", "function": "aSavedPlanIsInThePromptAndItsCardReadsSavedAfterTheRelaunch"}
+			]
+		},
+		{
+			"id": "7.1.1",
+			"statement": "Each state has a fixture launch and shows its text and only its controls: waiting (Save plan and Cancel), saving (none), saved, canceled, expired, storage unavailable (none, with its notice), and the answer to each refused tap: expired, replaced, already decided, athlete changed.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "noSaveControlExistsUntilTheTitleIsPresentedAndThenBothDecisionsCarryItsToken"},
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "eachRefusedTapFixtureLeavesItsAnswerOnTheCard"},
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "theReplacedTapFixtureRefusesTheOlderCardAndLeavesTheNewerOneWaiting"},
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "theStorageStageShowsOneStorageLineAndNoControls"},
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aSavedCardShowsNoStorageAnswerLeftFromTheTapThatStalled"},
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aCanceledCardShowsNoRefusalLeftFromAnEarlierTap"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.1.2",
+			"statement": "The card shows the plan's name, goal, length in weeks, one row per phase with focus, weeks and hours, and a line naming the saved plan it replaces. A field the plan lacks is left out, and a plan with no saved plan before it has no \"replaces\" line.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aPreparedPlanShowsItsNameGoalLengthAndEveryPhaseUnderItsTurn"},
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aSparsePlanLeavesOutEveryFieldItLacks"},
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aSecondPlanNamesTheSavedPlanItReplacesAndTheSavedCardNamesNone"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.1.3",
+			"statement": "No Save plan control exists before the card's title has been on screen. Scrolling the title into view arms it.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "noSaveControlExistsUntilTheTitleIsPresentedAndThenBothDecisionsCarryItsToken"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.1.4",
+			"statement": "Rule 1: at the default size the bar is docked above the composer. ADR-0088 dropped the largest-text half, where the bar sits in the transcript directly under its card.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.1.5",
+			"statement": "Rule 2: in each of the three languages at the default size, Save plan and Cancel are each whole on screen, side by side or stacked, and each can be tapped. ADR-0088 dropped the largest-text half.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.1.6",
+			"statement": "Rule 3: the long-name fixture shows the whole name on several lines, and each phase value sits under its label.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.1.7",
+			"statement": "Rule 4: launching and relaunching with a waiting card puts the newest message and the card's title on screen. ADR-0088 dropped the largest-text half.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.1.8",
+			"statement": "Rule 5: the disclaimer is the transcript's last row at accessibility sizes.",
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
+		},
+		{
+			"id": "7.1.9",
+			"statement": "Rule 6: VoiceOver reads the title, the identity lines, the phases, the \"replaces\" line, then Save plan and Cancel.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.1.10",
+			"statement": "Rule 7: criteria 1, 4 to 9 and 11 to 13 run at the default size in German, Portuguese of Portugal and Traditional Chinese, in light appearance, through the harness, and every string is translated with no truncated control. ADR-0088 dropped the runs at the largest text size.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.1.11",
+			"statement": "A card carried across New conversation is drawn once at the top and can be canceled, after which it reads Canceled at the top; after its ten minutes, a relaunch with a later clock shows it Expired at the top. ADR-0088 dropped the largest-text half.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aCardCarriedAcrossNewConversationSitsAtTheTopAndSaysItWasPreparedEarlier"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.1.12",
+			"statement": "A turn that recorded planSaveNotPrepared shows its notice.",
+			"tests": [
+				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "twoPlanSavesInOneStepShowTheNotPreparedNoticeAndNoCard"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.1.13",
+			"statement": "A workout review and a plan-save confirmation both wait. At the default size both bars are docked above the composer in the order README's operator item 3 settles. Tapping Approve applies the review and leaves the plan card waiting with its controls; in a second launch, tapping Save plan saves the plan and leaves the review offering Approve, with fixture.modelRequestCount and the fake calendar's writes unchanged. ADR-0088 dropped the largest-text half.",
+			"tests": [
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"},
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"}
+			]
+		},
+		{
+			"id": "7.2.1",
+			"statement": "SlashRouting.parse(\"/plan for my gran fondo in June\") is .plan and its route is .modelTurn, and the slash list and the welcome list /plan after /workout with \"Generate a training plan\" in every catalog language.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "parseReadsLeadingToken"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "startRoutesToResetAndPlanIsAModelTurn"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SlashRoutingTests.swift", "function": "welcomeListsPlanAfterWorkoutWithItsTitle"},
+				{"file": "apps/ios/EnduragentTests/SlashListTests.swift", "function": "startIsListedWithItsMenuTitleAndPlanFollowsWorkout"},
+				{"file": "apps/ios/EnduragentUITests/ShortcutProofs.swift", "class": "PlanShortcutProof", "method": "testSlashListShowsPlanAfterWorkout"}
+			]
+		},
+		{
+			"id": "7.2.2",
+			"statement": "Sending /plan for my gran fondo in June stores and sends that text unchanged, and the transcript shows the athlete's message and the coach's progress with no acknowledgement row.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "shortcutReachesTheCoachOnceWithAllItsText"},
+				{"file": "apps/ios/EnduragentTests/FixtureShortcutTests.swift", "function": "pickedShortcutFillsTheComposerAndSendsNothing"},
+				{"file": "apps/ios/EnduragentTests/FixtureShortcutTests.swift", "function": "sentShortcutShowsItsTextAndWorksUntilTheReplyInText"},
+				{"file": "apps/ios/EnduragentUITests/ShortcutProofs.swift", "class": "PlanShortcutProof", "method": "testPlanForwardsItsTextWithNoAcknowledgement"}
+			]
+		},
+		{
+			"id": "7.2.3",
+			"statement": "A user message whose command is /plan is stored at body version 7, above the version 6 a Milestone 4 build reads, so that build skips it as newerVersion, and every other user message keeps version 4.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/RecordCodecVersionTests.swift", "function": "aPlanMessageIsStoredAtVersion7AndEveryOtherUserMessageAtVersion4"}
+			]
+		},
+		{
+			"id": "7.2.4",
+			"statement": "A fixture-transport /plan turn offers build_plan_skeleton, assess_feasibility and get_sample_week, and its system prompt and tools equal those of the same turn sent as plain text.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "planShortcutOffersThePlanningToolsAndThePromptOfThePlainMessage"}
+			]
+		},
+		{
+			"id": "7.2.5",
+			"statement": "/plan with no usable model access settles with the existing access failure and its notice, makes no model request, and shows no card, confirmation or saved plan.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ShortcutTurnTests.swift", "function": "planWithNoUsableModelAccessEndsWithTheAccessNoticeAndNoCard"}
+			]
+		},
+		{
+			"id": "8.1.1",
+			"statement": "Opening an 8-column spend.tsv copies it byte for byte to spend.tsv.before-m5, then rewrites it once with a ninth column m4 on every row, keeps every other byte of each row, and leaves make live-coach's total unchanged. A second open changes nothing, the copy included. A row of any other width stops the check, names the file and the row, and changes nothing.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCheckHelperTests.swift", "function": "anEightColumnSpendFileIsCopiedThenTaggedM4OnceAndKeepsTheCoachTotal"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCheckHelperTests.swift", "function": "aSpendRowOfAnotherWidthStopsTheCheckNamingTheFileAndTheRow"}
+			]
+		},
+		{
+			"id": "8.1.2",
+			"statement": "A ledger for m5 totals and admits only m5 rows: with $9.60 of m4 rows, an m5 call bounded at $4 is admitted, and one that would take m5 past $5 is refused and stops the run. A ledger for m4 ignores m5 rows.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveCheckHelperTests.swift", "function": "eachMilestoneLedgerTotalsAndAdmitsOnlyItsOwnRows"}
+			]
+		},
+		{
+			"id": "8.1.3",
+			"statement": "LiveCheck.plan.spend is (.m5, 5.0) and LiveCheck.coach.spend is (.m4, 10.0). LiveCoachSuite.run for .plan, driven through FakeModelTransport at no cost with a priced fake model, tags every new row m5, prints \"Model spend total for m5: $x of $5.00\" before the first scenario and again at the end, and refuses the call that would pass $5 before it is sent.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "thePlanSuiteRefusesTheCallThatWouldTakeM5PastFiveDollarsBeforeSendingIt"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "thePlanSuiteRerunsAFailedScenarioAndReportsItsM5SpendBeforeAndAfter"}
+			]
+		},
+		{
+			"id": "8.1.4",
+			"statement": "make live-plan runs the planning set against the built-in model with billed calls, writes each run's transcript and summary.md under LIVE_LOGS/plan/<stamp>, and prints the m5 statement before and after. The summary's title is \"Live planning suite\" and its spend line names m5.",
+			"noAutomatedProof": "make live-plan makes billed OpenRouter calls with the Keychain keys, which CI does not have. The pull request records every approved run: its printed m5 statements, the files of its LIVE_LOGS/plan/<stamp> folder and its summary.md. The fifth approved run, at 44f856e1 on 2026-10-26 (LIVE_LOGS/plan/20261026T134100), passed every scenario on its first run for $0.0546 and printed \"Model spend total for m5: $0.180076 of $5.00.\" before and \"Model spend total for m5: $0.234707 of $5.00.\" after."
+		},
+		{
+			"id": "8.1.5",
+			"statement": "Each LivePlanExpectation passes the reply it describes and fails one that breaks it, through FakeModelTransport at no cost: keepsNumbers passes when one result of the tool in the turn carries every named field and the reply keeps all their numbers, and fails naming each result when none does; savesDraft passes when the plan the waiting card holds has the scenario's last draft's totalWeeks, phases and zoneTables and the Save plan tap saved that plan, also when the coach's plan_save sent other phases (B15.05/save-draft); claimsNoSave skips an occurrence of a save phrase whose whole word right before it is \"nothing\", \"not\" or \"no\", so \"Nothing is saved yet\" and \"No plan saved yet\" pass, and counts every other occurrence, so \"The casino is saved\" fails and a reply that denies a save and then claims one fails; a reply that drops or rounds a field's number, a turn that calls plan_save twice, a save with no draft in the scenario, a prepared plan whose phases differ from the scenario's draft because a retried attempt dropped that draft, a reply that says \"Your plan is saved\" before the tap, a turn with no plan_save that leaves a card, a turn that changes the saved plan, and a plan_load reply without the plan's name.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aCoachThatFollowsThePlanningSetPassesAndSavesTheDraftItShowed"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aCoachThatStraysFromThePlanningSetFailsEachExpectationItBreaks"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aFeasibilityReplyKeepsNumbersWhenTheFirstResultCarriesThemAndALaterOneDoesNot"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aFeasibilityReplyFailsKeepsNumbersAndNamesEachResultWhenNoResultCarriesTheFields"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aTurnThatChangesTheSavedPlanOrLeavesACardWithoutPlanSaveFailsItsCheck"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aSaveWithNoDraftInTheScenarioFailsSavesDraft"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "aPreparedPlanThatDiffersFromTheScenariosDraftFailsSavesDraftInPhases"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "claimsNoSaveSkipsAPhraseRightAfterNothingNotOrNoAndCountsEveryOtherOccurrence"}
+			]
+		},
+		{
+			"id": "8.1.6",
+			"statement": "A failed scenario runs once more while the cap allows, and the summary marks it pass, flaky or failed. A run file holding either key fails the check.",
+			"tests": [
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LivePlanScenarioTests.swift", "function": "thePlanSuiteRerunsAFailedScenarioAndReportsItsM5SpendBeforeAndAfter"},
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks/LiveReviewScenarioTests.swift", "function": "aRunFolderFileThatHoldsEitherKeyFailsTheCoachRun"}
+			]
+		},
+		{
+			"id": "8.1.7",
+			"statement": "The planning set passes against the real model, with a flaky scenario allowed only when its second run passed, and the pull request carries the summary and the m5 total.",
+			"noAutomatedProof": "The planning set runs only through make live-plan with billed OpenRouter calls, which CI does not have. The pull request carries the summary.md of every approved run and the m5 total each printed. The fifth approved run, at 44f856e1 on 2026-10-26 (LIVE_LOGS/plan/20261026T134100), passed every scenario on its first run for $0.0546 and printed \"Model spend total for m5: $0.180076 of $5.00.\" before and \"Model spend total for m5: $0.234707 of $5.00.\" after."
+		},
+		{
+			"id": "8.2.1",
+			"statement": "PlanPhoneRun holds the six steps plan/1 to plan/5 and plan/7 of the phone session, each starting from the state the step before it left, with 11 Sends and one New conversation, each counted through one spendMessage, and exactly one calendar Approve, in step plan/5. ADR-0088 dropped plan/6.",
+			"phoneSession": "PlanPhoneRun runs only on the operator's iPhone in the phone session, never on a simulator. The reviewer reads it against the session's six steps."
+		},
+		{
+			"id": "8.2.2",
+			"statement": "phone-check plan refuses before build with a budget below the planned count, with a budget that would take the milestone past 30, and with a messages.tsv row it cannot read. Each refusal launches nothing.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theWholeSessionPlansElevenSendsAndOneNewConversation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "stepsOutsideTheSessionAreRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetBelowTheStepsPlannedCountIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "anAnswerThatIsNotABudgetIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetThatWouldTakeTheMilestonePastThirtyIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRowThatCannotBeReadRefusesTheInvocation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aFileWithoutItsHeaderRefusesTheInvocation"}
+			]
+		},
+		{
+			"id": "8.2.3",
+			"statement": "After a run, messages.tsv gains one row whose count equals the runner's message actions, or the whole budget when the log cannot be read.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunAddsOneRowCountingTheRunnersMessageActions"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunWhoseLogCannotBeReadRecordsTheWholeBudget"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theActionsLogIsTheOneAttachmentNamedForIt"}
+			]
+		},
+		{
+			"id": "8.2.4",
+			"statement": "make test-tools passes a PlanPhoneBudget case for each refusal of 8.2.2 and for the count of 8.2.3, with no phone.",
+			"tests": [
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetBelowTheStepsPlannedCountIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "anAnswerThatIsNotABudgetIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetThatWouldTakeTheMilestonePastThirtyIsRefused"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRowThatCannotBeReadRefusesTheInvocation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aFileWithoutItsHeaderRefusesTheInvocation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunAddsOneRowCountingTheRunnersMessageActions"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aRunWhoseLogCannotBeReadRecordsTheWholeBudget"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theActionsLogIsTheOneAttachmentNamedForIt"}
+			]
+		}
+	],
+	"requirements": [
+		{
+			"id": "X08",
+			"statement": "Fixtures that compare npm and phone outputs are made by a committed generator from npm at d192cb974e715e1527645e0acf0d8353ed4d0edc, refuse any other revision, Node or checkout state, and are checked against their manifest on every make test-swift.",
+			"criteria": ["2.1.1", "2.1.2", "2.1.3", "2.1.4", "2.1.5", "2.1.6", "2.1.7"]
+		},
+		{
+			"id": "B07.04/saved-plan",
+			"statement": "A saved plan is retained across installed-app updates: a saved plan committed into a store a Milestone 4 build wrote reads back whole after the store is opened again.",
+			"criteria": ["5.1.8"]
+		},
+		{
+			"id": "X05/saved-plan",
+			"statement": "Versioned storage keeps a saved plan's meaning across an upgrade: a saved plan is stored at body version 7, a later version is skipped rather than misread, and an older build's store opens with every row intact.",
+			"criteria": ["5.1.6", "5.1.8"]
+		},
+		{
+			"id": "B14.01/saved-plan",
+			"statement": "The coach gets the saved plan's four-line headline in every prompt and the whole plan through plan_load, and never a plan that does not exist: with none saved, the prompt says \"No plan saved yet.\" and plan_load answers so.",
+			"criteria": ["5.2.1", "5.2.2", "5.2.5"]
+		},
+		{
+			"id": "B12.04/saved-plan",
+			"statement": "Saves and replacements of the saved plan show in memory_query history with was and now previews, apart from workout reviews and unsaved plan-save confirmations.",
+			"criteria": ["5.2.4"]
+		},
+		{
+			"id": "B15.05/size",
+			"statement": "plan_save refuses a plan whose plan_load result would not fit the tool-result cap.",
+			"agreedDifference": "ADR-0084 refuses a plan whose plan_load result would not fit the tool-result cap, the same rule the runtime applies to every tool result; npm has no limit. Shown by 5.1.4."
+		},
+		{
+			"id": "B15.05/sorted-keys",
+			"statement": "The saved plan text sorts its keys; npm keeps the order the model sent.",
+			"agreedDifference": "ADR-0084 saves the plan text with sorted keys, where npm keeps the order the model sent; the values are the same. Shown by 5.1.2."
+		},
+		{
+			"id": "B15.03/phone-day",
+			"statement": "The phone's day in the phone's time zone decides a plan draft's week count.",
+			"agreedDifference": "ADR-0083 and ADR-0084: build_plan_skeleton counts weeks to the race from the phone's day in the phone's time zone, where npm counts from the time zone its host passes to the tool. Shown by 4.1.5."
+		},
+		{
+			"id": "B09.01/plan-save",
+			"statement": "A turn that committed plan-save work is never replayed: a prepared confirmation counts as saved work, so Try again is refused after it, and a held plan_save that was never stored does not stop a retry.",
+			"criteria": ["6.3.8", "6.3.9"]
+		},
+		{
+			"id": "B19.03/step-limit",
+			"statement": "A step-limit summary reply keeps its plan-save confirmation.",
+			"agreedDifference": "ADR-0084: a turn that reaches the step limit and then replies with its summary, or with the catalog's fallback when the summary is empty, ends well and keeps its confirmation. Shown by 6.3.5."
+		},
+		{
+			"id": "B15.05/plan-unavailable",
+			"statement": "No plan is saved for a turn with no usable athlete on this device.",
+			"agreedDifference": "ADR-0084: plan_save answers plan_unavailable and holds nothing for an unconnected turn on a device that connected before, where npm saves for whatever athlete its host passes. Shown by 6.3.10."
+		},
+		{
+			"id": "B15.05/two-calls",
+			"statement": "Two plan_save calls in one step are both refused.",
+			"agreedDifference": "ADR-0084: two plan_save calls in one step both answer concurrent_plan_save and every later plan_save of the attempt is refused, where npm runs each call. Shown by 6.3.3."
+		},
+		{
+			"id": "B16.01/plan-save",
+			"statement": "Choosing a coaching option is never plan-save approval: it saves no plan and writes no claim while a plan-save card waits.",
+			"criteria": ["6.4.14"]
+		},
+		{
+			"id": "G03/plans",
+			"statement": "Across New conversation, a plan-save confirmation follows its own rule: only the newest one with no decision before the reset and whose ten minutes end after it is carried to the top, and it is gone after the next New conversation.",
+			"criteria": ["6.4.9"]
+		},
+		{
+			"id": "D06/plan",
+			"statement": "Each durable plan record follows its own rule across New conversation: the saved plan stays saved, and a carried confirmation keeps its controls until it is decided or its ten minutes end.",
+			"criteria": ["6.4.9"]
+		},
+		{
+			"id": "D14/plan",
+			"statement": "Synced history never grants plan-save approval on another device: a second device sees the saved plan in its prompt and plan_load, and no card and no control.",
+			"criteria": ["6.4.13"]
+		},
+		{
+			"id": "B01.03/saved-plan",
+			"statement": "A saved plan is retained across relaunch: after a real Save, a new Coach over the same stores shows the plan in its prompt and its card as Saved, and a plan committed into a store reads back whole after the store is opened again.",
+			"criteria": ["5.1.8", "6.5.5"]
+		},
+		{
+			"id": "B19.03/durable",
+			"statement": "A plan-save confirmation survives the app being ended within its ten minutes, and every save the end interrupted converges on the next launch.",
+			"agreedDifference": "ADR-0084: the confirmation is a durable device-local record that survives suspension and the app being ended within its ten minutes, and the next launch finishes every save that was claimed, where npm keeps its confirmation in the process. Shown by 6.5.1 and 6.5.2."
+		},
+		{
+			"id": "B15.01/acknowledgement",
+			"statement": "/plan shows no separate acknowledgement: npm's Telegram reply \"Analyzing your data and building a plan...\" has no phone counterpart, and the transcript shows only the athlete's message, the coach's progress and the reply.",
+			"agreedDifference": "ADR-0084 returns /plan as Generate a training plan with no acknowledgement shown; 7.2.2 shows the transcript with none."
+		},
+		{
+			"id": "B15.01/arguments",
+			"statement": "Text typed after /plan reaches the coach: npm's Telegram /plan sends the literal \"/plan\", while the phone stores and sends the whole message as typed.",
+			"agreedDifference": "ADR-0084 and D09 forward the text after /plan; 7.2.2 shows the message stored and sent unchanged."
+		},
+		{
+			"id": "B19.03",
+			"statement": "Saving a plan has its own confirm control, Save plan on the plan-save card, and never uses the calendar approval component.",
+			"criteria": ["6.1.3", "6.2.4", "6.4.2", "6.4.4", "6.4.5", "6.4.6", "6.4.7", "6.4.11", "6.4.12", "6.4.17", "7.1.1", "7.1.4", "7.1.10", "7.1.13"]
+		},
+		{
+			"id": "B15.05/plan-schema",
+			"statement": "plan_save's schema types the draft's phases and zone tables, so the coach can send the plan it showed.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-25 (gate PARKED-8.1): plan_save's plan schema adds phases and zoneTables, typed in the shape build_plan_skeleton returns, where npm's lists only name, primaryGoal, totalWeeks and status. name stays the only required key. Shown by 6.3.11."
+		},
+		{
+			"id": "B15.05/save-plan-sentence",
+			"statement": "The prompt tells the coach that the athlete saves the plan by tapping Save plan on the plan card.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-25 (gate PARKED-8.1): right after npm's plan rule, kept byte for byte, the prompt adds one sentence saying the athlete saves the plan by tapping Save plan on the plan card, where npm's prompt names no button. Shown by 6.3.12."
+		},
+		{
+			"id": "B15.05/save-draft",
+			"statement": "When the conversation holds a plan draft, plan_save saves the newest draft's weeks, phases and zones under the coach's name, goal and status.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-26 (gate PARKED-8.1-DRAFT): npm saves the object the coach sends, while the phone, when the conversation since its last New conversation holds a successful build_plan_skeleton result, saves the newest draft's totalWeeks, phases and zoneTables with the coach's name, primaryGoal, status and other keys. With no draft it saves the object the coach sends, as npm does. Shown by 6.3.1."
+		},
+		{
+			"id": "B15.02/exact-numbers",
+			"statement": "The prompt tells the coach to give a tool's numbers exactly as the tool returned them, as digits.",
+			"agreedDifference": "Agreed beside ADR-0084 by the operator on 2026-10-26 (gate PARKED-8.1-FEASIBILITY): right after npm's \"Name your basis\" rule, kept byte for byte, the prompt adds one sentence telling the coach to give a number from a tool result exactly as the tool returned it, as digits, never rounded or written in words, where npm's prompt has no such rule. Shown by 6.3.12."
+		},
+		{
+			"id": "B15.01",
+			"statement": "A plan request through /plan or ordinary words reaches the planning tools, missing inputs are asked for with no claimed result, and a drafted plan neither writes the calendar nor overwrites the saved plan.",
+			"criteria": ["4.1.3", "4.1.7", "6.4.15", "7.2.1", "7.2.2", "7.2.4", "7.2.5", "8.1.7"]
+		},
+		{
+			"id": "B15.02",
+			"statement": "The feasibility check matches npm's results for FTP and W/kg targets, experience levels, boundaries and invalid input, and a conversational feasibility question uses the registered result and keeps its numbers.",
+			"criteria": ["3.1.1", "3.1.2", "4.1.1", "8.1.5", "8.1.7"]
+		},
+		{
+			"id": "B15.03",
+			"statement": "The plan draft matches npm's builder across goals, volume tiers, schedules, available days, race kinds and race dates, its schema holds npm's inputs, the draft values the coach shows come from the structured result, and drafting or revising saves no plan and changes no calendar.",
+			"criteria": ["3.2.1", "3.2.2", "3.2.3", "3.2.4", "4.1.2", "4.1.6", "6.4.15", "8.1.5", "8.1.7"]
+		},
+		{
+			"id": "B15.04",
+			"statement": "The sample week matches npm's templates across volume tiers, session counts, schedules and key days, refuses unsupported input as npm does, and asking for one neither replaces the saved plan nor writes the calendar.",
+			"criteria": ["3.3.1", "3.3.2", "4.1.1", "4.1.6", "6.4.15", "8.1.7"]
+		},
+		{
+			"id": "B15.05",
+			"statement": "A complete plan is saved or replaced only after its separate plan-save confirmation, the exact saved object survives relaunch and loads in later conversations, saves and replacements reach history, a canceled, refused, expired or failed save leaves the saved plan unchanged and the reply reports the actual result, plan storage and calendar approval stay separate, and the real model calls plan_save once only when asked, saves the draft it showed, and never claims a save the athlete has not confirmed.",
+			"criteria": ["1.1.6", "1.1.7", "5.1.1", "5.1.5", "5.1.8", "5.2.4", "5.2.5", "6.3.1", "6.3.6", "6.3.11", "6.4.2", "6.4.4", "6.4.5", "6.4.6", "6.4.7", "6.4.8", "6.4.10", "6.4.11", "6.5.2", "6.5.3", "6.5.5", "7.1.2", "8.1.5", "8.1.7"]
+		},
+		{
+			"id": "G07",
+			"statement": "An athlete gives goal and schedule inputs, sees the plan's phases and a sample week, saves the plan through the separate plan-save confirmation, loads it again, and no calendar write happens.",
+			"criteria": ["6.4.2", "6.4.11", "6.4.15", "8.1.7"]
+		}
+	],
+	"plan": {
+		"units": {
+			"0.1": 7,
+			"1.1": 8,
+			"2.1": 8,
+			"2.2": 5,
+			"2.3": 4,
+			"2.4": 2,
+			"3.1": 3,
+			"3.2": 4,
+			"3.3": 2,
+			"3.4": 4,
+			"4.1": 7,
+			"4.2": 4,
+			"5.1": 9,
+			"5.2": 6,
+			"6.1": 3,
+			"6.2": 4,
+			"6.3": 13,
+			"6.4": 17,
+			"6.5": 5,
+			"7.1": 13,
+			"7.2": 5,
+			"8.1": 7,
+			"8.2": 4
+		},
+		"requirements": {
+			"B15.01": ["4.1.3", "4.1.7", "6.4.15", "7.2.1", "7.2.2", "7.2.4", "7.2.5", "8.1.7"],
+			"B15.02": ["3.1.1", "3.1.2", "4.1.1", "8.1.5", "8.1.7"],
+			"B15.03": ["3.2.1", "3.2.2", "3.2.3", "3.2.4", "4.1.2", "4.1.6", "6.4.15", "8.1.5", "8.1.7"],
+			"B15.04": ["3.3.1", "3.3.2", "4.1.1", "4.1.6", "6.4.15", "8.1.7"],
+			"B15.05": ["1.1.6", "1.1.7", "5.1.1", "5.1.5", "5.1.8", "5.2.4", "5.2.5", "6.3.1", "6.3.6", "6.3.11", "6.4.2", "6.4.4", "6.4.5", "6.4.6", "6.4.7", "6.4.8", "6.4.10", "6.4.11", "6.5.2", "6.5.3", "6.5.5", "7.1.2", "8.1.5", "8.1.7"],
+			"B19.03": ["6.1.3", "6.2.4", "6.4.2", "6.4.4", "6.4.5", "6.4.6", "6.4.7", "6.4.11", "6.4.12", "6.4.17", "7.1.1", "7.1.4", "7.1.10", "7.1.13"],
+			"G07": ["6.4.2", "6.4.11", "6.4.15", "8.1.7"],
+			"X08": ["2.1.1", "2.1.2", "2.1.3", "2.1.4", "2.1.5", "2.1.6", "2.1.7"],
+			"B14.01/saved-plan": ["5.2.1", "5.2.2", "5.2.5"],
+			"B12.04/saved-plan": ["5.2.4"],
+			"B16.01/plan-save": ["6.4.14"],
+			"B09.01/plan-save": ["6.3.8", "6.3.9"],
+			"B01.03/saved-plan": ["5.1.8", "6.5.5"],
+			"B07.04/saved-plan": ["5.1.8"],
+			"X05/saved-plan": ["5.1.6", "5.1.8"],
+			"G03/plans": ["6.4.9"],
+			"D06/plan": ["6.4.9"],
+			"D14/plan": ["6.4.13"]
+		}
+	},
+	"open": []
+}

@@ -1,16 +1,47 @@
 [
   {
-    "id": "1998-06-13",
-    "ctl": 55.2,
-    "atl": 42.1,
-    "ramp_rate": 1.4,
-    "fatigue": 2
-  },
-  {
     "id": "1998-06-12",
     "ctl": 54.8,
     "atl": 40.0,
-    "ramp_rate": 1.1,
+    "rampRate": 1.1,
     "fatigue": 3
+  },
+  {
+    "id": "1998-06-13",
+    "ctl": 55.2,
+    "atl": 42.1,
+    "rampRate": 1.4,
+    "weight": 58.4,
+    "restingHR": 47,
+    "hrv": 62.5,
+    "sleepSecs": 25500,
+    "sleepScore": 81,
+    "sleepQuality": 2,
+    "readiness": 74,
+    "soreness": 3,
+    "stress": 1,
+    "mood": 4,
+    "motivation": 5,
+    "injury": 6,
+    "fatigue": 2,
+    "sportInfo": [
+      {
+        "type": "Ride",
+        "eftp": 251.3,
+        "wPrime": 20000,
+        "pMax": 1100
+      }
+    ]
+  },
+  {
+    "id": "1998-06-11"
+  },
+  {
+    "id": "1998-06-10",
+    "ctl": 53.9,
+    "atl": "invalid",
+    "hrv": null,
+    "sleepSecs": 0,
+    "soreness": 0
   }
 ]

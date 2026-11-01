@@ -1,0 +1,655 @@
+{
+ "assess_feasibility": {
+  "properties": {
+   "currentFtp": {
+    "maximum": 600,
+    "minimum": 50,
+    "type": "integer"
+   },
+   "currentWeightKg": {
+    "exclusiveMinimum": 0,
+    "type": "number"
+   },
+   "experienceLevel": {
+    "enum": [
+     "beginner",
+     "intermediate",
+     "advanced",
+     "elite"
+    ],
+    "type": "string"
+   },
+   "targetFtp": {
+    "maximum": 9007199254740991,
+    "minimum": -9007199254740991,
+    "type": "integer"
+   },
+   "targetWkg": {
+    "type": "number"
+   }
+  },
+  "required": [
+   "currentFtp",
+   "experienceLevel"
+  ],
+  "type": "object"
+ },
+ "build_plan_skeleton": {
+  "properties": {
+   "availableDays": {
+    "items": {
+     "enum": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+     ],
+     "type": "string"
+    },
+    "type": "array"
+   },
+   "experienceLevel": {
+    "enum": [
+     "beginner",
+     "intermediate",
+     "advanced",
+     "elite"
+    ],
+    "type": "string"
+   },
+   "ftpWatts": {
+    "maximum": 600,
+    "minimum": 50,
+    "type": "integer"
+   },
+   "generalGoal": {
+    "type": "string"
+   },
+   "generalGoalTarget": {
+    "type": "string"
+   },
+   "goalType": {
+    "enum": [
+     "race",
+     "general"
+    ],
+    "type": "string"
+   },
+   "keySessionDay": {
+    "enum": [
+     "mon",
+     "tue",
+     "wed",
+     "thu",
+     "fri",
+     "sat",
+     "sun"
+    ],
+    "type": "string"
+   },
+   "raceDate": {
+    "description": "Target race date, YYYY-MM-DD",
+    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+    "type": "string"
+   },
+   "raceType": {
+    "enum": [
+     "century",
+     "gran_fondo",
+     "criterium",
+     "time_trial",
+     "other"
+    ],
+    "type": "string"
+   },
+   "scheduleType": {
+    "enum": [
+     "fixed",
+     "flexible"
+    ],
+    "type": "string"
+   },
+   "sessionsPerWeek": {
+    "maximum": 6,
+    "minimum": 3,
+    "type": "integer"
+   },
+   "targetTime": {
+    "description": "Goal finish time, e.g. 5:30:00",
+    "type": "string"
+   },
+   "volumeTier": {
+    "enum": [
+     "low",
+     "medium",
+     "high"
+    ],
+    "type": "string"
+   },
+   "weightKg": {
+    "exclusiveMinimum": 0,
+    "type": "number"
+   }
+  },
+  "required": [
+   "experienceLevel",
+   "ftpWatts",
+   "volumeTier",
+   "scheduleType",
+   "goalType"
+  ],
+  "type": "object"
+ },
+ "calculate_zones": {
+  "properties": {
+   "ftpWatts": {
+    "description": "FTP in watts",
+    "maximum": 600,
+    "minimum": 50,
+    "type": "integer"
+   }
+  },
+  "required": [
+   "ftpWatts"
+  ],
+  "type": "object"
+ },
+ "get_pending_workout_changes": {
+  "properties": {},
+  "type": "object"
+ },
+ "get_sample_week": {
+  "properties": {
+   "availableDays": {
+    "items": {
+     "enum": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+     ],
+     "type": "string"
+    },
+    "type": "array"
+   },
+   "keySessionDay": {
+    "enum": [
+     "mon",
+     "tue",
+     "wed",
+     "thu",
+     "fri",
+     "sat",
+     "sun"
+    ],
+    "type": "string"
+   },
+   "scheduleType": {
+    "enum": [
+     "fixed",
+     "flexible"
+    ],
+    "type": "string"
+   },
+   "sessionsPerWeek": {
+    "maximum": 6,
+    "minimum": 3,
+    "type": "integer"
+   },
+   "volumeTier": {
+    "enum": [
+     "low",
+     "medium",
+     "high"
+    ],
+    "type": "string"
+   }
+  },
+  "required": [
+   "volumeTier",
+   "scheduleType"
+  ],
+  "type": "object"
+ },
+ "intervals_fetch_activities": {
+  "properties": {
+   "newest": {
+    "description": "Newest date (YYYY-MM-DD)",
+    "type": "string"
+   },
+   "oldest": {
+    "description": "Oldest date (YYYY-MM-DD)",
+    "type": "string"
+   }
+  },
+  "required": [
+   "oldest"
+  ],
+  "type": "object"
+ },
+ "intervals_fetch_activity": {
+  "properties": {
+   "activityId": {
+    "description": "Activity `id` from intervals_fetch_activities. Pass exactly as listed.",
+    "type": "string"
+   }
+  },
+  "required": [
+   "activityId"
+  ],
+  "type": "object"
+ },
+ "intervals_fetch_athlete": {
+  "properties": {},
+  "type": "object"
+ },
+ "intervals_fetch_streams": {
+  "properties": {
+   "activityId": {
+    "description": "Activity `id` from intervals_fetch_activities. Pass exactly as listed.",
+    "type": "string"
+   },
+   "types": {
+    "description": "Channel names; defaults to watts, heartrate, cadence, time, altitude.",
+    "items": {
+     "type": "string"
+    },
+    "type": "array"
+   }
+  },
+  "required": [
+   "activityId"
+  ],
+  "type": "object"
+ },
+ "intervals_fetch_wellness": {
+  "properties": {
+   "newest": {
+    "description": "End date (YYYY-MM-DD)",
+    "type": "string"
+   },
+   "oldest": {
+    "description": "Start date (YYYY-MM-DD)",
+    "type": "string"
+   }
+  },
+  "required": [
+   "oldest"
+  ],
+  "type": "object"
+ },
+ "intervals_list_events": {
+  "properties": {
+   "coachCreatedOnly": {
+    "description": "Return only events created by this coach",
+    "type": "boolean"
+   },
+   "newest": {
+    "description": "Newest date (YYYY-MM-DD)",
+    "type": "string"
+   },
+   "oldest": {
+    "description": "Oldest date (YYYY-MM-DD)",
+    "type": "string"
+   }
+  },
+  "required": [
+   "oldest"
+  ],
+  "type": "object"
+ },
+ "ledger_append": {
+  "properties": {
+   "date": {
+    "description": "Event date, YYYY-MM-DD, athlete-local",
+    "type": "string"
+   },
+   "kind": {
+    "description": "Event category",
+    "enum": [
+     "decision",
+     "override",
+     "illness",
+     "experiment",
+     "outcome"
+    ],
+    "type": "string"
+   },
+   "text": {
+    "description": "One or two sentences, with rationale or outcome when stated",
+    "type": "string"
+   }
+  },
+  "required": [
+   "date",
+   "kind",
+   "text"
+  ],
+  "type": "object"
+ },
+ "memory_query": {
+  "properties": {
+   "from": {
+    "description": "Start date (inclusive), YYYY-MM-DD",
+    "type": "string"
+   },
+   "query": {
+    "description": "Case-insensitive substring filter. Omit to return everything in the range.",
+    "type": "string"
+   },
+   "to": {
+    "description": "End date (inclusive), YYYY-MM-DD",
+    "type": "string"
+   }
+  },
+  "required": [
+   "from",
+   "to"
+  ],
+  "type": "object"
+ },
+ "memory_read": {
+  "properties": {},
+  "type": "object"
+ },
+ "memory_write": {
+  "properties": {
+   "content": {
+    "description": "The information to save",
+    "type": "string"
+   },
+   "section": {
+    "description": "Memory section to write to. REQUIRED when type='memory' — the write replaces the section content.",
+    "enum": [
+     "person",
+     "schedule",
+     "goals",
+     "preferences",
+     "notes",
+     "medical-history",
+     "cycling-profile",
+     "cycling-equipment",
+     "cycling-history"
+    ],
+    "type": "string"
+   },
+   "type": {
+    "description": "'memory' for long-term facts, 'daily' for today's notes",
+    "enum": [
+     "memory",
+     "daily"
+    ],
+    "type": "string"
+   }
+  },
+  "required": [
+   "type",
+   "content"
+  ],
+  "type": "object"
+ },
+ "plan_load": {
+  "properties": {},
+  "type": "object"
+ },
+ "plan_save": {
+  "properties": {
+   "plan": {
+    "description": "The training plan object to save",
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "phases": {
+      "items": {
+       "properties": {
+        "durationCycles": {
+         "type": "integer"
+        },
+        "durationWeeks": {
+         "type": "integer"
+        },
+        "focus": {
+         "type": "string"
+        },
+        "keyAdditions": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "name": {
+         "type": "string"
+        },
+        "number": {
+         "type": "integer"
+        },
+        "volumeTargets": {
+         "properties": {
+          "cycling": {
+           "properties": {
+            "hoursPerCycle": {
+             "type": "number"
+            },
+            "sessionsPerCycle": {
+             "type": "integer"
+            }
+           },
+           "type": "object"
+          }
+         },
+         "type": "object"
+        }
+       },
+       "type": "object"
+      },
+      "type": "array"
+     },
+     "primaryGoal": {
+      "type": "string"
+     },
+     "status": {
+      "type": "string"
+     },
+     "totalWeeks": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+     },
+     "zoneTables": {
+      "items": {
+       "properties": {
+        "sport": {
+         "type": "string"
+        },
+        "zones": {
+         "items": {
+          "properties": {
+           "description": {
+            "type": "string"
+           },
+           "name": {
+            "type": "string"
+           },
+           "range": {
+            "type": "string"
+           }
+          },
+          "type": "object"
+         },
+         "type": "array"
+        }
+       },
+       "type": "object"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "type": "object"
+   }
+  },
+  "required": [
+   "plan"
+  ],
+  "type": "object"
+ },
+ "prepare_workout_changes": {
+  "properties": {
+   "preparation": {
+    "anyOf": [
+     {
+      "additionalProperties": false,
+      "properties": {
+       "changes": {
+        "items": {
+         "type": "object"
+        },
+        "type": "array"
+       },
+       "kind": {
+        "enum": [
+         "complete"
+        ],
+        "type": "string"
+       }
+      },
+      "required": [
+       "changes",
+       "kind"
+      ],
+      "type": "object"
+     },
+     {
+      "additionalProperties": false,
+      "properties": {
+       "base": {
+        "properties": {
+         "revision": {
+          "description": "The pending review's revision",
+          "minimum": 1,
+          "type": "integer"
+         },
+         "setId": {
+          "description": "The pending review's setId",
+          "type": "string"
+         }
+        },
+        "required": [
+         "setId",
+         "revision"
+        ],
+        "type": "object"
+       },
+       "changes": {
+        "items": {
+         "type": "object"
+        },
+        "type": "array"
+       },
+       "kind": {
+        "enum": [
+         "replace"
+        ],
+        "type": "string"
+       }
+      },
+      "required": [
+       "base",
+       "changes",
+       "kind"
+      ],
+      "type": "object"
+     },
+     {
+      "additionalProperties": false,
+      "properties": {
+       "base": {
+        "properties": {
+         "revision": {
+          "description": "The pending review's revision",
+          "minimum": 1,
+          "type": "integer"
+         },
+         "setId": {
+          "description": "The pending review's setId",
+          "type": "string"
+         }
+        },
+        "required": [
+         "setId",
+         "revision"
+        ],
+        "type": "object"
+       },
+       "kind": {
+        "enum": [
+         "revise"
+        ],
+        "type": "string"
+       },
+       "replacements": {
+        "items": {
+         "properties": {
+          "change": {
+           "type": "object"
+          },
+          "id": {
+           "description": "A pending item id",
+           "type": "string"
+          }
+         },
+         "required": [
+          "id",
+          "change"
+         ],
+         "type": "object"
+        },
+        "type": "array"
+       }
+      },
+      "required": [
+       "base",
+       "kind",
+       "replacements"
+      ],
+      "type": "object"
+     },
+     {
+      "additionalProperties": false,
+      "properties": {
+       "kind": {
+        "enum": [
+         "incomplete"
+        ],
+        "type": "string"
+       },
+       "reason": {
+        "description": "Why the requested set cannot be prepared",
+        "type": "string"
+       }
+      },
+      "required": [
+       "kind",
+       "reason"
+      ],
+      "type": "object"
+     }
+    ],
+    "description": "kind complete with changes; replace with base and changes; revise with base and replacements [{id, change}]; or incomplete with reason. A change is {kind: add-cycling, date, workout, trainingLoad?}, {kind: add-strength, date, name, durationMinutes, effort, description, trainingLoad?}, {kind: edit, eventId, patch} or {kind: delete, eventId}. base is {setId, revision} from get_pending_workout_changes."
+   }
+  },
+  "required": [
+   "preparation"
+  ],
+  "type": "object"
+ }
+}

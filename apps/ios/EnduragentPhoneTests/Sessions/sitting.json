@@ -1,0 +1,33 @@
+{
+	"steps": [
+		{"session": "closeout", "step": "closeout/fill"},
+		{"session": "closeout", "step": "closeout/update"},
+		{"session": "m4", "step": "m4/list"},
+		{"session": "m4", "step": "m4/repeat-ride"},
+		{"session": "m4", "step": "m4/mixed-request"},
+		{"session": "m4", "step": "m4/approve-later"},
+		{"session": "m4", "step": "m4/race-move"},
+		{"session": "m4", "step": "m4/external-edit"},
+		{"session": "m4", "step": "m4/edit-and-delete"},
+		{"session": "m4", "step": "m4/offline-approve"},
+		{"session": "plan", "step": "plan/1"},
+		{"session": "plan", "step": "plan/2"},
+		{"session": "plan", "step": "plan/3"},
+		{"session": "plan", "step": "plan/4"},
+		{"session": "plan", "step": "plan/5"},
+		{"session": "plan", "step": "plan/7"},
+		{"session": "closeout", "step": "closeout/about"},
+		{"session": "closeout", "step": "closeout/diagnostics"},
+		{"session": "closeout", "step": "closeout/feedback"},
+		{"session": "closeout", "step": "closeout/language"},
+		{"session": "closeout", "step": "closeout/choices"},
+		{"session": "closeout", "step": "closeout/openrouter-signin"},
+		{"session": "closeout", "step": "closeout/lifecycle"},
+		{"session": "closeout", "step": "closeout/reads"},
+		{"session": "closeout", "step": "closeout/debug-install"},
+		{"session": "closeout", "step": "closeout/openrouter-recovery"},
+		{"session": "closeout", "step": "closeout/keychain-proof"},
+		{"session": "closeout", "step": "closeout/two-phone"},
+		{"session": "closeout", "step": "closeout/second-device-diagnostics"}
+	]
+}

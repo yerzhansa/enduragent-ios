@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "Enduragent",
+    "greeting": "[da] {{name}}: {{distance}} km",
+    "progress": "[da] {{goal}} 100%",
+    "braces": "[da] {{name}}"
+  },
+  "rides": {
+    "count_one": "[da] {{count}}",
+    "count_other": "[da] {{count}} · {{place}}",
+    "empty": "[da] —",
+    "last_ride_title": "[da] é 日本語 😀"
+  },
+  "days_one": "[da] 1",
+  "days_other": "[da] n",
+  "orphan_few": "[da] few"
+}

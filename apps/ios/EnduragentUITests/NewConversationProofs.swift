@@ -1,0 +1,74 @@
+import XCTest
+
+final class SlashStartProof: XCTestCase {
+	func testSlashStart() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.send(app, "/start")
+		TutorialHarness.waitForWelcome(app)
+		let notice = TutorialHarness.named(app, "chat.newConversation.notice")
+		TutorialHarness.wait(notice)
+		XCTAssertEqual(notice.label, TutorialHarness.newConversationStarted)
+		XCTAssertFalse(app.staticTexts["/start"].exists)
+		TutorialHarness.attach(self, name: "slash-start", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "flushPending"), "flushPending 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "windowStart"), "windowStart 1")
+		TutorialHarness.attach(self, name: "slash-start-records", app: app)
+	}
+}
+
+final class ResetKeepsReviewProof: XCTestCase {
+	func testResetKeepsReview() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.exchange(app, TutorialHarness.workout)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"), until: .enabled)
+		TutorialHarness.waitForLabel(app, "Workout review")
+		TutorialHarness.startNewConversation(app)
+		TutorialHarness.waitForLabel(app, TutorialHarness.newConversationStarted)
+		ReviewCardScreen.assertButtons(app, .approveOrCancel)
+		TutorialHarness.waitForLabel(app, "Workout review")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.preparedEarlier"))
+		TutorialHarness.attach(self, name: "reset-keeps-review", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertNotNil(TutorialHarness.recordCount(app, "workoutReview"))
+		XCTAssertNil(TutorialHarness.recordCount(app, "reviewOutcome"))
+		XCTAssertEqual(TutorialHarness.recordCount(app, "windowStart"), "windowStart 1")
+		TutorialHarness.attach(self, name: "reset-keeps-review-records", app: app)
+	}
+}
+
+final class PartialFlushResetProof: XCTestCase {
+	func testPartialFlushReset() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.exchange(app, "fixture:flush-partial")
+		TutorialHarness.startNewConversation(app)
+		let notice = TutorialHarness.named(app, "chat.newConversation.notice")
+		TutorialHarness.wait(notice)
+		XCTAssertEqual(notice.label, TutorialHarness.newConversationMemoryWarning)
+		TutorialHarness.attach(self, name: "partial-flush", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "flushPending"), "flushPending 1")
+		XCTAssertNil(TutorialHarness.recordCount(app, "flushSettled"))
+		XCTAssertEqual(TutorialHarness.recordCount(app, "memorySection"), "memorySection 1")
+		TutorialHarness.attach(self, name: "partial-flush-records", app: app)
+	}
+}
+
+final class WelcomeAfterSkipProof: XCTestCase {
+	func testWelcomeAfterSkip() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.startUnconnected(app)
+		TutorialHarness.waitForWelcome(app)
+		TutorialHarness.attach(self, name: "welcome-after-skip", app: app)
+	}
+}
