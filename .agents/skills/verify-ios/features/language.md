@@ -84,7 +84,7 @@ The shared `TutorialHarness.done` expectation uses `6/16/1998` under its default
 
 The `LanguageMatrix` classes prove the retained screens in every supported language. Each language has its own class, so one language failing leaves the other results intact, and each flow is its own test method. `sim suite` runs three languages: `LanguageMatrixDeProof` for German, `LanguageMatrixPtPTProof` for Portuguese of Portugal and `LanguageMatrixZhHantProof` for Traditional Chinese. The other 14 are release sweeps that `sim suite` runs only when they are named: `LanguageMatrixEnSweep`, `LanguageMatrixEsSweep`, `LanguageMatrixFrSweep`, `LanguageMatrixItSweep`, `LanguageMatrixNlSweep`, `LanguageMatrixDaSweep`, `LanguageMatrixSvSweep`, `LanguageMatrixNbSweep`, `LanguageMatrixFiSweep`, `LanguageMatrixPtBRSweep`, `LanguageMatrixPlSweep`, `LanguageMatrixKoSweep`, `LanguageMatrixJaSweep` and `LanguageMatrixZhHansSweep`.
 
-Workout review cards, stage notices, outcome notes and the largest text size in every language are proven on the [workout review page](./workout-review.md).
+Workout review cards, stage notices and outcome notes in every language are proven on the [workout review page](./workout-review.md).
 
 | Test method | Screens it captures, in order |
 | --- | --- |

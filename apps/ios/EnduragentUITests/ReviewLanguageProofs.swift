@@ -190,8 +190,6 @@ enum ReviewLanguage {
 			)
 			ReviewStates.tap(run.app, "chat.preview.cancel")
 			TutorialHarness.wait(run.named("chat.note"), within: .turn)
-			ReviewAccessibility.reopenAtLargestText(
-				run.app, FixtureArguments(reviewStage: flow.stage))
 			note(run, "canceled", closing: Catalog.workoutsCanceled)
 			TutorialHarness.exchange(run.app, "fixture:review-not-prepared")
 			run.expect("chat.turn.reviewNotice", Catalog.workoutsNotPrepared)

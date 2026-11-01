@@ -74,18 +74,31 @@ extension PhoneCheck {
 				arguments, log: log, failure: "The phone step failed. Stop and report \(log).")
 		}
 		try run(["build-for-testing"] + common, log: NodePath.join(folder, "build.log"))
-		let model = try Subprocess().collect(
-			"/usr/libexec/PlistBuddy",
+		let settings = try Subprocess().collect(
+			"/usr/bin/xcrun",
 			[
-				"-c", "Print :OpenRouterModel",
-				"\(buildFolder)/Build/Products/Debug-iphoneos/Enduragent.app/Info.plist",
+				"xcodebuild", "-project", "apps/ios/Enduragent.xcodeproj", "-target", "Enduragent",
+				"-configuration", "Debug", "-showBuildSettings",
 			])
-		let modelID = String(decoding: model.output, as: UTF8.self).trimmedAsJavaScript
-		guard model.end.succeeded, !modelID.isEmpty else {
-			throw PhoneFailure(description: "Cannot record the built-in model from the built app.")
+		let modelID =
+			String(decoding: settings.output, as: UTF8.self)
+			.split(separator: "\n")
+			.compactMap { line -> String? in
+				let parts = line.split(separator: "=", maxSplits: 1)
+				guard parts.count == 2, String(parts[0]).trimmedAsJavaScript == "OPENROUTER_MODEL"
+				else {
+					return nil
+				}
+				return String(parts[1]).trimmedAsJavaScript
+			}
+			.first ?? ""
+		guard settings.end.succeeded, !modelID.isEmpty else {
+			throw PhoneFailure(
+				description: "Cannot read the built-in model from the app's Debug build settings.")
 		}
 		try write(
-			"Credits model from the built app: \(modelID)\n", to: NodePath.join(folder, "model.txt")
+			"Credits model from the app's Debug build settings: \(modelID)\n",
+			to: NodePath.join(folder, "model.txt")
 		)
 		for entry in Self.cases {
 			var answer = entry.second

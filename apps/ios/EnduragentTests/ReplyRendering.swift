@@ -42,7 +42,6 @@ enum ReplyRendering {
 struct ReplyInk {
 	private(set) var plainText = CGRect.null
 	private(set) var linkText = CGRect.null
-	private(set) var linkAmount = 0
 
 	init(_ image: CGImage) throws {
 		let bytes = try ReplyRendering.pixels(image)
@@ -53,7 +52,6 @@ struct ReplyInk {
 				let strongest = Int(try #require(channels.max()))
 				let tint = strongest - Int(try #require(channels.min()))
 				let pixel = CGRect(x: column, y: row, width: 1, height: 1)
-				linkAmount += tint
 				if tint >= 40 { linkText = linkText.union(pixel) }
 				if strongest <= 60 { plainText = plainText.union(pixel) }
 			}

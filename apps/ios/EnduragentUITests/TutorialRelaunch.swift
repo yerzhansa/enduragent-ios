@@ -5,7 +5,7 @@ extension TutorialHarness {
 		_ app: XCUIApplication, recovery: String = "readable", clock: String? = nil,
 		keychain: FixtureKeychainPolicy? = nil, language: String? = nil, locale: String? = nil,
 		clearingReadFaults: Bool = false, clearingFeedbackScript: Bool = false,
-		trainingDisplay: FixtureTrainingDisplay? = nil, textSize: FixtureTextSize? = nil,
+		trainingDisplay: FixtureTrainingDisplay? = nil,
 		erasure: FixtureErasure? = nil
 	) {
 		app.terminate()
@@ -25,7 +25,6 @@ extension TutorialHarness {
 			arguments.trainingDisplay = nil
 		}
 		if let trainingDisplay { arguments.trainingDisplay = trainingDisplay }
-		if let textSize { arguments.textSize = textSize }
 		if clearingFeedbackScript { arguments.feedback = nil }
 		if let clock { arguments.clock = clock }
 		if let keychain { arguments.keychain = keychain }

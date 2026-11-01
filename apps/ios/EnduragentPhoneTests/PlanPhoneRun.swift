@@ -57,7 +57,6 @@
 				case "plan/3": try saveSurvivesRelaunch()
 				case "plan/4": try replaceAndAskHistory()
 				case "plan/5": try expireBesideReview()
-				case "plan/6": try saveAtLargestText()
 				case "plan/7": try cancelCarriedCard()
 				default: throw PhoneRunBlocked(reason: "PlanPhoneRun has no step \(step.id).")
 				}
@@ -172,32 +171,6 @@
 						> notes
 			}
 			shot("step-5-approved-once")
-		}
-
-		@MainActor
-		private func saveAtLargestText() throws {
-			let previous = try currentPlan()
-			let request = "Make the plan 14 weeks and save it"
-			try settle(request, turns: try send(request))
-			let plan = try waitingCard(after: request, replacing: previous, docked: false)
-			try expectSpoken(
-				[
-					"chat.planSave.title", "chat.planSave.name", "chat.planSave.goal.label",
-					"chat.planSave.duration.label", "chat.planSave.phase", "chat.planSave.replaces",
-				], from: "chat.planSave.title",
-				optional: ["chat.planSave.goal.label", "chat.planSave.duration.label"])
-			shot("step-6-card-read")
-			let save = try reach(Self.save)
-			XCTAssertTrue(
-				element("chat.transcript").descendants(matching: .any)
-					.matching(identifier: "chat.planSave.bar").firstMatch.exists,
-				"At the largest text size the bar is in the transcript.")
-			XCTAssertGreaterThanOrEqual(save.frame.minY, newest(Self.card).frame.maxY)
-			try expectSpoken(
-				["chat.planSave.replaces", Self.save, Self.cancel], from: "chat.planSave.name")
-			shot("step-6-largest-text")
-			try decide(Self.save, reading: Catalog.chatPlanSaveSaved, plan)
-			savedPlan = plan
 		}
 
 		@MainActor

@@ -156,12 +156,15 @@ final class DiagnosticsScreenProof: XCTestCase {
 
 @MainActor
 final class AboutScreenProof: XCTestCase {
-	func testNameVersionAndLink() {
+	func testNameVersionAndLink() throws {
+		let info = try XCTUnwrap(Bundle(for: Self.self).infoDictionary)
+		let version = try XCTUnwrap(info["CFBundleShortVersionString"] as? String)
+		let build = try XCTUnwrap(info["CFBundleVersion"] as? String)
 		let app = SupportScreen.start()
 		SupportScreen.open(app, "settings.about", showing: "about.version")
 		SupportScreen.outcome(app, "about.value.name", "Enduragent")
 		SupportScreen.outcome(app, "about.version", SupportScreen.say(Catalog.aboutVersion))
-		SupportScreen.outcome(app, "about.value.version", "0.1.0 (3)")
+		SupportScreen.outcome(app, "about.value.version", "\(version) (\(build))")
 		let link = TutorialHarness.named(app, "about.privacyPolicy")
 		XCTAssertEqual(link.label, SupportScreen.say(Catalog.aboutPrivacyPolicy))
 		TutorialHarness.attach(self, name: "about-light", app: app)
@@ -256,5 +259,37 @@ final class SupportLanguageProof: XCTestCase {
 		LanguageProofFlow.choose(app, "automatic")
 		LanguagePickerEntry.settings.close(app)
 		MatrixRun(test: self, app: app, language: .en).readSupport()
+	}
+}
+
+@MainActor
+final class DefaultSizeLayoutProof: XCTestCase {
+	func testDefaultSizeKeepsInlineRows() {
+		let app = SupportScreen.start()
+		SupportScreen.open(app, "settings.about", showing: "about.value.version")
+		let version = TutorialHarness.named(app, "about.version")
+		let value = TutorialHarness.named(app, "about.value.version")
+		XCTAssertEqual(value.frame.minY, version.frame.minY, accuracy: 2)
+		XCTAssertGreaterThan(value.frame.minX, version.frame.maxX)
+		TutorialHarness.attach(self, name: "about-default-size-light", app: app)
+		TutorialHarness.returnToChat(app)
+		TutorialHarness.openSettings(app)
+		SupportScreen.open(app, "settings.session", showing: "session.historyBudgetRatio.input")
+		for field in ["historyBudgetRatio", "contextWindowOverride"] {
+			let label = TutorialHarness.named(app, "session.\(field).label")
+			let input = TutorialHarness.named(app, "session.\(field).input")
+			TutorialHarness.wait(input)
+			XCTAssertEqual(input.frame.minY, label.frame.minY, accuracy: 2, field)
+			XCTAssertGreaterThan(input.frame.minX, label.frame.maxX, field)
+		}
+		TutorialHarness.attach(self, name: "session-default-size-light", app: app)
+		TutorialHarness.returnToChat(app)
+		TutorialHarness.openSettings(app)
+		SupportScreen.open(app, "settings.feedback", showing: "feedback.field")
+		let field = TutorialHarness.named(app, "feedback.field")
+		let send = TutorialHarness.named(app, "feedback.send")
+		TutorialHarness.wait(send)
+		XCTAssertGreaterThanOrEqual(send.frame.minY, field.frame.maxY)
+		TutorialHarness.attach(self, name: "feedback-default-size-light", app: app)
 	}
 }

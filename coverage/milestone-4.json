@@ -38,7 +38,7 @@
 		},
 		{
 			"id": "0.1.2",
-			"statement": "A requirement row with both proofs or neither fails, an agreed difference whose text names neither ADR-0083 nor ADR-0086 fails, an agreed difference on an id that is not a sub-id fails with difference-on-parent, and a sub-id whose parent is not in the fixed list fails.",
+			"statement": "A requirement row with both proofs or neither fails, an agreed difference whose text names none of ADR-0083, ADR-0086 and ADR-0088 fails, an agreed difference on an id that is not a sub-id fails with difference-on-parent, and a sub-id whose parent is not in the fixed list fails.",
 			"tests": [
 				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "requirementRowCarriesOneProofAndAnAgreedDifferenceOnlyOnAPart"}
 			]
@@ -61,7 +61,7 @@
 		},
 		{
 			"id": "0.1.5",
-			"statement": "The table holds an agreed-difference row under its own sub-id for B17.01/utc, B17.06/head-unit, B18.07/model-call, B18.07/review-status, B20.01/zones, X04/zone and G06/midnight, and none of them closes its parent.",
+			"statement": "The table holds an agreed-difference row under its own sub-id for B17.01/utc, B17.06/head-unit, B18.07/model-call, B18.07/review-status, B20.01/zones, X04/zone, X06/largest-text and G06/midnight, and none of them closes its parent.",
 			"tests": [
 				{"file": "tools/Tests/CheckCoverageTests/RequirementCheckerTests.swift", "function": "tableRecordsEveryAgreedDifferenceOfADR0083"}
 			]
@@ -501,8 +501,7 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewApprovalTests.swift", "function": "theMixedReviewSendsEachReviewedRequestInCardOrderAndPublishesItsOutcome"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewOutcomeNotesTests.swift", "function": "aCompletedReviewsNoteShowsEveryChangeAfterRefreshReopenNewConversationAndRelaunch"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "aRefusedAddIsLookedForByItsExternalIDBeforeItIsSentAgain"},
-				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "tryAgainReadsTheRemainingTargetsFirstAndSendsOnlyTheUnfinishedChanges"},
-				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testUnconfirmedChangeControls"}
+				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TryAgainTests.swift", "function": "tryAgainReadsTheRemainingTargetsFirstAndSendsOnlyTheUnfinishedChanges"}
 			]
 		},
 		{
@@ -1271,9 +1270,6 @@
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewRecoveryRunTests.swift", "function": "aFailedAppendShowsTheStorageNoticeUntilTheNextRecoverResumesTheRun"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ToolProgressTests.swift", "function": "workingPersistsAcrossIndependentModelAndToolWaits"},
 				{"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ReviewDuringReplyTests.swift", "function": "aReviewCommittedBeforeItsTurnIsSavedStaysHiddenUntilTheTurnSettles"},
-				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testApprovalControls"},
-				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testUnconfirmedChangeControls"},
-				{"file": "apps/ios/EnduragentUITests/ReviewAccessibilityProofs.swift", "class": "ReviewAccessibilityDeProof", "method": "testBlockedReviewControls"},
 				{"file": "apps/ios/EnduragentUITests/ReviewCardProofs.swift", "class": "ReviewStorageNoticeProof", "method": "testAReviewThatCannotBeReadShowsTheStorageNoticeWithItsButtonsDisabled"}
 			]
 		},
@@ -1466,7 +1462,7 @@
 				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewRetriedProof", "method": "testTryAgainFinishesTheRestAndTheGoneDeleteReadsNoLongerOnTheCalendar"},
 				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewCompletedProof", "method": "testACompletedReviewTellsSeenOnTheCalendarApartFromSaved"},
 				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewCanceledProof", "method": "testCancelAfterARefusalKeepsTheSavedLinesAndClosesTheRest"},
-				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewStateLanguageProof", "method": "testGermanPreparedEarlierAndOutcomeNoteAtTheLargestText"}
+				{"file": "apps/ios/EnduragentUITests/ReviewStateProofs.swift", "class": "ReviewStateLanguageProof", "method": "testGermanPreparedEarlierAndOutcomeNote"}
 			]
 		},
 		{
@@ -1499,17 +1495,12 @@
 		{
 			"id": "8.4.3",
 			"statement": "At the largest text size the approve and Cancel buttons of the 40-change review are whole in the visible transcript, enabled, hittable and at least 44 points tall, and Cancel closes the review.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/ReviewLongProofs.swift", "class": "ReviewLargestTextFortyProof", "method": "testApproveAndCancelAreHittableOnTheFortyChangeReviewAtTheLargestTextSize"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
 		},
 		{
 			"id": "8.4.4",
 			"statement": "VoiceOver reads the eight-workout review as its title, each card in order from its title, the kept workouts, the notice, then the totals and the controls, at the default and the largest text size.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/ReviewLongProofs.swift", "class": "ReviewVoiceOverProof", "method": "testAtTheDefaultSizeTheTitleEachCardInOrderTheNoticeThenTheControlsAreRead"},
-				{"file": "apps/ios/EnduragentUITests/ReviewLongProofs.swift", "class": "ReviewVoiceOverProof", "method": "testAtTheLargestSizeTheTitleEachCardInOrderTheNoticeThenTheControlsAreRead"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the VoiceOver proofs: the operator decided on 2026-11-01 that the app is not tested with VoiceOver or at the largest text size. The reading order stays in the app, and no test checks it."
 		},
 		{
 			"id": "8.4.5",
@@ -1572,6 +1563,11 @@
 			"id": "X04/zone",
 			"statement": "The athlete's civil date is the phone's day, not a date kept apart from the phone clock.",
 			"agreedDifference": "ADR-0083 makes the phone's time zone decide today for every read and change, with no note when the athlete's zone differs."
+		},
+		{
+			"id": "X06/largest-text",
+			"statement": "A review is not checked at the largest text size or with VoiceOver.",
+			"agreedDifference": "ADR-0088 drops every largest-text and VoiceOver proof, with the m4/largest-text phone step; the review keeps its large-text layout and accessibility labels. Criteria 8.4.3 and 8.4.4 record the dropped checks."
 		},
 		{
 			"id": "G06/midnight",

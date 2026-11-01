@@ -160,8 +160,11 @@
 					== "turns \(turns + 1) settled \(turns + 1)"
 			}
 			let transcript = element("chat.transcript")
+			let asked = transcript.staticTexts.matching(
+				NSPredicate(format: "label == %@", question)
+			).firstMatch
 			for _ in 0..<12 {
-				if transcript.staticTexts[question].isHittable { break }
+				if asked.isHittable { break }
 				transcript.swipeDown(velocity: .slow)
 			}
 			var tail: [PhoneNode] = []

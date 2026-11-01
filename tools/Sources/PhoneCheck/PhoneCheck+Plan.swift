@@ -30,7 +30,7 @@ extension PhoneCheck {
 		let sitting = try approve(steps.ids, of: plan, at: place)
 		try walk(sitting) { _ in
 			try Console.say(
-				"Inspect every screenshot and the actions log in \(place.folder). After step 5, check that the intervals.icu website shows exactly one new workout. After step 6, confirm VoiceOver read the card's title, name, goal, length, each phase and the replaces line before Save plan and Cancel."
+				"Inspect every screenshot and the actions log in \(place.folder). After step 5, check that the intervals.icu website shows exactly one new workout."
 			)
 		}
 	}

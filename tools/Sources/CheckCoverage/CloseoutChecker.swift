@@ -4,6 +4,7 @@ import ToolSupport
 struct CloseoutChecker {
 	static let records = [
 		"ADR-0080", "ADR-0081", "ADR-0082", "ADR-0083", "ADR-0084", "ADR-0085", "ADR-0086",
+		"ADR-0088",
 	]
 	static let liveChecks = "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachLiveChecks"
 	static let section = "closeout"

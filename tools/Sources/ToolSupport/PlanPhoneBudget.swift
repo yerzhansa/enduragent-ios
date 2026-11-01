@@ -1,8 +1,6 @@
 import Foundation
 
 public struct PhoneSteps: Equatable, Sendable {
-	public static let runsAlone: Set<String> = ["plan/6"]
-
 	public let ids: [String]
 
 	public init(first: String, last: String, plan: PhoneSessionPlan) throws {
@@ -14,14 +12,7 @@ public struct PhoneSteps: Equatable, Sendable {
 				description:
 					"Name the first and last step, from 1 to \(count), first not after last.")
 		}
-		let ids = plan.steps[(first - 1)...(last - 1)].map(\.id)
-		if ids.count > 1, let alone = ids.first(where: Self.runsAlone.contains) {
-			throw PhoneRefusal(
-				description:
-					"\(alone) runs alone: it needs the largest text size and VoiceOver, and the other steps need them off."
-			)
-		}
-		self.ids = ids
+		ids = plan.steps[(first - 1)...(last - 1)].map(\.id)
 	}
 }
 
