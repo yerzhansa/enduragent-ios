@@ -85,7 +85,8 @@ extension PhoneCheck {
 			.split(separator: "\n")
 			.compactMap { line -> String? in
 				let parts = line.split(separator: "=", maxSplits: 1)
-				guard parts.count == 2, String(parts[0]).trimmedAsJavaScript == "OPENROUTER_MODEL" else {
+				guard parts.count == 2, String(parts[0]).trimmedAsJavaScript == "OPENROUTER_MODEL"
+				else {
 					return nil
 				}
 				return String(parts[1]).trimmedAsJavaScript
