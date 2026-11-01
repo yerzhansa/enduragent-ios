@@ -129,14 +129,14 @@
 			"driver": "operatorOnInstalledBuild",
 			"planned": 4,
 			"setup": [
-				"The operator switches Airplane Mode on and off when the checks say."
+				"The operator takes the phone offline and back online when the checks say, with Airplane Mode or with Wi-Fi and cellular data."
 			],
 			"checks": [
-				{"look": "the reply after locking the phone mid-reply and unlocking", "pass": "the reply, or the chat.transcript.retry control"},
-				{"look": "the reply after switching to another app mid-reply and back", "pass": "the reply, or the chat.transcript.retry control"},
-				{"look": "the reply after killing the app mid-reply and reopening it", "pass": "the reply, or the chat.transcript.retry control"},
-				{"look": "the conversation after Send with Airplane Mode on", "pass": "the no-connection notice with Try again"},
-				{"look": "the conversation after Try again with Airplane Mode off", "pass": "a reply"}
+				{"look": "the reply after locking the phone mid-reply and unlocking", "pass": "the reply, or the chat.turn.tryAgain control"},
+				{"look": "the reply after switching to another app mid-reply and back", "pass": "the reply, or the chat.turn.tryAgain control"},
+				{"look": "the reply after killing the app mid-reply and reopening it", "pass": "the reply, or the chat.turn.tryAgain control"},
+				{"look": "the conversation after Send with the phone offline", "pass": "the no-connection notice with Try again"},
+				{"look": "the conversation after Try again with the phone back online", "pass": "a reply"}
 			],
 			"endsWith": "The conversation, online, with no reply working."
 		},

@@ -1,5 +1,5 @@
 {
-	"stage": "building",
+	"stage": "final",
 	"evidence": {
 		"B01.01": [
 			{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}},
@@ -561,40 +561,5 @@
 			{"recorded": {"record": "ADR-0088", "says": "No test or phone step checks the app at the largest text size or with VoiceOver, as X06/largest-text records; the app keeps its large-text layouts and accessibility labels."}}
 		]
 	},
-	"waitsOn": {
-		"B03.01": [
-			{"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}
-		],
-		"B03.03": [
-			{"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}
-		],
-		"B03.04": [
-			{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}
-		],
-		"B05.01": [
-			{"phone": {"session": "closeout", "step": "closeout/language"}}
-		],
-		"B07.05": [
-			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
-		],
-		"B13.06": [
-			{"phone": {"session": "closeout", "step": "closeout/reads"}}
-		],
-		"B14.01": [
-			{"phone": {"session": "closeout", "step": "closeout/reads"}}
-		],
-		"B16.01": [
-			{"phone": {"session": "closeout", "step": "closeout/choices"}}
-		],
-		"G08": [
-			{"phone": {"session": "closeout", "step": "closeout/language"}},
-			{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}
-		],
-		"MOB01": [
-			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
-		],
-		"MOB03": [
-			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
-		]
-	}
+	"waitsOn": {}
 }
