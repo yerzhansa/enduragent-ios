@@ -144,15 +144,13 @@
 			"id": "closeout/reads",
 			"driver": "operatorOnInstalledBuild",
 			"planned": 3,
-			"setup": [
-				"The largest text size and VoiceOver are on in iOS Settings for this step, and off after it."
-			],
+			"setup": [],
 			"checks": [
-				{"look": "the reply to /review, read by VoiceOver", "pass": "tables, values and the local start time"},
+				{"look": "the reply to /review", "pass": "tables, values and the local start time"},
 				{"look": "the reply to \"show numbers\"", "pass": "tables and values"},
 				{"look": "the reply to a power-curve question on an athlete with no curve data", "pass": "says there is no power-curve data, with no invented numbers"}
 			],
-			"endsWith": "The conversation; largest text and VoiceOver are off."
+			"endsWith": "The conversation."
 		},
 		{
 			"id": "closeout/debug-install",

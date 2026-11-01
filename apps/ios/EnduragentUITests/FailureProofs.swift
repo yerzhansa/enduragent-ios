@@ -109,26 +109,9 @@ final class SavedUnverifiedProof: XCTestCase {
 
 final class OfflineNoticeProof: XCTestCase {
 	func testOfflineSendShowsNoConnectionAndTryAgainReplies() {
-		offlineSend(textSize: nil, screen: "default")
-	}
-
-	func testOfflineSendAtLargestText() {
-		offlineSend(textSize: .accessibilityXXXL, screen: "largest")
-	}
-
-	func testOfflineTrainingReadShowsNoConnectionWithTryAgain() {
-		offlineTrainingRead(textSize: nil, screen: "default")
-	}
-
-	func testOfflineTrainingReadAtLargestText() {
-		offlineTrainingRead(textSize: .accessibilityXXXL, screen: "largest")
-	}
-
-	private func offlineSend(textSize: FixtureTextSize?, screen: String) {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		if let textSize { TutorialHarness.relaunchKeepingStore(app, textSize: textSize) }
 		TutorialHarness.exchange(app, "fixture:fail network x3")
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: TutorialHarness.noConnection), within: .turn)
@@ -137,21 +120,20 @@ final class OfflineNoticeProof: XCTestCase {
 		XCTAssertEqual(tryAgain.label, TutorialHarness.tryAgain)
 		assertNoWireDetail(app)
 		TutorialHarness.wait(tryAgain, until: .hittable)
-		TutorialHarness.attach(self, name: "offline-send-no-connection-\(screen)", app: app)
+		TutorialHarness.attach(self, name: "offline-send-no-connection", app: app)
 		tryAgain.tap()
 		TutorialHarness.wait(
 			TutorialHarness.text(app, containing: TutorialHarness.weekReply), within: .turn)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
-		TutorialHarness.attach(self, name: "offline-send-try-again-replied-\(screen)", app: app)
-		assertModelRequests(app, 3 + 1, test: self, name: "offline-send-requests-\(screen)")
+		TutorialHarness.attach(self, name: "offline-send-try-again-replied", app: app)
+		assertModelRequests(app, 3 + 1, test: self, name: "offline-send-requests")
 	}
 
-	private func offlineTrainingRead(textSize: FixtureTextSize?, screen: String) {
+	func testOfflineTrainingReadShowsNoConnectionWithTryAgain() {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.relaunchKeepingStore(
-			app, trainingDisplay: .profileOffline, textSize: textSize)
+		TutorialHarness.relaunchKeepingStore(app, trainingDisplay: .profileOffline)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.noConnection))
 		XCTAssertFalse(TutorialHarness.text(app, containing: "Couldn't reach intervals.icu").exists)
@@ -159,8 +141,8 @@ final class OfflineNoticeProof: XCTestCase {
 		XCTAssertEqual(offlineTryAgain.label, TutorialHarness.tryAgain)
 		assertNoWireDetail(app)
 		TutorialHarness.wait(offlineTryAgain, until: .hittable)
-		TutorialHarness.attach(self, name: "offline-read-no-connection-\(screen)", app: app)
-		assertModelRequests(app, 0, test: self, name: "offline-read-requests-\(screen)")
+		TutorialHarness.attach(self, name: "offline-read-no-connection", app: app)
+		assertModelRequests(app, 0, test: self, name: "offline-read-requests")
 		TutorialHarness.relaunchKeepingStore(app, clearingReadFaults: true)
 		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
 		TutorialHarness.wait(tryAgain, until: .hittable)
@@ -168,7 +150,7 @@ final class OfflineNoticeProof: XCTestCase {
 		TutorialHarness.wait(
 			TutorialHarness.text(app, containing: TutorialHarness.weekReply), within: .turn)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
-		TutorialHarness.attach(self, name: "offline-read-try-again-replied-\(screen)", app: app)
+		TutorialHarness.attach(self, name: "offline-read-try-again-replied", app: app)
 	}
 }
 

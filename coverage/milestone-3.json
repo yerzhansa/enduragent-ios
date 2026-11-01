@@ -714,12 +714,11 @@
 		},
 		{
 			"id": "6.2.3",
-			"statement": "VoiceOver reads a table one row at a time, each row labelled with its description, and the header row of a grid has the header trait.",
+			"statement": "VoiceOver reads a table one row at a time, each row labelled with its description. ADR-0088 dropped the header-trait half, which only VoiceOver or the Accessibility Inspector could check.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/ReplyTableProofs.swift", "class": "ReplyTableProof", "method": "testNumbersTablesStackScrollAndReadRowByRowInChatAndHistory"},
 				{"file": "apps/ios/EnduragentUITests/ReplyFormattingProofs.swift", "class": "ReplyFormattingProof", "method": "testFormattedReplyInChatAndHistory"}
-			],
-			"checkedByHand": {"part": "The header trait of the header row. A UI proof cannot read an accessibility trait, so it is checked with VoiceOver or the Accessibility Inspector.", "described": ".agents/skills/verify-ios/features/chat.md"}
+			]
 		},
 		{
 			"id": "6.2.4",
@@ -742,44 +741,24 @@
 		{
 			"id": "6.3.1",
 			"statement": "At the largest accessibility text size every metric and value of the summary table is drawn in full, the value under its metric.",
-			"tests": [
-				{"file": "apps/ios/EnduragentTests/ReplyTableRenderingTests.swift", "function": "everySummaryCellIsDrawnInFullAtTheLargestTextSize"},
-				{"file": "apps/ios/EnduragentTests/ReplyTableRenderingTests.swift", "function": "anAccessibilityTextSizePutsTheValueUnderItsMetric"},
-				{"file": "apps/ios/EnduragentTests/ReplyTableRenderingTests.swift", "function": "aStandardTextSizeKeepsTheValueBesideItsMetric"},
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testGermanNumbersStayWholeAtTheLargestTextSize"},
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testPortugueseOfPortugalNumbersStayWholeAtTheLargestTextSize"},
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testTraditionalChineseNumbersStayWholeAtTheLargestTextSize"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
 		},
 		{
 			"id": "6.3.2",
 			"statement": "At that size the lap table still scrolls to its last column and each cell stays under its header.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testGermanNumbersStayWholeAtTheLargestTextSize"},
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testPortugueseOfPortugalNumbersStayWholeAtTheLargestTextSize"},
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testTraditionalChineseNumbersStayWholeAtTheLargestTextSize"}
-			],
-			"checkedByHand": {"part": "That each lap cell is drawn under its own header at that size. Table cells are hidden from accessibility, so the proof compares only the extent of the header row with the extent of each row below it; the columns are inspected on the laps-first-column and laps-last-column screenshots of each language.", "described": ".agents/skills/verify-ios/features/chat.md"}
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
 		},
 		{
 			"id": "6.3.3",
 			"statement": "Row labels at the largest text size equal the labels at the default size.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testGermanNumbersStayWholeAtTheLargestTextSize"},
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testPortugueseOfPortugalNumbersStayWholeAtTheLargestTextSize"},
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testTraditionalChineseNumbersStayWholeAtTheLargestTextSize"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
 		},
 		{
 			"id": "6.3.4",
-			"statement": "In German, Portuguese of Portugal and Traditional Chinese every cell of the numbers fixture shows the same characters as its source.",
+			"statement": "In German, Portuguese of Portugal and Traditional Chinese every cell of the numbers fixture's summary table is drawn with the same characters as in English. The lap-table half, read on the largest-text screenshots, went with ADR-0088.",
 			"tests": [
-				{"file": "apps/ios/EnduragentTests/ReplyTableRenderingTests.swift", "function": "theSummaryTableIsDrawnTheSameInEveryRegion"},
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testGermanNumbersStayWholeAtTheLargestTextSize"},
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testPortugueseOfPortugalNumbersStayWholeAtTheLargestTextSize"},
-				{"file": "apps/ios/EnduragentUITests/ReplyTableLargeTextProofs.swift", "class": "ReplyTableLargeTextProof", "method": "testTraditionalChineseNumbersStayWholeAtTheLargestTextSize"}
-			],
-			"checkedByHand": {"part": "The drawn characters of the lap table. The proofs compare row labels, which come from the row description and not from the drawn text, and the image test draws the summary table only; the lap cells are read on the laps-first-column and laps-last-column screenshots of each language.", "described": ".agents/skills/verify-ios/features/chat.md"}
+				{"file": "apps/ios/EnduragentTests/ReplyTableRenderingTests.swift", "function": "theSummaryTableIsDrawnTheSameInEveryRegion"}
+			]
 		},
 		{
 			"id": "6.4.1",

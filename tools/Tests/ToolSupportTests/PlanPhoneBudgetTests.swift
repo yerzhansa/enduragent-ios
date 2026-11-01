@@ -4,7 +4,7 @@ import ToolSupport
 
 struct PlanPhoneBudgetTests {
 	static let firstFive = "plan/1,plan/2,plan/3,plan/4,plan/5"
-	static let session = "steps\tbudget\tspent\n\(firstFive)\t12\t10\nplan/6\t2\t1\n"
+	static let session = "steps\tbudget\tspent\n\(firstFive)\t12\t10\nplan/7\t2\t1\n"
 	static let actions = """
 		Approved message budget 6 for plan/7.
 		plan/1 starts.
@@ -41,41 +41,31 @@ struct PlanPhoneBudgetTests {
 		return String(argument.dropFirst(prefix.count))
 	}
 
-	@Test func theWholeSessionPlansTwelveSendsAndOneNewConversation() throws {
+	@Test func theWholeSessionPlansElevenSendsAndOneNewConversation() throws {
 		let plan = try Self.plan()
-		let passed = try [("1", "5"), ("6", "6"), ("7", "7")].flatMap { bounds in
+		let passed = try [("1", "5"), ("6", "6")].flatMap { bounds in
 			let steps = try PhoneSteps(first: bounds.0, last: bounds.1, plan: plan)
 			let variable = try Self.stepsVariable(
 				steps.ids, answer: String(plan.planned(steps.ids)))
 			return try #require(PlannedPhoneStep.steps(in: variable))
 		}
-		#expect(passed.map(\.id) == (1...7).map { "plan/\($0)" })
-		#expect(passed.map(\.planned) == [2, 1, 2, 2, 3, 1, 2])
-		#expect(passed.reduce(0) { $0 + $1.planned } == 13)
+		#expect(passed.map(\.id) == (1...5).map { "plan/\($0)" } + ["plan/7"])
+		#expect(passed.map(\.planned) == [2, 1, 2, 2, 3, 2])
+		#expect(passed.reduce(0) { $0 + $1.planned } == 12)
 		#expect(try Self.stepsVariable(["plan/2", "plan/3"], answer: "3") == "plan/2=1,plan/3=2")
 	}
 
-	@Test(arguments: [("0", "7"), ("1", "8"), ("5", "3"), ("one", "7"), ("01", "7"), ("", "7")])
+	@Test(arguments: [("0", "6"), ("1", "7"), ("5", "3"), ("one", "6"), ("01", "6"), ("", "6")])
 	func stepsOutsideTheSessionAreRefused(_ bounds: (String, String)) throws {
 		let plan = try Self.plan()
 		let refused = refusal { _ = try PhoneSteps(first: bounds.0, last: bounds.1, plan: plan) }
-		#expect(refused == "Name the first and last step, from 1 to 7, first not after last.")
-	}
-
-	@Test(arguments: [("5", "6"), ("6", "7"), ("1", "7")])
-	func stepSixRunsAlone(_ bounds: (String, String)) throws {
-		let plan = try Self.plan()
-		let refused = refusal { _ = try PhoneSteps(first: bounds.0, last: bounds.1, plan: plan) }
-		#expect(refused?.hasPrefix("plan/6 runs alone") == true)
-		let alone = try PhoneSteps(first: "6", last: "6", plan: plan)
-		#expect(alone.ids == ["plan/6"])
-		#expect(plan.planned(alone.ids) == 1)
+		#expect(refused == "Name the first and last step, from 1 to 6, first not after last.")
 	}
 
 	@Test func aBudgetBelowTheStepsPlannedCountIsRefused() throws {
 		let firstFive = try PhoneSteps(first: "1", last: "5", plan: try Self.plan()).ids
 		for (name, steps, planned) in [
-			("m4", Self.allSteps(of: try PhoneSessionTests.committed("m4")), 15),
+			("m4", Self.allSteps(of: try PhoneSessionTests.committed("m4")), 12),
 			("plan", firstFive, 10),
 			("closeout", Self.allSteps(of: try PhoneSessionTests.committed("closeout")), 32),
 		] {
@@ -100,8 +90,8 @@ struct PlanPhoneBudgetTests {
 		#expect(none.budget == 0)
 		#expect(
 			refusal {
-				_ = try PhoneBudget.approve("0", steps: ["plan/6"], plan: try Self.plan(), spent: 0)
-			}?.hasPrefix("A budget of 0 is below the 1 message actions plan/6 plan.") == true)
+				_ = try PhoneBudget.approve("0", steps: ["plan/2"], plan: try Self.plan(), spent: 0)
+			}?.hasPrefix("A budget of 0 is below the 1 message actions plan/2 plan.") == true)
 	}
 
 	@Test(arguments: ["", "13 ", "-13", "1e2", "013", "fifteen", "1000000000"])

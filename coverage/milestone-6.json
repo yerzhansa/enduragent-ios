@@ -637,7 +637,7 @@
 		},
 		{
 			"id": "5.1.8",
-			"statement": "About shows \"Enduragent\", the version line with the bundle's version and build (\"Version 0.1.0 (3)\"), and Privacy policy; tapping the link brings Safari to the foreground.",
+			"statement": "About shows \"Enduragent\", the version line with the bundle's version and build, read from MARKETING_VERSION and CURRENT_PROJECT_VERSION in project.yml, and Privacy policy; tapping the link brings Safari to the foreground.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "AboutScreenProof", "method": "testNameVersionAndLink"}
 			]
@@ -717,66 +717,43 @@
 		{
 			"id": "5.3.1",
 			"statement": "At accessibilityXXXL each Support row shows its whole label inside the window, spans the row, and can be tapped.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testSupportRowsWrap"},
-				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testSupportRowsWrap"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
 		},
 		{
 			"id": "5.3.2",
 			"statement": "At accessibilityXXXL the Feedback field, the outcome line and the button are stacked in that order, the button is full width, the field grows with the text, and with the keyboard up the button can be scrolled into view and tapped.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testFeedbackStacks"},
-				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testFeedbackStacks"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
 		},
 		{
 			"id": "5.3.3",
 			"statement": "At accessibilityXXXL with the not-saving fixture, Diagnostics shows the not-saving line, the explanation, the full-width button and the outcome line, in that order, each inside the window.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testDiagnosticsOrder"},
-				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testDiagnosticsOrder"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
 		},
 		{
 			"id": "5.3.4",
 			"statement": "At accessibilityXXXL About's version value sits under its label, and the privacy policy link can be tapped.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testAboutValueUnderLabel"},
-				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testAboutValueUnderLabel"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
 		},
 		{
 			"id": "5.3.5",
 			"statement": "At accessibilityXXXL each Session field's label sits above its full-width field; after an edit, Save and Cancel are each whole and can be tapped, and a rejected value's sentence shows under its field.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextProof", "method": "testFieldsStackAndSaveCancelAreWhole"},
-				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextDeProof", "method": "testFieldsStackAndSaveCancelAreWhole"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
 		},
 		{
 			"id": "5.3.6",
 			"statement": "VoiceOver order on Feedback, Diagnostics, About and Session settings follows the largest-text layout, top to bottom.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testReadingOrder"},
-				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextDeProof", "method": "testReadingOrder"},
-				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextProof", "method": "testReadingOrder"},
-				{"file": "apps/ios/EnduragentUITests/SessionSettingsLargestTextProofs.swift", "class": "SessionSettingsLargestTextDeProof", "method": "testReadingOrder"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the VoiceOver proofs: the operator decided on 2026-11-01 that the app is not tested with VoiceOver or at the largest text size. The reading order stays in the app, and no test checks it."
 		},
 		{
 			"id": "5.3.7",
 			"statement": "At accessibilityXXXL every button, link, toggle and text field on Settings, Access method, Model picker, Credits, Training and the language picker can be scrolled into view, lies inside the window and is hittable; the sweep launches with the OpenRouter account with model choices, reaches each screen's title, matches a committed per-screen control count above 0, and runs Training once connected and once not connected.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/SettingsSweepProofs.swift", "class": "SettingsLargestTextSweepProof", "method": "testEveryControlReachable"},
-				{"file": "apps/ios/EnduragentUITests/SettingsSweepProofs.swift", "class": "SettingsLargestTextSweepProof", "method": "testTrainingNotConnected"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
 		},
 		{
 			"id": "5.3.8",
 			"statement": "At the default size About's version value has the same minY as its label within 2 points, a Session field has the same minY as its label, the Feedback button is under the field, and the Session proofs pass unchanged.",
 			"tests": [
-				{"file": "apps/ios/EnduragentUITests/SupportLargestTextProofs.swift", "class": "SupportLargestTextProof", "method": "testDefaultSizeKeepsInlineRows"},
+				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "DefaultSizeLayoutProof", "method": "testDefaultSizeKeepsInlineRows"},
 				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testEditsSurviveRelaunchWithCredits"},
 				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testEditsSurviveRelaunchWithAnOpenRouterAccount"},
 				{"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testCancelLeavesTheEditUnapplied"},
@@ -1175,9 +1152,9 @@
 		},
 		{
 			"id": "9.1.6",
-			"statement": "phone-check plan passes 2, 1, 2, 2, 3, 1 and 2 for the seven steps in ENDURAGENT_PLAN_PHONE_STEPS, read through PhoneSessionPlan.load, and PlanPhoneRun plans exactly the counts that variable holds.",
+			"statement": "phone-check plan passes 2, 1, 2, 2, 3 and 2 for the six steps in ENDURAGENT_PLAN_PHONE_STEPS, read through PhoneSessionPlan.load, and PlanPhoneRun plans exactly the counts that variable holds.",
 			"tests": [
-				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theWholeSessionPlansTwelveSendsAndOneNewConversation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theWholeSessionPlansElevenSendsAndOneNewConversation"},
 				{"file": "tools/Tests/ToolSupportTests/PhoneSessionTests.swift", "function": "aStepsVariableThatCannotBeReadPlansNothing"}
 			]
 		},
@@ -1549,7 +1526,7 @@
 			{"id": "B13.03", "group": "work", "status": "met", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "4.1.6"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.6"}}, {"live": {"scenario": "review-deep"}}], "differences": [], "waitsOn": []},
 			{"id": "B13.04", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.5"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.6"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.7"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.11"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.5"}}, {"live": {"scenario": "review-brief"}}, {"live": {"scenario": "review-default"}}, {"live": {"scenario": "review-deep"}}, {"live": {"scenario": "review-ambiguous"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "A review may state the Load, Intensity, power and heart-rate values intervals.icu supplies, as recorded values."}}], "waitsOn": []},
 			{"id": "B13.05", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.2.4"}}, {"live": {"scenario": "review-close-pair"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "Legs are always inferred from starts within 30 minutes; intervals.icu sends no workout id or sequence."}}], "waitsOn": []},
-			{"id": "B13.06", "group": "work", "status": "open", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.8"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.9"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.1.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.2.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.3.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.4"}}, {"live": {"scenario": "review-brief"}}, {"live": {"scenario": "review-default"}}, {"live": {"scenario": "review-deep"}}, {"phone": {"session": "closeout", "step": "closeout/reads"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "A start is shown as the athlete's local time and never labelled UTC; intervals.icu sends no offset."}}], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/reads"}}]},
+			{"id": "B13.06", "group": "work", "status": "open", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.8"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "5.1.9"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.1.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.2.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.4"}}, {"live": {"scenario": "review-brief"}}, {"live": {"scenario": "review-default"}}, {"live": {"scenario": "review-deep"}}, {"phone": {"session": "closeout", "step": "closeout/reads"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "A start is shown as the athlete's local time and never labelled UTC; intervals.icu sends no offset."}}], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/reads"}}]},
 			{"id": "B13.07", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "7.3.1"}}, {"live": {"scenario": "status"}}, {"live": {"scenario": "status-with-text"}}, {"live": {"scenario": "not-connected"}}, {"live": {"scenario": "workout-45-minutes-indoors"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "Text typed after /status reaches the coach (D09)."}}], "waitsOn": []},
 			{"id": "B14.01", "group": "work", "status": "open", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.1.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.2.5"}}, {"requirement": {"table": "coverage/milestone-5.json", "id": "B14.01/saved-plan"}}, {"live": {"scenario": "changed-goal"}}, {"phone": {"session": "closeout", "step": "closeout/reads"}}], "differences": [], "waitsOn": [{"phone": {"session": "closeout", "step": "closeout/reads"}}]},
 			{"id": "B14.02", "group": "work", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.1"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.2"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.3"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.4"}}, {"criterion": {"table": "coverage/milestone-3.json", "id": "8.3.5"}}, {"live": {"scenario": "zones-from-ftp"}}], "differences": [{"recorded": {"record": "ADR-0082", "says": "The zones calculator accepts an FTP sent as text."}}], "waitsOn": []},
@@ -1592,7 +1569,7 @@
 			{"id": "X03", "group": "crossCutting", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "bothReadsFailingGiveTheFallbackAndNoLines"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TrainingSnapshotTests.swift", "function": "missedDeadlineCancelsBothReadsAndGivesTheFallback"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachUpgradeTests.swift", "function": "anOpenReviewOpensOfflineAsAskTheCoachAgainWithNoControlAndStaysSoOnline"}}, {"test": {"file": "apps/ios/EnduragentUITests/LanguageMatrixProofs.swift", "class": "LanguageMatrixEnSweep", "method": "testFailureNotices"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}}], "differences": [], "waitsOn": []},
 			{"id": "X04", "group": "crossCutting", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X04"}}], "differences": [{"agreed": {"table": "coverage/milestone-4.json", "sub": "X04/zone", "record": "ADR-0083"}}], "waitsOn": []},
 			{"id": "X05", "group": "crossCutting", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X05"}}], "differences": [], "waitsOn": []},
-			{"id": "X06", "group": "crossCutting", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X06"}}], "differences": [], "waitsOn": []},
+			{"id": "X06", "group": "crossCutting", "status": "deviation", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X06"}}], "differences": [{"agreed": {"table": "coverage/milestone-4.json", "sub": "X06/largest-text", "record": "ADR-0088"}}], "waitsOn": []},
 			{"id": "X07", "group": "crossCutting", "status": "deviation", "evidence": [{"criterion": {"table": "coverage/milestone-6.json", "id": "1.1.3"}}, {"criterion": {"table": "coverage/milestone-6.json", "id": "1.2.3"}}, {"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.2"}}, {"criterion": {"table": "coverage/milestone-6.json", "id": "1.4.3"}}, {"criterion": {"table": "coverage/milestone-6.json", "id": "2.2.4"}}, {"phone": {"session": "closeout", "step": "closeout/diagnostics"}}], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "X07/one-device", "record": "ADR-0085"}}], "waitsOn": []},
 			{"id": "X08", "group": "crossCutting", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-5.json", "id": "X08"}}], "differences": [], "waitsOn": []},
 			{"id": "G01", "group": "journey", "status": "met", "evidence": [{"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "FirstConversationProof", "method": "testFirstConversation"}}, {"test": {"file": "apps/ios/EnduragentUITests/TutorialProofs.swift", "class": "RelaunchKeepsChatProof", "method": "testRelaunchKeepsChat"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CoachMemoryRecallTests.swift", "function": "relaunchRecoversCorrectedFactsAndDatedHistory"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnRecoveryTests.swift", "function": "theFirstSnapshotAndRetryAfterRelaunchSeeTheSavedWorkOfADeadClaim"}}, {"test": {"file": "apps/ios/EnduragentUITests/RecoveryProofs.swift", "class": "SavedWorkInterruptedProof", "method": "testSavedWorkInterrupted"}}], "differences": [], "waitsOn": []},
@@ -1628,7 +1605,7 @@
 			{"id": "MOB05", "group": "mobile", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "G06"}}], "differences": [], "waitsOn": []},
 			{"id": "MOB06", "group": "mobile", "status": "deviation", "evidence": [], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "MOB06/one-phone", "record": "ADR-0085"}}], "waitsOn": []},
 			{"id": "MOB07", "group": "mobile", "status": "met", "evidence": [{"phone": {"session": "closeout", "step": "closeout/update"}}], "differences": [], "waitsOn": []},
-			{"id": "MOB08", "group": "mobile", "status": "open", "evidence": [{"phone": {"session": "m4", "step": "m4/largest-text"}}, {"phone": {"session": "plan", "step": "plan/6"}}], "differences": [], "waitsOn": [{"phone": {"session": "m4", "step": "m4/largest-text"}}, {"phone": {"session": "plan", "step": "plan/6"}}]},
+			{"id": "MOB08", "group": "mobile", "status": "deviation", "evidence": [], "differences": [{"recorded": {"record": "ADR-0088", "says": "No test or phone step checks the app at the largest text size or with VoiceOver, as X06/largest-text records; the app keeps its large-text layouts and accessibility labels."}}], "waitsOn": []},
 			{"id": "MOB09", "group": "mobile", "status": "met", "evidence": [{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsItsActionAfterReopeningAndInHistory"}}, {"test": {"file": "apps/ios/EnduragentUITests/BillingIdentityProof.swift", "class": "BillingIdentityProof", "method": "testExhaustedCreditsKeepMemoryAndMessagesAndOfferWorkingRoutes"}}], "differences": [], "waitsOn": []},
 			{"id": "MOB10", "group": "mobile", "status": "met", "evidence": [{"requirement": {"table": "coverage/milestone-4.json", "id": "X02"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/FragmentOrderingTests.swift", "function": "fragmentsExtendTheRealTrailingWindow"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ChatMailboxTests.swift", "function": "sendsInsideTheWindowJoinOneTurn"}}, {"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AcceptTests.swift", "function": "concurrentAcceptsOfOneDraftWriteOneMessage"}}], "differences": [], "waitsOn": []},
 			{"id": "MOB11", "group": "mobile", "status": "deviation", "evidence": [], "differences": [{"agreed": {"table": "coverage/milestone-6.json", "sub": "MOB11/one-device", "record": "ADR-0085"}}], "waitsOn": []},

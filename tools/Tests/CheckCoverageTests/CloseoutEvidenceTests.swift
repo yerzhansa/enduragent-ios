@@ -33,7 +33,16 @@ struct CloseoutEvidenceTests {
 				"MOB05": ([.requirement(table: four, id: "G06")], []),
 				"MOB06": ([], []),
 				"MOB07": ([closeout("update")], []),
-				"MOB08": ([m4("largest-text"), .phone(session: "plan", step: "plan/6")], []),
+				"MOB08": (
+					[],
+					[
+						.recorded(
+							record: "ADR-0088",
+							says:
+								"No test or phone step checks the app at the largest text size or with VoiceOver, as X06/largest-text records; the app keeps its large-text layouts and accessibility labels."
+						)
+					]
+				),
 				"MOB09": (
 					[
 						test(
@@ -85,7 +94,6 @@ struct CloseoutEvidenceTests {
 		"MOB01": [closeout("lifecycle")],
 		"MOB03": [closeout("lifecycle")],
 		"MOB02": [m4("offline-approve")],
-		"MOB08": [m4("largest-text"), .phone(session: "plan", step: "plan/6")],
 	]
 
 	@Test(.timeLimit(.minutes(1)))
@@ -200,7 +208,7 @@ struct CloseoutEvidenceTests {
 		]
 		#expect(
 			lines == [
-				["the reply to /review, read by VoiceOver", "the reply to \"show numbers\""],
+				["the reply to /review", "the reply to \"show numbers\""],
 				["the reply to a power-curve question on an athlete with no curve data"],
 			])
 		#expect(reads.planned == 3)

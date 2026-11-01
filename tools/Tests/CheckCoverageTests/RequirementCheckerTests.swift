@@ -119,7 +119,7 @@ struct RequirementCase: Sendable, CustomTestStringConvertible {
 		""".split(separator: " ").map(String.init)
 	static let agreed = [
 		"B17.01/utc", "B17.06/head-unit", "B18.07/model-call", "B18.07/review-status",
-		"B20.01/zones", "X04/zone", "G06/midnight",
+		"B20.01/zones", "X04/zone", "X06/largest-text", "G06/midnight",
 	]
 	static let closed = closing("B17.01", ["1.1.1", "1.1.2"])
 	static let baseRows = [closed] + agreed.map { difference($0) }

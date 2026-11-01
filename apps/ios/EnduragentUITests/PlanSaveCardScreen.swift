@@ -9,7 +9,6 @@ struct PlanSaveCardScreen {
 	}
 
 	let run: MatrixRun
-	let size: PlanCardSize
 
 	static let card = "chat.planSave.card"
 	static let bar = "chat.planSave.bar"
@@ -17,17 +16,17 @@ struct PlanSaveCardScreen {
 	static let cancel = "chat.planSave.cancel"
 
 	static func begin(
-		_ test: XCTestCase, _ language: LanguageTag, _ size: PlanCardSize,
+		_ test: XCTestCase, _ language: LanguageTag,
 		arguments: FixtureArguments = FixtureArguments()
 	) -> PlanSaveCardScreen {
-		PlanSaveCardScreen(run: MatrixRun.begin(test, language, arguments: arguments), size: size)
+		PlanSaveCardScreen(run: MatrixRun.begin(test, language, arguments: arguments))
 	}
 
 	func exchange(_ text: String) {
 		TutorialHarness.exchange(run.app, text)
 	}
 
-	func relaunch(at size: PlanCardSize, clock: String? = nil) {
+	func relaunch(clock: String? = nil) {
 		run.app.terminate()
 		XCTAssertEqual(run.app.state, .notRunning)
 		var arguments = FixtureArguments()
@@ -38,13 +37,8 @@ struct PlanSaveCardScreen {
 			return
 		}
 		arguments.store = .keep
-		arguments.textSize = size.textSize
 		if let clock { arguments.clock = clock }
 		TutorialHarness.launch(run.app, arguments: arguments)
-	}
-
-	func show() {
-		if size == .largest { relaunch(at: .largest) }
 	}
 
 	func card(_ plan: PlanFixture) -> XCUIElement {
@@ -80,9 +74,7 @@ struct PlanSaveCardScreen {
 	}
 
 	func expectControls(_ shown: Bool, of plan: PlanFixture, _ screen: String) {
-		let reading = ReviewCardReading(run: run)
 		if shown {
-			if size == .largest { reading.reach(Self.save) }
 			for identifier in [Self.save, Self.cancel] {
 				TutorialHarness.wait(run.named(identifier), until: .enabled, within: .turn)
 			}
@@ -90,7 +82,6 @@ struct PlanSaveCardScreen {
 		}
 		let state = part("chat.planSave.state", of: plan)
 		TutorialHarness.wait(state, within: .turn)
-		if size == .largest { TutorialHarness.bringIntoTranscript(run.app, state) }
 		for identifier in [Self.save, Self.cancel, Self.bar] {
 			TutorialHarness.wait(run.named(identifier), until: .absent, within: .turn)
 		}
@@ -141,40 +132,21 @@ struct PlanSaveCardScreen {
 		capture("\(screen)-opening")
 	}
 
-	func expectBar(under plan: PlanFixture, _ screen: String) {
-		if size == .largest { ReviewCardReading(run: run).reach(Self.save) }
+	func expectBar(_ screen: String) {
 		let bar = run.named(Self.bar)
 		TutorialHarness.wait(bar, within: .turn)
 		let inTranscript = run.named("chat.transcript").descendants(matching: .any)
 			.matching(identifier: Self.bar).firstMatch
-		switch size {
-		case .standard:
-			XCTAssertFalse(
-				inTranscript.exists,
-				"\(name(screen)): at the default size the bar is in the transcript")
-			XCTAssertLessThanOrEqual(
-				bar.frame.maxY, run.named("chat.composer.container").frame.minY + 1,
-				"\(name(screen)): the bar is not docked above the composer")
-		case .largest:
-			XCTAssertTrue(
-				inTranscript.exists,
-				"\(name(screen)): at the largest text size the bar is not in the transcript")
-			XCTAssertEqual(
-				run.app.descendants(matching: .any).matching(identifier: Self.bar).count, 1,
-				"\(name(screen)): at the largest text size a bar is also docked above the composer")
-			let card = card(plan)
-			XCTAssertTrue(
-				card.exists && ReviewCardReading.follows(card.frame, inTranscript.frame)
-					&& inTranscript.frame.minY - card.frame.maxY < 40,
-				"\(name(screen)): the bar \(inTranscript.frame) is not directly under its card \(card.frame)"
-			)
-		}
+		XCTAssertFalse(
+			inTranscript.exists, "\(name(screen)): the bar is in the transcript")
+		XCTAssertLessThanOrEqual(
+			bar.frame.maxY, run.named("chat.composer.container").frame.minY + 1,
+			"\(name(screen)): the bar is not docked above the composer")
 	}
 
 	func expectWholeButtons(_ screen: String) {
-		let reading = ReviewCardReading(run: run)
 		for identifier in [Self.save, Self.cancel] {
-			let button = size == .largest ? reading.reach(identifier) : run.named(identifier)
+			let button = run.named(identifier)
 			TutorialHarness.wait(button, until: .hittable)
 			let frame = button.frame
 			XCTAssertTrue(
@@ -253,7 +225,6 @@ struct PlanSaveCardScreen {
 		do {
 			heard = try spoken(run.named("chat.transcript"), from: title.frame.minY)
 				.filter { $0.line.identifier != Self.save && $0.line.identifier != Self.cancel }
-			if size == .largest { ReviewCardReading(run: run).reach(Self.save) }
 			heard += try spoken(run.named(Self.bar), from: nil)
 		} catch {
 			XCTFail("\(name(screen)): the card could not be read: \(error)")
@@ -263,7 +234,7 @@ struct PlanSaveCardScreen {
 			.joined(separator: " | ")
 		XCTAssertEqual(
 			heard.map(\.line.identifier), expected.map(\.identifier),
-			"\(name(screen)): VoiceOver does not read the card in order: \(order)")
+			"\(name(screen)): the card is not read in order: \(order)")
 		for (line, wanted) in zip(heard.map(\.line), expected) {
 			guard let label = wanted.label else { continue }
 			XCTAssertEqual(
@@ -286,7 +257,7 @@ struct PlanSaveCardScreen {
 		)
 	}
 
-	func expectValuesUnderLabels(of plan: PlanFixture, _ screen: String) {
+	func expectValuesBesideLabels(of plan: PlanFixture, _ screen: String) {
 		let card = card(plan)
 		for pair in ["goal", "duration", "focus", "weeks", "hours"] {
 			let labels = card.descendants(matching: .any)
@@ -295,10 +266,9 @@ struct PlanSaveCardScreen {
 				.matching(identifier: "chat.planSave.\(pair).value").allElementsBoundByIndex
 			XCTAssertEqual(labels.count, values.count, "\(name(screen)): \(pair) pairs differ")
 			for (label, value) in zip(labels, values) {
-				let under = value.frame.minY >= label.frame.maxY - 2
-				XCTAssertEqual(
-					under, size == .largest,
-					"\(name(screen)): \(pair) value \(value.frame) and label \(label.frame) are laid out wrong"
+				XCTAssertLessThan(
+					value.frame.minY, label.frame.maxY - 2,
+					"\(name(screen)): \(pair) value \(value.frame) is under its label \(label.frame)"
 				)
 			}
 		}
@@ -311,11 +281,6 @@ struct PlanSaveCardScreen {
 		let line = run.named("chat.planSave.goal.label").frame.height
 		XCTAssertGreaterThan(
 			name.frame.height, line * 1.5, "\(self.name(screen)): the long name is on one line")
-	}
-
-	func expectDisclaimerLast(_ screen: String) {
-		guard size == .largest else { return }
-		ReviewCardReading(run: run).expectDisclaimerEndsTheTranscript("u7-1-\(screen)")
 	}
 
 	func audit(_ screen: String) {
@@ -334,7 +299,7 @@ struct PlanSaveCardScreen {
 	}
 
 	func name(_ screen: String) -> String {
-		"u7-1-\(run.language.rawValue)-\(size.rawValue)-\(screen)"
+		"u7-1-\(run.language.rawValue)-\(screen)"
 	}
 
 	private func pair(_ id: String, _ label: CatalogKey, _ value: String?) -> [Expected] {
@@ -352,7 +317,7 @@ struct PlanSaveCardScreen {
 		-> [ReviewCardReading.Spoken]
 	{
 		var items: [ReviewCardReading.Spoken] = []
-		ReviewCardReading.collect(try element.snapshot(), into: &items, leaving: nil)
+		ReviewCardReading.collect(try element.snapshot(), into: &items)
 		return items.filter { item in
 			item.line.identifier.hasPrefix("chat.planSave.")
 				&& item.line.identifier != "chat.planSave.answer"
