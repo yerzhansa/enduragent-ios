@@ -291,24 +291,21 @@ final class ReviewNotPreparedProof: XCTestCase {
 
 @MainActor
 final class ReviewStateLanguageProof: XCTestCase {
-	func testGermanPreparedEarlierAndOutcomeNoteAtTheLargestText() { expect(.de) }
-	func testPortugalPortuguesePreparedEarlierAndOutcomeNoteAtTheLargestText() { expect(.ptPT) }
-	func testTraditionalChinesePreparedEarlierAndOutcomeNoteAtTheLargestText() { expect(.zhHant) }
+	func testGermanPreparedEarlierAndOutcomeNote() { expect(.de) }
+	func testPortugalPortuguesePreparedEarlierAndOutcomeNote() { expect(.ptPT) }
+	func testTraditionalChinesePreparedEarlierAndOutcomeNote() { expect(.zhHant) }
 
 	private func expect(_ language: LanguageTag) {
-		let arguments = FixtureArguments()
-		let run = MatrixRun.begin(self, language, arguments: arguments)
+		let run = MatrixRun.begin(self, language)
 		TutorialHarness.exchange(run.app, TutorialHarness.workout)
 		TutorialHarness.wait(run.named("chat.preview.add"), until: .enabled)
 		TutorialHarness.startNewConversation(run.app, language: language)
-		ReviewAccessibility.reopenAtLargestText(run.app, arguments)
 		let earlier = run.named("chat.preview.preparedEarlier")
 		ReviewCardScreen.reveal(run.app, earlier, direction: .down)
 		run.expect("chat.preview.preparedEarlier", Catalog.workoutsPreparedEarlier)
 		run.screen("review-prepared-earlier")
-		let card = ReviewCardReading(run: run)
 		TutorialHarness.wait(run.named("chat.preview.add"), until: .enabled, within: .turn)
-		card.reach(.add).tap()
+		run.tap("chat.preview.add")
 		let note = run.named("chat.note")
 		TutorialHarness.wait(note, within: .turn)
 		ReviewCardScreen.reveal(run.app, note)

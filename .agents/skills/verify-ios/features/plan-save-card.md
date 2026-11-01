@@ -44,28 +44,28 @@ Launch arguments, set through `FixtureArguments`:
 
 ## Driving it with sim and XCUITest
 
-Each class runs the same flows in one language: `PlanSaveCardEnProof` (English), `PlanSaveCardDeProof` (German), `PlanSaveCardPtPTProof` (Portuguese of Portugal) and `PlanSaveCardZhHantProof` (Traditional Chinese). Every flow has an `AtDefaultSize` and an `AtLargestText` method. Messages are always sent at the default size; a largest-text method relaunches with `store: .keep` and `textSize: .accessibilityXXXL` before it checks. Attachments start with `u7-1-<language>-<standard|largest>-`.
+Each class runs the same flows in one language: `PlanSaveCardEnProof` (English), `PlanSaveCardDeProof` (German), `PlanSaveCardPtPTProof` (Portuguese of Portugal) and `PlanSaveCardZhHantProof` (Traditional Chinese). Every flow is one `AtDefaultSize` method. Attachments start with `u7-1-<language>-`.
 
 | Command | What it proves |
 | --- | --- |
-| `sim test <run id> PlanSaveCardDeProof/testWaitingSavedCanceledAndExpiredCardsAtLargestText` | The waiting card opens with the reply and its title on screen; the bar is in the transcript directly under the card (docked above the composer in `AtDefaultSize`); VoiceOver reads the title, name, goal, length, each phase, then Save plan and Cancel; values sit under their labels; both buttons are whole and tappable; the disclaimer is the last row. With `planTap: .twice`, Save plan reads Saved with the already-decided answer. A 10-week card reads `Replaces your saved plan: 12-Week Gran Fondo Plan` before the buttons and keeps the line after Cancel. An 8-week card reopens with its title on screen, then reads Expired after a later-clock relaunch. |
-| `sim test <run id> PlanSaveCardDeProof/testSavingShowsNoControlsAtLargestText` | Saving with no control, also after a relaunch. |
-| `sim test <run id> PlanSaveCardDeProof/testStorageUnavailableShowsItsNoticeAndNoControlsAtLargestText` | The storage line once, no answer line, no control. |
-| `sim test <run id> PlanSaveCardDeProof/testAnExpiredTapIsAnsweredAtLargestText` | Expired with the expired answer. |
-| `sim test <run id> PlanSaveCardDeProof/testAReplacedTapIsAnsweredAtLargestText` | The 10-week card waits with its controls; the older card reads Expired with the replaced answer. |
-| `sim test <run id> PlanSaveCardDeProof/testATapForAnotherAthleteIsAnsweredAtLargestText` | After `fixture.switchAthlete`, Save plan answers with the athlete-changed sentence, the card keeps Save plan and Cancel, and nothing is saved. |
-| `sim test <run id> PlanSaveCardDeProof/testALongNameWrapsAndValuesSitUnderLabelsAtLargestText` | The whole long name on several lines, each phase value under its label, the reading order and whole buttons. |
-| `sim test <run id> PlanSaveCardDeProof/testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtLargestText` | The not-prepared notice on the turn and no card. |
-| `sim test <run id> PlanSaveCardDeProof/testACarriedCardIsDrawnOnceAtTheTopAtLargestText` | After New conversation the card is drawn once at the top, marked Prepared earlier, opens with its title on screen, has its bar directly under it, and reads Canceled after Cancel. A second carried card reads Expired at the top after a later-clock relaunch. |
-| `sim test <run id> PlanSaveCardDeProof/testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText` | With a long reply after a carried card, the chat opens at the newest message with no Save plan; scrolling the title into view arms the card. |
-| `sim test <run id> PlanSaveCardDeProof/testApprovingTheReviewLeavesThePlanWaitingAtLargestText` | A workout review and a plan card both wait, each bar under its own card (review bar then plan bar docked above the composer at the default size). Approve applies the review and the plan keeps Save plan and Cancel. |
-| `sim test <run id> PlanSaveCardDeProof/testSavingThePlanLeavesTheReviewWaitingAtLargestText` | In a second launch, Save plan saves the plan, the review still offers Approve, and `fixture.calendarCalls` and `fixture.modelRequestCount` are unchanged. |
+| `sim test <run id> PlanSaveCardDeProof/testWaitingSavedCanceledAndExpiredCardsAtDefaultSize` | The waiting card opens with the reply and its title on screen; the bar is docked above the composer; the accessibility tree reads the title, name, goal, length, each phase, then Save plan and Cancel; values sit beside their labels; both buttons are whole and tappable. With `planTap: .twice`, Save plan reads Saved with the already-decided answer. A 10-week card reads `Replaces your saved plan: 12-Week Gran Fondo Plan` before the buttons and keeps the line after Cancel. An 8-week card reopens with its title on screen, then reads Expired after a later-clock relaunch. |
+| `sim test <run id> PlanSaveCardDeProof/testSavingShowsNoControlsAtDefaultSize` | Saving with no control, also after a relaunch. |
+| `sim test <run id> PlanSaveCardDeProof/testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize` | The storage line once, no answer line, no control. |
+| `sim test <run id> PlanSaveCardDeProof/testAnExpiredTapIsAnsweredAtDefaultSize` | Expired with the expired answer. |
+| `sim test <run id> PlanSaveCardDeProof/testAReplacedTapIsAnsweredAtDefaultSize` | The 10-week card waits with its controls; the older card reads Expired with the replaced answer. |
+| `sim test <run id> PlanSaveCardDeProof/testATapForAnotherAthleteIsAnsweredAtDefaultSize` | After `fixture.switchAthlete`, Save plan answers with the athlete-changed sentence, the card keeps Save plan and Cancel, and nothing is saved. |
+| `sim test <run id> PlanSaveCardDeProof/testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize` | The whole long name on several lines, each phase value beside its label, the reading order and whole buttons. |
+| `sim test <run id> PlanSaveCardDeProof/testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize` | The not-prepared notice on the turn and no card. |
+| `sim test <run id> PlanSaveCardDeProof/testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize` | After New conversation the card is drawn once at the top, marked Prepared earlier, opens with its title on screen, has its bar docked above the composer, and reads Canceled after Cancel. A second carried card reads Expired at the top after a later-clock relaunch. |
+| `sim test <run id> PlanSaveCardDeProof/testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize` | With a long reply after a carried card, the chat opens at the newest message with no Save plan; scrolling the title into view arms the card. |
+| `sim test <run id> PlanSaveCardDeProof/testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize` | A workout review and a plan card both wait, the review bar then the plan bar docked above the composer. Approve applies the review and the plan keeps Save plan and Cancel. |
+| `sim test <run id> PlanSaveCardDeProof/testSavingThePlanLeavesTheReviewWaitingAtDefaultSize` | In a second launch, Save plan saves the plan, the review still offers Approve, and `fixture.calendarCalls` and `fixture.modelRequestCount` are unchanged. |
 
-Replace `De` with `En`, `PtPT` or `ZhHant`, and `AtLargestText` with `AtDefaultSize`, for the other runs. `sim test <run id> PlanSaveCardDeProof` runs every flow in German.
+Replace `De` with `En`, `PtPT` or `ZhHant` for the other runs. `sim test <run id> PlanSaveCardDeProof` runs every flow in German.
 
 ## Gotchas
 
-- The card arms only once its title has been on screen. A check for Save plan at the largest text size must first scroll to the bar under the card; `ReviewCardReading.reach` does that.
+- The card arms only once its title has been on screen.
 - The fixture clock never moves on its own. Expiry needs `planTap: .expired` or a relaunch with a later `clock`.
 - `planSaveStage: .saving` holds the write for the whole process, and recovery on the next launch holds again, so the card stays at Saving until the argument is dropped.
 - The docked plan bar shrinks the visible transcript; `TutorialHarness.transcriptBand` ends at the higher of the docked review bar, the docked plan bar and the composer.

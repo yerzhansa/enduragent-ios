@@ -65,20 +65,6 @@
 			"endsWith": "Plan B saved, the expired card, and no review waiting."
 		},
 		{
-			"id": "plan/6",
-			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "PlanPhoneRun", "testMethod": "testPlanPhoneRun", "actionsAttachment": "plan-phone-actions"}},
-			"planned": 1,
-			"setup": [
-				"The largest text size and VoiceOver are on in iOS Settings for this step, and off after it. This step runs in its own invocation."
-			],
-			"checks": [
-				{"look": "the card after \"Make the plan 14 weeks and save it\"", "pass": "VoiceOver reads its title, name, goal, length, each phase and the replaces line in order, before Save plan and Cancel"},
-				{"look": "the bar at the largest text size", "pass": "in the transcript under the card"},
-				{"look": "the card after Save plan", "pass": "reads Saved, plan C"}
-			],
-			"endsWith": "Plan C saved; largest text and VoiceOver are off."
-		},
-		{
 			"id": "plan/7",
 			"driver": {"runnerOnInstalledBuild": {"scheme": "EnduragentPhone", "testClass": "PlanPhoneRun", "testMethod": "testPlanPhoneRun", "actionsAttachment": "plan-phone-actions"}},
 			"planned": 2,
@@ -88,7 +74,7 @@
 				{"look": "the new conversation after New conversation", "pass": "the card shown once at the top, marked Prepared earlier"},
 				{"look": "the card after Cancel", "pass": "reads Canceled with no controls"}
 			],
-			"endsWith": "Plan C saved, and a new conversation with the canceled card."
+			"endsWith": "Plan B saved, and a new conversation with the canceled card."
 		}
 	]
 }

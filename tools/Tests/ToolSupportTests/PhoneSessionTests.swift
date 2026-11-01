@@ -23,7 +23,7 @@ struct PhoneSessionTests {
 	@Test func theCommittedFilesPlanTheirTotalsUnderTheirCaps() throws {
 		let sessions = try Self.sessions()
 		#expect(sessions.map(\.name) == ["m4", "plan", "closeout"])
-		#expect(sessions.map { $0.planned($0.steps.map(\.id)) } == [15, 13, 32])
+		#expect(sessions.map { $0.planned($0.steps.map(\.id)) } == [12, 12, 32])
 		#expect(sessions.map(\.cap) == [40, 30, 50])
 		#expect(
 			sessions.map(\.ledger) == [
@@ -34,17 +34,17 @@ struct PhoneSessionTests {
 			try Self.committed("m4").steps.map(\.id) == [
 				"m4/list", "m4/repeat-ride", "m4/mixed-request", "m4/approve-later",
 				"m4/race-move", "m4/external-edit", "m4/edit-and-delete", "m4/offline-approve",
-				"m4/largest-text",
 			])
 		#expect(
-			try Self.committed("m4").steps.map(\.planned) == [1, 1, 3, 0, 1, 1, 3, 2, 3])
-		#expect(try Self.committed("plan").steps.map(\.id) == (1...7).map { "plan/\($0)" })
+			try Self.committed("m4").steps.map(\.planned) == [1, 1, 3, 0, 1, 1, 3, 2])
+		#expect(
+			try Self.committed("plan").steps.map(\.id) == (1...5).map { "plan/\($0)" } + ["plan/7"])
 	}
 
 	@Test func theCommittedSittingHasNoProblem() throws {
 		let order = try SittingOrder.load(root: Self.repository)
 		#expect(SittingOrder.problems(order: order, sessions: try Self.sessions()) == [])
-		#expect(order.steps.count == 31)
+		#expect(order.steps.count == 29)
 	}
 
 	@Test(arguments: [
@@ -141,7 +141,7 @@ struct PhoneSessionTests {
 				break
 			}
 		}
-		#expect(runners == 14)
+		#expect(runners == 13)
 	}
 
 	@Test func everyStepHasDecidableChecks() throws {

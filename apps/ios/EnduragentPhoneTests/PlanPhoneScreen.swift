@@ -201,21 +201,17 @@
 		}
 
 		@MainActor
-		func waitingCard(
-			after request: String, replacing previous: String?, docked: Bool = true
-		) throws -> String {
+		func waitingCard(after request: String, replacing previous: String?) throws -> String {
 			try wait("No waiting plan-save card after \"\(request)\".", seconds: 60) {
 				let card = newest(Self.card)
 				return card.exists && !part("chat.planSave.state", of: card).exists
 					&& newest("chat.planSave.title").isHittable
 			}
-			if docked {
-				try wait("Save plan did not appear with the card's title on screen.", seconds: 30) {
-					element(Self.save).isHittable
-				}
-				XCTAssertTrue(
-					newest("chat.planSave.title").isHittable, "The card's title is on screen.")
+			try wait("Save plan did not appear with the card's title on screen.", seconds: 30) {
+				element(Self.save).isHittable
 			}
+			XCTAssertTrue(
+				newest("chat.planSave.title").isHittable, "The card's title is on screen.")
 			let sample = try PhoneSample(app, after: request)
 			if sample.nodes.contains(where: {
 				$0.inTranscript && $0.type == .staticText && $0.label == request
@@ -313,40 +309,6 @@
 				reason:
 					"No saved plan card in this conversation. Resume from the step that saves one."
 			)
-		}
-
-		@MainActor
-		func spokenParts() throws -> [String] {
-			var identifiers: [String] = []
-			func walk(_ snapshot: any XCUIElementSnapshot) {
-				if snapshot.identifier.hasPrefix("chat.planSave.") {
-					identifiers.append(snapshot.identifier)
-				}
-				for child in snapshot.children { walk(child) }
-			}
-			walk(try element("chat.transcript").snapshot())
-			log.append("Spoken parts: \(identifiers.joined(separator: " ")).")
-			return identifiers
-		}
-
-		@MainActor
-		func expectSpoken(_ order: [String], from start: String, optional: Set<String> = [])
-			throws
-		{
-			let spoken = try spokenParts()
-			guard let first = spoken.lastIndex(of: start) else {
-				throw PhoneRunBlocked(reason: "\(start) is not on screen.")
-			}
-			let card = Array(spoken[first...])
-			for part in order where !optional.contains(part) {
-				XCTAssertTrue(card.contains(part), "VoiceOver reads \(part).")
-			}
-			let present = order.filter { card.contains($0) }
-			for (earlier, later) in zip(present, present.dropFirst()) {
-				XCTAssertLessThan(
-					card.lastIndex(of: earlier) ?? 0, card.firstIndex(of: later) ?? 0,
-					"VoiceOver reads \(earlier) before \(later).")
-			}
 		}
 	}
 #endif

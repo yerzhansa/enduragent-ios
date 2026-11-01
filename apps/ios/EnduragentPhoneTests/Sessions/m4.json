@@ -116,22 +116,6 @@
 				{"look": "the conversation after Cancel", "pass": "the card reads as canceled with a note, and the website shows no Saturday ride"}
 			],
 			"endsWith": "No review waiting."
-		},
-		{
-			"id": "m4/largest-text",
-			"driver": "operatorOnInstalledBuild",
-			"planned": 3,
-			"setup": [
-				"No workout review is waiting.",
-				"The largest text size and VoiceOver are on in iOS Settings for this step, and off after it."
-			],
-			"checks": [
-				{"look": "the reply to \"Plan eight workouts over the next ten days\"", "pass": "one review card with eight adds, every row readable and spoken by VoiceOver"},
-				{"look": "the card after \"Make the third one shorter\"", "pass": "a new revision with only that workout changed"},
-				{"look": "the card after \"Replace them with six workouts instead\"", "pass": "a review with six adds that replaces the set"},
-				{"look": "the website after Approve", "pass": "the six workouts written once"}
-			],
-			"endsWith": "No review waiting; largest text and VoiceOver are off."
 		}
 	]
 }

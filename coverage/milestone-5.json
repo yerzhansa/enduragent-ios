@@ -1183,41 +1183,23 @@
 				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aSavedCardShowsNoStorageAnswerLeftFromTheTapThatStalled"},
 				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aCanceledCardShowsNoRefusalLeftFromAnEarlierTap"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingShowsNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingShowsNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingShowsNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAnExpiredTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAnExpiredTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAnExpiredTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAReplacedTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAReplacedTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAReplacedTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATapForAnotherAthleteIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATapForAnotherAthleteIsAnsweredAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATapForAnotherAthleteIsAnsweredAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"}
 			]
 		},
 		{
@@ -1228,11 +1210,8 @@
 				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aSparsePlanLeavesOutEveryFieldItLacks"},
 				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aSecondPlanNamesTheSavedPlanItReplacesAndTheSavedCardNamesNone"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"}
 			]
 		},
 		{
@@ -1241,59 +1220,38 @@
 			"tests": [
 				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "noSaveControlExistsUntilTheTitleIsPresentedAndThenBothDecisionsCarryItsToken"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"}
 			]
 		},
 		{
 			"id": "7.1.4",
-			"statement": "Rule 1: at accessibilityXXXL the bar sits in the transcript directly under its card, and no bar is docked above the composer. At the default size it is docked above the composer.",
+			"statement": "Rule 1: at the default size the bar is docked above the composer. ADR-0088 dropped the largest-text half, where the bar sits in the transcript directly under its card.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"}
 			]
 		},
 		{
 			"id": "7.1.5",
-			"statement": "Rule 2: in each of the three languages at accessibilityXXXL, Save plan and Cancel are each whole on screen, side by side or stacked, and each can be tapped.",
+			"statement": "Rule 2: in each of the three languages at the default size, Save plan and Cancel are each whole on screen, side by side or stacked, and each can be tapped. ADR-0088 dropped the largest-text half.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"}
 			]
 		},
 		{
@@ -1301,168 +1259,95 @@
 			"statement": "Rule 3: the long-name fixture shows the whole name on several lines, and each phase value sits under its label.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"}
 			]
 		},
 		{
 			"id": "7.1.7",
-			"statement": "Rule 4: launching and relaunching at accessibilityXXXL with a waiting card puts the newest message and the card's title on screen.",
+			"statement": "Rule 4: launching and relaunching with a waiting card puts the newest message and the card's title on screen. ADR-0088 dropped the largest-text half.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"}
 			]
 		},
 		{
 			"id": "7.1.8",
 			"statement": "Rule 5: the disclaimer is the transcript's last row at accessibility sizes.",
-			"tests": [
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtLargestText"}
-			]
+			"noAutomatedProof": "ADR-0088 drops the largest-text proofs: the operator decided on 2026-11-01 that the app is not tested at the largest text size. The layout stays in the app, and no test checks it."
 		},
 		{
 			"id": "7.1.9",
 			"statement": "Rule 6: VoiceOver reads the title, the identity lines, the phases, the \"replaces\" line, then Save plan and Cancel.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"}
 			]
 		},
 		{
 			"id": "7.1.10",
-			"statement": "Rule 7: criteria 1, 4 to 9 and 11 to 13 run at default and at the largest text size in German, Portuguese of Portugal and Traditional Chinese, in light appearance, through the harness, and every string is translated with no truncated control.",
+			"statement": "Rule 7: criteria 1, 4 to 9 and 11 to 13 run at the default size in German, Portuguese of Portugal and Traditional Chinese, in light appearance, through the harness, and every string is translated with no truncated control. ADR-0088 dropped the runs at the largest text size.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testWaitingSavedCanceledAndExpiredCardsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingShowsNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingShowsNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingShowsNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingShowsNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testStorageUnavailableShowsItsNoticeAndNoControlsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAnExpiredTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAnExpiredTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAnExpiredTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAnExpiredTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testAReplacedTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testAReplacedTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAReplacedTapIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testAReplacedTapIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATapForAnotherAthleteIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATapForAnotherAthleteIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATapForAnotherAthleteIsAnsweredAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATapForAnotherAthleteIsAnsweredAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testALongNameWrapsAndValuesSitUnderLabelsAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"}
 			]
 		},
 		{
 			"id": "7.1.11",
-			"statement": "A card carried across New conversation is drawn once at the top and can be canceled, after which it reads Canceled at the top; after its ten minutes, a relaunch with a later clock shows it Expired at the top. At accessibilityXXXL the carried card's bar sits in the transcript directly under it, and the chat opens as rule 4 says for a carried card.",
+			"statement": "A card carried across New conversation is drawn once at the top and can be canceled, after which it reads Canceled at the top; after its ten minutes, a relaunch with a later clock shows it Expired at the top. ADR-0088 dropped the largest-text half.",
 			"tests": [
 				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "aCardCarriedAcrossNewConversationSitsAtTheTopAndSaysItWasPreparedEarlier"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testACarriedCardIsDrawnOnceAtTheTopAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testControlsArmWhenTheTitleIsScrolledIntoViewAtDefaultSize"}
 			]
 		},
 		{
@@ -1471,29 +1356,20 @@
 			"tests": [
 				{"file": "apps/ios/EnduragentTests/PlanCardLayoutTests.swift", "function": "twoPlanSavesInOneStepShowTheNotPreparedNoticeAndNoCard"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testATurnThatCouldNotPrepareAPlanShowsItsNoticeAtDefaultSize"}
 			]
 		},
 		{
 			"id": "7.1.13",
-			"statement": "A workout review and a plan-save confirmation both wait. At the default size both bars are docked above the composer in the order README's operator item 3 settles. At accessibilityXXXL each bar sits in the transcript directly under its own card. At each size, tapping Approve applies the review and leaves the plan card waiting with its controls; in a second launch, tapping Save plan saves the plan and leaves the review offering Approve, with fixture.modelRequestCount and the fake calendar's writes unchanged.",
+			"statement": "A workout review and a plan-save confirmation both wait. At the default size both bars are docked above the composer in the order README's operator item 3 settles. Tapping Approve applies the review and leaves the plan card waiting with its controls; in a second launch, tapping Save plan saves the plan and leaves the review offering Approve, with fixture.modelRequestCount and the fake calendar's writes unchanged. ADR-0088 dropped the largest-text half.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testApprovingTheReviewLeavesThePlanWaitingAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardDeProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtLargestText"},
 				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardPtPTProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtLargestText"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"},
-				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtLargestText"}
+				{"file": "apps/ios/EnduragentUITests/PlanSaveCardProofs.swift", "class": "PlanSaveCardZhHantProof", "method": "testSavingThePlanLeavesTheReviewWaitingAtDefaultSize"}
 			]
 		},
 		{
@@ -1595,16 +1471,15 @@
 		},
 		{
 			"id": "8.2.1",
-			"statement": "PlanPhoneRun holds steps 1 to 7 of the phone session, each starting from the state the step before it left, with 12 Sends and one New conversation, each counted through one spendMessage, and exactly one calendar Approve, in step 5.",
-			"phoneSession": "PlanPhoneRun runs only on the operator's iPhone in the phone session, never on a simulator. The reviewer reads it against the session's seven steps."
+			"statement": "PlanPhoneRun holds the six steps plan/1 to plan/5 and plan/7 of the phone session, each starting from the state the step before it left, with 11 Sends and one New conversation, each counted through one spendMessage, and exactly one calendar Approve, in step plan/5. ADR-0088 dropped plan/6.",
+			"phoneSession": "PlanPhoneRun runs only on the operator's iPhone in the phone session, never on a simulator. The reviewer reads it against the session's six steps."
 		},
 		{
 			"id": "8.2.2",
 			"statement": "phone-check plan refuses before build with a budget below the planned count, with a budget that would take the milestone past 30, and with a messages.tsv row it cannot read. Each refusal launches nothing.",
 			"tests": [
-				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theWholeSessionPlansTwelveSendsAndOneNewConversation"},
+				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "theWholeSessionPlansElevenSendsAndOneNewConversation"},
 				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "stepsOutsideTheSessionAreRefused"},
-				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "stepSixRunsAlone"},
 				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetBelowTheStepsPlannedCountIsRefused"},
 				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "anAnswerThatIsNotABudgetIsRefused"},
 				{"file": "tools/Tests/ToolSupportTests/PlanPhoneBudgetTests.swift", "function": "aBudgetThatWouldTakeTheMilestonePastThirtyIsRefused"},

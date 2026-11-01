@@ -284,7 +284,6 @@
 			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.1.3"}},
 			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.1.4"}},
 			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.2.4"}},
-			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.3.1"}},
 			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.1"}},
 			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.2"}},
 			{"criterion": {"table": "coverage/milestone-3.json", "id": "6.4.3"}},
@@ -473,10 +472,6 @@
 		"MOB07": [
 			{"phone": {"session": "closeout", "step": "closeout/update"}}
 		],
-		"MOB08": [
-			{"phone": {"session": "m4", "step": "m4/largest-text"}},
-			{"phone": {"session": "plan", "step": "plan/6"}}
-		],
 		"MOB09": [
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsItsActionAfterReopeningAndInHistory"}},
@@ -561,6 +556,9 @@
 		],
 		"MOB04": [
 			{"recorded": {"record": "ADR-0083", "says": "The phone's time zone decides the athlete's day, as X04/zone and G06/midnight record."}}
+		],
+		"MOB08": [
+			{"recorded": {"record": "ADR-0088", "says": "No test or phone step checks the app at the largest text size or with VoiceOver, as X06/largest-text records; the app keeps its large-text layouts and accessibility labels."}}
 		]
 	},
 	"waitsOn": {
@@ -597,10 +595,6 @@
 		],
 		"MOB03": [
 			{"phone": {"session": "closeout", "step": "closeout/lifecycle"}}
-		],
-		"MOB08": [
-			{"phone": {"session": "m4", "step": "m4/largest-text"}},
-			{"phone": {"session": "plan", "step": "plan/6"}}
 		]
 	}
 }

@@ -1,17 +1,5 @@
 import EnduragentCoach
 
-enum PlanCardSize: String {
-	case standard
-	case largest
-
-	var textSize: FixtureTextSize? {
-		switch self {
-		case .standard: nil
-		case .largest: .accessibilityXXXL
-		}
-	}
-}
-
 struct PlanFixture {
 	struct Phase {
 		var focus: CatalogKey?

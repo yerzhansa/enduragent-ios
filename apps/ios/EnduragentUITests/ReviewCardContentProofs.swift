@@ -88,48 +88,6 @@ final class ReviewCardsDeleteProof: XCTestCase {
 }
 
 @MainActor
-final class ReviewCardsLargestTextProof: XCTestCase {
-	func testGermanChartLabelsNeitherOverlapNorLeaveTheCard() {
-		let arguments = FixtureArguments()
-		let run = MatrixRun.begin(self, .de, arguments: arguments)
-		TutorialHarness.exchange(run.app, ReviewCardContent.mixed)
-		TutorialHarness.wait(ReviewCardScreen.card(run.app, 0))
-		ReviewCardScreen.showEveryCard(run.app)
-		TutorialHarness.wait(ReviewCardContent.approve(run.app), until: .enabled)
-		ReviewAccessibility.reopenAtLargestText(run.app, arguments)
-		TutorialHarness.wait(ReviewCardScreen.card(run.app, 0), within: .turn)
-		ReviewCardScreen.showEveryCard(run.app)
-		let card = ReviewCardContent.card(run.app, 0)
-		let chart = card.descendants(matching: .any)
-			.matching(identifier: "chat.preview.card.chart").firstMatch
-		let ticks = chart.staticTexts.matching(identifier: "chat.preview.card.chart.tick")
-		TutorialHarness.wait(
-			until: { ticks.allElementsBoundByIndex.map(\.label) == ["75", "50"] },
-			message: "the chart did not show its axis labels 75 and 50")
-		for tick in ticks.allElementsBoundByIndex {
-			TutorialHarness.bringIntoTranscript(run.app, tick)
-		}
-		TutorialHarness.attach(self, name: "u8-1-review-cards-largest-de", app: run.app)
-		let labels = chart.staticTexts.allElementsBoundByIndex.map { ($0.label, $0.frame) }
-		XCTAssertEqual(labels.count, 5, "\(labels)")
-		let cardFrame = card.frame.insetBy(dx: -1, dy: -1)
-		for (label, frame) in labels {
-			XCTAssertTrue(
-				frame.width > 0 && cardFrame.contains(frame),
-				"\"\(label)\" \(frame) leaves the card \(card.frame)")
-		}
-		for (index, (label, frame)) in labels.enumerated() {
-			for (other, otherFrame) in labels.dropFirst(index + 1) {
-				XCTAssertFalse(
-					frame.insetBy(dx: 0.5, dy: 0.5).intersects(
-						otherFrame.insetBy(dx: 0.5, dy: 0.5)),
-					"\"\(label)\" \(frame) overlaps \"\(other)\" \(otherFrame)")
-			}
-		}
-	}
-}
-
-@MainActor
 enum ReviewCardContent {
 	static let mixed = "fixture:review-mixed"
 	static let deleteOnly = "fixture:review-delete"
