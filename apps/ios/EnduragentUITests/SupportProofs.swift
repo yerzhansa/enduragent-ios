@@ -156,12 +156,15 @@ final class DiagnosticsScreenProof: XCTestCase {
 
 @MainActor
 final class AboutScreenProof: XCTestCase {
-	func testNameVersionAndLink() {
+	func testNameVersionAndLink() throws {
+		let info = try XCTUnwrap(Bundle(for: Self.self).infoDictionary)
+		let version = try XCTUnwrap(info["CFBundleShortVersionString"] as? String)
+		let build = try XCTUnwrap(info["CFBundleVersion"] as? String)
 		let app = SupportScreen.start()
 		SupportScreen.open(app, "settings.about", showing: "about.version")
 		SupportScreen.outcome(app, "about.value.name", "Enduragent")
 		SupportScreen.outcome(app, "about.version", SupportScreen.say(Catalog.aboutVersion))
-		SupportScreen.outcome(app, "about.value.version", "0.1.0 (3)")
+		SupportScreen.outcome(app, "about.value.version", "\(version) (\(build))")
 		let link = TutorialHarness.named(app, "about.privacyPolicy")
 		XCTAssertEqual(link.label, SupportScreen.say(Catalog.aboutPrivacyPolicy))
 		TutorialHarness.attach(self, name: "about-light", app: app)

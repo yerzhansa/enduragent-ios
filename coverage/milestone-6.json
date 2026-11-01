@@ -637,7 +637,7 @@
 		},
 		{
 			"id": "5.1.8",
-			"statement": "About shows \"Enduragent\", the version line with the bundle's version and build (\"Version 0.1.0 (3)\"), and Privacy policy; tapping the link brings Safari to the foreground.",
+			"statement": "About shows \"Enduragent\", the version line with the bundle's version and build, read from MARKETING_VERSION and CURRENT_PROJECT_VERSION in project.yml, and Privacy policy; tapping the link brings Safari to the foreground.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/SupportProofs.swift", "class": "AboutScreenProof", "method": "testNameVersionAndLink"}
 			]

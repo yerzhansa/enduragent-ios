@@ -80,6 +80,17 @@ final class YourDataProof: XCTestCase {
 		YourDataScreen.assertEmptyChatAfterOnboarding(app)
 	}
 
+	func testAnUnconfirmedCreditsRecordWithoutICloudEndsOnTheICloudLaterSentence() {
+		let app = YourDataScreen.chatWithOneReply(.refusedICloudLater)
+		YourDataScreen.openScreen(app)
+		YourDataScreen.confirm(app)
+		YourDataScreen.outcome(app, Catalog.yourDataCreditsUnconfirmed)
+		TutorialHarness.named(app, "yourData.deleteHere").tap()
+		YourDataScreen.outcome(app, Catalog.yourDataCreditsKeptICloudLater)
+		TutorialHarness.attach(self, name: "your-data-credits-kept-icloud-later-light", app: app)
+		YourDataScreen.continueToOnboarding(app)
+	}
+
 	func testABusyCreditsServiceSaysToTryAgainLater() {
 		let app = YourDataScreen.chatWithOneReply(.rateLimited)
 		YourDataScreen.openScreen(app)
@@ -93,7 +104,6 @@ final class YourDataProof: XCTestCase {
 			TutorialHarness.named(app, "chat.turnProgress").value as? String,
 			"turns 1 settled 1")
 	}
-
 }
 
 @MainActor

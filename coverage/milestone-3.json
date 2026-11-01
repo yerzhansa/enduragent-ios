@@ -714,7 +714,7 @@
 		},
 		{
 			"id": "6.2.3",
-			"statement": "VoiceOver reads a table one row at a time, each row labelled with its description.",
+			"statement": "VoiceOver reads a table one row at a time, each row labelled with its description. ADR-0088 dropped the header-trait half, which only VoiceOver or the Accessibility Inspector could check.",
 			"tests": [
 				{"file": "apps/ios/EnduragentUITests/ReplyTableProofs.swift", "class": "ReplyTableProof", "method": "testNumbersTablesStackScrollAndReadRowByRowInChatAndHistory"},
 				{"file": "apps/ios/EnduragentUITests/ReplyFormattingProofs.swift", "class": "ReplyFormattingProof", "method": "testFormattedReplyInChatAndHistory"}
