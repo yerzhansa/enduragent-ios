@@ -97,7 +97,7 @@
 					app,
 					"intervals.icu is not connected, so I can't read your training profile or calendar."
 				)
-				TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.notice"))
+				TutorialHarness.wait(TutorialHarness.named(app, "chat.review.notice"))
 				TutorialHarness.attach(self, name: "synced-deletion-keeps-review", app: app)
 				TutorialHarness.openDebug(app)
 			}
@@ -153,7 +153,8 @@
 			XCTAssertEqual(peer.athleteAWrites, 0)
 			XCTAssertEqual(peer.athleteBWrites, 0)
 			attach(peerRow.value as? String ?? "missing", name: "\(name)-peer-receipt")
-			let nativeRow = TutorialHarness.debugRow(app, "fixture.nativeKeychain")
+			let nativeRow = TutorialHarness.debugRow(
+				app, "fixture.nativeKeychain", direction: .down)
 			try waitForReceipt(nativeRow)
 			let native = try decode(NativeReceipt.self, row: nativeRow)
 			XCTAssertEqual(native.service, NativeKeychainProof.service)
