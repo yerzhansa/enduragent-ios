@@ -1,4 +1,5 @@
-docs/
+/docs/*
+*/**/docs/
 /.audit/
 /DESIGN.md
 /.cursor/

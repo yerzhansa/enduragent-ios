@@ -12,6 +12,7 @@ make check-source
 make check-coverage
 make lint-swift
 make check-format
+make test-tools
 make test-swift
 swift build -c release --package-path apps/ios/Packages/EnduragentCoach
 make project

@@ -1,29 +1,17 @@
 # Enduragent for iPhone
 
-## Code
+Each rule names what enforces it. A rule enforced only by review is a judgment call.
 
-- No comments. No `//`, `/* */`, `///`, `// MARK:`, or `// swiftlint:disable`. The only exception is the swift-tools-version header in `Package.swift`. If code needs a comment, rename, split, or restructure it.
-- No workarounds. No band-aids, "for now", temporary fixes, `TODO`, `FIXME`, or `HACK`. Fix the root cause or stop and report why you cannot.
-- No second way to do something that already has one. One transport, one state model, one localization path through `CatalogKey`, one credits flow. Extend the existing path or replace it in the same change.
-- Delete before you add. Remove dead code, unused types, and stale fixtures in the same change that touches them. Prefer the smallest diff that solves the problem.
-- Never silence a failure. No `try?`, and no catch that discards the error. Use `try` and handle or propagate the error. To ignore one failure on purpose, catch its type, as in `catch is CancellationError`. The only allowed `try?` is a probing decode on a `Decoder` container. No force unwraps, `try!`, `print`, or `fatalError` without a message. In tests use `try #require(...)`.
-- Add no SwiftLint baseline, and no `excluded` path that hides a violation.
-
-## Language
-
-- Use the terms in `CONTEXT.md`.
-
-## Git and pull requests
-
-- Every task branches off the latest `origin/main`. Delete the branch after merge.
-- In a stacked sequence, leave a parent branch until the pull request that depends on it is merged. Then retarget the child to `main`, merge it, and delete both branches.
-- Format commits as Conventional Commits: `<type>(ios): <description>`.
-- Start the review and the screen tests as soon as the pull request opens, while CI runs.
-- Open every PR you create as a draft.
-- Mark a PR ready only after CI passes and, for UI changes, `verify-ios` has run on the final version.
-- Fix Critical and required review findings in the pull request. File every other finding with the `ledger` skill.
-
-## Done means proven
-
-- For UI changes, run the `verify-ios` skill and look at the screen you changed.
-- Before a PR merges, every new or changed test in it passes the authoring gate in the `test-audit` skill.
+| Rule | Enforced by |
+| --- | --- |
+| No comments, `TODO`, `FIXME`, `HACK` or `swiftlint:disable`. Rename, split or restructure instead. | SwiftLint `no_comments`, `todo`; check-source `lint-disable` |
+| Never silence a failure. No `try?` except a probing decode on a `Decoder` container. To ignore one failure on purpose, catch its type, as in `catch is CancellationError`. No force unwraps, `try!`, `print`, or `fatalError` without a message. In tests use `try #require(...)`. | SwiftLint `optional_try`, `swallowed_error`, `force_unwrapping`, `force_try`, `no_print`, `fatal_error_message` |
+| One way to do each thing: one transport, one state model, one localization path through `CatalogKey`, one credits flow. Extend or replace the existing path in the same change. | SwiftLint and check-source ownership rules, such as `one_session_factory`; review |
+| Fix the root cause, with no workaround or "for now" fix. Prefer the smallest diff that solves the problem. Delete dead code, unused types and stale fixtures you touch. | Review |
+| No SwiftLint baseline, and no `excluded` path that hides a violation. | Review |
+| Use the terms in `CONTEXT.md`. | Review |
+| Branch off the latest `origin/main`. Commit as `<type>(ios): <description>`. Open every PR as a draft. In a stack, keep a parent branch until its child merges. Delete the branch after merge. | Review |
+| Start the review when the PR opens. Mark it ready after CI passes and, for UI changes, after `verify-ios` ran on the final version. Fix Critical and Required findings and file the rest with the `ledger` skill. | CI starts the screen tests; review |
+| Every new or changed test passes the authoring gate in the `test-audit` skill. | Review |
+| A change is done when the commands under Development in `README.md` pass. | CI runs the same targets |
+| When the operator says to keep going, decide and continue. End the turn with `Done.` or the one step only they can take. | Stop hook `make turn-end` |
