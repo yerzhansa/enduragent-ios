@@ -34,6 +34,14 @@
 			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
 		},
 		{
+			"type": "NSPrivacyCollectedDataTypePurchaseHistory",
+			"label": "Purchase History",
+			"data": "Credits purchases the Credits service keeps for the Credits id: transaction ids, pack, price, currency and environment.",
+			"linked": true,
+			"tracking": false,
+			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+		},
+		{
 			"type": "NSPrivacyCollectedDataTypeCustomerSupport",
 			"label": "Customer Support",
 			"data": "A feedback note, sent with the channel ios and a random id, and no athlete id.",
