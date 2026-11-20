@@ -73,6 +73,17 @@ final class CreditsProof: XCTestCase {
 		let balance = TutorialHarness.named(app, "credits.balance")
 		TutorialHarness.wait(balance)
 		XCTAssertEqual(balance.label, "200 credits")
+		for (pack, line) in [
+			("small", "401 credits · $4.99"), ("medium", "802 credits · $9.99"),
+			("large", "1,606 credits · $19.99"),
+		] {
+			XCTAssertEqual(
+				TutorialHarness.named(app, "credits.pack.icu.enduragent.app.credits.\(pack)").label,
+				line)
+			let buy = TutorialHarness.named(app, "credits.buy.icu.enduragent.app.credits.\(pack)")
+			XCTAssertEqual(buy.label, "Buy")
+			XCTAssertTrue(buy.isEnabled)
+		}
 		XCTAssertEqual(
 			TutorialHarness.named(app, "credits.switchToOpenRouter").label,
 			TutorialHarness.switchToOpenRouter)

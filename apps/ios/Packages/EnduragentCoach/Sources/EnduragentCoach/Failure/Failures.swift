@@ -133,6 +133,8 @@ public struct AthleteNotice: Sendable, Equatable {
 public enum RecoveryAction: Sendable, Equatable {
 	case tryAgain(TurnID)
 	case wait(thenTryAgain: TurnID)
+	case buyCredits
+	case askAppleForRefund(CreditsPurchase.ID)
 	case chooseAccessMethod
 	case switchToOpenRouter
 	case signInToOpenRouter
@@ -141,6 +143,8 @@ public enum RecoveryAction: Sendable, Equatable {
 	public var title: CatalogKey {
 		switch self {
 		case .tryAgain, .wait: Catalog.chatTranscriptRetry
+		case .buyCredits: Catalog.chatTurnBuyCredits
+		case .askAppleForRefund: Catalog.creditsPurchaseAskForRefund
 		case .chooseAccessMethod: Catalog.chatTurnChooseAccessMethod
 		case .switchToOpenRouter: Catalog.accessSwitchToOpenRouter
 		case .signInToOpenRouter: Catalog.chatTurnSignInAgain
@@ -230,7 +234,7 @@ package enum AthleteNotices {
 			return AthleteNotice(key: Catalog.accessErrorRequestBlocked, actions: [])
 		case .model(.accessExhausted(.credits)):
 			return AthleteNotice(
-				key: Catalog.creditsErrorExhausted, actions: [.switchToOpenRouter])
+				key: Catalog.creditsErrorExhausted, actions: [.buyCredits, .switchToOpenRouter])
 		case .model(.accessExhausted(.openRouterAccount)):
 			return AthleteNotice(
 				key: Catalog.accessErrorOpenRouterFunds, actions: [.chooseAccessMethod])

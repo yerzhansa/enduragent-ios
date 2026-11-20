@@ -76,7 +76,8 @@ struct AccessSettingsTests {
 		if outcome == .zero {
 			#expect(
 				model.creditsNotice?.sentence(in: model.displayLocale)
-					== "You're out of Credits. You can switch to your OpenRouter account.")
+					== "You're out of Credits. You can buy Credits or switch to your OpenRouter account."
+			)
 		}
 	}
 

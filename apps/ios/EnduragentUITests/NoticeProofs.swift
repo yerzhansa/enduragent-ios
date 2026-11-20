@@ -8,11 +8,19 @@ final class NoticeCopyProof: XCTestCase {
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.exchange(app, "fixture:fail 402")
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.creditsExhausted))
+		let buy = TutorialHarness.named(app, "chat.turn.buyCredits")
+		XCTAssertEqual(buy.label, TutorialHarness.buyCredits)
 		XCTAssertEqual(
 			app.buttons.matching(identifier: "chat.turn.switchToOpenRouter").firstMatch.label,
 			TutorialHarness.switchToOpenRouter)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "notice-copy-credits-exhausted", app: app)
+		buy.tap()
+		let balance = TutorialHarness.named(app, "credits.balance")
+		TutorialHarness.wait(balance)
+		XCTAssertEqual(balance.label, "0 credits")
+		TutorialHarness.attach(self, name: "notice-copy-buy-credits-opens-credits", app: app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, "fixture:fail 401")
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.accessRejected))
 		XCTAssertEqual(
@@ -115,6 +123,9 @@ final class FrenchNoticesProof: XCTestCase {
 		TutorialHarness.exchange(app, "fixture:fail 402")
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: phrasebook.say(Catalog.creditsErrorExhausted)))
+		XCTAssertEqual(
+			TutorialHarness.named(app, "chat.turn.buyCredits").label,
+			phrasebook.say(Catalog.chatTurnBuyCredits))
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.turn.switchToOpenRouter").label,
 			phrasebook.say(Catalog.accessSwitchToOpenRouter))

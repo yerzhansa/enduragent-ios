@@ -33,10 +33,6 @@ ClaimOutcome
 ClaimOutcome.alreadyClaimed
 ClaimOutcome.minted
 ClaimOutcome.toppedUp
-ClaimSettlement
-ClaimSettlement.finish
-ClaimSettlement.recoverThenFinish
-ClaimSettlement.settlement(after:hasKey:)
 CoalescingPolicy
 CoalescingPolicy.init(window:)
 CoalescingPolicy.npm

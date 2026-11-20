@@ -50,7 +50,7 @@ struct CloseoutEvidenceTests {
 							"creditsExhaustionPreservesSavedConversationAndMemory"),
 						test(
 							"BillingIdentityTests",
-							"outOfCreditsNoticeKeepsItsActionAfterReopeningAndInHistory"),
+							"outOfCreditsNoticeKeepsBothActionsAfterReopeningAndInHistory"),
 						proof(
 							"BillingIdentityProof", "BillingIdentityProof",
 							"testExhaustedCreditsKeepMemoryAndMessagesAndOfferWorkingRoutes"),

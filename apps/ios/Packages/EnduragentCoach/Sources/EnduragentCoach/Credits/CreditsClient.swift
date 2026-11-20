@@ -103,11 +103,11 @@ public protocol CreditsClient: Sendable {
 	func erase() async throws
 }
 
-public enum ClaimSettlement: Sendable, Equatable {
+package enum ClaimSettlement: Sendable, Equatable {
 	case finish
 	case recoverThenFinish
 
-	public static func settlement(after outcome: ClaimOutcome, hasKey: Bool) -> ClaimSettlement {
+	package static func settlement(after outcome: ClaimOutcome, hasKey: Bool) -> ClaimSettlement {
 		if outcome == .alreadyClaimed && !hasKey {
 			return .recoverThenFinish
 		}

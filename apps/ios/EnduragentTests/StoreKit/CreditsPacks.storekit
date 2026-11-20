@@ -1,0 +1,64 @@
+{
+  "identifier": "5E1B4D0A-7C1F-4C55-9E7B-3F3C2A6B9D10",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "6811796101",
+      "localizations": [
+        {
+          "description": "Credits for the coach's built-in model.",
+          "displayName": "401 credits",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "icu.enduragent.app.credits.small",
+      "referenceName": "Credits small",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "6811796102",
+      "localizations": [
+        {
+          "description": "Credits for the coach's built-in model.",
+          "displayName": "802 credits",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "icu.enduragent.app.credits.medium",
+      "referenceName": "Credits medium",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "19.99",
+      "familyShareable": false,
+      "internalID": "6811796103",
+      "localizations": [
+        {
+          "description": "Credits for the coach's built-in model.",
+          "displayName": "1606 credits",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "icu.enduragent.app.credits.large",
+      "referenceName": "Credits large",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_applicationInternalID": "6811796090",
+    "_developerTeamID": "FA494ACVTF",
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storefront": "USA",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

@@ -25,7 +25,8 @@ enum TutorialHarness {
 	static let accessRejected =
 		"Your Credits couldn't be used. You can switch to your OpenRouter account."
 	static let creditsExhausted =
-		"You're out of Credits. You can switch to your OpenRouter account."
+		"You're out of Credits. You can buy Credits or switch to your OpenRouter account."
+	static let buyCredits = "Buy Credits"
 	static let savedUnverified =
 		"I saved your information, but couldn't verify my response. Please try again."
 	static let notConfigured = "Choose how the coach reaches a model to continue."

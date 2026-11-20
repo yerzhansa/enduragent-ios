@@ -27,6 +27,7 @@ package enum ProblemKind: String, Sendable, Codable, CaseIterable {
 	case erasureNotStarted
 	case erasureNotFinished
 	case erasureUnconfirmed
+	case purchaseNotFinished
 }
 
 extension DiagnosticsEvent {
@@ -102,6 +103,9 @@ extension DiagnosticsEvent {
 			ProblemLine(.erasureNotFinished, cause: failure.code, detail: ProblemCode(caseOf: step))
 		case .erasureUnconfirmed(let failure):
 			ProblemLine(.erasureUnconfirmed, cause: failure.code)
+		case .purchaseNotFinished(let step, let failure):
+			ProblemLine(
+				.purchaseNotFinished, cause: failure.code, detail: ProblemCode(caseOf: step))
 		}
 	}
 

@@ -83,6 +83,10 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: EnduragentTests
+        excludes:
+          - StoreKit/CreditsPacks.storekit
+      - path: EnduragentTests/StoreKit/CreditsPacks.storekit
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.tests
@@ -95,6 +99,7 @@ targets:
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - target: Enduragent
+      - sdk: StoreKitTest.framework
   EnduragentPhoneTests:
     type: bundle.ui-testing
     platform: iOS

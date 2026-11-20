@@ -41,7 +41,7 @@ final class ShellModel {
 	private let submission: ChatSubmission
 	var drafts: DraftStore { submission.drafts }
 	private let onboarding: OnboardingModel
-	private let credits: CreditsModel
+	let credits: CreditsModel
 	private let archive: HistoryModel
 	private var statuses: AsyncStream<CoachStatus>.Iterator
 	private var observation: Task<Void, Never>?
@@ -96,8 +96,6 @@ final class ShellModel {
 	var starterResolved: Bool { onboarding.starterResolved }
 	private(set) var consentNotSaved = false
 	private(set) var isRecordingConsent = false
-	var balance: Credits? { credits.balance }
-	var creditsNotice: AthleteNotice? { credits.notice }
 	var history: HistoryList { archive.list }
 
 	var services: AppServices {
@@ -281,10 +279,6 @@ final class ShellModel {
 		-> ArchivedConversationContent
 	{
 		await archive.loadArchivedConversation(ref)
-	}
-
-	func loadCredits() async {
-		await credits.load()
 	}
 
 	func draftChanged(from previous: String) { submission.draftChanged(from: previous) }
