@@ -235,6 +235,7 @@ struct SimCommandTests {
 					environment: fails ? ["VERIFY_FAIL_CLASS": "ReviewLanguageProof"] : [:])
 				#expect(result.status == (fails ? 1 : 0), "\(result.errors)")
 				#expect(try fixture.read("\(fixture.root)/appearance") == "light")
+				#expect(try fixture.calls().allSatisfy { !$0.arguments.contains("terminate") })
 				#expect(
 					try fixture.read(recorded)
 						== "light \(proofs.map { "-only-testing:EnduragentUITests/\($0)" }.joined(separator: " "))\n"
@@ -325,6 +326,10 @@ struct SimCommandTests {
 						"-EnduragentFixtureStore", "keep", "-EnduragentFixtureReply", "slow",
 					]
 				])
+			let terminations = try fixture.calls().map(\.arguments).filter {
+				$0.contains("terminate")
+			}
+			#expect(terminations == [["simctl", "terminate", udid, "icu.enduragent.app"]])
 		}
 	}
 

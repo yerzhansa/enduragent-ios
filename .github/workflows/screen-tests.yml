@@ -49,7 +49,7 @@ jobs:
       - name: Print the per-class times
         if: always()
         run: cat "$HOME/Library/Logs/enduragent-verify/smoke/summary.json"
-      - name: Tell whether the simulator booted from the warm simulator
+      - name: Tell whether the run booted from the warm simulator
         id: seeded
         if: always()
         run: |

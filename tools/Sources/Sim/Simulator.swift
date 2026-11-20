@@ -189,6 +189,11 @@ struct Simulator {
 		}
 	}
 
+	func appRunning(_ udid: String) throws -> Bool {
+		try capture("xcrun", ["simctl", "spawn", udid, "launchctl", "list"])
+			.contains("UIKitApplication:\(bundleID)")
+	}
+
 	func findSim(_ id: String) throws -> Device? {
 		try devices().first { $0.name.hasSameUnits(as: simName(id)) }
 	}

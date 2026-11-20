@@ -16,6 +16,7 @@ struct SimFixtureTool {
 	var deviceRecords: String { NodePath.join(root, "device-records") }
 	var appearance: String { NodePath.join(root, "appearance") }
 	var deviceData: String { NodePath.join(root, "device-data") }
+	var runningApps: String { NodePath.join(root, "running-apps") }
 
 	static func main() throws {
 		let environment = ProcessInfo.processInfo.environment
@@ -201,6 +202,23 @@ struct SimFixtureTool {
 			let earlier = FileManager.default.fileExists(atPath: booted) ? try read(booted) : ""
 			try write("\(earlier)\(try read(lifecycle))\n", to: booted)
 			try write("\(try read(lifecycle)) booted", to: lifecycle)
+		case "launch":
+			try FileManager.default.createDirectory(
+				atPath: runningApps, withIntermediateDirectories: true)
+			try write(try argument(4), to: NodePath.join(runningApps, try argument(3)))
+		case "terminate":
+			let running = NodePath.join(runningApps, try argument(2))
+			guard FileManager.default.fileExists(atPath: running) else {
+				try FileHandle.standardError.write(
+					contentsOf: Data("found nothing to terminate\n".utf8))
+				return 3
+			}
+			try FileManager.default.removeItem(atPath: running)
+		case "spawn" where arguments.count > 4 && arguments[3] == "launchctl":
+			let running = NodePath.join(runningApps, try argument(2))
+			if FileManager.default.fileExists(atPath: running) {
+				try say("4242\t0\tUIKitApplication:\(try read(running))[a1b2][rb-legacy]\n")
+			}
 		case "shutdown":
 			let lifecycle = try lifecycle(of: try argument(2))
 			try write("\(try read(lifecycle)) shut down", to: lifecycle)
