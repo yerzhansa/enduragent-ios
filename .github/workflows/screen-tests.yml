@@ -6,12 +6,9 @@ on:
       - apps/ios/**
       - tools/**
       - .github/workflows/screen-tests.yml
-  push:
-    branches: [main]
-    paths:
-      - apps/ios/**
-      - tools/**
-      - .github/workflows/screen-tests.yml
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -27,7 +24,7 @@ jobs:
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     outputs:
-      warm: ${{ steps.warm.outputs.cache-hit }}
+      seeded: ${{ steps.seeded.outputs.seeded }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - name: Install pinned XcodeGen
@@ -36,28 +33,35 @@ jobs:
           echo '4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806  /tmp/xcodegen.zip' | shasum -a 256 -c -
           unzip -q /tmp/xcodegen.zip -d /tmp/xcodegen
           echo /tmp/xcodegen/xcodegen/bin >> "$GITHUB_PATH"
-      - name: Name the warm simulator of this runner image
-        id: image
-        run: echo "key=warm-simulator-$ImageOS-$ImageVersion-${{ hashFiles('.github/workflows/screen-tests.yml') }}" | tee -a "$GITHUB_OUTPUT"
-      - name: Restore the warm simulator
+      - name: Restore the newest warm simulator
         id: warm
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ${{ runner.temp }}/warm-simulator
-          key: ${{ steps.image.outputs.key }}
+          key: warm-simulator-${{ hashFiles('.github/workflows/screen-tests.yml') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: warm-simulator-${{ hashFiles('.github/workflows/screen-tests.yml') }}-
       - name: Build the app and the screen test runner
         run: swift run --quiet --package-path tools sim build
       - name: Run the smoke set
         env:
-          ENDURAGENT_SIM_TEMPLATE: ${{ steps.warm.outputs.cache-hit == 'true' && format('{0}/warm-simulator', runner.temp) || '' }}
+          ENDURAGENT_SIM_TEMPLATE: ${{ steps.warm.outputs.cache-matched-key != '' && format('{0}/warm-simulator', runner.temp) || '' }}
         run: swift run --quiet --package-path tools sim shard smoke FirstConversationProof FailureNoticesProof ReviewProof HistoryArchivedProof AccessNoticeProof
       - name: Print the per-class times
         if: always()
         run: cat "$HOME/Library/Logs/enduragent-verify/smoke/summary.json"
+      - name: Tell whether the run booted from the warm simulator
+        id: seeded
+        if: always()
+        run: |
+          if grep -q '"template"' "$HOME/Library/Logs/enduragent-verify/smoke/run.json"; then
+            echo seeded=true | tee -a "$GITHUB_OUTPUT"
+          else
+            echo seeded=false | tee -a "$GITHUB_OUTPUT"
+          fi
 
   warm:
     needs: smoke
-    if: always() && needs.smoke.result != 'cancelled' && needs.smoke.outputs.warm != 'true'
+    if: always() && needs.smoke.result != 'cancelled' && needs.smoke.outputs.seeded != 'true'
     runs-on: macos-26
     timeout-minutes: 30
     concurrency:
@@ -67,22 +71,10 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-      - name: Name the warm simulator of this runner image
-        id: image
-        run: echo "key=warm-simulator-$ImageOS-$ImageVersion-${{ hashFiles('.github/workflows/screen-tests.yml') }}" | tee -a "$GITHUB_OUTPUT"
-      - name: Look for the warm simulator
-        id: warm
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ${{ runner.temp }}/warm-simulator
-          key: ${{ steps.image.outputs.key }}
-          lookup-only: true
       - name: Boot a new simulator and let iOS finish its first-run work
-        if: steps.warm.outputs.cache-hit != 'true'
         run: swift run --quiet --package-path tools sim warm --template "$RUNNER_TEMP/warm-simulator" --settle 600
       - name: Save the warm simulator
-        if: steps.warm.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ${{ runner.temp }}/warm-simulator
-          key: ${{ steps.image.outputs.key }}
+          key: warm-simulator-${{ hashFiles('.github/workflows/screen-tests.yml') }}-${{ github.run_id }}-${{ github.run_attempt }}
