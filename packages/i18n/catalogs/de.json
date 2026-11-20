@@ -105,7 +105,6 @@
       "activeUnavailable": "Die aktiven Coach-Einstellungen sind nicht verfügbar oder nicht eingerichtet.",
       "automatic": "Automatisch",
       "changeRequired": "Änderung erforderlich",
-      "chooseModel": "Modell auswählen",
       "chooseProvider": "Anbieter auswählen",
       "chooseProviderFirst": "Wähle zuerst einen Anbieter",
       "currentRoute": "Aktuell aktiv: {{provider}} · {{model}}",
@@ -120,7 +119,6 @@
       },
       "inactive": "Nicht aktiv",
       "loading": "Coach-Einstellungen werden geladen…",
-      "model": "Modell",
       "notConfigured": "Nicht eingerichtet",
       "otherModel": "Anderes Modell…",
       "provider": "Anbieter",
@@ -656,7 +654,6 @@
         "mostCapable": "leistungsfähigstes Modell",
         "recommended": "empfohlen"
       },
-      "modelVia": "{{model}} (über {{provider}})",
       "otherModel": "Anderes Modell…",
       "pending": {
         "activation": "Betreibt deinen Coach · Angemeldet · Aktivierung erforderlich",
@@ -1488,12 +1485,10 @@
     "menu": "Menü",
     "turn": {
       "buyCredits": "Guthaben kaufen",
-      "chooseAccessMethod": "Zugriffsmethode wählen",
       "finishedWhileLocked": "Abgeschlossen, während das Telefon gesperrt war.",
       "interruptedNothingChanged": "Diese Antwort wurde vorzeitig beendet. Es wurde nichts geändert.",
       "interruptedSomeSaved": "Diese Antwort wurde vorzeitig beendet. Einige Angaben wurden zuvor gespeichert.",
-      "receivedBeforeClose": "Vor dem Schließen der App empfangen. Tippe auf Erneut versuchen, um die Nachricht zu senden.",
-      "signInAgain": "Erneut anmelden"
+      "receivedBeforeClose": "Vor dem Schließen der App empfangen. Tippe auf Erneut versuchen, um die Nachricht zu senden."
     },
     "welcome": "Willkommen bei {{product}}!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von {{service}}-Daten verfolgen.\n\nBefehle:\n{{commands}}\n\nOder sprich einfach mit mir über dein Training!",
     "welcomeCommand": "{{command}} — {{description}}",
@@ -2694,7 +2689,6 @@
       "rateLimitMinutes_other": "Anfragelimit erreicht. Versuche es in etwa {{minutes}} Minuten erneut.",
       "rateLimitSeconds_one": "Anfragelimit erreicht. Versuche es in etwa {{seconds}} Sekunde erneut.",
       "rateLimitSeconds_other": "Anfragelimit erreicht. Versuche es in etwa {{seconds}} Sekunden erneut.",
-      "reauth": "Deine Anmeldung bei {{provider}} ist nicht mehr gültig. Melde dich erneut an, um fortzufahren.",
       "reauthSetup": "Deine Anmeldung bei {{provider}} ist nicht mehr gültig. Öffne die Einrichtung und melde dich erneut an.",
       "unknown": "Entschuldige, etwas ist schiefgelaufen. Versuche es bitte erneut."
     },
@@ -3019,8 +3013,8 @@
     "balance_one": "{{formattedCount}} Guthabenpunkt",
     "balance_other": "{{formattedCount}} Guthabenpunkte",
     "error": {
-      "accessRejected": "Deine Guthabenpunkte konnten nicht verwendet werden. Du kannst zu deinem OpenRouter-Konto wechseln.",
-      "exhausted": "Du hast keine Guthabenpunkte mehr. Du kannst Guthaben kaufen oder zu deinem OpenRouter-Konto wechseln.",
+      "accessRejected": "Deine Guthabenpunkte konnten nicht verwendet werden. Du kannst es uns unter Feedback in den Einstellungen mitteilen.",
+      "exhausted": "Du hast keine Guthabenpunkte mehr. Du kannst Guthaben kaufen.",
       "unavailable": "Guthabenpunkte sind derzeit nicht verfügbar. Versuche es später erneut.",
       "accountChanged": "Das Konto für deine Guthabenpunkte hat sich geändert, während diese Anfrage abgeschlossen wurde. Dein aktuelles Konto wurde beibehalten."
     },
@@ -3033,9 +3027,7 @@
       "failed": "Der Kauf wurde nicht abgeschlossen.",
       "notAdded": "Dein Kauf ist abgeschlossen, aber das Guthaben wurde noch nicht hinzugefügt. Die App versucht es beim nächsten Öffnen erneut.",
       "refused": "Dein Kauf ist abgeschlossen, aber das Guthaben kann nicht hinzugefügt werden. Du kannst Apple um eine Rückerstattung bitten.",
-      "askForRefund": "Apple um Rückerstattung bitten",
-      "addedSwitched_one": "{{formattedCount}} Guthabenpunkt hinzugefügt. Der Coach nutzt jetzt Guthaben.",
-      "addedSwitched_other": "{{formattedCount}} Guthabenpunkte hinzugefügt. Der Coach nutzt jetzt Guthaben."
+      "askForRefund": "Apple um Rückerstattung bitten"
     }
   },
   "onboarding": {
@@ -3073,19 +3065,11 @@
   "access": {
     "error": {
       "locked": "Entsperre dein iPhone, um fortzufahren. Deine Nachricht ist gespeichert.",
-      "notConfigured": "Wähle, wie der Coach auf ein Modell zugreift, um fortzufahren.",
-      "requestBlocked": "OpenRouter hat diese Anfrage blockiert. Versuche ein anderes Modell oder eine andere Nachricht.",
+      "notConfigured": "Dieses iPhone hat keine Guthabenpunkte. Du kannst Guthaben kaufen.",
+      "requestBlocked": "Diese Nachricht wurde blockiert. Versuche eine andere Nachricht.",
       "providerConsentRequired": "Deine Zustimmung ist erforderlich, bevor Chatdaten mit KI-Anbietern geteilt werden.",
-      "openRouterFunds": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten.",
-      "storageUnavailable": "Der sichere Speicher ist vorübergehend nicht verfügbar. Dein Gespräch, dein Verlauf und dein Coaching-Gedächtnis sind noch vorhanden. Versuche es erneut.",
-      "malformed": "Deine gespeicherte Zugriffsmethode konnte nicht gelesen werden. Wähle eine Zugriffsmethode, um fortzufahren."
-    },
-    "title": "Zugriffsmethode",
-    "openRouterAccount": "OpenRouter-Konto",
-    "signIn": "Mit OpenRouter anmelden",
-    "signInCancelled": "Anmeldung abgebrochen. Deine Zugriffsmethode wurde nicht geändert.",
-    "signInIncomplete": "Die OpenRouter-Anmeldung wurde nicht abgeschlossen. Deine Zugriffsmethode wurde nicht geändert. Versuche es erneut.",
-    "switchToOpenRouter": "Zu OpenRouter wechseln"
+      "storageUnavailable": "Der sichere Speicher ist vorübergehend nicht verfügbar. Dein Gespräch, dein Verlauf und dein Coaching-Gedächtnis sind noch vorhanden. Versuche es erneut."
+    }
   },
   "connect": {
     "error": {
@@ -3215,7 +3199,7 @@
       "title": "Alles löschen?",
       "body": "Das kann nicht rückgängig gemacht werden. Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone und aus deiner iCloud gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen, auch gekaufte, und Startguthaben gibt es nur einmal pro iPhone. Nur Apple kann einen Kauf erstatten."
     },
-    "keeps": "Dein intervals.icu-Konto und deine Trainings bleiben auf intervals.icu. Wenn du dich mit deinem eigenen OpenRouter-Konto angemeldet hast, lösche dessen Schlüssel bei OpenRouter.",
+    "keeps": "Dein intervals.icu-Konto und deine Trainings bleiben auf intervals.icu.",
     "progress": "Wird gelöscht…",
     "done": "Alles wurde von diesem iPhone, aus deiner iCloud und aus dem Guthabenpunkte-Dienst gelöscht.",
     "notStarted": "Es wurde nichts gelöscht. Verbinde dich mit dem Internet und versuche es erneut.",

@@ -27,8 +27,7 @@ extension CredentialVaultTests {
 	@Test func lockedKeychainLogsNoDiagnostics() async throws {
 		let memory = FixtureSecretStoreBacking()
 		for account in [
-			"accessSelection", "creditsAccount", "intervalsCredential", "openRouterAccountKey",
-			"openRouterKey", "appAccountToken",
+			"creditsAccount", "intervalsCredential", "openRouterKey", "appAccountToken",
 		] {
 			memory.fail(account, with: errSecInteractionNotAllowed)
 		}
@@ -55,13 +54,6 @@ extension CredentialVaultTests {
 		#expect(status.training == .unavailable(.secureStorageLocked))
 		#expect(status.notice?.key == Catalog.accessErrorLocked)
 		#expect((status.notice?.actions ?? []).isEmpty)
-
-		let memory = FixtureSecretStoreBacking()
-		memory.fail(CredentialSlot.accessSelection.rawValue, with: errSecInteractionNotAllowed)
-		await #expect(throws: AccessUnavailable.secureStorageLocked) {
-			try await vault(ICloudKeychainStore(backing: memory)).modelAccess(
-				builtInModel: testModel)
-		}
 	}
 
 	@Test func malformedItemReportsSlotWithoutContent() async throws {
@@ -104,54 +96,10 @@ extension CredentialVaultTests {
 			Issue.record("expected a failed turn, got \(settled)")
 			return
 		}
-		#expect(failed.notice?.key == Catalog.accessErrorMalformed)
+		#expect(failed.notice?.key == Catalog.creditsErrorAccessRejected)
 		let reopened = try #require(await coach(keychain).currentSnapshot(.main))
 		#expect(reopened.turns.map(\.state) == [settled])
 		#expect(transport.requests.isEmpty)
-	}
-
-	@Test func resolverReadsOnlyTheSelectedMethodKey() async throws {
-		let backing = FixtureSecretStoreBacking()
-		let secrets = ICloudKeychainStore(backing: backing)
-		try secrets.storeCreditsAccount(
-			CreditsAccount(appAccountToken: UUID(), key: "sk-or-credits"))
-		try secrets.storeOpenRouterAccountKey("sk-or-account", at: .legacy)
-		let model = ModelID(rawValue: "test/account-model")
-		try secrets.storeAccessSelection(
-			.init(.openRouter(SavedOpenRouterReference(credential: .legacy, model: model))))
-		let readsBeforeResolving = backing.readCount
-		let vault = vault(secrets)
-		#expect(
-			try await vault.modelAccess(builtInModel: testModel)
-				== ResolvedAccess(
-					credential: ProviderCredential(
-						secret: "sk-or-account", method: .openRouterAccount),
-					model: model,
-					provider: try #require(ModelCatalog.fixture.entries[model]).provider))
-		#expect(
-			backing.readAccounts.dropFirst(readsBeforeResolving) == [
-				CredentialSlot.accessSelection.rawValue,
-				CredentialSlot.openRouterAccountKey.rawValue,
-			])
-		try secrets.delete(.openRouterAccountKey)
-		await #expect(throws: AccessUnavailable.notConfigured(.openRouterAccount)) {
-			try await vault.modelAccess(builtInModel: testModel)
-		}
-		#expect(
-			!backing.readAccounts.dropFirst(readsBeforeResolving).contains(
-				CredentialSlot.creditsAccount.rawValue))
-		try secrets.storeAccessSelection(.init(.credits))
-		#expect(
-			try await vault.modelAccess(builtInModel: testModel)
-				== testAccess(secret: "sk-or-credits"))
-		#expect(
-			backing.readAccounts.dropFirst(readsBeforeResolving).suffix(2) == [
-				CredentialSlot.accessSelection.rawValue, CredentialSlot.creditsAccount.rawValue,
-			])
-		#expect(
-			backing.readAccounts.dropFirst(readsBeforeResolving).filter {
-				$0 == CredentialSlot.openRouterAccountKey.rawValue
-			}.count == 2)
 	}
 
 	@Test func v1ConnectionResolvesItsAthleteOnTheFirstRead() async throws {

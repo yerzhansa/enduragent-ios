@@ -67,7 +67,7 @@ struct PlanPhoneBudgetTests {
 		for (name, steps, planned) in [
 			("m4", Self.allSteps(of: try PhoneSessionTests.committed("m4")), 12),
 			("plan", firstFive, 10),
-			("closeout", Self.allSteps(of: try PhoneSessionTests.committed("closeout")), 32),
+			("closeout", Self.allSteps(of: try PhoneSessionTests.committed("closeout")), 28),
 		] {
 			let plan = try PhoneSessionTests.committed(name)
 			let refused = refusal {

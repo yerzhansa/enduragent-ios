@@ -47,11 +47,6 @@ public struct ModelCatalogEntry: Hashable, Sendable {
 	}
 }
 
-public struct OpenRouterModelChoices: Equatable, Sendable {
-	public let selected: ModelCatalogEntry
-	public let catalog: ModelCatalogStatus
-}
-
 public struct ModelCatalogStatus: Equatable, Sendable {
 	public let catalog: ModelCatalog
 	public let cache: CatalogCacheState

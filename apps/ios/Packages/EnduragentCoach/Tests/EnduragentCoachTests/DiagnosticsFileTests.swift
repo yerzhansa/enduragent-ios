@@ -8,7 +8,7 @@ import Testing
 	static let made = Date(timeIntervalSince1970: 1_793_092_443.5)
 
 	static func file(
-		access: AccessStatus = AccessStatus(state: .credits(.ready), builtInModel: testModel),
+		access: AccessStatus = AccessStatus(availability: .ready, model: testModel),
 		training: TrainingStatus = .unconnected,
 		language: LanguagePreference = .fixed(.fr),
 		device: DeviceFacts = .fixture,
@@ -69,11 +69,13 @@ import Testing
 		let fields = try Self.fields(
 			Self.file(
 				access: AccessStatus(
-					state: .unreadable(.secureStorageLocked), builtInModel: testModel),
+					availability: .unavailable(.secureStorageLocked), model: testModel),
 				training: .unavailable(.secureStorageLocked), language: .automatic,
 				records: .unavailable(.unavailable),
 				journal: .notSaving(since: Self.made, firstCause: .appendFailed)))
-		#expect(fields["access"] == .object(["method": .string("none")]))
+		#expect(
+			fields["access"]
+				== .object(["method": .string("credits"), "availability": .string("unavailable")]))
 		#expect(fields["training"] == .string("unavailable"))
 		#expect(fields["language"] == .string("automatic"))
 		#expect(fields["records"] == .object(["unavailable": .string("ledger.unavailable")]))

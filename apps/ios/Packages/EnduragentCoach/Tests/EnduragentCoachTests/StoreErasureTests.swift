@@ -51,24 +51,27 @@ extension SwiftDataSuites {
 		}
 
 		@Test func deleteEverythingRemovesEveryKeychainItemOfTheService() throws {
-			let backing = FixtureSecretStoreBacking(items: [
-				"openRouterKey": Data("legacy-credits-key".utf8),
-				"appAccountToken": Data(UUID().uuidString.utf8),
-			])
+			let build9 = [
+				"openRouterAccountKey/\(UUID().uuidString)", "accessSelection",
+				"accessSelection/\(UUID().uuidString)",
+			]
+			let backing = FixtureSecretStoreBacking(
+				items: [
+					"openRouterKey": Data("legacy-credits-key".utf8),
+					"appAccountToken": Data(UUID().uuidString.utf8),
+				].merging(build9.map { ($0, Data("build-9-item".utf8)) }) { $1 })
 			let store = ICloudKeychainStore(backing: backing)
 			try store.storeIntervalsConnection(testConnection)
-			let generation = OpenRouterCredentialRef.generation(UUID())
-			try store.storeOpenRouterAccountKey("generation-key", at: generation)
-			try store.prepareAccessSelection(SavedAccessReference(.credits), at: UUID())
+			try backing.installBuild9OpenRouterChoice(model: testModel, key: "legacy-account-key")
 
 			try store.deleteEverything()
 			try store.deleteEverything()
 
 			#expect(try store.creditsAccount() == nil)
 			#expect(try store.intervalsConnection() == nil)
-			#expect(try store.accessSelection() == nil)
-			#expect(try store.openRouterAccountKey(at: generation) == nil)
-			#expect(try backing.copy(account: "openRouterKey") == nil)
+			for account in build9 + ["openRouterKey", "openRouterAccountKey"] {
+				#expect(try backing.copy(account: account) == nil)
+			}
 		}
 
 		@Test func eraseFilesRemovesTheJournalTheKeptNoteTheCatalogAndSharedFiles() throws {

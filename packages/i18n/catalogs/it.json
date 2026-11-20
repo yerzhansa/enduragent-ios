@@ -105,7 +105,6 @@
       "activeUnavailable": "Le impostazioni del coach attivo non sono disponibili o non sono configurate.",
       "automatic": "Automatico",
       "changeRequired": "Modifica necessaria",
-      "chooseModel": "Scegli un modello",
       "chooseProvider": "Scegli un fornitore",
       "chooseProviderFirst": "Scegli prima un fornitore",
       "currentRoute": "Attualmente attivo: {{provider}} · {{model}}",
@@ -120,7 +119,6 @@
       },
       "inactive": "Non attivo",
       "loading": "Caricamento delle impostazioni del coach…",
-      "model": "Modello",
       "notConfigured": "Non configurato",
       "otherModel": "Altro modello…",
       "provider": "Fornitore",
@@ -656,7 +654,6 @@
         "mostCapable": "il più capace",
         "recommended": "consigliato"
       },
-      "modelVia": "{{model}} (tramite {{provider}})",
       "otherModel": "Altro modello…",
       "pending": {
         "activation": "Fa funzionare il tuo coach · accesso effettuato · attivazione necessaria",
@@ -1488,12 +1485,10 @@
     "menu": "Menu",
     "turn": {
       "buyCredits": "Acquista crediti",
-      "chooseAccessMethod": "Scegli il metodo di accesso",
       "finishedWhileLocked": "Terminato mentre il telefono era bloccato.",
       "interruptedNothingChanged": "Questa risposta si è interrotta prima di finire. Non è stato modificato nulla.",
       "interruptedSomeSaved": "Questa risposta si è interrotta prima di finire. Alcune informazioni erano già state salvate.",
-      "receivedBeforeClose": "Ricevuto prima della chiusura dell’app. Tocca Riprova per inviarlo.",
-      "signInAgain": "Accedi di nuovo"
+      "receivedBeforeClose": "Ricevuto prima della chiusura dell’app. Tocca Riprova per inviarlo."
     },
     "welcome": "Ti do il benvenuto su {{product}}!\n\nSono il tuo coach di ciclismo con IA. Posso creare piani di allenamento, suggerire allenamenti e seguire il tuo fitness con i dati di {{service}}.\n\nComandi:\n{{commands}}\n\nOppure parlami del tuo allenamento!",
     "welcomeCommand": "{{command}} — {{description}}",
@@ -2694,7 +2689,6 @@
       "rateLimitMinutes_other": "Limite di richieste raggiunto. Riprova tra circa {{minutes}} minuti.",
       "rateLimitSeconds_one": "Limite di richieste raggiunto. Riprova tra circa {{seconds}} secondo.",
       "rateLimitSeconds_other": "Limite di richieste raggiunto. Riprova tra circa {{seconds}} secondi.",
-      "reauth": "Il tuo accesso a {{provider}} non è più valido. Accedi di nuovo per continuare.",
       "reauthSetup": "Il tuo accesso a {{provider}} non è più valido. Apri la configurazione e accedi di nuovo.",
       "unknown": "Mi dispiace, qualcosa è andato storto. Riprova."
     },
@@ -3019,8 +3013,8 @@
     "balance_one": "{{formattedCount}} credito",
     "balance_other": "{{formattedCount}} crediti",
     "error": {
-      "accessRejected": "Non è stato possibile usare i tuoi crediti. Puoi passare al tuo conto OpenRouter.",
-      "exhausted": "Hai esaurito i crediti. Puoi acquistare crediti o passare al tuo conto OpenRouter.",
+      "accessRejected": "Non è stato possibile usare i tuoi crediti. Puoi dircelo in Feedback, in Impostazioni.",
+      "exhausted": "Hai esaurito i crediti. Puoi acquistare crediti.",
       "unavailable": "I crediti non sono disponibili al momento. Riprova più tardi.",
       "accountChanged": "Il tuo conto crediti è cambiato mentre questa richiesta veniva completata. Il tuo conto attuale è stato mantenuto."
     },
@@ -3033,9 +3027,7 @@
       "failed": "L’acquisto non è stato completato.",
       "notAdded": "Il tuo acquisto è andato a buon fine, ma i crediti non sono ancora stati aggiunti. L’app riproverà la prossima volta che si apre.",
       "refused": "Il tuo acquisto è andato a buon fine, ma i crediti non possono essere aggiunti. Puoi chiedere un rimborso ad Apple.",
-      "askForRefund": "Chiedi un rimborso ad Apple",
-      "addedSwitched_one": "{{formattedCount}} credito aggiunto. Il coach ora usa i Crediti.",
-      "addedSwitched_other": "{{formattedCount}} crediti aggiunti. Il coach ora usa i Crediti."
+      "askForRefund": "Chiedi un rimborso ad Apple"
     }
   },
   "onboarding": {
@@ -3073,19 +3065,11 @@
   "access": {
     "error": {
       "locked": "Sblocca il tuo iPhone per continuare. Il tuo messaggio è salvato.",
-      "notConfigured": "Scegli come il coach accede a un modello per continuare.",
-      "requestBlocked": "OpenRouter ha bloccato questa richiesta. Prova un altro modello o messaggio.",
+      "notConfigured": "Questo iPhone non ha crediti. Puoi acquistare crediti.",
+      "requestBlocked": "Questo messaggio è stato bloccato. Prova un altro messaggio.",
       "providerConsentRequired": "È necessario il tuo consenso prima di condividere i dati della chat con i fornitori di IA.",
-      "openRouterFunds": "Il tuo conto OpenRouter ha esaurito i fondi. Aggiungi fondi su OpenRouter oppure passa ai Crediti.",
-      "storageUnavailable": "L'archivio sicuro è temporaneamente indisponibile. La tua conversazione, la cronologia e la memoria sono ancora qui. Riprova.",
-      "malformed": "Non è stato possibile leggere il tuo metodo di accesso salvato. Scegli un metodo di accesso per continuare."
-    },
-    "title": "Metodo di accesso",
-    "openRouterAccount": "Account OpenRouter",
-    "signIn": "Accedi con OpenRouter",
-    "signInCancelled": "Accesso annullato. Il tuo metodo di accesso non è stato modificato.",
-    "signInIncomplete": "L'accesso a OpenRouter non è stato completato. Il tuo metodo di accesso non è stato modificato. Riprova.",
-    "switchToOpenRouter": "Passa a OpenRouter"
+      "storageUnavailable": "L'archivio sicuro è temporaneamente indisponibile. La tua conversazione, la cronologia e la memoria sono ancora qui. Riprova."
+    }
   },
   "connect": {
     "error": {
@@ -3215,7 +3199,7 @@
       "title": "Eliminare tutto?",
       "body": "L’operazione non si può annullare. Elimina la conversazione, la memoria, il piano salvato, le impostazioni e le chiavi da questo iPhone e dal tuo iCloud, oltre al tuo record dei Crediti. I Crediti non usati vanno persi, compresi quelli acquistati, e i Crediti iniziali vengono dati una sola volta per iPhone. Solo Apple può rimborsare un acquisto."
     },
-    "keeps": "Il tuo account intervals.icu e i tuoi allenamenti restano su intervals.icu. Se hai effettuato l’accesso con il tuo account OpenRouter, elimina la sua chiave su OpenRouter.",
+    "keeps": "Il tuo account intervals.icu e i tuoi allenamenti restano su intervals.icu.",
     "progress": "Eliminazione…",
     "done": "Tutto è stato eliminato da questo iPhone, dal tuo iCloud e dal servizio Crediti.",
     "notStarted": "Non è stato eliminato nulla. Connettiti a internet e riprova.",

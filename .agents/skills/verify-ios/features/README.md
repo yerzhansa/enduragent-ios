@@ -33,11 +33,10 @@ Open `chat.settings`, then `settings.debug`. Settings exists in every build. Its
 | Fixture counters and prompt text | Rows on Debug itself | `fixture.modelRequestCount`, `fixture.historyHead`, and `fixture.replyLanguage`. |
 | Conversation faults | `fixture.failNextAppend`, `fixture.expire` | A failed record append and expired leases. See [chat.md](./chat.md). |
 | Review and calendar faults | `fixture.failReviewRead`, `fixture.failCalendarRead`, `fixture.lockIntervals`, `fixture.calendarCalls`, `fixture.calendarReadFault` | Fail the next read of the open review, fail the next calendar read for both fixture athletes, lock the fixture keychain, count calendar calls, and show whether the calendar read fault is armed or consumed. No test taps or reads them. |
-| OpenRouter rejection | `fixture.rejectTwoRequests`, `fixture.rejectionFailure` | Two overlapping rejected requests for `OpenRouterRecoveryProof`. |
 | Feedback counters | `fixture.feedbackRequests`, `fixture.feedbackStored` | Requests the fake feedback server received and notes it stored. See [support.md](./support.md). |
 | Athlete peers | `fixture.switchAthlete`, `fixture.seedOwnership`, and the other peer rows | See [history.md](./history.md). |
 
-Other fixture-only rows sit on the screens they serve: `fixture.signInCount` and `fixture.completeSignIn` on Access method, `consent.modelRequestCount` on consent, and `fixture.catalogState` in the model picker. `fixture.nativeKeychain` appears only with `-EnduragentFixtureKeychain native-proof`, which the device proofs in [phone.md](../phone.md) use.
+Other fixture-only rows sit on the screens they serve: `consent.modelRequestCount` on consent. `fixture.nativeKeychain` appears only with `-EnduragentFixtureKeychain native-proof`, which the device proofs in [phone.md](../phone.md) use.
 
 The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settled count>`. Existing proofs use `TutorialHarness.exchange` to wait for a whole turn to settle.
 
@@ -50,11 +49,11 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 | [Language](./language.md) | All language rows, fixed language, Automatic on a French phone, saved-language first frame, notice language, regional formats, and the 17-language screen matrix. |
 | [Workout review](./workout-review.md) | One card per change, kept workouts, totals and the approval bar, reviews of 8, 20 and 40 changes, reading order, review languages, approve or cancel, durable outcomes, account changes and upgraded reviews. |
 | [Plan-save card](./plan-save-card.md) | The card a plan save ends with, its fields and "replaces" line, arming, Save plan and Cancel, every state and refused tap, carried cards, reading order, three languages and a waiting review beside it. |
-| [Settings](./settings.md) | Toolbar navigation, Credits and the model picker under Model access, intervals.icu connection and calendar guidance, Session, draft and setup continuity, and French icon actions. |
+| [Settings](./settings.md) | Toolbar navigation, Credits under Model access, intervals.icu connection and calendar guidance, Session, draft and setup continuity, and French icon actions. |
 | [Support](./support.md) | The Support section, Feedback with refusals, not-confirmed notes and Try again, the Diagnostics file and its share outcomes, the not-saving line, and About. |
 | [Your data](./your-data.md) | The Your data section, Delete everything, its confirmation, busy, done, not started, iCloud later and resume after a kill. |
 | [History](./history.md) | Archived conversations, close reasons, read-only content, upgrade, and open-time probes. |
-| [Credits](./credits.md) | Credit count, Credits packs and purchase outcomes, Switch to OpenRouter, unavailable notice, recovery links from a turn, and Access method in Settings. |
+| [Credits](./credits.md) | Credit count, Credits packs and purchase outcomes, unavailable notice, and Buy Credits from a turn. |
 
 ## Maintaining the map
 

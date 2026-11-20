@@ -48,11 +48,17 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		}
 	}
 
-	public func corruptAccessSelection() throws {
+	public func installBuild9OpenRouterChoice(model: ModelID, key: String) throws {
+		let selection = try JSONSerialization.data(
+			withJSONObject: ["openRouterAccount": ["model": model.rawValue]])
 		try lock.withLock {
-			let account = CredentialSlot.accessSelection.rawValue
-			try check(account, writing: true)
-			try persist(account: account, data: Data("fixture-malformed-selection".utf8))
+			for (account, data) in [
+				("openRouterAccountKey", Data(key.utf8)),
+				(CredentialSlot.accessSelection.rawValue, selection),
+			] {
+				try check(account, writing: true)
+				try persist(account: account, data: data)
+			}
 		}
 	}
 
@@ -151,7 +157,7 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		}
 	}
 
-	package func copy(account: String) throws -> Data? {
+	public func copy(account: String) throws -> Data? {
 		try lock.withLock {
 			copied.append(account)
 			try check(account)

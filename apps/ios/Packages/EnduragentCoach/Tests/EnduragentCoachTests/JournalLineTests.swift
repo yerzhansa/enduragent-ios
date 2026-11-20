@@ -101,7 +101,7 @@ import Testing
 	static let projectedCodes: [(FailureCode, String)] = [
 		(.ledger(.unavailable), "ledger.unavailable"),
 		(.url(-1009), "url(-1009)"),
-		(.type(.signInFailure), "type.signInFailure"),
+		(.type(.credentialFailure), "type.credentialFailure"),
 		(
 			.unclassified(ErrorTypeName("EnduragentCoachTests.SecretBearingError")),
 			"unclassified.EnduragentCoachTests.SecretBearingError"

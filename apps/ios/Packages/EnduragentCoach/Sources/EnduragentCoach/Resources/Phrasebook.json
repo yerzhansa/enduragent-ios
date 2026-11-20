@@ -425,320 +425,108 @@
         }
       }
     },
-    "access.error.malformed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your saved access method couldn't be read. Choose an access method to continue."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se pudo leer tu método de acceso guardado. Elige un método de acceso para continuar."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Votre méthode d'accès enregistrée n'a pas pu être lue. Choisissez une méthode d'accès pour continuer."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non è stato possibile leggere il tuo metodo di accesso salvato. Scegli un metodo di accesso per continuare."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deine gespeicherte Zugriffsmethode konnte nicht gelesen werden. Wähle eine Zugriffsmethode, um fortzufahren."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je opgeslagen toegangsmethode kon niet worden gelezen. Kies een toegangsmethode om verder te gaan."
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Din gemte adgangsmetode kunne ikke læses. Vælg en adgangsmetode for at fortsætte."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Din sparade åtkomstmetod kunde inte läsas. Välj en åtkomstmetod för att fortsätta."
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Den lagrede tilgangsmåten din kunne ikke leses. Velg en tilgangsmåte for å fortsette."
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tallennettua käyttötapaasi ei voitu lukea. Valitse käyttötapa jatkaaksesi."
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Não foi possível ler o seu método de acesso guardado. Escolha um método de acesso para continuar."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Não foi possível ler seu método de acesso salvo. Escolha um método de acesso para continuar."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nie udało się odczytać zapisanego sposobu dostępu. Wybierz sposób dostępu, aby kontynuować."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "저장된 접근 방식을 읽을 수 없습니다. 접근 방식을 선택하여 계속하세요."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存されたアクセス方法を読み取れませんでした。アクセス方法を選択して続けてください。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法读取已保存的访问方式。请选择访问方式以继续。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "無法讀取已儲存的存取方式。請選擇存取方式以繼續。"
-          }
-        }
-      }
-    },
     "access.error.notConfigured": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose how the coach reaches a model to continue."
+            "value": "This iPhone has no Credits. You can buy Credits."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Elige cómo accede el entrenador a un modelo para continuar."
+            "value": "Este iPhone no tiene créditos. Puedes comprar créditos."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choisis comment le coach accède à un modèle pour continuer."
+            "value": "Cet iPhone n’a pas de crédits. Tu peux acheter des crédits."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scegli come il coach accede a un modello per continuare."
+            "value": "Questo iPhone non ha crediti. Puoi acquistare crediti."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wähle, wie der Coach auf ein Modell zugreift, um fortzufahren."
+            "value": "Dieses iPhone hat keine Guthabenpunkte. Du kannst Guthaben kaufen."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kies hoe de coach een model bereikt om door te gaan."
+            "value": "Deze iPhone heeft geen tegoedpunten. Je kunt tegoed kopen."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vælg, hvordan træneren får adgang til en model, for at fortsætte."
+            "value": "Denne iPhone har ingen kreditter. Du kan købe kreditter."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Välj hur tränaren får tillgång till en modell för att fortsätta."
+            "value": "Den här iPhonen har inga krediter. Du kan köpa krediter."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Velg hvordan treneren får tilgang til en modell for å fortsette."
+            "value": "Denne iPhonen har ingen kreditter. Du kan kjøpe kreditter."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Valitse, miten valmentaja saa yhteyden malliin, jotta voit jatkaa."
+            "value": "Tässä iPhonessa ei ole krediittejä. Voit ostaa krediittejä."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escolhe como o treinador acede a um modelo para continuar."
+            "value": "Este iPhone não tem créditos. Podes comprar créditos."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escolha como o treinador acessa um modelo para continuar."
+            "value": "Este iPhone não tem créditos. Você pode comprar créditos."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wybierz sposób dostępu trenera do modelu, aby kontynuować."
+            "value": "Ten iPhone nie ma kredytów. Możesz kupić kredyty."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "계속하려면 코치가 모델에 연결하는 방법을 선택하세요."
+            "value": "이 iPhone에는 크레딧이 없습니다. 크레딧을 구매할 수 있습니다."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "続けるには、コーチがモデルに接続する方法を選んでください。"
+            "value": "このiPhoneにはクレジットがありません。クレジットを購入できます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请选择教练连接模型的方式以继续。"
+            "value": "这台 iPhone 没有积分。你可以购买积分。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "請選擇教練連接模型的方式以繼續。"
-          }
-        }
-      }
-    },
-    "access.error.openRouterFunds": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu cuenta de OpenRouter no tiene fondos. Añade fondos en OpenRouter o cambia a Créditos."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ton compte OpenRouter n’a plus de fonds. Ajoute des fonds sur OpenRouter ou passe aux Crédits."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Il tuo conto OpenRouter ha esaurito i fondi. Aggiungi fondi su OpenRouter oppure passa ai Crediti."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten."
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ditt OpenRouter-konto har slut på pengar. Fyll på hos OpenRouter eller byt till krediter."
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter-kontoen din er tom for penger. Fyll på hos OpenRouter, eller bytt til kreditter."
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin."
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sua conta OpenRouter está sem saldo. Adicione saldo no OpenRouter ou mude para Créditos."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Na twoim koncie OpenRouter zabrakło środków. Doładuj konto w OpenRouter lub przełącz się na kredyty."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter 계정의 잔액이 부족합니다. OpenRouter에서 충전하거나 크레딧으로 전환하세요."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouterアカウントの残高が不足しています。OpenRouterで入金するか、クレジットに切り替えてください。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "你的 OpenRouter 账户余额不足。请在 OpenRouter 充值，或切换到积分。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "你的 OpenRouter 帳戶餘額不足。請在 OpenRouter 儲值，或切換到點數。"
+            "value": "這支 iPhone 沒有點數。你可以購買點數。"
           }
         }
       }
@@ -854,103 +642,103 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter blocked this request. Try a different model or message."
+            "value": "This message was blocked. Try a different message."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter ha bloqueado esta solicitud. Prueba con otro modelo o mensaje."
+            "value": "Este mensaje se ha bloqueado. Prueba con otro mensaje."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter a bloqué cette demande. Essaie un autre modèle ou message."
+            "value": "Ce message a été bloqué. Essaie un autre message."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter ha bloccato questa richiesta. Prova un altro modello o messaggio."
+            "value": "Questo messaggio è stato bloccato. Prova un altro messaggio."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter hat diese Anfrage blockiert. Versuche ein anderes Modell oder eine andere Nachricht."
+            "value": "Diese Nachricht wurde blockiert. Versuche eine andere Nachricht."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter heeft dit verzoek geblokkeerd. Probeer een ander model of bericht."
+            "value": "Dit bericht is geblokkeerd. Probeer een ander bericht."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter blokerede denne anmodning. Prøv en anden model eller besked."
+            "value": "Denne besked blev blokeret. Prøv en anden besked."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter blockerade den här begäran. Prova en annan modell eller ett annat meddelande."
+            "value": "Det här meddelandet blockerades. Prova ett annat meddelande."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter blokkerte denne forespørselen. Prøv en annen modell eller melding."
+            "value": "Denne meldingen ble blokkert. Prøv en annen melding."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter esti tämän pyynnön. Kokeile toista mallia tai viestiä."
+            "value": "Tämä viesti estettiin. Kokeile toista viestiä."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "O OpenRouter bloqueou este pedido. Experimenta outro modelo ou mensagem."
+            "value": "Esta mensagem foi bloqueada. Experimenta outra mensagem."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O OpenRouter bloqueou esta solicitação. Tente outro modelo ou mensagem."
+            "value": "Esta mensagem foi bloqueada. Tente outra mensagem."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter zablokował to żądanie. Spróbuj innego modelu lub wiadomości."
+            "value": "Ta wiadomość została zablokowana. Spróbuj innej wiadomości."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter가 이 요청을 차단했습니다. 다른 모델이나 메시지를 시도해 보세요."
+            "value": "이 메시지가 차단되었습니다. 다른 메시지를 시도해 보세요."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouterがこのリクエストをブロックしました。別のモデルやメッセージを試してください。"
+            "value": "このメッセージはブロックされました。別のメッセージを試してください。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter 阻止了此请求。请尝试其他模型或消息。"
+            "value": "此消息已被阻止。请尝试其他消息。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter 封鎖了此請求。請嘗試其他模型或訊息。"
+            "value": "此訊息已被封鎖。請嘗試其他訊息。"
           }
         }
       }
@@ -1057,642 +845,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "安全儲存空間暫時無法使用。你的對話、歷史紀錄和記憶仍在。請重試。"
-          }
-        }
-      }
-    },
-    "access.openRouterAccount": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter account"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cuenta de OpenRouter"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Compte OpenRouter"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Account OpenRouter"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter-Konto"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter-account"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter-konto"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter-konto"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter-konto"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter-tili"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conta OpenRouter"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conta OpenRouter"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Konto OpenRouter"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter 계정"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouterアカウント"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter 账户"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter 帳戶"
-          }
-        }
-      }
-    },
-    "access.signIn": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in with OpenRouter"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniciar sesión con OpenRouter"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se connecter avec OpenRouter"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accedi con OpenRouter"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mit OpenRouter anmelden"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inloggen met OpenRouter"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Log ind med OpenRouter"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logga in med OpenRouter"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logg inn med OpenRouter"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kirjaudu OpenRouterilla"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniciar sessão com OpenRouter"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entrar com OpenRouter"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zaloguj się przez OpenRouter"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter로 로그인"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouterでサインイン"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "使用 OpenRouter 登录"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "使用 OpenRouter 登入"
-          }
-        }
-      }
-    },
-    "access.signInCancelled": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign-in cancelled. Your access method was not changed."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inicio de sesión cancelado. Tu método de acceso no ha cambiado."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connexion annulée. Votre méthode d'accès n'a pas été modifiée."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accesso annullato. Il tuo metodo di accesso non è stato modificato."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Anmeldung abgebrochen. Deine Zugriffsmethode wurde nicht geändert."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aanmelden geannuleerd. Je toegangsmethode is niet gewijzigd."
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Login annulleret. Din adgangsmetode blev ikke ændret."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inloggningen avbröts. Ditt åtkomstsätt ändrades inte."
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Innlogging avbrutt. Tilgangsmåten din ble ikke endret."
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kirjautuminen peruutettu. Käyttötapaasi ei muutettu."
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Início de sessão cancelado. O seu método de acesso não foi alterado."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Login cancelado. Seu método de acesso não foi alterado."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logowanie anulowane. Twoja metoda dostępu nie została zmieniona."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "로그인이 취소되었습니다. 접근 방식은 변경되지 않았습니다."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "サインインをキャンセルしました。アクセス方法は変更されていません。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "登录已取消。你的访问方式未更改。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "登入已取消。你的存取方式未變更。"
-          }
-        }
-      }
-    },
-    "access.signInIncomplete": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter sign-in didn't complete. Your access method was not changed. Try again."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El inicio de sesión con OpenRouter no se completó. Tu método de acceso no ha cambiado. Inténtalo de nuevo."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La connexion à OpenRouter n'a pas abouti. Votre méthode d'accès n'a pas été modifiée. Réessayez."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "L'accesso a OpenRouter non è stato completato. Il tuo metodo di accesso non è stato modificato. Riprova."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die OpenRouter-Anmeldung wurde nicht abgeschlossen. Deine Zugriffsmethode wurde nicht geändert. Versuche es erneut."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aanmelden bij OpenRouter is niet voltooid. Je toegangsmethode is niet gewijzigd. Probeer het opnieuw."
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Login med OpenRouter blev ikke gennemført. Din adgangsmetode blev ikke ændret. Prøv igen."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inloggningen med OpenRouter slutfördes inte. Ditt åtkomstsätt ändrades inte. Försök igen."
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Innlogging med OpenRouter ble ikke fullført. Tilgangsmåten din ble ikke endret. Prøv igjen."
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter-kirjautuminen ei valmistunut. Käyttötapaasi ei muutettu. Yritä uudelleen."
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O início de sessão no OpenRouter não foi concluído. O seu método de acesso não foi alterado. Tente novamente."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O login no OpenRouter não foi concluído. Seu método de acesso não foi alterado. Tente novamente."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logowanie do OpenRouter nie zostało ukończone. Twoja metoda dostępu nie została zmieniona. Spróbuj ponownie."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter 로그인이 완료되지 않았습니다. 접근 방식은 변경되지 않았습니다. 다시 시도하세요."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter へのサインインが完了しませんでした。アクセス方法は変更されていません。もう一度お試しください。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter 登录未完成。你的访问方式未更改。请重试。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter 登入未完成。你的存取方式未變更。請重試。"
-          }
-        }
-      }
-    },
-    "access.switchToOpenRouter": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Switch to OpenRouter"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cambiar a OpenRouter"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Passer à OpenRouter"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Passa a OpenRouter"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zu OpenRouter wechseln"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overschakelen naar OpenRouter"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skift til OpenRouter"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Byt till OpenRouter"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bytt til OpenRouter"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vaihda OpenRouteriin"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mudar para OpenRouter"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mudar para OpenRouter"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Przełącz na OpenRouter"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouter로 전환"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OpenRouterに切り替える"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切换到 OpenRouter"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切換到 OpenRouter"
-          }
-        }
-      }
-    },
-    "access.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Access method"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Método de acceso"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Méthode d’accès"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Metodo di accesso"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zugriffsmethode"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toegangsmethode"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Adgangsmetode"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Åtkomstmetod"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tilgangsmåte"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Käyttötapa"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Método de acesso"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Método de acesso"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sposób dostępu"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "접근 방식"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アクセス方法"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "访问方式"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "存取方式"
           }
         }
       }
@@ -74933,112 +74085,6 @@
         }
       }
     },
-    "chat.turn.chooseAccessMethod": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose access method"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Elegir método de acceso"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choisir le mode d’accès"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scegli il metodo di accesso"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zugriffsmethode wählen"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toegangsmethode kiezen"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vælg adgangsmetode"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Välj åtkomstmetod"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Velg tilgangsmåte"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Valitse yhteystapa"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escolher método de acesso"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escolher método de acesso"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wybierz sposób dostępu"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "연결 방법 선택"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "接続方法を選択"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "选择接入方式"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "選擇存取方式"
-          }
-        }
-      }
-    },
     "chat.turn.finishedWhileLocked": {
       "localizations": {
         "en": {
@@ -75459,112 +74505,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "已在應用程式關閉前收到。點一下「重試」即可傳送。"
-          }
-        }
-      }
-    },
-    "chat.turn.signInAgain": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in again"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniciar sesión de nuevo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se reconnecter"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accedi di nuovo"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Erneut anmelden"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opnieuw inloggen"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Log ind igen"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logga in igen"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logg inn igjen"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kirjaudu uudelleen"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniciar sessão novamente"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entrar novamente"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zaloguj się ponownie"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "다시 로그인"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再度サインイン"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新登录"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新登入"
           }
         }
       }
@@ -111829,214 +110769,6 @@
         }
       }
     },
-    "coach.error.reauth": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your %#@provider@ sign-in is no longer valid. Sign in again to continue."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu sesión de %#@provider@ ya no es válida. Vuelve a iniciar sesión para continuar."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ta connexion à %#@provider@ n’est plus valide. Reconnecte-toi pour continuer."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Il tuo accesso a %#@provider@ non è più valido. Accedi di nuovo per continuare."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deine Anmeldung bei %#@provider@ ist nicht mehr gültig. Melde dich erneut an, um fortzufahren."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je aanmelding bij %#@provider@ is niet meer geldig. Log opnieuw in om door te gaan."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dit %#@provider@-login er ikke længere gyldigt. Log ind igen for at fortsætte."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Din inloggning hos %#@provider@ är inte längre giltig. Logga in igen för att fortsätta."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Innloggingen din hos %#@provider@ er ikke lenger gyldig. Logg inn igjen for å fortsette."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@provider@-kirjautumisesi ei enää ole voimassa. Kirjaudu uudelleen jatkaaksesi."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A tua sessão de %#@provider@ já não é válida. Inicia sessão novamente para continuar."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sua sessão de %#@provider@ não é mais válida. Entre novamente para continuar."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Twoje logowanie do %#@provider@ nie jest już ważne. Zaloguj się ponownie, aby kontynuować."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@provider@ 로그인이 더 이상 유효하지 않습니다. 계속하려면 다시 로그인해 주세요."
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@provider@へのログインが無効になりました。続けるには再ログインしてください。"
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@provider@ 登录已失效，请重新登录以继续。"
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@provider@ 登入已失效，請重新登入以繼續。"
-          },
-          "substitutions": {
-            "provider": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        }
-      }
-    },
     "coach.error.reauthSetup": {
       "localizations": {
         "en": {
@@ -119914,103 +118646,103 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your Credits couldn't be used. You can switch to your OpenRouter account."
+            "value": "Your Credits couldn't be used. You can tell us in Feedback, in Settings."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se pudieron usar tus créditos. Puedes cambiar a tu cuenta de OpenRouter."
+            "value": "No se pudieron usar tus créditos. Puedes contárnoslo en Comentarios, en Ajustes."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tes crédits n’ont pas pu être utilisés. Tu peux passer à ton compte OpenRouter."
+            "value": "Tes crédits n’ont pas pu être utilisés. Tu peux nous le dire dans Commentaires, dans Paramètres."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non è stato possibile usare i tuoi crediti. Puoi passare al tuo conto OpenRouter."
+            "value": "Non è stato possibile usare i tuoi crediti. Puoi dircelo in Feedback, in Impostazioni."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deine Guthabenpunkte konnten nicht verwendet werden. Du kannst zu deinem OpenRouter-Konto wechseln."
+            "value": "Deine Guthabenpunkte konnten nicht verwendet werden. Du kannst es uns unter Feedback in den Einstellungen mitteilen."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Je tegoedpunten konden niet worden gebruikt. Je kunt overschakelen naar je OpenRouter-account."
+            "value": "Je tegoedpunten konden niet worden gebruikt. Je kunt het ons laten weten via Feedback, in Instellingen."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dine kreditter kunne ikke bruges. Du kan skifte til din OpenRouter-konto."
+            "value": "Dine kreditter kunne ikke bruges. Du kan fortælle os det under Feedback i Indstillinger."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dina krediter kunde inte användas. Du kan byta till ditt OpenRouter-konto."
+            "value": "Dina krediter kunde inte användas. Du kan berätta det för oss under Feedback i Inställningar."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kredittene dine kunne ikke brukes. Du kan bytte til OpenRouter-kontoen din."
+            "value": "Kredittene dine kunne ikke brukes. Du kan si fra til oss under Tilbakemelding i Innstillinger."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Krediittejäsi ei voitu käyttää. Voit vaihtaa OpenRouter-tiliisi."
+            "value": "Krediittejäsi ei voitu käyttää. Voit kertoa siitä meille kohdassa Palaute Asetuksissa."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não foi possível usar os teus créditos. Podes mudar para a tua conta OpenRouter."
+            "value": "Não foi possível usar os teus créditos. Podes dizer-nos em Comentários, nas Definições."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não foi possível usar seus créditos. Você pode mudar para sua conta OpenRouter."
+            "value": "Não foi possível usar seus créditos. Você pode nos contar em Comentários, nas Configurações."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nie udało się użyć twoich kredytów. Możesz przełączyć się na swoje konto OpenRouter."
+            "value": "Nie udało się użyć twoich kredytów. Możesz nam o tym napisać w sekcji Opinia w Ustawieniach."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "크레딧을 사용할 수 없었습니다. OpenRouter 계정으로 전환할 수 있습니다."
+            "value": "크레딧을 사용할 수 없었습니다. 설정의 피드백에서 알려 주세요."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "クレジットを使用できませんでした。OpenRouterアカウントに切り替えることができます。"
+            "value": "クレジットを使用できませんでした。設定のフィードバックからお知らせください。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法使用你的积分。你可以切换到你的 OpenRouter 账户。"
+            "value": "无法使用你的积分。你可以在设置的反馈中告诉我们。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法使用你的點數。你可以切換到你的 OpenRouter 帳戶。"
+            "value": "無法使用你的點數。你可以在設定的意見回饋中告訴我們。"
           }
         }
       }
@@ -120126,103 +118858,103 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're out of Credits. You can buy Credits or switch to your OpenRouter account."
+            "value": "You're out of Credits. You can buy Credits."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Te has quedado sin créditos. Puedes comprar créditos o cambiar a tu cuenta de OpenRouter."
+            "value": "Te has quedado sin créditos. Puedes comprar créditos."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu n’as plus de crédits. Tu peux acheter des crédits ou passer à ton compte OpenRouter."
+            "value": "Tu n’as plus de crédits. Tu peux acheter des crédits."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hai esaurito i crediti. Puoi acquistare crediti o passare al tuo conto OpenRouter."
+            "value": "Hai esaurito i crediti. Puoi acquistare crediti."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du hast keine Guthabenpunkte mehr. Du kannst Guthaben kaufen oder zu deinem OpenRouter-Konto wechseln."
+            "value": "Du hast keine Guthabenpunkte mehr. Du kannst Guthaben kaufen."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Je tegoedpunten zijn op. Je kunt tegoed kopen of overschakelen naar je OpenRouter-account."
+            "value": "Je tegoedpunten zijn op. Je kunt tegoed kopen."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du er løbet tør for kreditter. Du kan købe kreditter eller skifte til din OpenRouter-konto."
+            "value": "Du er løbet tør for kreditter. Du kan købe kreditter."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dina krediter är slut. Du kan köpa krediter eller byta till ditt OpenRouter-konto."
+            "value": "Dina krediter är slut. Du kan köpa krediter."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du er tom for kreditter. Du kan kjøpe kreditter eller bytte til OpenRouter-kontoen din."
+            "value": "Du er tom for kreditter. Du kan kjøpe kreditter."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Krediittisi ovat loppuneet. Voit ostaa krediittejä tai vaihtaa OpenRouter-tiliisi."
+            "value": "Krediittisi ovat loppuneet. Voit ostaa krediittejä."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os teus créditos acabaram. Podes comprar créditos ou mudar para a tua conta OpenRouter."
+            "value": "Os teus créditos acabaram. Podes comprar créditos."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seus créditos acabaram. Você pode comprar créditos ou mudar para sua conta OpenRouter."
+            "value": "Seus créditos acabaram. Você pode comprar créditos."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Skończyły ci się kredyty. Możesz kupić kredyty lub przełączyć się na swoje konto OpenRouter."
+            "value": "Skończyły ci się kredyty. Możesz kupić kredyty."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "크레딧을 모두 사용했습니다. 크레딧을 구매하거나 OpenRouter 계정으로 전환할 수 있습니다."
+            "value": "크레딧을 모두 사용했습니다. 크레딧을 구매할 수 있습니다."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "クレジットがなくなりました。クレジットを購入するか、OpenRouterアカウントに切り替えることができます。"
+            "value": "クレジットがなくなりました。クレジットを購入できます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的积分已用完。你可以购买积分，或切换到你的 OpenRouter 账户。"
+            "value": "你的积分已用完。你可以购买积分。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的點數已用完。你可以購買點數，或切換到你的 OpenRouter 帳戶。"
+            "value": "你的點數已用完。你可以購買點數。"
           }
         }
       }
@@ -120795,406 +119527,6 @@
             },
             "price": {
               "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        }
-      }
-    },
-    "credits.purchase.addedSwitched": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Added %#@formattedCount@ credit. The coach now uses Credits."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Added %#@formattedCount@ credits. The coach now uses Credits."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Se añadió %#@formattedCount@ crédito. El entrenador ahora usa Créditos."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Se añadieron %#@formattedCount@ créditos. El entrenador ahora usa Créditos."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ crédit ajouté. Le coach utilise désormais les Crédits."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ crédits ajoutés. Le coach utilise désormais les Crédits."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "it": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ credito aggiunto. Il coach ora usa i Crediti."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ crediti aggiunti. Il coach ora usa i Crediti."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ Guthabenpunkt hinzugefügt. Der Coach nutzt jetzt Guthaben."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ Guthabenpunkte hinzugefügt. Der Coach nutzt jetzt Guthaben."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nl": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ tegoedpunt toegevoegd. De coach gebruikt nu tegoed."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ tegoedpunten toegevoegd. De coach gebruikt nu tegoed."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "da": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Tilføjede %#@formattedCount@ kredit. Træneren bruger nu kreditter."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Tilføjede %#@formattedCount@ kreditter. Træneren bruger nu kreditter."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "sv": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Lade till %#@formattedCount@ kredit. Tränaren använder nu krediter."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Lade till %#@formattedCount@ krediter. Tränaren använder nu krediter."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nb": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "La til %#@formattedCount@ kreditt. Treneren bruker nå kreditter."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "La til %#@formattedCount@ kreditter. Treneren bruker nå kreditter."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fi": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Lisätty %#@formattedCount@ krediitti. Valmentaja käyttää nyt krediittejä."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Lisätty %#@formattedCount@ krediittiä. Valmentaja käyttää nyt krediittejä."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-PT": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ crédito adicionado. O treinador passa a usar Créditos."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ créditos adicionados. O treinador passa a usar Créditos."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ crédito adicionado. O treinador agora usa Créditos."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ créditos adicionados. O treinador agora usa Créditos."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pl": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Dodano %#@formattedCount@ kredyt. Trener używa teraz kredytów."
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Dodano %#@formattedCount@ kredyty. Trener używa teraz kredytów."
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Dodano %#@formattedCount@ kredytów. Trener używa teraz kredytów."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Dodano %#@formattedCount@ kredytu. Trener używa teraz kredytów."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ko": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ 크레딧 추가됨. 이제 코치가 크레딧을 사용합니다."
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ja": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@クレジットを追加しました。コーチは現在クレジットを使用しています。"
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hans": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "已添加 %#@formattedCount@ 积分。教练现在使用积分。"
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hant": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "已新增 %#@formattedCount@ 點數。教練現在使用點數。"
-                }
-              }
-            }
-          },
-          "substitutions": {
-            "formattedCount": {
-              "argNum": 1,
               "formatSpecifier": "@"
             }
           }
@@ -218779,112 +217111,6 @@
         }
       }
     },
-    "settings.coach.chooseModel": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose a model"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Elige un modelo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choisis un modèle"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scegli un modello"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modell auswählen"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kies een model"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vælg en model"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Välj en modell"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Velg en modell"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Valitse malli"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escolhe um modelo"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escolha um modelo"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wybierz model"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "모델 선택"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "モデルを選択"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "选择模型"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "選擇模型"
-          }
-        }
-      }
-    },
     "settings.coach.chooseProvider": {
       "localizations": {
         "en": {
@@ -220425,112 +218651,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在載入教練設定…"
-          }
-        }
-      }
-    },
-    "settings.coach.model": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Model"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modelo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modèle"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modello"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modell"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Model"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Model"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modell"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modell"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Malli"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modelo"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modelo"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Model"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "모델"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "モデル"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "模型"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "模型"
           }
         }
       }
@@ -283187,282 +281307,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "建議"
-          }
-        }
-      }
-    },
-    "setup.ai.modelVia": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (via %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (mediante %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (via %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (tramite %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (über %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (via %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (via %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (via %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (via %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (palveluntarjoaja %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (via %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (via %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (przez %#@provider@)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@ (%#@provider@ 경유)"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@（%#@provider@経由）"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@（通过 %#@provider@）"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@model@（透過 %#@provider@）"
-          },
-          "substitutions": {
-            "model": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "provider": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            }
           }
         }
       }
@@ -394980,103 +392824,103 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your intervals.icu account and workouts stay on intervals.icu. If you signed in with your own OpenRouter account, delete its key on OpenRouter."
+            "value": "Your intervals.icu account and workouts stay on intervals.icu."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu cuenta de intervals.icu y tus entrenamientos se quedan en intervals.icu. Si iniciaste sesión con tu propia cuenta de OpenRouter, elimina su clave en OpenRouter."
+            "value": "Tu cuenta de intervals.icu y tus entrenamientos se quedan en intervals.icu."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ton compte intervals.icu et tes entraînements restent sur intervals.icu. Si tu t’es connecté avec ton propre compte OpenRouter, supprime sa clé sur OpenRouter."
+            "value": "Ton compte intervals.icu et tes entraînements restent sur intervals.icu."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Il tuo account intervals.icu e i tuoi allenamenti restano su intervals.icu. Se hai effettuato l’accesso con il tuo account OpenRouter, elimina la sua chiave su OpenRouter."
+            "value": "Il tuo account intervals.icu e i tuoi allenamenti restano su intervals.icu."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dein intervals.icu-Konto und deine Trainings bleiben auf intervals.icu. Wenn du dich mit deinem eigenen OpenRouter-Konto angemeldet hast, lösche dessen Schlüssel bei OpenRouter."
+            "value": "Dein intervals.icu-Konto und deine Trainings bleiben auf intervals.icu."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Je intervals.icu-account en trainingen blijven op intervals.icu. Als je bent ingelogd met je eigen OpenRouter-account, verwijder dan de sleutel daarvan bij OpenRouter."
+            "value": "Je intervals.icu-account en trainingen blijven op intervals.icu."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Din intervals.icu-konto og dine træninger bliver på intervals.icu. Hvis du loggede ind med din egen OpenRouter-konto, skal du slette dens nøgle på OpenRouter."
+            "value": "Din intervals.icu-konto og dine træninger bliver på intervals.icu."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ditt intervals.icu-konto och dina pass finns kvar på intervals.icu. Om du loggade in med ditt eget OpenRouter-konto raderar du dess nyckel hos OpenRouter."
+            "value": "Ditt intervals.icu-konto och dina pass finns kvar på intervals.icu."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "intervals.icu-kontoen og øktene dine blir værende på intervals.icu. Hvis du logget på med din egen OpenRouter-konto, sletter du nøkkelen hos OpenRouter."
+            "value": "intervals.icu-kontoen og øktene dine blir værende på intervals.icu."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "intervals.icu-tilisi ja harjoituksesi jäävät intervals.icuun. Jos kirjauduit omalla OpenRouter-tililläsi, poista sen avain OpenRouterissa."
+            "value": "intervals.icu-tilisi ja harjoituksesi jäävät intervals.icuun."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "A tua conta do intervals.icu e os teus treinos ficam no intervals.icu. Se iniciaste sessão com a tua própria conta do OpenRouter, apaga a chave dela no OpenRouter."
+            "value": "A tua conta do intervals.icu e os teus treinos ficam no intervals.icu."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sua conta do intervals.icu e seus treinos continuam no intervals.icu. Se você entrou com sua própria conta do OpenRouter, apague a chave dela no OpenRouter."
+            "value": "Sua conta do intervals.icu e seus treinos continuam no intervals.icu."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Twoje konto intervals.icu i treningi zostają w intervals.icu. Jeśli zalogowano cię własnym kontem OpenRouter, usuń jego klucz w OpenRouter."
+            "value": "Twoje konto intervals.icu i treningi zostają w intervals.icu."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "intervals.icu 계정과 운동은 intervals.icu에 남아 있습니다. 직접 OpenRouter 계정으로 로그인했다면 OpenRouter에서 해당 키를 삭제하세요."
+            "value": "intervals.icu 계정과 운동은 intervals.icu에 남아 있습니다."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "intervals.icuのアカウントとワークアウトはintervals.icuに残ります。自分のOpenRouterアカウントでサインインした場合は、OpenRouterでそのキーを削除してください。"
+            "value": "intervals.icuのアカウントとワークアウトはintervals.icuに残ります。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的 intervals.icu 账户和训练会保留在 intervals.icu 上。如果你使用自己的 OpenRouter 账户登录，请在 OpenRouter 上删除其密钥。"
+            "value": "你的 intervals.icu 账户和训练会保留在 intervals.icu 上。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的 intervals.icu 帳戶和訓練會保留在 intervals.icu 上。如果你使用自己的 OpenRouter 帳戶登入，請在 OpenRouter 上刪除其金鑰。"
+            "value": "你的 intervals.icu 帳戶和訓練會保留在 intervals.icu 上。"
           }
         }
       }

@@ -35,12 +35,6 @@ struct CreditsView: View {
 					}
 				}
 			}
-			Section {
-				Button(model.phrasebook.say(Catalog.accessSwitchToOpenRouter)) {
-					model.open(.accessMethod)
-				}
-				.accessibilityIdentifier("credits.switchToOpenRouter")
-			}
 		}
 		.navigationTitle(model.phrasebook.say(Catalog.creditsTitle, [:]))
 		.task {

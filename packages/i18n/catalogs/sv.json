@@ -105,7 +105,6 @@
       "activeUnavailable": "Den aktiva tränarens inställningar är inte tillgängliga eller har inte konfigurerats.",
       "automatic": "Automatiskt",
       "changeRequired": "Ändring krävs",
-      "chooseModel": "Välj en modell",
       "chooseProvider": "Välj en leverantör",
       "chooseProviderFirst": "Välj en leverantör först",
       "currentRoute": "Aktiv nu: {{provider}} · {{model}}",
@@ -120,7 +119,6 @@
       },
       "inactive": "Inte aktiv",
       "loading": "Läser in tränarinställningar…",
-      "model": "Modell",
       "notConfigured": "Inte konfigurerad",
       "otherModel": "Annan modell…",
       "provider": "Leverantör",
@@ -656,7 +654,6 @@
         "mostCapable": "mest kapabel",
         "recommended": "rekommenderad"
       },
-      "modelVia": "{{model}} (via {{provider}})",
       "otherModel": "Annan modell…",
       "pending": {
         "activation": "Driver din tränare · inloggad · aktivering krävs",
@@ -1488,12 +1485,10 @@
     "menu": "Meny",
     "turn": {
       "buyCredits": "Köp krediter",
-      "chooseAccessMethod": "Välj åtkomstmetod",
       "finishedWhileLocked": "Blev klart medan telefonen var låst.",
       "interruptedNothingChanged": "Svaret avbröts innan det var klart. Inget ändrades.",
       "interruptedSomeSaved": "Svaret avbröts innan det var klart. Viss information sparades först.",
-      "receivedBeforeClose": "Mottaget innan appen stängdes. Tryck på Försök igen för att skicka meddelandet.",
-      "signInAgain": "Logga in igen"
+      "receivedBeforeClose": "Mottaget innan appen stängdes. Tryck på Försök igen för att skicka meddelandet."
     },
     "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{commands}}\n\nDu kan också bara prata med mig om din träning!",
     "welcomeCommand": "{{command}} — {{description}}",
@@ -2694,7 +2689,6 @@
       "rateLimitMinutes_other": "Gränsen för antal förfrågningar är nådd. Försök igen om ungefär {{minutes}} minuter.",
       "rateLimitSeconds_one": "Gränsen för antal förfrågningar är nådd. Försök igen om ungefär {{seconds}} sekund.",
       "rateLimitSeconds_other": "Gränsen för antal förfrågningar är nådd. Försök igen om ungefär {{seconds}} sekunder.",
-      "reauth": "Din inloggning hos {{provider}} är inte längre giltig. Logga in igen för att fortsätta.",
       "reauthSetup": "Din inloggning hos {{provider}} är inte längre giltig. Öppna Konfiguration och logga in igen.",
       "unknown": "Något gick tyvärr fel. Försök igen."
     },
@@ -3019,8 +3013,8 @@
     "balance_one": "{{formattedCount}} kredit",
     "balance_other": "{{formattedCount}} krediter",
     "error": {
-      "accessRejected": "Dina krediter kunde inte användas. Du kan byta till ditt OpenRouter-konto.",
-      "exhausted": "Dina krediter är slut. Du kan köpa krediter eller byta till ditt OpenRouter-konto.",
+      "accessRejected": "Dina krediter kunde inte användas. Du kan berätta det för oss under Feedback i Inställningar.",
+      "exhausted": "Dina krediter är slut. Du kan köpa krediter.",
       "unavailable": "Krediter är inte tillgängliga just nu. Försök igen senare.",
       "accountChanged": "Ditt kreditkonto ändrades medan den här begäran slutfördes. Ditt nuvarande konto behölls."
     },
@@ -3033,9 +3027,7 @@
       "failed": "Köpet slutfördes inte.",
       "notAdded": "Ditt köp har genomförts, men krediterna har inte lagts till än. Appen försöker igen nästa gång den öppnas.",
       "refused": "Ditt köp har genomförts, men krediterna kan inte läggas till. Du kan be Apple om återbetalning.",
-      "askForRefund": "Be Apple om återbetalning",
-      "addedSwitched_one": "Lade till {{formattedCount}} kredit. Tränaren använder nu krediter.",
-      "addedSwitched_other": "Lade till {{formattedCount}} krediter. Tränaren använder nu krediter."
+      "askForRefund": "Be Apple om återbetalning"
     }
   },
   "onboarding": {
@@ -3073,19 +3065,11 @@
   "access": {
     "error": {
       "locked": "Lås upp din iPhone för att fortsätta. Ditt meddelande är sparat.",
-      "notConfigured": "Välj hur tränaren får tillgång till en modell för att fortsätta.",
-      "requestBlocked": "OpenRouter blockerade den här begäran. Prova en annan modell eller ett annat meddelande.",
+      "notConfigured": "Den här iPhonen har inga krediter. Du kan köpa krediter.",
+      "requestBlocked": "Det här meddelandet blockerades. Prova ett annat meddelande.",
       "providerConsentRequired": "Ditt samtycke krävs innan chattdata delas med AI-leverantörer.",
-      "openRouterFunds": "Ditt OpenRouter-konto har slut på pengar. Fyll på hos OpenRouter eller byt till krediter.",
-      "storageUnavailable": "Säker lagring är tillfälligt otillgänglig. Ditt samtal, din historik och ditt minne finns kvar. Försök igen.",
-      "malformed": "Din sparade åtkomstmetod kunde inte läsas. Välj en åtkomstmetod för att fortsätta."
-    },
-    "title": "Åtkomstmetod",
-    "openRouterAccount": "OpenRouter-konto",
-    "signIn": "Logga in med OpenRouter",
-    "signInCancelled": "Inloggningen avbröts. Ditt åtkomstsätt ändrades inte.",
-    "signInIncomplete": "Inloggningen med OpenRouter slutfördes inte. Ditt åtkomstsätt ändrades inte. Försök igen.",
-    "switchToOpenRouter": "Byt till OpenRouter"
+      "storageUnavailable": "Säker lagring är tillfälligt otillgänglig. Ditt samtal, din historik och ditt minne finns kvar. Försök igen."
+    }
   },
   "connect": {
     "error": {
@@ -3215,7 +3199,7 @@
       "title": "Radera allt?",
       "body": "Det går inte att ångra. Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen och din iCloud, samt din kreditpost. Oanvända krediter går förlorade, även köpta, och startkrediter ges bara en gång per iPhone. Bara Apple kan återbetala ett köp."
     },
-    "keeps": "Ditt intervals.icu-konto och dina pass finns kvar på intervals.icu. Om du loggade in med ditt eget OpenRouter-konto raderar du dess nyckel hos OpenRouter.",
+    "keeps": "Ditt intervals.icu-konto och dina pass finns kvar på intervals.icu.",
     "progress": "Raderar…",
     "done": "Allt är raderat från den här iPhonen, din iCloud och kredittjänsten.",
     "notStarted": "Inget raderades. Anslut till internet och försök igen.",

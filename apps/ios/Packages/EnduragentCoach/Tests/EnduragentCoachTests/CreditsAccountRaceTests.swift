@@ -120,7 +120,7 @@ extension CredentialVaultTests {
 		let memory = FixtureSecretStoreBacking()
 		let store = ICloudKeychainStore(backing: memory)
 		let coach = await coach(store)
-		#expect(try await coach.observedStatus().setup == .needsAccessMethod)
+		#expect(try await coach.observedStatus().setup == .needsCredits)
 		#expect(try await coach.creditsIdentity().hasCreditsKey == false)
 		#expect(try await vault(store).creditsKey() == nil)
 		#expect(memory.writeCount == 0)

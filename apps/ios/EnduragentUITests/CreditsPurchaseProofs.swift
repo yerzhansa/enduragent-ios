@@ -27,29 +27,6 @@ final class CreditsPurchaseProof: XCTestCase {
 		TutorialHarness.attach(self, name: "purchase-reply-on-credits", app: app)
 	}
 
-	func testABuyFromAnOpenRouterAccountSwitchesTheCoachToCreditsAfterConsent() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app, arguments: FixtureArguments(accessMethod: .openRouter))
-		TutorialHarness.completeOnboarding(app)
-		openCredits(app)
-		buy(app)
-		TutorialHarness.wait(TutorialHarness.named(app, "consent.accept"), until: .hittable)
-		TutorialHarness.attach(self, name: "purchase-switched-asks-consent", app: app)
-		TutorialHarness.agreeToProviderConsent(
-			app, recipient: (model: "DeepSeek V4.1 Flash", provider: "DeepInfra"))
-		TutorialHarness.openSettings(app)
-		TutorialHarness.named(app, "settings.accessMethod").tap()
-		let credits = TutorialHarness.named(app, "access.credits")
-		TutorialHarness.wait(credits, until: .hittable)
-		XCTAssertTrue(credits.isSelected)
-		XCTAssertFalse(TutorialHarness.named(app, "access.openRouter").isSelected)
-		TutorialHarness.attach(self, name: "purchase-access-method-credits", app: app)
-		TutorialHarness.returnToChat(app)
-		TutorialHarness.openSettings(app)
-		TutorialHarness.named(app, "settings.credits").tap()
-		TutorialHarness.waitForIdentifier(app, "credits.balance", reading: "601 credits")
-	}
-
 	func testEachPurchaseOutcomeShowsItsSentence() {
 		let outcomes: [(FixturePurchaseOutcome, String?)] = [
 			(

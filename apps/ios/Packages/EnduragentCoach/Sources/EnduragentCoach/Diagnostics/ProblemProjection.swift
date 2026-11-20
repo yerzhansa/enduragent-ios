@@ -11,7 +11,6 @@ package enum ProblemKind: String, Sendable, Codable, CaseIterable {
 	case importsUnavailable
 	case secureStorageFailed
 	case preferencesUnavailable
-	case consentUnavailable
 	case snapshotReadFailed
 	case snapshotDeadlineMissed
 	case reviewOutcomeUnsaved
@@ -61,8 +60,6 @@ extension DiagnosticsEvent {
 				cause: FailureCode.keychain(failure).code)
 		case .preferencesUnavailable(let failure):
 			ProblemLine(.preferencesUnavailable, cause: FailureCode.ledger(failure).code)
-		case .consentUnavailable(let failure):
-			ProblemLine(.consentUnavailable, cause: FailureCode.access(failure).code)
 		case .snapshotReadFailed(let attempt, let kind, let failure):
 			ProblemLine(
 				.snapshotReadFailed, subject: .attempt(attempt.ulid),

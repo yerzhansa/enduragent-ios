@@ -6,10 +6,6 @@ The native iPhone coach: a chat with an AI cycling coach that runs on the phone 
 
 ### Model access
 
-**Access method**:
-How the coach reaches and pays for a model: Credits or OpenRouter account.
-_Avoid_: Billing mode, plan, provider
-
 **Credits**:
 Units spent on the built-in model. Each iPhone gets a starter amount once, and the athlete can buy more in Credits packs.
 _Avoid_: Balance, tokens, coins
@@ -41,10 +37,6 @@ _Avoid_: Athlete id (in athlete text), user id
 **Built-in model**:
 The model Credits pay for, chosen by Enduragent and not by the athlete.
 _Avoid_: Default model, our model
-
-**OpenRouter account**:
-The athlete's own OpenRouter account, connected by signing in, which pays for the model the athlete picks.
-_Avoid_: Own key, BYOK, API key, personal key
 
 **Provider**:
 The company that hosts a model, such as OpenRouter or Anthropic.
@@ -205,7 +197,7 @@ A short note the athlete writes to the Enduragent authors, from Settings or with
 _Avoid_: Bug report, support request, ticket, message, report
 
 **Diagnostics file**:
-A file the athlete makes in Settings, under Support, and shares on purpose. It holds the version, the phone model and iOS version, the access method kind, the connection state, the language preference, counts of what the app has saved, and the last 14 days of the app's problems and model usage, with no keys, no message text and no training data. Nothing leaves the phone until the athlete shares it.
+A file the athlete makes in Settings, under Support, and shares on purpose. It holds the version, the phone model and iOS version, whether Credits are ready, the connection state, the language preference, counts of what the app has saved, and the last 14 days of the app's problems and model usage, with no keys, no message text and no training data. Nothing leaves the phone until the athlete shares it.
 _Avoid_: Logs, snapshot, export, debug dump, crash report
 
 **Your data**:
@@ -213,5 +205,5 @@ The Settings section after Support. Its one row is Delete everything.
 _Avoid_: Privacy, account, data management
 
 **Delete everything**:
-The athlete deletes their conversation, memory, saved plan, settings and keys from this iPhone and their iCloud, and their Credits record. Another device removes the synced records only when the app runs there, and keeps what it holds only on itself. Nothing on this iPhone or in iCloud is deleted until the Credits service confirms its part. When iCloud does not confirm, the iCloud copy is deleted the next time the athlete opens the app while this iPhone is online and signed in to iCloud. When the Credits service cannot confirm that this iPhone owns the Credits record, the athlete can delete everything else, and the Credits record stays on the service. A run cut off by a kill finishes at the next launch. Unused Credits are lost, bought ones included, and only Apple refunds a Credits purchase. intervals.icu data and an OpenRouter account stay with the athlete.
+The athlete deletes their conversation, memory, saved plan, settings and keys from this iPhone and their iCloud, and their Credits record. Another device removes the synced records only when the app runs there, and keeps what it holds only on itself. Nothing on this iPhone or in iCloud is deleted until the Credits service confirms its part. When iCloud does not confirm, the iCloud copy is deleted the next time the athlete opens the app while this iPhone is online and signed in to iCloud. When the Credits service cannot confirm that this iPhone owns the Credits record, the athlete can delete everything else, and the Credits record stays on the service. A run cut off by a kill finishes at the next launch. Unused Credits are lost, bought ones included, and only Apple refunds a Credits purchase. intervals.icu data stays with the athlete.
 _Avoid_: Delete account, reset, wipe, erase (in athlete text)

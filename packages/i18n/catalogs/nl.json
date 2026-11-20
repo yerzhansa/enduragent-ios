@@ -105,7 +105,6 @@
       "activeUnavailable": "De actieve coachinstellingen zijn niet beschikbaar of niet geconfigureerd.",
       "automatic": "Automatisch",
       "changeRequired": "Wijziging vereist",
-      "chooseModel": "Kies een model",
       "chooseProvider": "Kies een aanbieder",
       "chooseProviderFirst": "Kies eerst een aanbieder",
       "currentRoute": "Momenteel actief: {{provider}} · {{model}}",
@@ -120,7 +119,6 @@
       },
       "inactive": "Niet actief",
       "loading": "Coachinstellingen laden…",
-      "model": "Model",
       "notConfigured": "Niet geconfigureerd",
       "otherModel": "Ander model…",
       "provider": "Aanbieder",
@@ -656,7 +654,6 @@
         "mostCapable": "meest capabel",
         "recommended": "aanbevolen"
       },
-      "modelVia": "{{model}} (via {{provider}})",
       "otherModel": "Ander model…",
       "pending": {
         "activation": "Stuurt je coach aan · aangemeld · activering nodig",
@@ -1488,12 +1485,10 @@
     "menu": "Menu",
     "turn": {
       "buyCredits": "Tegoed kopen",
-      "chooseAccessMethod": "Toegangsmethode kiezen",
       "finishedWhileLocked": "Voltooid terwijl de telefoon vergrendeld was.",
       "interruptedNothingChanged": "Dit antwoord werd onderbroken voordat het klaar was. Er is niets gewijzigd.",
       "interruptedSomeSaved": "Dit antwoord werd onderbroken voordat het klaar was. Een deel van de informatie was al opgeslagen.",
-      "receivedBeforeClose": "Ontvangen voordat de app sloot. Tik op Opnieuw proberen om het te verzenden.",
-      "signInAgain": "Opnieuw inloggen"
+      "receivedBeforeClose": "Ontvangen voordat de app sloot. Tik op Opnieuw proberen om het te verzenden."
     },
     "welcome": "Welkom bij {{product}}!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van {{service}}.\n\nOpdrachten:\n{{commands}}\n\nJe kunt ook gewoon met me praten over je training!",
     "welcomeCommand": "{{command}} : {{description}}",
@@ -2842,7 +2837,6 @@
       "rateLimitMinutes_other": "De aanvraaglimiet is bereikt. Probeer het over ongeveer {{minutes}} minuten opnieuw.",
       "rateLimitSeconds_one": "De aanvraaglimiet is bereikt. Probeer het over ongeveer {{seconds}} seconde opnieuw.",
       "rateLimitSeconds_other": "De aanvraaglimiet is bereikt. Probeer het over ongeveer {{seconds}} seconden opnieuw.",
-      "reauth": "Je aanmelding bij {{provider}} is niet meer geldig. Log opnieuw in om door te gaan.",
       "reauthSetup": "Je aanmelding bij {{provider}} is niet meer geldig. Open Configuratie en log opnieuw in.",
       "unknown": "Sorry, er is iets misgegaan. Probeer het opnieuw."
     },
@@ -3019,8 +3013,8 @@
     "balance_one": "{{formattedCount}} tegoedpunt",
     "balance_other": "{{formattedCount}} tegoedpunten",
     "error": {
-      "accessRejected": "Je tegoedpunten konden niet worden gebruikt. Je kunt overschakelen naar je OpenRouter-account.",
-      "exhausted": "Je tegoedpunten zijn op. Je kunt tegoed kopen of overschakelen naar je OpenRouter-account.",
+      "accessRejected": "Je tegoedpunten konden niet worden gebruikt. Je kunt het ons laten weten via Feedback, in Instellingen.",
+      "exhausted": "Je tegoedpunten zijn op. Je kunt tegoed kopen.",
       "unavailable": "Tegoedpunten zijn momenteel niet beschikbaar. Probeer het later opnieuw.",
       "accountChanged": "Je tegoedaccount is gewijzigd terwijl dit verzoek werd afgerond. Je huidige account is behouden."
     },
@@ -3033,9 +3027,7 @@
       "failed": "De aankoop is niet voltooid.",
       "notAdded": "Je aankoop is gelukt, maar het tegoed is nog niet toegevoegd. De app probeert het opnieuw wanneer hij de volgende keer wordt geopend.",
       "refused": "Je aankoop is gelukt, maar het tegoed kan niet worden toegevoegd. Je kunt Apple om een terugbetaling vragen.",
-      "askForRefund": "Apple om terugbetaling vragen",
-      "addedSwitched_one": "{{formattedCount}} tegoedpunt toegevoegd. De coach gebruikt nu tegoed.",
-      "addedSwitched_other": "{{formattedCount}} tegoedpunten toegevoegd. De coach gebruikt nu tegoed."
+      "askForRefund": "Apple om terugbetaling vragen"
     }
   },
   "onboarding": {
@@ -3073,19 +3065,11 @@
   "access": {
     "error": {
       "locked": "Ontgrendel je iPhone om door te gaan. Je bericht is opgeslagen.",
-      "notConfigured": "Kies hoe de coach een model bereikt om door te gaan.",
-      "requestBlocked": "OpenRouter heeft dit verzoek geblokkeerd. Probeer een ander model of bericht.",
+      "notConfigured": "Deze iPhone heeft geen tegoedpunten. Je kunt tegoed kopen.",
+      "requestBlocked": "Dit bericht is geblokkeerd. Probeer een ander bericht.",
       "providerConsentRequired": "Je toestemming is nodig voordat chatgegevens met AI-aanbieders worden gedeeld.",
-      "openRouterFunds": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten.",
-      "storageUnavailable": "De beveiligde opslag is tijdelijk niet beschikbaar. Je gesprek, geschiedenis en geheugen zijn er nog. Probeer het opnieuw.",
-      "malformed": "Je opgeslagen toegangsmethode kon niet worden gelezen. Kies een toegangsmethode om verder te gaan."
-    },
-    "title": "Toegangsmethode",
-    "openRouterAccount": "OpenRouter-account",
-    "signIn": "Inloggen met OpenRouter",
-    "signInCancelled": "Aanmelden geannuleerd. Je toegangsmethode is niet gewijzigd.",
-    "signInIncomplete": "Aanmelden bij OpenRouter is niet voltooid. Je toegangsmethode is niet gewijzigd. Probeer het opnieuw.",
-    "switchToOpenRouter": "Overschakelen naar OpenRouter"
+      "storageUnavailable": "De beveiligde opslag is tijdelijk niet beschikbaar. Je gesprek, geschiedenis en geheugen zijn er nog. Probeer het opnieuw."
+    }
   },
   "connect": {
     "error": {
@@ -3215,7 +3199,7 @@
       "title": "Alles verwijderen?",
       "body": "Dit kan niet ongedaan worden gemaakt. Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone en uit je iCloud, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren, ook gekochte, en starttegoed krijg je maar één keer per iPhone. Alleen Apple kan een aankoop terugbetalen."
     },
-    "keeps": "Je intervals.icu-account en trainingen blijven op intervals.icu. Als je bent ingelogd met je eigen OpenRouter-account, verwijder dan de sleutel daarvan bij OpenRouter.",
+    "keeps": "Je intervals.icu-account en trainingen blijven op intervals.icu.",
     "progress": "Verwijderen…",
     "done": "Alles is verwijderd van deze iPhone, uit je iCloud en uit de tegoedpuntendienst.",
     "notStarted": "Er is niets verwijderd. Maak verbinding met internet en probeer het opnieuw.",

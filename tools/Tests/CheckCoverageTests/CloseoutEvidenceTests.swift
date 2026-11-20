@@ -50,10 +50,10 @@ struct CloseoutEvidenceTests {
 							"creditsExhaustionPreservesSavedConversationAndMemory"),
 						test(
 							"BillingIdentityTests",
-							"outOfCreditsNoticeKeepsBothActionsAfterReopeningAndInHistory"),
+							"outOfCreditsNoticeKeepsBuyCreditsAfterReopeningAndInHistory"),
 						proof(
 							"BillingIdentityProof", "BillingIdentityProof",
-							"testExhaustedCreditsKeepMemoryAndMessagesAndOfferWorkingRoutes"),
+							"testExhaustedCreditsKeepMemoryAndMessagesAndOfferBuyCredits"),
 					], []
 				),
 				"MOB10": (
@@ -69,9 +69,6 @@ struct CloseoutEvidenceTests {
 			]
 
 	static let deviceCheckRows: [String: [EvidencePointer]] = [
-		"B03.01": [closeout("openrouter-signin")],
-		"B03.03": [closeout("openrouter-signin")],
-		"B03.04": [closeout("openrouter-recovery")],
 		"B05.01": [closeout("language")],
 		"B07.05": [closeout("lifecycle")],
 		"B08.03": live("reads-failing"),

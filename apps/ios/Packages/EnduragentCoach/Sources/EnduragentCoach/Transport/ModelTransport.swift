@@ -5,15 +5,10 @@ package struct ProviderCredential: Sendable, Equatable, CustomStringConvertible,
 {
 	package let secret: String
 	package let method: AccessMethod
-	package let openRouterReference: OpenRouterCredentialRef?
 
-	package init(
-		secret: String, method: AccessMethod, openRouterReference: OpenRouterCredentialRef? = nil
-	) {
+	package init(secret: String, method: AccessMethod) {
 		self.secret = secret
 		self.method = method
-		self.openRouterReference =
-			method == .openRouterAccount ? openRouterReference ?? .legacy : nil
 	}
 
 	package var description: String { "ProviderCredential(redacted)" }

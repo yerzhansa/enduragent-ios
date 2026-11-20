@@ -33,14 +33,8 @@ extension FixtureLaunchTests {
 
 	@Test(arguments: [
 		("fixture:fail 400", Catalog.coachErrorUnknown, [Catalog.chatTranscriptRetry], 1),
-		(
-			"fixture:fail 401", Catalog.creditsErrorAccessRejected,
-			[Catalog.accessSwitchToOpenRouter], 1
-		),
-		(
-			"fixture:fail 402", Catalog.creditsErrorExhausted,
-			[Catalog.chatTurnBuyCredits, Catalog.accessSwitchToOpenRouter], 1
-		),
+		("fixture:fail 401", Catalog.creditsErrorAccessRejected, [], 1),
+		("fixture:fail 402", Catalog.creditsErrorExhausted, [Catalog.chatTurnBuyCredits], 1),
 		(
 			"fixture:fail 429 1 x4", Catalog.coachErrorRateLimitSeconds,
 			[Catalog.chatTranscriptRetry], 4

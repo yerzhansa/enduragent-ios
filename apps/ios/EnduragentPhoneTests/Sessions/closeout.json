@@ -31,7 +31,7 @@
 			],
 			"checks": [
 				{"look": "the conversation after the update", "pass": "the receipt and the waiting review from closeout/fill"},
-				{"look": "Settings after the update", "pass": "the same access method and language as before"},
+				{"look": "Settings after the update", "pass": "the same language as before"},
 				{"look": "the reply to \"When is my gran fondo?\"", "pass": "contains June 14 or 14 June"},
 				{"look": "the waiting review after Cancel", "pass": "reads as canceled, with no Approve"}
 			],
@@ -110,21 +110,6 @@
 			"endsWith": "The conversation of the last case."
 		},
 		{
-			"id": "closeout/openrouter-signin",
-			"driver": "operatorOnInstalledBuild",
-			"planned": 2,
-			"setup": [
-				"enduragent.icu serves its site-association file, and the operator has an OpenRouter account to sign in with."
-			],
-			"checks": [
-				{"look": "Settings after Sign in with OpenRouter and the HTTPS callback", "pass": "OpenRouter account selected, still selected after relaunch"},
-				{"look": "the reply to a message after the sign-in", "pass": "a reply with no failure notice"},
-				{"look": "Settings after Sign in with OpenRouter canceled on the system sheet", "pass": "the previous access method still selected"},
-				{"look": "the reply to a message after the cancel", "pass": "a reply with no failure notice"}
-			],
-			"endsWith": "The conversation, on the access method the operator chose."
-		},
-		{
 			"id": "closeout/lifecycle",
 			"driver": "operatorOnInstalledBuild",
 			"planned": 4,
@@ -163,21 +148,6 @@
 				{"look": "Settings after the install", "pass": "a Debug row"}
 			],
 			"endsWith": "The Debug build installed and in the conversation."
-		},
-		{
-			"id": "closeout/openrouter-recovery",
-			"driver": {"runnerOnDebugBuild": {"scheme": "EnduragentPhone", "testClass": "OpenRouterRecoveryPhoneCheck", "testMethod": "testSignInAgainRecoversWithoutLosingConversation", "actionsAttachment": "openrouter-actions"}},
-			"planned": 2,
-			"setup": [
-				"The operator revokes the current OpenRouter key by hand before the step, and signs in and approves by hand at the OpenRouter page."
-			],
-			"checks": [
-				{"look": "the conversation after one message on the revoked key", "pass": "one Sign in again action, still there after relaunch"},
-				{"look": "the conversation after Sign in again and approval", "pass": "no Sign in again, and the conversation unchanged after relaunch"},
-				{"look": "the debug.accessModel row", "pass": "the model ID the operator selected"},
-				{"look": "the reply to one tool message after recovery", "pass": "a streamed reply with an intervals.icu tool call and no failure notice"}
-			],
-			"endsWith": "OpenRouter account selected and working, in the conversation."
 		},
 		{
 			"id": "closeout/keychain-proof",

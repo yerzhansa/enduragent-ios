@@ -17,8 +17,6 @@
 		let intervals: FakeIntervalsClient
 		let credits: FakeCreditsClient
 		let store: FakeCreditsStore
-		let openRouterAuthorizer: FakeOpenRouterAuthorizer
-		let signInOutcome: FixtureSignInOutcome
 		let replyParser: ReplyParser
 		let reviewProofDriver: FixtureReviewProofDriver?
 		let planTapDriver: FixturePlanTapDriver?
@@ -72,14 +70,7 @@
 			FirstWeekFixture.install(launch.purchase, on: credits, store: store)
 			records.export = launch.erasure.export
 			let response = FirstWeekFixture.responses(intervals: intervals, credits: credits)
-			let transport = FakeModelTransport { request in
-				if launch.accessMethod == .rejectedOpenRouter,
-					request.credential == FirstWeekFixture.openRouterKey
-				{
-					return ScriptedReply([.fail(.http(status: 401))])
-				}
-				return response(request)
-			}
+			let transport = FakeModelTransport(respond: response)
 			let host: any ExecutionHost
 			let fixtureHost: ImmediateExecutionHost?
 			let leases: @Sendable () async -> [LeaseRecord]
@@ -96,7 +87,6 @@
 				fixtureHost = immediate
 				leases = { immediate.leases }
 			}
-			let authorizer = FakeOpenRouterAuthorizer(response: launch.signInOutcome.response)
 			let catalogSource = FakeModelCatalogSource(response: launch.catalogResponse)
 			let feedback = FakeFeedbackServer(script: launch.feedback?.answers ?? [])
 			let coach = Coach(
@@ -115,10 +105,7 @@
 					clock: clock,
 					support: .fixture(
 						directory: launch.directory, app: identity, server: feedback,
-						journal: launch.journal),
-					openRouterSignIn: .fake(
-						authorizer: authorizer,
-						exchangeFails: launch.signInOutcome == .exchangeFailure)
+						journal: launch.journal)
 				),
 				builtInModel: builtInModel,
 				displayLocale: displayLocale,
@@ -137,8 +124,6 @@
 					secretBacking: backing, nativeKeychain: native, trainingPeer: peer,
 					recordStore: fixture.store,
 					intervals: intervals, credits: credits, store: store,
-					openRouterAuthorizer: authorizer,
-					signInOutcome: launch.signInOutcome,
 					replyParser: launch.replyParserFault == .fail ? .failing : .foundation,
 					reviewProofDriver: launch.recordReadFault == .failAfterPresentedOnce
 						? FixtureReviewProofDriver() : nil,
@@ -161,8 +146,7 @@
 					let secrets = proof.store()
 					if launch.store == .fresh {
 						for slot in [
-							CredentialSlot.creditsAccount, .openRouterAccountKey,
-							.intervalsConnection, .accessSelection,
+							CredentialSlot.creditsAccount, .intervalsConnection, .accessSelection,
 						] {
 							try secrets.delete(slot)
 						}
@@ -175,7 +159,8 @@
 			}
 			let fixture = try ICloudKeychainStore.fixture(directory: launch.directory)
 			if launch.store != .keep, launch.keychain != .empty {
-				try FirstWeekFixture.install(launch.accessMethod, on: fixture.store)
+				try FirstWeekFixture.install(
+					launch.accessMethod, on: fixture.store, backing: fixture.backing)
 			}
 			if launch.store.keepsSeedConnection {
 				try FirstWeekFixture.installReviewSeedConnection(on: fixture.store)
@@ -185,14 +170,7 @@
 			if launch.keychain == .malformedIntervals {
 				try fixture.backing.corruptIntervalsConnection()
 			}
-			if launch.keychain == .malformedAccess {
-				try fixture.backing.corruptAccessSelection()
-			}
 			fixture.backing.failNextWrite = launch.credentialWriteFault == .failOnce
-			if launch.credentialWriteFault == .failSelection {
-				fixture.backing.failWrites(
-					CredentialSlot.accessSelection.rawValue, with: errSecNotAvailable)
-			}
 			return (fixture.store, fixture.backing, nil)
 		}
 	}

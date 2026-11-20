@@ -69,7 +69,7 @@ import Testing
 		case .catalogIssue: CatalogIssue.offline
 		case .compactorFailure: Compactor.Failure(reason: .length)
 		case .consentWriteFailure: ConsentWriteFailure.notSaved
-		case .credentialFailure: CredentialFailure.signIn(.canceled)
+		case .credentialFailure: CredentialFailure.secureStorage(.secureStorageLocked)
 		case .creditsFailure: CreditsFailure.banned
 		case .feedbackRefusal: FeedbackRefusal.tooLong(units: 4_001)
 		case .headMoved: HeadMoved(current: .empty)
@@ -78,7 +78,6 @@ import Testing
 		case .invalidWorkout: InvalidWorkout(message: "no steps")
 		case .memoryQueryFailure: MemoryQueryFailure(message: "no section")
 		case .modelCatalogIssue: ModelCatalogIssue.malformed
-		case .openRouterExchangeFailure: OpenRouterExchangeFailure.http(status: 500)
 		case .planDocumentCorrupt: PlanDocumentCorrupt(reason: "no weeks")
 		case .planDurationOutOfRange: PlanDurationOutOfRange(totalWeeks: 99)
 		case .planNotSaved: PlanNotSaved.expired
@@ -92,7 +91,6 @@ import Testing
 			SessionSettingRejected(
 				field: .historyBudgetRatio,
 				reason: Catalog.settingsConversationValidationHistoryTokenBudgetRatio)
-		case .signInFailure: SignInFailure.canceled
 		case .skippedRow: SkippedRow.malformed(kind: "userMessage", ulid: "row")
 		case .toolInputError: ToolInputError(code: "invalid", details: "no date")
 		case .transitionFailure: TransitionFailure.storage(.unavailable)

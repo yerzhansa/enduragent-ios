@@ -33,7 +33,6 @@ final class ShellModel {
 	let environment: AppEnvironment
 	let lifecycle: AppLifecycle
 	let trainingSettings: TrainingSettingsModel
-	let accessSettings: AccessSettingsModel
 	let sessionSettings: SessionSettingsModel
 	let planDecisions: PlanDecisions
 	let support: SupportModel
@@ -56,7 +55,6 @@ final class ShellModel {
 		self.environment = environment
 		self.lifecycle = AppLifecycle(environment: environment)
 		self.trainingSettings = TrainingSettingsModel(coach: environment.services.coach)
-		self.accessSettings = AccessSettingsModel(environment: environment)
 		self.sessionSettings = SessionSettingsModel(coach: environment.services.coach)
 		self.planDecisions = PlanDecisions(services: environment.services)
 		self.support = SupportModel(support: environment.services.coach.support)
@@ -91,7 +89,7 @@ final class ShellModel {
 		return false
 	}
 	var starterLine: String? {
-		(accessSettings.notice ?? onboarding.starterNotice)?.sentence(in: displayLocale)
+		onboarding.starterNotice?.sentence(in: displayLocale)
 	}
 	var starterResolved: Bool { onboarding.starterResolved }
 	private(set) var consentNotSaved = false
@@ -228,7 +226,6 @@ final class ShellModel {
 	}
 
 	func startChatting() async {
-		accessSettings.dismiss()
 		onboarding.complete()
 		route = .loading
 		await appear()
@@ -258,12 +255,10 @@ final class ShellModel {
 	}
 
 	func declineConsent() async {
-		guard route == .onboarding(.consent), let challenge = consentChallenge,
-			!isRecordingConsent
+		guard route == .onboarding(.consent), consentChallenge != nil, !isRecordingConsent
 		else { return }
 		consentNotSaved = false
 		route = .onboarding(.consentDeferred)
-		await services.coach.declineConsent(challenge)
 	}
 
 	func newConversation() async {

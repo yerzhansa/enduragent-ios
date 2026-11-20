@@ -13,25 +13,14 @@ import Testing
 	private static let offer = CreditsOffer(pack: small, displayPrice: "$4.99")
 	private static let recordKey = "synthetic-record-key"
 
-	@Test func aPurchaseAddsCreditsAndFinishesWithoutChangingCreditsAccess() async throws {
-		let (coach, credits, store, secrets) = try await purchaseSetup()
+	@Test func aPurchaseAddsCreditsAndFinishes() async throws {
+		let (coach, credits, store, _) = try await purchaseSetup()
 		credits.claimResult = .success(.toppedUp(creditsAdded: Credits(units: 401)))
 		let notice = await coach.buyCredits(Self.offer, in: store)
 		#expect(sentence(notice) == "Added 401 credits")
 		#expect(store.bought == [Self.small.id])
 		#expect(store.finished == [1])
 		#expect(credits.calls == [.claim(transactionLength: "fake.signed.\(Self.small.id)".count)])
-		#expect(try secrets.accessSelection() == nil)
-	}
-
-	@Test func aPurchaseSwitchesAnOpenRouterAccountToCreditsAndSaysSo() async throws {
-		let (coach, credits, store, secrets) = try await purchaseSetup(openRouter: true)
-		credits.claimResult = .success(.toppedUp(creditsAdded: Credits(units: 401)))
-		let notice = await coach.buyCredits(Self.offer, in: store)
-		#expect(sentence(notice) == "Added 401 credits. The coach now uses Credits.")
-		#expect(store.finished == [1])
-		#expect(try secrets.accessSelection() == .init(.credits))
-		#expect(try await coach.observedStatus().access.savedMethod == .credits)
 	}
 
 	@Test(arguments: [CreditsFailure.unavailable, .rateLimited, .unknownPack])
@@ -119,12 +108,10 @@ import Testing
 	}
 
 	@Test func aClaimThatAddsNothingBecauseOfAnEarlierRefundFinishesQuietly() async throws {
-		let (coach, credits, store, secrets) = try await purchaseSetup(openRouter: true)
-		let selection = try secrets.accessSelection()
+		let (coach, credits, store, _) = try await purchaseSetup()
 		credits.claimResult = .success(.toppedUp(creditsAdded: Credits(units: 0)))
 		#expect(await coach.buyCredits(Self.offer, in: store) == nil)
 		#expect(store.finished == [1])
-		#expect(try secrets.accessSelection() == selection)
 	}
 
 	@Test(arguments: [
@@ -229,18 +216,13 @@ import Testing
 	}
 
 	private func purchaseSetup(
-		openRouter: Bool = false, hasKey: Bool = true, mintedKey: String? = nil,
-		service: CreditsService? = nil,
+		hasKey: Bool = true, mintedKey: String? = nil, service: CreditsService? = nil,
 		backing: FixtureSecretStoreBacking = FixtureSecretStoreBacking()
 	) async throws -> (
 		Coach, FakeCreditsClient, FakeCreditsStore, ICloudKeychainStore
 	) {
 		let secrets =
 			hasKey ? keyedSecrets(backing: backing) : ICloudKeychainStore(backing: backing)
-		if openRouter {
-			let model = try #require(ModelCatalog.fixture.orderedEntries.first).id
-			try secrets.installOpenRouterChoice(model: model, key: "synthetic-openrouter-account")
-		}
 		let credits = FakeCreditsClient()
 		let store = FakeCreditsStore(prices: [Self.small.id: "$4.99"])
 		let coach = await consentingCoach(

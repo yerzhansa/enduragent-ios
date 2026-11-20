@@ -7,19 +7,11 @@
   "access": {
     "error": {
       "locked": "Unlock your iPhone to continue. Your message is saved.",
-      "notConfigured": "Choose how the coach reaches a model to continue.",
-      "requestBlocked": "OpenRouter blocked this request. Try a different model or message.",
+      "notConfigured": "This iPhone has no Credits. You can buy Credits.",
+      "requestBlocked": "This message was blocked. Try a different message.",
       "providerConsentRequired": "Your permission is needed before sharing chat data with AI providers.",
-      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
-      "storageUnavailable": "Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again.",
-      "malformed": "Your saved access method couldn't be read. Choose an access method to continue."
-    },
-    "title": "Access method",
-    "openRouterAccount": "OpenRouter account",
-    "signIn": "Sign in with OpenRouter",
-    "signInCancelled": "Sign-in cancelled. Your access method was not changed.",
-    "signInIncomplete": "OpenRouter sign-in didn't complete. Your access method was not changed. Try again.",
-    "switchToOpenRouter": "Switch to OpenRouter"
+      "storageUnavailable": "Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again."
+    }
   },
   "archive": {
     "athlete": "You",
@@ -636,12 +628,10 @@
     },
     "turn": {
       "buyCredits": "Buy Credits",
-      "chooseAccessMethod": "Choose access method",
       "finishedWhileLocked": "Finished while the phone was locked.",
       "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
       "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
-      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
-      "signInAgain": "Sign in again"
+      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it."
     },
     "view": {
       "closeContext": "Close",
@@ -867,7 +857,6 @@
       "rateLimitMinutes_other": "Rate limited — please try again in ~{{minutes}} minutes.",
       "rateLimitSeconds_one": "Rate limited — please try again in ~{{seconds}} seconds.",
       "rateLimitSeconds_other": "Rate limited — please try again in ~{{seconds}} seconds.",
-      "reauth": "Your {{provider}} sign-in is no longer valid. Sign in again to continue.",
       "reauthSetup": "Your {{provider}} sign-in is no longer valid. Open Setup and sign in again.",
       "unknown": "Sorry, something went wrong. Please try again."
     },
@@ -940,8 +929,8 @@
   },
   "credits": {
     "error": {
-      "accessRejected": "Your Credits couldn't be used. You can switch to your OpenRouter account.",
-      "exhausted": "You're out of Credits. You can buy Credits or switch to your OpenRouter account.",
+      "accessRejected": "Your Credits couldn't be used. You can tell us in Feedback, in Settings.",
+      "exhausted": "You're out of Credits. You can buy Credits.",
       "unavailable": "Credits are unavailable right now. Try again later.",
       "accountChanged": "Your Credits account changed while this request was finishing. Your current account was kept."
     },
@@ -957,9 +946,7 @@
       "failed": "The purchase didn't finish.",
       "notAdded": "Your purchase went through, but the Credits weren't added yet. The app tries again the next time it opens.",
       "refused": "Your purchase went through, but the Credits can't be added. You can ask Apple for a refund.",
-      "askForRefund": "Ask Apple for a refund",
-      "addedSwitched_one": "Added {{formattedCount}} credit. The coach now uses Credits.",
-      "addedSwitched_other": "Added {{formattedCount}} credits. The coach now uses Credits."
+      "askForRefund": "Ask Apple for a refund"
     }
   },
   "desktop": {
@@ -1823,7 +1810,6 @@
       "activeUnavailable": "Active coach settings are unavailable or not configured.",
       "automatic": "Automatic",
       "changeRequired": "Change required",
-      "chooseModel": "Choose a model",
       "chooseProvider": "Choose a provider",
       "chooseProviderFirst": "Choose a provider first",
       "currentRoute": "Currently active: {{provider}} · {{model}}",
@@ -1838,7 +1824,6 @@
       },
       "inactive": "Not active",
       "loading": "Loading coach settings…",
-      "model": "Model",
       "notConfigured": "Not configured",
       "otherModel": "Other model…",
       "provider": "Provider",
@@ -2357,7 +2342,6 @@
         "mostCapable": "most capable",
         "recommended": "recommended"
       },
-      "modelVia": "{{model}} (via {{provider}})",
       "otherModel": "Other model…",
       "pending": {
         "activation": "Powers your coach · signed in · activation needed",
@@ -3215,7 +3199,7 @@
       "title": "Delete everything?",
       "body": "This can't be undone. It deletes your conversation, memory, saved plan, settings and keys from this iPhone and your iCloud, and your Credits record. Unused Credits are lost, bought ones included, and starter Credits are given only once per iPhone. Only Apple can refund a purchase."
     },
-    "keeps": "Your intervals.icu account and workouts stay on intervals.icu. If you signed in with your own OpenRouter account, delete its key on OpenRouter.",
+    "keeps": "Your intervals.icu account and workouts stay on intervals.icu.",
     "progress": "Deleting…",
     "done": "Everything is deleted from this iPhone, your iCloud and the Credits service.",
     "notStarted": "Nothing was deleted. Connect to the internet and try again.",
