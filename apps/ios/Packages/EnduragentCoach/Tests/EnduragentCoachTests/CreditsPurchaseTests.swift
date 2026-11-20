@@ -105,7 +105,9 @@ import Testing
 		let credits = FakeCreditsClient()
 		credits.claimResult = .success(.toppedUp(creditsAdded: Credits(units: 401)))
 		let (coach, _, store, _) = try await purchaseSetup(
-			service: CreditsService { _ in KeychainFailsDuringClaim(fake: credits, backing: backing) },
+			service: CreditsService { _ in
+				KeychainFailsDuringClaim(fake: credits, backing: backing)
+			},
 			backing: backing)
 		let purchase = CreditsPurchase(
 			id: 3, signedTransaction: "fake.signed.locked", appAccountToken: UUID(),
@@ -248,7 +250,8 @@ import Testing
 					records: RecordStore(log: InMemoryRecordLog()), secrets: secrets,
 					models: .scripted(FakeModelTransport()),
 					training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
-					credits: service ?? .fake(credits, mintedKey: mintedKey), host: ImmediateExecutionHost(),
+					credits: service ?? .fake(credits, mintedKey: mintedKey),
+					host: ImmediateExecutionHost(),
 					clock: FixedClock(
 						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 					support: .inMemory(app: .fixture)),
