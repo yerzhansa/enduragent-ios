@@ -11,6 +11,7 @@ import Testing
 	private static let large = CreditPack(
 		id: "icu.enduragent.app.credits.large", credits: Credits(units: 1606))
 	private static let offer = CreditsOffer(pack: small, displayPrice: "$4.99")
+	private static let recordKey = "synthetic-record-key"
 
 	@Test func aPurchaseAddsCreditsAndFinishesWithoutChangingCreditsAccess() async throws {
 		let (coach, credits, store, secrets) = try await purchaseSetup()
@@ -99,11 +100,13 @@ import Testing
 		#expect(credits.calls.isEmpty)
 	}
 
-	@Test func addedCreditsDoNotDependOnReadingTheCreditsKeyAgain() async throws {
+	@Test func addedCreditsDoNotDependOnReadingTheCreditsKeyAfterTheClaim() async throws {
 		let backing = FixtureSecretStoreBacking()
-		let (coach, credits, store, _) = try await purchaseSetup(backing: backing)
+		let credits = FakeCreditsClient()
 		credits.claimResult = .success(.toppedUp(creditsAdded: Credits(units: 401)))
-		backing.fail(CredentialSlot.creditsAccount.rawValue, with: errSecInteractionNotAllowed)
+		let (coach, _, store, _) = try await purchaseSetup(
+			service: CreditsService { _ in KeychainFailsDuringClaim(fake: credits, backing: backing) },
+			backing: backing)
 		let purchase = CreditsPurchase(
 			id: 3, signedTransaction: "fake.signed.locked", appAccountToken: UUID(),
 			purchaseDate: Date(timeIntervalSince1970: 0), isRefunded: false)
@@ -122,14 +125,43 @@ import Testing
 		#expect(try secrets.accessSelection() == selection)
 	}
 
-	@Test func anAlreadyClaimedPurchaseWithoutAKeyRecoversThenFinishesQuietly() async throws {
-		let (coach, credits, store, _) = try await purchaseSetup(hasKey: false)
-		credits.claimResult = .success(.alreadyClaimed)
-		credits.recoverResult = .success(Recovery(athleteId: UUID(), credits: Credits(units: 9)))
-		#expect(await coach.buyCredits(Self.offer, in: store) == nil)
+	@Test(arguments: [
+		(ClaimOutcome.toppedUp(creditsAdded: Credits(units: 401)), String?("Added 401 credits")),
+		(.toppedUp(creditsAdded: Credits(units: 0)), nil),
+		(.alreadyClaimed, nil),
+	])
+	func aClaimOnARecordThePhoneHasNoKeyForRecoversTheKeyBeforeFinishing(
+		_ outcome: ClaimOutcome, _ expected: String?
+	) async throws {
+		let (coach, credits, store, secrets) = try await purchaseSetup(
+			hasKey: false, mintedKey: Self.recordKey)
+		let record = UUID()
+		credits.claimResult = .success(outcome)
+		credits.recoverResult = .success(Recovery(athleteId: record, credits: Credits(units: 601)))
+		#expect(sentence(await coach.buyCredits(Self.offer, in: store)) == expected)
 		#expect(
-			credits.calls.last == .recover(transactionLength: "fake.signed.\(Self.small.id)".count))
+			try secrets.creditsAccount()
+				== CreditsAccount(appAccountToken: record, key: Self.recordKey))
 		#expect(store.finished == [1])
+	}
+
+	@Test(
+		arguments: [
+			ClaimOutcome.toppedUp(creditsAdded: Credits(units: 401)),
+			.toppedUp(creditsAdded: Credits(units: 0)), .alreadyClaimed,
+		], [CreditsFailure.unavailable, .banned])
+	func aClaimOnARecordThePhoneHasNoKeyForStaysUnfinishedWhenTheRecoverFails(
+		_ outcome: ClaimOutcome, _ failure: CreditsFailure
+	) async throws {
+		let (coach, credits, store, secrets) = try await purchaseSetup(
+			hasKey: false, mintedKey: Self.recordKey)
+		credits.claimResult = .success(outcome)
+		credits.recoverResult = .failure(failure)
+		let notice = await coach.buyCredits(Self.offer, in: store)
+		#expect(notice?.key == Catalog.creditsPurchaseNotAdded)
+		#expect(store.finished.isEmpty)
+		#expect(store.unfinished.map(\.id) == [1])
+		#expect(try secrets.creditsAccount()?.key == nil)
 	}
 
 	@Test(arguments: [FakeStoreAnswer.pending, .canceled, .failed])
@@ -195,7 +227,8 @@ import Testing
 	}
 
 	private func purchaseSetup(
-		openRouter: Bool = false, hasKey: Bool = true, service: CreditsService? = nil,
+		openRouter: Bool = false, hasKey: Bool = true, mintedKey: String? = nil,
+		service: CreditsService? = nil,
 		backing: FixtureSecretStoreBacking = FixtureSecretStoreBacking()
 	) async throws -> (
 		Coach, FakeCreditsClient, FakeCreditsStore, ICloudKeychainStore
@@ -215,13 +248,38 @@ import Testing
 					records: RecordStore(log: InMemoryRecordLog()), secrets: secrets,
 					models: .scripted(FakeModelTransport()),
 					training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
-					credits: service ?? .fake(credits), host: ImmediateExecutionHost(),
+					credits: service ?? .fake(credits, mintedKey: mintedKey), host: ImmediateExecutionHost(),
 					clock: FixedClock(
 						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 					support: .inMemory(app: .fixture)),
 				builtInModel: testModel, displayLocale: testDisplayLocale))
 		return (coach, credits, store, secrets)
 	}
+}
+
+private struct KeychainFailsDuringClaim: CreditsClient {
+	let fake: FakeCreditsClient
+	let backing: FixtureSecretStoreBacking
+
+	func claim(signedTransaction: String, appAccountToken: UUID) async throws -> ClaimOutcome {
+		backing.fail(CredentialSlot.creditsAccount.rawValue, with: errSecInteractionNotAllowed)
+		return try await fake.claim(
+			signedTransaction: signedTransaction, appAccountToken: appAccountToken)
+	}
+
+	func grant(deviceCheck: Data) async throws -> GrantOutcome {
+		try await fake.grant(deviceCheck: deviceCheck)
+	}
+
+	func recover(signedTransaction: String) async throws -> Recovery {
+		try await fake.recover(signedTransaction: signedTransaction)
+	}
+
+	func catalog() async throws -> PackCatalog { try await fake.catalog() }
+
+	func balance() async throws -> CreditBalance { try await fake.balance() }
+
+	func erase() async throws { try await fake.erase() }
 }
 
 private final class OfflineURLProtocol: URLProtocol, @unchecked Sendable {

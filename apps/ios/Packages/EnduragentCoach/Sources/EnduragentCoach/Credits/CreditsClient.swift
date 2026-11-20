@@ -108,10 +108,8 @@ package enum ClaimSettlement: Sendable, Equatable {
 	case recoverThenFinish
 
 	package static func settlement(after outcome: ClaimOutcome, hasKey: Bool) -> ClaimSettlement {
-		if outcome == .alreadyClaimed && !hasKey {
-			return .recoverThenFinish
-		}
-		return .finish
+		if case .minted = outcome { return .finish }
+		return hasKey ? .finish : .recoverThenFinish
 	}
 }
 

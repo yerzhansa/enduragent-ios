@@ -171,19 +171,23 @@ extension Coach {
 			guard let token = purchase.appAccountToken else {
 				throw CreditsFailure.identityMismatch
 			}
+			let hasKey = try await creditsIdentity().hasCreditsKey
 			let outcome = try await credits.claim(
 				signedTransaction: purchase.signedTransaction, appAccountToken: token)
+			if ClaimSettlement.settlement(after: outcome, hasKey: hasKey) == .recoverThenFinish {
+				do {
+					_ = try await credits.recover(
+						signedTransaction: await store.newestSignedTransaction(after: purchase))
+				} catch {
+					diagnostics.record(.purchaseNotFinished(.claimLater, FailureCode(error)))
+					return .notAddedYet
+				}
+			}
 			switch outcome {
 			case .minted(let added), .toppedUp(let added):
 				guard added.units > 0 else { return .refunded }
 				return .added(added, switchedToCredits: await switchToCredits())
 			case .alreadyClaimed:
-				let hasKey = try await creditsIdentity().hasCreditsKey
-				if ClaimSettlement.settlement(after: outcome, hasKey: hasKey) == .recoverThenFinish
-				{
-					_ = try await credits.recover(
-						signedTransaction: await store.newestSignedTransaction(after: purchase))
-				}
 				return .alreadyAdded
 			}
 		} catch let failure as CreditsFailure where failure.refusesPurchase {

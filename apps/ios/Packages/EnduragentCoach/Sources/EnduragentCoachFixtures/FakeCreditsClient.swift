@@ -115,11 +115,16 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 	}
 
 	public func recover(signedTransaction: String) async throws -> Recovery {
-		let result = state.withLock { current in
+		let (result, provisioning) = state.withLock { current in
 			current.calls.append(.recover(transactionLength: signedTransaction.count))
-			return current.recoverResult
+			return (current.recoverResult, current.provisioning)
 		}
-		return try result.get()
+		let recovery = try result.get()
+		if let provisioning {
+			try await provisioning.0.storeRecovery(
+				key: provisioning.1, appAccountToken: recovery.athleteId)
+		}
+		return recovery
 	}
 
 	public func catalog() async throws -> PackCatalog {
