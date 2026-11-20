@@ -62,11 +62,11 @@ jobs:
           echo /tmp/xcodegen/xcodegen/bin >> "$GITHUB_PATH"
           /tmp/xcodegen/xcodegen/bin/xcodegen --version
       - run: make project
-      - name: Build unsigned iPhone app in Release
-        run: xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
       - run: make test-app
       - name: Verify bundled Phrasebook
         run: cmp apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Resources/Phrasebook.json DerivedData/Build/Products/Debug-iphonesimulator/Enduragent.app/EnduragentCoach_EnduragentCoach.bundle/Phrasebook.json
+      - name: Build unsigned iPhone app in Release
+        run: xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
 
   ios:
     needs: [checks, app]
