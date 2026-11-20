@@ -173,16 +173,17 @@ extension Coach {
 			}
 			let outcome = try await credits.claim(
 				signedTransaction: purchase.signedTransaction, appAccountToken: token)
-			let hasKey = try await creditsIdentity().hasCreditsKey
-			if ClaimSettlement.settlement(after: outcome, hasKey: hasKey) == .recoverThenFinish {
-				_ = try await credits.recover(
-					signedTransaction: await store.newestSignedTransaction(after: purchase))
-			}
 			switch outcome {
 			case .minted(let added), .toppedUp(let added):
 				guard added.units > 0 else { return .refunded }
 				return .added(added, switchedToCredits: await switchToCredits())
 			case .alreadyClaimed:
+				let hasKey = try await creditsIdentity().hasCreditsKey
+				if ClaimSettlement.settlement(after: outcome, hasKey: hasKey) == .recoverThenFinish
+				{
+					_ = try await credits.recover(
+						signedTransaction: await store.newestSignedTransaction(after: purchase))
+				}
 				return .alreadyAdded
 			}
 		} catch let failure as CreditsFailure where failure.refusesPurchase {

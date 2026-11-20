@@ -53,7 +53,7 @@ extension FixtureLaunchTests {
 		#expect(model.balance?.units == 601)
 	}
 
-	@Test func aRefusedPurchaseOffersAppleRefundSheetFromTheCreditsScreen() async throws {
+	@Test func aRefusedPurchaseKeepsItsAppleRefundOfferUntilARefundIsRequested() async throws {
 		let model = await model(try services())
 		let fixture = try #require(model.services.fixture)
 		fixture.credits.claimResult = .failure(.banned)
@@ -68,6 +68,10 @@ extension FixtureLaunchTests {
 		#expect(fixture.store.finished == [1])
 		fixture.store.refundAnswer = .success(.canceled)
 		await model.perform(try #require(notice.actions.first))
+		#expect(model.creditsPurchaseNotice == notice)
+		model.navigation.removeAll()
+		model.open(.credits)
+		await model.loadCredits()
 		#expect(model.creditsPurchaseNotice == notice)
 		fixture.store.refundAnswer = .success(.submitted)
 		await model.perform(try #require(notice.actions.first))

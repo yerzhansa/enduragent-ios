@@ -32,7 +32,7 @@ final class CreditsModel {
 		balance = nil
 		notice = nil
 		offers = nil
-		if purchasing == nil { purchaseNotice = nil }
+		if purchasing == nil, purchaseNotice?.actions.isEmpty ?? true { purchaseNotice = nil }
 		await refreshBalance()
 		offers = await services.coach.creditsOffers(in: services.store)
 	}

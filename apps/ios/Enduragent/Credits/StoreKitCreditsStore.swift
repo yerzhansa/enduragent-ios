@@ -35,11 +35,16 @@ struct StoreKitCreditsStore: CreditsStore {
 	func purchases() -> AsyncStream<CreditsPurchase> {
 		AsyncStream { continuation in
 			let listener = Task {
+				var handedBack = Set<CreditsPurchase.ID>()
 				for await verification in Transaction.unfinished {
-					continuation.yield(CreditsPurchase(verification))
+					let purchase = CreditsPurchase(verification)
+					if !purchase.isRefunded { handedBack.insert(purchase.id) }
+					continuation.yield(purchase)
 				}
 				for await verification in Transaction.updates {
-					continuation.yield(CreditsPurchase(verification))
+					let purchase = CreditsPurchase(verification)
+					if !purchase.isRefunded, handedBack.remove(purchase.id) != nil { continue }
+					continuation.yield(purchase)
 				}
 				continuation.finish()
 			}

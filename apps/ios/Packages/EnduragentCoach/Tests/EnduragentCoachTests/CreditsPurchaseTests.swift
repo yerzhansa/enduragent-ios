@@ -1,5 +1,6 @@
 import EnduragentCoachFixtures
 import Foundation
+import Security
 import Testing
 
 @testable import EnduragentCoach
@@ -98,6 +99,20 @@ import Testing
 		#expect(credits.calls.isEmpty)
 	}
 
+	@Test func addedCreditsDoNotDependOnReadingTheCreditsKeyAgain() async throws {
+		let backing = FixtureSecretStoreBacking()
+		let (coach, credits, store, _) = try await purchaseSetup(backing: backing)
+		credits.claimResult = .success(.toppedUp(creditsAdded: Credits(units: 401)))
+		backing.fail(CredentialSlot.creditsAccount.rawValue, with: errSecInteractionNotAllowed)
+		let purchase = CreditsPurchase(
+			id: 3, signedTransaction: "fake.signed.locked", appAccountToken: UUID(),
+			purchaseDate: Date(timeIntervalSince1970: 0), isRefunded: false)
+		#expect(
+			await coach.settleCreditsPurchase(purchase, in: store)?.canonicalSentence
+				== "Added 401 credits")
+		#expect(store.finished == [3])
+	}
+
 	@Test func aClaimThatAddsNothingBecauseOfAnEarlierRefundFinishesQuietly() async throws {
 		let (coach, credits, store, secrets) = try await purchaseSetup(openRouter: true)
 		let selection = try secrets.accessSelection()
@@ -180,13 +195,13 @@ import Testing
 	}
 
 	private func purchaseSetup(
-		openRouter: Bool = false, hasKey: Bool = true, service: CreditsService? = nil
+		openRouter: Bool = false, hasKey: Bool = true, service: CreditsService? = nil,
+		backing: FixtureSecretStoreBacking = FixtureSecretStoreBacking()
 	) async throws -> (
 		Coach, FakeCreditsClient, FakeCreditsStore, ICloudKeychainStore
 	) {
 		let secrets =
-			hasKey
-			? keyedSecrets() : ICloudKeychainStore(backing: FixtureSecretStoreBacking())
+			hasKey ? keyedSecrets(backing: backing) : ICloudKeychainStore(backing: backing)
 		if openRouter {
 			let model = try #require(ModelCatalog.fixture.orderedEntries.first).id
 			try secrets.installOpenRouterChoice(model: model, key: "synthetic-openrouter-account")
