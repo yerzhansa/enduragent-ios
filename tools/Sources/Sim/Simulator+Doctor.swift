@@ -63,10 +63,7 @@ extension Simulator {
 				check(
 					try succeeds("xcrun", ["simctl", "get_app_container", sim.udid, bundleID]),
 					"\(bundleID) installed")
-				let running = try capture(
-					"xcrun", ["simctl", "spawn", sim.udid, "launchctl", "list"]
-				)
-				.contains("UIKitApplication:\(bundleID)")
+				let running = try appRunning(sim.udid)
 				lines.append("note \(bundleID) \(running ? "running" : "not running")")
 			}
 		}

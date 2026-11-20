@@ -21,61 +21,35 @@ extension FixtureLaunchTests {
 		return (turn, try #require(notice(ofFailed: turn.state)))
 	}
 
-	@Test(arguments: ["fixture:fail 402", "fixture:fail 401"])
-	func creditsNoticeReturnsToConversationAfterOneBack(directive: String) async throws {
+	@Test func outOfCreditsNoticeReturnsToConversationAfterOneBack() async throws {
 		let model = await model(try services())
-		let (_, notice) = try await failedNotice(model, after: directive)
-		let action = try #require(notice.actions.first)
+		let (_, notice) = try await failedNotice(model, after: "fixture:fail 402")
+		#expect(notice.actions == [.buyCredits])
 		#expect(model.navigation.isEmpty)
-		await model.perform(action)
-		try #require(model.navigation == [.accessMethod])
+		await model.perform(.buyCredits)
+		try #require(model.navigation == [.credits])
 		model.navigation.removeLast()
 		#expect(model.navigation.isEmpty)
 		#expect(model.route == .chat)
 		#expect(model.chat?.turns.last?.state.isSettled == true)
 	}
 
-	@Test(arguments: [FixtureKeychainPolicy.empty, .unavailable, .malformedAccess])
-	func notConfiguredStorageUnavailableAndMalformedOpenAccessMethod(
+	@Test(arguments: [FixtureKeychainPolicy.empty, .unavailable])
+	func noCreditsOpensCreditsAndUnavailableStorageOffersTryAgain(
 		keychain: FixtureKeychainPolicy
 	) async throws {
 		let model = await model(try services(keychain: keychain))
-		let (_, notice) = try await failedNotice(model, after: "Hello")
-		let expected =
-			switch keychain {
-			case .unavailable: Catalog.accessErrorStorageUnavailable
-			case .malformedAccess: Catalog.accessErrorMalformed
-			default: Catalog.accessErrorNotConfigured
-			}
-		#expect(notice.key == expected)
-		#expect(notice.actions == [.chooseAccessMethod])
-		await model.perform(.chooseAccessMethod)
-		#expect(model.route == .chat)
-		#expect(model.navigation == [.accessMethod])
-	}
-
-	@Test func rejectedOpenRouterStartsSignInWithoutOpeningSettings() async throws {
-		var launch = launch
-		launch.accessMethod = .rejectedOpenRouter
-		launch.signInOutcome = .success
-		let model = await model(try fixtureServices(launch, defaults: defaults))
-		await model.agreeAndStartChatting()
-		model.draft.text = "Recover this connection"
-		await model.send()
-		let turn = try await settledTurn(model)
-		guard case .failed(let failed) = turn.state else {
-			Issue.record("Expected the rejected connection to fail the turn")
-			return
+		let (turn, notice) = try await failedNotice(model, after: "Hello")
+		if keychain == .empty {
+			#expect(notice.key == Catalog.accessErrorNotConfigured)
+			#expect(notice.actions == [.buyCredits])
+			await model.perform(.buyCredits)
+			#expect(model.navigation == [.credits])
+		} else {
+			#expect(notice.key == Catalog.accessErrorStorageUnavailable)
+			#expect(notice.actions == [.tryAgain(turn.id)])
 		}
-		#expect(failed.notice == nil)
-		try await model.waitForStatus { $0.access.attention == .rejectedKey }
-		await model.perform(try #require(model.status.access.notice?.actions.first))
-		try await model.waitForStatus { $0.access.attention == nil }
 		#expect(model.route == .chat)
-		#expect(model.navigation.isEmpty)
-		#expect(model.chat?.turns.first?.id == turn.id)
-		let fixture = try #require(model.services.fixture)
-		#expect(await fixture.openRouterAuthorizer.requests.count == 1)
 	}
 
 	@Test func lockedKeychainKeepsTheMessageAndOffersTryAgain() async throws {

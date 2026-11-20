@@ -33,7 +33,6 @@ final class ShellModel {
 	let environment: AppEnvironment
 	let lifecycle: AppLifecycle
 	let trainingSettings: TrainingSettingsModel
-	let accessSettings: AccessSettingsModel
 	let sessionSettings: SessionSettingsModel
 	let planDecisions: PlanDecisions
 	let support: SupportModel
@@ -41,7 +40,7 @@ final class ShellModel {
 	private let submission: ChatSubmission
 	var drafts: DraftStore { submission.drafts }
 	private let onboarding: OnboardingModel
-	private let credits: CreditsModel
+	let credits: CreditsModel
 	private let archive: HistoryModel
 	private var statuses: AsyncStream<CoachStatus>.Iterator
 	private var observation: Task<Void, Never>?
@@ -56,7 +55,6 @@ final class ShellModel {
 		self.environment = environment
 		self.lifecycle = AppLifecycle(environment: environment)
 		self.trainingSettings = TrainingSettingsModel(coach: environment.services.coach)
-		self.accessSettings = AccessSettingsModel(environment: environment)
 		self.sessionSettings = SessionSettingsModel(coach: environment.services.coach)
 		self.planDecisions = PlanDecisions(services: environment.services)
 		self.support = SupportModel(support: environment.services.coach.support)
@@ -91,13 +89,11 @@ final class ShellModel {
 		return false
 	}
 	var starterLine: String? {
-		(accessSettings.notice ?? onboarding.starterNotice)?.sentence(in: displayLocale)
+		onboarding.starterNotice?.sentence(in: displayLocale)
 	}
 	var starterResolved: Bool { onboarding.starterResolved }
 	private(set) var consentNotSaved = false
 	private(set) var isRecordingConsent = false
-	var balance: Credits? { credits.balance }
-	var creditsNotice: AthleteNotice? { credits.notice }
 	var history: HistoryList { archive.list }
 
 	var services: AppServices {
@@ -230,7 +226,6 @@ final class ShellModel {
 	}
 
 	func startChatting() async {
-		accessSettings.dismiss()
 		onboarding.complete()
 		route = .loading
 		await appear()
@@ -260,12 +255,10 @@ final class ShellModel {
 	}
 
 	func declineConsent() async {
-		guard route == .onboarding(.consent), let challenge = consentChallenge,
-			!isRecordingConsent
+		guard route == .onboarding(.consent), consentChallenge != nil, !isRecordingConsent
 		else { return }
 		consentNotSaved = false
 		route = .onboarding(.consentDeferred)
-		await services.coach.declineConsent(challenge)
 	}
 
 	func newConversation() async {
@@ -281,10 +274,6 @@ final class ShellModel {
 		-> ArchivedConversationContent
 	{
 		await archive.loadArchivedConversation(ref)
-	}
-
-	func loadCredits() async {
-		await credits.load()
 	}
 
 	func draftChanged(from previous: String) { submission.draftChanged(from: previous) }

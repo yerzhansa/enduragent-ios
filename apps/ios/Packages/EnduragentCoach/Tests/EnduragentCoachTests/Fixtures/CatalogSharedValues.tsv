@@ -115,7 +115,6 @@ fr	settings.application.danger	Danger	French noun for danger; the localized spel
 fr	settings.application.title	Application	French noun for an application; the localized spelling matches English.
 da,de,fr,sv	settings.application.version	Version {{version}}	Version is the localized noun in these locales; the version number is substituted.
 it,pt-BR,pt-PT	settings.coach.endpoint	Endpoint	Established technical loanword for a model API endpoint in Italian and Portuguese.
-da,nl,pl	settings.coach.model	Model	Native model noun in these locales; shared spelling.
 de,fr,it,nl	settings.coach.title	Coach	Established loanword for a sports coach in these locales.
 da,de,es,fi,fr,it,ko,nb,nl,pl,pt-BR,pt-PT,sv	settings.conversation.fieldSuffix	 ({{suffix}})	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 fr	settings.conversation.fields.idleMinutes.suffix	minutes	French plural of minute; shared spelling.
@@ -145,7 +144,6 @@ it,pt-BR,pt-PT	setup.ai.endpoint.title	Endpoint	Established technical loanword f
 da,nl,pl	setup.ai.model	Model	Native model noun in these locales; shared spelling.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	setup.ai.modelHint	{{model}} · {{hint}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 es,pt-BR,pt-PT	setup.ai.modelHints.experimental	experimental	Spanish and Portuguese adjective for an experimental feature; shared spelling.
-da,fr,nb,nl,pt-BR,pt-PT,sv	setup.ai.modelVia	{{model}} (via {{provider}})	Via is also the localized preposition in these locales; model and provider names are substituted.
 de	setup.telegram.optional	Optional	German adjective for an optional step; shared spelling.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	sidebar.sync.ariaLabel	{{action}} · {{headline}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	sidebar.sync.ariaLabelDetail	{{action}} · {{headline}} · {{detail}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.

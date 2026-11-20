@@ -30,7 +30,7 @@ On the phone the runner launches the installed build plainly and never taps Send
 
 ## The sitting
 
-One sitting covers Milestones 4, 5 and 6. The step lists are data in `apps/ios/EnduragentPhoneTests/Sessions/`: `m4.json` (cap 40), `plan.json` (cap 30) and `closeout.json` (cap 50), one ledger each under `~/Library/Logs`. Each step names its driver and build, the message actions it plans, the setup the operator makes first, each check as where to look and the value that passes, and the state it ends with. `sitting.json` orders all 29 steps; `SittingOrder.problems` checks that every step appears once, that `closeout/fill` is first and `closeout/update` second, that no TestFlight step follows `closeout/debug-install`, and that `closeout/second-device-diagnostics` follows `closeout/two-phone`.
+One sitting covers Milestones 4, 5 and 6. The step lists are data in `apps/ios/EnduragentPhoneTests/Sessions/`: `m4.json` (cap 40), `plan.json` (cap 30) and `closeout.json` (cap 50), one ledger each under `~/Library/Logs`. Each step names its driver and build, the message actions it plans, the setup the operator makes first, each check as where to look and the value that passes, and the state it ends with. `sitting.json` orders all 27 steps; `SittingOrder.problems` checks that every step appears once, that `closeout/fill` is first and `closeout/update` second, that no TestFlight step follows `closeout/debug-install`, and that `closeout/second-device-diagnostics` follows `closeout/two-phone`.
 
 | Order | Steps | Driver and build | Messages |
 | --- | --- | --- | --- |
@@ -43,16 +43,14 @@ One sitting covers Milestones 4, 5 and 6. The step lists are data in `apps/ios/E
 | 19 | `closeout/feedback` | runner `CloseoutPhoneRun` | 0 |
 | 20 | `closeout/language` | runner `CloseoutPhoneRun` | 4 |
 | 21 | `closeout/choices` | runner `ChoicesInConversationCheck` | 12 |
-| 22 | `closeout/openrouter-signin` | operator | 2 |
-| 23 | `closeout/lifecycle` | operator | 4 |
-| 24 | `closeout/reads` | operator | 3 |
-| 25 | `closeout/debug-install` | the operator installs the Debug build | 0 |
-| 26 | `closeout/openrouter-recovery` | runner `OpenRouterRecoveryPhoneCheck`, Debug | 2 |
-| 27 | `closeout/keychain-proof` | runner `TrainingKeychainDeviceProof`, Debug | 0 |
-| 28 | `closeout/two-phone` | runner `TwoPhoneReconnectCheck`, Debug | 0 |
-| 29 | `closeout/second-device-diagnostics` | operator, Debug on the second device | 0 |
+| 22 | `closeout/lifecycle` | operator | 4 |
+| 23 | `closeout/reads` | operator | 3 |
+| 24 | `closeout/debug-install` | the operator installs the Debug build | 0 |
+| 25 | `closeout/keychain-proof` | runner `TrainingKeychainDeviceProof`, Debug | 0 |
+| 26 | `closeout/two-phone` | runner `TwoPhoneReconnectCheck`, Debug | 0 |
+| 27 | `closeout/second-device-diagnostics` | operator, Debug on the second device | 0 |
 
-Milestone 4 plans 12 of 40, Milestone 5 12 of 30 and Milestone 6 32 of 50. Every `phone-check` command asks for each invocation's budget and refuses, through `PhoneBudget.approve`, an answer that is not a whole number, a budget below the chosen steps' planned count, and one that would pass the session's cap after what its ledger already spent.
+Milestone 4 plans 12 of 40, Milestone 5 12 of 30 and Milestone 6 28 of 50. Every `phone-check` command asks for each invocation's budget and refuses, through `PhoneBudget.approve`, an answer that is not a whole number, a budget below the chosen steps' planned count, and one that would pass the session's cap after what its ledger already spent.
 
 ### Run phone-check m4
 
@@ -79,7 +77,7 @@ It asks the budget and books it in `~/Library/Logs/enduragent-m6/PHONE/messages.
 
 - An operator step prints its setup, checks and end state; the operator taps it on the phone.
 - `closeout/about`, `closeout/feedback` and `closeout/language` run `CloseoutPhoneRun`. Neighbouring runner steps share one `xcodebuild test`, which receives each step's planned count in `ENDURAGENT_PLAN_PHONE_STEPS` and the budget in `ENDURAGENT_PHONE_MESSAGE_BUDGET`; a run whose steps plan no message gets a budget of 0. Before each run the helper checks that no `Enduragent.app` sits in its test products.
-- `closeout/choices` and `closeout/openrouter-recovery` print the command to run instead: `phone-check choices` and `phone-check openrouter recover`, which ask for their own budget inside the one booked here.
+- `closeout/choices` prints the command to run instead: `phone-check choices`, which asks for its own budget inside the one booked here.
 - `closeout/keychain-proof` and `closeout/two-phone` build `EnduragentKeychainProof` with `xcodebuild build`, install the built `icu.enduragent.keychainproof` with `xcrun devicectl device install app`, then run the test. The helper asks first for the device-update check and, for `closeout/two-phone`, the other device's proof build and this invocation's reconnect step from the table in [Prove reconnect across two phones](#prove-reconnect-across-two-phones). Each reconnect step needs its own invocation.
 - After `closeout/diagnostics` the helper asks for the path of the diagnostics file sent to this Mac, copies it into the folder as `diagnostics.json`, and scans it through `with-intervals-key`. `DiagnosticsFileScan` fails a file that is not the diagnostics JSON, has no usage line with a model and tokens, or holds a secret shape (`sk-or-v1-`, `sk-`, `Bearer `, `ghp_`), the test account's athlete id from the live seed ledger, anything shaped like `i` and 4 to 10 digits, the intervals key, or a message that `closeout/fill` or `closeout/update` fixes. It prints which check failed, never the value, and records `fail diagnostics-scan`.
 
@@ -89,7 +87,7 @@ After each step it asks the verdict and writes it to `coverage/closeout/sitting.
 
 This is the saved procedure for the 2026-10-01 run on build `2bbe2ee`. The phone runner lives in `apps/ios/EnduragentPhoneTests/PhoneRun.swift`. Only the `EnduragentPhone` scheme includes that target. The Swift file also compiles out on simulators. The normal `Enduragent` scheme and `sim` never execute it, and it uses no `XCTSkip`.
 
-Before **every** invocation, ask the operator for that invocation's message budget. Explain that live Send and Try again actions spend Credits or use the connected OpenRouter account. Each Send or Try again consumes one budget slot. The full procedure needs seven Sends and two Try again taps, so its minimum is nine slots. New conversation can also save memory through the model. Do not infer a new budget from a previous run. If a run fails or stops, report the actions already taken and ask for a new budget before another invocation.
+Before **every** invocation, ask the operator for that invocation's message budget. Explain that live Send and Try again actions spend Credits. Each Send or Try again consumes one budget slot. The full procedure needs seven Sends and two Try again taps, so its minimum is nine slots. New conversation can also save memory through the model. Do not infer a new budget from a previous run. If a run fails or stops, report the actions already taken and ask for a new budget before another invocation.
 
 Ask the operator to provide the connected, unlocked iPhone and approve the single calendar Add for this run. Never enter a passcode, password, API key, or any other credential. Never accept a consent, terms, or login screen. Never tap purchases, sign out, disconnect intervals.icu, delete the app, or erase its data. Never send or tap Try again beyond the approved budget. The runner refuses a missing budget before launch, checks the budget before every message action, and permits one Add only.
 
@@ -112,59 +110,6 @@ caffeinate -i xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme End
 ```
 
 The runner checks English questions exactly and requires existing conversation and History data, matching the original upgrade run. The operator selects the language and handles any preconditions on the phone. Export attachments from the result bundle and inspect the screenshots. Report messages, Try again taps, Add taps, Credits before and after, the calendar event, any failed step, and the state left on the phone. Attachments can contain private conversations or the Home screen; keep them in the operator's local evidence folder.
-
-## Prove the OpenRouter HTTPS callback and cancellation
-
-`EnduragentPhoneTests/OpenRouterSignInPhoneCheck` proves OpenRouter sign-in on a signed phone. It stays pending until the operator runs it. Controlled app completions do not prove the installed phone's associated-domain handoff. No simulator proof is owed while the domain is unconfigured.
-
-The operator configures `enduragent.icu`, its site-association file, the App ID capability and the signed install's Associated Domains entitlement. The callback is `https://enduragent.icu/auth/openrouter/callback`. This unit changes no entitlement or signing setting. Use an unlocked physical iPhone, English, working model access, accepted consent, no draft, no unfinished turn and no open workout review.
-
-Before each invocation, ask for its message budget. Explain that the callback test sends zero messages. The cancel test sends one live message through the previous access method and can spend Credits or use the connected OpenRouter account. Obtain explicit approval of that usage before the cancel test. Neither test taps Try again, New conversation, a purchase or a calendar Add. A stopped or failed invocation needs a fresh budget.
-
-1. Run `testHTTPSCallbackSavesConnection` with a new local evidence folder and the approved budget, which may be zero. The test launches plainly, opens Settings, then Choose access method, and taps Sign in with OpenRouter once.
-2. Handle the system permission alert by hand. The runner waits for the browser page and saves `openrouter-authorization-page`. At the OpenRouter page, automation stops all interaction. Confirm the host is `openrouter.ai` and the authorization identifies Enduragent before continuing. Never enter credentials through automation. The operator signs in and approves by hand within the runner's 180-second deadline.
-3. Check `openrouter-callback-saved` and `openrouter-callback-reopened`. The system sheet must dismiss, OpenRouter account must stay selected after relaunch, and the conversation's turn progress must remain unchanged. Inspect the phone's earlier messages as well. Keep the callback criterion pending if the sheet remains open or the choice is not saved.
-4. Prepare a working previous method with no pending consent. Obtain a new budget of at least one live Send, then run `testCancelKeepsPreviousAccessForNextTurn` in a different evidence folder. Run once with Credits selected and once with a working OpenRouter account, with a fresh budget for each invocation.
-5. Handle the system permission alert by hand. Inspect `openrouter-cancel-page`, then cancel the system sheet by hand without approving a new connection. The runner enters no credential and taps nothing in the browser. It waits at most 180 seconds for dismissal.
-6. Inspect `openrouter-before-cancel`, `openrouter-cancel-kept-access`, `openrouter-cancel-next-turn` and `openrouter-cancel-access-reopened`. The previous method must remain selected, the conversation must remain, and the single `What is an endurance ride?` message must receive a non-empty reply without a failure notice. Inspect the earlier messages and the reply. The phone remains in the conversation.
-
-Supply the connected phone's identifier only at invocation time. Choose one test method below, set `OPENROUTER_PHONE_TEST`, obtain `MESSAGE_BUDGET`, and create a new `OPENROUTER_PHONE_RUN` folder. Do not commit identifiers, keys, authorization codes, screenshots or result bundles.
-
-```sh
-mkdir -p "$OPENROUTER_PHONE_RUN"
-xcodegen generate --spec apps/ios/project.yml
-caffeinate -i xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme EnduragentPhone -configuration Debug -sdk iphoneos -destination "platform=iOS,id=$DEVICE_ID" -derivedDataPath /tmp/enduragent-dd/U7-3 -parallel-testing-enabled NO -resultBundlePath "$OPENROUTER_PHONE_RUN/openrouter.xcresult" -only-testing:"EnduragentPhoneTests/OpenRouterSignInPhoneCheck/$OPENROUTER_PHONE_TEST" ENDURAGENT_PHONE_MESSAGE_BUDGET="$MESSAGE_BUDGET" > "$OPENROUTER_PHONE_RUN/phone.log" 2>&1
-xcrun xcresulttool get test-results summary --path "$OPENROUTER_PHONE_RUN/openrouter.xcresult" > "$OPENROUTER_PHONE_RUN/summary.json"
-xcrun xcresulttool export attachments --path "$OPENROUTER_PHONE_RUN/openrouter.xcresult" --output-path "$OPENROUTER_PHONE_RUN/attachments"
-```
-
-`OPENROUTER_PHONE_TEST` is either `testHTTPSCallbackSavesConnection` or `testCancelKeepsPreviousAccessForNextTurn`. Check that exactly that test passed without a skip. Inspect every exported screenshot before declaring the criterion passed. Record the signed build, domain setup, selected method before and after, messages used, failed step and state left on the phone. Keep private evidence in the operator's local folder. Remove this run's build products under `/tmp/enduragent-dd/U7-3` afterward.
-
-## Prove OpenRouter recovery, selected model, sync and phone lock
-
-`EnduragentPhoneTests/OpenRouterRecoveryPhoneCheck` and the `phone-check openrouter` command prove OpenRouter recovery on a signed phone. Every step stays pending until the operator's signed-phone session. Simulator proofs are `OpenRouterRecoveryProof` and `OpenRouterAccessProof`. The phone procedure reuses `OpenRouterSignInPhoneCheck` for the actual callback, which remains its primary owner.
-
-Use the signed plain install, English, two updated iPhones on the same Apple ID, iCloud Keychain enabled, a working intervals.icu connection and an OpenRouter account with usable funds. The operator configures and verifies the associated domain as above. Do not put a key, code, verifier or athlete ID in launch arguments. Nothing in this procedure runs while the operator is away.
-
-Before every invocation the interactive helper asks for a fresh message budget and explicit acknowledgement of automatic usage charges. It refuses a non-interactive terminal and an insufficient budget before build, launch or Send. Every Send consumes one slot. The planned minimum is zero for sign-in, model picking, cancel, recovery and second-phone consent, and one for each tool, revoked-key or locked-turn step. No Try again, New conversation, purchase or calendar Add. A failed invocation stops, records its Sends and phone state, and requires a fresh budget before another run.
-
-At every OpenRouter page automation stops all interaction. The operator handles the system permission alert, verifies `openrouter.ai` and Enduragent, and signs in, approves, cancels or revokes by hand. XCTest captures the page and waits at most 180 seconds for the operator's action. It enters no credentials and taps nothing in the browser. Never treat a missing callback, cancellation, sync or lock screenshot as a pass.
-
-Run one step at a time, with a new local evidence folder each time:
-
-```sh
-swift run --quiet --package-path tools phone-check openrouter <step> <device id> <new local evidence folder>
-```
-
-1. `signin` runs the existing HTTPS callback proof from Credits and saves the OpenRouter choice without a Send. Inspect the signed-domain handoff and retained conversation. Separately run the existing previous-access cancellation proof above once from Credits and once from OpenRouter with its own budget for each.
-2. `pick` asks for a catalog model ID, its display name and its hosting provider, with zero Sends. It taps the named Settings row, captures any provider disclosure and waits for the operator to read and accept it by hand. The model stays marked after relaunch and Debug shows the saved ID. Then `tool` asks for that exact saved ID and a fresh one-Send budget. The response must stream and include an intervals.icu tool call, exposed by `chat.toolProgress`, and finish without a notice. Inspect the response, earlier messages, OpenRouter usage and unchanged Credits.
-3. `revoked` asks the operator to revoke the current test key by hand on OpenRouter, then sends one message. It must show one status-owned Sign in again action, retain the message and keep the recovery prompt after relaunch. It must make no automatic or Credits request. Check the OpenRouter dashboard and Credits manually.
-4. `cancel` taps Sign in again once, stops at the OpenRouter page and waits for the operator to cancel the system sheet. The rejected-key prompt and conversation stay. It sends nothing.
-5. `recover` taps Sign in again once and stops at the page for the operator to sign in and approve. The prompt disappears, the saved model stays, and the conversation survives relaunch. Run `tool` again with a fresh one-message budget and verify a streamed tool-backed turn in the same conversation.
-6. On the second updated phone, `second-consent` requires its first disclosure of the synced choice. Supply the source phone's exact model display name and named provider. The disclosure must name OpenRouter, that model and that provider before any request. Decline and relaunch must still require consent. The operator accepts by hand, then runs `tool` on the receiver with a fresh budget and the source model ID. Verify the saved selection/model and actual successful use of the synced key. A mock or one-phone result cannot close this gate.
-7. `locked` needs a fresh one-message budget and the selected model ID. Start the turn while unlocked, then physically lock the phone while the turn is working. Keep it locked until coaching finishes, then unlock. Inspect `operator-locked-phone`, the completed reply and tool evidence after unlocking. Home or temporary inactivity does not prove locked Keychain access. Leave this gate pending unless the screenshot and the operator's observation prove an actual lock during the turn.
-
-The helper saves the approval, xcodebuild log, result summary, screenshots, accessibility transcripts and operator verdict locally. Check exactly one test passed with no skip and inspect every attachment. Its build products stay under `/tmp/enduragent-dd/U8-3-phone` and are removed after the run. Report signed builds, domain setup, both devices' update/sync state, selected model/provider, Sends used and remaining budget, failed step and state left on each phone. Live model picking, real revocation, two-phone sync and locked-phone use remain open completion gates until these steps pass.
 
 ## Prove native training persistence on one phone
 
@@ -225,7 +170,7 @@ Require one passed test per invocation, zero failures and zero skips. Inspect `r
 
 ## Prove live French replies after choosing a language
 
-`EnduragentPhoneTests/LanguageReplyCheck` and the `phone-check language` command prove live replies in the chosen language. The check stays pending for the operator's real-phone session. The helper requires an interactive terminal and asks for this invocation's message budget before building, launching or sending. Explain that four live Sends spend Credits or use the connected OpenRouter account. A failed invocation needs a new budget. Nothing in the simulator procedure runs this check.
+`EnduragentPhoneTests/LanguageReplyCheck` and the `phone-check language` command prove live replies in the chosen language. The check stays pending for the operator's real-phone session. The helper requires an interactive terminal and asks for this invocation's message budget before building, launching or sending. Explain that four live Sends spend Credits. A failed invocation needs a new budget. Nothing in the simulator procedure runs this check.
 
 Prepare the unlocked phone with working model access, consent accepted, no composer draft and no open turn or workout review. In iPhone Settings, arrange the preferred languages as Russian, French, English. French must be the first supported language. The operator handles every credential, consent and system alert. Use a plain Debug app launch without fixture arguments or language overrides.
 
@@ -274,7 +219,7 @@ Complete fixture onboarding and consent. For every relaunch, use the same comman
 
 The `phone-check choices` command and `EnduragentPhoneTests/ChoicesInConversationCheck` are a separate proof. Run it only with the operator present. It proposes twelve live messages across six cases. Each invocation sends one message and asks for its own message budget before launch or Send. A fresh conversation can also spend Credits saving memory. The operator approves that memory work with the invocation's budget. It stays pending while the operator is away.
 
-Use the phone's own Credits, the live built-in model, English, and a plain launch. The operator selects Credits and handles consent, credentials, onboarding, or system alerts before the run. The helper records the model ID from the app target's Debug `OPENROUTER_MODEL` build setting, the value the app's `OpenRouterModel` key carries. It uses only the physical-device `EnduragentPhone` scheme, and the capture test compiles out on simulators. It never approves a workout review. The messages include synthetic medical symptoms and remain in the phone's conversation records.
+Use the phone's own Credits, the live built-in model, English, and a plain launch. The operator handles consent, credentials, onboarding, or system alerts before the run. The helper records the model ID from the app target's Debug `OPENROUTER_MODEL` build setting, the value the app's `OpenRouterModel` key carries. It uses only the physical-device `EnduragentPhone` scheme, and the capture test compiles out on simulators. It never approves a workout review. The messages include synthetic medical symptoms and remain in the phone's conversation records.
 
 Supply the connected phone's identifier and a new local evidence folder. The helper keeps build products under `/tmp/enduragent-dd/U11-1-phone`.
 
@@ -299,7 +244,7 @@ This is the pending live proof for criteria 1 to 3 and 5. Scripted package repli
 
 `phone-check plan` and `EnduragentPhoneTests/PlanPhoneRun/testPlanPhoneRun` are Milestone 5's plan phone session on the operator's real iPhone: 11 Sends and one New conversation, which also saves memory, under a cap of 30 message actions for the whole milestone. Only the operator runs it. An agent never runs `phone-check plan`, `PlanPhoneRun` or any of its steps, and nothing in the simulator procedure covers it. `PlanPhoneRun` compiles out on simulators, and only the `EnduragentPhone` scheme includes it.
 
-Each Send, Try again and New conversation is one message action. They spend the phone's Credits or its OpenRouter account. The six steps `plan/1` to `plan/5` and `plan/7` plan 2, 1, 2, 2, 3 and 2 actions, 12 in all, under a cap of 30; both live in `apps/ios/EnduragentPhoneTests/Sessions/plan.json`. `phone-check plan` keeps the milestone's count in `~/Library/Logs/enduragent-m5/PHONE/messages.tsv`, one row per invocation under the header `steps`, `budget`, `spent`. Before build or launch it asks for this invocation's budget and refuses:
+Each Send, Try again and New conversation is one message action. They spend the phone's Credits. The six steps `plan/1` to `plan/5` and `plan/7` plan 2, 1, 2, 2, 3 and 2 actions, 12 in all, under a cap of 30; both live in `apps/ios/EnduragentPhoneTests/Sessions/plan.json`. `phone-check plan` keeps the milestone's count in `~/Library/Logs/enduragent-m5/PHONE/messages.tsv`, one row per invocation under the header `steps`, `budget`, `spent`. Before build or launch it asks for this invocation's budget and refuses:
 
 - a budget below the planned count of the chosen steps;
 - a budget that would take the milestone past the cap of 30;

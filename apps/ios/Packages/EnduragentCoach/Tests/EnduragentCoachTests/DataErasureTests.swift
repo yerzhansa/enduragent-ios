@@ -290,7 +290,7 @@ private final class ErasureRig: Sendable {
 		let store = ICloudKeychainStore(backing: backing)
 		try store.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
 		try store.storeIntervalsConnection(testConnection)
-		try store.storeOpenRouterAccountKey("synthetic-openrouter-key", at: .legacy)
+		try backing.installBuild9OpenRouterChoice(model: testModel, key: "synthetic-openrouter-key")
 		try support.journal.append(Data("{}\n".utf8))
 		try support.keptNotes.save(
 			KeptNote(note: .first(try FeedbackText(validating: "Kept note")), phase: .ready))
@@ -359,7 +359,8 @@ private final class ErasureRig: Sendable {
 		let store = ICloudKeychainStore(backing: backing)
 		#expect(try store.creditsAccount() == nil)
 		#expect(try store.intervalsConnection() == nil)
-		#expect(try store.openRouterAccountKey(at: .legacy) == nil)
+		#expect(try backing.copy(account: "openRouterAccountKey") == nil)
+		#expect(try backing.copy(account: CredentialSlot.accessSelection.rawValue) == nil)
 		#expect(try support.journal.read() == nil)
 		#expect(try support.keptNotes.load() == nil)
 		#expect(try FileModelCatalogCache(directory: directory).load() == nil)

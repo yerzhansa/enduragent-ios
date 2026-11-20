@@ -14,8 +14,9 @@ extension Simulator {
 	}
 
 	private func runProofs(dir: String, udid: String, proofs: [String]) throws -> ProofReport {
-		_ = try Subprocess().run(
-			"xcrun", ["simctl", "terminate", udid, bundleID], output: .discarded)
+		if try appRunning(udid) {
+			_ = try capture("xcrun", ["simctl", "terminate", udid, bundleID])
+		}
 		let name = "uitest-\(stamp())"
 		let recordings = NodePath.join(recordingsRoot, NodePath.basename(dir))
 		try makeFolder(recordings)

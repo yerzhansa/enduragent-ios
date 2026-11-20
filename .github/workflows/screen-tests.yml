@@ -6,20 +6,25 @@ on:
       - apps/ios/**
       - tools/**
       - .github/workflows/screen-tests.yml
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: screen-tests-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
   smoke:
+    if: github.event_name == 'pull_request'
     runs-on: macos-26
     timeout-minutes: 20
+    concurrency:
+      group: screen-tests-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    outputs:
+      seeded: ${{ steps.seeded.outputs.seeded }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - name: Install pinned XcodeGen
@@ -28,10 +33,51 @@ jobs:
           echo '4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806  /tmp/xcodegen.zip' | shasum -a 256 -c -
           unzip -q /tmp/xcodegen.zip -d /tmp/xcodegen
           echo /tmp/xcodegen/xcodegen/bin >> "$GITHUB_PATH"
+      - name: Restore the newest warm simulator
+        id: warm
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ${{ runner.temp }}/warm-simulator
+          key: warm-simulator-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: warm-simulator-
       - name: Build the app and the screen test runner
         run: swift run --quiet --package-path tools sim build
       - name: Run the smoke set
+        env:
+          ENDURAGENT_SIM_TEMPLATE: ${{ steps.warm.outputs.cache-matched-key != '' && format('{0}/warm-simulator', runner.temp) || '' }}
         run: swift run --quiet --package-path tools sim shard smoke FirstConversationProof FailureNoticesProof ReviewProof HistoryArchivedProof AccessNoticeProof
       - name: Print the per-class times
         if: always()
         run: cat "$HOME/Library/Logs/enduragent-verify/smoke/summary.json"
+      - name: Tell whether the run booted from the warm simulator
+        id: seeded
+        if: always()
+        run: |
+          record="$HOME/Library/Logs/enduragent-verify/smoke/run.json"
+          if [ ! -f "$record" ]; then
+            echo "no simulator was created"
+          elif grep -q '"template"' "$record"; then
+            echo seeded=true | tee -a "$GITHUB_OUTPUT"
+          else
+            echo seeded=false | tee -a "$GITHUB_OUTPUT"
+          fi
+
+  warm:
+    needs: smoke
+    if: ${{ !cancelled() && needs.smoke.result != 'cancelled' && (github.event_name != 'pull_request' || needs.smoke.outputs.seeded == 'false') }}
+    runs-on: macos-26
+    timeout-minutes: 30
+    concurrency:
+      group: warm-simulator-${{ github.ref }}
+      cancel-in-progress: false
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Boot a new simulator and let iOS finish its first-run work
+        run: swift run --quiet --package-path tools sim warm --template "$RUNNER_TEMP/warm-simulator" --settle 600
+      - name: Save the warm simulator
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ${{ runner.temp }}/warm-simulator
+          key: warm-simulator-${{ github.run_id }}-${{ github.run_attempt }}

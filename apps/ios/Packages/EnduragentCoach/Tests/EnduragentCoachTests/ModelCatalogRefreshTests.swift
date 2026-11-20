@@ -1,6 +1,5 @@
 import EnduragentCoachFixtures
 import Foundation
-import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -9,27 +8,17 @@ import Testing
 	private let selected = ModelCatalog.bundled.orderedEntries[0]
 	private let addedID = ModelID(rawValue: "fixture/refreshed-model")
 
-	@Test func newerChoicesSurviveRestartWithoutChangingSelection() async throws {
+	@Test func newerCatalogSurvivesRestartWithoutChangingTheBuiltInModel() async throws {
 		let fixture = try Fixture()
 		let coach = try await fixture.coach(source: FakeModelCatalogSource(response: .newer))
-		let choices = try await refreshedChoices(coach, cache: .available(.downloaded))
-		#expect(choices.catalog.catalog.entries[addedID]?.displayName == "Refreshed Coach")
-		#expect(choices.selected == selected)
+		let refreshed = try await refreshedCatalog(coach, cache: .available(.downloaded))
+		#expect(refreshed.catalog.entries[addedID]?.displayName == "Refreshed Coach")
 		try await fixture.proveReply(coach, model: selected.id)
 		await coach.lifecycle(.willTerminate)
 
 		let reopened = try await fixture.coach(source: FakeModelCatalogSource(response: .offline))
-		let restored = try #require(try await reopened.observedStatus().access.modelChoices)
-		#expect(restored == choices)
+		#expect(await reopened.catalogs.snapshot() == refreshed)
 		try await fixture.proveReply(reopened, model: selected.id)
-		let outcome = await reopened.changeModelAccess(.selectOpenRouterModel(addedID))
-		guard case .replaced = outcome else {
-			Issue.record("A downloaded catalog choice must be selectable")
-			await reopened.lifecycle(.willTerminate)
-			return
-		}
-		#expect(try await reopened.observedStatus().access.model == addedID)
-		try await fixture.proveReply(reopened, model: addedID, selectionWrites: 1)
 		await reopened.lifecycle(.willTerminate)
 	}
 
@@ -37,64 +26,53 @@ import Testing
 	func rejectedRefreshRetainsDownloadedChoices(_ response: RejectedResponse) async throws {
 		let fixture = try Fixture()
 		let first = try await fixture.coach(source: FakeModelCatalogSource(response: .newer))
-		let lastUsable = try await refreshedChoices(first, cache: .available(.downloaded))
+		let lastUsable = try await refreshedCatalog(first, cache: .available(.downloaded))
 		await first.lifecycle(.willTerminate)
 
 		let source: any ModelCatalogSource
 		if response == .equal {
-			source = CatalogDataSource(data: try lastUsable.catalog.catalog.encoded())
+			source = CatalogDataSource(data: try lastUsable.catalog.encoded())
 		} else {
 			source = FakeModelCatalogSource(response: response.script)
 		}
 		let coach = try await fixture.coach(source: source)
-		let retained = try await refreshedChoices(
+		let retained = try await refreshedCatalog(
 			coach, cache: .retained(.downloaded, response.issue))
-		#expect(retained.catalog.catalog == lastUsable.catalog.catalog)
-		#expect(retained.selected == selected)
+		#expect(retained.catalog == lastUsable.catalog)
 		try await fixture.proveReply(coach, model: selected.id)
 		await coach.lifecycle(.willTerminate)
 
 		let reopened = try await fixture.coach(source: FakeModelCatalogSource(response: .offline))
-		let restored = try #require(try await reopened.observedStatus().access.modelChoices)
-		#expect(restored.catalog.catalog == lastUsable.catalog.catalog)
-		#expect(restored.catalog.cache == .available(.downloaded))
-		#expect(restored.selected == selected)
+		let restored = await reopened.catalogs.snapshot()
+		#expect(restored.catalog == lastUsable.catalog)
+		#expect(restored.cache == .available(.downloaded))
 		try await fixture.proveReply(reopened, model: selected.id)
 		await reopened.lifecycle(.willTerminate)
 	}
 
-	@Test(arguments: [AccessMethod.openRouterAccount, .credits])
-	func pendingRefreshDoesNotHoldCoachingOrChangeWhoPays(_ method: AccessMethod) async throws {
-		let fixture = try Fixture(method: method)
+	@Test func pendingRefreshDoesNotHoldCoaching() async throws {
+		let fixture = try Fixture()
 		let gate = FakeModelGate()
 		let source = FakeModelCatalogSource(response: .held, gate: gate)
 		let coach = try await fixture.coach(source: source)
-		let stream = await coach.observeStatus()
 		try await beforeDeadline(within: .hangGuard) { await coach.lifecycle(.becameActive) }
 		try await waitUntil { source.requestCount == 1 }
 		try await beforeDeadline(within: .hangGuard) {
 			while await gate.arrivals == 0 { await Task.yield() }
 		}
-		if method == .openRouterAccount {
-			let status = try #require(
-				try await stream.status {
-					$0.access.modelChoices?.catalog.cache == .refreshing(.bundled)
-				})
-			#expect(status.access.model == selected.id)
-		}
+		#expect(await coach.catalogs.snapshot().cache == .refreshing(.bundled))
 		try await beforeDeadline(within: .hangGuard) { await coach.lifecycle(.becameActive) }
 		#expect(source.requestCount == 1)
 		#expect(await gate.arrivals == 1)
-		try await fixture.proveReply(coach, model: selected.id, method: method)
+		try await fixture.proveReply(coach, model: selected.id)
 		#expect(await gate.arrivals == 1)
 		await gate.release()
-		if method == .openRouterAccount {
-			_ = try #require(
-				try await stream.status {
-					$0.access.modelChoices?.catalog.cache == .available(.downloaded)
-				})
+		try await beforeDeadline(within: .hangGuard) {
+			while await coach.catalogs.snapshot().cache != .available(.downloaded) {
+				await Task.yield()
+			}
 		}
-		try await fixture.proveReply(coach, model: selected.id, method: method)
+		try await fixture.proveReply(coach, model: selected.id)
 		await coach.lifecycle(.willTerminate)
 	}
 
@@ -106,89 +84,51 @@ import Testing
 				to: fixture.directory.appending(path: "model-catalog.json"), options: .atomic)
 		}
 		let coach = try await fixture.coach(source: FakeModelCatalogSource(response: .offline))
-		let choices = try await refreshedChoices(coach, cache: .retained(.bundled, .offline))
-		#expect(choices.catalog.catalog == .bundled)
-		#expect(choices.selected == selected)
+		let refreshed = try await refreshedCatalog(coach, cache: .retained(.bundled, .offline))
+		#expect(refreshed.catalog == .bundled)
 		try await fixture.proveReply(coach, model: selected.id)
 		await coach.lifecycle(.willTerminate)
 		let reopened = try await fixture.coach(source: FakeModelCatalogSource(response: .offline))
-		#expect(
-			try await reopened.observedStatus().access.modelChoices?.catalog.catalog == .bundled)
+		#expect(await reopened.catalogs.snapshot().catalog == .bundled)
 		try await fixture.proveReply(reopened, model: selected.id)
 		await reopened.lifecycle(.willTerminate)
 	}
 
-	@Test func omittedSelectionKeepsItsNameAndRequestAfterRestart() async throws {
+	@Test func omittedBuiltInModelKeepsItsRequestAfterRestart() async throws {
 		let fixture = try Fixture()
 		let coach = try await fixture.coach(
 			source: FakeModelCatalogSource(response: .omittedSelectedModel))
-		let choices = try await refreshedChoices(coach, cache: .available(.downloaded))
-		#expect(choices.catalog.catalog.entries[selected.id] == nil)
-		#expect(choices.catalog.catalog.entries[addedID] != nil)
-		#expect(choices.selected.details.displayName == "DeepSeek V4.1 Flash")
-		#expect(choices.selected == selected)
+		let refreshed = try await refreshedCatalog(coach, cache: .available(.downloaded))
+		#expect(refreshed.catalog.entries[selected.id] == nil)
+		#expect(refreshed.catalog.entries[addedID] != nil)
 		try await fixture.proveReply(coach, model: selected.id)
 		await coach.lifecycle(.willTerminate)
 		let reopened = try await fixture.coach(source: FakeModelCatalogSource(response: .offline))
-		let restored = try #require(try await reopened.observedStatus().access.modelChoices)
-		#expect(restored == choices)
+		#expect(await reopened.catalogs.snapshot() == refreshed)
 		try await fixture.proveReply(reopened, model: selected.id)
 		await reopened.lifecycle(.willTerminate)
 	}
 
 	@Test(arguments: DownloadedBuiltIn.allCases)
-	func firstSignInFromCreditsUsesTheCurrentBuiltInEntry(_ downloaded: DownloadedBuiltIn)
-		async throws
-	{
+	func creditsUseTheCurrentBuiltInEntry(_ downloaded: DownloadedBuiltIn) async throws {
 		let fixture = try Fixture()
 		let expected = try downloaded.entry(for: selected)
 		let coach = try await fixture.coach(source: try downloaded.source(for: selected))
-		_ = try await refreshedChoices(coach, cache: .available(.downloaded))
-		_ = await coach.changeModelAccess(.useCredits)
+		_ = try await refreshedCatalog(coach, cache: .available(.downloaded))
 		let credits = try await coach.observedStatus()
-		guard case .required(let challenge) = credits.access.consent else {
-			Issue.record("Credits needs its own consent")
-			await coach.lifecycle(.willTerminate)
-			return
+		if case .required(let challenge) = credits.access.consent {
+			#expect(challenge.target.entry == expected)
+			try await coach.recordConsent(challenge)
 		}
-		#expect(challenge.target.entry == expected)
-		try await coach.recordConsent(challenge)
-		try await fixture.proveReply(
-			coach, model: selected.id, method: .credits, selectionWrites: 1)
-		let outcome = await coach.changeModelAccess(.signInToOpenRouter)
-		guard case .replaced(let summary, _) = outcome else {
-			Issue.record("First sign-in must retain the built-in model after a catalog omission")
-			await coach.lifecycle(.willTerminate)
-			return
-		}
-		guard case .openRouterAccount(let choice) = summary.selection else {
-			Issue.record("Sign-in must select the OpenRouter account")
-			await coach.lifecycle(.willTerminate)
-			return
-		}
-		#expect(choice.entry == expected)
-		let status = try await coach.observedStatus()
-		#expect(status.access.modelChoices?.selected == expected)
-		guard case .required(let accountConsent) = status.access.consent else {
-			Issue.record("First sign-in needs OpenRouter consent")
-			await coach.lifecycle(.willTerminate)
-			return
-		}
-		#expect(accountConsent.target.entry == choice.entry)
-		try await coach.recordConsent(accountConsent)
-		#expect(
-			replyText(try await coach.sendAndSettle("Use the first sign-in model"))
-				== selected.id.rawValue)
-		#expect(fixture.transport.requests.last?.model == selected.id)
+		try await fixture.proveReply(coach, model: selected.id)
 		#expect(fixture.transport.requests.last?.provider == expected.details.provider)
-		#expect(fixture.transport.requests.last?.credential.method == .openRouterAccount)
 		await coach.lifecycle(.willTerminate)
 	}
 
 	@Test func failedCacheReplacementDoesNotPublishNewChoices() async throws {
 		let fixture = try Fixture()
 		let first = try await fixture.coach(source: FakeModelCatalogSource(response: .newer))
-		let lastUsable = try await refreshedChoices(first, cache: .available(.downloaded))
+		let lastUsable = try await refreshedCatalog(first, cache: .available(.downloaded))
 		await first.lifecycle(.willTerminate)
 		let newer = try ModelCatalog(
 			revision: ModelCatalog.bundled.revision + 2, entries: [selected])
@@ -196,27 +136,25 @@ import Testing
 			source: CatalogDataSource(data: try newer.encoded()),
 			cache: RejectingCatalogCache(cache: FileModelCatalogCache(directory: fixture.directory))
 		)
-		let retained = try await refreshedChoices(
+		let retained = try await refreshedCatalog(
 			coach, cache: .retained(.downloaded, .storageUnavailable))
-		#expect(retained.catalog.catalog == lastUsable.catalog.catalog)
+		#expect(retained.catalog == lastUsable.catalog)
 		try await fixture.proveReply(coach, model: selected.id)
 		await coach.lifecycle(.willTerminate)
 		let reopened = try await fixture.coach(source: FakeModelCatalogSource(response: .offline))
-		#expect(
-			try await reopened.observedStatus().access.modelChoices?.catalog.catalog
-				== lastUsable.catalog.catalog)
+		#expect(await reopened.catalogs.snapshot().catalog == lastUsable.catalog)
 		try await fixture.proveReply(reopened, model: selected.id)
 		await reopened.lifecycle(.willTerminate)
 	}
 
-	private func refreshedChoices(_ coach: Coach, cache: CatalogCacheState) async throws
-		-> OpenRouterModelChoices
+	private func refreshedCatalog(_ coach: Coach, cache: CatalogCacheState) async throws
+		-> ModelCatalogStatus
 	{
-		let stream = await coach.observeStatus()
 		await coach.lifecycle(.becameActive)
-		let status = try #require(
-			try await stream.status { $0.access.modelChoices?.catalog.cache == cache })
-		return try #require(status.access.modelChoices)
+		try await beforeDeadline(within: .hangGuard) {
+			while await coach.catalogs.snapshot().cache != cache { await Task.yield() }
+		}
+		return await coach.catalogs.snapshot()
 	}
 
 	final class Fixture: Sendable {
@@ -225,39 +163,26 @@ import Testing
 		let transport = FakeModelTransport { request in
 			ScriptedReply([.text(request.model.rawValue), .finish(reason: .stop)])
 		}
-		let originalSelection: SavedAccessReference?
-		private let opened = Mutex<FixtureSecretStoreBacking?>(nil)
 
-		init(method: AccessMethod = .openRouterAccount) throws {
+		init() throws {
 			directory = try TestTemporaryFolders.make()
 			try FileManager.default.createDirectory(
 				at: directory, withIntermediateDirectories: true)
 			let secrets = try ICloudKeychainStore.fixture(directory: directory)
-			try secrets.store.installOpenRouterChoice(
-				model: ModelCatalog.bundled.orderedEntries[0].id, key: "synthetic-refresh-account",
-				catalog: .bundled)
 			try secrets.store.storeCreditsAccount(
 				CreditsAccount(appAccountToken: UUID(), key: "synthetic-refresh-credits"))
-			if method == .credits { try secrets.store.storeAccessSelection(.init(.credits)) }
-			originalSelection = try secrets.store.accessSelection()
 		}
 
 		func coach(source: any ModelCatalogSource, cache: (any ModelCatalogCache)? = nil)
 			async throws -> Coach
 		{
-			let reopened = try ICloudKeychainStore.fixture(directory: directory)
-			opened.withLock { $0 = reopened.backing }
-			let secrets = reopened.store
+			let secrets = try ICloudKeychainStore.fixture(directory: directory).store
 			let coach = makeCoach(
 				records: RecordStore(log: records), secrets: secrets,
 				models: ModelService(
 					catalogSource: source,
 					catalogCache: cache ?? FileModelCatalogCache(directory: directory)
 				) { [transport] _ in transport },
-				openRouterSignIn: .fake(
-					authorizer: FakeOpenRouterAuthorizer(
-						response: .completed(
-							.success(OpenRouterAuthCode(code: "fixture-refresh-code"))))),
 				builtInModel: ModelCatalog.bundled.orderedEntries[0].id)
 			let status = try await coach.observedStatus()
 			if case .required(let challenge) = status.access.consent {
@@ -266,26 +191,14 @@ import Testing
 			return coach
 		}
 
-		func proveReply(
-			_ coach: Coach, model: ModelID, method: AccessMethod = .openRouterAccount,
-			selectionWrites: Int? = nil
-		) async throws {
+		func proveReply(_ coach: Coach, model: ModelID) async throws {
 			#expect(
 				replyText(try await coach.sendAndSettle("Keep my model choice")) == model.rawValue)
 			let request = try #require(transport.requests.last)
 			#expect(request.model == model)
-			#expect(request.credential.method == method)
 			#expect(
-				request.credential.secret
-					== (method == .credits
-						? "synthetic-refresh-credits" : "synthetic-refresh-account"))
-			let selectionAccount = CredentialSlot.accessSelection.rawValue
-			#expect(opened.withLock { $0?.writes(to: selectionAccount) } == (selectionWrites ?? 0))
-			if selectionWrites == nil {
-				#expect(
-					try ICloudKeychainStore.fixture(directory: directory).store.accessSelection()
-						== originalSelection)
-			}
+				request.credential
+					== ProviderCredential(secret: "synthetic-refresh-credits", method: .credits))
 		}
 	}
 

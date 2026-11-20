@@ -46,6 +46,7 @@ struct AppServices: Sendable {
 	var coach: Coach
 	var device: DeviceDefaults
 	var deviceCheck: any DeviceCheckTokenProviding
+	var store: any CreditsStore
 	var clock: any Clock
 	var leases: @Sendable () async -> [LeaseRecord]
 
@@ -70,8 +71,7 @@ struct AppServices: Sendable {
 				credits: .worker(creditsWorkerBase),
 				host: host,
 				clock: clock,
-				support: try .onDevice(app: identity),
-				openRouterSignIn: OpenRouterSignInService(authorizer: OpenRouterSignInSession())
+				support: try .onDevice(app: identity)
 			),
 			builtInModel: builtInModel,
 			displayLocale: displayLocale
@@ -80,6 +80,7 @@ struct AppServices: Sendable {
 			coach: coach,
 			device: DeviceDefaults(suiteName: nil),
 			deviceCheck: DeviceCheckTokenProvider(),
+			store: StoreKitCreditsStore(),
 			clock: clock,
 			leases: { await host.leases }
 		)

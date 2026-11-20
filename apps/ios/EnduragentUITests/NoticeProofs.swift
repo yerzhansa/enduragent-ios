@@ -8,15 +8,19 @@ final class NoticeCopyProof: XCTestCase {
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.exchange(app, "fixture:fail 402")
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.creditsExhausted))
-		XCTAssertEqual(
-			app.buttons.matching(identifier: "chat.turn.switchToOpenRouter").firstMatch.label,
-			TutorialHarness.switchToOpenRouter)
+		let buy = TutorialHarness.named(app, "chat.turn.buyCredits")
+		XCTAssertEqual(buy.label, TutorialHarness.buyCredits)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "notice-copy-credits-exhausted", app: app)
+		buy.tap()
+		let balance = TutorialHarness.named(app, "credits.balance")
+		TutorialHarness.wait(balance)
+		XCTAssertEqual(balance.label, "0 credits")
+		TutorialHarness.attach(self, name: "notice-copy-buy-credits-opens-credits", app: app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, "fixture:fail 401")
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.accessRejected))
-		XCTAssertEqual(
-			app.buttons.matching(identifier: "chat.turn.switchToOpenRouter").count, 2)
+		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.buyCredits").count, 1)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "notice-copy-access-rejected", app: app)
 		TutorialHarness.exchange(app, "fixture:memory-then-fail")
@@ -27,21 +31,21 @@ final class NoticeCopyProof: XCTestCase {
 }
 
 final class AccessNoticeProof: XCTestCase {
-	func testNotConfiguredOpensAccessMethod() {
+	func testNotConfiguredOpensCredits() {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app, arguments: FixtureArguments(keychain: .empty, onboarded: true))
 		TutorialHarness.agreeToProviderConsent(app)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.notConfigured))
-		let choose = TutorialHarness.named(app, "chat.turn.chooseAccessMethod")
-		XCTAssertEqual(choose.label, TutorialHarness.chooseAccessMethod)
+		let buy = TutorialHarness.named(app, "chat.turn.buyCredits")
+		XCTAssertEqual(buy.label, TutorialHarness.buyCredits)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "access-not-configured", app: app)
-		choose.tap()
-		TutorialHarness.wait(TutorialHarness.named(app, "access.credits"))
-		TutorialHarness.wait(TutorialHarness.named(app, "access.openRouter"))
+		buy.tap()
+		TutorialHarness.wait(
+			app.navigationBars[CatalogPhrasebook(tag: .en).say(Catalog.creditsTitle)])
 		XCTAssertFalse(TutorialHarness.named(app, "connect.apiKey").exists)
-		TutorialHarness.attach(self, name: "access-not-configured-access-method", app: app)
+		TutorialHarness.attach(self, name: "access-not-configured-credits", app: app)
 	}
 
 	func testLockedKeepsTheMessageAndOffersTryAgain() {
@@ -116,8 +120,8 @@ final class FrenchNoticesProof: XCTestCase {
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: phrasebook.say(Catalog.creditsErrorExhausted)))
 		XCTAssertEqual(
-			TutorialHarness.named(app, "chat.turn.switchToOpenRouter").label,
-			phrasebook.say(Catalog.accessSwitchToOpenRouter))
+			TutorialHarness.named(app, "chat.turn.buyCredits").label,
+			phrasebook.say(Catalog.chatTurnBuyCredits))
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.send").label, phrasebook.say(Catalog.chatComposerSend))
 		TutorialHarness.attach(self, name: "notices-french", app: app)

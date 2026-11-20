@@ -104,7 +104,6 @@
       "activeUnavailable": "当前教练设置不可用或尚未配置。",
       "automatic": "自动",
       "changeRequired": "需要更改",
-      "chooseModel": "选择模型",
       "chooseProvider": "选择服务商",
       "chooseProviderFirst": "请先选择服务商",
       "currentRoute": "当前使用：{{provider}} · {{model}}",
@@ -119,7 +118,6 @@
       },
       "inactive": "未启用",
       "loading": "正在加载教练设置…",
-      "model": "模型",
       "notConfigured": "未配置",
       "otherModel": "其他模型…",
       "provider": "服务商",
@@ -654,7 +652,6 @@
         "mostCapable": "能力最强",
         "recommended": "推荐"
       },
-      "modelVia": "{{model}}（通过 {{provider}}）",
       "otherModel": "其他模型…",
       "pending": {
         "activation": "为教练提供 AI · 已登录 · 需要启用",
@@ -1474,12 +1471,11 @@
     },
     "menu": "菜单",
     "turn": {
-      "chooseAccessMethod": "选择接入方式",
+      "buyCredits": "购买积分",
       "finishedWhileLocked": "已在手机锁定期间完成。",
       "interruptedNothingChanged": "本次回复在完成前中断。未做任何更改。",
       "interruptedSomeSaved": "本次回复在完成前中断。部分信息已在中断前保存。",
-      "receivedBeforeClose": "已在应用关闭前收到。点按“重试”以发送。",
-      "signInAgain": "重新登录"
+      "receivedBeforeClose": "已在应用关闭前收到。点按“重试”以发送。"
     },
     "welcome": "欢迎使用 {{product}}！\n\n我是 AI 骑行教练，可以使用 {{service}} 数据制定训练计划、推荐训练课程并追踪体能。\n\n命令：\n{{commands}}\n\n也可以直接和我聊聊训练！",
     "welcomeCommand": "{{command}} — {{description}}",
@@ -2661,7 +2657,6 @@
       "rateLimitDefault": "请求过于频繁，请约一分钟后重试。",
       "rateLimitMinutes_other": "请求过于频繁，请约 {{minutes}} 分钟后重试。",
       "rateLimitSeconds_other": "请求过于频繁，请约 {{seconds}} 秒后重试。",
-      "reauth": "{{provider}} 登录已失效，请重新登录以继续。",
       "reauthSetup": "{{provider}} 登录已失效，请打开初始设置并重新登录。",
       "unknown": "抱歉，出了点问题。请重试。"
     },
@@ -2981,10 +2976,20 @@
     "title": "积分",
     "balance_other": "{{formattedCount}} 积分",
     "error": {
-      "accessRejected": "无法使用你的积分。你可以切换到你的 OpenRouter 账户。",
-      "exhausted": "你的积分已用完。你可以切换到你的 OpenRouter 账户。",
+      "accessRejected": "无法使用你的积分。你可以在设置的反馈中告诉我们。",
+      "exhausted": "你的积分已用完。你可以购买积分。",
       "unavailable": "积分暂时不可用。请稍后重试。",
       "accountChanged": "完成此请求期间，你的积分账户发生了变更。你当前的账户已保留。"
+    },
+    "buy": "购买",
+    "packPrice_other": "{{formattedCount}} 积分 · {{price}}",
+    "purchase": {
+      "pending": "Apple 仍在处理此次购买。处理完成后将添加积分。",
+      "unavailable": "暂时无法购买积分。请稍后重试。",
+      "failed": "购买未完成。",
+      "notAdded": "你的购买已完成，但积分尚未添加。下次打开应用时会再试一次。",
+      "refused": "你的购买已完成，但无法添加积分。你可以向 Apple 申请退款。",
+      "askForRefund": "向 Apple 申请退款"
     }
   },
   "onboarding": {
@@ -3021,19 +3026,11 @@
   "access": {
     "error": {
       "locked": "请解锁 iPhone 以继续。你的消息已保存。",
-      "notConfigured": "请选择教练连接模型的方式以继续。",
-      "requestBlocked": "OpenRouter 阻止了此请求。请尝试其他模型或消息。",
+      "notConfigured": "这台 iPhone 没有积分。你可以购买积分。",
+      "requestBlocked": "此消息已被阻止。请尝试其他消息。",
       "providerConsentRequired": "在与 AI 服务提供商共享聊天数据之前，需要获得你的许可。",
-      "openRouterFunds": "你的 OpenRouter 账户余额不足。请在 OpenRouter 充值，或切换到积分。",
-      "storageUnavailable": "安全存储暂时不可用。你的对话、历史记录和记忆仍在。请重试。",
-      "malformed": "无法读取已保存的访问方式。请选择访问方式以继续。"
-    },
-    "title": "访问方式",
-    "openRouterAccount": "OpenRouter 账户",
-    "signIn": "使用 OpenRouter 登录",
-    "signInCancelled": "登录已取消。你的访问方式未更改。",
-    "signInIncomplete": "OpenRouter 登录未完成。你的访问方式未更改。请重试。",
-    "switchToOpenRouter": "切换到 OpenRouter"
+      "storageUnavailable": "安全存储暂时不可用。你的对话、历史记录和记忆仍在。请重试。"
+    }
   },
   "connect": {
     "error": {
@@ -3155,9 +3152,9 @@
     "deleteEverything": "删除所有内容",
     "confirm": {
       "title": "删除所有内容？",
-      "body": "此操作无法撤销。这会从此 iPhone 和你的 iCloud 中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失，且每台 iPhone 只能获得一次初始积分。"
+      "body": "此操作无法撤销。这会从此 iPhone 和你的 iCloud 中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失（包括购买的积分），且每台 iPhone 只能获得一次初始积分。只有 Apple 可以为购买退款。"
     },
-    "keeps": "你的 intervals.icu 账户和训练会保留在 intervals.icu 上。如果你使用自己的 OpenRouter 账户登录，请在 OpenRouter 上删除其密钥。",
+    "keeps": "你的 intervals.icu 账户和训练会保留在 intervals.icu 上。",
     "progress": "正在删除…",
     "done": "所有内容已从此 iPhone、你的 iCloud 和积分服务中删除。",
     "notStarted": "没有删除任何内容。请连接互联网后重试。",

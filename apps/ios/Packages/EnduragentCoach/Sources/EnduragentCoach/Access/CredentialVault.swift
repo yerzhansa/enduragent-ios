@@ -7,15 +7,9 @@ package actor CredentialVault {
 	var catalog: ModelCatalog { catalogs.snapshot().catalog }
 	let ledger: Ledger
 	let clock: any Clock
-	let rejectionChanges = Turnstile()
-	var rejectedKeys: Set<OpenRouterCredentialRef> = []
-	var rejectionReadFailure: AccessUnavailable?
 	package nonisolated let accessUpdates: AsyncStream<Void>
 	let accessUpdate: AsyncStream<Void>.Continuation
-	let signInService: OpenRouterSignInService?
-	var signInFlight: SignInFlight?
-	var consentContext: ConsentContext?
-	var pendingModelChoice: ConsentContext?
+	var consentChallenge: ConsentChallenge?
 	private let display: TrainingDisplayReader
 	private let diagnostics: DiagnosticsLog
 	private let changes = Turnstile()
@@ -23,15 +17,13 @@ package actor CredentialVault {
 
 	package init(
 		store: any SecretStore, training: TrainingService, clock: any Clock, ledger: Ledger,
-		diagnostics: DiagnosticsLog, catalogs: ModelCatalogOwner = ModelCatalogOwner(),
-		signInService: OpenRouterSignInService? = nil
+		diagnostics: DiagnosticsLog, catalogs: ModelCatalogOwner = ModelCatalogOwner()
 	) {
 		(accessUpdates, accessUpdate) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(1))
 		self.store = store
 		self.ledger = ledger
 		self.clock = clock
 		self.catalogs = catalogs
-		self.signInService = signInService
 		self.display = TrainingDisplayReader(training: training, clock: clock)
 		self.diagnostics = diagnostics
 	}
@@ -199,6 +191,7 @@ package actor CredentialVault {
 			return true
 		}
 		guard stored else { throw CreditsFailure.accountChanged }
+		accessUpdate.yield()
 	}
 
 	package func storeRecovery(key: NonEmptySecret, appAccountToken: UUID)
@@ -208,6 +201,7 @@ package actor CredentialVault {
 			try store.storeCreditsAccount(
 				CreditsAccount(appAccountToken: appAccountToken, key: key.value))
 		}
+		accessUpdate.yield()
 	}
 
 	package func creditsKey() throws(AccessUnavailable) -> NonEmptySecret? {

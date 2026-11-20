@@ -67,8 +67,7 @@ public actor Coach {
 			diagnostics: diagnostics)
 		let vault = CredentialVault(
 			store: ports.secrets, training: ports.training, clock: clock, ledger: ledger,
-			diagnostics: diagnostics,
-			catalogs: ports.models.catalogs, signInService: ports.openRouterSignIn)
+			diagnostics: diagnostics, catalogs: ports.models.catalogs)
 		self.sport = sport
 		self.transport = transport
 		self.vault = vault
@@ -80,7 +79,7 @@ public actor Coach {
 			ledger: ledger, clock: clock, diagnostics: diagnostics, vault: vault,
 			builtInModel: builtInModel)
 		self.preferences = preferences
-		let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void = { request in
+		let authorizeInvocation: @Sendable (CompletionRequest) async throws -> Void = { request in
 			try await preferences.authorizeInvocation(request)
 		}
 		self.clock = clock

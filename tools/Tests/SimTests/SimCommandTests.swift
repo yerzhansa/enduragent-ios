@@ -53,7 +53,7 @@ struct SimCommandTests {
 			#expect(listed.status == 0, "\(listed.errors)")
 			#expect(
 				listed.output
-					== #"{"devices":{"fixture":[{"name":"snapshot-proof","udid":"\#(udid)","state":"Booted"}]}}"#
+					== #"{"devices":{"fixture":[{"name":"snapshot-proof","udid":"\#(udid)","state":"Booted","dataPath":"\#(fixture.root)/device-data/\#(udid)"}]}}"#
 			)
 			#expect(try fixture.names(in: fixture.devices).isEmpty)
 		}
@@ -187,30 +187,6 @@ struct SimCommandTests {
 	}
 
 	@Test(
-		"OpenRouter phone helper requires an operator terminal before approval or launch",
-		.timeLimit(.minutes(1)))
-	func openRouterHelperRequiresAnOperatorTerminal() throws {
-		let folder = FileManager.default.temporaryDirectory.appendingPathComponent(
-			"enduragent-openrouter-guard-\(UUID().uuidString)")
-		try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
-		let evidence = folder.appendingPathComponent("evidence").path
-		let result = Result {
-			try HelperResult.of(
-				"\(ExportedTree.products)/phone-check",
-				["openrouter", "tool", "synthetic-device", evidence], directory: folder.path,
-				environment: ProcessInfo.processInfo.environment, scratch: folder.path)
-		}
-		let exists = FileManager.default.fileExists(atPath: evidence)
-		try FileManager.default.removeItem(at: folder)
-		let finished = try result.get()
-		#expect(finished.status != 0)
-		#expect(
-			finished.errors.contains(
-				"An operator terminal is required before approval, build, launch or Send"))
-		#expect(!exists)
-	}
-
-	@Test(
 		"proof commands run in light appearance on a simulator left dark",
 		.timeLimit(.minutes(2)))
 	func proofCommandsRunInLightAppearance() throws {
@@ -235,6 +211,7 @@ struct SimCommandTests {
 					environment: fails ? ["VERIFY_FAIL_CLASS": "ReviewLanguageProof"] : [:])
 				#expect(result.status == (fails ? 1 : 0), "\(result.errors)")
 				#expect(try fixture.read("\(fixture.root)/appearance") == "light")
+				#expect(try fixture.calls().allSatisfy { !$0.arguments.contains("terminate") })
 				#expect(
 					try fixture.read(recorded)
 						== "light \(proofs.map { "-only-testing:EnduragentUITests/\($0)" }.joined(separator: " "))\n"
@@ -325,6 +302,10 @@ struct SimCommandTests {
 						"-EnduragentFixtureStore", "keep", "-EnduragentFixtureReply", "slow",
 					]
 				])
+			let terminations = try fixture.calls().map(\.arguments).filter {
+				$0.contains("terminate")
+			}
+			#expect(terminations == [["simctl", "terminate", udid, "icu.enduragent.app"]])
 		}
 	}
 

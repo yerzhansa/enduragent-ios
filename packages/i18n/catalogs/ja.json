@@ -104,7 +104,6 @@
       "activeUnavailable": "有効なコーチ設定を利用できないか、設定されていません。",
       "automatic": "自動",
       "changeRequired": "変更が必要です",
-      "chooseModel": "モデルを選択",
       "chooseProvider": "プロバイダーを選択",
       "chooseProviderFirst": "先にプロバイダーを選択してください",
       "currentRoute": "現在有効: {{provider}} · {{model}}",
@@ -119,7 +118,6 @@
       },
       "inactive": "無効",
       "loading": "コーチ設定を読み込み中…",
-      "model": "モデル",
       "notConfigured": "未設定",
       "otherModel": "その他のモデル…",
       "provider": "プロバイダー",
@@ -654,7 +652,6 @@
         "mostCapable": "最高性能",
         "recommended": "推奨"
       },
-      "modelVia": "{{model}}（{{provider}}経由）",
       "otherModel": "その他のモデル…",
       "pending": {
         "activation": "コーチに使用 · サインイン済み · 有効化が必要です",
@@ -1474,12 +1471,11 @@
     },
     "menu": "メニュー",
     "turn": {
-      "chooseAccessMethod": "接続方法を選択",
+      "buyCredits": "クレジットを購入",
       "finishedWhileLocked": "端末がロックされている間に完了しました。",
       "interruptedNothingChanged": "回答が完了する前に中断されました。変更はありません。",
       "interruptedSomeSaved": "回答が完了する前に中断されました。一部の情報はその前に保存されました。",
-      "receivedBeforeClose": "アプリが閉じる前に受信しました。「再試行」をタップして送信してください。",
-      "signInAgain": "再度サインイン"
+      "receivedBeforeClose": "アプリが閉じる前に受信しました。「再試行」をタップして送信してください。"
     },
     "welcome": "{{product}}へようこそ！\n\nAIサイクリングコーチです。{{service}}のデータを使ってトレーニングプランを作成し、ワークアウトを提案し、フィットネスの変化を確認できます。\n\nコマンド:\n{{commands}}\n\nトレーニングについて、気軽に話しかけてください！",
     "welcomeCommand": "{{command}} — {{description}}",
@@ -2661,7 +2657,6 @@
       "rateLimitDefault": "リクエストの上限に達しました。約1分後に、もう一度お試しください。",
       "rateLimitMinutes_other": "リクエストの上限に達しました。約{{minutes}}分後に、もう一度お試しください。",
       "rateLimitSeconds_other": "リクエストの上限に達しました。約{{seconds}}秒後に、もう一度お試しください。",
-      "reauth": "{{provider}}へのログインが無効になりました。続けるには再ログインしてください。",
       "reauthSetup": "{{provider}}へのログインが無効になりました。セットアップを開いて再ログインしてください。",
       "unknown": "すみません、問題が発生しました。もう一度お試しください。"
     },
@@ -2981,10 +2976,20 @@
     "title": "クレジット",
     "balance_other": "{{formattedCount}}クレジット",
     "error": {
-      "accessRejected": "クレジットを使用できませんでした。OpenRouterアカウントに切り替えることができます。",
-      "exhausted": "クレジットがなくなりました。OpenRouterアカウントに切り替えることができます。",
+      "accessRejected": "クレジットを使用できませんでした。設定のフィードバックからお知らせください。",
+      "exhausted": "クレジットがなくなりました。クレジットを購入できます。",
       "unavailable": "現在クレジットを利用できません。しばらくしてからもう一度お試しください。",
       "accountChanged": "このリクエストの完了処理中にクレジットアカウントが変更されました。現在のアカウントは保持されました。"
+    },
+    "buy": "購入",
+    "packPrice_other": "{{formattedCount}}クレジット · {{price}}",
+    "purchase": {
+      "pending": "Appleがこの購入をまだ処理しています。完了するとクレジットが追加されます。",
+      "unavailable": "現在クレジットを購入できません。しばらくしてからもう一度お試しください。",
+      "failed": "購入が完了しませんでした。",
+      "notAdded": "購入は完了しましたが、クレジットはまだ追加されていません。次にアプリを開いたときにもう一度試します。",
+      "refused": "購入は完了しましたが、クレジットを追加できません。Appleに返金をリクエストできます。",
+      "askForRefund": "Appleに返金をリクエスト"
     }
   },
   "onboarding": {
@@ -3021,19 +3026,11 @@
   "access": {
     "error": {
       "locked": "続けるにはiPhoneのロックを解除してください。メッセージは保存されています。",
-      "notConfigured": "続けるには、コーチがモデルに接続する方法を選んでください。",
-      "requestBlocked": "OpenRouterがこのリクエストをブロックしました。別のモデルやメッセージを試してください。",
+      "notConfigured": "このiPhoneにはクレジットがありません。クレジットを購入できます。",
+      "requestBlocked": "このメッセージはブロックされました。別のメッセージを試してください。",
       "providerConsentRequired": "チャットのデータをAIプロバイダーと共有する前に、あなたの許可が必要です。",
-      "openRouterFunds": "OpenRouterアカウントの残高が不足しています。OpenRouterで入金するか、クレジットに切り替えてください。",
-      "storageUnavailable": "安全なストレージを一時的に利用できません。会話、履歴、記憶は残っています。もう一度お試しください。",
-      "malformed": "保存されたアクセス方法を読み取れませんでした。アクセス方法を選択して続けてください。"
-    },
-    "title": "アクセス方法",
-    "openRouterAccount": "OpenRouterアカウント",
-    "signIn": "OpenRouterでサインイン",
-    "signInCancelled": "サインインをキャンセルしました。アクセス方法は変更されていません。",
-    "signInIncomplete": "OpenRouter へのサインインが完了しませんでした。アクセス方法は変更されていません。もう一度お試しください。",
-    "switchToOpenRouter": "OpenRouterに切り替える"
+      "storageUnavailable": "安全なストレージを一時的に利用できません。会話、履歴、記憶は残っています。もう一度お試しください。"
+    }
   },
   "connect": {
     "error": {
@@ -3155,9 +3152,9 @@
     "deleteEverything": "すべて削除",
     "confirm": {
       "title": "すべて削除しますか？",
-      "body": "この操作は取り消せません。このiPhoneとiCloudから会話、メモリ、保存したプラン、設定、キーを削除し、クレジットの記録も削除します。未使用のクレジットは失われ、初回クレジットはiPhoneごとに1回だけ付与されます。"
+      "body": "この操作は取り消せません。このiPhoneとiCloudから会話、メモリ、保存したプラン、設定、キーを削除し、クレジットの記録も削除します。未使用のクレジットは購入分も含めて失われ、初回クレジットはiPhoneごとに1回だけ付与されます。購入の返金はAppleのみが行えます。"
     },
-    "keeps": "intervals.icuのアカウントとワークアウトはintervals.icuに残ります。自分のOpenRouterアカウントでサインインした場合は、OpenRouterでそのキーを削除してください。",
+    "keeps": "intervals.icuのアカウントとワークアウトはintervals.icuに残ります。",
     "progress": "削除中…",
     "done": "このiPhone、iCloud、クレジットサービスからすべて削除しました。",
     "notStarted": "何も削除されませんでした。インターネットに接続して、もう一度お試しください。",

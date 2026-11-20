@@ -42,7 +42,7 @@ extension Simulator {
 			classes: try ShardPlan.summarize(.keyed(["testNodes": .array([])]), proofs: proofs))
 		var returned = false
 		do {
-			try createRun(name)
+			try createRun(name, seed: options.template)
 			try install(name)
 			report = try test(name, proofs)
 			returned = true
@@ -210,6 +210,7 @@ extension Simulator {
 	private func runShards(_ shards: [PlannedShard]) throws -> [Result<SubprocessEnd, Error>] {
 		var shardEnvironment = environment
 		shardEnvironment["ENDURAGENT_VERIFY_BUILD"] = derivedData
+		shardEnvironment["ENDURAGENT_SIM_TEMPLATE"] = options.template
 		let runner = Subprocess(directory: repo, environment: shardEnvironment)
 		let started = shards.map { shard in
 			Result {

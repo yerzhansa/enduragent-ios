@@ -23,7 +23,7 @@ struct ProviderConsentView: View {
 						.accessibilityIdentifier("consent.body")
 					}
 					if model.consentNotSaved {
-						Text(model.phrasebook.say(model.consentFailureKey))
+						Text(model.phrasebook.say(Catalog.onboardingConsentSaveFailed))
 							.foregroundStyle(.red)
 							.accessibilityIdentifier("consent.error")
 					}
@@ -52,16 +52,5 @@ struct ProviderConsentView: View {
 				.frame(maxWidth: .infinity, alignment: .leading)
 			}
 		}
-	}
-}
-
-extension ShellModel {
-	var consentFailureKey: CatalogKey {
-		if let choices = status.access.modelChoices, let challenge = consentChallenge,
-			challenge.target.entry.id != choices.selected.id
-		{
-			return Catalog.reviewSaveFailed
-		}
-		return Catalog.onboardingConsentSaveFailed
 	}
 }

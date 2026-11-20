@@ -33,10 +33,6 @@ ClaimOutcome
 ClaimOutcome.alreadyClaimed
 ClaimOutcome.minted
 ClaimOutcome.toppedUp
-ClaimSettlement
-ClaimSettlement.finish
-ClaimSettlement.recoverThenFinish
-ClaimSettlement.settlement(after:hasKey:)
 CoalescingPolicy
 CoalescingPolicy.init(window:)
 CoalescingPolicy.npm
@@ -70,7 +66,6 @@ CreditsFailure.identityMismatch
 CreditsFailure.noAthleteKey
 CreditsFailure.noPurchaseToRecover
 CreditsFailure.notOurBundle
-CreditsFailure.purchasesDisabled
 CreditsFailure.rateLimited
 CreditsFailure.unavailable
 CreditsFailure.unexpectedResponse
@@ -99,20 +94,13 @@ GrantOutcome.alreadyGranted
 GrantOutcome.minted
 GrantOutcome.toppedUp
 ICloudKeychainStore
-ICloudKeychainStore.accessSelection()
-ICloudKeychainStore.commitAccessSelection(at:)
 ICloudKeychainStore.creditsAccount()
 ICloudKeychainStore.delete(_:)
-ICloudKeychainStore.deleteOpenRouterAccountKey(at:)
 ICloudKeychainStore.init()
 ICloudKeychainStore.intervalsConnection()
-ICloudKeychainStore.openRouterAccountKey(at:)
-ICloudKeychainStore.prepareAccessSelection(_:at:)
 ICloudKeychainStore.prepareCreditsAccount()
-ICloudKeychainStore.storeAccessSelection(_:)
 ICloudKeychainStore.storeCreditsAccount(_:)
 ICloudKeychainStore.storeIntervalsConnection(_:)
-ICloudKeychainStore.storeOpenRouterAccountKey(_:at:)
 IntervalsCredential
 IntervalsCredential.apiKey
 IntervalsCredential.oauth
@@ -265,6 +253,4 @@ WellnessDay.date
 WellnessDay.fatigue
 WellnessDay.fitness
 WellnessDay.form
-AccessStatus.notice
-CredentialOutcome.notice
 CreditBalance.notice

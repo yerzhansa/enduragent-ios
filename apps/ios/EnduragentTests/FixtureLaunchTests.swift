@@ -223,21 +223,6 @@ final class FixtureLaunchTests {
 		#expect(second.chat?.chat == .main)
 	}
 
-	@Test func chooseAccessMethodKeepsTheConversation() async throws {
-		let model = await model(try services())
-		await model.agreeAndStartChatting()
-		model.draft.text = TutorialCopy.weekQuestion
-		await model.send()
-		let settled = try await settledTurn(model)
-		await model.perform(.chooseAccessMethod)
-		#expect(model.navigation == [.accessMethod])
-		model.navigation.removeAll()
-		#expect(model.route == .chat)
-		try await observed(model)
-		#expect(model.chat?.turns.map(\.id) == [settled.id])
-		#expect(model.chat?.opening == .continuing)
-	}
-
 	@Test func newConversationArchivesTheExchangeAndOpensOnTheWelcome() async throws {
 		let model = await model(try services())
 		await model.agreeAndStartChatting()

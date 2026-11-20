@@ -1,11 +1,11 @@
 # Your data
 
-Your data is the Settings section after Support. Its one row, Delete everything, opens a screen that deletes the athlete's data from this iPhone, iCloud, iCloud Keychain and the Credits service. The coach's `DataErasure` run asks the Credits service first, then deletes the synced records, the device-local records, the files, the Keychain items and the app's settings.
+Your data is the Settings section after Support. Its one row, Delete everything, opens a screen that deletes the athlete's data from this iPhone, iCloud, iCloud Keychain and the Credits service. The coach's `DataErasure` run asks the Credits service first, then deletes the synced records, the device-local records, the files, every Keychain item of the app's service, a saved build 9 OpenRouter key and choice included, and the app's settings.
 
 ## Sub-features
 
 - `your-data-section` shows the `Your data` header after Support and the row `settings.yourData`, labeled `Delete everything`.
-- `your-data-screen` shows `yourData.keeps`, which says intervals.icu and an own OpenRouter key stay, and the destructive `yourData.delete`. Delete everything opens an alert titled `Delete everything?` with the confirm body, `Delete everything` and `Cancel`.
+- `your-data-screen` shows `yourData.keeps`, `Your intervals.icu account and workouts stay on intervals.icu.`, and the destructive `yourData.delete`. Delete everything opens an alert titled `Delete everything?` with the confirm body, `Delete everything` and `Cancel`.
 - `your-data-busy` shows `Wait for the coach to finish, then try again.` under the button while a turn, a memory save or a review write runs, or while a message waits to join the next one. Nothing is deleted.
 - `your-data-done` replaces the app with the deleting screen, `yourData.progress`, `Deleting…` and `yourData.progressTime`, `This can take up to a minute.`, then `Everything is deleted from this iPhone, your iCloud and the Credits service.` and `yourData.continue`. Continue reopens the app on the health notice as on a fresh install, with a new device id. After onboarding the chat is empty.
 - `your-data-not-started` shows `Nothing was deleted. Connect to the internet and try again.` when the Credits service gives no answer. `yourData.tryAgain` asks again. `yourData.cancel` returns to the chat with the conversation intact.

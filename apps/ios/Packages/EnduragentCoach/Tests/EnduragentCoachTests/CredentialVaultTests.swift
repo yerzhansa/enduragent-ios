@@ -247,22 +247,6 @@ import Testing
 		#expect(built.credentials.last == .apiKey("icu-later-key"))
 	}
 
-	@Test func useCreditsSelectsCreditsAndSignInKeepsThePreviousMethod() async throws {
-		let secrets = keyedSecrets()
-		let coach = await coach(secrets)
-		#expect(
-			await coach.changeModelAccess(.signInToOpenRouter)
-				== .failedPreviousKept(
-					.signIn(.presentationUnavailable), previous: AccessSummary(selection: .credits))
-		)
-		#expect(try secrets.accessSelection() == nil)
-		#expect(
-			await coach.changeModelAccess(.useCredits)
-				== .replaced(AccessSummary(selection: .credits), authority: nil))
-		#expect(try secrets.accessSelection() == .init(.credits))
-		#expect(try await coach.refreshedStatus().setup == .ready)
-	}
-
 	func testAccess(secret: String) -> ResolvedAccess {
 		ResolvedAccess(
 			credential: ProviderCredential(secret: secret, method: .credits), model: testModel,

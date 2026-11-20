@@ -15,11 +15,10 @@ import Testing
 		#expect(try second.creditsAccount()?.appAccountToken == token)
 	}
 
-	@Test func keysConnectionAndSelectionRoundTrip() throws {
+	@Test func keysAndConnectionRoundTrip() throws {
 		let store = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		#expect(try store.creditsAccount()?.key == nil)
 		#expect(try store.intervalsConnection() == nil)
-		#expect(try store.accessSelection() == nil)
 		try store.storeCreditsAccount(
 			CreditsAccount(
 				appAccountToken: UUID(), key: "test-or-key"))
@@ -28,8 +27,6 @@ import Testing
 				appAccountToken: UUID(), key: "test-or-key-rotated")
 		)
 		#expect(try store.creditsAccount()?.key == "test-or-key-rotated")
-		try store.storeOpenRouterAccountKey("test-or-account-key", at: .legacy)
-		#expect(try store.openRouterAccountKey(at: .legacy) == "test-or-account-key")
 		try store.storeIntervalsConnection(testConnection)
 		#expect(try store.intervalsConnection() == testConnection)
 		let oauth = IntervalsConnection(
@@ -38,12 +35,6 @@ import Testing
 			resolvedAthlete: nil)
 		try store.storeIntervalsConnection(oauth)
 		#expect(try store.intervalsConnection() == oauth)
-		let selection = SavedAccessReference(
-			.openRouter(
-				SavedOpenRouterReference(
-					credential: .legacy, model: ModelID(rawValue: "test/account-model"))))
-		try store.storeAccessSelection(selection)
-		#expect(try store.accessSelection() == selection)
 	}
 
 	@Test func deleteRemovesOnlyItsSlotAndRepeatsSafely() throws {

@@ -13,20 +13,18 @@ import Testing
 		defer { session.invalidateAndCancel() }
 		let fixture = try ModelCatalogRefreshTests.Fixture()
 		let coach = try await fixture.coach(source: HTTPModelCatalogSource(session: session))
-		let stream = await coach.observeStatus()
 		await coach.lifecycle(.becameActive)
 		let cache: CatalogCacheState =
 			statusCode == 200 ? .available(.downloaded) : .retained(.bundled, .offline)
-		let snapshot = try #require(
-			try await stream.status {
-				$0.access.modelChoices?.catalog.cache == cache
-			})
-		let choices = try #require(snapshot.access.modelChoices)
+		try await beforeDeadline(within: .hangGuard) {
+			while await coach.catalogs.snapshot().cache != cache { await Task.yield() }
+		}
+		let catalog = await coach.catalogs.snapshot().catalog
 		let model = ModelID(rawValue: "fixture/http-model")
 		if statusCode == 200 {
-			#expect(choices.catalog.catalog.entries[model]?.displayName == "HTTP Coach")
+			#expect(catalog.entries[model]?.displayName == "HTTP Coach")
 		} else {
-			#expect(choices.catalog.catalog == .bundled)
+			#expect(catalog == .bundled)
 		}
 		try await fixture.proveReply(coach, model: ModelCatalog.bundled.orderedEntries[0].id)
 		await coach.lifecycle(.willTerminate)

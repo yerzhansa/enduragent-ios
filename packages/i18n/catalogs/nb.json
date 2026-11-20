@@ -105,7 +105,6 @@
       "activeUnavailable": "Aktive trenerinnstillinger er utilgjengelige eller ikke konfigurert.",
       "automatic": "Automatisk",
       "changeRequired": "Endring kreves",
-      "chooseModel": "Velg en modell",
       "chooseProvider": "Velg en leverandør",
       "chooseProviderFirst": "Velg en leverandør først",
       "currentRoute": "Aktiv nå: {{provider}} · {{model}}",
@@ -120,7 +119,6 @@
       },
       "inactive": "Ikke aktiv",
       "loading": "Laster inn trenerinnstillinger…",
-      "model": "Modell",
       "notConfigured": "Ikke konfigurert",
       "otherModel": "Annen modell…",
       "provider": "Leverandør",
@@ -656,7 +654,6 @@
         "mostCapable": "mest kapabel",
         "recommended": "anbefalt"
       },
-      "modelVia": "{{model}} (via {{provider}})",
       "otherModel": "Annen modell…",
       "pending": {
         "activation": "Driver treneren din · pålogget · må aktiveres",
@@ -1487,12 +1484,11 @@
     },
     "menu": "Meny",
     "turn": {
-      "chooseAccessMethod": "Velg tilgangsmåte",
+      "buyCredits": "Kjøp kreditter",
       "finishedWhileLocked": "Ble ferdig mens telefonen var låst.",
       "interruptedNothingChanged": "Dette svaret ble avbrutt før det var ferdig. Ingenting ble endret.",
       "interruptedSomeSaved": "Dette svaret ble avbrutt før det var ferdig. Noen opplysninger ble lagret først.",
-      "receivedBeforeClose": "Mottatt før appen lukket seg. Trykk på Prøv igjen for å sende meldingen.",
-      "signInAgain": "Logg inn igjen"
+      "receivedBeforeClose": "Mottatt før appen lukket seg. Trykk på Prøv igjen for å sende meldingen."
     },
     "welcome": "Velkommen til {{product}}!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra {{service}}.\n\nKommandoer:\n{{commands}}\n\nDu kan også bare prate med meg om treningen din!",
     "welcomeCommand": "{{command}} — {{description}}",
@@ -2683,7 +2679,6 @@
       "rateLimitMinutes_other": "Grensen for forespørsler er nådd — prøv igjen om ca. {{minutes}} minutter.",
       "rateLimitSeconds_one": "Grensen for forespørsler er nådd — prøv igjen om ca. {{seconds}} sekund.",
       "rateLimitSeconds_other": "Grensen for forespørsler er nådd — prøv igjen om ca. {{seconds}} sekunder.",
-      "reauth": "Innloggingen din hos {{provider}} er ikke lenger gyldig. Logg inn igjen for å fortsette.",
       "reauthSetup": "Innloggingen din hos {{provider}} er ikke lenger gyldig. Åpne Oppsett og logg inn igjen.",
       "unknown": "Beklager, noe gikk galt. Prøv igjen."
     },
@@ -3018,10 +3013,21 @@
     "balance_one": "{{formattedCount}} kreditt",
     "balance_other": "{{formattedCount}} kreditter",
     "error": {
-      "accessRejected": "Kredittene dine kunne ikke brukes. Du kan bytte til OpenRouter-kontoen din.",
-      "exhausted": "Du er tom for kreditter. Du kan bytte til OpenRouter-kontoen din.",
+      "accessRejected": "Kredittene dine kunne ikke brukes. Du kan si fra til oss under Tilbakemelding i Innstillinger.",
+      "exhausted": "Du er tom for kreditter. Du kan kjøpe kreditter.",
       "unavailable": "Kreditter er ikke tilgjengelige akkurat nå. Prøv igjen senere.",
       "accountChanged": "Kredittkontoen din ble endret mens denne forespørselen ble fullført. Den nåværende kontoen din ble beholdt."
+    },
+    "buy": "Kjøp",
+    "packPrice_one": "{{formattedCount}} kreditt · {{price}}",
+    "packPrice_other": "{{formattedCount}} kreditter · {{price}}",
+    "purchase": {
+      "pending": "Apple behandler fortsatt dette kjøpet. Kredittene legges til når det er ferdig.",
+      "unavailable": "Kreditter kan ikke kjøpes akkurat nå. Prøv igjen senere.",
+      "failed": "Kjøpet ble ikke fullført.",
+      "notAdded": "Kjøpet ditt er gjennomført, men kredittene er ikke lagt til ennå. Appen prøver igjen neste gang den åpnes.",
+      "refused": "Kjøpet ditt er gjennomført, men kredittene kan ikke legges til. Du kan be Apple om refusjon.",
+      "askForRefund": "Be Apple om refusjon"
     }
   },
   "onboarding": {
@@ -3059,19 +3065,11 @@
   "access": {
     "error": {
       "locked": "Lås opp iPhonen for å fortsette. Meldingen din er lagret.",
-      "notConfigured": "Velg hvordan treneren får tilgang til en modell for å fortsette.",
-      "requestBlocked": "OpenRouter blokkerte denne forespørselen. Prøv en annen modell eller melding.",
+      "notConfigured": "Denne iPhonen har ingen kreditter. Du kan kjøpe kreditter.",
+      "requestBlocked": "Denne meldingen ble blokkert. Prøv en annen melding.",
       "providerConsentRequired": "Ditt samtykke kreves før chatdata deles med KI-leverandører.",
-      "openRouterFunds": "OpenRouter-kontoen din er tom for penger. Fyll på hos OpenRouter, eller bytt til kreditter.",
-      "storageUnavailable": "Sikker lagring er midlertidig utilgjengelig. Samtalen, historikken og minnet ditt er fortsatt her. Prøv igjen.",
-      "malformed": "Den lagrede tilgangsmåten din kunne ikke leses. Velg en tilgangsmåte for å fortsette."
-    },
-    "title": "Tilgangsmåte",
-    "openRouterAccount": "OpenRouter-konto",
-    "signIn": "Logg inn med OpenRouter",
-    "signInCancelled": "Innlogging avbrutt. Tilgangsmåten din ble ikke endret.",
-    "signInIncomplete": "Innlogging med OpenRouter ble ikke fullført. Tilgangsmåten din ble ikke endret. Prøv igjen.",
-    "switchToOpenRouter": "Bytt til OpenRouter"
+      "storageUnavailable": "Sikker lagring er midlertidig utilgjengelig. Samtalen, historikken og minnet ditt er fortsatt her. Prøv igjen."
+    }
   },
   "connect": {
     "error": {
@@ -3199,9 +3197,9 @@
     "deleteEverything": "Slett alt",
     "confirm": {
       "title": "Slette alt?",
-      "body": "Dette kan ikke angres. Det sletter samtalen, minnet, den lagrede planen, innstillingene og nøklene dine fra denne iPhonen og iCloud, i tillegg til kredittoppføringen din. Ubrukte kreditter går tapt, og startkreditter gis bare én gang per iPhone."
+      "body": "Dette kan ikke angres. Det sletter samtalen, minnet, den lagrede planen, innstillingene og nøklene dine fra denne iPhonen og iCloud, i tillegg til kredittoppføringen din. Ubrukte kreditter går tapt, også kjøpte, og startkreditter gis bare én gang per iPhone. Bare Apple kan refundere et kjøp."
     },
-    "keeps": "intervals.icu-kontoen og øktene dine blir værende på intervals.icu. Hvis du logget på med din egen OpenRouter-konto, sletter du nøkkelen hos OpenRouter.",
+    "keeps": "intervals.icu-kontoen og øktene dine blir værende på intervals.icu.",
     "progress": "Sletter…",
     "done": "Alt er slettet fra denne iPhonen, iCloud og kreditttjenesten.",
     "notStarted": "Ingenting ble slettet. Koble til internett og prøv igjen.",

@@ -11,7 +11,7 @@ extension TurnRunnerTests {
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(failure(settled) == .model(.accessUnavailable(.notConfigured(.credits))))
-		#expect(turnNotice(of: settled)?.actions == [.chooseAccessMethod])
+		#expect(turnNotice(of: settled)?.actions == [.buyCredits])
 		#expect(transport.requestCount == 0)
 		let claims = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn))
@@ -59,8 +59,7 @@ extension TurnRunnerTests {
 	let store = InMemoryRecordLog()
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-	@Test(arguments: [AccessMethod.credits, .openRouterAccount])
-	func modelWorkRequiresProviderConsent(method: AccessMethod) async throws {
+	@Test func modelWorkRequiresProviderConsent() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
 		transport.respond = ScriptedReply.sequence(
@@ -69,11 +68,6 @@ extension TurnRunnerTests {
 			[.text("Earlier training."), .finish(reason: .stop)], for: .summary,
 			otherwise: transport.respond)
 		let secrets = keyedSecrets()
-		if method == .openRouterAccount {
-			try secrets.storeOpenRouterAccountKey("sk-or-test-account", at: .legacy)
-			try secrets.storeAccessSelection(
-				.init(.openRouter(SavedOpenRouterReference(credential: .legacy, model: testModel))))
-		}
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, secrets: secrets, consent: false)
 		#expect(try await coach.observedStatus().needsProviderConsent)
@@ -92,7 +86,7 @@ extension TurnRunnerTests {
 		let reply = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(replyText(reply) == "Thursday is on.")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
-		#expect(sent(.chatAttempt, by: transport).map(\.credential.method) == [method])
+		#expect(sent(.chatAttempt, by: transport).map(\.credential.method) == [.credits])
 		#expect(!sent(.memoryFlush, by: transport).isEmpty)
 	}
 

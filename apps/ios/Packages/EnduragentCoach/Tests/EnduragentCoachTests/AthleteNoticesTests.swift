@@ -17,7 +17,10 @@ private let providerDown = "The model provider is having trouble — try again i
 private let noConnection = "No connection. Your message is kept. Try again when you're online."
 private let unknown = "Sorry, something went wrong. Please try again."
 private let responseFailure = "The coach couldn't respond. Please try again."
-private let notConfigured = "Choose how the coach reaches a model to continue."
+private let notConfigured = "This iPhone has no Credits. You can buy Credits."
+private let creditsRejected =
+	"Your Credits couldn't be used. You can tell us in Feedback, in Settings."
+private let exhausted = "You're out of Credits. You can buy Credits."
 private let lockedSentence = "Unlock your iPhone to continue. Your message is saved."
 private let intervalsRejected =
 	"intervals.icu rejected the request — check your intervals.icu connection or API key."
@@ -48,18 +51,13 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 	}
 
 	static let failures: [NoticeRow] = [
+		failed(.model(.credentialRejected(.credits)), creditsRejected, [], []),
+		failed(.model(.credentialRejected(.openRouterAccount)), creditsRejected, [], []),
+		failed(.model(.accessUnavailable(.openRouterKeyRejected)), creditsRejected, [], []),
+		failed(.model(.accessExhausted(.credits)), exhausted, [.buyCredits], ["Buy Credits"]),
 		failed(
-			.model(.credentialRejected(.credits)),
-			"Your Credits couldn't be used. You can switch to your OpenRouter account.",
-			[.switchToOpenRouter], ["Switch to OpenRouter"]),
-		failed(
-			.model(.accessExhausted(.credits)),
-			"You're out of Credits. You can switch to your OpenRouter account.",
-			[.switchToOpenRouter], ["Switch to OpenRouter"]),
-		failed(
-			.model(.accessExhausted(.openRouterAccount)),
-			"Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
-			[.chooseAccessMethod], ["Choose access method"]),
+			.model(.accessExhausted(.openRouterAccount)), exhausted, [.buyCredits],
+			["Buy Credits"]),
 		rateLimited(.seconds(1), "Rate limited — please try again in ~1 seconds."),
 		rateLimited(.milliseconds(6_200), "Rate limited — please try again in ~7 seconds."),
 		rateLimited(.seconds(7), "Rate limited — please try again in ~7 seconds."),
@@ -102,19 +100,18 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 			.model(.accessUnavailable(.secureStorageLocked)),
 			"Unlock your iPhone to continue. Your message is saved.", [.tryAgain(turn)], [tryAgain]),
 		failed(
-			.model(.accessUnavailable(.notConfigured(.credits))), notConfigured,
-			[.chooseAccessMethod], ["Choose access method"]),
+			.model(.accessUnavailable(.notConfigured(.credits))), notConfigured, [.buyCredits],
+			["Buy Credits"]),
 		failed(
 			.model(.accessUnavailable(.notConfigured(.openRouterAccount))), notConfigured,
-			[.chooseAccessMethod], ["Choose access method"]),
+			[.buyCredits], ["Buy Credits"]),
 		failed(
 			.model(.accessUnavailable(.secureStorageUnavailable)),
 			"Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again.",
-			[.chooseAccessMethod], ["Choose access method"]),
+			[.tryAgain(turn)], [tryAgain]),
 		failed(
 			.model(.accessUnavailable(.malformedStoredCredential(.creditsAccount))),
-			"Your saved access method couldn't be read. Choose an access method to continue.",
-			[.chooseAccessMethod], ["Choose access method"]),
+			creditsRejected, [], []),
 		failed(
 			.model(.accessUnavailable(.malformedStoredCredential(.intervalsConnection))),
 			"The saved intervals.icu connection couldn't be read. Replace the key to connect again.",
@@ -258,11 +255,7 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			.model(.accessUnavailable(.secureStorageLocked)),
 			"Unlock your iPhone to continue. Your message is saved.", []
 		),
-		(
-			.model(.accessExhausted(.credits)),
-			"You're out of Credits. You can switch to your OpenRouter account.",
-			[.switchToOpenRouter]
-		),
+		(.model(.accessExhausted(.credits)), exhausted, [.buyCredits]),
 	])
 	func failureAfterSavedWorkKeepsItsSentenceAndOffersNoReplay(
 		failure: CoachFailure, sentence: String, actions: [RecoveryAction]
@@ -329,12 +322,13 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			profile: .failed(.temporarilyUnavailable))
 		let account = TrainingAccount.intervals(connection: ConnectionID(), athlete: nil)
 		let locked = CoachStatus(
-			access: AccessStatus(state: .unreadable(.secureStorageLocked), builtInModel: testModel),
+			access: AccessStatus(
+				availability: .unavailable(.secureStorageLocked), model: testModel),
 			training: .unavailable(.secureStorageLocked), preferences: .npmDefaults,
 			resolve: testDisplayLocale)
 		#expect(locked.notice?.sentence(in: displayLocale()) == lockedSentence)
 		let offline = CoachStatus(
-			access: AccessStatus(state: .credits(.ready), builtInModel: testModel),
+			access: AccessStatus(availability: .ready, model: testModel),
 			training: .connected(summary, account: account),
 			preferences: .npmDefaults,
 			resolve: testDisplayLocale)
@@ -342,7 +336,7 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			offline.notice?.sentence(in: displayLocale())
 				== "Your athlete profile is temporarily unavailable. Try again.")
 		let rejected = CoachStatus(
-			access: AccessStatus(state: .credits(.ready), builtInModel: testModel),
+			access: AccessStatus(availability: .ready, model: testModel),
 			training: .connected(
 				IntervalsSummary(
 					connectionID: testConnection.id, keySuffix: "-key",
@@ -355,14 +349,14 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 				== "intervals.icu did not accept that key.")
 		#expect(
 			CoachStatus(
-				access: AccessStatus(state: .defaultCredits(.needsSetup), builtInModel: testModel),
+				access: AccessStatus(availability: .needsSetup, model: testModel),
 				training: .unconnected, preferences: .npmDefaults,
 				resolve: testDisplayLocale
 			)
 			.notice == nil)
 		#expect(
 			CoachStatus(
-				access: AccessStatus(state: .credits(.ready), builtInModel: testModel),
+				access: AccessStatus(availability: .ready, model: testModel),
 				training: .unconnected, preferences: .npmDefaults,
 				resolve: testDisplayLocale
 			).notice

@@ -21,11 +21,9 @@
 		{"session": "closeout", "step": "closeout/feedback"},
 		{"session": "closeout", "step": "closeout/language"},
 		{"session": "closeout", "step": "closeout/choices"},
-		{"session": "closeout", "step": "closeout/openrouter-signin"},
 		{"session": "closeout", "step": "closeout/lifecycle"},
 		{"session": "closeout", "step": "closeout/reads"},
 		{"session": "closeout", "step": "closeout/debug-install"},
-		{"session": "closeout", "step": "closeout/openrouter-recovery"},
 		{"session": "closeout", "step": "closeout/keychain-proof"},
 		{"session": "closeout", "step": "closeout/two-phone"},
 		{"session": "closeout", "step": "closeout/second-device-diagnostics"}

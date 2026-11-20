@@ -61,7 +61,7 @@ extension TutorialHarness {
 		let phrasebook = CatalogPhrasebook(tag: language)
 		let variables =
 			recipient.map { ["model": $0.model, "provider": $0.provider] }
-			?? consentVariables(app)
+			?? ["model": "DeepSeek V4.1 Flash", "provider": "DeepInfra"]
 		let accept = named(app, "consent.accept")
 		wait(accept)
 		XCTAssertEqual(
@@ -71,23 +71,6 @@ extension TutorialHarness {
 		XCTAssertTrue(named(app, "consent.decline").exists)
 		accept.tap()
 		wait(named(app, "chat.composer"))
-	}
-	private static func consentVariables(_ app: XCUIApplication) -> [String: String] {
-		var arguments = FixtureArguments()
-		do {
-			try arguments.update(from: app.launchArguments)
-		} catch {
-			XCTFail("Invalid fixture arguments: \(error)")
-		}
-		if arguments.accessMethod == .openRouter
-			|| arguments.accessMethod == .openRouterNeedsCredits
-		{
-			return ["model": "fixture/openrouter-model", "provider": "Fixture Host"]
-		}
-		if arguments.accessMethod == .syncedOpenRouter {
-			return ["model": "Claude Sonnet 4.5", "provider": "Anthropic"]
-		}
-		return ["model": "DeepSeek V4.1 Flash", "provider": "DeepInfra"]
 	}
 
 }

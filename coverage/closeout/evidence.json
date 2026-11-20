@@ -35,41 +35,24 @@
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/PublicSurfaceTests.swift", "function": "publicSymbolsMatchTheDesignList"}}
 		],
 		"B03.01": [
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AccessChoiceTests.swift", "function": "savedOpenRouterChoiceSurvivesReopen"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AccessChoiceTests.swift", "function": "choosingCreditsPublishesAndSurvivesReopen"}},
-			{"test": {"file": "apps/ios/EnduragentTests/AccessSettingsTests.swift", "function": "creditsSetupPersistsBeforeSelectingAndReopensWithBuiltInModel"}},
-			{"test": {"file": "apps/ios/EnduragentTests/AccessOnboardingTests.swift", "function": "starterSetupThenCreditsChoiceReopensForToolTurn"}},
-			{"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AccessChoiceTests.swift", "function": "savedBuild9SelectionReadsAsCredits"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/AccessChoiceTests.swift", "function": "creditsNeverClaimMissingOrUnreadableSetup"}},
+			{"test": {"file": "apps/ios/EnduragentTests/AccessOnboardingTests.swift", "function": "starterCreditsThenStartChattingReopensForToolTurn"}},
+			{"test": {"file": "apps/ios/EnduragentTests/AccessOnboardingTests.swift", "function": "failedStarterStillStartsChattingWithoutCredits"}}
 		],
 		"B03.02": [
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelCatalogRefreshTests.swift", "function": "newerCatalogSurvivesRestartWithoutChangingTheBuiltInModel"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelCatalogRefreshTests.swift", "function": "rejectedRefreshRetainsDownloadedChoices"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelCatalogRefreshTests.swift", "function": "omittedSelectionKeepsItsNameAndRequestAfterRestart"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelChoiceTests.swift", "function": "nonCatalogChoicesCannotBeSelectedOrInvoked"}},
-			{"test": {"file": "apps/ios/EnduragentUITests/ModelPickerProof.swift", "class": "ModelPickerProof", "method": "testFailedRefreshesKeepChoicesTappableAndCoachingAvailable"}}
-		],
-		"B03.03": [
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/OpenRouterPKCETests.swift", "function": "knownS256VectorAuthorizesAndExchangesCode"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/OpenRouterSignInTests.swift", "function": "firstSignInUsesCreditsModelAndResignInPreservesChoice"}},
-			{"test": {"file": "apps/ios/EnduragentTests/OpenRouterSignInSessionTests.swift", "function": "systemCancellationReturnsTypedCanceled"}},
-			{"test": {"file": "apps/ios/EnduragentUITests/OpenRouterAccessProof.swift", "class": "OpenRouterAccessProof", "method": "testSettingsSignInAndCancelKeepSavedMarksAndToolRepliesAfterRelaunch"}},
-			{"phone": {"session": "closeout", "step": "closeout/openrouter-signin"}}
-		],
-		"B03.04": [
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/OpenRouterSignInTests.swift", "function": "overlappingIntentsJoinAndSwitchOnlyAfterSave"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnAccessRejectionTests.swift", "function": "overlappingRejectionsRecoverOnce"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/TurnAccessRejectionTests.swift", "function": "rejectedKeyStaysQuarantinedAfterReopen"}},
-			{"test": {"file": "apps/ios/EnduragentUITests/OpenRouterRecoveryProof.swift", "class": "OpenRouterRecoveryProof", "method": "testRejectedKeySurvivesRelaunchAndDirectSignInKeepsConversation"}},
-			{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelCatalogRefreshTests.swift", "function": "omittedBuiltInModelKeepsItsRequestAfterRestart"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelCatalogRefreshTests.swift", "function": "pendingRefreshDoesNotHoldCoaching"}}
 		],
 		"B03.05": [
-			{"test": {"file": "apps/ios/EnduragentUITests/AccessSettingsProof.swift", "class": "AccessSettingsProof", "method": "testCreditsSetupSelectsOnlyAfterPersistenceAndKeepsTheChoice"}},
-			{"test": {"file": "apps/ios/EnduragentUITests/AccessOnboardingProof.swift", "class": "AccessOnboardingProof", "method": "testCreditsFirstThenSignInAndPersistedChoice"}}
+			{"test": {"file": "apps/ios/EnduragentUITests/AccessOnboardingProof.swift", "class": "AccessOnboardingProof", "method": "testStarterCreditsThenStartChattingAndReopen"}}
 		],
 		"B03.06": [
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsOperationsKeepOpenRouterAndReportFailures"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsItsActionAfterReopeningAndInHistory"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialReadTests.swift", "function": "resolverReadsOnlyTheSelectedMethodKey"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CreditsClientTests.swift", "function": "claimSettlementFinishesOnlyAfterTerminalOutcome"}}
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsOperationsReportFailuresAndKeepCoaching"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsBuyCreditsAfterReopeningAndInHistory"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CreditsClientTests.swift", "function": "claimSettlementRecoversEveryKeylessAnswerOnAPhoneWithoutAKey"}}
 		],
 		"B04.01": [
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialReadTests.swift", "function": "lockedStoreReportsSecureStorageLocked"}},
@@ -136,7 +119,7 @@
 		"B07.01": [
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/SessionSettingsTests.swift", "function": "setSessionStoresOneRecordThatTheNextCoachReads"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ContextWindowTests.swift", "function": "contextWindowOverrideShrinksTheHistoryBudget"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelChoiceTests.swift", "function": "replyCompactionAndExtractionUseTheAccessModel"}},
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/ModelChoiceTests.swift", "function": "replyCompactionAndExtractionUseTheBuiltInModel"}},
 			{"test": {"file": "apps/ios/EnduragentUITests/SessionSettingsProofs.swift", "class": "SessionSettingsProof", "method": "testEditsSurviveRelaunchWithCredits"}}
 		],
 		"B07.02": [
@@ -388,9 +371,7 @@
 			{"test": {"file": "apps/ios/EnduragentUITests/SessionProofs.swift", "class": "AutomaticFrenchPhoneProof", "method": "testAutomaticFromSettings"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/CredentialVaultTests.swift", "function": "blankReplacementKeepsTheWorkingKey"}},
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}},
-			{"test": {"file": "apps/ios/EnduragentUITests/OpenRouterRecoveryProof.swift", "class": "OpenRouterRecoveryProof", "method": "testRejectedKeySurvivesRelaunchAndDirectSignInKeepsConversation"}},
-			{"phone": {"session": "closeout", "step": "closeout/language"}},
-			{"phone": {"session": "closeout", "step": "closeout/openrouter-recovery"}}
+			{"phone": {"session": "closeout", "step": "closeout/language"}}
 		],
 		"G09": [
 			{"criterion": {"table": "coverage/milestone-6.json", "id": "1.3.4"}},
@@ -474,8 +455,8 @@
 		],
 		"MOB09": [
 			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "creditsExhaustionPreservesSavedConversationAndMemory"}},
-			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsItsActionAfterReopeningAndInHistory"}},
-			{"test": {"file": "apps/ios/EnduragentUITests/BillingIdentityProof.swift", "class": "BillingIdentityProof", "method": "testExhaustedCreditsKeepMemoryAndMessagesAndOfferWorkingRoutes"}}
+			{"test": {"file": "apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/BillingIdentityTests.swift", "function": "outOfCreditsNoticeKeepsBuyCreditsAfterReopeningAndInHistory"}},
+			{"test": {"file": "apps/ios/EnduragentUITests/BillingIdentityProof.swift", "class": "BillingIdentityProof", "method": "testExhaustedCreditsKeepMemoryAndMessagesAndOfferBuyCredits"}}
 		],
 		"MOB10": [
 			{"requirement": {"table": "coverage/milestone-4.json", "id": "X02"}},
@@ -495,7 +476,20 @@
 			{"recorded": {"record": "ADR-0080", "says": "B02.02/profile-display: iOS addition: Settings shows the resolved athlete and Fitness, Fatigue and Form after connecting."}}
 		],
 		"B03.01": [
-			{"recorded": {"record": "ADR-0080", "says": "B03.01/typed-model-id: The OpenRouter model is picked from the catalog only, with no typed model ID."}}
+			{"recorded": {"record": "ADR-0080", "says": "B03.01/typed-model-id: The OpenRouter model is picked from the catalog only, with no typed model ID."}},
+			{"recorded": {"record": "ADR-0089", "says": "B03.01/credits-only: Build 1.0 (10) offers one access method, Credits, and no model choice until App Review approves the build."}}
+		],
+		"B03.02": [
+			{"recorded": {"record": "ADR-0089", "says": "B03.02/no-model-picker: Build 1.0 (10) has no model picker; the catalog refresh serves only the built-in model."}}
+		],
+		"B03.03": [
+			{"recorded": {"record": "ADR-0089", "says": "B03.03/no-openrouter-account: Build 1.0 (10) has no Sign in with OpenRouter, so Credits are the only access method until App Review approves the build."}}
+		],
+		"B03.04": [
+			{"recorded": {"record": "ADR-0089", "says": "B03.04/no-openrouter-account: Build 1.0 (10) has no OpenRouter account, so there is no OpenRouter key to recover and no Sign in again."}}
+		],
+		"B03.06": [
+			{"recorded": {"record": "ADR-0089", "says": "B03.06/no-openrouter-option: Build 1.0 (10) offers no Sign in with OpenRouter in onboarding and no Switch to OpenRouter when Credits run out."}}
 		],
 		"B04.03": [
 			{"recorded": {"record": "ADR-0080", "says": "B04.03/keychain-only: The Keychain, synced through iCloud Keychain, is the only secret store; no external secret source."}}

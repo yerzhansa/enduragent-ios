@@ -70,7 +70,6 @@ import Testing
 			})
 		let reopened = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
-		_ = await reopened.changeModelAccess(.useCredits)
 		#expect(try await reopened.observedStatus().acceptedConsent == consent)
 	}
 
@@ -154,10 +153,6 @@ import Testing
 					.utf8),
 		])
 		let secrets = ICloudKeychainStore(backing: backing)
-		#expect(
-			try secrets.accessSelection()
-				== .init(
-					.openRouter(SavedOpenRouterReference(credential: .legacy, model: testModel))))
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, secrets: secrets, consent: false)
 		#expect(
