@@ -27,10 +27,11 @@ extension Simulator {
 	}
 
 	func create(_ name: String?) throws {
-		try createRun("\(stamp())-\(try slug(name, "run slug"))")
+		try createRun("\(stamp())-\(try slug(name, "run slug"))", seed: options.template)
 	}
 
-	func createRun(_ id: String) throws {
+	@discardableResult
+	func createRun(_ id: String, seed template: String?) throws -> Runtime {
 		let dir = NodePath.join(runsRoot, id)
 		if try exists(dir) || findSim(id) != nil {
 			throw SimFailure(description: "run \(id) already exists")
@@ -63,9 +64,15 @@ extension Simulator {
 		try writeJSON(.object(record), to: recordFile)
 		let udid = try capture(
 			"xcrun", ["simctl", "create", simName(id), deviceType, runtime.identifier])
-		try writeJSON(
-			.object(record + [JSONMember(key: "udid", value: .string(udid))]), to: recordFile)
+		var recorded = record + [JSONMember(key: "udid", value: .string(udid))]
+		try writeJSON(.object(recorded), to: recordFile)
+		var seeded = ""
 		do {
+			if let template, try seed(udid, from: template, runtime: runtime) {
+				recorded.append(JSONMember(key: "template", value: .string(template)))
+				try writeJSON(.object(recorded), to: recordFile)
+				seeded = "\ntemplate \(template)"
+			}
 			_ = try capture("xcrun", ["simctl", "bootstatus", udid, "-b"])
 			_ = try capture("xcrun", ["simctl", "status_bar", udid, "override"] + statusBar)
 			_ = try capture("xcrun", ["simctl", "ui", udid, "appearance", "light"])
@@ -73,7 +80,65 @@ extension Simulator {
 			try cleanup(id)
 			throw error
 		}
-		try Console.say("run \(id)\nsimulator \(simName(id)) \(udid)\nevidence \(dir)")
+		try Console.say("run \(id)\nsimulator \(simName(id)) \(udid)\nevidence \(dir)\(seeded)")
+		return runtime
+	}
+
+	func warm() throws {
+		guard let template = options.template else {
+			throw SimFailure(description: "warm needs --template <folder> to save the simulator in")
+		}
+		if exists(template) {
+			throw SimFailure(
+				description: "\(template) exists; a warm simulator is never overwritten")
+		}
+		let id = "\(stamp())-warm"
+		let runtime = try createRun(id, seed: nil)
+		let saved = Result {
+			Thread.sleep(forTimeInterval: TimeInterval(options.settleSeconds))
+			guard let device = try findSim(id) else {
+				throw SimFailure(description: "\(simName(id)) is gone before its data was saved")
+			}
+			_ = try capture("xcrun", ["simctl", "shutdown", device.udid])
+			try makeFolder(template)
+			try FileManager.default.copyItem(
+				atPath: device.dataPath, toPath: NodePath.join(template, "data"))
+			try writeJSON(
+				.object(templateManifest(runtime)), to: NodePath.join(template, "template.json"))
+		}
+		try cleanup(id)
+		try saved.get()
+		try Console.say(
+			"warm simulator \(template)\n\(deviceType) on \(runtime.name) \(runtime.build), saved \(options.settleSeconds) seconds after boot"
+		)
+	}
+
+	private func templateManifest(_ runtime: Runtime) -> [JSONMember] {
+		[
+			JSONMember(key: "runtime", value: .string(runtime.identifier)),
+			JSONMember(key: "build", value: .string(runtime.build)),
+			JSONMember(key: "deviceType", value: .string(deviceType)),
+		]
+	}
+
+	private func seed(_ udid: String, from template: String, runtime: Runtime) throws -> Bool {
+		let saved = try readJSON(NodePath.join(template, "template.json"))
+		let matches = try templateManifest(runtime).allSatisfy {
+			try saved.member($0.key).isSamePrimitive(as: $0.value)
+		}
+		guard matches else {
+			try Console.say(
+				"template \(template) is \(saved.compactText), not \(deviceType) on \(runtime.identifier) \(runtime.build); booting a new simulator"
+			)
+			return false
+		}
+		guard let device = try devices().first(where: { $0.udid.hasSameUnits(as: udid) }) else {
+			throw SimFailure(description: "simulator \(udid) is not listed after create")
+		}
+		try FileManager.default.removeItem(atPath: device.dataPath)
+		try FileManager.default.copyItem(
+			atPath: NodePath.join(template, "data"), toPath: device.dataPath)
+		return true
 	}
 
 	func install(_ id: String?) throws {

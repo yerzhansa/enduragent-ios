@@ -53,7 +53,7 @@ struct SimCommandTests {
 			#expect(listed.status == 0, "\(listed.errors)")
 			#expect(
 				listed.output
-					== #"{"devices":{"fixture":[{"name":"snapshot-proof","udid":"\#(udid)","state":"Booted"}]}}"#
+					== #"{"devices":{"fixture":[{"name":"snapshot-proof","udid":"\#(udid)","state":"Booted","dataPath":"\#(fixture.root)/device-data/\#(udid)"}]}}"#
 			)
 			#expect(try fixture.names(in: fixture.devices).isEmpty)
 		}

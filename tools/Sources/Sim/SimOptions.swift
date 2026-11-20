@@ -10,6 +10,8 @@ struct SimOptions: Equatable {
 	let buildFolder: String
 	let shards: Int
 	let timings: String?
+	let template: String?
+	let settleSeconds: Int
 
 	static func parse(
 		_ argv: [String], environment: [String: String], repo: String, directory: String
@@ -21,6 +23,8 @@ struct SimOptions: Equatable {
 			),
 			("--shards", "1"),
 			("--timings", nil),
+			("--template", environment["ENDURAGENT_SIM_TEMPLATE"]),
+			("--settle", "0"),
 		]
 		var arguments: [String] = []
 		var index = 0
@@ -41,10 +45,17 @@ struct SimOptions: Equatable {
 		guard shards == shards.rounded(), shards >= 1, shards <= 9_007_199_254_740_991 else {
 			throw SimFailure(description: "--shards must be a positive whole number")
 		}
-		let timings = values[2].value.flatMap { $0.isEmpty ? nil : NodePath.resolve(directory, $0) }
+		let settle = JavaScriptNumber.parse(values[4].value ?? "")
+		guard settle == settle.rounded(), settle >= 0, settle <= 86_400 else {
+			throw SimFailure(description: "--settle must be a whole number of seconds")
+		}
+		func path(_ value: String?) -> String? {
+			value.flatMap { $0.isEmpty ? nil : NodePath.resolve(directory, $0) }
+		}
 		return SimOptions(
 			command: arguments.first, arguments: Array(arguments.dropFirst()),
 			buildFolder: NodePath.resolve(directory, values[0].value ?? ""), shards: Int(shards),
-			timings: timings)
+			timings: path(values[2].value), template: path(values[3].value),
+			settleSeconds: Int(settle))
 	}
 }

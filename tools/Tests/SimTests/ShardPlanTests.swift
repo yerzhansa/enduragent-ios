@@ -5,8 +5,8 @@ import ToolSupport
 @testable import Sim
 
 struct ShardPlanTests {
-	@Test("build folder parsing preserves the default and lets the flag override the environment")
-	func parsesTheBuildFolder() throws {
+	@Test("folder options keep their defaults and let a flag override the environment")
+	func parsesTheFolderOptions() throws {
 		func parse(_ arguments: [String], _ environment: [String: String] = [:]) throws
 			-> SimOptions
 		{
@@ -21,17 +21,26 @@ struct ShardPlanTests {
 			[
 				"suite", "AlphaProof", "--build-folder", "/tmp/flag-build", "--shards", "2",
 				"--timings",
-				"/tmp/times.json",
-			], ["ENDURAGENT_VERIFY_BUILD": "/tmp/env-build"])
+				"/tmp/times.json", "--template", "warm",
+			],
+			[
+				"ENDURAGENT_VERIFY_BUILD": "/tmp/env-build",
+				"ENDURAGENT_SIM_TEMPLATE": "/tmp/env-warm",
+			])
 		#expect(
 			parsed
 				== SimOptions(
 					command: "suite", arguments: ["AlphaProof"], buildFolder: "/tmp/flag-build",
 					shards: 2,
-					timings: "/tmp/times.json"))
+					timings: "/tmp/times.json", template: "/work/warm", settleSeconds: 0))
+		#expect(
+			try parse(["create"], ["ENDURAGENT_SIM_TEMPLATE": "/tmp/env-warm"]).template
+				== "/tmp/env-warm")
+		#expect(try parse(["create"], ["ENDURAGENT_SIM_TEMPLATE": ""]).template == nil)
+		#expect(try parse(["warm", "--settle", "600"]).settleSeconds == 600)
 		for arguments in [
 			["suite", "--shards", "0"], ["suite", "--shards", "1.5"], ["build", "--build-folder"],
-			["suite", "--timings"],
+			["suite", "--timings"], ["warm", "--template"], ["warm", "--settle", "1.5"],
 		] {
 			#expect(throws: SimFailure.self) { try parse(arguments) }
 		}
