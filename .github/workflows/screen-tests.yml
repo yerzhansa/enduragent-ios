@@ -38,8 +38,8 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ${{ runner.temp }}/warm-simulator
-          key: warm-simulator-${{ hashFiles('.github/workflows/screen-tests.yml') }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: warm-simulator-${{ hashFiles('.github/workflows/screen-tests.yml') }}-
+          key: warm-simulator-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: warm-simulator-
       - name: Build the app and the screen test runner
         run: swift run --quiet --package-path tools sim build
       - name: Run the smoke set
@@ -49,11 +49,14 @@ jobs:
       - name: Print the per-class times
         if: always()
         run: cat "$HOME/Library/Logs/enduragent-verify/smoke/summary.json"
-      - name: Tell whether the run booted from the warm simulator
+      - name: Tell whether the simulator booted from the warm simulator
         id: seeded
         if: always()
         run: |
-          if grep -q '"template"' "$HOME/Library/Logs/enduragent-verify/smoke/run.json"; then
+          record="$HOME/Library/Logs/enduragent-verify/smoke/run.json"
+          if [ ! -f "$record" ]; then
+            echo "no simulator was created"
+          elif grep -q '"template"' "$record"; then
             echo seeded=true | tee -a "$GITHUB_OUTPUT"
           else
             echo seeded=false | tee -a "$GITHUB_OUTPUT"
@@ -61,7 +64,7 @@ jobs:
 
   warm:
     needs: smoke
-    if: always() && needs.smoke.result != 'cancelled' && needs.smoke.outputs.seeded != 'true'
+    if: ${{ !cancelled() && needs.smoke.result != 'cancelled' && (github.event_name != 'pull_request' || needs.smoke.outputs.seeded == 'false') }}
     runs-on: macos-26
     timeout-minutes: 30
     concurrency:
@@ -77,4 +80,4 @@ jobs:
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ${{ runner.temp }}/warm-simulator
-          key: warm-simulator-${{ hashFiles('.github/workflows/screen-tests.yml') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: warm-simulator-${{ github.run_id }}-${{ github.run_attempt }}

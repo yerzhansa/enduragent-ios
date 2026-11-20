@@ -5,8 +5,8 @@ import ToolSupport
 @testable import Sim
 
 struct ShardPlanTests {
-	@Test("folder options keep their defaults and let a flag override the environment")
-	func parsesTheFolderOptions() throws {
+	@Test("options keep their defaults and let a flag override the environment")
+	func parsesTheOptions() throws {
 		func parse(_ arguments: [String], _ environment: [String: String] = [:]) throws
 			-> SimOptions
 		{
@@ -40,7 +40,7 @@ struct ShardPlanTests {
 		#expect(try parse(["warm", "--settle", "600"]).settleSeconds == 600)
 		for arguments in [
 			["suite", "--shards", "0"], ["suite", "--shards", "1.5"], ["build", "--build-folder"],
-			["suite", "--timings"], ["warm", "--template"], ["warm", "--settle", "1.5"],
+			["suite", "--timings"], ["warm", "--settle", "1.5"],
 		] {
 			#expect(throws: SimFailure.self) { try parse(arguments) }
 		}

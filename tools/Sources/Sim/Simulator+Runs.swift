@@ -65,9 +65,9 @@ extension Simulator {
 		let udid = try capture(
 			"xcrun", ["simctl", "create", simName(id), deviceType, runtime.identifier])
 		var recorded = record + [JSONMember(key: "udid", value: .string(udid))]
-		try writeJSON(.object(recorded), to: recordFile)
 		var seeded = ""
 		do {
+			try writeJSON(.object(recorded), to: recordFile)
 			if let template, try seed(udid, from: template, runtime: runtime) {
 				recorded.append(JSONMember(key: "template", value: .string(template)))
 				try writeJSON(.object(recorded), to: recordFile)
@@ -106,8 +106,16 @@ extension Simulator {
 			try writeJSON(
 				.object(templateManifest(runtime)), to: NodePath.join(template, "template.json"))
 		}
-		try cleanup(id)
+		let cleaned = Result { try cleanup(id) }
+		if case .failure = saved, exists(template) {
+			try FileManager.default.removeItem(atPath: template)
+		}
+		if case .failure(let save) = saved, case .failure(let clean) = cleaned {
+			throw SimFailure(
+				description: "\(Console.text(of: save))\ncleanup: \(Console.text(of: clean))")
+		}
 		try saved.get()
+		try cleaned.get()
 		try Console.say(
 			"warm simulator \(template)\n\(deviceType) on \(runtime.name) \(runtime.build), saved \(options.settleSeconds) seconds after boot"
 		)
