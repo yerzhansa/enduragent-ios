@@ -14,7 +14,7 @@ import Testing
 		try store.deleteEverything()
 		try remove(service: neighbour)
 		_ = try store.prepareCreditsAccount()
-		try store.storeOpenRouterAccountKey("synthetic-erasure-key", at: .legacy)
+		try add(account: "openRouterAccountKey", synchronizable: true, service: service)
 		try add(account: "device-only", synchronizable: false, service: service)
 		try add(account: "kept", synchronizable: true, service: neighbour)
 		#expect(try accounts(service: service).count == 3)

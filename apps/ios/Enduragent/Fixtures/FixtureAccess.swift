@@ -2,46 +2,22 @@
 	import EnduragentCoach
 	import EnduragentCoachFixtures
 
-	extension FixtureSignInOutcome {
-		var response: FakeOpenRouterAuthorizer.Response {
-			switch self {
-			case .success, .exchangeFailure:
-				.completed(.success(OpenRouterAuthCode(code: "fixture-code")))
-			case .cancel: .completed(.failure(.canceled))
-			case .rejectedCallback: .completed(.failure(.callbackRejected))
-			case .held: .held
-			}
-		}
-	}
-
 	extension FirstWeekFixture {
-		static let openRouterKey = "fixture-openrouter-key"
-		static let openRouterModel = ModelID(rawValue: "fixture/openrouter-model")
-
-		static func install(_ method: FixtureAccessMethod, on secrets: ICloudKeychainStore) throws {
+		static func install(
+			_ method: FixtureAccessMethod, on secrets: ICloudKeychainStore,
+			backing: FixtureSecretStoreBacking
+		) throws {
 			switch method {
-			case .credits, .openRouter, .syncedOpenRouter, .catalogOpenRouter, .missingOpenRouter,
-				.rejectedOpenRouter:
+			case .credits:
 				try install(on: secrets)
-			case .creditsNeedsSetup, .openRouterNeedsCredits:
+			case .build9OpenRouter:
+				try install(on: secrets)
+				try backing.installBuild9OpenRouterChoice(
+					model: ModelID(rawValue: "fixture/openrouter-model"),
+					key: "fixture-openrouter-key")
+			case .creditsNeedsSetup:
 				_ = try secrets.prepareCreditsAccount()
 			}
-			try secrets.storeOpenRouterAccountKey(openRouterKey, at: .legacy)
-			if method == .syncedOpenRouter || method == .catalogOpenRouter {
-				let entries = ModelCatalog.bundled.orderedEntries
-				guard let entry = method == .catalogOpenRouter ? entries.first : entries.last else {
-					throw FixtureLaunchError.unknownArgument(
-						key: FixtureLaunch.accessArgumentKey, value: method.rawValue)
-				}
-				try secrets.installOpenRouterChoice(
-					model: entry.id, key: openRouterKey, catalog: .bundled)
-			}
-			if [.openRouter, .openRouterNeedsCredits, .missingOpenRouter, .rejectedOpenRouter]
-				.contains(method)
-			{
-				try secrets.installOpenRouterChoice(model: openRouterModel, key: openRouterKey)
-			}
-			if method == .missingOpenRouter { try secrets.deleteOpenRouterAccountKey(at: .legacy) }
 		}
 
 		static func install(_ outcome: FixtureCreditsOutcome, on credits: FakeCreditsClient) {

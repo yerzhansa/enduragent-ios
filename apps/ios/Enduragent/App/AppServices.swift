@@ -71,8 +71,7 @@ struct AppServices: Sendable {
 				credits: .worker(creditsWorkerBase),
 				host: host,
 				clock: clock,
-				support: try .onDevice(app: identity),
-				openRouterSignIn: OpenRouterSignInService(authorizer: OpenRouterSignInSession())
+				support: try .onDevice(app: identity)
 			),
 			builtInModel: builtInModel,
 			displayLocale: displayLocale

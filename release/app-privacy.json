@@ -4,7 +4,7 @@
 		{
 			"type": "NSPrivacyCollectedDataTypeHealth",
 			"label": "Health",
-			"data": "Wellness values from intervals.icu that a coaching turn on the Credits path sends.",
+			"data": "Wellness values from intervals.icu that a coaching turn sends.",
 			"linked": true,
 			"tracking": false,
 			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
@@ -12,7 +12,7 @@
 		{
 			"type": "NSPrivacyCollectedDataTypeFitness",
 			"label": "Fitness",
-			"data": "Activities, workouts and the training calendar from intervals.icu that a coaching turn on the Credits path sends.",
+			"data": "Activities, workouts and the training calendar from intervals.icu that a coaching turn sends.",
 			"linked": true,
 			"tracking": false,
 			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
@@ -20,7 +20,7 @@
 		{
 			"type": "NSPrivacyCollectedDataTypeOtherUserContent",
 			"label": "Other User Content",
-			"data": "The athlete's messages and the coach's memory that a coaching turn on the Credits path sends.",
+			"data": "The athlete's messages and the coach's memory that a coaching turn sends.",
 			"linked": true,
 			"tracking": false,
 			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]

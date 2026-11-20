@@ -60,7 +60,7 @@ import Testing
 	@Test func fileBackingKeepsTheKeychainItemContract() throws {
 		try withTemporaryDirectory { directory in
 			let (_, backing) = try ICloudKeychainStore.fixture(directory: directory)
-			let account = CredentialSlot.openRouterAccountKey.rawValue
+			let account = "test-item"
 			let original = Data("test-original-key".utf8)
 			let replacement = Data("test-replacement-key".utf8)
 			#expect(try backing.copy(account: account) == nil)
@@ -73,8 +73,8 @@ import Testing
 			}
 			#expect(try backing.copy(account: account) == original)
 			try backing.update(account: account, data: replacement)
-			let reopened = try ICloudKeychainStore.fixture(directory: directory).store
-			#expect(try reopened.openRouterAccountKey(at: .legacy) == "test-replacement-key")
+			let reopened = try ICloudKeychainStore.fixture(directory: directory).backing
+			#expect(try reopened.copy(account: account) == replacement)
 		}
 	}
 
@@ -87,8 +87,6 @@ import Testing
 			let expected = KeychainStoreError.keychain(errSecInteractionNotAllowed)
 			#expect(throws: expected) { try store.creditsAccount() }
 			#expect(throws: expected) { try store.intervalsConnection() }
-			#expect(throws: expected) { try store.openRouterAccountKey(at: .legacy) }
-			#expect(throws: expected) { try store.accessSelection() }
 			#expect(throws: expected) { try store.prepareCreditsAccount() }
 			#expect(throws: expected) { try store.delete(.creditsAccount) }
 			backing.locked = false
@@ -135,7 +133,7 @@ import Testing
 				? CreditsAccount(appAccountToken: UUID(), key: "test-current-key") : previous
 			var items = [
 				"appAccountToken": Data(previousToken.uuidString.utf8),
-				CredentialSlot.openRouterAccountKey.rawValue: Data("test-own-key".utf8),
+				"openRouterAccountKey": Data("test-own-key".utf8),
 				CredentialSlot.accessSelection.rawValue: Data(#"{"credits":{}}"#.utf8),
 			]
 			items["openRouterKey"] = previousKey.map { Data($0.utf8) }
@@ -150,10 +148,14 @@ import Testing
 			#expect(try store.creditsAccount() == memory.creditsAccount())
 			let migrated = try Data(contentsOf: file)
 			let attributes = try FileManager.default.attributesOfItem(atPath: file.path)
-			let reopened = try ICloudKeychainStore.fixture(directory: directory).store
-			#expect(try reopened.creditsAccount() == expected)
-			#expect(try reopened.openRouterAccountKey(at: .legacy) == "test-own-key")
-			#expect(try reopened.accessSelection() == .init(.credits))
+			let reopened = try ICloudKeychainStore.fixture(directory: directory)
+			#expect(try reopened.store.creditsAccount() == expected)
+			#expect(
+				try reopened.backing.copy(account: "openRouterAccountKey")
+					== items["openRouterAccountKey"])
+			#expect(
+				try reopened.backing.copy(account: CredentialSlot.accessSelection.rawValue)
+					== items[CredentialSlot.accessSelection.rawValue])
 			#expect(try Data(contentsOf: file) == migrated)
 			let reopenedAttributes = try FileManager.default.attributesOfItem(atPath: file.path)
 			#expect(

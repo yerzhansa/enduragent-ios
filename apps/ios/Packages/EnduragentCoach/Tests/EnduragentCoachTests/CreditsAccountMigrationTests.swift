@@ -127,7 +127,7 @@ import Testing
 		let store = ICloudKeychainStore(backing: memory)
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
-		#expect(try await coach.observedStatus().setup == .needsAccessMethod)
+		#expect(try await coach.observedStatus().setup == .needsCredits)
 		#expect(
 			try await coach.creditsIdentity()
 				== CreditsIdentity(

@@ -17,8 +17,8 @@ import Testing
 			reviewStage: .partial, planSaveStage: .saving, planTap: .replaced,
 			resetFault: .failBoundary,
 			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
-			credentialWriteFault: .failOnce, accessMethod: .openRouterNeedsCredits,
-			creditsOutcome: .provisioningFailed, signInOutcome: .held,
+			credentialWriteFault: .failOnce, accessMethod: .build9OpenRouter,
+			creditsOutcome: .provisioningFailed,
 			catalogResponse: .omittedSelectedModel, textSize: .accessibilityXXXL,
 			feedback: FixtureFeedbackScript(rawValue: "lost,lost"), journal: .notSaving)
 		var restored = FixtureArguments()
@@ -64,7 +64,6 @@ import Testing
 		#expect(parsed.credentialWriteFault == expected.credentialWriteFault)
 		#expect(parsed.accessMethod == expected.accessMethod)
 		#expect(parsed.creditsOutcome == expected.creditsOutcome)
-		#expect(parsed.signInOutcome == expected.signInOutcome)
 		#expect(parsed.catalogResponse == expected.catalogResponse)
 		#expect(parsed.feedback?.answers == [.lostAnswer, .lostAnswer])
 		#expect(parsed.journal == .notSaving)
@@ -80,7 +79,7 @@ import Testing
 		FixtureLaunch.calendarSaveArgumentKey, FixtureLaunch.calendarReadArgumentKey,
 		FixtureLaunch.recordReadArgumentKey, FixtureLaunch.presentationArgumentKey,
 		FixtureLaunch.reviewStageArgumentKey, FixtureLaunch.planSaveArgumentKey,
-		FixtureLaunch.planTapArgumentKey, FixtureLaunch.signInArgumentKey,
+		FixtureLaunch.planTapArgumentKey,
 		FixtureLaunch.catalogArgumentKey,
 		FixtureLaunch.resetArgumentKey,
 		FixtureLaunch.replyParserArgumentKey,
@@ -128,7 +127,6 @@ import Testing
 		#expect(parsed.replyParserFault == nil)
 		#expect(parsed.trainingDisplay == nil)
 		#expect(parsed.credentialWriteFault == nil)
-		#expect(parsed.signInOutcome == .cancel)
 		#expect(parsed.catalogResponse == .offline)
 		#expect(parsed.feedback == nil)
 		#expect(parsed.journal == .saving)

@@ -35,20 +35,6 @@ extension CreditsService {
 	}
 }
 
-extension ICloudKeychainStore {
-	public func installOpenRouterChoice(
-		model: ModelID, key: String, catalog: ModelCatalog = .fixture
-	) throws {
-		let entry = try catalog.choice(model)
-		try storeOpenRouterAccountKey(key, at: .legacy)
-		try storeAccessSelection(
-			.init(
-				.openRouter(
-					SavedOpenRouterReference(
-						credential: .legacy, model: model, details: entry.details))))
-	}
-}
-
 extension TrainingService {
 	public static func fake(
 		_ client: @escaping @Sendable (IntervalsCredential, AthleteSelection) -> FakeIntervalsClient

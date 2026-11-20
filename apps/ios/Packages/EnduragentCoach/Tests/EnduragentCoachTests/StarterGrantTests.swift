@@ -48,6 +48,18 @@ struct StarterGrantTests {
 		#expect(notice == AthleteNotice.credits(failure: failure))
 	}
 
+	@Test func aMintedStarterKeyPublishesReadyCredits() async throws {
+		let credits = FakeCreditsClient()
+		credits.grantResult = .success(.minted(Credits(units: 200)))
+		let coach = await coach(credits: credits, hasKey: false, mintedKey: "synthetic-starter")
+		let statuses = await coach.observeStatus()
+		try #require(
+			try await statuses.status { $0.access.availability == .needsSetup } != nil)
+		_ = await coach.claimStarter(deviceCheck: Data([0x01]))
+		let ready = try await statuses.status { $0.access.availability == .ready }
+		#expect(ready?.setup == .ready)
+	}
+
 	@Test func balanceFailureReturnsOneNotice() async {
 		let credits = FakeCreditsClient()
 		credits.grantResult = .success(.alreadyGranted)
@@ -57,7 +69,9 @@ struct StarterGrantTests {
 		#expect(notice == AthleteNotice.credits(failure: CreditsFailure.unavailable))
 	}
 
-	private func coach(credits: FakeCreditsClient, hasKey: Bool = true) async -> Coach {
+	private func coach(
+		credits: FakeCreditsClient, hasKey: Bool = true, mintedKey: String? = nil
+	) async -> Coach {
 		await consentingCoach(
 			Coach(
 				sport: .cycling,
@@ -68,7 +82,7 @@ struct StarterGrantTests {
 						: ICloudKeychainStore(backing: FixtureSecretStoreBacking()),
 					models: .scripted(FakeModelTransport()),
 					training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
-					credits: .fake(credits), host: ImmediateExecutionHost(),
+					credits: .fake(credits, mintedKey: mintedKey), host: ImmediateExecutionHost(),
 					clock: FixedClock(
 						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 					support: .inMemory(app: .fixture)),

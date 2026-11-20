@@ -74,14 +74,9 @@ import Testing
 		#expect(cleared.contextWindowOverride == nil)
 	}
 
-	@Test(arguments: [AccessMethod.credits, .openRouterAccount])
-	func setSessionStoresOneRecordThatTheNextCoachReads(_ method: AccessMethod) async throws {
+	@Test func setSessionStoresOneRecordThatTheNextCoachReads() async throws {
 		let store = InMemoryRecordLog()
 		let secrets = keyedSecrets()
-		if method == .openRouterAccount {
-			try secrets.installOpenRouterChoice(
-				model: ModelID(rawValue: "test/account-model"), key: "synthetic-session-account")
-		}
 		let transport = FakeModelTransport(respond: { _ in
 			ScriptedReply([.text("Your conversation stays here."), .finish(reason: .stop)])
 		})
@@ -93,7 +88,6 @@ import Testing
 			replyText(try await coach.sendAndSettle("Keep this conversation"))
 				== "Your conversation stays here.")
 		let original = try await coach.observedStatus()
-		#expect(original.access.selection?.method == method)
 		#expect(original.setup == .ready)
 		#expect(original.trainingAccount == testConnection.account)
 		let conversation = try await snapshot(of: coach)

@@ -9,7 +9,6 @@ final class LanguageMatrixEnSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .en) }
 	func testHistory() { LanguageMatrix.history(self, .en) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .en) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .en) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .en) }
 	func testSupport() { LanguageMatrix.support(self, .en) }
 }
@@ -22,7 +21,6 @@ final class LanguageMatrixEsSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .es) }
 	func testHistory() { LanguageMatrix.history(self, .es) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .es) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .es) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .es) }
 	func testSupport() { LanguageMatrix.support(self, .es) }
 }
@@ -35,7 +33,6 @@ final class LanguageMatrixFrSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .fr) }
 	func testHistory() { LanguageMatrix.history(self, .fr) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .fr) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .fr) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .fr) }
 	func testSupport() { LanguageMatrix.support(self, .fr) }
 }
@@ -48,7 +45,6 @@ final class LanguageMatrixItSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .it) }
 	func testHistory() { LanguageMatrix.history(self, .it) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .it) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .it) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .it) }
 	func testSupport() { LanguageMatrix.support(self, .it) }
 }
@@ -61,7 +57,6 @@ final class LanguageMatrixDeProof: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .de) }
 	func testHistory() { LanguageMatrix.history(self, .de) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .de) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .de) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .de) }
 	func testSupport() { LanguageMatrix.support(self, .de) }
 }
@@ -74,7 +69,6 @@ final class LanguageMatrixNlSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .nl) }
 	func testHistory() { LanguageMatrix.history(self, .nl) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .nl) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .nl) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .nl) }
 	func testSupport() { LanguageMatrix.support(self, .nl) }
 }
@@ -87,7 +81,6 @@ final class LanguageMatrixDaSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .da) }
 	func testHistory() { LanguageMatrix.history(self, .da) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .da) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .da) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .da) }
 	func testSupport() { LanguageMatrix.support(self, .da) }
 }
@@ -100,7 +93,6 @@ final class LanguageMatrixSvSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .sv) }
 	func testHistory() { LanguageMatrix.history(self, .sv) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .sv) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .sv) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .sv) }
 	func testSupport() { LanguageMatrix.support(self, .sv) }
 }
@@ -113,7 +105,6 @@ final class LanguageMatrixNbSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .nb) }
 	func testHistory() { LanguageMatrix.history(self, .nb) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .nb) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .nb) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .nb) }
 	func testSupport() { LanguageMatrix.support(self, .nb) }
 }
@@ -126,7 +117,6 @@ final class LanguageMatrixFiSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .fi) }
 	func testHistory() { LanguageMatrix.history(self, .fi) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .fi) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .fi) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .fi) }
 	func testSupport() { LanguageMatrix.support(self, .fi) }
 }
@@ -139,7 +129,6 @@ final class LanguageMatrixPtPTProof: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .ptPT) }
 	func testHistory() { LanguageMatrix.history(self, .ptPT) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .ptPT) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .ptPT) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .ptPT) }
 	func testSupport() { LanguageMatrix.support(self, .ptPT) }
 }
@@ -152,7 +141,6 @@ final class LanguageMatrixPtBRSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .ptBR) }
 	func testHistory() { LanguageMatrix.history(self, .ptBR) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .ptBR) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .ptBR) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .ptBR) }
 	func testSupport() { LanguageMatrix.support(self, .ptBR) }
 }
@@ -165,7 +153,6 @@ final class LanguageMatrixPlSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .pl) }
 	func testHistory() { LanguageMatrix.history(self, .pl) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .pl) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .pl) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .pl) }
 	func testSupport() { LanguageMatrix.support(self, .pl) }
 }
@@ -178,7 +165,6 @@ final class LanguageMatrixKoSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .ko) }
 	func testHistory() { LanguageMatrix.history(self, .ko) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .ko) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .ko) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .ko) }
 	func testSupport() { LanguageMatrix.support(self, .ko) }
 }
@@ -191,7 +177,6 @@ final class LanguageMatrixJaSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .ja) }
 	func testHistory() { LanguageMatrix.history(self, .ja) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .ja) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .ja) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .ja) }
 	func testSupport() { LanguageMatrix.support(self, .ja) }
 }
@@ -204,7 +189,6 @@ final class LanguageMatrixZhHansSweep: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .zhHans) }
 	func testHistory() { LanguageMatrix.history(self, .zhHans) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .zhHans) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .zhHans) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .zhHans) }
 	func testSupport() { LanguageMatrix.support(self, .zhHans) }
 }
@@ -217,7 +201,6 @@ final class LanguageMatrixZhHantProof: XCTestCase {
 	func testFailureNotices() { LanguageMatrix.failures(self, .zhHant) }
 	func testHistory() { LanguageMatrix.history(self, .zhHant) }
 	func testUnconfirmedChange() { LanguageMatrix.unconfirmedChange(self, .zhHant) }
-	func testOpenRouter() { LanguageMatrix.openRouter(self, .zhHant) }
 	func testShortcuts() { LanguageMatrix.shortcuts(self, .zhHant) }
 	func testSupport() { LanguageMatrix.support(self, .zhHant) }
 }

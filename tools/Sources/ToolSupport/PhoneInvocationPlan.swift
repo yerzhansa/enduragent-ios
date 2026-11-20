@@ -59,10 +59,7 @@ public struct PhoneInvocation: Sendable, Equatable {
 public enum PhoneInvocationPlan {
 	static let project = "apps/ios/Enduragent.xcodeproj"
 	public static let proofScheme = "EnduragentKeychainProof"
-	static let ownCommands = [
-		"ChoicesInConversationCheck": "phone-check choices",
-		"OpenRouterRecoveryPhoneCheck": "phone-check openrouter recover",
-	]
+	static let ownCommands = ["ChoicesInConversationCheck": "phone-check choices"]
 
 	private enum Group {
 		case operatorTaps([PhoneStep])

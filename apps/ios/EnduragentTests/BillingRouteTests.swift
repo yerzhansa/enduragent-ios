@@ -1,5 +1,6 @@
 import EnduragentCoach
 import EnduragentCoachFixtures
+import Foundation
 import Synchronization
 import Testing
 
@@ -10,24 +11,21 @@ import Testing
 struct BillingRouteTests {
 	private let harness = FixtureLaunchTests()
 
-	@Test(arguments: [FixtureAccessMethod.credits, .openRouter])
-	func destinationsNeverClaimOrSwitchAccess(method: FixtureAccessMethod) async throws {
+	@Test(arguments: [FixtureAccessMethod.credits, .build9OpenRouter])
+	func destinationsNeverClaimOrChangeTheAccount(method: FixtureAccessMethod) async throws {
 		var launch = harness.launch
 		launch.accessMethod = method
 		let model = await harness.model(
 			try fixtureServices(launch, defaults: harness.defaults, language: .en))
 		let fixture = try #require(model.services.fixture)
-		let selection = try fixture.secrets.accessSelection()
-		let account = try fixture.secrets.creditsAccount()
-		try #require(
-			try fixture.secrets.openRouterAccountKey(at: .legacy) == FirstWeekFixture.openRouterKey)
+		let saved = try keychainItems(fixture)
 		await model.appear()
 		model.continueNotice()
 		model.skipConnect()
 		await model.loadStarter()
 		#expect(model.route == .onboarding(.starter))
 		#expect(fixture.credits.calls == [.grant])
-		try assertUnchanged(model, selection: selection, account: account)
+		try assertUnchanged(model, saved)
 		#expect(fixture.transport.requestCount == 0)
 		await model.agreeAndStartChatting()
 		try await harness.observed(model)
@@ -36,25 +34,23 @@ struct BillingRouteTests {
 		let answered = try await harness.settledTurn(model, at: 0)
 		try #require(replyText(answered.state) == FirstWeekFixture.weekSummary)
 		let modelRequests = fixture.transport.requestCount
-		let saved = try #require(model.chat)
-		for destination in [ShellDestination.settings, .accessMethod, .credits] {
+		let chat = try #require(model.chat)
+		for destination in [ShellDestination.settings, .credits] {
 			model.open(destination)
 			if destination == .credits { await model.loadCredits() }
-			try assertUnchanged(model, selection: selection, account: account)
-			#expect(model.chat?.turns == saved.turns)
+			try assertUnchanged(model, saved)
+			#expect(model.chat?.turns == chat.turns)
 		}
-		for action in [RecoveryAction.buyCredits, .chooseAccessMethod, .switchToOpenRouter] {
-			model.navigation.removeAll()
-			await model.perform(action)
-			#expect(model.navigation == [action == .buyCredits ? .credits : .accessMethod])
-			try assertUnchanged(model, selection: selection, account: account)
-			#expect(model.chat?.turns == saved.turns)
-		}
+		model.navigation.removeAll()
+		await model.perform(.buyCredits)
+		#expect(model.navigation == [.credits])
+		try assertUnchanged(model, saved)
+		#expect(model.chat?.turns == chat.turns)
 		#expect(fixture.transport.requestCount == modelRequests)
 	}
 
-	@Test(arguments: [FixtureAccessMethod.credits, .openRouter])
-	func conversationFailuresKeepIdentityAndExposeRealCredits(method: FixtureAccessMethod)
+	@Test(arguments: [FixtureAccessMethod.credits, .build9OpenRouter])
+	func outOfCreditsKeepsTheConversationAndLeadsToBuyCredits(method: FixtureAccessMethod)
 		async throws
 	{
 		var launch = harness.launch
@@ -62,8 +58,7 @@ struct BillingRouteTests {
 		let model = await harness.model(
 			try fixtureServices(launch, defaults: harness.defaults, language: .en))
 		let fixture = try #require(model.services.fixture)
-		let selection = try fixture.secrets.accessSelection()
-		let account = try #require(try fixture.secrets.creditsAccount())
+		let saved = try keychainItems(fixture)
 		let requests = Mutex<[ScriptedRequest]>([])
 		let respond = fixture.transport.respond
 		fixture.transport.respond = { request in
@@ -78,71 +73,52 @@ struct BillingRouteTests {
 		await model.send()
 		let remembered = try await harness.settledTurn(model, at: 0)
 		#expect(replyText(remembered.state) == FirstWeekFixture.rememberReply)
-		model.draft.text = method == .credits ? "fixture:fail 402" : "fixture:fail 401"
+		model.draft.text = "fixture:fail 402"
 		await model.send()
 		let failed = try await harness.settledTurn(model, at: 1)
 		guard case .failed(let failure) = failed.state else {
-			Issue.record("Expected the selected method to fail")
+			Issue.record("Expected the Credits request to fail")
 			return
 		}
+		#expect(failure.notice?.key == Catalog.creditsErrorExhausted)
+		#expect(failure.notice?.actions == [.buyCredits])
+		let chat = try #require(model.chat)
+		await model.perform(.buyCredits)
+		#expect(model.navigation == [.credits])
+		await model.loadCredits()
+		#expect(model.balance?.units == 0)
 		#expect(
-			failure.notice?.actions
-				== (method == .credits ? [.buyCredits, .switchToOpenRouter] : nil))
-		if method == .openRouter {
-			try await model.waitForStatus { $0.access.attention == .rejectedKey }
-			#expect(model.status.access.notice?.actions == [.signInToOpenRouter])
-		}
-		#expect(
-			failure.notice?.key
-				== (method == .credits
-					? Catalog.creditsErrorExhausted : nil))
-		let saved = try #require(model.chat)
-		if method == .credits {
-			let modelRequests = requests.withLock { $0.count }
-			await model.perform(.switchToOpenRouter)
-			#expect(model.navigation == [.accessMethod])
-			#expect(model.selectedAccessMethod == .credits)
-			model.navigation.removeLast()
-			#expect(model.route == .chat)
-			#expect(model.navigation.isEmpty)
-			#expect(model.chat?.turns == saved.turns)
-			#expect(requests.withLock { $0.count } == modelRequests)
-			await model.perform(.buyCredits)
-			#expect(model.navigation == [.credits])
-			await model.loadCredits()
-			#expect(model.balance?.units == 0)
-			#expect(
-				model.creditsNotice?.sentence(in: model.displayLocale)
-					== "You're out of Credits. You can buy Credits or switch to your OpenRouter account."
-			)
-			#expect(model.creditOffers?.count == 3)
-			model.open(.accessMethod)
-		} else {
-			await model.perform(.signInToOpenRouter)
-			await model.loadCredits()
-			#expect(model.balance?.units == 200)
-		}
-		try assertUnchanged(model, selection: selection, account: account)
-		#expect(model.chat?.turns == saved.turns)
+			model.creditsNotice?.sentence(in: model.displayLocale)
+				== "You're out of Credits. You can buy Credits.")
+		#expect(model.creditOffers?.count == 3)
+		try assertUnchanged(model, saved)
+		#expect(model.chat?.turns == chat.turns)
 		let sent = requests.withLock { $0 }
 		try #require(sent.count >= 3)
 		#expect(
 			sent.allSatisfy {
-				$0.accessMethod == (method == .credits ? .credits : .openRouterAccount)
-					&& $0.model
-						== (method == .credits
-							? AppServices.builtInModel : FirstWeekFixture.openRouterModel)
+				$0.accessMethod == .credits && $0.model == AppServices.builtInModel
+					&& $0.credential == FirstWeekFixture.creditsKey
 			})
 	}
 
-	private func assertUnchanged(
-		_ model: ShellModel, selection: SavedAccessReference?, account: CreditsAccount?
-	) throws {
+	private struct KeychainItems: Equatable {
+		let account: CreditsAccount?
+		let build9: [Data?]
+	}
+
+	private func keychainItems(_ fixture: FixtureServices) throws -> KeychainItems {
+		let backing = try #require(fixture.secretBacking)
+		return KeychainItems(
+			account: try fixture.secrets.creditsAccount(),
+			build9: try ["openRouterAccountKey", CredentialSlot.accessSelection.rawValue].map {
+				try backing.copy(account: $0)
+			})
+	}
+
+	private func assertUnchanged(_ model: ShellModel, _ saved: KeychainItems) throws {
 		let fixture = try #require(model.services.fixture)
-		#expect(try fixture.secrets.accessSelection() == selection)
-		#expect(try fixture.secrets.creditsAccount() == account)
-		#expect(
-			try fixture.secrets.openRouterAccountKey(at: .legacy) == FirstWeekFixture.openRouterKey)
+		#expect(try keychainItems(fixture) == saved)
 		#expect(
 			fixture.credits.calls.allSatisfy { $0 == .grant || $0 == .catalog || $0 == .balance })
 	}

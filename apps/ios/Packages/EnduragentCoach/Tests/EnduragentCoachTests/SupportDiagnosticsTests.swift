@@ -7,7 +7,8 @@ import Testing
 
 @Suite struct SupportDiagnosticsTests {
 	static let facts = StatusFacts(
-		access: .credits(.ready), training: .connected, language: LanguageCode(.automatic))
+		access: AccessKind(availability: .ready), training: .connected,
+		language: LanguageCode(.automatic))
 	static let records = RecordCensus.counted(
 		synced: [.userMessage: 3, .dailyNote: 1], local: [.turnClaim: 1],
 		legacy: [.assistantMessage: 2], skipped: 1)
@@ -175,7 +176,7 @@ import Testing
 		let intervalsKey = "intervals-test-key-7f3a"
 		let sentence = "My threshold is 287 watts and the Sweet Spot Seventeen session hurt"
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
-		try secrets.installOpenRouterChoice(model: testModel, key: openRouterKey)
+		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: openRouterKey))
 		try secrets.storeIntervalsConnection(
 			IntervalsConnection(
 				id: ConnectionID(), credential: .apiKey(intervalsKey), selection: .keyOwner,

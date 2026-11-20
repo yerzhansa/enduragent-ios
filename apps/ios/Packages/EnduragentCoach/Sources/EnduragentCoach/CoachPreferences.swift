@@ -24,7 +24,6 @@ actor CoachPreferences {
 
 	func modelAccess() async throws(AccessUnavailable) -> ResolvedAccess {
 		try await consentChanges.pass { () throws(AccessUnavailable) in
-			await vault.refreshRejections()
 			let target = try await vault.consentTarget(builtInModel: builtInModel)
 			guard await readConsent()?.authorizes(target) == true else {
 				throw .providerConsentRequired
@@ -33,25 +32,13 @@ actor CoachPreferences {
 		}
 	}
 
-	func authorizeInvocation(_ invocation: ModelInvocation) async throws(AccessUnavailable) {
-		switch invocation {
-		case .authorize(let request):
-			try await consentChanges.pass { () throws(AccessUnavailable) in
-				let target = try await vault.requestTarget(request)
-				guard await readConsent()?.authorizes(target) == true else {
-					throw .providerConsentRequired
-				}
-				try await vault.authorizeInvocation(request)
-			}
-		case .rejected(let request):
-			if let reference = request.credential.openRouterReference {
-				try await vault.noteRejected(reference)
+	func authorizeInvocation(_ request: CompletionRequest) async throws(AccessUnavailable) {
+		try await consentChanges.pass { () throws(AccessUnavailable) in
+			let target = try await vault.requestTarget(request)
+			guard await readConsent()?.authorizes(target) == true else {
+				throw .providerConsentRequired
 			}
 		}
-	}
-
-	func consent() async -> ProviderConsent? {
-		await consentChanges.pass { await readConsent() }
 	}
 
 	func accessStatus() async -> AccessStatus {
@@ -64,20 +51,12 @@ actor CoachPreferences {
 		do {
 			let page = try await ledger.read(
 				RecordQuery(scope: .deviceLocal([.providerConsent]), writtenBy: ledger.deviceId))
-			let records = page.records.compactMap { record -> ProviderConsent? in
+			return page.records.compactMap { record -> ProviderConsent? in
 				guard case .deviceLocal(.providerConsent(let consent)) = record.body else {
 					return nil
 				}
 				return consent
-			}
-			do throws(AccessUnavailable) {
-				return try await vault.recordedConsent(records)
-			} catch .secureStorageLocked {
-				return nil
-			} catch {
-				diagnostics.record(.consentUnavailable(error))
-				return nil
-			}
+			}.last
 		} catch {
 			diagnostics.record(.preferencesUnavailable(error))
 			return nil
@@ -86,18 +65,13 @@ actor CoachPreferences {
 
 	func recordConsent(_ challenge: ConsentChallenge) async throws(ConsentWriteFailure) {
 		try await consentChanges.pass { () throws(ConsentWriteFailure) in
-			let selection = try await vault.prepareConsentSelection(
-				challenge, builtInModel: builtInModel)
-			try await writeConsent(
-				challenge.target, selectionCommit: selection?.challenge.generation)
-			if let selection { try await vault.commitConsentSelection(selection) }
+			try await vault.validateConsent(challenge, builtInModel: builtInModel)
+			try await writeConsent(challenge.target)
 			await vault.finishConsent(challenge)
 		}
 	}
 
-	private func writeConsent(_ target: ConsentTarget, selectionCommit: UUID?)
-		async throws(ConsentWriteFailure)
-	{
+	private func writeConsent(_ target: ConsentTarget) async throws(ConsentWriteFailure) {
 		guard await readConsent()?.authorizes(target) != true else { return }
 		let stamp = OperationStamp(
 			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
@@ -106,8 +80,7 @@ actor CoachPreferences {
 			_ = try await ledger.commit(
 				local: [
 					.providerConsent(
-						ProviderConsent(
-							target: target, at: clock.now, selectionCommit: selectionCommit))
+						ProviderConsent(target: target, at: clock.now))
 				],
 				stamp: stamp)
 		} catch {

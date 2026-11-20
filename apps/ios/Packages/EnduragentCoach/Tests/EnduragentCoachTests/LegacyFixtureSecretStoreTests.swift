@@ -39,10 +39,11 @@ import Testing
 		let store = try ICloudKeychainStore.fixture(directory: directory).store
 		#expect(try store.intervalsConnection()?.credential == expected)
 		#expect(try store.intervalsConnection()?.selection == .keyOwner)
-		try store.storeOpenRouterAccountKey("test-own-key", at: .legacy)
+		let account = CreditsAccount(appAccountToken: UUID(), key: "test-own-key")
+		try store.storeCreditsAccount(account)
 		let reopened = try ICloudKeychainStore.fixture(directory: directory).store
 		#expect(try reopened.intervalsConnection()?.credential == expected)
-		#expect(try reopened.openRouterAccountKey(at: .legacy) == "test-own-key")
+		#expect(try reopened.creditsAccount() == account)
 	}
 
 	@Test(arguments: [false, true])
@@ -70,15 +71,20 @@ import Testing
 			key: hasCurrent ? "test-current-key" : "test-interrupted-key")
 		#expect(try store.creditsAccount() == expected)
 		#expect(try store.intervalsConnection()?.credential == .apiKey("test-current-training-key"))
-		#expect(try store.accessSelection() == .init(.credits))
-		#expect(try store.openRouterAccountKey(at: .legacy) == "test-own-key")
+		let untouched = try ["openRouterAccountKey", CredentialSlot.accessSelection.rawValue].map {
+			try backing.copy(account: $0)
+		}
+		#expect(untouched == [Data("test-own-key".utf8), Data(#"{"credits":{}}"#.utf8)])
 		try store.storeCreditsAccount(expected)
-		let reopened = try ICloudKeychainStore.fixture(directory: directory).store
-		#expect(try reopened.creditsAccount() == expected)
+		let reopened = try ICloudKeychainStore.fixture(directory: directory)
+		#expect(try reopened.store.creditsAccount() == expected)
 		#expect(
-			try reopened.intervalsConnection()?.credential == .apiKey("test-current-training-key"))
-		#expect(try reopened.accessSelection() == .init(.credits))
-		#expect(try reopened.openRouterAccountKey(at: .legacy) == "test-own-key")
+			try reopened.store.intervalsConnection()?.credential
+				== .apiKey("test-current-training-key"))
+		#expect(
+			try ["openRouterAccountKey", CredentialSlot.accessSelection.rawValue].map {
+				try reopened.backing.copy(account: $0)
+			} == untouched)
 	}
 
 	@Test func corruptSelectionDoesNotBlockCredits() async throws {
@@ -89,7 +95,6 @@ import Testing
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 		#expect(try await coach.creditsIdentity().hasCreditsKey)
-		#expect(throws: KeychainStoreError.keychain(errSecDecode)) { try store.accessSelection() }
 	}
 
 	@Test func v1TokenOpensWithoutOtherFields() async throws {

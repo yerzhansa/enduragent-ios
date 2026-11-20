@@ -117,8 +117,6 @@ extension CredentialVaultTests {
 				== .accessTemporarilyUnavailable(.secureStorageLocked))
 		backing.locked = false
 		await coach.lifecycle(.becameActive)
-		#expect(try await coach.refreshedStatus().needsProviderConsent)
-		try await coach.recordConsent()
 		#expect(try await coach.refreshedStatus().setup == .ready)
 	}
 

@@ -139,10 +139,12 @@ import Testing
 		"chat.notice.startingNewConversation": "Starting a new conversation…",
 		"chat.turn.finishedWhileLocked": "Finished while the phone was locked.",
 		"chat.transcript.retry": "Try again",
-		"access.error.requestBlocked":
-			"OpenRouter blocked this request. Try a different model or message.",
-		"access.error.malformed":
-			"Your saved access method couldn't be read. Choose an access method to continue.",
+		"access.error.requestBlocked": "This message was blocked. Try a different message.",
+		"access.error.notConfigured": "This iPhone has no Credits. You can buy Credits.",
+		"credits.error.exhausted": "You're out of Credits. You can buy Credits.",
+		"credits.error.accessRejected":
+			"Your Credits couldn't be used. You can tell us in Feedback, in Settings.",
+		"yourData.keeps": "Your intervals.icu account and workouts stay on intervals.icu.",
 		"access.error.storageUnavailable":
 			"Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again.",
 		"archive.savedForAnotherAthlete": "Saved for another intervals.icu athlete ({{id}})",

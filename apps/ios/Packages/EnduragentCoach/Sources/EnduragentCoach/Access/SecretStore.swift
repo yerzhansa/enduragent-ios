@@ -5,15 +5,8 @@ public protocol SecretStore: Sendable {
 	func creditsAccount() throws -> CreditsAccount?
 	func prepareCreditsAccount() throws -> CreditsAccount
 	func storeCreditsAccount(_ account: CreditsAccount) throws
-	func openRouterAccountKey(at reference: OpenRouterCredentialRef) throws -> String?
-	func storeOpenRouterAccountKey(_ key: String, at reference: OpenRouterCredentialRef) throws
-	func deleteOpenRouterAccountKey(at reference: OpenRouterCredentialRef) throws
 	func intervalsConnection() throws -> IntervalsConnection?
 	func storeIntervalsConnection(_ connection: IntervalsConnection) throws
-	func accessSelection() throws -> SavedAccessReference?
-	func storeAccessSelection(_ reference: SavedAccessReference) throws
-	func prepareAccessSelection(_ reference: SavedAccessReference, at commit: UUID) throws
-	func commitAccessSelection(at commit: UUID) throws
 	func delete(_ slot: CredentialSlot) throws
 	func deleteEverything() throws
 }
@@ -123,61 +116,12 @@ public struct ICloudKeychainStore: SecretStore {
 		return token
 	}
 
-	public func openRouterAccountKey(at reference: OpenRouterCredentialRef) throws -> String? {
-		try readString(account: reference.account)
-	}
-
-	public func storeOpenRouterAccountKey(_ key: String, at reference: OpenRouterCredentialRef)
-		throws
-	{
-		try write(account: reference.account, Data(key.utf8))
-	}
-
 	public func intervalsConnection() throws -> IntervalsConnection? {
 		try readItem(StoredIntervalsConnection.self, .intervalsConnection)?.connection()
 	}
 
-	public func deleteOpenRouterAccountKey(at reference: OpenRouterCredentialRef) throws {
-		try backing.delete(account: reference.account)
-	}
-
 	public func storeIntervalsConnection(_ connection: IntervalsConnection) throws {
 		try writeItem(StoredIntervalsConnection(connection), .intervalsConnection)
-	}
-
-	public func accessSelection() throws -> SavedAccessReference? {
-		guard let stored = try readItem(StoredAccessSelection.self, .accessSelection) else {
-			return nil
-		}
-		guard case .consentSelection(let commit) = stored else { return try stored.selection() }
-		guard let data = try backing.copy(account: consentSelectionAccount(commit)) else {
-			throw KeychainStoreError.keychain(errSecDecode)
-		}
-		do {
-			let prepared = try JSONDecoder().decode(StoredAccessSelection.self, from: data)
-				.selection()
-			return SavedAccessReference(prepared.value, consentCommit: commit)
-		} catch is DecodingError {
-			throw KeychainStoreError.keychain(errSecDecode)
-		}
-	}
-
-	public func storeAccessSelection(_ reference: SavedAccessReference) throws {
-		try writeItem(StoredAccessSelection(reference), .accessSelection)
-	}
-
-	public func prepareAccessSelection(_ reference: SavedAccessReference, at commit: UUID) throws {
-		try write(
-			account: consentSelectionAccount(commit),
-			JSONEncoder().encode(StoredAccessSelection(reference)))
-	}
-
-	public func commitAccessSelection(at commit: UUID) throws {
-		try writeItem(StoredAccessSelection.consentSelection(commit), .accessSelection)
-	}
-
-	private func consentSelectionAccount(_ commit: UUID) -> String {
-		"\(CredentialSlot.accessSelection.rawValue)/\(commit.uuidString)"
 	}
 
 	public func delete(_ slot: CredentialSlot) throws {

@@ -125,7 +125,6 @@ extension CredentialSlot {
 	fileprivate var code: ProblemCode {
 		switch self {
 		case .creditsAccount: ProblemCode("creditsAccount")
-		case .openRouterAccountKey: ProblemCode("openRouterAccountKey")
 		case .intervalsConnection: ProblemCode("intervalsConnection")
 		case .accessSelection: ProblemCode("accessSelection")
 		}

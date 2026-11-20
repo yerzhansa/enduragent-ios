@@ -8,7 +8,7 @@ import SwiftUI
 
 		var body: some View {
 			List {
-				Text(model.status.access.model?.rawValue ?? "unavailable")
+				Text(model.status.access.model.rawValue)
 					.accessibilityIdentifier("debug.accessModel")
 				NavigationLink("Credits", value: ShellDestination.debugCredits)
 					.accessibilityIdentifier("debug.credits")

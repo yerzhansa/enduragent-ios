@@ -84,9 +84,6 @@ final class CreditsProof: XCTestCase {
 			XCTAssertEqual(buy.label, "Buy")
 			XCTAssertTrue(buy.isEnabled)
 		}
-		XCTAssertEqual(
-			TutorialHarness.named(app, "credits.switchToOpenRouter").label,
-			TutorialHarness.switchToOpenRouter)
 		TutorialHarness.attach(self, name: "06-credits", app: app)
 	}
 }

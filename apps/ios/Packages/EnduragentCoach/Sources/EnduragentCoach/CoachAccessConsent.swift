@@ -10,9 +10,4 @@ extension Coach {
 		}
 		await publishStatus()
 	}
-
-	public func declineConsent(_ challenge: ConsentChallenge) async {
-		await vault.declineConsent(challenge)
-		await publishStatus()
-	}
 }

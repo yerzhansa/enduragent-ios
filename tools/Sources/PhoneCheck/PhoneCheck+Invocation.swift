@@ -25,7 +25,7 @@ extension PhoneCheck {
 		let ledger = try readLedger(at: ledgerPath, of: plan)
 		let planned = plan.planned(steps)
 		try Console.say(
-			"\(steps.joined(separator: ", ")) of the \(plan.name) phone session plan \(planned) message actions. Each Send, Try again and New conversation is one, and they spend the phone's Credits or its OpenRouter account. The \(plan.name) session has spent \(ledger.spent) of \(plan.cap)."
+			"\(steps.joined(separator: ", ")) of the \(plan.name) phone session plan \(planned) message actions. Each Send, Try again and New conversation is one, and they spend the phone's Credits. The \(plan.name) session has spent \(ledger.spent) of \(plan.cap)."
 		)
 		try say(steps, of: plan)
 		let answer = try ask(

@@ -196,7 +196,7 @@
 			else {
 				throw PhoneRunBlocked(
 					reason:
-						"Ask for this invocation's message budget before launch. Four Sends spend Credits or use OpenRouter."
+						"Ask for this invocation's message budget before launch. Four Sends spend Credits."
 				)
 			}
 			remaining = budget

@@ -122,7 +122,6 @@
       "activeUnavailable": "As definições do treinador ativo estão indisponíveis ou não foram configuradas.",
       "automatic": "Automático",
       "changeRequired": "Alteração necessária",
-      "chooseModel": "Escolhe um modelo",
       "chooseProvider": "Escolhe um fornecedor",
       "chooseProviderFirst": "Escolhe primeiro um fornecedor",
       "currentRoute": "Atualmente ativo: {{provider}} · {{model}}",
@@ -137,7 +136,6 @@
       },
       "inactive": "Inativo",
       "loading": "A carregar definições do treinador…",
-      "model": "Modelo",
       "notConfigured": "Não configurado",
       "otherModel": "Outro modelo…",
       "provider": "Fornecedor",
@@ -656,7 +654,6 @@
         "mostCapable": "o mais capaz",
         "recommended": "recomendado"
       },
-      "modelVia": "{{model}} (via {{provider}})",
       "otherModel": "Outro modelo…",
       "pending": {
         "activation": "Faz funcionar o teu treinador · sessão iniciada · ativação necessária",
@@ -1488,12 +1485,10 @@
     "menu": "Menu",
     "turn": {
       "buyCredits": "Comprar créditos",
-      "chooseAccessMethod": "Escolher método de acesso",
       "finishedWhileLocked": "Concluído enquanto o telemóvel estava bloqueado.",
       "interruptedNothingChanged": "Esta resposta foi interrompida antes de terminar. Nada foi alterado.",
       "interruptedSomeSaved": "Esta resposta foi interrompida antes de terminar. Algumas informações já tinham sido guardadas.",
-      "receivedBeforeClose": "Recebida antes de a aplicação fechar. Toca em Tentar novamente para a enviar.",
-      "signInAgain": "Iniciar sessão novamente"
+      "receivedBeforeClose": "Recebida antes de a aplicação fechar. Toca em Tentar novamente para a enviar."
     },
     "welcome": "Boas-vindas ao {{product}}!\n\nSou o teu treinador de ciclismo com IA. Posso criar planos de treino, sugerir treinos e acompanhar a tua condição física com os dados de {{service}}.\n\nComandos:\n{{commands}}\n\nOu fala comigo sobre o teu treino!",
     "welcomeCommand": "{{command}} : {{description}}",
@@ -2694,7 +2689,6 @@
       "rateLimitMinutes_other": "Limite de pedidos atingido. Tenta novamente dentro de cerca de {{minutes}} minutos.",
       "rateLimitSeconds_one": "Limite de pedidos atingido. Tenta novamente dentro de cerca de {{seconds}} segundo.",
       "rateLimitSeconds_other": "Limite de pedidos atingido. Tenta novamente dentro de cerca de {{seconds}} segundos.",
-      "reauth": "A tua sessão de {{provider}} já não é válida. Inicia sessão novamente para continuar.",
       "reauthSetup": "A tua sessão de {{provider}} já não é válida. Abre a Configuração e inicia sessão novamente.",
       "unknown": "Desculpa, algo correu mal. Tenta novamente."
     },
@@ -3019,8 +3013,8 @@
     "balance_one": "{{formattedCount}} crédito",
     "balance_other": "{{formattedCount}} créditos",
     "error": {
-      "accessRejected": "Não foi possível usar os teus créditos. Podes mudar para a tua conta OpenRouter.",
-      "exhausted": "Os teus créditos acabaram. Podes comprar créditos ou mudar para a tua conta OpenRouter.",
+      "accessRejected": "Não foi possível usar os teus créditos. Podes dizer-nos em Comentários, nas Definições.",
+      "exhausted": "Os teus créditos acabaram. Podes comprar créditos.",
       "unavailable": "Os créditos estão indisponíveis de momento. Tenta novamente mais tarde.",
       "accountChanged": "A tua conta de créditos mudou enquanto este pedido estava a ser concluído. A tua conta atual foi mantida."
     },
@@ -3033,9 +3027,7 @@
       "failed": "A compra não foi concluída.",
       "notAdded": "A tua compra foi concluída, mas os créditos ainda não foram adicionados. A aplicação tentará novamente da próxima vez que for aberta.",
       "refused": "A tua compra foi concluída, mas os créditos não podem ser adicionados. Podes pedir um reembolso à Apple.",
-      "askForRefund": "Pedir reembolso à Apple",
-      "addedSwitched_one": "{{formattedCount}} crédito adicionado. O treinador passa a usar Créditos.",
-      "addedSwitched_other": "{{formattedCount}} créditos adicionados. O treinador passa a usar Créditos."
+      "askForRefund": "Pedir reembolso à Apple"
     }
   },
   "onboarding": {
@@ -3073,19 +3065,11 @@
   "access": {
     "error": {
       "locked": "Desbloqueia o teu iPhone para continuar. A tua mensagem está guardada.",
-      "notConfigured": "Escolhe como o treinador acede a um modelo para continuar.",
-      "requestBlocked": "O OpenRouter bloqueou este pedido. Experimenta outro modelo ou mensagem.",
+      "notConfigured": "Este iPhone não tem créditos. Podes comprar créditos.",
+      "requestBlocked": "Esta mensagem foi bloqueada. Experimenta outra mensagem.",
       "providerConsentRequired": "Precisamos da tua permissão antes de partilhar dados da conversa com fornecedores de IA.",
-      "openRouterFunds": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos.",
-      "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. A sua conversa, o histórico e a memória continuam aqui. Tente novamente.",
-      "malformed": "Não foi possível ler o seu método de acesso guardado. Escolha um método de acesso para continuar."
-    },
-    "title": "Método de acesso",
-    "openRouterAccount": "Conta OpenRouter",
-    "signIn": "Iniciar sessão com OpenRouter",
-    "signInCancelled": "Início de sessão cancelado. O seu método de acesso não foi alterado.",
-    "signInIncomplete": "O início de sessão no OpenRouter não foi concluído. O seu método de acesso não foi alterado. Tente novamente.",
-    "switchToOpenRouter": "Mudar para OpenRouter"
+      "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. A sua conversa, o histórico e a memória continuam aqui. Tente novamente."
+    }
   },
   "connect": {
     "error": {
@@ -3215,7 +3199,7 @@
       "title": "Apagar tudo?",
       "body": "Não é possível anular. Isto apaga a tua conversa, memória, plano guardado, definições e chaves deste iPhone e do teu iCloud, bem como o teu registo de Créditos. Os Créditos não usados perdem-se, incluindo os comprados, e os Créditos iniciais só são atribuídos uma vez por iPhone. Só a Apple pode reembolsar uma compra."
     },
-    "keeps": "A tua conta do intervals.icu e os teus treinos ficam no intervals.icu. Se iniciaste sessão com a tua própria conta do OpenRouter, apaga a chave dela no OpenRouter.",
+    "keeps": "A tua conta do intervals.icu e os teus treinos ficam no intervals.icu.",
     "progress": "A apagar…",
     "done": "Tudo foi apagado deste iPhone, do teu iCloud e do serviço de Créditos.",
     "notStarted": "Nada foi apagado. Liga-te à internet e tenta novamente.",

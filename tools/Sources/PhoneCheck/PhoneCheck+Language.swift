@@ -13,7 +13,7 @@ extension PhoneCheck {
 		let device = arguments[0]
 		let folder = resolve(arguments[1])
 		try Console.say(
-			"LanguageReplyCheck sends four live messages. They spend real Credits or use the connected OpenRouter account. It changes the saved language preference and leaves Automatic selected. No Try again, New conversation or calendar Add."
+			"LanguageReplyCheck sends four live messages. They spend real Credits. It changes the saved language preference and leaves Automatic selected. No Try again, New conversation or calendar Add."
 		)
 		let budget = try ask(
 			"Approve this invocation's Send budget, at least 4, acknowledging those charges. Enter a whole number or stop: "

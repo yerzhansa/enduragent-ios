@@ -109,9 +109,6 @@ struct TurnRowView: View {
 		case .tryAgain, .wait: "chat.turn.tryAgain"
 		case .buyCredits: "chat.turn.buyCredits"
 		case .askAppleForRefund: "chat.turn.askAppleForRefund"
-		case .chooseAccessMethod: "chat.turn.chooseAccessMethod"
-		case .switchToOpenRouter: "chat.turn.switchToOpenRouter"
-		case .signInToOpenRouter: "chat.turn.signInAgain"
 		case .connectTraining: "chat.turn.connectTraining"
 		}
 	}

@@ -12,11 +12,6 @@ extension ShellModel {
 		case .connectTraining:
 			open(.training)
 			trainingSettings.edit()
-		case .signInToOpenRouter:
-			guard status.access.attention == .rejectedKey else { return }
-			await chooseAccess(.signInToOpenRouter)
-		case .chooseAccessMethod, .switchToOpenRouter:
-			open(.accessMethod)
 		}
 	}
 

@@ -118,7 +118,7 @@ public struct CoachStatus: Sendable, Equatable {
 		if case .required = access.consent { return .needsProviderConsent }
 		switch access.availability {
 		case .ready: return .ready
-		case .needsSetup: return .needsAccessMethod
+		case .needsSetup: return .needsCredits
 		case .unavailable(let failure): return .accessTemporarilyUnavailable(failure)
 		}
 	}
@@ -153,7 +153,7 @@ public struct CoachStatus: Sendable, Equatable {
 
 public enum SetupState: Sendable, Equatable {
 	case needsProviderConsent
-	case needsAccessMethod
+	case needsCredits
 	case ready
 	case accessTemporarilyUnavailable(AccessUnavailable)
 }

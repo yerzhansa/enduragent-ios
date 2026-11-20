@@ -60,7 +60,7 @@ package enum PurchaseStep: String, Sendable, Equatable, CaseIterable {
 }
 
 enum CreditsSettlement: Equatable {
-	case added(Credits, switchedToCredits: Bool)
+	case added(Credits)
 	case alreadyAdded
 	case refunded
 	case notAddedYet
@@ -70,11 +70,10 @@ enum CreditsSettlement: Equatable {
 
 	var notice: AthleteNotice? {
 		switch self {
-		case .added(let added, let switched):
+		case .added(let added):
 			AthleteNotice(
-				key: switched
-					? Catalog.creditsPurchaseAddedSwitched : Catalog.onboardingStarterAdded,
-				count: added.units, vars: ["formattedCount": .integer(added.units)], actions: [])
+				key: Catalog.onboardingStarterAdded, count: added.units,
+				vars: ["formattedCount": .integer(added.units)], actions: [])
 		case .alreadyAdded, .refunded:
 			nil
 		case .notAddedYet:
@@ -186,7 +185,7 @@ extension Coach {
 			switch outcome {
 			case .minted(let added), .toppedUp(let added):
 				guard added.units > 0 else { return .refunded }
-				return .added(added, switchedToCredits: await switchToCredits())
+				return .added(added)
 			case .alreadyClaimed:
 				return .alreadyAdded
 			}
@@ -197,13 +196,5 @@ extension Coach {
 			diagnostics.record(.purchaseNotFinished(.claimLater, FailureCode(error)))
 			return .notAddedYet
 		}
-	}
-
-	private func switchToCredits() async -> Bool {
-		guard await preferences.accessStatus().savedMethod == .openRouterAccount else {
-			return false
-		}
-		guard case .replaced = await changeModelAccess(.useCredits) else { return false }
-		return true
 	}
 }

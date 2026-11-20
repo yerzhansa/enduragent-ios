@@ -287,7 +287,7 @@ enum AccessRefusal: CaseIterable {
 
 	func actions(for turn: TurnID) -> [RecoveryAction] {
 		switch self {
-		case .missingKey: [.chooseAccessMethod]
+		case .missingKey: [.buyCredits]
 		case .lockedKeychain: [.tryAgain(turn)]
 		}
 	}
