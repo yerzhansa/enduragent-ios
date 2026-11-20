@@ -39,7 +39,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 | The phone has no internet connection, for the model request (`fixture:fail network x3`) or the intervals.icu training read (`-EnduragentFixtureTrainingDisplay profile-offline`) | `No connection. Your message is kept. Try again when you're online.` with Try again. The notice names neither intervals.icu nor the model provider. A training read that failed offline is read again on the next Send or Try again. |
 | Server, lost connection, timeout, or watchdog failure | `The model provider is having trouble — try again in a few minutes.` with Try again. |
 | Rejected Credits access | `Your Credits couldn't be used. You can switch to your OpenRouter account.` with `chat.turn.switchToOpenRouter`, which opens Access method. |
-| Exhausted Credits | `You're out of Credits. You can switch to your OpenRouter account.` with `chat.turn.switchToOpenRouter`, which opens Access method. |
+| Exhausted Credits | `You're out of Credits. You can buy Credits or switch to your OpenRouter account.` with `chat.turn.buyCredits`, which opens Credits, then `chat.turn.switchToOpenRouter`, which opens Access method. |
 | OpenRouter account out of funds | `Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.` with `chat.turn.chooseAccessMethod`, which opens the Access method screen. No UI proof or hosted app test reaches this notice. |
 | Rate limited | A duration such as `~7 seconds`, `~2 minutes`, or `about a minute` in the rate-limit sentence. `chat.turn.tryAgain` stays disabled until the wait ends. |
 | Bad request, overflow, or exhausted turn budget | `Sorry, something went wrong. Please try again.` with Try again. |

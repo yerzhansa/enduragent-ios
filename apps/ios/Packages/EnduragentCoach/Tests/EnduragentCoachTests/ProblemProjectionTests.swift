@@ -56,6 +56,7 @@ import Testing
 		case .erasureNotStarted: return .erasureNotStarted(.url(-1009))
 		case .erasureNotFinished: return .erasureNotFinished(.files, .cocoa(513))
 		case .erasureUnconfirmed: return .erasureUnconfirmed(.url(-1009))
+		case .purchaseNotFinished: return .purchaseNotFinished(.claimLater, .url(-1009))
 		}
 	}
 

@@ -54,8 +54,8 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 			[.switchToOpenRouter], ["Switch to OpenRouter"]),
 		failed(
 			.model(.accessExhausted(.credits)),
-			"You're out of Credits. You can switch to your OpenRouter account.",
-			[.switchToOpenRouter], ["Switch to OpenRouter"]),
+			"You're out of Credits. You can buy Credits or switch to your OpenRouter account.",
+			[.buyCredits, .switchToOpenRouter], ["Buy Credits", "Switch to OpenRouter"]),
 		failed(
 			.model(.accessExhausted(.openRouterAccount)),
 			"Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
@@ -260,8 +260,8 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		),
 		(
 			.model(.accessExhausted(.credits)),
-			"You're out of Credits. You can switch to your OpenRouter account.",
-			[.switchToOpenRouter]
+			"You're out of Credits. You can buy Credits or switch to your OpenRouter account.",
+			[.buyCredits, .switchToOpenRouter]
 		),
 	])
 	func failureAfterSavedWorkKeepsItsSentenceAndOffersNoReplay(

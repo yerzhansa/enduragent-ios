@@ -1487,6 +1487,7 @@
     },
     "menu": "Menu",
     "turn": {
+      "buyCredits": "Acquista crediti",
       "chooseAccessMethod": "Scegli il metodo di accesso",
       "finishedWhileLocked": "Terminato mentre il telefono era bloccato.",
       "interruptedNothingChanged": "Questa risposta si è interrotta prima di finire. Non è stato modificato nulla.",
@@ -3019,9 +3020,22 @@
     "balance_other": "{{formattedCount}} crediti",
     "error": {
       "accessRejected": "Non è stato possibile usare i tuoi crediti. Puoi passare al tuo conto OpenRouter.",
-      "exhausted": "Hai esaurito i crediti. Puoi passare al tuo conto OpenRouter.",
+      "exhausted": "Hai esaurito i crediti. Puoi acquistare crediti o passare al tuo conto OpenRouter.",
       "unavailable": "I crediti non sono disponibili al momento. Riprova più tardi.",
       "accountChanged": "Il tuo conto crediti è cambiato mentre questa richiesta veniva completata. Il tuo conto attuale è stato mantenuto."
+    },
+    "buy": "Acquista",
+    "packPrice_one": "{{formattedCount}} credito · {{price}}",
+    "packPrice_other": "{{formattedCount}} crediti · {{price}}",
+    "purchase": {
+      "pending": "Apple sta ancora elaborando questo acquisto. I crediti verranno aggiunti al termine.",
+      "unavailable": "Non è possibile acquistare crediti al momento. Riprova più tardi.",
+      "failed": "L’acquisto non è stato completato.",
+      "notAdded": "Il tuo acquisto è andato a buon fine, ma i crediti non sono ancora stati aggiunti. L’app riproverà la prossima volta che si apre.",
+      "refused": "Il tuo acquisto è andato a buon fine, ma i crediti non possono essere aggiunti. Puoi chiedere un rimborso ad Apple.",
+      "askForRefund": "Chiedi un rimborso ad Apple",
+      "addedSwitched_one": "{{formattedCount}} credito aggiunto. Il coach ora usa i Crediti.",
+      "addedSwitched_other": "{{formattedCount}} crediti aggiunti. Il coach ora usa i Crediti."
     }
   },
   "onboarding": {
@@ -3199,7 +3213,7 @@
     "deleteEverything": "Elimina tutto",
     "confirm": {
       "title": "Eliminare tutto?",
-      "body": "L’operazione non si può annullare. Elimina la conversazione, la memoria, il piano salvato, le impostazioni e le chiavi da questo iPhone e dal tuo iCloud, oltre al tuo record dei Crediti. I Crediti non usati vanno persi e i Crediti iniziali vengono dati una sola volta per iPhone."
+      "body": "L’operazione non si può annullare. Elimina la conversazione, la memoria, il piano salvato, le impostazioni e le chiavi da questo iPhone e dal tuo iCloud, oltre al tuo record dei Crediti. I Crediti non usati vanno persi, compresi quelli acquistati, e i Crediti iniziali vengono dati una sola volta per iPhone. Solo Apple può rimborsare un acquisto."
     },
     "keeps": "Il tuo account intervals.icu e i tuoi allenamenti restano su intervals.icu. Se hai effettuato l’accesso con il tuo account OpenRouter, elimina la sua chiave su OpenRouter.",
     "progress": "Eliminazione…",

@@ -88,6 +88,7 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case erasureNotStarted(FailureCode)
 	case erasureNotFinished(ErasureStep, FailureCode)
 	case erasureUnconfirmed(FailureCode)
+	case purchaseNotFinished(PurchaseStep, FailureCode)
 }
 
 extension JournalOpening {

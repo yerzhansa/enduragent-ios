@@ -1487,6 +1487,7 @@
     },
     "menu": "Menu",
     "turn": {
+      "buyCredits": "Comprar créditos",
       "chooseAccessMethod": "Escolher método de acesso",
       "finishedWhileLocked": "Concluído enquanto o telefone estava bloqueado.",
       "interruptedNothingChanged": "Esta resposta foi interrompida antes de terminar. Nada foi alterado.",
@@ -3019,9 +3020,22 @@
     "balance_other": "{{formattedCount}} créditos",
     "error": {
       "accessRejected": "Não foi possível usar seus créditos. Você pode mudar para sua conta OpenRouter.",
-      "exhausted": "Seus créditos acabaram. Você pode mudar para sua conta OpenRouter.",
+      "exhausted": "Seus créditos acabaram. Você pode comprar créditos ou mudar para sua conta OpenRouter.",
       "unavailable": "Os créditos estão indisponíveis no momento. Tente novamente mais tarde.",
       "accountChanged": "Sua conta de créditos mudou enquanto esta solicitação estava sendo concluída. Sua conta atual foi mantida."
+    },
+    "buy": "Comprar",
+    "packPrice_one": "{{formattedCount}} crédito · {{price}}",
+    "packPrice_other": "{{formattedCount}} créditos · {{price}}",
+    "purchase": {
+      "pending": "A Apple ainda está processando esta compra. Os créditos serão adicionados quando ela terminar.",
+      "unavailable": "Não é possível comprar créditos no momento. Tente novamente mais tarde.",
+      "failed": "A compra não foi concluída.",
+      "notAdded": "Sua compra foi concluída, mas os créditos ainda não foram adicionados. O app tentará novamente na próxima vez que for aberto.",
+      "refused": "Sua compra foi concluída, mas os créditos não podem ser adicionados. Você pode pedir um reembolso à Apple.",
+      "askForRefund": "Pedir reembolso à Apple",
+      "addedSwitched_one": "{{formattedCount}} crédito adicionado. O treinador agora usa Créditos.",
+      "addedSwitched_other": "{{formattedCount}} créditos adicionados. O treinador agora usa Créditos."
     }
   },
   "onboarding": {
@@ -3199,7 +3213,7 @@
     "deleteEverything": "Apagar tudo",
     "confirm": {
       "title": "Apagar tudo?",
-      "body": "Não é possível desfazer. Isso apaga sua conversa, memória, plano salvo, ajustes e chaves deste iPhone e do seu iCloud, além do seu registro de Créditos. Créditos não usados são perdidos, e os Créditos iniciais são concedidos só uma vez por iPhone."
+      "body": "Não é possível desfazer. Isso apaga sua conversa, memória, plano salvo, ajustes e chaves deste iPhone e do seu iCloud, além do seu registro de Créditos. Créditos não usados são perdidos, incluindo os comprados, e os Créditos iniciais são concedidos só uma vez por iPhone. Só a Apple pode reembolsar uma compra."
     },
     "keeps": "Sua conta do intervals.icu e seus treinos continuam no intervals.icu. Se você entrou com sua própria conta do OpenRouter, apague a chave dela no OpenRouter.",
     "progress": "Apagando…",

@@ -16,6 +16,7 @@
 		let recordStore: RecordStore
 		let intervals: FakeIntervalsClient
 		let credits: FakeCreditsClient
+		let store: FakeCreditsStore
 		let openRouterAuthorizer: FakeOpenRouterAuthorizer
 		let signInOutcome: FixtureSignInOutcome
 		let replyParser: ReplyParser
@@ -67,6 +68,8 @@
 			FirstWeekFixture.install(on: credits)
 			FirstWeekFixture.install(launch.creditsOutcome, on: credits)
 			credits.eraseResult = launch.erasure.result
+			let store = FakeCreditsStore(prices: FirstWeekFixture.prices)
+			FirstWeekFixture.install(launch.purchase, on: credits, store: store)
 			records.export = launch.erasure.export
 			let response = FirstWeekFixture.responses(intervals: intervals, credits: credits)
 			let transport = FakeModelTransport { request in
@@ -125,6 +128,7 @@
 				coach: coach,
 				device: DeviceDefaults(suiteName: launch.defaultsSuiteName),
 				deviceCheck: FakeDeviceCheckTokenProvider(),
+				store: store,
 				clock: clock,
 				leases: leases,
 				fixture: FixtureServices(
@@ -132,7 +136,8 @@
 					host: fixtureHost, secrets: secrets,
 					secretBacking: backing, nativeKeychain: native, trainingPeer: peer,
 					recordStore: fixture.store,
-					intervals: intervals, credits: credits, openRouterAuthorizer: authorizer,
+					intervals: intervals, credits: credits, store: store,
+					openRouterAuthorizer: authorizer,
 					signInOutcome: launch.signInOutcome,
 					replyParser: launch.replyParserFault == .fail ? .failing : .foundation,
 					reviewProofDriver: launch.recordReadFault == .failAfterPresentedOnce

@@ -1474,6 +1474,7 @@
     },
     "menu": "メニュー",
     "turn": {
+      "buyCredits": "クレジットを購入",
       "chooseAccessMethod": "接続方法を選択",
       "finishedWhileLocked": "端末がロックされている間に完了しました。",
       "interruptedNothingChanged": "回答が完了する前に中断されました。変更はありません。",
@@ -2982,9 +2983,20 @@
     "balance_other": "{{formattedCount}}クレジット",
     "error": {
       "accessRejected": "クレジットを使用できませんでした。OpenRouterアカウントに切り替えることができます。",
-      "exhausted": "クレジットがなくなりました。OpenRouterアカウントに切り替えることができます。",
+      "exhausted": "クレジットがなくなりました。クレジットを購入するか、OpenRouterアカウントに切り替えることができます。",
       "unavailable": "現在クレジットを利用できません。しばらくしてからもう一度お試しください。",
       "accountChanged": "このリクエストの完了処理中にクレジットアカウントが変更されました。現在のアカウントは保持されました。"
+    },
+    "buy": "購入",
+    "packPrice_other": "{{formattedCount}}クレジット · {{price}}",
+    "purchase": {
+      "pending": "Appleがこの購入をまだ処理しています。完了するとクレジットが追加されます。",
+      "unavailable": "現在クレジットを購入できません。しばらくしてからもう一度お試しください。",
+      "failed": "購入が完了しませんでした。",
+      "notAdded": "購入は完了しましたが、クレジットはまだ追加されていません。次にアプリを開いたときにもう一度試します。",
+      "refused": "購入は完了しましたが、クレジットを追加できません。Appleに返金をリクエストできます。",
+      "askForRefund": "Appleに返金をリクエスト",
+      "addedSwitched_other": "{{formattedCount}}クレジットを追加しました。コーチは現在クレジットを使用しています。"
     }
   },
   "onboarding": {
@@ -3155,7 +3167,7 @@
     "deleteEverything": "すべて削除",
     "confirm": {
       "title": "すべて削除しますか？",
-      "body": "この操作は取り消せません。このiPhoneとiCloudから会話、メモリ、保存したプラン、設定、キーを削除し、クレジットの記録も削除します。未使用のクレジットは失われ、初回クレジットはiPhoneごとに1回だけ付与されます。"
+      "body": "この操作は取り消せません。このiPhoneとiCloudから会話、メモリ、保存したプラン、設定、キーを削除し、クレジットの記録も削除します。未使用のクレジットは購入分も含めて失われ、初回クレジットはiPhoneごとに1回だけ付与されます。購入の返金はAppleのみが行えます。"
     },
     "keeps": "intervals.icuのアカウントとワークアウトはintervals.icuに残ります。自分のOpenRouterアカウントでサインインした場合は、OpenRouterでそのキーを削除してください。",
     "progress": "削除中…",

@@ -1487,6 +1487,7 @@
     },
     "menu": "Meny",
     "turn": {
+      "buyCredits": "Kjøp kreditter",
       "chooseAccessMethod": "Velg tilgangsmåte",
       "finishedWhileLocked": "Ble ferdig mens telefonen var låst.",
       "interruptedNothingChanged": "Dette svaret ble avbrutt før det var ferdig. Ingenting ble endret.",
@@ -3019,9 +3020,22 @@
     "balance_other": "{{formattedCount}} kreditter",
     "error": {
       "accessRejected": "Kredittene dine kunne ikke brukes. Du kan bytte til OpenRouter-kontoen din.",
-      "exhausted": "Du er tom for kreditter. Du kan bytte til OpenRouter-kontoen din.",
+      "exhausted": "Du er tom for kreditter. Du kan kjøpe kreditter eller bytte til OpenRouter-kontoen din.",
       "unavailable": "Kreditter er ikke tilgjengelige akkurat nå. Prøv igjen senere.",
       "accountChanged": "Kredittkontoen din ble endret mens denne forespørselen ble fullført. Den nåværende kontoen din ble beholdt."
+    },
+    "buy": "Kjøp",
+    "packPrice_one": "{{formattedCount}} kreditt · {{price}}",
+    "packPrice_other": "{{formattedCount}} kreditter · {{price}}",
+    "purchase": {
+      "pending": "Apple behandler fortsatt dette kjøpet. Kredittene legges til når det er ferdig.",
+      "unavailable": "Kreditter kan ikke kjøpes akkurat nå. Prøv igjen senere.",
+      "failed": "Kjøpet ble ikke fullført.",
+      "notAdded": "Kjøpet ditt er gjennomført, men kredittene er ikke lagt til ennå. Appen prøver igjen neste gang den åpnes.",
+      "refused": "Kjøpet ditt er gjennomført, men kredittene kan ikke legges til. Du kan be Apple om refusjon.",
+      "askForRefund": "Be Apple om refusjon",
+      "addedSwitched_one": "La til {{formattedCount}} kreditt. Treneren bruker nå kreditter.",
+      "addedSwitched_other": "La til {{formattedCount}} kreditter. Treneren bruker nå kreditter."
     }
   },
   "onboarding": {
@@ -3199,7 +3213,7 @@
     "deleteEverything": "Slett alt",
     "confirm": {
       "title": "Slette alt?",
-      "body": "Dette kan ikke angres. Det sletter samtalen, minnet, den lagrede planen, innstillingene og nøklene dine fra denne iPhonen og iCloud, i tillegg til kredittoppføringen din. Ubrukte kreditter går tapt, og startkreditter gis bare én gang per iPhone."
+      "body": "Dette kan ikke angres. Det sletter samtalen, minnet, den lagrede planen, innstillingene og nøklene dine fra denne iPhonen og iCloud, i tillegg til kredittoppføringen din. Ubrukte kreditter går tapt, også kjøpte, og startkreditter gis bare én gang per iPhone. Bare Apple kan refundere et kjøp."
     },
     "keeps": "intervals.icu-kontoen og øktene dine blir værende på intervals.icu. Hvis du logget på med din egen OpenRouter-konto, sletter du nøkkelen hos OpenRouter.",
     "progress": "Sletter…",

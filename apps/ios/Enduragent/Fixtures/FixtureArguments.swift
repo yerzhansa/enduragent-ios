@@ -73,6 +73,16 @@
 		case alreadyGranted = "already-granted"
 	}
 
+	enum FixturePurchaseOutcome: String, CaseIterable {
+		case added
+		case pending
+		case cancel
+		case fail
+		case notAddedYet = "not-added-yet"
+		case refused
+		case notForSale = "not-for-sale"
+	}
+
 	enum FixtureSignInOutcome: String, CaseIterable {
 		case success
 		case cancel
@@ -199,6 +209,7 @@
 		var feedback: FixtureFeedbackScript?
 		var journal: FixtureJournal?
 		var erasure: FixtureErasure?
+		var purchase: FixturePurchaseOutcome?
 
 		var launchArguments: [String] {
 			var values = [
@@ -250,6 +261,7 @@
 			if let feedback { values += ["-EnduragentFixtureFeedback", feedback.rawValue] }
 			if let journal { values += ["-EnduragentFixtureJournal", journal.rawValue] }
 			if let erasure { values += ["-EnduragentFixtureErasure", erasure.rawValue] }
+			if let purchase { values += ["-EnduragentFixturePurchase", purchase.rawValue] }
 			return values
 		}
 
@@ -297,6 +309,7 @@
 			feedback = try policy(values, "-EnduragentFixtureFeedback")
 			journal = try policy(values, "-EnduragentFixtureJournal")
 			erasure = try policy(values, "-EnduragentFixtureErasure")
+			purchase = try policy(values, "-EnduragentFixturePurchase")
 		}
 
 		private static let textSizeArgument = "-UIPreferredContentSizeCategoryName"

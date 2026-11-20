@@ -635,6 +635,7 @@
       }
     },
     "turn": {
+      "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",
       "finishedWhileLocked": "Finished while the phone was locked.",
       "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
@@ -940,13 +941,26 @@
   "credits": {
     "error": {
       "accessRejected": "Your Credits couldn't be used. You can switch to your OpenRouter account.",
-      "exhausted": "You're out of Credits. You can switch to your OpenRouter account.",
+      "exhausted": "You're out of Credits. You can buy Credits or switch to your OpenRouter account.",
       "unavailable": "Credits are unavailable right now. Try again later.",
       "accountChanged": "Your Credits account changed while this request was finishing. Your current account was kept."
     },
     "balance_one": "{{formattedCount}} credit",
     "balance_other": "{{formattedCount}} credits",
-    "title": "Credits"
+    "title": "Credits",
+    "buy": "Buy",
+    "packPrice_one": "{{formattedCount}} credit · {{price}}",
+    "packPrice_other": "{{formattedCount}} credits · {{price}}",
+    "purchase": {
+      "pending": "Apple is still processing this purchase. The Credits are added when it's done.",
+      "unavailable": "Credits can't be bought right now. Try again later.",
+      "failed": "The purchase didn't finish.",
+      "notAdded": "Your purchase went through, but the Credits weren't added yet. The app tries again the next time it opens.",
+      "refused": "Your purchase went through, but the Credits can't be added. You can ask Apple for a refund.",
+      "askForRefund": "Ask Apple for a refund",
+      "addedSwitched_one": "Added {{formattedCount}} credit. The coach now uses Credits.",
+      "addedSwitched_other": "Added {{formattedCount}} credits. The coach now uses Credits."
+    }
   },
   "desktop": {
     "credentials": {
@@ -3199,7 +3213,7 @@
     "deleteEverything": "Delete everything",
     "confirm": {
       "title": "Delete everything?",
-      "body": "This can't be undone. It deletes your conversation, memory, saved plan, settings and keys from this iPhone and your iCloud, and your Credits record. Unused Credits are lost, and starter Credits are given only once per iPhone."
+      "body": "This can't be undone. It deletes your conversation, memory, saved plan, settings and keys from this iPhone and your iCloud, and your Credits record. Unused Credits are lost, bought ones included, and starter Credits are given only once per iPhone. Only Apple can refund a purchase."
     },
     "keeps": "Your intervals.icu account and workouts stay on intervals.icu. If you signed in with your own OpenRouter account, delete its key on OpenRouter.",
     "progress": "Deleting…",

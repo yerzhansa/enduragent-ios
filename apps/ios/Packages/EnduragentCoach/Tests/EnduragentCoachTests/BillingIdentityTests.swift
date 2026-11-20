@@ -42,7 +42,7 @@ extension CreditsClientTests {
 				transport.respond = { _ in ScriptedReply([.fail(.http(status: 402))]) }
 				let exhausted = try await coach.sendAndSettle("Plan my next ride")
 				#expect(failure(exhausted) == .model(.accessExhausted(.credits)))
-				#expect(turnNotice(of: exhausted)?.actions == [.switchToOpenRouter])
+				#expect(turnNotice(of: exhausted)?.actions == [.buyCredits, .switchToOpenRouter])
 				let balance = try await CreditsURLStub.withHandler({ request in
 					if request.url?.path == "/catalog" { return Self.catalog }
 					#expect(request.url?.host == "openrouter.test")
@@ -85,9 +85,9 @@ extension CreditsClientTests {
 			#expect(try await snapshot(reopened).turns.prefix(2).elementsEqual(saved.turns))
 		}
 
-		@Test func outOfCreditsNoticeKeepsItsActionAfterReopeningAndInHistory() async throws {
+		@Test func outOfCreditsNoticeKeepsBothActionsAfterReopeningAndInHistory() async throws {
 			let directory = try TestTemporaryFolders.make()
-			let offered: [RecoveryAction] = [.switchToOpenRouter]
+			let offered: [RecoveryAction] = [.buyCredits, .switchToOpenRouter]
 			do {
 				let secrets = try identities(directory, method: .credits)
 				let transport = FakeModelTransport(respond: { _ in

@@ -1487,6 +1487,7 @@
     },
     "menu": "Menu",
     "turn": {
+      "buyCredits": "Tegoed kopen",
       "chooseAccessMethod": "Toegangsmethode kiezen",
       "finishedWhileLocked": "Voltooid terwijl de telefoon vergrendeld was.",
       "interruptedNothingChanged": "Dit antwoord werd onderbroken voordat het klaar was. Er is niets gewijzigd.",
@@ -3019,9 +3020,22 @@
     "balance_other": "{{formattedCount}} tegoedpunten",
     "error": {
       "accessRejected": "Je tegoedpunten konden niet worden gebruikt. Je kunt overschakelen naar je OpenRouter-account.",
-      "exhausted": "Je tegoedpunten zijn op. Je kunt overschakelen naar je OpenRouter-account.",
+      "exhausted": "Je tegoedpunten zijn op. Je kunt tegoed kopen of overschakelen naar je OpenRouter-account.",
       "unavailable": "Tegoedpunten zijn momenteel niet beschikbaar. Probeer het later opnieuw.",
       "accountChanged": "Je tegoedaccount is gewijzigd terwijl dit verzoek werd afgerond. Je huidige account is behouden."
+    },
+    "buy": "Kopen",
+    "packPrice_one": "{{formattedCount}} tegoedpunt · {{price}}",
+    "packPrice_other": "{{formattedCount}} tegoedpunten · {{price}}",
+    "purchase": {
+      "pending": "Apple verwerkt deze aankoop nog. Het tegoed wordt toegevoegd zodra die klaar is.",
+      "unavailable": "Tegoed kan momenteel niet worden gekocht. Probeer het later opnieuw.",
+      "failed": "De aankoop is niet voltooid.",
+      "notAdded": "Je aankoop is gelukt, maar het tegoed is nog niet toegevoegd. De app probeert het opnieuw wanneer hij de volgende keer wordt geopend.",
+      "refused": "Je aankoop is gelukt, maar het tegoed kan niet worden toegevoegd. Je kunt Apple om een terugbetaling vragen.",
+      "askForRefund": "Apple om terugbetaling vragen",
+      "addedSwitched_one": "{{formattedCount}} tegoedpunt toegevoegd. De coach gebruikt nu tegoed.",
+      "addedSwitched_other": "{{formattedCount}} tegoedpunten toegevoegd. De coach gebruikt nu tegoed."
     }
   },
   "onboarding": {
@@ -3199,7 +3213,7 @@
     "deleteEverything": "Alles verwijderen",
     "confirm": {
       "title": "Alles verwijderen?",
-      "body": "Dit kan niet ongedaan worden gemaakt. Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone en uit je iCloud, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren, en starttegoed krijg je maar één keer per iPhone."
+      "body": "Dit kan niet ongedaan worden gemaakt. Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone en uit je iCloud, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren, ook gekochte, en starttegoed krijg je maar één keer per iPhone. Alleen Apple kan een aankoop terugbetalen."
     },
     "keeps": "Je intervals.icu-account en trainingen blijven op intervals.icu. Als je bent ingelogd met je eigen OpenRouter-account, verwijder dan de sleutel daarvan bij OpenRouter.",
     "progress": "Verwijderen…",

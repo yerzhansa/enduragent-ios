@@ -1487,6 +1487,7 @@
     },
     "menu": "Menú",
     "turn": {
+      "buyCredits": "Comprar créditos",
       "chooseAccessMethod": "Elegir método de acceso",
       "finishedWhileLocked": "Terminó mientras el teléfono estaba bloqueado.",
       "interruptedNothingChanged": "Esta respuesta se interrumpió antes de terminar. No se cambió nada.",
@@ -3019,9 +3020,22 @@
     "balance_other": "{{formattedCount}} créditos",
     "error": {
       "accessRejected": "No se pudieron usar tus créditos. Puedes cambiar a tu cuenta de OpenRouter.",
-      "exhausted": "Te has quedado sin créditos. Puedes cambiar a tu cuenta de OpenRouter.",
+      "exhausted": "Te has quedado sin créditos. Puedes comprar créditos o cambiar a tu cuenta de OpenRouter.",
       "unavailable": "Los créditos no están disponibles ahora. Inténtalo más tarde.",
       "accountChanged": "Tu cuenta de créditos cambió mientras se completaba esta solicitud. Se conservó tu cuenta actual."
+    },
+    "buy": "Comprar",
+    "packPrice_one": "{{formattedCount}} crédito · {{price}}",
+    "packPrice_other": "{{formattedCount}} créditos · {{price}}",
+    "purchase": {
+      "pending": "Apple aún está procesando esta compra. Los créditos se añadirán cuando termine.",
+      "unavailable": "No se pueden comprar créditos ahora. Inténtalo más tarde.",
+      "failed": "La compra no se completó.",
+      "notAdded": "Tu compra se realizó, pero los créditos aún no se han añadido. La app lo intentará de nuevo la próxima vez que se abra.",
+      "refused": "Tu compra se realizó, pero los créditos no se pueden añadir. Puedes pedir un reembolso a Apple.",
+      "askForRefund": "Pedir un reembolso a Apple",
+      "addedSwitched_one": "Se añadió {{formattedCount}} crédito. El entrenador ahora usa Créditos.",
+      "addedSwitched_other": "Se añadieron {{formattedCount}} créditos. El entrenador ahora usa Créditos."
     }
   },
   "onboarding": {
@@ -3199,7 +3213,7 @@
     "deleteEverything": "Eliminar todo",
     "confirm": {
       "title": "¿Eliminar todo?",
-      "body": "No se puede deshacer. Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone y de tu iCloud, además de tu registro de Créditos. Los Créditos no usados se pierden y los Créditos iniciales solo se dan una vez por iPhone."
+      "body": "No se puede deshacer. Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone y de tu iCloud, además de tu registro de Créditos. Los Créditos no usados se pierden, incluidos los comprados, y los Créditos iniciales solo se dan una vez por iPhone. Solo Apple puede reembolsar una compra."
     },
     "keeps": "Tu cuenta de intervals.icu y tus entrenamientos se quedan en intervals.icu. Si iniciaste sesión con tu propia cuenta de OpenRouter, elimina su clave en OpenRouter.",
     "progress": "Eliminando…",

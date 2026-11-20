@@ -247,6 +247,7 @@ final class ShellLanguageTests {
 			AppServices(
 				coach: coach, device: DeviceDefaults(suiteName: FixtureLaunch.defaultsSuiteName),
 				deviceCheck: FakeDeviceCheckTokenProvider(),
+				store: FakeCreditsStore(prices: FirstWeekFixture.prices),
 				clock: clock,
 				leases: { [] }))
 	}

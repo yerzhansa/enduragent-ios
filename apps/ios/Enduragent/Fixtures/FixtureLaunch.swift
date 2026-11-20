@@ -87,6 +87,7 @@
 		static let feedbackArgumentKey = "EnduragentFixtureFeedback"
 		static let journalArgumentKey = "EnduragentFixtureJournal"
 		static let erasureArgumentKey = "EnduragentFixtureErasure"
+		static let purchaseArgumentKey = "EnduragentFixturePurchase"
 		static let defaultClock = "1998-06-15T08:00:00Z"
 		static let timeZone = "Europe/Ljubljana"
 		static let firstWeekName = "first-week"
@@ -120,6 +121,7 @@
 		var feedback: FixtureFeedbackScript?
 		var journal = FixtureJournal.saving
 		var erasure = FixtureErasure.erased
+		var purchase = FixturePurchaseOutcome.added
 
 		static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 			guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -151,7 +153,8 @@
 				catalogResponse: try policy(arguments, key: catalogArgumentKey) ?? .offline,
 				feedback: try policy(arguments, key: feedbackArgumentKey),
 				journal: try policy(arguments, key: journalArgumentKey) ?? .saving,
-				erasure: try policy(arguments, key: erasureArgumentKey) ?? .erased
+				erasure: try policy(arguments, key: erasureArgumentKey) ?? .erased,
+				purchase: try policy(arguments, key: purchaseArgumentKey) ?? .added
 			)
 		}
 

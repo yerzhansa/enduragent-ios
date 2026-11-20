@@ -25,7 +25,7 @@ Open `chat.settings`, then `settings.debug`. Settings exists in every build. Its
 | Entry | Handle | What to inspect |
 | --- | --- | --- |
 | Access model | `debug.accessModel` | The saved model ID, or `unavailable`. |
-| Credits | `debug.credits` | Developer grant, balance, identity, and purchase diagnostics, with `debug.credits.claimStarter` and `debug.credits.starterNotice`. Athlete Credits is `settings.credits`. |
+| Credits | `debug.credits` | Developer grant, balance and identity diagnostics, with `debug.credits.claimStarter` and `debug.credits.starterNotice`. Athlete Credits is `settings.credits`. |
 | Credential fixture controls | `fixture.connection`, `fixture.failCredentialWrite`, `fixture.toggleKeychainLock`, `fixture.restoreSecureStorage`, `fixture.corruptIntervals` | Connection identity, failed write, lock/unlock, secure-storage and malformed-key hooks only. Product connection actions are Settings > intervals.icu. See [settings.md](./settings.md). |
 | Records | `debug.records` | `records.count.<kind>`, `records.row.<id>`, and `records.refresh`. A refresh reads new records. |
 | Language | `debug.language` | The same language choices opened by `/language`. See [language.md](./language.md). |
@@ -54,7 +54,7 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 | [Support](./support.md) | The Support section, Feedback with refusals, not-confirmed notes and Try again, the Diagnostics file and its share outcomes, the not-saving line, and About. |
 | [Your data](./your-data.md) | The Your data section, Delete everything, its confirmation, busy, done, not started, iCloud later and resume after a kill. |
 | [History](./history.md) | Archived conversations, close reasons, read-only content, upgrade, and open-time probes. |
-| [Credits](./credits.md) | Credit count, Switch to OpenRouter, unavailable notice, recovery links from a turn, and Access method in Settings. |
+| [Credits](./credits.md) | Credit count, Credits packs and purchase outcomes, Switch to OpenRouter, unavailable notice, recovery links from a turn, and Access method in Settings. |
 
 ## Maintaining the map
 

@@ -1487,6 +1487,7 @@
     },
     "menu": "Menu",
     "turn": {
+      "buyCredits": "Acheter des crédits",
       "chooseAccessMethod": "Choisir le mode d’accès",
       "finishedWhileLocked": "Terminé pendant que le téléphone était verrouillé.",
       "interruptedNothingChanged": "Cette réponse s’est interrompue avant la fin. Rien n’a été modifié.",
@@ -3019,9 +3020,22 @@
     "balance_other": "{{formattedCount}} crédits",
     "error": {
       "accessRejected": "Tes crédits n’ont pas pu être utilisés. Tu peux passer à ton compte OpenRouter.",
-      "exhausted": "Tu n’as plus de crédits. Tu peux passer à ton compte OpenRouter.",
+      "exhausted": "Tu n’as plus de crédits. Tu peux acheter des crédits ou passer à ton compte OpenRouter.",
       "unavailable": "Les crédits sont indisponibles pour le moment. Réessaie plus tard.",
       "accountChanged": "Ton compte de crédits a changé pendant la finalisation de cette demande. Ton compte actuel a été conservé."
+    },
+    "buy": "Acheter",
+    "packPrice_one": "{{formattedCount}} crédit · {{price}}",
+    "packPrice_other": "{{formattedCount}} crédits · {{price}}",
+    "purchase": {
+      "pending": "Apple traite encore cet achat. Les crédits seront ajoutés une fois qu’il sera terminé.",
+      "unavailable": "Impossible d’acheter des crédits pour le moment. Réessaie plus tard.",
+      "failed": "L’achat n’a pas abouti.",
+      "notAdded": "Ton achat a bien été effectué, mais les crédits n’ont pas encore été ajoutés. L’app réessaiera à sa prochaine ouverture.",
+      "refused": "Ton achat a bien été effectué, mais les crédits ne peuvent pas être ajoutés. Tu peux demander un remboursement à Apple.",
+      "askForRefund": "Demander un remboursement à Apple",
+      "addedSwitched_one": "{{formattedCount}} crédit ajouté. Le coach utilise désormais les Crédits.",
+      "addedSwitched_other": "{{formattedCount}} crédits ajoutés. Le coach utilise désormais les Crédits."
     }
   },
   "onboarding": {
@@ -3199,7 +3213,7 @@
     "deleteEverything": "Tout supprimer",
     "confirm": {
       "title": "Tout supprimer ?",
-      "body": "Cette action est irréversible. Elle supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone et de ton iCloud, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus, et les Crédits de départ ne sont accordés qu’une seule fois par iPhone."
+      "body": "Cette action est irréversible. Elle supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone et de ton iCloud, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus, y compris ceux achetés, et les Crédits de départ ne sont accordés qu’une seule fois par iPhone. Seul Apple peut rembourser un achat."
     },
     "keeps": "Ton compte intervals.icu et tes entraînements restent sur intervals.icu. Si tu t’es connecté avec ton propre compte OpenRouter, supprime sa clé sur OpenRouter.",
     "progress": "Suppression…",

@@ -1513,6 +1513,7 @@
     },
     "menu": "Menu",
     "turn": {
+      "buyCredits": "Kup kredyty",
       "chooseAccessMethod": "Wybierz sposób dostępu",
       "finishedWhileLocked": "Zakończono, gdy telefon był zablokowany.",
       "interruptedNothingChanged": "Ta odpowiedź została przerwana przed zakończeniem. Nic nie zostało zmienione.",
@@ -3093,9 +3094,26 @@
     "balance_many": "{{formattedCount}} kredytów",
     "error": {
       "accessRejected": "Nie udało się użyć twoich kredytów. Możesz przełączyć się na swoje konto OpenRouter.",
-      "exhausted": "Skończyły ci się kredyty. Możesz przełączyć się na swoje konto OpenRouter.",
+      "exhausted": "Skończyły ci się kredyty. Możesz kupić kredyty lub przełączyć się na swoje konto OpenRouter.",
       "unavailable": "Kredyty są teraz niedostępne. Spróbuj ponownie później.",
       "accountChanged": "Twoje konto kredytów zmieniło się podczas kończenia tego żądania. Zachowano twoje obecne konto."
+    },
+    "buy": "Kup",
+    "packPrice_one": "{{formattedCount}} kredyt · {{price}}",
+    "packPrice_other": "{{formattedCount}} kredytu · {{price}}",
+    "packPrice_few": "{{formattedCount}} kredyty · {{price}}",
+    "packPrice_many": "{{formattedCount}} kredytów · {{price}}",
+    "purchase": {
+      "pending": "Apple wciąż przetwarza ten zakup. Kredyty zostaną dodane, gdy się zakończy.",
+      "unavailable": "Nie można teraz kupić kredytów. Spróbuj ponownie później.",
+      "failed": "Zakup nie został ukończony.",
+      "notAdded": "Twój zakup został zrealizowany, ale kredyty nie zostały jeszcze dodane. Aplikacja spróbuje ponownie przy następnym otwarciu.",
+      "refused": "Twój zakup został zrealizowany, ale nie można dodać kredytów. Możesz poprosić Apple o zwrot pieniędzy.",
+      "askForRefund": "Poproś Apple o zwrot pieniędzy",
+      "addedSwitched_one": "Dodano {{formattedCount}} kredyt. Trener używa teraz kredytów.",
+      "addedSwitched_other": "Dodano {{formattedCount}} kredytu. Trener używa teraz kredytów.",
+      "addedSwitched_few": "Dodano {{formattedCount}} kredyty. Trener używa teraz kredytów.",
+      "addedSwitched_many": "Dodano {{formattedCount}} kredytów. Trener używa teraz kredytów."
     }
   },
   "onboarding": {
@@ -3287,7 +3305,7 @@
     "deleteEverything": "Usuń wszystko",
     "confirm": {
       "title": "Usunąć wszystko?",
-      "body": "Tego nie można cofnąć. To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a i z twojego iCloud, a także twój rekord kredytów. Niewykorzystane kredyty przepadną, a kredyty na start są przyznawane tylko raz na iPhone’a."
+      "body": "Tego nie można cofnąć. To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a i z twojego iCloud, a także twój rekord kredytów. Niewykorzystane kredyty przepadną, także kupione, a kredyty na start są przyznawane tylko raz na iPhone’a. Tylko Apple może zwrócić pieniądze za zakup."
     },
     "keeps": "Twoje konto intervals.icu i treningi zostają w intervals.icu. Jeśli zalogowano cię własnym kontem OpenRouter, usuń jego klucz w OpenRouter.",
     "progress": "Usuwanie…",

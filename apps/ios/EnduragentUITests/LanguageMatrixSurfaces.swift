@@ -129,6 +129,7 @@ enum LanguageMatrix {
 		run.screen("settings-access-method")
 		TutorialHarness.returnToChat(app)
 		run.openSettingsRow("settings.credits")
+		run.expect("credits.buy.icu.enduragent.app.credits.small", Catalog.creditsBuy)
 		run.expect("credits.switchToOpenRouter", Catalog.accessSwitchToOpenRouter)
 		run.expectTitle(Catalog.creditsTitle)
 		run.screen("settings-credits")
@@ -181,6 +182,7 @@ enum LanguageMatrix {
 		let app = run.app
 		TutorialHarness.exchange(app, "fixture:fail 402")
 		run.expectNotice(Catalog.creditsErrorExhausted)
+		run.expect("chat.turn.buyCredits", Catalog.chatTurnBuyCredits)
 		run.expect("chat.turn.switchToOpenRouter", Catalog.accessSwitchToOpenRouter)
 		run.screen("out-of-credits")
 		TutorialHarness.exchange(app, "fixture:fail 400")

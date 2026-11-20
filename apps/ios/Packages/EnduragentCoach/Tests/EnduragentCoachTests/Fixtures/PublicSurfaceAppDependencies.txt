@@ -33,10 +33,6 @@ ClaimOutcome
 ClaimOutcome.alreadyClaimed
 ClaimOutcome.minted
 ClaimOutcome.toppedUp
-ClaimSettlement
-ClaimSettlement.finish
-ClaimSettlement.recoverThenFinish
-ClaimSettlement.settlement(after:hasKey:)
 CoalescingPolicy
 CoalescingPolicy.init(window:)
 CoalescingPolicy.npm
@@ -70,7 +66,6 @@ CreditsFailure.identityMismatch
 CreditsFailure.noAthleteKey
 CreditsFailure.noPurchaseToRecover
 CreditsFailure.notOurBundle
-CreditsFailure.purchasesDisabled
 CreditsFailure.rateLimited
 CreditsFailure.unavailable
 CreditsFailure.unexpectedResponse

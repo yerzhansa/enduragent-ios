@@ -1474,6 +1474,7 @@
     },
     "menu": "菜单",
     "turn": {
+      "buyCredits": "购买积分",
       "chooseAccessMethod": "选择接入方式",
       "finishedWhileLocked": "已在手机锁定期间完成。",
       "interruptedNothingChanged": "本次回复在完成前中断。未做任何更改。",
@@ -2982,9 +2983,20 @@
     "balance_other": "{{formattedCount}} 积分",
     "error": {
       "accessRejected": "无法使用你的积分。你可以切换到你的 OpenRouter 账户。",
-      "exhausted": "你的积分已用完。你可以切换到你的 OpenRouter 账户。",
+      "exhausted": "你的积分已用完。你可以购买积分，或切换到你的 OpenRouter 账户。",
       "unavailable": "积分暂时不可用。请稍后重试。",
       "accountChanged": "完成此请求期间，你的积分账户发生了变更。你当前的账户已保留。"
+    },
+    "buy": "购买",
+    "packPrice_other": "{{formattedCount}} 积分 · {{price}}",
+    "purchase": {
+      "pending": "Apple 仍在处理此次购买。处理完成后将添加积分。",
+      "unavailable": "暂时无法购买积分。请稍后重试。",
+      "failed": "购买未完成。",
+      "notAdded": "你的购买已完成，但积分尚未添加。下次打开应用时会再试一次。",
+      "refused": "你的购买已完成，但无法添加积分。你可以向 Apple 申请退款。",
+      "askForRefund": "向 Apple 申请退款",
+      "addedSwitched_other": "已添加 {{formattedCount}} 积分。教练现在使用积分。"
     }
   },
   "onboarding": {
@@ -3155,7 +3167,7 @@
     "deleteEverything": "删除所有内容",
     "confirm": {
       "title": "删除所有内容？",
-      "body": "此操作无法撤销。这会从此 iPhone 和你的 iCloud 中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失，且每台 iPhone 只能获得一次初始积分。"
+      "body": "此操作无法撤销。这会从此 iPhone 和你的 iCloud 中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失（包括购买的积分），且每台 iPhone 只能获得一次初始积分。只有 Apple 可以为购买退款。"
     },
     "keeps": "你的 intervals.icu 账户和训练会保留在 intervals.icu 上。如果你使用自己的 OpenRouter 账户登录，请在 OpenRouter 上删除其密钥。",
     "progress": "正在删除…",

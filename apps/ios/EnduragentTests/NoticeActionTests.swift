@@ -28,7 +28,8 @@ extension FixtureLaunchTests {
 		let action = try #require(notice.actions.first)
 		#expect(model.navigation.isEmpty)
 		await model.perform(action)
-		try #require(model.navigation == [.accessMethod])
+		try #require(
+			model.navigation == [directive == "fixture:fail 402" ? .credits : .accessMethod])
 		model.navigation.removeLast()
 		#expect(model.navigation.isEmpty)
 		#expect(model.route == .chat)

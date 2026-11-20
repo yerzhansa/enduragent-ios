@@ -1487,6 +1487,7 @@
     },
     "menu": "Menü",
     "turn": {
+      "buyCredits": "Guthaben kaufen",
       "chooseAccessMethod": "Zugriffsmethode wählen",
       "finishedWhileLocked": "Abgeschlossen, während das Telefon gesperrt war.",
       "interruptedNothingChanged": "Diese Antwort wurde vorzeitig beendet. Es wurde nichts geändert.",
@@ -3019,9 +3020,22 @@
     "balance_other": "{{formattedCount}} Guthabenpunkte",
     "error": {
       "accessRejected": "Deine Guthabenpunkte konnten nicht verwendet werden. Du kannst zu deinem OpenRouter-Konto wechseln.",
-      "exhausted": "Du hast keine Guthabenpunkte mehr. Du kannst zu deinem OpenRouter-Konto wechseln.",
+      "exhausted": "Du hast keine Guthabenpunkte mehr. Du kannst Guthaben kaufen oder zu deinem OpenRouter-Konto wechseln.",
       "unavailable": "Guthabenpunkte sind derzeit nicht verfügbar. Versuche es später erneut.",
       "accountChanged": "Das Konto für deine Guthabenpunkte hat sich geändert, während diese Anfrage abgeschlossen wurde. Dein aktuelles Konto wurde beibehalten."
+    },
+    "buy": "Kaufen",
+    "packPrice_one": "{{formattedCount}} Guthabenpunkt · {{price}}",
+    "packPrice_other": "{{formattedCount}} Guthabenpunkte · {{price}}",
+    "purchase": {
+      "pending": "Apple verarbeitet diesen Kauf noch. Das Guthaben wird hinzugefügt, sobald er abgeschlossen ist.",
+      "unavailable": "Guthaben kann gerade nicht gekauft werden. Versuche es später erneut.",
+      "failed": "Der Kauf wurde nicht abgeschlossen.",
+      "notAdded": "Dein Kauf ist abgeschlossen, aber das Guthaben wurde noch nicht hinzugefügt. Die App versucht es beim nächsten Öffnen erneut.",
+      "refused": "Dein Kauf ist abgeschlossen, aber das Guthaben kann nicht hinzugefügt werden. Du kannst Apple um eine Rückerstattung bitten.",
+      "askForRefund": "Apple um Rückerstattung bitten",
+      "addedSwitched_one": "{{formattedCount}} Guthabenpunkt hinzugefügt. Der Coach nutzt jetzt Guthaben.",
+      "addedSwitched_other": "{{formattedCount}} Guthabenpunkte hinzugefügt. Der Coach nutzt jetzt Guthaben."
     }
   },
   "onboarding": {
@@ -3199,7 +3213,7 @@
     "deleteEverything": "Alles löschen",
     "confirm": {
       "title": "Alles löschen?",
-      "body": "Das kann nicht rückgängig gemacht werden. Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone und aus deiner iCloud gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen, und Startguthaben gibt es nur einmal pro iPhone."
+      "body": "Das kann nicht rückgängig gemacht werden. Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone und aus deiner iCloud gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen, auch gekaufte, und Startguthaben gibt es nur einmal pro iPhone. Nur Apple kann einen Kauf erstatten."
     },
     "keeps": "Dein intervals.icu-Konto und deine Trainings bleiben auf intervals.icu. Wenn du dich mit deinem eigenen OpenRouter-Konto angemeldet hast, lösche dessen Schlüssel bei OpenRouter.",
     "progress": "Wird gelöscht…",

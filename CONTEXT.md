@@ -11,8 +11,24 @@ How the coach reaches and pays for a model: Credits or OpenRouter account.
 _Avoid_: Billing mode, plan, provider
 
 **Credits**:
-Units spent on the built-in model. Each iPhone gets a starter amount once, and the app sells none.
+Units spent on the built-in model. Each iPhone gets a starter amount once, and the athlete can buy more in Credits packs.
 _Avoid_: Balance, tokens, coins
+
+**Credits pack**:
+An amount of Credits sold as one In-App Purchase at one App Store price, such as 401 Credits for $4.99.
+_Avoid_: Bundle, package, product, top-up
+
+**Credits purchase**:
+One App Store payment for one Credits pack. Its Credits count only after the Credits service adds them to the Credits record.
+_Avoid_: Order, transaction, top-up
+
+**Sandbox purchase**:
+A Credits purchase paid with Apple's test money, as in TestFlight and App Review. It adds real Credits.
+_Avoid_: Test purchase, fake purchase
+
+**Refund**:
+Apple returns the money for a Credits purchase, and the Credits service takes that purchase's Credits back. A second refund for Credits that were already spent bans the Credits record.
+_Avoid_: Chargeback, reversal
 
 **Credits record**:
 What the Credits service keeps for the app's Credits: the Credits id, the Credits balance, and the record of the key it made. iPhones that share an iCloud Keychain share one Credits record.
@@ -197,5 +213,5 @@ The Settings section after Support. Its one row is Delete everything.
 _Avoid_: Privacy, account, data management
 
 **Delete everything**:
-The athlete deletes their conversation, memory, saved plan, settings and keys from this iPhone and their iCloud, and their Credits record. Another device removes the synced records only when the app runs there, and keeps what it holds only on itself. Nothing on this iPhone or in iCloud is deleted until the Credits service confirms its part. When iCloud does not confirm, the iCloud copy is deleted the next time the athlete opens the app while this iPhone is online and signed in to iCloud. When the Credits service cannot confirm that this iPhone owns the Credits record, the athlete can delete everything else, and the Credits record stays on the service. A run cut off by a kill finishes at the next launch. Unused Credits are lost. intervals.icu data and an OpenRouter account stay with the athlete.
+The athlete deletes their conversation, memory, saved plan, settings and keys from this iPhone and their iCloud, and their Credits record. Another device removes the synced records only when the app runs there, and keeps what it holds only on itself. Nothing on this iPhone or in iCloud is deleted until the Credits service confirms its part. When iCloud does not confirm, the iCloud copy is deleted the next time the athlete opens the app while this iPhone is online and signed in to iCloud. When the Credits service cannot confirm that this iPhone owns the Credits record, the athlete can delete everything else, and the Credits record stays on the service. A run cut off by a kill finishes at the next launch. Unused Credits are lost, bought ones included, and only Apple refunds a Credits purchase. intervals.icu data and an OpenRouter account stay with the athlete.
 _Avoid_: Delete account, reset, wipe, erase (in athlete text)
