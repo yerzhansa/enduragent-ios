@@ -15,6 +15,8 @@ struct SimFixtureTool {
 	var devices: String { NodePath.join(root, "devices") }
 	var deviceRecords: String { NodePath.join(root, "device-records") }
 	var appearance: String { NodePath.join(root, "appearance") }
+	var deviceData: String { NodePath.join(root, "device-data") }
+	var runningApps: String { NodePath.join(root, "running-apps") }
 
 	static func main() throws {
 		let environment = ProcessInfo.processInfo.environment
@@ -178,10 +180,14 @@ struct SimFixtureTool {
 			try say(try listing(arguments.count > 2 ? arguments[2] : "").compactText)
 		case "create":
 			let udid = "fixture-\(getpid())"
+			let data = NodePath.join(deviceData, udid)
+			try FileManager.default.createDirectory(
+				atPath: data, withIntermediateDirectories: true)
+			try write("created", to: NodePath.join(data, "lifecycle"))
 			try write(
 				JSONValue.keyed([
 					"name": .string(try argument(2)), "udid": .string(udid),
-					"state": .string("Booted"),
+					"state": .string("Booted"), "dataPath": .string(data),
 				]).compactText, to: NodePath.join(deviceRecords, udid))
 			try write("", to: NodePath.join(devices, udid))
 			try say(udid)
@@ -190,12 +196,43 @@ struct SimFixtureTool {
 		case "bootstatus" where environment["VERIFY_FAIL_BOOT"] != nil:
 			let device = try JSONValue.parse(read(NodePath.join(deviceRecords, try argument(2))))
 			if try device.member("name").interpolated.hasSuffix("shard-2") { return 1 }
+		case "bootstatus":
+			let lifecycle = try lifecycle(of: try argument(2))
+			let booted = NodePath.join(root, "booted-with")
+			let earlier = FileManager.default.fileExists(atPath: booted) ? try read(booted) : ""
+			try write("\(earlier)\(try read(lifecycle))\n", to: booted)
+			try write("\(try read(lifecycle)) booted", to: lifecycle)
+		case "launch":
+			try FileManager.default.createDirectory(
+				atPath: runningApps, withIntermediateDirectories: true)
+			try write(try argument(4), to: NodePath.join(runningApps, try argument(3)))
+		case "terminate":
+			let running = NodePath.join(runningApps, try argument(2))
+			guard FileManager.default.fileExists(atPath: running) else {
+				try FileHandle.standardError.write(
+					contentsOf: Data("found nothing to terminate\n".utf8))
+				return 3
+			}
+			try FileManager.default.removeItem(atPath: running)
+		case "spawn" where arguments.count > 4 && arguments[3] == "launchctl":
+			let running = NodePath.join(runningApps, try argument(2))
+			if FileManager.default.fileExists(atPath: running) {
+				try say("4242\t0\tUIKitApplication:\(try read(running))[a1b2][rb-legacy]\n")
+			}
+		case "shutdown":
+			let lifecycle = try lifecycle(of: try argument(2))
+			try write("\(try read(lifecycle)) shut down", to: lifecycle)
 		case "ui" where arguments.count > 4 && arguments[3] == "appearance":
 			try write(arguments[4], to: appearance)
 		default:
 			break
 		}
 		return 0
+	}
+
+	private func lifecycle(of udid: String) throws -> String {
+		let device = try JSONValue.parse(read(NodePath.join(deviceRecords, udid)))
+		return NodePath.join(try device.member("dataPath").interpolated, "lifecycle")
 	}
 
 	private func argument(_ index: Int) throws -> String {
@@ -223,7 +260,7 @@ struct SimFixtureTool {
 				"runtimes": .array([
 					.keyed([
 						"platform": .string("iOS"), "isAvailable": .bool(true),
-						"version": .string("26.5"),
+						"version": .string("26.5"), "buildversion": .string("23F77"),
 						"name": .string("iOS 26.5"), "identifier": .string("fixture-runtime"),
 					])
 				])

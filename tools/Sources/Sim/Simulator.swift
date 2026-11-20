@@ -6,13 +6,20 @@ struct Device {
 	let name: String
 	let udid: String
 	let state: String
+	let dataPath: String
+}
+
+struct Runtime {
+	let name: String
+	let identifier: String
+	let build: String
 }
 
 struct Simulator {
 	static let commands = [
 		"doctor", "build", "create", "install", "launch", "shot", "test", "suite", "shard",
 		"parity",
-		"cleanup",
+		"cleanup", "warm",
 	]
 
 	let repo: String
@@ -93,6 +100,8 @@ struct Simulator {
 				source: argument(4))
 		case "cleanup":
 			try cleanup(argument(0))
+		case "warm":
+			try warm()
 		default:
 			throw SimFailure(description: "unknown command \(command)")
 		}
@@ -175,18 +184,24 @@ struct Simulator {
 			Device(
 				name: try device.member("name").interpolated,
 				udid: try device.member("udid").interpolated,
-				state: try device.member("state").interpolated)
+				state: try device.member("state").interpolated,
+				dataPath: try device.member("dataPath").interpolated)
 		}
+	}
+
+	func appRunning(_ udid: String) throws -> Bool {
+		try capture("xcrun", ["simctl", "spawn", udid, "launchctl", "list"])
+			.contains("UIKitApplication:\(bundleID)")
 	}
 
 	func findSim(_ id: String) throws -> Device? {
 		try devices().first { $0.name.hasSameUnits(as: simName(id)) }
 	}
 
-	func iosRuntimes() throws -> [(name: String, identifier: String)] {
+	func iosRuntimes() throws -> [Runtime] {
 		let listed = try JSONValue.parse(capture("xcrun", ["simctl", "list", "runtimes", "-j"]))
 		let available = try listed.member("runtimes").elements().compactMap {
-			runtime -> (name: String, identifier: String, version: String)? in
+			runtime -> (runtime: Runtime, version: String)? in
 			guard try runtime.member("platform").isString("iOS"),
 				try runtime.member("isAvailable").isTruthy
 			else { return nil }
@@ -197,8 +212,10 @@ struct Simulator {
 				String(version.split(separator: ".", omittingEmptySubsequences: false).first ?? ""))
 			guard major >= 26 else { return nil }
 			return (
-				try runtime.member("name").interpolated,
-				try runtime.member("identifier").interpolated,
+				Runtime(
+					name: try runtime.member("name").interpolated,
+					identifier: try runtime.member("identifier").interpolated,
+					build: try runtime.member("buildversion").interpolated),
 				version
 			)
 		}
@@ -206,7 +223,7 @@ struct Simulator {
 			$0.version.compare(
 				$1.version, options: .numeric, range: nil, locale: Locale(identifier: "en"))
 				== .orderedDescending
-		}.map { ($0.name, $0.identifier) }
+		}.map(\.runtime)
 	}
 
 	func runDir(_ id: String?) throws -> String {
