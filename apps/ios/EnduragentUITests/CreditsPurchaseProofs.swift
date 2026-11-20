@@ -7,7 +7,7 @@ final class CreditsPurchaseProof: XCTestCase {
 
 	func testOutOfCreditsBuyCreditsBuysAPackAndTheCoachRepliesOnCredits() {
 		let app = XCUIApplication()
-		TutorialHarness.launch(app, arguments: FixtureArguments(creditsOutcome: .zero))
+		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.exchange(app, "fixture:fail 402")
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.creditsExhausted))
@@ -27,18 +27,16 @@ final class CreditsPurchaseProof: XCTestCase {
 		TutorialHarness.attach(self, name: "purchase-reply-on-credits", app: app)
 	}
 
-	func testABuyFromAnOpenRouterAccountSwitchesTheCoachToCredits() {
+	func testABuyFromAnOpenRouterAccountSwitchesTheCoachToCreditsAfterConsent() {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app, arguments: FixtureArguments(accessMethod: .openRouter))
 		TutorialHarness.completeOnboarding(app)
 		openCredits(app)
 		buy(app)
-		TutorialHarness.waitForIdentifier(
-			app, "credits.purchaseNotice",
-			reading: "Added 401 credits. The coach now uses Credits.")
-		TutorialHarness.waitForIdentifier(app, "credits.balance", reading: "601 credits")
-		TutorialHarness.attach(self, name: "purchase-switched-to-credits", app: app)
-		TutorialHarness.returnToChat(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "consent.accept"), until: .hittable)
+		TutorialHarness.attach(self, name: "purchase-switched-asks-consent", app: app)
+		TutorialHarness.agreeToProviderConsent(
+			app, recipient: (model: "DeepSeek V4.1 Flash", provider: "DeepInfra"))
 		TutorialHarness.openSettings(app)
 		TutorialHarness.named(app, "settings.accessMethod").tap()
 		let credits = TutorialHarness.named(app, "access.credits")
@@ -46,6 +44,10 @@ final class CreditsPurchaseProof: XCTestCase {
 		XCTAssertTrue(credits.isSelected)
 		XCTAssertFalse(TutorialHarness.named(app, "access.openRouter").isSelected)
 		TutorialHarness.attach(self, name: "purchase-access-method-credits", app: app)
+		TutorialHarness.returnToChat(app)
+		TutorialHarness.openSettings(app)
+		TutorialHarness.named(app, "settings.credits").tap()
+		TutorialHarness.waitForIdentifier(app, "credits.balance", reading: "601 credits")
 	}
 
 	func testEachPurchaseOutcomeShowsItsSentence() {
@@ -111,11 +113,12 @@ final class CreditsPurchaseProof: XCTestCase {
 	private func openCredits(_ app: XCUIApplication) {
 		TutorialHarness.openSettings(app)
 		TutorialHarness.named(app, "settings.credits").tap()
-		TutorialHarness.waitForIdentifier(
-			app, "credits.pack.\(Self.small)", reading: "401 credits · $4.99")
+		TutorialHarness.wait(TutorialHarness.named(app, "credits.balance"))
 	}
 
 	private func buy(_ app: XCUIApplication) {
+		TutorialHarness.waitForIdentifier(
+			app, "credits.pack.\(Self.small)", reading: "401 credits · $4.99")
 		let buy = TutorialHarness.named(app, "credits.buy.\(Self.small)")
 		TutorialHarness.wait(buy, until: .hittable)
 		buy.tap()
