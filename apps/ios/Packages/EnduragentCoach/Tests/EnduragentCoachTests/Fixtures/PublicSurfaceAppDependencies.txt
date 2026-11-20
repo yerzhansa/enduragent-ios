@@ -70,7 +70,6 @@ CreditsFailure.identityMismatch
 CreditsFailure.noAthleteKey
 CreditsFailure.noPurchaseToRecover
 CreditsFailure.notOurBundle
-CreditsFailure.purchasesDisabled
 CreditsFailure.rateLimited
 CreditsFailure.unavailable
 CreditsFailure.unexpectedResponse
