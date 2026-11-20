@@ -1487,6 +1487,7 @@
     },
     "menu": "Meny",
     "turn": {
+      "buyCredits": "Köp krediter",
       "chooseAccessMethod": "Välj åtkomstmetod",
       "finishedWhileLocked": "Blev klart medan telefonen var låst.",
       "interruptedNothingChanged": "Svaret avbröts innan det var klart. Inget ändrades.",
@@ -3019,9 +3020,22 @@
     "balance_other": "{{formattedCount}} krediter",
     "error": {
       "accessRejected": "Dina krediter kunde inte användas. Du kan byta till ditt OpenRouter-konto.",
-      "exhausted": "Dina krediter är slut. Du kan byta till ditt OpenRouter-konto.",
+      "exhausted": "Dina krediter är slut. Du kan köpa krediter eller byta till ditt OpenRouter-konto.",
       "unavailable": "Krediter är inte tillgängliga just nu. Försök igen senare.",
       "accountChanged": "Ditt kreditkonto ändrades medan den här begäran slutfördes. Ditt nuvarande konto behölls."
+    },
+    "buy": "Köp",
+    "packPrice_one": "{{formattedCount}} kredit · {{price}}",
+    "packPrice_other": "{{formattedCount}} krediter · {{price}}",
+    "purchase": {
+      "pending": "Apple behandlar fortfarande det här köpet. Krediterna läggs till när det är klart.",
+      "unavailable": "Krediter kan inte köpas just nu. Försök igen senare.",
+      "failed": "Köpet slutfördes inte.",
+      "notAdded": "Ditt köp har genomförts, men krediterna har inte lagts till än. Appen försöker igen nästa gång den öppnas.",
+      "refused": "Ditt köp har genomförts, men krediterna kan inte läggas till. Du kan be Apple om återbetalning.",
+      "askForRefund": "Be Apple om återbetalning",
+      "addedSwitched_one": "Lade till {{formattedCount}} kredit. Tränaren använder nu krediter.",
+      "addedSwitched_other": "Lade till {{formattedCount}} krediter. Tränaren använder nu krediter."
     }
   },
   "onboarding": {
@@ -3199,7 +3213,7 @@
     "deleteEverything": "Radera allt",
     "confirm": {
       "title": "Radera allt?",
-      "body": "Det går inte att ångra. Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen och din iCloud, samt din kreditpost. Oanvända krediter går förlorade, och startkrediter ges bara en gång per iPhone."
+      "body": "Det går inte att ångra. Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen och din iCloud, samt din kreditpost. Oanvända krediter går förlorade, även köpta, och startkrediter ges bara en gång per iPhone. Bara Apple kan återbetala ett köp."
     },
     "keeps": "Ditt intervals.icu-konto och dina pass finns kvar på intervals.icu. Om du loggade in med ditt eget OpenRouter-konto raderar du dess nyckel hos OpenRouter.",
     "progress": "Raderar…",

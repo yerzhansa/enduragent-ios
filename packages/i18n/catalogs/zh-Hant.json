@@ -1474,6 +1474,7 @@
     },
     "menu": "選單",
     "turn": {
+      "buyCredits": "購買點數",
       "chooseAccessMethod": "選擇存取方式",
       "finishedWhileLocked": "已在手機鎖定期間完成。",
       "interruptedNothingChanged": "本次回覆在完成前中斷。未做任何變更。",
@@ -2982,9 +2983,20 @@
     "balance_other": "{{formattedCount}} 點數",
     "error": {
       "accessRejected": "無法使用你的點數。你可以切換到你的 OpenRouter 帳戶。",
-      "exhausted": "你的點數已用完。你可以切換到你的 OpenRouter 帳戶。",
+      "exhausted": "你的點數已用完。你可以購買點數，或切換到你的 OpenRouter 帳戶。",
       "unavailable": "點數目前無法使用。請稍後重試。",
       "accountChanged": "完成此請求期間，你的點數帳戶發生了變更。你目前的帳戶已保留。"
+    },
+    "buy": "購買",
+    "packPrice_other": "{{formattedCount}} 點數 · {{price}}",
+    "purchase": {
+      "pending": "Apple 仍在處理此次購買。處理完成後將新增點數。",
+      "unavailable": "目前無法購買點數。請稍後重試。",
+      "failed": "購買未完成。",
+      "notAdded": "你的購買已完成，但點數尚未新增。下次開啟應用程式時會再試一次。",
+      "refused": "你的購買已完成，但無法新增點數。你可以向 Apple 申請退款。",
+      "askForRefund": "向 Apple 申請退款",
+      "addedSwitched_other": "已新增 {{formattedCount}} 點數。教練現在使用點數。"
     }
   },
   "onboarding": {
@@ -3155,7 +3167,7 @@
     "deleteEverything": "刪除所有內容",
     "confirm": {
       "title": "要刪除所有內容嗎？",
-      "body": "此動作無法復原。這會從此 iPhone 和你的 iCloud 刪除你的對話、記憶、已儲存的計畫、設定和金鑰，並刪除你的點數紀錄。未使用的點數將會遺失，且每支 iPhone 只能獲得一次初始點數。"
+      "body": "此動作無法復原。這會從此 iPhone 和你的 iCloud 刪除你的對話、記憶、已儲存的計畫、設定和金鑰，並刪除你的點數紀錄。未使用的點數將會遺失（包括購買的點數），且每支 iPhone 只能獲得一次初始點數。只有 Apple 可以為購買退款。"
     },
     "keeps": "你的 intervals.icu 帳戶和訓練會保留在 intervals.icu 上。如果你使用自己的 OpenRouter 帳戶登入，請在 OpenRouter 上刪除其金鑰。",
     "progress": "正在刪除…",

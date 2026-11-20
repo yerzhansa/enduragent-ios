@@ -1487,6 +1487,7 @@
     },
     "menu": "Valikko",
     "turn": {
+      "buyCredits": "Osta krediittejä",
       "chooseAccessMethod": "Valitse yhteystapa",
       "finishedWhileLocked": "Valmistui puhelimen ollessa lukittuna.",
       "interruptedNothingChanged": "Tämä vastaus keskeytyi ennen valmistumistaan. Mitään ei muutettu.",
@@ -3019,9 +3020,22 @@
     "balance_other": "{{formattedCount}} krediittiä",
     "error": {
       "accessRejected": "Krediittejäsi ei voitu käyttää. Voit vaihtaa OpenRouter-tiliisi.",
-      "exhausted": "Krediittisi ovat loppuneet. Voit vaihtaa OpenRouter-tiliisi.",
+      "exhausted": "Krediittisi ovat loppuneet. Voit ostaa krediittejä tai vaihtaa OpenRouter-tiliisi.",
       "unavailable": "Krediitit eivät ole juuri nyt käytettävissä. Yritä myöhemmin uudelleen.",
       "accountChanged": "Krediittitilisi vaihtui tämän pyynnön viimeistelyn aikana. Nykyinen tilisi säilytettiin."
+    },
+    "buy": "Osta",
+    "packPrice_one": "{{formattedCount}} krediitti · {{price}}",
+    "packPrice_other": "{{formattedCount}} krediittiä · {{price}}",
+    "purchase": {
+      "pending": "Apple käsittelee vielä tätä ostosta. Krediitit lisätään, kun se on valmis.",
+      "unavailable": "Krediittejä ei voi ostaa juuri nyt. Yritä myöhemmin uudelleen.",
+      "failed": "Ostos ei valmistunut.",
+      "notAdded": "Ostoksesi onnistui, mutta krediittejä ei ole vielä lisätty. Sovellus yrittää uudelleen, kun se avataan seuraavan kerran.",
+      "refused": "Ostoksesi onnistui, mutta krediittejä ei voi lisätä. Voit pyytää Applelta hyvitystä.",
+      "askForRefund": "Pyydä Applelta hyvitystä",
+      "addedSwitched_one": "Lisätty {{formattedCount}} krediitti. Valmentaja käyttää nyt krediittejä.",
+      "addedSwitched_other": "Lisätty {{formattedCount}} krediittiä. Valmentaja käyttää nyt krediittejä."
     }
   },
   "onboarding": {
@@ -3199,7 +3213,7 @@
     "deleteEverything": "Poista kaikki",
     "confirm": {
       "title": "Poistetaanko kaikki?",
-      "body": "Tätä ei voi perua. Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta ja iCloudistasi sekä krediittitietosi. Käyttämättömät krediitit menetetään, ja aloituskrediitit annetaan vain kerran iPhonea kohden."
+      "body": "Tätä ei voi perua. Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta ja iCloudistasi sekä krediittitietosi. Käyttämättömät krediitit menetetään, myös ostetut, ja aloituskrediitit annetaan vain kerran iPhonea kohden. Vain Apple voi hyvittää ostoksen."
     },
     "keeps": "intervals.icu-tilisi ja harjoituksesi jäävät intervals.icuun. Jos kirjauduit omalla OpenRouter-tililläsi, poista sen avain OpenRouterissa.",
     "progress": "Poistetaan…",

@@ -74827,6 +74827,112 @@
         }
       }
     },
+    "chat.turn.buyCredits": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar créditos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acheter des crédits"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acquista crediti"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guthaben kaufen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tegoed kopen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Køb kreditter"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Köp krediter"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kjøp kreditter"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Osta krediittejä"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar créditos"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar créditos"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kup kredyty"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "크레딧 구매"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クレジットを購入"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购买积分"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "購買點數"
+          }
+        }
+      }
+    },
     "chat.turn.chooseAccessMethod": {
       "localizations": {
         "en": {
@@ -119697,6 +119803,112 @@
         }
       }
     },
+    "credits.buy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acheter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acquista"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaufen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Køb"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Köp"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kjøp"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Osta"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kup"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "구매"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "購入"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购买"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "購買"
+          }
+        }
+      }
+    },
     "credits.error.accessRejected": {
       "localizations": {
         "en": {
@@ -119914,103 +120126,103 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're out of Credits. You can switch to your OpenRouter account."
+            "value": "You're out of Credits. You can buy Credits or switch to your OpenRouter account."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Te has quedado sin créditos. Puedes cambiar a tu cuenta de OpenRouter."
+            "value": "Te has quedado sin créditos. Puedes comprar créditos o cambiar a tu cuenta de OpenRouter."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu n’as plus de crédits. Tu peux passer à ton compte OpenRouter."
+            "value": "Tu n’as plus de crédits. Tu peux acheter des crédits ou passer à ton compte OpenRouter."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hai esaurito i crediti. Puoi passare al tuo conto OpenRouter."
+            "value": "Hai esaurito i crediti. Puoi acquistare crediti o passare al tuo conto OpenRouter."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du hast keine Guthabenpunkte mehr. Du kannst zu deinem OpenRouter-Konto wechseln."
+            "value": "Du hast keine Guthabenpunkte mehr. Du kannst Guthaben kaufen oder zu deinem OpenRouter-Konto wechseln."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Je tegoedpunten zijn op. Je kunt overschakelen naar je OpenRouter-account."
+            "value": "Je tegoedpunten zijn op. Je kunt tegoed kopen of overschakelen naar je OpenRouter-account."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du er løbet tør for kreditter. Du kan skifte til din OpenRouter-konto."
+            "value": "Du er løbet tør for kreditter. Du kan købe kreditter eller skifte til din OpenRouter-konto."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dina krediter är slut. Du kan byta till ditt OpenRouter-konto."
+            "value": "Dina krediter är slut. Du kan köpa krediter eller byta till ditt OpenRouter-konto."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du er tom for kreditter. Du kan bytte til OpenRouter-kontoen din."
+            "value": "Du er tom for kreditter. Du kan kjøpe kreditter eller bytte til OpenRouter-kontoen din."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Krediittisi ovat loppuneet. Voit vaihtaa OpenRouter-tiliisi."
+            "value": "Krediittisi ovat loppuneet. Voit ostaa krediittejä tai vaihtaa OpenRouter-tiliisi."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os teus créditos acabaram. Podes mudar para a tua conta OpenRouter."
+            "value": "Os teus créditos acabaram. Podes comprar créditos ou mudar para a tua conta OpenRouter."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seus créditos acabaram. Você pode mudar para sua conta OpenRouter."
+            "value": "Seus créditos acabaram. Você pode comprar créditos ou mudar para sua conta OpenRouter."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Skończyły ci się kredyty. Możesz przełączyć się na swoje konto OpenRouter."
+            "value": "Skończyły ci się kredyty. Możesz kupić kredyty lub przełączyć się na swoje konto OpenRouter."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "크레딧을 모두 사용했습니다. OpenRouter 계정으로 전환할 수 있습니다."
+            "value": "크레딧을 모두 사용했습니다. 크레딧을 구매하거나 OpenRouter 계정으로 전환할 수 있습니다."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "クレジットがなくなりました。OpenRouterアカウントに切り替えることができます。"
+            "value": "クレジットがなくなりました。クレジットを購入するか、OpenRouterアカウントに切り替えることができます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的积分已用完。你可以切换到你的 OpenRouter 账户。"
+            "value": "你的积分已用完。你可以购买积分，或切换到你的 OpenRouter 账户。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的點數已用完。你可以切換到你的 OpenRouter 帳戶。"
+            "value": "你的點數已用完。你可以購買點數，或切換到你的 OpenRouter 帳戶。"
           }
         }
       }
@@ -120117,6 +120329,1510 @@
           "stringUnit": {
             "state": "translated",
             "value": "點數目前無法使用。請稍後重試。"
+          }
+        }
+      }
+    },
+    "credits.packPrice": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credit · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credits · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédit · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédits · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credito · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crediti · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkt · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkte · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunt · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunten · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredit · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditter · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredit · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediter · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditt · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditter · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediitti · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediittiä · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredyt · %#@price@"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredyty · %#@price@"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredytów · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredytu · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 크레딧 · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@クレジット · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 积分 · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 點數 · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "credits.purchase.addedSwitched": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Added %#@formattedCount@ credit. The coach now uses Credits."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Added %#@formattedCount@ credits. The coach now uses Credits."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Se añadió %#@formattedCount@ crédito. El entrenador ahora usa Créditos."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Se añadieron %#@formattedCount@ créditos. El entrenador ahora usa Créditos."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédit ajouté. Le coach utilise désormais les Crédits."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédits ajoutés. Le coach utilise désormais les Crédits."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credito aggiunto. Il coach ora usa i Crediti."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crediti aggiunti. Il coach ora usa i Crediti."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkt hinzugefügt. Der Coach nutzt jetzt Guthaben."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkte hinzugefügt. Der Coach nutzt jetzt Guthaben."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunt toegevoegd. De coach gebruikt nu tegoed."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunten toegevoegd. De coach gebruikt nu tegoed."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Tilføjede %#@formattedCount@ kredit. Træneren bruger nu kreditter."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Tilføjede %#@formattedCount@ kreditter. Træneren bruger nu kreditter."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Lade till %#@formattedCount@ kredit. Tränaren använder nu krediter."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Lade till %#@formattedCount@ krediter. Tränaren använder nu krediter."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "La til %#@formattedCount@ kreditt. Treneren bruker nå kreditter."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "La til %#@formattedCount@ kreditter. Treneren bruker nå kreditter."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Lisätty %#@formattedCount@ krediitti. Valmentaja käyttää nyt krediittejä."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Lisätty %#@formattedCount@ krediittiä. Valmentaja käyttää nyt krediittejä."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito adicionado. O treinador passa a usar Créditos."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos adicionados. O treinador passa a usar Créditos."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito adicionado. O treinador agora usa Créditos."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos adicionados. O treinador agora usa Créditos."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodano %#@formattedCount@ kredyt. Trener używa teraz kredytów."
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodano %#@formattedCount@ kredyty. Trener używa teraz kredytów."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodano %#@formattedCount@ kredytów. Trener używa teraz kredytów."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodano %#@formattedCount@ kredytu. Trener używa teraz kredytów."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 크레딧 추가됨. 이제 코치가 크레딧을 사용합니다."
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@クレジットを追加しました。コーチは現在クレジットを使用しています。"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已添加 %#@formattedCount@ 积分。教练现在使用积分。"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已新增 %#@formattedCount@ 點數。教練現在使用點數。"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "credits.purchase.askForRefund": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask Apple for a refund"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedir un reembolso a Apple"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander un remboursement à Apple"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiedi un rimborso ad Apple"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple um Rückerstattung bitten"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple om terugbetaling vragen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bed Apple om en refusion"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Be Apple om återbetalning"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Be Apple om refusjon"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pyydä Applelta hyvitystä"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedir reembolso à Apple"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedir reembolso à Apple"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poproś Apple o zwrot pieniędzy"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple에 환불 요청"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appleに返金をリクエスト"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向 Apple 申请退款"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向 Apple 申請退款"
+          }
+        }
+      }
+    },
+    "credits.purchase.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The purchase didn't finish."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La compra no se completó."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’achat n’a pas abouti."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’acquisto non è stato completato."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Kauf wurde nicht abgeschlossen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De aankoop is niet voltooid."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Købet blev ikke gennemført."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Köpet slutfördes inte."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kjøpet ble ikke fullført."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostos ei valmistunut."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A compra não foi concluída."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A compra não foi concluída."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakup nie został ukończony."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "구매가 완료되지 않았습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "購入が完了しませんでした。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购买未完成。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "購買未完成。"
+          }
+        }
+      }
+    },
+    "credits.purchase.notAdded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your purchase went through, but the Credits weren't added yet. The app tries again the next time it opens."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu compra se realizó, pero los créditos aún no se han añadido. La app lo intentará de nuevo la próxima vez que se abra."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton achat a bien été effectué, mais les crédits n’ont pas encore été ajoutés. L’app réessaiera à sa prochaine ouverture."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo acquisto è andato a buon fine, ma i crediti non sono ancora stati aggiunti. L’app riproverà la prossima volta che si apre."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Kauf ist abgeschlossen, aber das Guthaben wurde noch nicht hinzugefügt. Die App versucht es beim nächsten Öffnen erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je aankoop is gelukt, maar het tegoed is nog niet toegevoegd. De app probeert het opnieuw wanneer hij de volgende keer wordt geopend."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit køb er gennemført, men kreditterne er ikke tilføjet endnu. Appen prøver igen, næste gang den åbnes."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ditt köp har genomförts, men krediterna har inte lagts till än. Appen försöker igen nästa gång den öppnas."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kjøpet ditt er gjennomført, men kredittene er ikke lagt til ennå. Appen prøver igjen neste gang den åpnes."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostoksesi onnistui, mutta krediittejä ei ole vielä lisätty. Sovellus yrittää uudelleen, kun se avataan seuraavan kerran."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tua compra foi concluída, mas os créditos ainda não foram adicionados. A aplicação tentará novamente da próxima vez que for aberta."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua compra foi concluída, mas os créditos ainda não foram adicionados. O app tentará novamente na próxima vez que for aberto."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twój zakup został zrealizowany, ale kredyty nie zostały jeszcze dodane. Aplikacja spróbuje ponownie przy następnym otwarciu."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "구매는 완료되었지만 크레딧이 아직 추가되지 않았습니다. 다음에 앱이 열릴 때 다시 시도합니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "購入は完了しましたが、クレジットはまだ追加されていません。次にアプリを開いたときにもう一度試します。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的购买已完成，但积分尚未添加。下次打开应用时会再试一次。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的購買已完成，但點數尚未新增。下次開啟應用程式時會再試一次。"
+          }
+        }
+      }
+    },
+    "credits.purchase.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple is still processing this purchase. The Credits are added when it's done."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple aún está procesando esta compra. Los créditos se añadirán cuando termine."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple traite encore cet achat. Les crédits seront ajoutés une fois qu’il sera terminé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple sta ancora elaborando questo acquisto. I crediti verranno aggiunti al termine."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple verarbeitet diesen Kauf noch. Das Guthaben wird hinzugefügt, sobald er abgeschlossen ist."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple verwerkt deze aankoop nog. Het tegoed wordt toegevoegd zodra die klaar is."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple behandler stadig dette køb. Kreditterne tilføjes, når det er færdigt."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple behandlar fortfarande det här köpet. Krediterna läggs till när det är klart."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple behandler fortsatt dette kjøpet. Kredittene legges til når det er ferdig."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple käsittelee vielä tätä ostosta. Krediitit lisätään, kun se on valmis."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Apple ainda está a processar esta compra. Os créditos serão adicionados quando terminar."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Apple ainda está processando esta compra. Os créditos serão adicionados quando ela terminar."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple wciąż przetwarza ten zakup. Kredyty zostaną dodane, gdy się zakończy."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple에서 아직 이 구매를 처리하고 있습니다. 처리가 끝나면 크레딧이 추가됩니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appleがこの購入をまだ処理しています。完了するとクレジットが追加されます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple 仍在处理此次购买。处理完成后将添加积分。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple 仍在處理此次購買。處理完成後將新增點數。"
+          }
+        }
+      }
+    },
+    "credits.purchase.refused": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your purchase went through, but the Credits can't be added. You can ask Apple for a refund."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu compra se realizó, pero los créditos no se pueden añadir. Puedes pedir un reembolso a Apple."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton achat a bien été effectué, mais les crédits ne peuvent pas être ajoutés. Tu peux demander un remboursement à Apple."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo acquisto è andato a buon fine, ma i crediti non possono essere aggiunti. Puoi chiedere un rimborso ad Apple."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Kauf ist abgeschlossen, aber das Guthaben kann nicht hinzugefügt werden. Du kannst Apple um eine Rückerstattung bitten."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je aankoop is gelukt, maar het tegoed kan niet worden toegevoegd. Je kunt Apple om een terugbetaling vragen."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit køb er gennemført, men kreditterne kan ikke tilføjes. Du kan bede Apple om en refusion."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ditt köp har genomförts, men krediterna kan inte läggas till. Du kan be Apple om återbetalning."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kjøpet ditt er gjennomført, men kredittene kan ikke legges til. Du kan be Apple om refusjon."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostoksesi onnistui, mutta krediittejä ei voi lisätä. Voit pyytää Applelta hyvitystä."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tua compra foi concluída, mas os créditos não podem ser adicionados. Podes pedir um reembolso à Apple."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua compra foi concluída, mas os créditos não podem ser adicionados. Você pode pedir um reembolso à Apple."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twój zakup został zrealizowany, ale nie można dodać kredytów. Możesz poprosić Apple o zwrot pieniędzy."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "구매는 완료되었지만 크레딧을 추가할 수 없습니다. Apple에 환불을 요청할 수 있습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "購入は完了しましたが、クレジットを追加できません。Appleに返金をリクエストできます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的购买已完成，但无法添加积分。你可以向 Apple 申请退款。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的購買已完成，但無法新增點數。你可以向 Apple 申請退款。"
+          }
+        }
+      }
+    },
+    "credits.purchase.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits can't be bought right now. Try again later."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pueden comprar créditos ahora. Inténtalo más tarde."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d’acheter des crédits pour le moment. Réessaie plus tard."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è possibile acquistare crediti al momento. Riprova più tardi."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guthaben kann gerade nicht gekauft werden. Versuche es später erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tegoed kan momenteel niet worden gekocht. Probeer het later opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kreditter kan ikke købes lige nu. Prøv igen senere."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krediter kan inte köpas just nu. Försök igen senare."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kreditter kan ikke kjøpes akkurat nå. Prøv igjen senere."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krediittejä ei voi ostaa juuri nyt. Yritä myöhemmin uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não é possível comprar créditos de momento. Tenta novamente mais tarde."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não é possível comprar créditos no momento. Tente novamente mais tarde."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można teraz kupić kredytów. Spróbuj ponownie później."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지금은 크레딧을 구매할 수 없습니다. 나중에 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在クレジットを購入できません。しばらくしてからもう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法购买积分。请稍后重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前無法購買點數。請稍後重試。"
           }
         }
       }
@@ -392310,103 +394026,103 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This can't be undone. It deletes your conversation, memory, saved plan, settings and keys from this iPhone and your iCloud, and your Credits record. Unused Credits are lost, and starter Credits are given only once per iPhone."
+            "value": "This can't be undone. It deletes your conversation, memory, saved plan, settings and keys from this iPhone and your iCloud, and your Credits record. Unused Credits are lost, bought ones included, and starter Credits are given only once per iPhone. Only Apple can refund a purchase."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se puede deshacer. Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone y de tu iCloud, además de tu registro de Créditos. Los Créditos no usados se pierden y los Créditos iniciales solo se dan una vez por iPhone."
+            "value": "No se puede deshacer. Esto elimina tu conversación, memoria, plan guardado, ajustes y claves de este iPhone y de tu iCloud, además de tu registro de Créditos. Los Créditos no usados se pierden, incluidos los comprados, y los Créditos iniciales solo se dan una vez por iPhone. Solo Apple puede reembolsar una compra."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cette action est irréversible. Elle supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone et de ton iCloud, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus, et les Crédits de départ ne sont accordés qu’une seule fois par iPhone."
+            "value": "Cette action est irréversible. Elle supprime ta conversation, ta mémoire, ton plan enregistré, tes réglages et tes clés de cet iPhone et de ton iCloud, ainsi que ton dossier de Crédits. Les Crédits non utilisés sont perdus, y compris ceux achetés, et les Crédits de départ ne sont accordés qu’une seule fois par iPhone. Seul Apple peut rembourser un achat."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’operazione non si può annullare. Elimina la conversazione, la memoria, il piano salvato, le impostazioni e le chiavi da questo iPhone e dal tuo iCloud, oltre al tuo record dei Crediti. I Crediti non usati vanno persi e i Crediti iniziali vengono dati una sola volta per iPhone."
+            "value": "L’operazione non si può annullare. Elimina la conversazione, la memoria, il piano salvato, le impostazioni e le chiavi da questo iPhone e dal tuo iCloud, oltre al tuo record dei Crediti. I Crediti non usati vanno persi, compresi quelli acquistati, e i Crediti iniziali vengono dati una sola volta per iPhone. Solo Apple può rimborsare un acquisto."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das kann nicht rückgängig gemacht werden. Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone und aus deiner iCloud gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen, und Startguthaben gibt es nur einmal pro iPhone."
+            "value": "Das kann nicht rückgängig gemacht werden. Dadurch werden dein Gespräch, dein Gedächtnis, dein gespeicherter Plan, deine Einstellungen und Schlüssel von diesem iPhone und aus deiner iCloud gelöscht, ebenso dein Guthabenpunkte-Konto. Nicht genutzte Guthabenpunkte verfallen, auch gekaufte, und Startguthaben gibt es nur einmal pro iPhone. Nur Apple kann einen Kauf erstatten."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dit kan niet ongedaan worden gemaakt. Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone en uit je iCloud, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren, en starttegoed krijg je maar één keer per iPhone."
+            "value": "Dit kan niet ongedaan worden gemaakt. Hiermee worden je gesprek, geheugen, opgeslagen plan, instellingen en sleutels verwijderd van deze iPhone en uit je iCloud, en ook je tegoedpuntengegevens. Ongebruikte tegoedpunten gaan verloren, ook gekochte, en starttegoed krijg je maar één keer per iPhone. Alleen Apple kan een aankoop terugbetalen."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Det kan ikke fortrydes. Det sletter din samtale, hukommelse, gemte plan, indstillinger og nøgler fra denne iPhone og din iCloud samt din kredittpost. Ubrugte kreditter går tabt, og startkreditter gives kun én gang pr. iPhone."
+            "value": "Det kan ikke fortrydes. Det sletter din samtale, hukommelse, gemte plan, indstillinger og nøgler fra denne iPhone og din iCloud samt din kredittpost. Ubrugte kreditter går tabt, også købte, og startkreditter gives kun én gang pr. iPhone. Kun Apple kan refundere et køb."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Det går inte att ångra. Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen och din iCloud, samt din kreditpost. Oanvända krediter går förlorade, och startkrediter ges bara en gång per iPhone."
+            "value": "Det går inte att ångra. Det här raderar din konversation, ditt minne, din sparade plan, dina inställningar och nycklar från den här iPhonen och din iCloud, samt din kreditpost. Oanvända krediter går förlorade, även köpta, och startkrediter ges bara en gång per iPhone. Bara Apple kan återbetala ett köp."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dette kan ikke angres. Det sletter samtalen, minnet, den lagrede planen, innstillingene og nøklene dine fra denne iPhonen og iCloud, i tillegg til kredittoppføringen din. Ubrukte kreditter går tapt, og startkreditter gis bare én gang per iPhone."
+            "value": "Dette kan ikke angres. Det sletter samtalen, minnet, den lagrede planen, innstillingene og nøklene dine fra denne iPhonen og iCloud, i tillegg til kredittoppføringen din. Ubrukte kreditter går tapt, også kjøpte, og startkreditter gis bare én gang per iPhone. Bare Apple kan refundere et kjøp."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tätä ei voi perua. Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta ja iCloudistasi sekä krediittitietosi. Käyttämättömät krediitit menetetään, ja aloituskrediitit annetaan vain kerran iPhonea kohden."
+            "value": "Tätä ei voi perua. Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta ja iCloudistasi sekä krediittitietosi. Käyttämättömät krediitit menetetään, myös ostetut, ja aloituskrediitit annetaan vain kerran iPhonea kohden. Vain Apple voi hyvittää ostoksen."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não é possível anular. Isto apaga a tua conversa, memória, plano guardado, definições e chaves deste iPhone e do teu iCloud, bem como o teu registo de Créditos. Os Créditos não usados perdem-se, e os Créditos iniciais só são atribuídos uma vez por iPhone."
+            "value": "Não é possível anular. Isto apaga a tua conversa, memória, plano guardado, definições e chaves deste iPhone e do teu iCloud, bem como o teu registo de Créditos. Os Créditos não usados perdem-se, incluindo os comprados, e os Créditos iniciais só são atribuídos uma vez por iPhone. Só a Apple pode reembolsar uma compra."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não é possível desfazer. Isso apaga sua conversa, memória, plano salvo, ajustes e chaves deste iPhone e do seu iCloud, além do seu registro de Créditos. Créditos não usados são perdidos, e os Créditos iniciais são concedidos só uma vez por iPhone."
+            "value": "Não é possível desfazer. Isso apaga sua conversa, memória, plano salvo, ajustes e chaves deste iPhone e do seu iCloud, além do seu registro de Créditos. Créditos não usados são perdidos, incluindo os comprados, e os Créditos iniciais são concedidos só uma vez por iPhone. Só a Apple pode reembolsar uma compra."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tego nie można cofnąć. To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a i z twojego iCloud, a także twój rekord kredytów. Niewykorzystane kredyty przepadną, a kredyty na start są przyznawane tylko raz na iPhone’a."
+            "value": "Tego nie można cofnąć. To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a i z twojego iCloud, a także twój rekord kredytów. Niewykorzystane kredyty przepadną, także kupione, a kredyty na start są przyznawane tylko raz na iPhone’a. Tylko Apple może zwrócić pieniądze za zakup."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이 작업은 되돌릴 수 없습니다. 이 iPhone과 iCloud에서 대화, 메모리, 저장된 계획, 설정, 키를 삭제하고 크레딧 기록도 삭제합니다. 사용하지 않은 크레딧은 사라지며, 시작 크레딧은 iPhone당 한 번만 지급됩니다."
+            "value": "이 작업은 되돌릴 수 없습니다. 이 iPhone과 iCloud에서 대화, 메모리, 저장된 계획, 설정, 키를 삭제하고 크레딧 기록도 삭제합니다. 사용하지 않은 크레딧은 구매한 크레딧을 포함해 사라지며, 시작 크레딧은 iPhone당 한 번만 지급됩니다. 구매 환불은 Apple만 할 수 있습니다."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この操作は取り消せません。このiPhoneとiCloudから会話、メモリ、保存したプラン、設定、キーを削除し、クレジットの記録も削除します。未使用のクレジットは失われ、初回クレジットはiPhoneごとに1回だけ付与されます。"
+            "value": "この操作は取り消せません。このiPhoneとiCloudから会話、メモリ、保存したプラン、設定、キーを削除し、クレジットの記録も削除します。未使用のクレジットは購入分も含めて失われ、初回クレジットはiPhoneごとに1回だけ付与されます。購入の返金はAppleのみが行えます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此操作无法撤销。这会从此 iPhone 和你的 iCloud 中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失，且每台 iPhone 只能获得一次初始积分。"
+            "value": "此操作无法撤销。这会从此 iPhone 和你的 iCloud 中删除你的对话、记忆、已保存的计划、设置和密钥，并删除你的积分记录。未使用的积分将丢失（包括购买的积分），且每台 iPhone 只能获得一次初始积分。只有 Apple 可以为购买退款。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此動作無法復原。這會從此 iPhone 和你的 iCloud 刪除你的對話、記憶、已儲存的計畫、設定和金鑰，並刪除你的點數紀錄。未使用的點數將會遺失，且每支 iPhone 只能獲得一次初始點數。"
+            "value": "此動作無法復原。這會從此 iPhone 和你的 iCloud 刪除你的對話、記憶、已儲存的計畫、設定和金鑰，並刪除你的點數紀錄。未使用的點數將會遺失（包括購買的點數），且每支 iPhone 只能獲得一次初始點數。只有 Apple 可以為購買退款。"
           }
         }
       }
