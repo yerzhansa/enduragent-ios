@@ -8,18 +8,6 @@ struct SettingsView: View {
 		List {
 			Section(model.phrasebook.say(Catalog.settingsModelAccessTitle, [:])) {
 				NavigationLink(
-					model.phrasebook.say(Catalog.accessTitle), value: ShellDestination.accessMethod
-				)
-				.accessibilityIdentifier("settings.accessMethod")
-				if let choices = model.modelChoices {
-					NavigationLink(value: ShellDestination.modelPicker) {
-						LabeledContent(
-							model.phrasebook.say(Catalog.settingsCoachModel),
-							value: choices.selected.details.displayName)
-					}
-					.accessibilityIdentifier("settings.model")
-				}
-				NavigationLink(
 					model.phrasebook.say(Catalog.creditsTitle, [:]), value: ShellDestination.credits
 				)
 				.accessibilityIdentifier("settings.credits")

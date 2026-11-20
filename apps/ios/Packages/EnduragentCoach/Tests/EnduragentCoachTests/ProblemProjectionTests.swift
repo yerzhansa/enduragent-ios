@@ -29,10 +29,8 @@ import Testing
 		case .recoveryUnavailable: return .recoveryUnavailable(.unavailable)
 		case .importsUnavailable: return .importsUnavailable(.main, .rejectedBatch)
 		case .secureStorageFailed:
-			return .secureStorageFailed(.openRouterAccountKey, failure: .keychain(-25_300))
+			return .secureStorageFailed(.creditsAccount, failure: .keychain(-25_300))
 		case .preferencesUnavailable: return .preferencesUnavailable(.unavailable)
-		case .consentUnavailable:
-			return .consentUnavailable(.trainingIdentityUnverified(.credentialRejected))
 		case .snapshotReadFailed:
 			return .snapshotReadFailed(attempt, .wellness, .temporarilyUnavailable)
 		case .snapshotDeadlineMissed: return .snapshotDeadlineMissed(attempt)
@@ -56,6 +54,7 @@ import Testing
 		case .erasureNotStarted: return .erasureNotStarted(.url(-1009))
 		case .erasureNotFinished: return .erasureNotFinished(.files, .cocoa(513))
 		case .erasureUnconfirmed: return .erasureUnconfirmed(.url(-1009))
+		case .purchaseNotFinished: return .purchaseNotFinished(.claimLater, .url(-1009))
 		}
 	}
 

@@ -133,17 +133,15 @@ public struct AthleteNotice: Sendable, Equatable {
 public enum RecoveryAction: Sendable, Equatable {
 	case tryAgain(TurnID)
 	case wait(thenTryAgain: TurnID)
-	case chooseAccessMethod
-	case switchToOpenRouter
-	case signInToOpenRouter
+	case buyCredits
+	case askAppleForRefund(CreditsPurchase.ID)
 	case connectTraining
 
 	public var title: CatalogKey {
 		switch self {
 		case .tryAgain, .wait: Catalog.chatTranscriptRetry
-		case .chooseAccessMethod: Catalog.chatTurnChooseAccessMethod
-		case .switchToOpenRouter: Catalog.accessSwitchToOpenRouter
-		case .signInToOpenRouter: Catalog.chatTurnSignInAgain
+		case .buyCredits: Catalog.chatTurnBuyCredits
+		case .askAppleForRefund: Catalog.creditsPurchaseAskForRefund
 		case .connectTraining: Catalog.onboardingConnectAction
 		}
 	}
@@ -187,7 +185,6 @@ extension ReviewOutcome {
 }
 
 package enum AthleteNotices {
-	private static let openRouter = "OpenRouter"
 	private static let intervals = "intervals.icu"
 	package static let unrecoveredClaim = AthleteNotice(
 		key: Catalog.chatHistoryFailure, actions: [])
@@ -216,24 +213,12 @@ package enum AthleteNotices {
 	{
 		let tryAgain = turn.map { [RecoveryAction.tryAgain($0)] } ?? []
 		switch failure {
-		case .model(.credentialRejected(.credits)):
-			return AthleteNotice(
-				key: Catalog.creditsErrorAccessRejected, actions: [.switchToOpenRouter])
-		case .model(.credentialRejected(.openRouterAccount)):
-			return AthleteNotice(
-				key: Catalog.coachErrorReauth, vars: ["provider": .text(openRouter)],
-				actions: [])
-		case .model(.accessUnavailable(.openRouterKeyRejected)):
-			return AthleteNotice(
-				key: Catalog.coachErrorReauth, vars: ["provider": .text(openRouter)], actions: [])
+		case .model(.credentialRejected), .model(.accessUnavailable(.openRouterKeyRejected)):
+			return AthleteNotice(key: Catalog.creditsErrorAccessRejected, actions: [])
 		case .model(.requestBlocked):
 			return AthleteNotice(key: Catalog.accessErrorRequestBlocked, actions: [])
-		case .model(.accessExhausted(.credits)):
-			return AthleteNotice(
-				key: Catalog.creditsErrorExhausted, actions: [.switchToOpenRouter])
-		case .model(.accessExhausted(.openRouterAccount)):
-			return AthleteNotice(
-				key: Catalog.accessErrorOpenRouterFunds, actions: [.chooseAccessMethod])
+		case .model(.accessExhausted):
+			return AthleteNotice(key: Catalog.creditsErrorExhausted, actions: [.buyCredits])
 		case .model(.rateLimited(let retryAfter)):
 			let offer = waiting ? RecoveryAction.wait(thenTryAgain:) : RecoveryAction.tryAgain
 			return rateLimitNotice(after: retryAfter, actions: turn.map { [offer($0)] } ?? [])
@@ -253,16 +238,14 @@ package enum AthleteNotices {
 		case .model(.accessUnavailable(.secureStorageLocked)):
 			return AthleteNotice(key: Catalog.accessErrorLocked, actions: tryAgain)
 		case .model(.accessUnavailable(.notConfigured)):
-			return AthleteNotice(
-				key: Catalog.accessErrorNotConfigured, actions: [.chooseAccessMethod])
+			return AthleteNotice(key: Catalog.accessErrorNotConfigured, actions: [.buyCredits])
 		case .model(.accessUnavailable(.secureStorageUnavailable)):
-			return AthleteNotice(
-				key: Catalog.accessErrorStorageUnavailable, actions: [.chooseAccessMethod])
+			return AthleteNotice(key: Catalog.accessErrorStorageUnavailable, actions: tryAgain)
 		case .model(.accessUnavailable(.malformedStoredCredential(.intervalsConnection))):
 			return AthleteNotice(
 				key: Catalog.connectErrorStorageMalformed, actions: [.connectTraining])
 		case .model(.accessUnavailable(.malformedStoredCredential)):
-			return AthleteNotice(key: Catalog.accessErrorMalformed, actions: [.chooseAccessMethod])
+			return AthleteNotice(key: Catalog.creditsErrorAccessRejected, actions: [])
 		case .local(.recordStorage), .model(.accessUnavailable(.recordStorageUnavailable)):
 			return AthleteNotice(key: Catalog.coachHistoryDiskFull, actions: [])
 		}
@@ -292,7 +275,6 @@ package enum AthleteNotices {
 	}
 
 	package static func notice(for status: CoachStatus) -> AthleteNotice? {
-		if status.access.attention == .rejectedKey { return nil }
 		if case .accessTemporarilyUnavailable(let unavailable) = status.setup {
 			return notice(outsideTurn: unavailable)
 		}

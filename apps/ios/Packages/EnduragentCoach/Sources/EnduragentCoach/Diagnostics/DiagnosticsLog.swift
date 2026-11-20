@@ -72,7 +72,6 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case importsUnavailable(ChatID, LedgerFailure)
 	case secureStorageFailed(CredentialSlot, failure: KeychainStoreError)
 	case preferencesUnavailable(LedgerFailure)
-	case consentUnavailable(AccessUnavailable)
 	case snapshotReadFailed(AttemptID, SnapshotLineKind, TrainingFailure)
 	case snapshotDeadlineMissed(AttemptID)
 	case reviewOutcomeUnsaved(LedgerFailure)
@@ -88,6 +87,7 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case erasureNotStarted(FailureCode)
 	case erasureNotFinished(ErasureStep, FailureCode)
 	case erasureUnconfirmed(FailureCode)
+	case purchaseNotFinished(PurchaseStep, FailureCode)
 }
 
 extension JournalOpening {

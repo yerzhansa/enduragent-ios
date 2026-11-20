@@ -5,14 +5,13 @@ extension ShellModel {
 		switch action {
 		case .tryAgain(let turn), .wait(let turn):
 			await tryAgain(turn)
+		case .buyCredits:
+			open(.credits)
+		case .askAppleForRefund(let purchase):
+			await askAppleForRefund(purchase)
 		case .connectTraining:
 			open(.training)
 			trainingSettings.edit()
-		case .signInToOpenRouter:
-			guard status.access.attention == .rejectedKey else { return }
-			await chooseAccess(.signInToOpenRouter)
-		case .chooseAccessMethod, .switchToOpenRouter:
-			open(.accessMethod)
 		}
 	}
 

@@ -51,18 +51,12 @@
 		case empty
 		case unavailable
 		case malformedIntervals = "malformed-intervals"
-		case malformedAccess = "malformed-access"
 	}
 
 	enum FixtureAccessMethod: String, CaseIterable {
-		case catalogOpenRouter = "catalog-openrouter"
 		case credits
-		case openRouter = "openrouter"
-		case missingOpenRouter = "missing-openrouter"
-		case rejectedOpenRouter = "rejected-openrouter"
-		case syncedOpenRouter = "synced-openrouter"
+		case build9OpenRouter = "build9-openrouter"
 		case creditsNeedsSetup = "credits-needs-setup"
-		case openRouterNeedsCredits = "openrouter-needs-credits"
 	}
 
 	enum FixtureCreditsOutcome: String, CaseIterable {
@@ -73,12 +67,14 @@
 		case alreadyGranted = "already-granted"
 	}
 
-	enum FixtureSignInOutcome: String, CaseIterable {
-		case success
+	enum FixturePurchaseOutcome: String, CaseIterable {
+		case added
+		case pending
 		case cancel
-		case rejectedCallback = "rejected-callback"
-		case exchangeFailure = "exchange-failure"
-		case held
+		case fail
+		case notAddedYet = "not-added-yet"
+		case refused
+		case notForSale = "not-for-sale"
 	}
 
 	enum FixtureCalendarSaveFault: String {
@@ -138,7 +134,6 @@
 
 	enum FixtureCredentialWriteFault: String {
 		case failOnce = "fail-once"
-		case failSelection = "fail-selection"
 	}
 
 	enum FixtureErasure: String, CaseIterable {
@@ -193,12 +188,12 @@
 		var credentialWriteFault: FixtureCredentialWriteFault?
 		var accessMethod = FixtureAccessMethod.credits
 		var creditsOutcome = FixtureCreditsOutcome.ready
-		var signInOutcome = FixtureSignInOutcome.cancel
 		var catalogResponse = FixtureCatalogResponse.offline
 		var textSize: FixtureTextSize?
 		var feedback: FixtureFeedbackScript?
 		var journal: FixtureJournal?
 		var erasure: FixtureErasure?
+		var purchase: FixturePurchaseOutcome?
 
 		var launchArguments: [String] {
 			var values = [
@@ -244,12 +239,12 @@
 			}
 			values += ["-EnduragentFixtureAccess", accessMethod.rawValue]
 			values += ["-EnduragentFixtureCredits", creditsOutcome.rawValue]
-			values += ["-EnduragentFixtureSignIn", signInOutcome.rawValue]
 			values += ["-EnduragentFixtureCatalog", catalogResponse.rawValue]
 			if let textSize { values += [Self.textSizeArgument, textSize.rawValue] }
 			if let feedback { values += ["-EnduragentFixtureFeedback", feedback.rawValue] }
 			if let journal { values += ["-EnduragentFixtureJournal", journal.rawValue] }
 			if let erasure { values += ["-EnduragentFixtureErasure", erasure.rawValue] }
+			if let purchase { values += ["-EnduragentFixturePurchase", purchase.rawValue] }
 			return values
 		}
 
@@ -291,12 +286,12 @@
 			credentialWriteFault = try policy(values, "-EnduragentFixtureCredentialWrite")
 			accessMethod = try policy(values, "-EnduragentFixtureAccess") ?? .credits
 			creditsOutcome = try policy(values, "-EnduragentFixtureCredits") ?? .ready
-			signInOutcome = try policy(values, "-EnduragentFixtureSignIn") ?? .cancel
 			catalogResponse = try policy(values, "-EnduragentFixtureCatalog") ?? .offline
 			textSize = try policy(values, Self.textSizeArgument)
 			feedback = try policy(values, "-EnduragentFixtureFeedback")
 			journal = try policy(values, "-EnduragentFixtureJournal")
 			erasure = try policy(values, "-EnduragentFixtureErasure")
+			purchase = try policy(values, "-EnduragentFixturePurchase")
 		}
 
 		private static let textSizeArgument = "-UIPreferredContentSizeCategoryName"

@@ -110,12 +110,16 @@ struct CreditsClientTests {
 		}
 	}
 
-	@Test("claim settlement finishes only after terminal outcome")
-	func claimSettlementFinishesOnlyAfterTerminalOutcome() {
-		#expect(
-			ClaimSettlement.settlement(after: .alreadyClaimed, hasKey: false) == .recoverThenFinish
-		)
-		#expect(ClaimSettlement.settlement(after: .alreadyClaimed, hasKey: true) == .finish)
+	@Test("claim settlement recovers every keyless answer on a phone without a key")
+	func claimSettlementRecoversEveryKeylessAnswerOnAPhoneWithoutAKey() {
+		let keyless: [ClaimOutcome] = [
+			.alreadyClaimed, .toppedUp(creditsAdded: Credits(units: 401)),
+			.toppedUp(creditsAdded: Credits(units: 0)),
+		]
+		for outcome in keyless {
+			#expect(ClaimSettlement.settlement(after: outcome, hasKey: false) == .recoverThenFinish)
+			#expect(ClaimSettlement.settlement(after: outcome, hasKey: true) == .finish)
+		}
 		#expect(
 			ClaimSettlement.settlement(
 				after: .minted(creditsAdded: Credits(units: 200)),

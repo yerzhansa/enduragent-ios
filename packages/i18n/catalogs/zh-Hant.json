@@ -104,7 +104,6 @@
       "activeUnavailable": "目前啟用的教練設定無法使用或尚未設定。",
       "automatic": "自動",
       "changeRequired": "需要變更",
-      "chooseModel": "選擇模型",
       "chooseProvider": "選擇供應商",
       "chooseProviderFirst": "請先選擇供應商",
       "currentRoute": "目前啟用：{{provider}} · {{model}}",
@@ -119,7 +118,6 @@
       },
       "inactive": "未啟用",
       "loading": "正在載入教練設定…",
-      "model": "模型",
       "notConfigured": "尚未設定",
       "otherModel": "其他模型…",
       "provider": "供應商",
@@ -654,7 +652,6 @@
         "mostCapable": "能力最強",
         "recommended": "建議"
       },
-      "modelVia": "{{model}}（透過 {{provider}}）",
       "otherModel": "其他模型…",
       "pending": {
         "activation": "提供教練所需的 AI · 已登入 · 需要啟用",
@@ -1474,12 +1471,11 @@
     },
     "menu": "選單",
     "turn": {
-      "chooseAccessMethod": "選擇存取方式",
+      "buyCredits": "購買點數",
       "finishedWhileLocked": "已在手機鎖定期間完成。",
       "interruptedNothingChanged": "本次回覆在完成前中斷。未做任何變更。",
       "interruptedSomeSaved": "本次回覆在完成前中斷。部分資訊已在中斷前儲存。",
-      "receivedBeforeClose": "已在應用程式關閉前收到。點一下「重試」即可傳送。",
-      "signInAgain": "重新登入"
+      "receivedBeforeClose": "已在應用程式關閉前收到。點一下「重試」即可傳送。"
     },
     "welcome": "歡迎使用 {{product}}！\n\n我是 AI 自行車教練，可以使用 {{service}} 資料制定訓練計畫、推薦訓練課表並追蹤體能。\n\n指令：\n{{commands}}\n\n也可以直接和我聊聊訓練！",
     "welcomeCommand": "{{command}} — {{description}}",
@@ -2661,7 +2657,6 @@
       "rateLimitDefault": "請求過於頻繁，請約一分鐘後重試。",
       "rateLimitMinutes_other": "請求過於頻繁，請約 {{minutes}} 分鐘後重試。",
       "rateLimitSeconds_other": "請求過於頻繁，請約 {{seconds}} 秒後重試。",
-      "reauth": "{{provider}} 登入已失效，請重新登入以繼續。",
       "reauthSetup": "{{provider}} 登入已失效，請開啟初始設定並重新登入。",
       "unknown": "抱歉，出了點問題。請重試。"
     },
@@ -2981,10 +2976,20 @@
     "title": "點數",
     "balance_other": "{{formattedCount}} 點數",
     "error": {
-      "accessRejected": "無法使用你的點數。你可以切換到你的 OpenRouter 帳戶。",
-      "exhausted": "你的點數已用完。你可以切換到你的 OpenRouter 帳戶。",
+      "accessRejected": "無法使用你的點數。你可以在設定的意見回饋中告訴我們。",
+      "exhausted": "你的點數已用完。你可以購買點數。",
       "unavailable": "點數目前無法使用。請稍後重試。",
       "accountChanged": "完成此請求期間，你的點數帳戶發生了變更。你目前的帳戶已保留。"
+    },
+    "buy": "購買",
+    "packPrice_other": "{{formattedCount}} 點數 · {{price}}",
+    "purchase": {
+      "pending": "Apple 仍在處理此次購買。處理完成後將新增點數。",
+      "unavailable": "目前無法購買點數。請稍後重試。",
+      "failed": "購買未完成。",
+      "notAdded": "你的購買已完成，但點數尚未新增。下次開啟應用程式時會再試一次。",
+      "refused": "你的購買已完成，但無法新增點數。你可以向 Apple 申請退款。",
+      "askForRefund": "向 Apple 申請退款"
     }
   },
   "onboarding": {
@@ -3021,19 +3026,11 @@
   "access": {
     "error": {
       "locked": "請解鎖 iPhone 以繼續。你的訊息已儲存。",
-      "notConfigured": "請選擇教練連接模型的方式以繼續。",
-      "requestBlocked": "OpenRouter 封鎖了此請求。請嘗試其他模型或訊息。",
+      "notConfigured": "這支 iPhone 沒有點數。你可以購買點數。",
+      "requestBlocked": "此訊息已被封鎖。請嘗試其他訊息。",
       "providerConsentRequired": "與 AI 服務供應商分享聊天資料前，需要取得你的許可。",
-      "openRouterFunds": "你的 OpenRouter 帳戶餘額不足。請在 OpenRouter 儲值，或切換到點數。",
-      "storageUnavailable": "安全儲存空間暫時無法使用。你的對話、歷史紀錄和記憶仍在。請重試。",
-      "malformed": "無法讀取已儲存的存取方式。請選擇存取方式以繼續。"
-    },
-    "title": "存取方式",
-    "openRouterAccount": "OpenRouter 帳戶",
-    "signIn": "使用 OpenRouter 登入",
-    "signInCancelled": "登入已取消。你的存取方式未變更。",
-    "signInIncomplete": "OpenRouter 登入未完成。你的存取方式未變更。請重試。",
-    "switchToOpenRouter": "切換到 OpenRouter"
+      "storageUnavailable": "安全儲存空間暫時無法使用。你的對話、歷史紀錄和記憶仍在。請重試。"
+    }
   },
   "connect": {
     "error": {
@@ -3155,9 +3152,9 @@
     "deleteEverything": "刪除所有內容",
     "confirm": {
       "title": "要刪除所有內容嗎？",
-      "body": "此動作無法復原。這會從此 iPhone 和你的 iCloud 刪除你的對話、記憶、已儲存的計畫、設定和金鑰，並刪除你的點數紀錄。未使用的點數將會遺失，且每支 iPhone 只能獲得一次初始點數。"
+      "body": "此動作無法復原。這會從此 iPhone 和你的 iCloud 刪除你的對話、記憶、已儲存的計畫、設定和金鑰，並刪除你的點數紀錄。未使用的點數將會遺失（包括購買的點數），且每支 iPhone 只能獲得一次初始點數。只有 Apple 可以為購買退款。"
     },
-    "keeps": "你的 intervals.icu 帳戶和訓練會保留在 intervals.icu 上。如果你使用自己的 OpenRouter 帳戶登入，請在 OpenRouter 上刪除其金鑰。",
+    "keeps": "你的 intervals.icu 帳戶和訓練會保留在 intervals.icu 上。",
     "progress": "正在刪除…",
     "done": "所有內容已從此 iPhone、你的 iCloud 和點數服務中刪除。",
     "notStarted": "沒有刪除任何內容。請連線到網際網路後再試一次。",

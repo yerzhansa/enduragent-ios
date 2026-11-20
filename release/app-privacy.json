@@ -4,7 +4,7 @@
 		{
 			"type": "NSPrivacyCollectedDataTypeHealth",
 			"label": "Health",
-			"data": "Wellness values from intervals.icu that a coaching turn on the Credits path sends.",
+			"data": "Wellness values from intervals.icu that a coaching turn sends.",
 			"linked": true,
 			"tracking": false,
 			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
@@ -12,7 +12,7 @@
 		{
 			"type": "NSPrivacyCollectedDataTypeFitness",
 			"label": "Fitness",
-			"data": "Activities, workouts and the training calendar from intervals.icu that a coaching turn on the Credits path sends.",
+			"data": "Activities, workouts and the training calendar from intervals.icu that a coaching turn sends.",
 			"linked": true,
 			"tracking": false,
 			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
@@ -20,7 +20,7 @@
 		{
 			"type": "NSPrivacyCollectedDataTypeOtherUserContent",
 			"label": "Other User Content",
-			"data": "The athlete's messages and the coach's memory that a coaching turn on the Credits path sends.",
+			"data": "The athlete's messages and the coach's memory that a coaching turn sends.",
 			"linked": true,
 			"tracking": false,
 			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
@@ -29,6 +29,14 @@
 			"type": "NSPrivacyCollectedDataTypeUserID",
 			"label": "User ID",
 			"data": "The athlete id the app creates and the Credits service keeps.",
+			"linked": true,
+			"tracking": false,
+			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+		},
+		{
+			"type": "NSPrivacyCollectedDataTypePurchaseHistory",
+			"label": "Purchase History",
+			"data": "Credits purchases the Credits service keeps for the Credits id: transaction ids, pack, price, currency and environment.",
 			"linked": true,
 			"tracking": false,
 			"purposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]

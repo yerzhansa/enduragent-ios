@@ -8,24 +8,19 @@ extension TurnRunner {
 	}
 }
 
-package enum ModelInvocation: Sendable {
-	case authorize(CompletionRequest)
-	case rejected(CompletionRequest)
-}
-
 struct ModelCall: Sendable {
 	let transport: any ModelTransport
 	let diagnostics: DiagnosticsLog
 	let watchdogSleep: @Sendable (Duration) async throws -> Void
 
-	let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void
+	let authorizeInvocation: @Sendable (CompletionRequest) async throws -> Void
 	let meter: UsageMeter
 
 	func run(
 		request: CompletionRequest,
 		progress: @escaping AttemptProgressSink = { _ in }
 	) async throws -> GenerateStep {
-		try await authorizeInvocation(.authorize(request))
+		try await authorizeInvocation(request)
 		let watchdog = ChatWatchdog(sleep: watchdogSleep)
 		await watchdog.arm()
 		let step: GenerateStep
@@ -59,9 +54,6 @@ struct ModelCall: Sendable {
 		} catch {
 			meter.addFailure()
 			await watchdog.disarm()
-			if case .credentialRejected = error as? ProviderFailure {
-				try await authorizeInvocation(.rejected(request))
-			}
 			throw error
 		}
 		meter.add(step.usage)

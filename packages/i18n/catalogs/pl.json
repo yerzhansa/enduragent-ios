@@ -107,7 +107,6 @@
       "activeUnavailable": "Ustawienia aktywnego trenera są niedostępne lub nie zostały skonfigurowane.",
       "automatic": "Automatycznie",
       "changeRequired": "Wymagana zmiana",
-      "chooseModel": "Wybierz model",
       "chooseProvider": "Wybierz dostawcę",
       "chooseProviderFirst": "Najpierw wybierz dostawcę",
       "currentRoute": "Obecnie aktywne: {{provider}} · {{model}}",
@@ -122,7 +121,6 @@
       },
       "inactive": "Nieaktywne",
       "loading": "Wczytywanie ustawień trenera…",
-      "model": "Model",
       "notConfigured": "Nieskonfigurowane",
       "otherModel": "Inny model…",
       "provider": "Dostawca",
@@ -660,7 +658,6 @@
         "mostCapable": "największe możliwości",
         "recommended": "zalecany"
       },
-      "modelVia": "{{model}} (przez {{provider}})",
       "otherModel": "Inny model…",
       "pending": {
         "activation": "Obsługuje twojego trenera · zalogowano · wymagana aktywacja",
@@ -1513,12 +1510,11 @@
     },
     "menu": "Menu",
     "turn": {
-      "chooseAccessMethod": "Wybierz sposób dostępu",
+      "buyCredits": "Kup kredyty",
       "finishedWhileLocked": "Zakończono, gdy telefon był zablokowany.",
       "interruptedNothingChanged": "Ta odpowiedź została przerwana przed zakończeniem. Nic nie zostało zmienione.",
       "interruptedSomeSaved": "Ta odpowiedź została przerwana przed zakończeniem. Część informacji zapisano wcześniej.",
-      "receivedBeforeClose": "Odebrano przed zamknięciem aplikacji. Stuknij Spróbuj ponownie, aby wysłać wiadomość.",
-      "signInAgain": "Zaloguj się ponownie"
+      "receivedBeforeClose": "Odebrano przed zamknięciem aplikacji. Stuknij Spróbuj ponownie, aby wysłać wiadomość."
     },
     "welcome": "Witaj w {{product}}!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z {{service}}.\n\nPolecenia:\n{{commands}}\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!",
     "welcomeCommand": "{{command}} — {{description}}",
@@ -2757,7 +2753,6 @@
       "rateLimitSeconds_few": "Osiągnięto limit żądań — spróbuj ponownie za ~{{seconds}} sekundy.",
       "rateLimitSeconds_many": "Osiągnięto limit żądań — spróbuj ponownie za ~{{seconds}} sekund.",
       "rateLimitSeconds_other": "Osiągnięto limit żądań — spróbuj ponownie za ~{{seconds}} sekundy.",
-      "reauth": "Twoje logowanie do {{provider}} nie jest już ważne. Zaloguj się ponownie, aby kontynuować.",
       "reauthSetup": "Twoje logowanie do {{provider}} nie jest już ważne. Otwórz Konfigurację i zaloguj się ponownie.",
       "unknown": "Przepraszam, coś poszło nie tak. Spróbuj ponownie."
     },
@@ -3092,10 +3087,23 @@
     "balance_few": "{{formattedCount}} kredyty",
     "balance_many": "{{formattedCount}} kredytów",
     "error": {
-      "accessRejected": "Nie udało się użyć twoich kredytów. Możesz przełączyć się na swoje konto OpenRouter.",
-      "exhausted": "Skończyły ci się kredyty. Możesz przełączyć się na swoje konto OpenRouter.",
+      "accessRejected": "Nie udało się użyć twoich kredytów. Możesz nam o tym napisać w sekcji Opinia w Ustawieniach.",
+      "exhausted": "Skończyły ci się kredyty. Możesz kupić kredyty.",
       "unavailable": "Kredyty są teraz niedostępne. Spróbuj ponownie później.",
       "accountChanged": "Twoje konto kredytów zmieniło się podczas kończenia tego żądania. Zachowano twoje obecne konto."
+    },
+    "buy": "Kup",
+    "packPrice_one": "{{formattedCount}} kredyt · {{price}}",
+    "packPrice_other": "{{formattedCount}} kredytu · {{price}}",
+    "packPrice_few": "{{formattedCount}} kredyty · {{price}}",
+    "packPrice_many": "{{formattedCount}} kredytów · {{price}}",
+    "purchase": {
+      "pending": "Apple wciąż przetwarza ten zakup. Kredyty zostaną dodane, gdy się zakończy.",
+      "unavailable": "Nie można teraz kupić kredytów. Spróbuj ponownie później.",
+      "failed": "Zakup nie został ukończony.",
+      "notAdded": "Twój zakup został zrealizowany, ale kredyty nie zostały jeszcze dodane. Aplikacja spróbuje ponownie przy następnym otwarciu.",
+      "refused": "Twój zakup został zrealizowany, ale nie można dodać kredytów. Możesz poprosić Apple o zwrot pieniędzy.",
+      "askForRefund": "Poproś Apple o zwrot pieniędzy"
     }
   },
   "onboarding": {
@@ -3135,19 +3143,11 @@
   "access": {
     "error": {
       "locked": "Odblokuj iPhone’a, aby kontynuować. Twoja wiadomość jest zapisana.",
-      "notConfigured": "Wybierz sposób dostępu trenera do modelu, aby kontynuować.",
-      "requestBlocked": "OpenRouter zablokował to żądanie. Spróbuj innego modelu lub wiadomości.",
+      "notConfigured": "Ten iPhone nie ma kredytów. Możesz kupić kredyty.",
+      "requestBlocked": "Ta wiadomość została zablokowana. Spróbuj innej wiadomości.",
       "providerConsentRequired": "Potrzebujemy Twojej zgody przed udostępnieniem danych z czatu dostawcom AI.",
-      "openRouterFunds": "Na twoim koncie OpenRouter zabrakło środków. Doładuj konto w OpenRouter lub przełącz się na kredyty.",
-      "storageUnavailable": "Bezpieczny magazyn jest tymczasowo niedostępny. Twoja rozmowa, historia i pamięć nadal tu są. Spróbuj ponownie.",
-      "malformed": "Nie udało się odczytać zapisanego sposobu dostępu. Wybierz sposób dostępu, aby kontynuować."
-    },
-    "title": "Sposób dostępu",
-    "openRouterAccount": "Konto OpenRouter",
-    "signIn": "Zaloguj się przez OpenRouter",
-    "signInCancelled": "Logowanie anulowane. Twoja metoda dostępu nie została zmieniona.",
-    "signInIncomplete": "Logowanie do OpenRouter nie zostało ukończone. Twoja metoda dostępu nie została zmieniona. Spróbuj ponownie.",
-    "switchToOpenRouter": "Przełącz na OpenRouter"
+      "storageUnavailable": "Bezpieczny magazyn jest tymczasowo niedostępny. Twoja rozmowa, historia i pamięć nadal tu są. Spróbuj ponownie."
+    }
   },
   "connect": {
     "error": {
@@ -3287,9 +3287,9 @@
     "deleteEverything": "Usuń wszystko",
     "confirm": {
       "title": "Usunąć wszystko?",
-      "body": "Tego nie można cofnąć. To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a i z twojego iCloud, a także twój rekord kredytów. Niewykorzystane kredyty przepadną, a kredyty na start są przyznawane tylko raz na iPhone’a."
+      "body": "Tego nie można cofnąć. To usunie twoją rozmowę, pamięć, zapisany plan, ustawienia i klucze z tego iPhone’a i z twojego iCloud, a także twój rekord kredytów. Niewykorzystane kredyty przepadną, także kupione, a kredyty na start są przyznawane tylko raz na iPhone’a. Tylko Apple może zwrócić pieniądze za zakup."
     },
-    "keeps": "Twoje konto intervals.icu i treningi zostają w intervals.icu. Jeśli zalogowano cię własnym kontem OpenRouter, usuń jego klucz w OpenRouter.",
+    "keeps": "Twoje konto intervals.icu i treningi zostają w intervals.icu.",
     "progress": "Usuwanie…",
     "done": "Wszystko zostało usunięte z tego iPhone’a, z twojego iCloud i z usługi kredytów.",
     "notStarted": "Nic nie zostało usunięte. Połącz się z internetem i spróbuj ponownie.",

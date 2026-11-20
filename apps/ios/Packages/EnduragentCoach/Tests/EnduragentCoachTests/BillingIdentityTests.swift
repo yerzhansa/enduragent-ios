@@ -8,9 +8,7 @@ import Testing
 
 extension CreditsClientTests {
 	@Suite struct BillingIdentityTests {
-		private let accountKey = "synthetic-openrouter-account"
 		private let creditsKey = "synthetic-credits"
-		private let accountModel = ModelID(rawValue: "test/account-model")
 		private let phone = DeviceID(rawValue: "billing-proof-phone")
 
 		@Test func creditsExhaustionPreservesSavedConversationAndMemory() async throws {
@@ -18,7 +16,7 @@ extension CreditsClientTests {
 			let saved: ChatSnapshot
 			let original: CreditsAccount
 			do {
-				let secrets = try identities(directory, method: .credits)
+				let secrets = try identities(directory)
 				original = try #require(try secrets.creditsAccount())
 				let transport = FakeModelTransport()
 				let coach = try await coach(directory, secrets: secrets, transport: transport)
@@ -42,7 +40,7 @@ extension CreditsClientTests {
 				transport.respond = { _ in ScriptedReply([.fail(.http(status: 402))]) }
 				let exhausted = try await coach.sendAndSettle("Plan my next ride")
 				#expect(failure(exhausted) == .model(.accessExhausted(.credits)))
-				#expect(turnNotice(of: exhausted)?.actions == [.switchToOpenRouter])
+				#expect(turnNotice(of: exhausted)?.actions == [.buyCredits])
 				let balance = try await CreditsURLStub.withHandler({ request in
 					if request.url?.path == "/catalog" { return Self.catalog }
 					#expect(request.url?.host == "openrouter.test")
@@ -59,17 +57,14 @@ extension CreditsClientTests {
 					saved.turns.map(\.athleteText) == [
 						"Remember my Saturday ride", "Plan my next ride",
 					])
-				try assertRequests(transport, method: .credits)
+				try assertRequests(transport, secret: creditsKey)
 				await coach.lifecycle(.willTerminate)
 			}
 			let secrets = try ICloudKeychainStore.fixture(directory: directory).store
 			let transport = FakeModelTransport()
 			let reopened = try await coach(directory, secrets: secrets, transport: transport)
 			#expect(try await snapshot(reopened).turns == saved.turns)
-			#expect(try await reopened.observedStatus().access.savedMethod == .credits)
-			#expect(try secrets.accessSelection() == .init(.credits))
 			#expect(try secrets.creditsAccount() == original)
-			#expect(try secrets.openRouterAccountKey(at: .legacy) == accountKey)
 			transport.respond = ScriptedReply.sequence([
 				.toolCall(
 					name: "memory_query",
@@ -81,15 +76,15 @@ extension CreditsClientTests {
 					== .model(.accessExhausted(.credits)))
 			let result = try #require(transport.requests.last?.messages.last { $0.role == .tool })
 			#expect(result.content.contains("Rides with a group on Saturdays."))
-			try assertRequests(transport, method: .credits)
+			try assertRequests(transport, secret: creditsKey)
 			#expect(try await snapshot(reopened).turns.prefix(2).elementsEqual(saved.turns))
 		}
 
-		@Test func outOfCreditsNoticeKeepsItsActionAfterReopeningAndInHistory() async throws {
+		@Test func outOfCreditsNoticeKeepsBuyCreditsAfterReopeningAndInHistory() async throws {
 			let directory = try TestTemporaryFolders.make()
-			let offered: [RecoveryAction] = [.switchToOpenRouter]
+			let offered: [RecoveryAction] = [.buyCredits]
 			do {
-				let secrets = try identities(directory, method: .credits)
+				let secrets = try identities(directory)
 				let transport = FakeModelTransport(respond: { _ in
 					ScriptedReply([.fail(.http(status: 402))])
 				})
@@ -108,7 +103,6 @@ extension CreditsClientTests {
 			let earlier = try #require(try await reopened.history().first?.id)
 			let archived = try #require(try await reopened.archivedConversation(earlier))
 			#expect(archived.turns.map { turnNotice(of: $0.state)?.actions } == [offered])
-			#expect(try secrets.accessSelection() == .init(.credits))
 		}
 
 		@Test func exhaustedCreditsAreSavedAsTheFailureAlone() throws {
@@ -126,11 +120,11 @@ extension CreditsClientTests {
 		}
 
 		@Test(arguments: ["grant", "claim", "recover"], ["success", "unavailable", "persistence"])
-		func creditsOperationsKeepOpenRouterAndReportFailures(operation: String, fault: String)
+		func creditsOperationsReportFailuresAndKeepCoaching(operation: String, fault: String)
 			async throws
 		{
 			let directory = try TestTemporaryFolders.make()
-			let secrets = try identities(directory, method: .openRouterAccount)
+			let secrets = try identities(directory)
 			let backing = try ICloudKeychainStore.fixture(directory: directory).backing
 			let guardedSecrets = ICloudKeychainStore(backing: backing)
 			let original = try #require(try secrets.creditsAccount())
@@ -181,8 +175,6 @@ extension CreditsClientTests {
 			#expect(sent.first?.value(forHTTPHeaderField: "Authorization") == nil)
 			backing.failWrites(CredentialSlot.creditsAccount.rawValue, with: nil)
 			let reopened = try ICloudKeychainStore.fixture(directory: directory).store
-			#expect(try reopened.accessSelection() == accountSelection)
-			#expect(try reopened.openRouterAccountKey(at: .legacy) == accountKey)
 			if fault == "success" {
 				#expect(try reopened.creditsAccount()?.key == "synthetic-new-credits")
 				#expect(
@@ -196,36 +188,28 @@ extension CreditsClientTests {
 			transport.respond = ScriptedReply.sequence([
 				.toolCall(
 					name: "memory_query", arguments: #"{"from":"1998-06-13","to":"1998-06-13"}"#),
-				.finish(reason: .toolCalls), .text("Your OpenRouter account still works."),
+				.finish(reason: .toolCalls), .text("Your Credits still work."),
 				.finish(reason: .stop),
 			])
 			#expect(
 				replyText(try await coach.sendAndSettle("Read my notes after Credits setup"))
-					== "Your OpenRouter account still works.")
+					== "Your Credits still work.")
 			try #require(transport.requests.count == 2)
 			#expect(transport.requests.last?.messages.contains { $0.role == .tool } == true)
-			try assertRequests(transport, method: .openRouterAccount)
-		}
-
-		private var accountSelection: SavedAccessReference {
-			.init(.openRouter(SavedOpenRouterReference(credential: .legacy, model: accountModel)))
+			try assertRequests(
+				transport, secret: fault == "success" ? "synthetic-new-credits" : creditsKey)
 		}
 
 		private static var catalog: CreditsURLStub.Response {
 			.json(200, #"{"purchasesEnabled":false,"creditsPerUsd":100,"packs":[]}"#)
 		}
 
-		private func identities(_ directory: URL, method: AccessMethod) throws
-			-> ICloudKeychainStore
-		{
+		private func identities(_ directory: URL) throws -> ICloudKeychainStore {
 			try FileManager.default.createDirectory(
 				at: directory, withIntermediateDirectories: true)
 			let secrets = try ICloudKeychainStore.fixture(directory: directory).store
 			try secrets.storeCreditsAccount(
 				CreditsAccount(appAccountToken: UUID(), key: creditsKey))
-			try secrets.storeOpenRouterAccountKey(accountKey, at: .legacy)
-			try secrets.storeAccessSelection(
-				method == .credits ? .init(.credits) : accountSelection)
 			return secrets
 		}
 
@@ -266,14 +250,12 @@ extension CreditsClientTests {
 				})
 		}
 
-		private func assertRequests(_ transport: FakeModelTransport, method: AccessMethod) throws {
+		private func assertRequests(_ transport: FakeModelTransport, secret: String) throws {
 			try #require(!transport.requests.isEmpty)
 			#expect(
 				transport.requests.allSatisfy {
-					$0.credential
-						== ProviderCredential(
-							secret: method == .credits ? creditsKey : accountKey, method: method)
-						&& $0.model == (method == .credits ? testModel : accountModel)
+					$0.credential == ProviderCredential(secret: secret, method: .credits)
+						&& $0.model == testModel
 				})
 		}
 

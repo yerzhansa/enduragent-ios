@@ -56,21 +56,49 @@
 					credential: .apiKey("fixture"), selection: .keyOwner, resolvedAthlete: athlete))
 		}
 
+		static let packs = [
+			CreditPack(id: "icu.enduragent.app.credits.small", credits: Credits(units: 401)),
+			CreditPack(id: "icu.enduragent.app.credits.medium", credits: Credits(units: 802)),
+			CreditPack(id: "icu.enduragent.app.credits.large", credits: Credits(units: 1606)),
+		]
+		static let prices = [
+			"icu.enduragent.app.credits.small": "$4.99",
+			"icu.enduragent.app.credits.medium": "$9.99",
+			"icu.enduragent.app.credits.large": "$19.99",
+		]
+
 		static func install(on credits: FakeCreditsClient) {
 			credits.grantResult = .success(.minted(Credits(units: 200)))
 			credits.catalogResult = .success(
 				PackCatalog(
-					purchasesEnabled: false,
-					scale: CreditScale(creditsPerUsd: 100),
-					packs: [
-						CreditPack(
-							id: "icu.enduragent.credits.small", credits: Credits(units: 500)),
-						CreditPack(
-							id: "icu.enduragent.credits.large", credits: Credits(units: 2000)),
-					]
-				)
-			)
+					purchasesEnabled: true, scale: CreditScale(creditsPerUsd: 100), packs: packs))
 			credits.balanceResult = .success(CreditBalance(credits: Credits(units: 200)))
+		}
+
+		static func install(
+			_ purchase: FixturePurchaseOutcome, on credits: FakeCreditsClient,
+			store: FakeCreditsStore
+		) {
+			credits.claimResult = .success(.toppedUp(creditsAdded: packs[0].credits))
+			switch purchase {
+			case .added:
+				store.answer = .purchased
+			case .pending:
+				store.answer = .pending
+			case .cancel:
+				store.answer = .canceled
+			case .fail:
+				store.answer = .failed
+			case .notAddedYet:
+				credits.claimResult = .failure(.unavailable)
+			case .refused:
+				credits.claimResult = .failure(.banned)
+			case .notForSale:
+				credits.catalogResult = .success(
+					PackCatalog(
+						purchasesEnabled: false, scale: CreditScale(creditsPerUsd: 100),
+						packs: packs))
+			}
 		}
 
 		static func script(for text: String, offersTrainingTools: Bool) -> [ScriptedEvent] {

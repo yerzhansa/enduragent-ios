@@ -1,17 +1,13 @@
 #if DEBUG
 	import EnduragentCoach
-	import StoreKit
 	import SwiftUI
 
 	struct CreditsDebugView: View {
 		let coach: Coach
 		let deviceCheck: any DeviceCheckTokenProviding
 		let displayLocale: DisplayLocale
-		@State private var session: CreditsDebugSession?
 		@State private var balanceText = "—"
 		@State private var starterMessage = ""
-		@State private var catalog: PackCatalog?
-		@State private var products: [String: Product] = [:]
 		@State private var errorText: String?
 		@State private var identityText = "—"
 		@State private var hasKey = false
@@ -31,29 +27,6 @@
 							.accessibilityIdentifier("debug.credits.starterNotice")
 					}
 				}
-				Section {
-					if let catalog {
-						ForEach(catalog.packs) { pack in
-							HStack {
-								Text("\(pack.credits.units) credits")
-								Spacer()
-								let product = products[pack.id]
-								Button(product?.displayPrice ?? "Buy") {
-									if let product {
-										Task { await buy(product) }
-									}
-								}
-								.disabled(!catalog.purchasesEnabled || product == nil)
-							}
-						}
-					}
-				} header: {
-					Text("Packs")
-				} footer: {
-					if catalog?.purchasesEnabled == false {
-						Text("testers cannot buy packs yet")
-					}
-				}
 				if let errorText {
 					Section("Error") {
 						Text(errorText)
@@ -69,15 +42,7 @@
 				}
 			}
 			.navigationTitle("Credits")
-			.task { await bootstrap() }
-		}
-
-		@MainActor
-		private func bootstrap() async {
-			if session == nil {
-				session = CreditsDebugSession(coach: coach, onSettlementFailure: present)
-			}
-			await reload()
+			.task { await reload() }
 		}
 
 		@MainActor
@@ -105,15 +70,6 @@
 		@MainActor
 		private func reload() async {
 			await refreshIdentity()
-			do {
-				let loaded = try await coach.credits.catalog()
-				catalog = loaded
-				let loadedProducts = try await Product.products(for: loaded.packs.map(\.id))
-				products = Dictionary(uniqueKeysWithValues: loadedProducts.map { ($0.id, $0) })
-				errorText = nil
-			} catch {
-				present(error)
-			}
 			await refreshBalance()
 		}
 
@@ -144,18 +100,6 @@
 		}
 
 		@MainActor
-		private func buy(_ product: Product) async {
-			guard let session else { return }
-			do {
-				_ = try await session.purchases.purchase(product)
-				errorText = nil
-				await refreshBalance()
-			} catch {
-				present(error)
-			}
-		}
-
-		@MainActor
 		private func present(_ error: Error) {
 			if let failure = error as? CreditsFailure {
 				errorText = creditsFailureName(failure)
@@ -177,8 +121,6 @@
 			"wrongEnvironment"
 		case .unknownPack:
 			"unknownPack"
-		case .purchasesDisabled:
-			"purchasesDisabled"
 		case .noPurchaseToRecover:
 			"noPurchaseToRecover"
 		case .identityMismatch:
@@ -197,16 +139,6 @@
 			"athleteDeleted"
 		case .unauthorized:
 			"unauthorized"
-		}
-	}
-
-	@MainActor
-	private final class CreditsDebugSession {
-		let purchases: StoreKitPurchaseCoordinator
-
-		init(coach: Coach, onSettlementFailure: @escaping @MainActor (Error) -> Void) {
-			self.purchases = StoreKitPurchaseCoordinator(
-				coach: coach, onSettlementFailure: onSettlementFailure)
 		}
 	}
 #endif

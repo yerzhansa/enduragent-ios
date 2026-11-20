@@ -35,11 +35,9 @@ struct KnownHost {
 	let reason: String
 
 	static let all: [KnownHost] = [
-		KnownHost(name: "openrouter.ai", reason: "OpenRouter chat calls and its sign-in page"),
+		KnownHost(name: "openrouter.ai", reason: "OpenRouter chat calls for Credits"),
 		KnownHost(name: "api.enduragent.icu", reason: "The model catalog"),
-		KnownHost(
-			name: "enduragent.icu", reason: "The OpenRouter sign-in callback and the privacy policy"
-		),
+		KnownHost(name: "enduragent.icu", reason: "The privacy policy"),
 		KnownHost(name: "feedback.enduragent.icu", reason: "Feedback notes"),
 		KnownHost(name: "intervals.icu", reason: "The athlete's training data"),
 		KnownHost(

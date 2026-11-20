@@ -38,15 +38,15 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 | --- | --- |
 | The phone has no internet connection, for the model request (`fixture:fail network x3`) or the intervals.icu training read (`-EnduragentFixtureTrainingDisplay profile-offline`) | `No connection. Your message is kept. Try again when you're online.` with Try again. The notice names neither intervals.icu nor the model provider. A training read that failed offline is read again on the next Send or Try again. |
 | Server, lost connection, timeout, or watchdog failure | `The model provider is having trouble — try again in a few minutes.` with Try again. |
-| Rejected Credits access | `Your Credits couldn't be used. You can switch to your OpenRouter account.` with `chat.turn.switchToOpenRouter`, which opens Access method. |
-| Exhausted Credits | `You're out of Credits. You can switch to your OpenRouter account.` with `chat.turn.switchToOpenRouter`, which opens Access method. |
-| OpenRouter account out of funds | `Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.` with `chat.turn.chooseAccessMethod`, which opens the Access method screen. No UI proof or hosted app test reaches this notice. |
+| Rejected Credits access, or a Credits record the app cannot read | `Your Credits couldn't be used. You can tell us in Feedback, in Settings.` with no button. |
+| Exhausted Credits | `You're out of Credits. You can buy Credits.` with only `chat.turn.buyCredits`, which opens Credits. |
 | Rate limited | A duration such as `~7 seconds`, `~2 minutes`, or `about a minute` in the rate-limit sentence. `chat.turn.tryAgain` stays disabled until the wait ends. |
 | Bad request, overflow, or exhausted turn budget | `Sorry, something went wrong. Please try again.` with Try again. |
 | Unknown or broken provider stream | `The coach couldn't respond. Please try again.` with Try again. |
 | Locked keychain | `Unlock your iPhone to continue. Your message is saved.` with Try again under the turn; a coach-wide notice also uses `chat.composer.notice`. |
-| No configured access | `Choose how the coach reaches a model to continue.` with `chat.turn.chooseAccessMethod`, which opens the Access method screen. |
-| Rejected OpenRouter account | The turn shows no notice. The transcript shows `chat.access.notice` with `chat.access.signInAgain`, which starts sign-in without leaving the conversation. `OpenRouterRecoveryProof` proves it. |
+| No Credits on this iPhone | `This iPhone has no Credits. You can buy Credits.` with `chat.turn.buyCredits`, which opens Credits. |
+| Secure storage unavailable | `Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again.` with Try again. |
+| Request blocked | `This message was blocked. Try a different message.` with no button. |
 | Information saved, reply unverified | `I saved your information, but couldn't verify my response. Please try again.` with no recovery button. Send a new message. |
 | Interrupted without saved work | `This reply stopped before it finished. Nothing was changed.` with Try again. |
 | Interrupted after saved work | `This reply stopped before it finished. Some information was saved first.` with no recovery button. |
@@ -115,8 +115,8 @@ Preconditions:
 | `sim test <run id> ReplyObservedProof` | Text already shown is recorded and suppresses replay after the watchdog, `observed-text`, `observed-text-records`, `observed-text-timeout`. |
 | `sim test <run id> SavedUnverifiedProof` | A saved memory write followed by failure or Stop offers no Try again, `saved-unverified`, `saved-unverified-records`, `stopped-after-save`. |
 | `sim test <run id> StepLimitFallbackProof` | Choose French, save memory before the step limit, and read the French fallback in Chat, after relaunch, and in History. Check eleven model requests before relaunch, zero after, one memory record, and no Try again. Inspect `step-limit-french`, `step-limit-french-restored`, and `step-limit-french-history`. |
-| `sim test <run id> NoticeCopyProof` | Exhausted and rejected Credits each offer Switch to OpenRouter without Try again, `notice-copy-credits-exhausted`, `notice-copy-access-rejected`; saved-work failure has no replay action, `notice-copy-saved-unverified`. |
-| `sim test <run id> AccessNoticeProof` | Missing access opens Access method; locked keychain keeps the message and offers Try again, `access-not-configured-access-method`, `access-locked`. |
+| `sim test <run id> NoticeCopyProof` | Exhausted Credits offer only Buy Credits, and rejected Credits offer no button, with no Try again, `notice-copy-credits-exhausted`, `notice-copy-access-rejected`; saved-work failure has no replay action, `notice-copy-saved-unverified`. |
+| `sim test <run id> AccessNoticeProof` | No Credits on this iPhone offers Buy Credits, which opens Credits; locked keychain keeps the message and offers Try again, `access-locked`. |
 
 ### Stop, expiry, background, and relaunch
 
@@ -196,5 +196,3 @@ Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks
 - The default clock is `1998-06-15T08:00:00Z` in Europe/Ljubljana. Use `-EnduragentFixtureClock <instant>` on relaunch to move it; the clock stays fixed during a launch.
 - Settings and History push onto the conversation navigation stack. Use `TutorialHarness.returnToChat` until `chat.settings` is hittable before interacting with the conversation.
 - `fixture:fail finish` reaches the unknown-stream notice, but no UI proof sends it. Some device lifecycle paths also have no dedicated fixture UI proof. Keep those gaps explicit when reporting coverage.
-
-`OpenRouterRecoveryProof` covers missing/rejected/403 recovery and overlapping requests. `OpenRouterAccessProof` covers Settings and onboarding sign-in/cancel marks, relaunch and tool replies. The guarded live procedure is in the [real-phone OpenRouter recovery section](../phone.md#prove-openrouter-recovery-selected-model-sync-and-phone-lock).

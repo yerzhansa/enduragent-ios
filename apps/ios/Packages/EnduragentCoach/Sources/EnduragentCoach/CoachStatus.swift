@@ -1,15 +1,6 @@
 import Foundation
 
 extension Coach {
-	public func changeModelAccess(_ change: ModelAccessChange) async
-		-> CredentialOutcome<AccessSummary>
-	{
-		let outcome = await vault.change(
-			change, builtInModel: builtInModel, consent: await preferences.consent())
-		await publishStatus()
-		return outcome
-	}
-
 	public func creditsIdentity() async throws(AccessUnavailable) -> CreditsIdentity {
 		try await vault.creditsIdentity()
 	}
@@ -140,7 +131,6 @@ extension Coach {
 	}
 
 	private func statusSnapshot() async -> CoachStatus {
-		await vault.refreshRejections()
 		let access = await preferences.accessStatus()
 		let preferences = await preferences.load()
 		let stored = await vault.storedTrainingStatus()

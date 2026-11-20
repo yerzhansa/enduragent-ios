@@ -187,30 +187,6 @@ struct SimCommandTests {
 	}
 
 	@Test(
-		"OpenRouter phone helper requires an operator terminal before approval or launch",
-		.timeLimit(.minutes(1)))
-	func openRouterHelperRequiresAnOperatorTerminal() throws {
-		let folder = FileManager.default.temporaryDirectory.appendingPathComponent(
-			"enduragent-openrouter-guard-\(UUID().uuidString)")
-		try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
-		let evidence = folder.appendingPathComponent("evidence").path
-		let result = Result {
-			try HelperResult.of(
-				"\(ExportedTree.products)/phone-check",
-				["openrouter", "tool", "synthetic-device", evidence], directory: folder.path,
-				environment: ProcessInfo.processInfo.environment, scratch: folder.path)
-		}
-		let exists = FileManager.default.fileExists(atPath: evidence)
-		try FileManager.default.removeItem(at: folder)
-		let finished = try result.get()
-		#expect(finished.status != 0)
-		#expect(
-			finished.errors.contains(
-				"An operator terminal is required before approval, build, launch or Send"))
-		#expect(!exists)
-	}
-
-	@Test(
 		"proof commands run in light appearance on a simulator left dark",
 		.timeLimit(.minutes(2)))
 	func proofCommandsRunInLightAppearance() throws {

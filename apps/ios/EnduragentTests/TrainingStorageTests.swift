@@ -102,7 +102,7 @@ struct TrainingStorageTests {
 			#expect(
 				reopened.trainingSettings.receipt?.saveNotice?.key == Catalog.planViewEndedSaved)
 			#expect(reopened.trainingSettings.key.isEmpty)
-		case .empty, .nativeProof, .malformedAccess:
+		case .empty, .nativeProof:
 			Issue.record("This matrix covers training storage, not missing model access")
 		}
 		#expect(reopened.route == .chat)

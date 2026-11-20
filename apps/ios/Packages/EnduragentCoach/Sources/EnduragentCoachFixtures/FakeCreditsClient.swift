@@ -93,22 +93,38 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 		return outcome
 	}
 
-	public func claim(signedTransaction: String, appAccountToken _: UUID) async throws
+	public func claim(signedTransaction: String, appAccountToken: UUID) async throws
 		-> ClaimOutcome
 	{
-		let result = state.withLock { current in
+		let (result, provisioning) = state.withLock { current in
 			current.calls.append(.claim(transactionLength: signedTransaction.count))
-			return current.claimResult
+			if case .success(let outcome) = current.claimResult,
+				case .success(let held) = current.balanceResult
+			{
+				current.balanceResult = .success(
+					CreditBalance(credits: Credits(units: held.credits.units + outcome.added.units))
+				)
+			}
+			return (current.claimResult, current.provisioning)
 		}
-		return try result.get()
+		let outcome = try result.get()
+		if case .minted = outcome, let provisioning {
+			try await provisioning.0.storeCreditsKey(provisioning.1, mintedFor: appAccountToken)
+		}
+		return outcome
 	}
 
 	public func recover(signedTransaction: String) async throws -> Recovery {
-		let result = state.withLock { current in
+		let (result, provisioning) = state.withLock { current in
 			current.calls.append(.recover(transactionLength: signedTransaction.count))
-			return current.recoverResult
+			return (current.recoverResult, current.provisioning)
 		}
-		return try result.get()
+		let recovery = try result.get()
+		if let provisioning {
+			try await provisioning.0.storeRecovery(
+				key: provisioning.1, appAccountToken: recovery.athleteId)
+		}
+		return recovery
 	}
 
 	public func catalog() async throws -> PackCatalog {
@@ -133,5 +149,14 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 			return current.eraseResult
 		}
 		try result.get()
+	}
+}
+
+extension ClaimOutcome {
+	fileprivate var added: Credits {
+		switch self {
+		case .minted(let added), .toppedUp(let added): added
+		case .alreadyClaimed: Credits(units: 0)
+		}
 	}
 }

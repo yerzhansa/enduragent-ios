@@ -71,7 +71,6 @@ public enum CreditsFailure: Error, Sendable, Equatable {
 	case notOurBundle
 	case wrongEnvironment
 	case unknownPack
-	case purchasesDisabled
 	case noPurchaseToRecover
 	case identityMismatch
 	case accountChanged
@@ -104,15 +103,13 @@ public protocol CreditsClient: Sendable {
 	func erase() async throws
 }
 
-public enum ClaimSettlement: Sendable, Equatable {
+package enum ClaimSettlement: Sendable, Equatable {
 	case finish
 	case recoverThenFinish
 
-	public static func settlement(after outcome: ClaimOutcome, hasKey: Bool) -> ClaimSettlement {
-		if outcome == .alreadyClaimed && !hasKey {
-			return .recoverThenFinish
-		}
-		return .finish
+	package static func settlement(after outcome: ClaimOutcome, hasKey: Bool) -> ClaimSettlement {
+		if case .minted = outcome { return .finish }
+		return hasKey ? .finish : .recoverThenFinish
 	}
 }
 
@@ -122,7 +119,6 @@ package struct PhoneCreditsClient: CreditsClient {
 		"not_our_bundle": .notOurBundle,
 		"wrong_environment": .wrongEnvironment,
 		"unknown_pack": .unknownPack,
-		"purchases_disabled": .purchasesDisabled,
 		"no_purchase_to_recover": .noPurchaseToRecover,
 		"identity_mismatch": .identityMismatch,
 		"rate_limited": .rateLimited,

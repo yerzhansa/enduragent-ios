@@ -9,8 +9,6 @@
 		"closeout/keychain-proof": {"verdict": "fail native-write-over-50ms", "date": "2026-10-29"},
 		"closeout/language": {"verdict": "pass", "date": "2026-11-01"},
 		"closeout/lifecycle": {"verdict": "pass", "date": "2026-11-01"},
-		"closeout/openrouter-recovery": {"verdict": "pass", "date": "2026-11-01"},
-		"closeout/openrouter-signin": {"verdict": "pass", "date": "2026-11-01"},
 		"closeout/reads": {"verdict": "pass", "date": "2026-11-01"},
 		"closeout/second-device-diagnostics": {"verdict": "pass", "date": "2026-11-05"},
 		"closeout/two-phone": {"verdict": "fail resume-keeps-stale-approval", "date": "2026-11-05"},

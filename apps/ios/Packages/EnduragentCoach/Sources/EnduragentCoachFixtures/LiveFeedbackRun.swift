@@ -43,7 +43,8 @@ package enum LiveFeedbackRun {
 			census: SupportCensus(
 				status: {
 					StatusFacts(
-						access: .none, training: .unconnected, language: LanguageCode(.automatic))
+						access: AccessKind(availability: .needsSetup), training: .unconnected,
+						language: LanguageCode(.automatic))
 				},
 				records: { .unavailable(.unavailable) }))
 		let sent = try await support.sendNote(note)

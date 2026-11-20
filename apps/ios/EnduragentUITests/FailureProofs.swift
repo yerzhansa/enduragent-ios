@@ -11,7 +11,7 @@ final class FailureNoticesProof: XCTestCase {
 		TutorialHarness.attach(self, name: "failure-timeout", app: app)
 		TutorialHarness.exchange(app, "fixture:fail 402")
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.creditsExhausted))
-		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.switchToOpenRouter").exists)
+		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.buyCredits").exists)
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 1)
 		TutorialHarness.attach(self, name: "failure-exhausted", app: app)
 		TutorialHarness.exchange(app, "fixture:fail overflow x4")

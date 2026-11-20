@@ -4,11 +4,7 @@ import XCTest
 @MainActor
 final class SessionSettingsProof: XCTestCase {
 	func testEditsSurviveRelaunchWithCredits() {
-		SessionSettingsScreen.proveEdits(self, access: .credits)
-	}
-
-	func testEditsSurviveRelaunchWithAnOpenRouterAccount() {
-		SessionSettingsScreen.proveEdits(self, access: .catalogOpenRouter)
+		SessionSettingsScreen.proveEdits(self)
 	}
 
 	func testCancelLeavesTheEditUnapplied() {
@@ -148,10 +144,10 @@ enum SessionSettingsScreen {
 			file: file, line: line)
 	}
 
-	static func proveEdits(_ test: XCTestCase, access: FixtureAccessMethod) {
+	static func proveEdits(_ test: XCTestCase) {
 		let app = XCUIApplication()
-		let name = "session-\(access.rawValue)-light"
-		launch(app, access: access)
+		let name = "session-credits-light"
+		launch(app, access: .credits)
 		assertAppearance(app)
 		open(app)
 		assertShown(app, ratio: "30", window: "")
@@ -172,10 +168,6 @@ enum SessionSettingsScreen {
 		enter(app, .contextWindowOverride, "")
 		save(app)
 		assertShown(app, ratio: "5", window: "")
-		TutorialHarness.returnToChat(app)
-		TutorialHarness.openSettings(app)
-		XCTAssertEqual(
-			TutorialHarness.named(app, "settings.model").exists, access == .catalogOpenRouter)
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.openRecords(app)
 		XCTAssertEqual(TutorialHarness.recordCount(app, "sessionSettings"), "sessionSettings 3")
@@ -303,7 +295,6 @@ enum SessionSettingsScreen {
 			Catalog.settingsConversationFieldsDailyResetHourLabel,
 			Catalog.settingsConversationFieldsTimezoneLabel,
 			Catalog.settingsConversationFieldsResetArchiveRetentionDaysLabel,
-			Catalog.settingsCoachChooseModel,
 		]
 		for key in retired {
 			XCTAssertFalse(

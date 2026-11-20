@@ -199,11 +199,7 @@ package struct SystemVersion: Sendable, Equatable {
 	var text: String { "\(major).\(minor).\(patch)" }
 }
 
-package enum AccessKind: Sendable, Equatable, Encodable {
-	case none
-	case credits(Availability)
-	case openRouterAccount(Availability)
-
+package struct AccessKind: Sendable, Equatable, Encodable {
 	package enum Availability: String, Sendable, Encodable {
 		case ready
 		case needsSetup
@@ -223,27 +219,20 @@ package enum AccessKind: Sendable, Equatable, Encodable {
 		case availability
 	}
 
+	let availability: Availability
+
+	package init(availability: Availability) {
+		self.availability = availability
+	}
+
 	package init(_ status: AccessStatus) {
-		let availability = Availability(status.availability)
-		switch status.selection?.method ?? status.savedMethod {
-		case nil: self = .none
-		case .credits: self = .credits(availability)
-		case .openRouterAccount: self = .openRouterAccount(availability)
-		}
+		self.init(availability: Availability(status.availability))
 	}
 
 	package func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: Key.self)
-		switch self {
-		case .none:
-			try container.encode("none", forKey: .method)
-		case .credits(let availability):
-			try container.encode(AccessMethod.credits, forKey: .method)
-			try container.encode(availability, forKey: .availability)
-		case .openRouterAccount(let availability):
-			try container.encode(AccessMethod.openRouterAccount, forKey: .method)
-			try container.encode(availability, forKey: .availability)
-		}
+		try container.encode(AccessMethod.credits, forKey: .method)
+		try container.encode(availability, forKey: .availability)
 	}
 }
 

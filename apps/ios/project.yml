@@ -15,7 +15,7 @@ settings:
     CODE_SIGN_STYLE: Automatic
     SWIFT_VERSION: "6.0"
     MARKETING_VERSION: "1.0"
-    CURRENT_PROJECT_VERSION: "9"
+    CURRENT_PROJECT_VERSION: "10"
   configs:
     DebugKeychainProof:
       SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) DEBUG KEYCHAIN_DEVICE_PROOF
@@ -83,6 +83,10 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: EnduragentTests
+        excludes:
+          - StoreKit/CreditsPacks.storekit
+      - path: EnduragentTests/StoreKit/CreditsPacks.storekit
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.tests
@@ -95,6 +99,7 @@ targets:
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - target: Enduragent
+      - sdk: StoreKitTest.framework
   EnduragentPhoneTests:
     type: bundle.ui-testing
     platform: iOS
@@ -170,12 +175,6 @@ schemes:
       config: Debug
       environmentVariables:
         ENDURAGENT_PHONE_MESSAGE_BUDGET: $(ENDURAGENT_PHONE_MESSAGE_BUDGET)
-        ENDURAGENT_PHONE_CHARGES_ACKNOWLEDGED: $(ENDURAGENT_PHONE_CHARGES_ACKNOWLEDGED)
-        ENDURAGENT_OPENROUTER_MODEL: $(ENDURAGENT_OPENROUTER_MODEL)
-        ENDURAGENT_OPENROUTER_REVOKED: $(ENDURAGENT_OPENROUTER_REVOKED)
-        ENDURAGENT_SECOND_PHONE: $(ENDURAGENT_SECOND_PHONE)
-        ENDURAGENT_OPENROUTER_MODEL_NAME: $(ENDURAGENT_OPENROUTER_MODEL_NAME)
-        ENDURAGENT_OPENROUTER_PROVIDER: $(ENDURAGENT_OPENROUTER_PROVIDER)
         ENDURAGENT_CHOICES_MESSAGE: $(ENDURAGENT_CHOICES_MESSAGE)
         ENDURAGENT_CHOICES_MODEL: $(ENDURAGENT_CHOICES_MODEL)
         ENDURAGENT_CHOICES_FRESH: $(ENDURAGENT_CHOICES_FRESH)

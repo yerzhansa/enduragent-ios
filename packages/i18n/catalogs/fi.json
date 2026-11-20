@@ -105,7 +105,6 @@
       "activeUnavailable": "Käytössä olevan valmentajan asetukset eivät ole saatavilla tai niitä ei ole määritetty.",
       "automatic": "Automaattinen",
       "changeRequired": "Muutos vaaditaan",
-      "chooseModel": "Valitse malli",
       "chooseProvider": "Valitse palveluntarjoaja",
       "chooseProviderFirst": "Valitse ensin palveluntarjoaja",
       "currentRoute": "Tällä hetkellä käytössä: {{provider}} · {{model}}",
@@ -120,7 +119,6 @@
       },
       "inactive": "Ei käytössä",
       "loading": "Ladataan valmentajan asetuksia…",
-      "model": "Malli",
       "notConfigured": "Ei määritetty",
       "otherModel": "Muu malli…",
       "provider": "Palveluntarjoaja",
@@ -656,7 +654,6 @@
         "mostCapable": "kyvykkäin",
         "recommended": "suositeltu"
       },
-      "modelVia": "{{model}} (palveluntarjoaja {{provider}})",
       "otherModel": "Muu malli…",
       "pending": {
         "activation": "Valmentajasi tekoäly · kirjautunut · käyttöönotto tarvitaan",
@@ -1487,12 +1484,11 @@
     },
     "menu": "Valikko",
     "turn": {
-      "chooseAccessMethod": "Valitse yhteystapa",
+      "buyCredits": "Osta krediittejä",
       "finishedWhileLocked": "Valmistui puhelimen ollessa lukittuna.",
       "interruptedNothingChanged": "Tämä vastaus keskeytyi ennen valmistumistaan. Mitään ei muutettu.",
       "interruptedSomeSaved": "Tämä vastaus keskeytyi ennen valmistumistaan. Osa tiedoista ehdittiin tallentaa.",
-      "receivedBeforeClose": "Vastaanotettu ennen sovelluksen sulkeutumista. Lähetä viesti napauttamalla Yritä uudelleen.",
-      "signInAgain": "Kirjaudu uudelleen"
+      "receivedBeforeClose": "Vastaanotettu ennen sovelluksen sulkeutumista. Lähetä viesti napauttamalla Yritä uudelleen."
     },
     "welcome": "Tervetuloa käyttämään sovellusta {{product}}!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun {{service}} tietojen avulla.\n\nKomennot:\n{{commands}}\n\nVoit myös vain jutella kanssani harjoittelustasi!",
     "welcomeCommand": "{{command}}: {{description}}",
@@ -2693,7 +2689,6 @@
       "rateLimitMinutes_other": "Pyyntöjä on nyt liikaa. Yritä uudelleen noin {{minutes}} minuutin kuluttua.",
       "rateLimitSeconds_one": "Pyyntöjä on nyt liikaa. Yritä uudelleen noin {{seconds}} sekunnin kuluttua.",
       "rateLimitSeconds_other": "Pyyntöjä on nyt liikaa. Yritä uudelleen noin {{seconds}} sekunnin kuluttua.",
-      "reauth": "{{provider}}-kirjautumisesi ei enää ole voimassa. Kirjaudu uudelleen jatkaaksesi.",
       "reauthSetup": "{{provider}}-kirjautumisesi ei enää ole voimassa. Avaa käyttöönotto ja kirjaudu uudelleen.",
       "unknown": "Pahoittelut, jokin meni pieleen. Yritä uudelleen."
     },
@@ -3018,10 +3013,21 @@
     "balance_one": "{{formattedCount}} krediitti",
     "balance_other": "{{formattedCount}} krediittiä",
     "error": {
-      "accessRejected": "Krediittejäsi ei voitu käyttää. Voit vaihtaa OpenRouter-tiliisi.",
-      "exhausted": "Krediittisi ovat loppuneet. Voit vaihtaa OpenRouter-tiliisi.",
+      "accessRejected": "Krediittejäsi ei voitu käyttää. Voit kertoa siitä meille kohdassa Palaute Asetuksissa.",
+      "exhausted": "Krediittisi ovat loppuneet. Voit ostaa krediittejä.",
       "unavailable": "Krediitit eivät ole juuri nyt käytettävissä. Yritä myöhemmin uudelleen.",
       "accountChanged": "Krediittitilisi vaihtui tämän pyynnön viimeistelyn aikana. Nykyinen tilisi säilytettiin."
+    },
+    "buy": "Osta",
+    "packPrice_one": "{{formattedCount}} krediitti · {{price}}",
+    "packPrice_other": "{{formattedCount}} krediittiä · {{price}}",
+    "purchase": {
+      "pending": "Apple käsittelee vielä tätä ostosta. Krediitit lisätään, kun se on valmis.",
+      "unavailable": "Krediittejä ei voi ostaa juuri nyt. Yritä myöhemmin uudelleen.",
+      "failed": "Ostos ei valmistunut.",
+      "notAdded": "Ostoksesi onnistui, mutta krediittejä ei ole vielä lisätty. Sovellus yrittää uudelleen, kun se avataan seuraavan kerran.",
+      "refused": "Ostoksesi onnistui, mutta krediittejä ei voi lisätä. Voit pyytää Applelta hyvitystä.",
+      "askForRefund": "Pyydä Applelta hyvitystä"
     }
   },
   "onboarding": {
@@ -3059,19 +3065,11 @@
   "access": {
     "error": {
       "locked": "Avaa iPhonen lukitus jatkaaksesi. Viestisi on tallennettu.",
-      "notConfigured": "Valitse, miten valmentaja saa yhteyden malliin, jotta voit jatkaa.",
-      "requestBlocked": "OpenRouter esti tämän pyynnön. Kokeile toista mallia tai viestiä.",
+      "notConfigured": "Tässä iPhonessa ei ole krediittejä. Voit ostaa krediittejä.",
+      "requestBlocked": "Tämä viesti estettiin. Kokeile toista viestiä.",
       "providerConsentRequired": "Lupasi tarvitaan ennen keskustelutietojen jakamista tekoälypalvelujen tarjoajille.",
-      "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin.",
-      "storageUnavailable": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Keskustelusi, historiasi ja muistisi ovat edelleen täällä. Yritä uudelleen.",
-      "malformed": "Tallennettua käyttötapaasi ei voitu lukea. Valitse käyttötapa jatkaaksesi."
-    },
-    "title": "Käyttötapa",
-    "openRouterAccount": "OpenRouter-tili",
-    "signIn": "Kirjaudu OpenRouterilla",
-    "signInCancelled": "Kirjautuminen peruutettu. Käyttötapaasi ei muutettu.",
-    "signInIncomplete": "OpenRouter-kirjautuminen ei valmistunut. Käyttötapaasi ei muutettu. Yritä uudelleen.",
-    "switchToOpenRouter": "Vaihda OpenRouteriin"
+      "storageUnavailable": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Keskustelusi, historiasi ja muistisi ovat edelleen täällä. Yritä uudelleen."
+    }
   },
   "connect": {
     "error": {
@@ -3199,9 +3197,9 @@
     "deleteEverything": "Poista kaikki",
     "confirm": {
       "title": "Poistetaanko kaikki?",
-      "body": "Tätä ei voi perua. Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta ja iCloudistasi sekä krediittitietosi. Käyttämättömät krediitit menetetään, ja aloituskrediitit annetaan vain kerran iPhonea kohden."
+      "body": "Tätä ei voi perua. Tämä poistaa keskustelusi, muistin, tallennetun suunnitelman, asetukset ja avaimet tästä iPhonesta ja iCloudistasi sekä krediittitietosi. Käyttämättömät krediitit menetetään, myös ostetut, ja aloituskrediitit annetaan vain kerran iPhonea kohden. Vain Apple voi hyvittää ostoksen."
     },
-    "keeps": "intervals.icu-tilisi ja harjoituksesi jäävät intervals.icuun. Jos kirjauduit omalla OpenRouter-tililläsi, poista sen avain OpenRouterissa.",
+    "keeps": "intervals.icu-tilisi ja harjoituksesi jäävät intervals.icuun.",
     "progress": "Poistetaan…",
     "done": "Kaikki on poistettu tästä iPhonesta, iCloudistasi ja krediittipalvelusta.",
     "notStarted": "Mitään ei poistettu. Yhdistä internetiin ja yritä uudelleen.",

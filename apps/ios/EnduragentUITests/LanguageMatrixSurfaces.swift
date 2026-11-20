@@ -28,11 +28,9 @@ enum LanguageMatrix {
 		run.expect("connect.continue", Catalog.languageContinue)
 		run.screen("onboarding-connected")
 		run.tap("connect.continue")
-		run.expect("starter.useCredits", Catalog.creditsTitle)
-		run.expect("starter.openRouter", Catalog.accessSignIn)
 		run.expect("starter.start", Catalog.onboardingStarterStart)
-		run.expectTitle(Catalog.accessTitle)
-		run.screen("onboarding-access")
+		run.expectTitle(Catalog.creditsTitle)
+		run.screen("onboarding-credits")
 		run.tap("starter.start")
 		run.expectText(Catalog.onboardingConsentTitle)
 		run.expect(
@@ -116,20 +114,14 @@ enum LanguageMatrix {
 		TutorialHarness.wait(run.named("chat.preview.add"), until: .enabled)
 		TutorialHarness.openSettings(app)
 		run.expectTitle(Catalog.settingsTitle)
-		run.expect("settings.accessMethod", Catalog.accessTitle)
 		run.expect("settings.credits", Catalog.creditsTitle)
 		run.expect("settings.training", Catalog.settingsTrainingTitle)
 		run.expect("settings.language", contains: Catalog.settingsLanguageTitle)
 		run.expect("settings.session", Catalog.settingsSessionTitle)
 		run.screen("settings")
-		run.tap("settings.accessMethod")
-		run.expect("access.credits", Catalog.creditsTitle)
-		run.expect("access.openRouter", Catalog.accessSignIn)
-		run.expectTitle(Catalog.accessTitle)
-		run.screen("settings-access-method")
 		TutorialHarness.returnToChat(app)
 		run.openSettingsRow("settings.credits")
-		run.expect("credits.switchToOpenRouter", Catalog.accessSwitchToOpenRouter)
+		run.expect("credits.buy.icu.enduragent.app.credits.small", Catalog.creditsBuy)
 		run.expectTitle(Catalog.creditsTitle)
 		run.screen("settings-credits")
 		TutorialHarness.returnToChat(app)
@@ -181,8 +173,12 @@ enum LanguageMatrix {
 		let app = run.app
 		TutorialHarness.exchange(app, "fixture:fail 402")
 		run.expectNotice(Catalog.creditsErrorExhausted)
-		run.expect("chat.turn.switchToOpenRouter", Catalog.accessSwitchToOpenRouter)
+		run.expect("chat.turn.buyCredits", Catalog.chatTurnBuyCredits)
 		run.screen("out-of-credits")
+		TutorialHarness.exchange(app, "fixture:fail 403")
+		run.expectNotice(Catalog.accessErrorRequestBlocked)
+		XCTAssertFalse(run.named("chat.turn.tryAgain").exists)
+		run.screen("blocked-message")
 		TutorialHarness.exchange(app, "fixture:fail 400")
 		run.expectNotice(Catalog.coachErrorUnknown)
 		run.expect("chat.turn.tryAgain", Catalog.chatTranscriptRetry)
@@ -262,28 +258,6 @@ enum LanguageMatrix {
 		TutorialHarness.wait(note)
 		XCTAssertTrue(note.label.contains("Endurance with tempo"), note.label)
 		run.screen("review-cancelled")
-	}
-
-	static func openRouter(_ test: XCTestCase, _ language: LanguageTag) {
-		let run = MatrixRun.begin(
-			test, language,
-			arguments: FixtureArguments(onboarded: true, accessMethod: .catalogOpenRouter))
-		let app = run.app
-		TutorialHarness.exchange(app, "fixture:fail 403")
-		run.expectNotice(Catalog.accessErrorRequestBlocked)
-		XCTAssertFalse(run.named("chat.turn.tryAgain").exists)
-		run.screen("openrouter-blocked-request")
-		TutorialHarness.openSettings(app)
-		run.expect("settings.model", contains: Catalog.settingsCoachModel)
-		run.screen("settings-openrouter")
-		run.tap("settings.model")
-		TutorialHarness.wait(run.named("model.choices"))
-		run.expect(
-			"model.choice.deepseek/deepseek-v4.1-flash-20260910", Catalog.setupAiModelVia,
-			["model": "DeepSeek V4.1 Flash", "provider": "DeepInfra"])
-		run.expectTitle(Catalog.settingsCoachChooseModel)
-		run.screen("settings-model")
-		TutorialHarness.returnToChat(app)
 	}
 
 	static func shortcuts(_ test: XCTestCase, _ language: LanguageTag) {
